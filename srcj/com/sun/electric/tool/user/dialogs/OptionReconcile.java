@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -34,7 +34,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -49,18 +49,18 @@ import javax.swing.JSeparator;
  */
 public class OptionReconcile extends EDialog
 {
-	private HashMap<JRadioButton,Pref.Meaning> changedOptions;
-    private ArrayList<AbstractButton> currentSettings;
+    private Map<Setting,Object> settingsThatChanged;
+	private HashMap<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
+    private ArrayList<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
 
 	/** Creates new form Project Settings Reconcile */
-	public OptionReconcile(Frame parent, boolean modal, List<Pref.Meaning> optionsThatChanged, String libname)
+	public OptionReconcile(Frame parent, boolean modal, Map<Setting,Object> settingsThatChanged, String libname)
 	{
 		super(parent, modal);
+        this.settingsThatChanged = settingsThatChanged;
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
-		changedOptions = new HashMap<JRadioButton,Pref.Meaning>();
-        currentSettings = new ArrayList<AbstractButton>();
 		JPanel optionBox = new JPanel();
 		optionBox.setLayout(new GridBagLayout());
 		optionPane.setViewportView(optionBox);
@@ -111,51 +111,27 @@ public class OptionReconcile extends EDialog
 		optionBox.add(new JSeparator(), gbc);
 
 		int rowNumber = 2;
-		for(Pref.Meaning meaning : optionsThatChanged)
+        Map<Setting,Object> settingsThatChanged_ = new HashMap<Setting,Object>();
+		for (Map.Entry<Setting,Object> e: settingsThatChanged.entrySet())
 		{
-			Pref pref = meaning.getPref();
-//			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-			Object obj = meaning.getDesiredValue();
-			if (obj.equals(pref.getValue())) continue;
+            Setting setting = e.getKey();
+			Object obj = e.getValue();
+            if (obj == null)
+                obj = setting.getFactoryValue();
+			if (obj.equals(setting.getValue())) continue;
 
-			String oldValue = null, newValue = null;
-			switch (pref.getType())
-			{
-				case BOOLEAN:
-					oldValue = ((Integer)pref.getValue()).intValue() == 0 ? "OFF" : "ON";
-					newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
-					break;
-				case INTEGER:
-					int oldIntValue = ((Integer)pref.getValue()).intValue();
-					int newIntValue = ((Integer)obj).intValue();
-					String [] trueMeaning = meaning.getTrueMeaning();
-					if (trueMeaning != null)
-					{
-						oldValue = trueMeaning[oldIntValue];
-						newValue = trueMeaning[newIntValue];
-					} else
-					{
-						oldValue = Integer.toString(oldIntValue);
-						newValue = Integer.toString(newIntValue);
-					}
-					break;
-				case DOUBLE:
-					oldValue = Double.toString(((Double)pref.getValue()).doubleValue());
-					if (obj instanceof Double)
-						newValue = Double.toString(((Double)obj).doubleValue()); else
-					if (obj instanceof Float)
-						newValue = Float.toString(((Float)obj).floatValue()); else
-					{
-						System.out.println("HEY! setting "+pref.getPrefName()+" should have Double/Float but instead has value "+obj);
-						break;
-					}
-					break;
-				case STRING:
-					oldValue = pref.getValue().toString();
-					newValue = obj.toString();
-					break;
-			}
-
+            Object settingValue = setting.getValue();
+			String oldValue = settingValue.toString();
+            String newValue = obj.toString();
+            String[] trueMeaning = setting.getTrueMeaning();
+            if (settingValue instanceof Boolean) {
+                oldValue = setting.getBoolean() ? "ON" : "OFF";
+                newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
+            } else if (trueMeaning != null) {
+                oldValue = trueMeaning[setting.getInt()];
+                newValue = trueMeaning[((Integer)obj).intValue()];
+            }
+            
 /*
 			// the first column: the "Accept" checkbox
 			JCheckBox cb = new JCheckBox("Accept");
@@ -175,7 +151,7 @@ public class OptionReconcile extends EDialog
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
-			optionBox.add(new JLabel(meaning.getDescription()), gbc);
+			optionBox.add(new JLabel(setting.getDescription()), gbc);
 
 			// the third column is the current value
 			gbc.gridx = 2;       gbc.gridy = rowNumber;
@@ -200,7 +176,7 @@ public class OptionReconcile extends EDialog
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
             JRadioButton libValue = new JRadioButton(newValue, true);
-            changedOptions.put(libValue, meaning);
+            changedSettings.put(libValue, setting);
 			optionBox.add(libValue, gbc);
 /*
             libValue.addActionListener(new ActionListener() {
@@ -219,7 +195,7 @@ public class OptionReconcile extends EDialog
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
-			optionBox.add(new JLabel(meaning.getLocation()), gbc);
+			optionBox.add(new JLabel(setting.getLocation()), gbc);
 
 			rowNumber++;
 		}
@@ -229,33 +205,50 @@ public class OptionReconcile extends EDialog
 		finishInitialization();
 	}
 
-	public void termDialog()
-	{
-		new DoReconciliation(changedOptions);
-	}
+    public void termDialog() {
+        Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
+        for(JRadioButton cb : changedSettings.keySet()) {
+            if (!cb.isSelected()) continue;
+            Setting setting = changedSettings.get(cb);
+            settingsToReconcile.put(setting, settingsThatChanged.get(setting));
+        }
+        new DoReconciliation(settingsToReconcile);
+    }
 
 	/**
 	 * Class to apply changes to tool options in a new thread.
 	 */
 	private static class DoReconciliation extends Job
 	{
-		private DoReconciliation(HashMap<JRadioButton,Pref.Meaning> changedOptions)
-		{
-			super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-
-            List<Pref.Meaning> meaningsToReconcile = new ArrayList<Pref.Meaning>();
-            for(JRadioButton cb : changedOptions.keySet())
-			{
-				if (!cb.isSelected()) continue;
-				Pref.Meaning meaning = changedOptions.get(cb);
-                meaningsToReconcile.add(meaning);
-			}
-            Pref.finishPrefReconcilation(meaningsToReconcile);
-			startJob();
-		}
-
+        private Map<Object,Map<String,Object>> settingsToSerialize = new HashMap<Object,Map<String,Object>>();
+        
+        private DoReconciliation(Map<Setting,Object> settingsToReconcile) {
+            super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
+                Setting setting = e.getKey();
+                Map<String,Object> ownerSettings = this.settingsToSerialize.get(setting.getOwnerObject());
+                if (ownerSettings == null) {
+                    ownerSettings = new HashMap<String,Object>();
+                    this.settingsToSerialize.put(setting.getOwnerObject(), ownerSettings);
+                }
+                ownerSettings.put(setting.getPrefName(), e.getValue());
+            }
+            startJob();
+        }
+        
 		public boolean doIt() throws JobException
 		{
+            Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
+            for (Map.Entry<Object,Map<String,Object>> e1: settingsToSerialize.entrySet()) {
+                Object ownerObj = e1.getKey();
+                for (Map.Entry<String,Object> e2: e1.getValue().entrySet()) {
+                    String prefName = e2.getKey();
+                    Setting setting = Setting.getSetting(ownerObj, prefName);
+                    if (setting == null) continue;
+                    settingsToReconcile.put(setting, e2.getValue());
+                }
+            }
+            Setting.finishSettingReconcilation(settingsToReconcile);
 			return true;
 		}
 	}
@@ -363,7 +356,7 @@ public class OptionReconcile extends EDialog
 
     private void useLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useLibraryOptionsActionPerformed
         // set all library options selected
-        for(JRadioButton b : changedOptions.keySet())
+        for(JRadioButton b : changedSettings.keySet())
         {
             b.setSelected(true);
         }

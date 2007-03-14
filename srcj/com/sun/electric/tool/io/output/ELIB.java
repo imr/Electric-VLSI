@@ -48,6 +48,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -171,10 +172,10 @@ public class ELIB extends Output
         
         // Gather objects refetenced from preferences
         for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-            gatherMeaningPrefs(it.next());
+            gatherSettings(it.next());
         
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-            gatherMeaningPrefs(it.next());
+            gatherSettings(it.next());
         
         putNameSpace(Library.FONT_ASSOCIATIONS.getName());
         putNameSpace(NodeInst.NODE_NAME.getName());
@@ -584,18 +585,16 @@ public class ELIB extends Output
 	}
 
 	/**
-	 * Gather meaning preferences attached to object into objInfo map.
-	 * @param obj Object with attached meaning preferences.
+	 * Gather project settings attached to object into objInfo map.
+	 * @param obj Object with attached project settings.
 	 */
-	private void gatherMeaningPrefs(Object obj)
-	{
-		for(Pref pref : Pref.getMeaningVariables(obj))
-		{
-			gatherObj(obj);
-			String name = pref.getPrefName();
-			if (nameSpace != null) putNameSpace(name);
-		}
-	}
+    private void gatherSettings(Object obj) {
+        for (Setting setting: Setting.getSettings(obj)) {
+            gatherObj(obj);
+            String name = setting.getPrefName();
+            if (nameSpace != null) putNameSpace(name);
+        }
+    }
 
 	/**
 	 * Gather Cell, its Library and its font into objInfo map.
@@ -1117,17 +1116,18 @@ public class ELIB extends Output
     }
     
     /**
-     * Method to write a set of meaning preferences.
+     * Method to write a set of project settings.
      */
     void writeMeaningPrefs(Object obj) throws IOException {
-        List<Pref> prefs = Pref.getMeaningVariables(obj);
-        writeInt("variables: ", prefs.size());
-        for(Pref pref : prefs) {
+        List<Setting> settings = Setting.getSettings(obj);
+        writeInt("variables: ", settings.size());
+        for (Setting setting : settings) {
             // create the "type" field
-            Object varObj = pref.getValue();
+            Object varObj = setting.getValue();
+            if (varObj instanceof Boolean) varObj = Integer.valueOf(((Boolean)varObj).booleanValue() ? 1 : 0);
             int type = ELIBConstants.getVarType(varObj);
             if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
-            writeVariableName(pref.getPrefName());
+            writeVariableName(setting.getPrefName());
             writeTextDescriptor(type, null);
             writeVarValue(varObj);
         }

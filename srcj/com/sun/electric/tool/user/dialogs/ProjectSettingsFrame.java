@@ -51,6 +51,7 @@ import javax.swing.tree.TreePath;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
@@ -360,13 +361,13 @@ public class ProjectSettingsFrame extends EDialog
 
             // gather preference changes on the client
 			Pref.gatherPrefChanges();
-            Pref.clearChangedAllPrefs();
+            Setting.clearChangedAllPrefs();
             for(ProjSettingsPanel ti : dialog.optionPanes)
 			{
 				if (ti.isInited())
 					ti.term();
 			}
-            if (Pref.anyPrefChanged()) this.issueWarning = true;
+            if (Setting.anyPrefChanged()) this.issueWarning = true;
             changeBatch = Pref.getPrefChanges();
 			startJob();
 		}

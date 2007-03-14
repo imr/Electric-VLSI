@@ -93,7 +93,7 @@ import javax.xml.transform.stream.StreamSource;
 public class Pref
 {
     public static class Group {
-        private Preferences prefs;
+        Preferences prefs;
         Group(Preferences prefs) { this.prefs = prefs; }
     }
 
@@ -101,120 +101,6 @@ public class Pref
         Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
         return new Group(prefs);
     }
-
-	/**
-	 * This class provides extra information for "meaning" options.
-	 */
-	public static class Meaning
-	{
-		private Object ownerObj;
-		private Variable.Key key;
-		private boolean valid;
-		private Object desiredValue;
-		private Pref pref;
-		private String description, location;
-		private boolean marked;
-		private String [] trueMeaning;
-
-		/**
-		 * Constructor for Meaning options to attach them to an object in the database.
-		 * @param ownerObj the Object in the database that this Meaning attaches to.
-		 * @param pref the Pref object for storing the option value.
-		 * @param location the user-command that can affect this Meaning option.
-		 * @param description the description of this Meaning option.
-		 */
-		Meaning(Object ownerObj, Pref pref, String location, String description)
-		{
-			this.ownerObj = ownerObj;
-			key = Variable.newKey(pref.name);
-			this.pref = pref;
-			this.location = location;
-			this.description = description;
-			this.valid = true;
-		}
-
-		/**
-		 * Method to return the Pref associated with this Meaning option.
-		 * @return the Pref associated with this Meaning option.
-		 */
-		public Pref getPref() { return pref; }
-
-		/**
-		 * Method to return the Variable.Key of name of this Meaning option.
-		 * @return the Variable.Key of name of this Meaning option.
-		 */
-		public Variable.Key getKey() { return key; }
-
-		/**
-		 * Method to return the owner Object associated with this Meaning option.
-		 * @return the owner Object associated with this Meaning option.
-		 */
-		public Object getOwnerObject() { return ownerObj; }
-
-		/**
-		 * Method to return the user-command that can affect this Meaning option.
-		 * @return the user-command that can affect this Meaning option.
-		 */
-		public String getLocation() { return location; }
-
-		/**
-		 * Method to return the description of this Meaning option.
-		 * @return the Pref description of this Meaning option.
-		 */
-		public String getDescription() { return description; }
-
-		/**
-		 * Method to set whether this Meaning option is valid and should be reconciled.
-		 * Some should not, for example, the scale value on technologies that
-		 * don't use scaling (such as Schematics, Artwork, etc.)
-		 * @param valid true if this Meaning option is valid and should be reconciled.
-		 */
-		public void setValidOption(boolean valid) { this.valid = valid; }
-
-		/**
-		 * Method to tell whether this Meaning option is valid and should be reconciled.
-		 * Some should not, for example, the scale value on technologies that
-		 * don't use scaling (such as Schematics, Artwork, etc.)
-		 * @return true if this Meaning option is valid and should be reconciled.
-		 */
-		public boolean isValidOption() { return valid; }
-
-		/**
-		 * Method to associate an array of strings to be used for integer Meaning options.
-		 * @param trueMeaning the array of strings that should be used for this integer Meaning option.
-		 * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
-		 * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
-		 * By giving an array of 3 strings to this method, a proper description of the option
-		 * can be given to the user.
-		 */
-		public void setTrueMeaning(String [] trueMeaning) { this.trueMeaning = trueMeaning; }
-
-		/**
-		 * Method to return an array of strings to be used for integer Meaning options.
-		 * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
-		 * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
-		 * By giving an array of 3 strings to this method, a proper description of the option
-		 * can be given to the user.
-		 * @return the array of strings that should be used for this integer Meaning option.
-		 */
-		public String [] getTrueMeaning() { return trueMeaning; }
-
-		/**
-		 * Method to set the desired value on this Meaning.
-		 * The desired value is the one that is currently in effect, as opposed to
-		 * the value that has been read with a Library.
-		 * @param desiredValue the desired value on this Meaning.
-		 */
-		private void setDesiredValue(Object desiredValue) { this.desiredValue = desiredValue; }
-
-		/**
-		 * Method to get the desired value on this Meaning.
-		 * The desired value is the one that is currently in effect, as opposed to
-		 * the value that has been read with a Library.
-		 * @return the desired value on this Meaning.
-		 */
-		public Object getDesiredValue() { return desiredValue; }
-	}
 
     public enum PrefType {
 	/** The value for boolean options. */		BOOLEAN,
@@ -227,7 +113,7 @@ public class Pref
 	private   final String      name;
 	private   PrefType         type;
 	private   final Preferences prefs;
-	private   Meaning     meaning;
+	/*private*/   boolean     meaning;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
     private   boolean changed = false;
@@ -316,6 +202,7 @@ public class Pref
                             break;
                     }
                 }
+                Setting.setPreferencesToFactoryValue();
             }
 			resumePrefFlushing();
 
@@ -324,6 +211,7 @@ public class Pref
 			inputStream.close();
 
 			// recache all prefs
+			delayPrefFlushing();
             synchronized (allPrefs) {
                 for(Pref pref : allPrefs) {
                     switch (pref.type) {
@@ -350,7 +238,9 @@ public class Pref
                             break;
                     }
                 }
+                Setting.setFromPreferences();
             }
+			resumePrefFlushing();
 
 			// recache technology color information
             Technology.cacheTransparentLayerColors();
@@ -466,24 +356,6 @@ public class Pref
 	}
 
 	/**
-	 * Factory methods to create a boolean project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Pref makeBooleanSetting(String name, Group group, Object ownerObj,
-                                          ProjSettingsNode xmlNode, String xmlName,
-                                          String location, String description, boolean factory) {
-        Pref pref = makeBooleanPref(name, group, factory);
-        pref.attachToObject(ownerObj, location, description);
-        pref.linkProjectSettings(xmlNode, name, xmlName);
-        return pref;
-    }
-
-	/**
 	 * Factory methods to create an integer Pref objects.
 	 * The proper way to create an integer Pref is with makeIntPref;
 	 * use of this method is only for subclasses.
@@ -509,24 +381,6 @@ public class Pref
 		pref.initInt(factory);
 		return pref;
 	}
-
-	/**
-	 * Factory methods to create an integerproject setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Pref makeIntSetting(String name, Group group, Object ownerObj,
-                                      ProjSettingsNode xmlNode, String xmlName,
-                                      String location, String description, int factory) {
-        Pref pref = makeIntPref(name, group, factory);
-        pref.attachToObject(ownerObj, location, description);
-        pref.linkProjectSettings(xmlNode, name, xmlName);
-        return pref;
-    }
 
 	/**
 	 * Factory methods to create a long Pref objects.
@@ -556,24 +410,6 @@ public class Pref
 	}
 
 	/**
-	 * Factory methods to create a long project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Pref makeLongSetting(String name, Group group, Object ownerObj,
-                                       ProjSettingsNode xmlNode, String xmlName,
-                                       String location, String description, long factory) {
-        Pref pref = makeLongPref(name, group, factory);
-        pref.attachToObject(ownerObj, location, description);
-        pref.linkProjectSettings(xmlNode, name, xmlName);
-        return pref;
-    }
-
-	/**
 	 * Factory methods to create a double Pref objects.
 	 * The proper way to create a double Pref is with makeDoublePref;
 	 * use of this method is only for subclasses.
@@ -599,24 +435,6 @@ public class Pref
 		pref.initDouble(factory);
 		return pref;
 	}
-
-	/**
-	 * Factory methods to create a double project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Pref makeDoubleSetting(String name, Group group, Object ownerObj,
-                                         ProjSettingsNode xmlNode, String xmlName,
-                                         String location, String description, double factory) {
-        Pref pref = makeDoublePref(name, group, factory);
-        pref.attachToObject(ownerObj, location, description);
-        pref.linkProjectSettings(xmlNode, name, xmlName);
-        return pref;
-    }
 
 	/**
 	 * Factory methods to create a string Pref objects.
@@ -649,33 +467,6 @@ public class Pref
 		Pref pref = new Pref(prefs, name);
 		pref.initString(factory);
 		return pref;
-    }
-
-	/**
-	 * Factory methods to create a string project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Pref makeStringSetting(String name, Group group, Object ownerObj,
-                                         ProjSettingsNode xmlNode, String xmlName,
-                                         String location, String description, String factory) {
-        Pref pref = makeStringPref(name, group, factory);
-        pref.attachToObject(ownerObj, location, description);
-        pref.linkProjectSettings(xmlNode, name, xmlName);
-        return pref;
-    }
-
-    protected void linkProjectSettings(ProjSettingsNode node, String name, String xmlName) {
-//        if (node == null) return;
-        if (xmlName == null) xmlName = name;
-//        if (!name.equals(xmlName)) {
-//            System.out.println("linkProjectSettings: " + name + " " + xmlName);
-//        }
-        node.putValue(xmlName, this);
     }
 
     /**
@@ -769,15 +560,6 @@ public class Pref
 	 */
 	public PrefType getType() { return type; }
 
-	/**
-	 * Method to get the Meaning associated with this Pref object.
-	 * Not all Pref objects have a meaning, and those that don't are not
-	 * meaning options, but instead are appearance options.
-	 * @return the Meaning associated with this Pref object.
-	 * Returns null if this Pref is not a meaning option.
-	 */
-	public Meaning getMeaning() { return meaning; }
-
     /**
 	 * Method called when this Pref is changed.
 	 * This method is overridden in subclasses that want notification.
@@ -840,33 +622,6 @@ public class Pref
 	}
 
     /**
-     * Mark all preferences as "unchanged"
-     */
-    public static void clearChangedAllPrefs() {
-        synchronized (allPrefs) {
-            for (Pref pref : allPrefs)
-                pref.changed = false;
-        }
-    }
-
-    /**
-     * Return true if any pref has changed since the last
-     * call to clearChangedAllPrefs()
-     * @return true if any pref has changed since changes were cleared
-     */
-    public static boolean anyPrefChanged() {
-        boolean changed = false;
-        synchronized (allPrefs) {
-            for (Pref pref : allPrefs) {
-                if (pref.changed) {
-                    changed = true; break;
-                }
-            }
-        }
-        return changed;
-    }
-
-    /**
 	 * Method to delay the saving of preferences to disk.
 	 * Since individual saving is time-consuming, batches of preference
 	 * changes are wrapped with this, and "resumePrefFlushing()".
@@ -890,7 +645,12 @@ public class Pref
 		for(Preferences p : queueForFlushing)
 			flushOptions(p);
 	}
-
+    
+    static void flushOptions_(Preferences prefs) {
+        if (doFlushing) flushOptions(prefs); else
+            queueForFlushing.add(prefs);
+    }
+    
 	/**
 	 * Method to set a new boolean value on this Pref object.
 	 * @param v the new boolean value of this Pref object.
@@ -1001,192 +761,6 @@ public class Pref
 		setSideEffect();
 	}
 
-//    private static Map meaningPrefs = new HashMap();
-
-	/**
-	 * Method to make this Pref a "meaning" option.
-	 * Meaning options are attached to Technology and Tool objects,
-	 * and are saved with libraries.
-	 * @param ownerObj the Object to attach this Pref to.
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @return a Meaning object, now associated with this Pref object, that
-	 * gives the option meaning.
-	 */
-	public Meaning attachToObject(Object ownerObj, String location, String description)
-	{
-		if (meaning == null)
-		{
-			meaning = new Meaning(ownerObj, this, location, description);
-		} else {
-			System.out.println("Meaning " + name + " already attached to " + ownerObj);
-		}
- //       List list = (List)meaningPrefs.get(this.name);
- //       if (list == null) { list = new ArrayList(); }
- //       list.add(meaning);
-		return meaning;
-	}
-
-	/**
-	 * Method to find the Meaning object associated with a given part of the
-	 * Electric database.
-	 * @param ownerObj the Object on which to find a Meaning object.
-	 * @param name the name of the desired Meaning object.
-	 * @return the Meaning object on that part of the database.
-	 */
-	public static Meaning getMeaningVariable(Object ownerObj, String name)
-	{
-/*
-        List list = meaningPrefs.get(name);
-        if (list == null) return null;
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
-            Meaning m = it.next();
-            if (m.eObj == eObj) return m;
-        }
-*/
-        synchronized (allPrefs) {
-            for(Pref pref : allPrefs) {
-                if (pref.meaning == null) continue;
-                if (pref.meaning.ownerObj != ownerObj) continue;
-                if (pref.name.equals(name)) {
-                    return pref.meaning;
-                }
-            }
-        }
-		return null;
-	}
-
-	/**
-	 * Method to get a list of "meaning" options assiciatiated with the given
-	 * owner object or list of all "meaning" options, if object in not given
-	 * @param ownerObj owner object, or null
-	 * @return a list of "meaning" option
-	 */
-	public static List<Pref> getMeaningVariables(Object ownerObj)
-	{
-		ArrayList<Pref> prefs = new ArrayList<Pref>();
-        synchronized (allPrefs) {
-            for(Pref pref : allPrefs) {
-                if (pref.meaning == null) continue;
-                if (!pref.meaning.isValidOption()) continue;
-                if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
-                if (pref.cachedObj.equals(pref.factoryObj)) continue;
-//System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.ownerObj);
-//System.out.println("   Current value="+pref.cachedObj+" factory value=" + pref.factoryObj);
-                prefs.add(pref);
-            }
-        }
-		Collections.sort(prefs, new TextUtils.PrefsByName());
-		return prefs;
-	}
-
-	/**
-	 * Method to store all changed "meaning" options in the database.
-	 * This is done before saving a library, so that the options related to that
-	 * library get saved as well.
-	 */
-// 	public static void installMeaningVariables()
-// 	{
-// 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
-// 		{
-// 			Pref pref = it.next();
-// 			if (pref.meaning == null) continue;
-// 			Variable.Key key = Variable.newKey(pref.name);
-// 			if (pref.cachedObj.equals(pref.factoryObj))
-// 			{
-// 				pref.meaning.eObj.delVar(key);
-// 				continue;
-// 			}
-// 			pref.meaning.eObj.newVar(key, pref.cachedObj);
-// 		}
-// 	}
-
-	/**
-	 * Method to adjust "meaning" options that were saved with a library.
-	 * Presents the user with a dialog to help reconcile the difference
-	 * between meaning options stored in a library and the original values.
-	 */
-	public static void reconcileMeaningVariables(String libName, Map<Object,Map<String,Object>> meaningVariables)
-	{
-        synchronized (allPrefs) {
-            for(Pref pref : allPrefs) {
-                if (pref.meaning == null) continue;
-                pref.meaning.marked = false;
-            }
-        }
-		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
-        for (Object obj: meaningVariables.keySet()) {
-            Map<String,Object> meanings = meaningVariables.get(obj);
-            for (String prefName: meanings.keySet()) {
-                Pref.Meaning meaning = Pref.getMeaningVariable(obj, prefName);
-                if (meaning == null) continue;
-                Object value = meanings.get(prefName);
-                meaning.marked = true;
-                if (DBMath.objectsReallyEqual(value, meaning.pref.cachedObj)) continue;
-                meaning.setDesiredValue(value);
-                if (!meaning.isValidOption()) continue;
-//System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.ownerObj+" is "+value+" but is cached as "+meaning.pref.cachedObj);
-                meaningsToReconcile.add(meaning);
-            }
-		}
-        synchronized (allPrefs) {
-            for(Pref pref : allPrefs) {
-                if (pref.meaning == null) continue;
-                if (pref.meaning.marked) continue;
-
-                // this one is not mentioned in the library: make sure it is at factory defaults
-                if (DBMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
-
-//System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
-                pref.meaning.setDesiredValue(pref.factoryObj);
-                if (!pref.meaning.isValidOption()) continue;
-                meaningsToReconcile.add(pref.meaning);
-            }
-        }
-
-		if (meaningsToReconcile.size() == 0) return;
-
-        Job.getExtendedUserInterface().finishPrefReconcilation(libName, meaningsToReconcile);
-//		if (Job.BATCHMODE)
-//		{
-//            finishPrefReconcilation(meaningsToReconcile);
-//			return;
-//		}
-// 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
-//		dialog.setVisible(true);
-	}
-
-    /**
-     * This method is called after reconciling Prefs with OptionReconcile dialog or in a batch mode
-     */
-    public static void finishPrefReconcilation(List<Meaning> meaningsToReconcile)
-    {
-    	// delay flushing of preferences until all chanages are made
-		delayPrefFlushing();
-        for(Meaning meaning : meaningsToReconcile)
-        {
-            Pref pref = meaning.getPref();
-            Object obj = meaning.getDesiredValue();
-
-            // set the option
-            switch (pref.getType())
-            {
-                case BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-                case INTEGER: pref.setInt(((Integer)obj).intValue());            break;
-                case DOUBLE:
-                    if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
-                        if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
-                    break;
-                case STRING:  pref.setString((String)obj);                       break;
-                default: continue;
-            }
-            System.out.println("Project Setting "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
-        }
-
-        // resume flushing, and save everything just set
-        resumePrefFlushing();
-    }
-
     public static void allPreferencesCreated() {
         allPreferencesCreated = true;
     }
@@ -1212,13 +786,15 @@ public class Pref
         }
         out.println(lenStrings + " chars in " + numStrings + " strings");
         out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
+        Setting.printAllSettings(out);
+        out.println("ELECTRIC USER PREFERENCES");
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
-            out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj + " " + (pref.meaning != null));
+            out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj);
     }
 
     private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {
-        for (int i = 0; i < level; i++) System.out.print("  ");
+        for (int i = 0; i < level; i++) out.print("  ");
         String[] keys = topNode.keys();
         for (int i = 0; i < keys.length; i++) {
             numStrings++;

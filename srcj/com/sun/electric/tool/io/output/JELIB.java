@@ -46,6 +46,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -160,21 +161,21 @@ public class JELIB extends Output {
         boolean toolHeaderPrinted = false;
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
             Tool tool = it.next();
-            if (Pref.getMeaningVariables(tool).size() == 0) continue;
+            if (Setting.getSettings(tool).size() == 0) continue;
             if (!toolHeaderPrinted) {
                 printWriter.println();
                 printWriter.println("# Tools:");
                 toolHeaderPrinted = true;
             }
             printWriter.print("O" + convertString(tool.getName()));
-            printlnMeaningPrefs(tool);
+            printlnSettings(tool);
         }
         
         // write technology information
         boolean technologyHeaderPrinted = false;
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
-            if (Pref.getMeaningVariables(tech).size() == 0) continue;
+            if (Setting.getSettings(tech).size() == 0) continue;
 //			if (!objInfo.containsKey(tech))	continue;
             if (!technologyHeaderPrinted) {
                 printWriter.println();
@@ -182,7 +183,7 @@ public class JELIB extends Output {
                 technologyHeaderPrinted = true;
             }
             printWriter.print("T" + convertString(tech.getTechName()));
-            printlnMeaningPrefs(tech);
+            printlnSettings(tech);
             
 // 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
@@ -698,13 +699,12 @@ public class JELIB extends Output {
     }
     
     /**
-     * Method to write the meaning preferences on an object.
+     * Method to write the project settings on an object.
      */
-    private void printlnMeaningPrefs(Object obj) {
-        List<Pref> prefs = Pref.getMeaningVariables(obj);
-        for(Pref pref : prefs) {
-            Object value = pref.getValue();
-            printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value));
+    private void printlnSettings(Object obj) {
+        for (Setting setting : Setting.getSettings(obj)) {
+            Object value = setting.getValue();
+            printWriter.print("|" + convertVariableName(setting.getPrefName()) + "()" + makeString(value));
         }
         printWriter.println();
     }

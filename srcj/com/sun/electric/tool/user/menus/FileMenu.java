@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
@@ -82,19 +82,13 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.HeadlessException;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.io.EOFException;
 import java.io.File;
-import java.io.LineNumberReader;
-import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -408,7 +402,7 @@ public class FileMenu {
 		private FileType type;
 		private Library deleteLib;
         private String cellName; // cell to view once the library is open
-        private HashMap<Object,Map<String,Object>> meaningVariables;
+        private HashMap<Object,Map<String,Object>> projectSettings;
         private Library lib;
 
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName)
@@ -429,9 +423,9 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-            fieldVariableChanged("meaningVariables");
-            meaningVariables = new HashMap<Object,Map<String,Object>>();
-        	lib = LibraryFiles.readLibrary(fileURL, null, type, false, meaningVariables);
+            fieldVariableChanged("projectSettings");
+            projectSettings = new HashMap<Object,Map<String,Object>>();
+        	lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
             if (lib == null) return false;
             fieldVariableChanged("lib");
 
@@ -454,8 +448,8 @@ public class FileMenu {
             if (projsettings.exists()) {
                 ProjSettings.readSettings(projsettings, false);
             } else {
-                Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
-                meaningVariables = null;
+                Setting.reconcileSettings(lib.getName(), projectSettings);
+                projectSettings = null;
             }
 
             Cell showThisCell = (cellName != null) ?

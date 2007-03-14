@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
@@ -63,6 +64,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -517,9 +519,10 @@ public class UserInterfaceMain extends AbstractUserInterface
         top.getEMenuBar().restoreSavedBindings(false); //trying to cache again
     }
 
-    public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
+    @Override
+    public void finishSettingReconcilation(String libName, Map<Setting,Object> settingsToReconcile)
     {
-        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
+        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, settingsToReconcile, libName);
 		dialog.setVisible(true);
     }
 

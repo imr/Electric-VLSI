@@ -26,9 +26,11 @@ package com.sun.electric.technology;
 
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 
 import java.util.List;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * This is supposed to better encapsulate a particular foundry
@@ -51,7 +53,7 @@ public class Foundry {
 
     private Type type;
     private List<DRCTemplate> rules;
-    private HashMap<String,Pref> gdsLayerPrefs = new HashMap<String, Pref>();
+    private HashMap<String,Setting> gdsLayerPrefs = new HashMap<String, Setting>();
 
     public Foundry(Type mode) {
         this.type = mode;
@@ -122,7 +124,7 @@ public class Foundry {
     {
         // Getting rid of spaces
         String value = factoryDefault.replaceAll(", ", ",");
-        getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, value);
+        makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, value);
     }
 
     /**
@@ -131,23 +133,26 @@ public class Foundry {
      */
     public String getGDSLayer(Layer layer)
     {
-        return getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, null).getString();
+        return getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs).getString();
     }
 
-    private Pref getLayerSetting(Layer layer, String what, HashMap<String,Pref> map, String factory)
-    {
+    private Setting getLayerSetting(Layer layer, String what, HashMap<String,Setting> map) {
+        return map.get(makeLayerKey(layer, what));
+    }
+    
+    private void makeLayerSetting(Layer layer, String what, HashMap<String,Setting> map, String factory) {
         String techName = layer.getTechnology().getTechName();
-        String key = layer.getName() + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
-        Pref pref = (Pref)map.get(key);
-        if (pref == null)
-        {
-            if (factory == null) factory = "";
-            pref = Pref.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
+        String key = makeLayerKey(layer, what);
+        if (factory == null) factory = "";
+        Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
                     layer.getTechnology(), getGDSNode(layer.getTechnology()), layer.getName(),
                 what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factory);
-            map.put(key, pref);
-        }
-        return pref;
+        map.put(key, setting);
+    }
+    
+    private String makeLayerKey(Layer layer, String what) {
+        String techName = layer.getTechnology().getTechName();
+        return layer.getName() + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
     }
 
     /**
@@ -156,7 +161,7 @@ public class Foundry {
      */
     public void setGDSLayer(Layer layer, String gdsLayer)
     {
-        getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, gdsLayer).setString(gdsLayer);
+        getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs).setString(gdsLayer);
     }
 
     /**
@@ -178,5 +183,16 @@ public class Foundry {
             return node.getNode("ST");
         else
             return node;
+    }
+    
+     /**
+     * Method to finish initialization of this Foundry.
+     */
+    void finish(Technology tech) {
+        for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            if (getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs) == null)
+                makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, "");
+        }
     }
 }

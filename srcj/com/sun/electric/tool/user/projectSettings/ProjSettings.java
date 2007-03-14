@@ -40,13 +40,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.technology.Technology;
 
 /**
  * Created by IntelliJ IDEA.
@@ -205,10 +202,9 @@ public class ProjSettings {
             if (value instanceof ProjSettingsNode) {
                 ProjSettingsNode node = (ProjSettingsNode)value;
                 writeNode(key, node);
-            } else if (value instanceof Pref) {
-                Pref pref = (Pref)value;
-                Object val = pref.getValue();
-                if (pref.getType() == Pref.PrefType.BOOLEAN) val = new Boolean(pref.getBoolean());
+            } else if (value instanceof Setting) {
+                Setting setting = (Setting)value;
+                Object val = setting.getValue();
                 writeValue(key, val);
             } else if (value instanceof ProjSettingsNode.UninitializedPref) {
                 ProjSettingsNode.UninitializedPref pref = (ProjSettingsNode.UninitializedPref)value;
@@ -312,44 +308,44 @@ public class ProjSettings {
                 }
                 ProjSettingsNode currentNode = context.peek();
                 String value = null;
-                Pref pref = currentNode.getValue(key);
+                Setting setting = currentNode.getValue(key);
                 try {
                     if ((value = attributes.getValue("string")) != null) {
-                        if (pref != null) {
-                            prDiff(pref, pref.getValue(), value, allowOverride);
-                            if (allowOverride) pref.setString(value);
+                        if (setting != null) {
+                            prDiff(setting, setting.getString(), value, allowOverride);
+                            if (allowOverride) setting.setString(value);
                         } else if (allowOverride)
                             currentNode.put(key, new ProjSettingsNode.UninitializedPref(value));
 
                     } else if ((value = attributes.getValue("int")) != null) {
                         Integer i = new Integer(value);
-                        if (pref != null) {
-                            prDiff(pref, new Integer(pref.getInt()), i, allowOverride);
-                            if (allowOverride) pref.setInt(i.intValue());
+                        if (setting != null) {
+                            prDiff(setting, new Integer(setting.getInt()), i, allowOverride);
+                            if (allowOverride) setting.setInt(i.intValue());
                         } else if (allowOverride)
                             currentNode.put(key, new ProjSettingsNode.UninitializedPref(i));
 
                     } else if ((value = attributes.getValue("double")) != null) {
                         Double d = new Double(value);
-                        if (pref != null) {
-                            prDiff(pref, new Double(pref.getDouble()), d, allowOverride);
-                            if (allowOverride) pref.setDouble(d.doubleValue());
+                        if (setting != null) {
+                            prDiff(setting, new Double(setting.getDouble()), d, allowOverride);
+                            if (allowOverride) setting.setDouble(d.doubleValue());
                         } else if (allowOverride)
                             currentNode.put(key, new ProjSettingsNode.UninitializedPref(d));
 
                     } else if ((value = attributes.getValue("boolean")) != null) {
                         Boolean b = new Boolean(value);
-                        if (pref != null) {
-                            prDiff(pref, new Boolean(pref.getBoolean()), b, allowOverride);
-                            if (allowOverride) pref.setBoolean(b.booleanValue());
+                        if (setting != null) {
+                            prDiff(setting, new Boolean(setting.getBoolean()), b, allowOverride);
+                            if (allowOverride) setting.setBoolean(b.booleanValue());
                         } else if (allowOverride)
                             currentNode.put(key, new ProjSettingsNode.UninitializedPref(b));
 
                     } else if ((value = attributes.getValue("long")) != null) {
                         Long l = new Long(value);
-                        if (pref != null) {
-                            prDiff(pref, new Long(pref.getLong()), l, allowOverride);
-                            if (allowOverride) pref.setLong(l.longValue());
+                        if (setting != null) {
+                            prDiff(setting, new Long(setting.getLong()), l, allowOverride);
+                            if (allowOverride) setting.setLong(l.longValue());
                         } else if (allowOverride)
                             currentNode.put(key, new ProjSettingsNode.UninitializedPref(l));
 
@@ -370,13 +366,13 @@ public class ProjSettings {
             }
         }
 
-        private void prDiff(Pref pref, Object prefVal, Object xmlVal, boolean allowOverride) {
-            if (!ProjSettingsNode.equal(xmlVal, pref)) {
+        private void prDiff(Setting setting, Object prefVal, Object xmlVal, boolean allowOverride) {
+            if (!ProjSettingsNode.equal(xmlVal, setting)) {
                 differencesFound = true;
                 if (allowOverride)
-                    System.out.println("Warning: Setting \""+pref.getPrefName()+"\" set to "+xmlVal+", overrides current val of "+prefVal);
+                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current val of "+prefVal);
                 else
-                    System.out.println("Warning: Setting \""+pref.getPrefName()+"\" retains current val of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
+                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current val of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
             }
         }
 

@@ -27,7 +27,6 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -629,11 +628,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         /** For Pref */
         public void restoreSavedBindings(boolean initialCall) {
             printStackTrace("restoreSavedBindings");
-        }
-        public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
-        {
-            printStackTrace("finishPrefReconcilation");
-            Pref.finishPrefReconcilation(meaningsToReconcile);
         }
 
         /**

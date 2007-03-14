@@ -25,10 +25,11 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ErrorLogger;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -56,8 +57,8 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
     
     public void restoreSavedBindings(boolean initialCall) {;}
-    public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile) {
-        Pref.finishPrefReconcilation(meaningsToReconcile);
+    public void finishSettingReconcilation(String libName, Map<Setting,Object> settingsToReconcile) {
+        Setting.finishSettingReconcilation(settingsToReconcile);
     }
     
     /**

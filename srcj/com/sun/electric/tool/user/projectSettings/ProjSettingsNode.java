@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 
 import java.util.*;
 import java.io.Serializable;
@@ -85,36 +85,36 @@ public class ProjSettingsNode implements Serializable {
     /**
      * Set the value for a key.
      * @param key a string key
-     * @param pref a value
+     * @param setting a value
      */
-    public void putValue(String key, Pref pref) {
+    public void putValue(String key, Setting setting) {
         Object v = data.get(key);
         Object previousVal = null;
         if (v instanceof UninitializedPref) {
-            // this overrides pref value, when pref was uninitialized so we couldn't set it before
+            // this overrides pref value, when setting was uninitialized so we couldn't set it before
             previousVal = ((UninitializedPref)v).value;
         }
-        data.put(key, pref);
+        data.put(key, setting);
 
-        if (previousVal != null && !equal(previousVal, pref)) {
-            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+pref.getValue());
+        if (previousVal != null && !equal(previousVal, setting)) {
+            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+setting.getValue());
             if (previousVal instanceof Boolean)
-                pref.setBoolean(((Boolean)previousVal).booleanValue());
+                setting.setBoolean(((Boolean)previousVal).booleanValue());
             else if (previousVal instanceof Integer)
-                pref.setInt(((Integer)previousVal).intValue());
+                setting.setInt(((Integer)previousVal).intValue());
             else if (previousVal instanceof Double)
-                pref.setDouble(((Double)previousVal).doubleValue());
+                setting.setDouble(((Double)previousVal).doubleValue());
             else if (previousVal instanceof String)
-                pref.setString(previousVal.toString());
+                setting.setString(previousVal.toString());
             else if (previousVal instanceof Long)
-                pref.setLong(((Long)previousVal).longValue());
+                setting.setLong(((Long)previousVal).longValue());
         }
     }
 
-    public Pref getValue(String key) {
+    public Setting getValue(String key) {
         Object obj = data.get(key);
-        if (obj instanceof Pref)
-            return (Pref)obj;
+        if (obj instanceof Setting)
+            return (Setting)obj;
         if (obj == null) return null;
         //prIllegalRequestError(key);
         return null;
@@ -153,21 +153,19 @@ public class ProjSettingsNode implements Serializable {
     // ----------------------------- Utility ----------------------------------
 
     /**
-     * Compare a project settings value against a prefValue object value.
-     * You can't just use .equals() because the prefValue object does
+     * Compare a project settings value against a Setting object value.
+     * You can't just use .equals() because the Setting object does
      * not store booleans as Booleans.
      * @param value
-     * @param pref
+     * @param setting
      * @return true if values equal, false otherwise
      */
-    public static boolean equal(Object value, Pref pref) {
-        if (value == null || pref.getValue() == null)
+    public static boolean equal(Object value, Setting setting) {
+        if (value == null || setting.getValue() == null)
             return false;
-        if (pref.getType() == Pref.PrefType.BOOLEAN && (value instanceof Boolean))
-            return pref.getBoolean() == ((Boolean)value).booleanValue();
-        if (value.getClass() != pref.getValue().getClass())
+        if (value.getClass() != setting.getValue().getClass())
             return false;
-        return value.equals(pref.getValue());
+        return value.equals(setting.getValue());
     }
 
     public boolean equals(Object node) {

@@ -35,7 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
@@ -164,17 +164,17 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
-        HashMap<Object,Map<String,Object>> meaningVariables = null;
+        HashMap<Object,Map<String,Object>> projectSettings = null;
         if (Job.BATCHMODE) 
-            meaningVariables = new HashMap<Object,Map<String,Object>>();
-        Library lib = readLibrary(fileURL, libName, type, quick, meaningVariables);
+            projectSettings = new HashMap<Object,Map<String,Object>>();
+        Library lib = readLibrary(fileURL, libName, type, quick, projectSettings);
 
         File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
         if (projsettings.exists()) {
             ProjSettings.readSettings(projsettings, false);
         } else {
-            if (meaningVariables != null)
-                Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+            if (projectSettings != null)
+                Setting.reconcileSettings(lib.getName(), projectSettings);
         }
         return lib;
     }

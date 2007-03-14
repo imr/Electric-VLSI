@@ -111,8 +111,8 @@ public class TechnologyTab extends ProjSettingsPanel
 		techMetalLayers.addItem("4 Layers");
 		techMetalLayers.addItem("5 Layers");
 		techMetalLayers.addItem("6 Layers");
-		techMetalLayers.setSelectedIndex(MoCMOS.getNumMetal()-2);
-		techMOCMOSSecondPoly.setSelected(MoCMOS.isSecondPolysilicon());
+		techMetalLayers.setSelectedIndex(MoCMOS.tech.getNumMetal()-2);
+		techMOCMOSSecondPoly.setSelected(MoCMOS.tech.isSecondPolysilicon());
 		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.isDisallowStackedVias());
 		techMOCMOSAlternateContactRules.setSelected(MoCMOS.isAlternateActivePolyRules());
 
@@ -190,7 +190,7 @@ public class TechnologyTab extends ProjSettingsPanel
 				break;
 		}
 
-		if (currentNumMetals != MoCMOS.getNumMetal())
+		if (currentNumMetals != MoCMOS.tech.getNumMetal())
         {
             MoCMOS.setNumMetal(currentNumMetals);
             changeInMoCMOS = true;
@@ -234,7 +234,7 @@ public class TechnologyTab extends ProjSettingsPanel
 
         // Foundry for MoCMOS
         if (changeInMoCMOS || checkFoundry((Foundry.Type)techDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech))
-            Technology.TechPref.technologyChanged(MoCMOS.tech, true);  // including update of display
+            Technology.TechSetting.technologyChanged(MoCMOS.tech, true);  // including update of display
 
         // Tabs for extra technologies if available
         try
