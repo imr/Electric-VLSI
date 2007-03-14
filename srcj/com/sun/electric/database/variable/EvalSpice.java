@@ -525,7 +525,8 @@ public class EvalSpice {
     }
 
     private static String format(Object obj) {
-        if (obj instanceof Double) return TextUtils.formatDouble(((Double)obj).doubleValue());
+        // must be format double postfix, otherwise get 0 for numbers less than 0.001
+        if (obj instanceof Double) return TextUtils.formatDoublePostFix(((Double)obj).doubleValue());
         return obj.toString();
     }
 
@@ -563,6 +564,7 @@ public class EvalSpice {
         testEval("layer == 1 ? two + 1 : eight * 4 / 2", "layer == 1 ? two + 1 : eight * 4 / 2");
         testEval("0 * 1 ? 3 / 2 : -4 + 10", 6);
         testEval("(3==0?0.00441:3<8?0.011:0.016)*1e-15", 1.1e-17);
+        testEval("(layer==0?0.00441:layer<8?0.011:0.016)*1e-15", null);
         System.out.println("\nThese should flag as errors:\n---------------------------\n");
         testEval("1 2 +", null);
         testEval("1 + * 2", null);
