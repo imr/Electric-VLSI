@@ -327,7 +327,7 @@ public class Tool implements Comparable
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     protected void makeBooleanSetting(String name, String location, String description, boolean factory) {
-        setCacheField(Setting.makeBooleanSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+        setCacheField(Setting.makeBooleanSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
     
 	/**
@@ -339,7 +339,7 @@ public class Tool implements Comparable
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     protected void makeIntSetting(String name, String location, String description, int factory) {
-        setCacheField(Setting.makeIntSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+        setCacheField(Setting.makeIntSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
     
 	/**
@@ -351,7 +351,7 @@ public class Tool implements Comparable
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     protected void makeLongSetting(String name, String location, String description, long factory) {
-        setCacheField(Setting.makeLongSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+        setCacheField(Setting.makeLongSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
     
 	/**
@@ -363,7 +363,7 @@ public class Tool implements Comparable
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     protected void makeDoubleSetting(String name, String location, String description, double factory) {
-        setCacheField(Setting.makeDoubleSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+        setCacheField(Setting.makeDoubleSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
 
 	/**
@@ -375,7 +375,7 @@ public class Tool implements Comparable
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     protected void makeStringSetting(String name, String location, String description, String factory) {
-        setCacheField(Setting.makeStringSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+        setCacheField(Setting.makeStringSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
     
     /**

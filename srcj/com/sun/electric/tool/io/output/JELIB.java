@@ -161,29 +161,30 @@ public class JELIB extends Output {
         boolean toolHeaderPrinted = false;
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
             Tool tool = it.next();
-            if (Setting.getSettings(tool).size() == 0) continue;
+            List<Setting> settings = Setting.getSettings(tool.getProjectSettings());
+            if (settings.size() == 0) continue;
             if (!toolHeaderPrinted) {
                 printWriter.println();
                 printWriter.println("# Tools:");
                 toolHeaderPrinted = true;
             }
             printWriter.print("O" + convertString(tool.getName()));
-            printlnSettings(tool);
+            printlnSettings(settings);
         }
         
         // write technology information
         boolean technologyHeaderPrinted = false;
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
-            if (Setting.getSettings(tech).size() == 0) continue;
-//			if (!objInfo.containsKey(tech))	continue;
+            List<Setting> settings = Setting.getSettings(tech.getProjectSettings());
+            if (settings.size() == 0) continue;
             if (!technologyHeaderPrinted) {
                 printWriter.println();
                 printWriter.println("# Technologies:");
                 technologyHeaderPrinted = true;
             }
             printWriter.print("T" + convertString(tech.getTechName()));
-            printlnSettings(tech);
+            printlnSettings(settings);
             
 // 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
@@ -701,8 +702,8 @@ public class JELIB extends Output {
     /**
      * Method to write the project settings on an object.
      */
-    private void printlnSettings(Object obj) {
-        for (Setting setting : Setting.getSettings(obj)) {
+    private void printlnSettings(List<Setting> settings) {
+        for (Setting setting : settings) {
             Object value = setting.getValue();
             printWriter.print("|" + convertVariableName(setting.getPrefName()) + "()" + makeString(value));
         }

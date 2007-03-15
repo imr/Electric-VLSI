@@ -24,11 +24,8 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -43,11 +40,9 @@ import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
@@ -95,6 +90,7 @@ public class Pref
     public static class Group {
         Preferences prefs;
         Group(Preferences prefs) { this.prefs = prefs; }
+        public String absolutePath() { return prefs.absolutePath(); }
     }
 
     public static Group groupForPackage(Class classFromPackage) {
@@ -113,7 +109,6 @@ public class Pref
 	private   final String      name;
 	private   PrefType         type;
 	private   final Preferences prefs;
-	/*private*/   boolean     meaning;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
     private   boolean changed = false;
@@ -122,15 +117,12 @@ public class Pref
 	private static boolean doFlushing = true;
     private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
-    private static boolean allPreferencesCreated = false;
 
     /**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Preferences prefs, String name) {
-//        if (allPreferencesCreated)
-//            throw new IllegalStateException("no more preferences");
         this.name = name;
         this.prefs = prefs;
         synchronized (allPrefs) {
@@ -143,8 +135,6 @@ public class Pref
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Group group, String name) {
-//        if (allPreferencesCreated)
-//            throw new IllegalStateException("no more preferences");
         this.name = name;
         this.prefs = group.prefs;
         synchronized (allPrefs) {
@@ -560,12 +550,6 @@ public class Pref
 	 */
 	public PrefType getType() { return type; }
 
-    /**
-	 * Method called when this Pref is changed.
-	 * This method is overridden in subclasses that want notification.
-	 */
-	protected void setSideEffect() {}
-
 	public static class PrefChangeBatch implements Serializable
 	{
         private HashMap<String,HashMap<String,Object>> changesForNodes = new HashMap<String,HashMap<String,Object>>();
@@ -669,7 +653,6 @@ public class Pref
 					queueForFlushing.add(prefs);
 			}
 		}
-		setSideEffect();
 	}
 
 	/**
@@ -690,7 +673,6 @@ public class Pref
 					queueForFlushing.add(prefs);
 			}
 		}
-		setSideEffect();
 	}
 
 	/**
@@ -711,7 +693,6 @@ public class Pref
 					queueForFlushing.add(prefs);
 			}
 		}
-		setSideEffect();
 	}
 
 	/**
@@ -736,7 +717,6 @@ public class Pref
 			}
 			changed = true;
 		}
-		setSideEffect();
 		return (changed);
 	}
 
@@ -758,12 +738,7 @@ public class Pref
 					queueForFlushing.add(prefs);
 			}
 		}
-		setSideEffect();
 	}
-
-    public static void allPreferencesCreated() {
-        allPreferencesCreated = true;
-    }
 
     private static int numStrings;
     private static int lenStrings;

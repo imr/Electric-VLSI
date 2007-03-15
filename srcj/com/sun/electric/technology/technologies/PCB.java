@@ -49,7 +49,7 @@ public class PCB extends Technology
 		setStaticTechnology();
 
         //Foundry
-        Foundry mosis = new Foundry(Foundry.Type.NONE);
+        Foundry mosis = new Foundry(this, Foundry.Type.NONE);
         foundries.add(mosis);
         
 		setFactoryTransparentLayers(new Color []

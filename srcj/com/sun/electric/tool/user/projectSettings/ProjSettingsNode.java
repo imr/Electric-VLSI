@@ -57,7 +57,10 @@ import java.io.Serializable;
  */
 public class ProjSettingsNode implements Serializable {
 
-    private LinkedHashMap<String, Object> data;
+    private final ProjSettingsNode parent;
+    private final String key;
+    private final String path;
+    final LinkedHashMap<String, Object> data = new LinkedHashMap<String,Object>();
 
     public static class UninitializedPref {
         public final Object value;
@@ -69,10 +72,33 @@ public class ProjSettingsNode implements Serializable {
     /**
      * Create a new default proj settings node
      */
-    public ProjSettingsNode() {
-        data = new LinkedHashMap<String,Object>();
+    ProjSettingsNode() {
+        parent = null;
+        key = null;
+        path = "";
     }
 
+    /**
+     * Create a new default proj settings node
+     */
+    private ProjSettingsNode(ProjSettingsNode parent, String key) {
+        this.parent = parent;
+        this.key = key;
+        path = parent + key + ".";
+    }
+
+    /**
+     * Returns a path to this ProjSettingsNode from the root.
+     * Keys in the path are separated by '.' char.
+     * @return path to this ProjSettingsNode from the root.
+     */
+    public String getPath() {
+        return path;
+    }
+    
+    @Override
+    public String toString() { return getPath(); }
+    
     /**
      * Returns a set of keys, whose order is the
      * order in which keys were added.
@@ -127,7 +153,7 @@ public class ProjSettingsNode implements Serializable {
     public ProjSettingsNode getNode(String key) {
         Object obj = data.get(key);
         if (obj == null) {
-            obj = new ProjSettingsNode();
+            obj = new ProjSettingsNode(this, key);
             data.put(key, obj);
         }
         if (obj instanceof ProjSettingsNode)

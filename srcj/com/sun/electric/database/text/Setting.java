@@ -25,6 +25,7 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -35,20 +36,24 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
  *
  */
 public class Setting {
-    private static final HashMap<Object,HashMap<String,Setting>> allSettings = new HashMap<Object,HashMap<String,Setting>>();
+    private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
+    private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
     
+    private final ProjSettingsNode xmlNode;
+    private final String xmlName;
+    private final String xmlPath;
 	private final Object factoryObj;
-    private final Object ownerObj;
     private final Preferences prefs;
     private final String prefName;
+    private final String prefPath;
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
@@ -56,18 +61,24 @@ public class Setting {
 	private Object cachedObj;
     
     /** Creates a new instance of Setting */
-    public Setting(String prefName, Pref.Group group, Object ownerObj, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
+    public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
+        if (xmlNode == null)
+            throw new NullPointerException();
+        this.xmlNode = xmlNode;
+        if (xmlName == null)
+            xmlName = prefName;
+        this.xmlName = xmlName;
+        xmlPath = xmlNode.getPath() + xmlName;
+        assert !allSettingsByXmlPath.containsKey(xmlPath);
+        allSettingsByXmlPath.put(xmlPath, this);
+        
         this.factoryObj = factoryObj;
-        this.ownerObj = ownerObj;
         this.prefName = prefName;
         prefs = group.prefs;
-        HashMap<String,Setting> ownerSettings = allSettings.get(ownerObj);
-        if (ownerSettings == null) {
-            ownerSettings = new HashMap<String,Setting>();
-            allSettings.put(ownerObj, ownerSettings);
-        }
-        if (ownerSettings.put(getPrefName(), this) != null)
-            throw new IllegalArgumentException("Duplicate project setting " + getPrefName() + " in " + ownerObj);
+        prefPath = prefs.absolutePath() + "/" + prefName;
+        assert !allSettingsByPrefPath.containsKey(prefPath);
+        allSettingsByPrefPath.put(prefPath, this);
+        
         valid = true;
         this.description = description;
         this.location = location;
@@ -172,16 +183,14 @@ public class Setting {
     /**
      * Method to set a new double value on this TechSetting object.
      * @param v the new double value of this Pref object.
-     * @return true if preference was really changed.
      */
-    public boolean setDouble(double v) {
-        if (v == getDouble()) return false;
+    public void setDouble(double v) {
+        if (v == getDouble()) return;
         cachedObj = Double.valueOf(v);
         prefs.putDouble(prefName, v);
         Pref.flushOptions_(prefs);
         changed = true;
         setSideEffect();
-        return true;
     }
     
     /**
@@ -197,6 +206,17 @@ public class Setting {
         setSideEffect();
     }
     
+    public void set(Object v) {
+        if (cachedObj.equals(v)) return;
+        if (v.getClass() != factoryObj.getClass())
+            throw new RuntimeException();
+        cachedObj = factoryObj.equals(v) ? factoryObj : v;
+        setPreferencesToValue(v);
+        Pref.flushOptions_(prefs);
+        changed = true;
+        setSideEffect();
+    }
+    
     /**
 	 * Method called when this Pref is changed.
 	 * This method is overridden in subclasses that want notification.
@@ -204,7 +224,13 @@ public class Setting {
     protected void setSideEffect() {
     }
     
-    /**
+     /**
+     * Method to get the xml name of this Setting object.
+     * @return the xml name of this Setting object.
+     */
+    public String getXmlPath() { return xmlPath; }
+    
+   /**
      * Method to get the name of this Setting object.
      * @return the name of this Setting object.
      */
@@ -218,12 +244,6 @@ public class Setting {
 	 */
 	public Object getValue() { return cachedObj; }
 
-    /**
-     * Method to return the owner Object associated with this Meaning option.
-     * @return the owner Object associated with this Meaning option.
-     */
-    public Object getOwnerObject() { return ownerObj; }
-    
     /**
      * Method to return the user-command that can affect this Meaning option.
      * @return the user-command that can affect this Meaning option.
@@ -288,107 +308,115 @@ public class Setting {
 	 * Factory methods to create a boolean project setting objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Setting makeBooleanSetting(String name, Pref.Group group, Object ownerObj,
+    public static Setting makeBooleanSetting(String name, Pref.Group group,
                                           ProjSettingsNode xmlNode, String xmlName,
                                           String location, String description, boolean factory) {
-        return new Setting(name, group, ownerObj, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
+        return new Setting(name, group, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
     
 	/**
 	 * Factory methods to create an integerproject setting objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Setting makeIntSetting(String name, Pref.Group group, Object ownerObj,
+    public static Setting makeIntSetting(String name, Pref.Group group,
                                       ProjSettingsNode xmlNode, String xmlName,
                                       String location, String description, int factory) {
-        return new Setting(name, group, ownerObj, xmlNode, xmlName, location, description, Integer.valueOf(factory));
+        return new Setting(name, group, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
     
 	/**
 	 * Factory methods to create a long project setting objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Setting makeLongSetting(String name, Pref.Group group, Object ownerObj,
+    public static Setting makeLongSetting(String name, Pref.Group group,
                                        ProjSettingsNode xmlNode, String xmlName,
                                        String location, String description, long factory) {
-        return new Setting(name, group, ownerObj, xmlNode, xmlName, location, description, Long.valueOf(factory));
+        return new Setting(name, group, xmlNode, xmlName, location, description, Long.valueOf(factory));
     }
     
 	/**
 	 * Factory methods to create a double project setting objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Setting makeDoubleSetting(String name, Pref.Group group, Object ownerObj,
+    public static Setting makeDoubleSetting(String name, Pref.Group group,
                                          ProjSettingsNode xmlNode, String xmlName,
                                          String location, String description, double factory) {
-        return new Setting(name, group, ownerObj, xmlNode, xmlName, location, description, Double.valueOf(factory));
+        return new Setting(name, group, xmlNode, xmlName, location, description, Double.valueOf(factory));
     }
 
 	/**
 	 * Factory methods to create a string project setting objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
-	 * @param ownerObj the Object to attach this Pref to.
 	 * @param location the user-command that can affect this meaning option.
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Setting makeStringSetting(String name, Pref.Group group, Object ownerObj,
+    public static Setting makeStringSetting(String name, Pref.Group group,
                                          ProjSettingsNode xmlNode, String xmlName,
                                          String location, String description, String factory) {
-        return new Setting(name, group, ownerObj, xmlNode, xmlName, location, description, (String)factory);
+        return new Setting(name, group, xmlNode, xmlName, location, description, (String)factory);
     }
     
 	/**
-	 * Method to find the project Setting object associated with a given part of the
-	 * Electric database.
-	 * @param ownerObj the Object on which to find a project Setting object.
-	 * @param name the name of the desired project Setting object.
-	 * @return the project Setting object on that part of the database.
+	 * Method to find the project Setting object by its xml path.
+	 * @param xmlPath the xml path of the desired project Setting object.
+	 * @return the project Setting object.
 	 */
-    public static Setting getSetting(Object ownerObj, String name) {
-        HashMap<String,Setting> ownerSettings = allSettings.get(ownerObj);
-        return ownerSettings != null ? ownerSettings.get(name) : null;
-    }
+    public static Setting getSetting(String xmlPath) { return allSettingsByXmlPath.get(xmlPath); }
     
 	/**
 	 * Method to get a list of projecy Settings assiciatiated with the given owner object.
 	 * @param ownerObj owner object
 	 * @return a list of project Settings
 	 */
-	public static List<Setting> getSettings(Object ownerObj)
-	{
-        HashMap<String,Setting> ownerSettings = allSettings.get(ownerObj);
-        if (ownerSettings == null) return Collections.emptyList();
+    public static List<Setting> getSettings(ProjSettingsNode node) {
         ArrayList<Setting> settings = new ArrayList<Setting>();
-        for (Setting setting: ownerSettings.values()) {
-            if (!setting.isValidOption()) continue;
-            if (setting.getValue().equals(setting.getFactoryValue())) continue;
-            settings.add(setting);
+        getSettings(node, settings);
+        Collections.sort(settings, SETTINGS_BY_PREF_NAME);
+        return settings;
+    }
+    
+    private static void getSettings(ProjSettingsNode node, ArrayList<Setting> settings) {
+        Set<String> keys = node.getKeys();
+        for (String key: keys) {
+            Setting setting = node.getValue(key);
+            if (setting != null) {
+                if (!setting.isValidOption()) continue;
+                if (setting.getValue().equals(setting.getFactoryValue())) continue;
+                settings.add(setting);
+                continue;
+            }
+            ProjSettingsNode subNode = node.getNode(key);
+            if (subNode != null) {
+                getSettings(subNode, settings);
+            }
         }
-		Collections.sort(settings, SettingsByName);
-		return settings;
-	}
+    }
+    
+    private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
+        public int compare(Setting s1, Setting s2) {
+            String n1 = s1.getPrefName();
+            String n2 = s2.getPrefName();
+            return n1.compareTo(n2);
+        }
+    };
     
     /**
      * Comparator class for sorting Preferences by their name.
@@ -409,46 +437,33 @@ public class Setting {
 	 * Presents the user with a dialog to help reconcile the difference
 	 * between project settings stored in a library and the original values.
 	 */
-	public static void reconcileSettings(String libName, Map<Object,Map<String,Object>> meaningVariables)
+	public static void reconcileSettings(String libName, Map<String,Object> projectSettings)
 	{
         HashSet<Setting> markedSettings = new HashSet<Setting>();
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-        for (Object obj: meaningVariables.keySet()) {
-            Map<String,Object> meanings = meaningVariables.get(obj);
-            for (String prefName: meanings.keySet()) {
-                Setting setting = Setting.getSetting(obj, prefName);
-                if (setting == null) continue;
-                Object value = meanings.get(prefName);
-                markedSettings.add(setting);
-                if (DBMath.objectsReallyEqual(value, setting.getValue())) continue;
-                if (!setting.isValidOption()) continue;
-//System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.ownerObj+" is "+value+" but is cached as "+meaning.pref.cachedObj);
-                settingsToReconcile.put(setting, value);
-            }
-		}
-        for (HashMap<String,Setting> ownerSettings: allSettings.values()) {
-            for (Setting setting: ownerSettings.values()) {
-                if (markedSettings.contains(setting)) continue;
-                
-                // this one is not mentioned in the library: make sure it is at factory defaults
-                if (DBMath.objectsReallyEqual(setting.getValue(), setting.getFactoryValue())) continue;
-
-//System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
-                if (!setting.isValidOption()) continue;
-                settingsToReconcile.put(setting, null);
-            }
+        for (Map.Entry<String,Object> e: projectSettings.entrySet()) {
+            String prefPath = e.getKey();
+            Setting setting = allSettingsByPrefPath.get(prefPath);
+            if (setting == null) continue;
+            Object value = e.getValue();
+            markedSettings.add(setting);
+            if (DBMath.objectsReallyEqual(value, setting.getValue())) continue;
+            if (!setting.isValidOption()) continue;
+            settingsToReconcile.put(setting, value);
+        }
+        for (Setting setting: allSettingsByXmlPath.values()) {
+            if (markedSettings.contains(setting)) continue;
+            
+            // this one is not mentioned in the library: make sure it is at factory defaults
+            if (DBMath.objectsReallyEqual(setting.getValue(), setting.getFactoryValue())) continue;
+            
+            if (!setting.isValidOption()) continue;
+            settingsToReconcile.put(setting, null);
         }
 
 		if (settingsToReconcile.size() == 0) return;
 
         Job.getExtendedUserInterface().finishSettingReconcilation(libName, settingsToReconcile);
-//		if (Job.BATCHMODE)
-//		{
-//            finishPrefReconcilation(meaningsToReconcile);
-//			return;
-//		}
-// 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
-//		dialog.setVisible(true);
 	}
 
     /**
@@ -479,7 +494,7 @@ public class Setting {
             } else {
                 continue;
             }
-            System.out.println("Project Setting "+setting.getPrefName()+" on " + setting.getOwnerObject()+" changed to "+obj);
+            System.out.println("Project Setting "+setting.xmlPath+" changed to "+obj);
         }
         
         // resume flushing, and save everything just set
@@ -487,34 +502,31 @@ public class Setting {
     }
     
     static void setPreferencesToFactoryValue() {
-        for (Map<String,Setting> ownerSettings: allSettings.values()) {
-            for (Setting setting: ownerSettings.values()) {
-                if (setting.getValue().equals(setting.getFactoryValue())) continue;
-                Preferences prefs = setting.prefs;
-                String key = setting.prefName;
-                Object obj = setting.getFactoryValue();
-                if (obj instanceof Boolean)
-                    prefs.putBoolean(key, ((Boolean)obj).booleanValue());
-                else if (obj instanceof Integer)
-                    prefs.putInt(key, ((Integer)obj).intValue());
-                else if (obj instanceof Long)
-                    prefs.putLong(key, ((Long)obj).longValue());
-                else if (obj instanceof Double)
-                    prefs.putDouble(key, ((Double)obj).doubleValue());
-                else if (obj instanceof String)
-                    prefs.put(key, (String)obj);
-                else
-                    assert false;
-            }
+        for (Setting setting: allSettingsByXmlPath.values()) {
+            if (setting.getValue().equals(setting.getFactoryValue())) continue;
+            setting.setPreferencesToValue(setting.getFactoryValue());
         }
     }
     
+    private void setPreferencesToValue(Object v) {
+        assert v.getClass() == factoryObj.getClass();
+        if (v instanceof Boolean)
+            prefs.putBoolean(prefName, ((Boolean)v).booleanValue());
+        else if (v instanceof Integer)
+            prefs.putInt(prefName, ((Integer)v).intValue());
+        else if (v instanceof Long)
+            prefs.putLong(prefName, ((Long)v).longValue());
+        else if (v instanceof Double)
+            prefs.putDouble(prefName, ((Double)v).doubleValue());
+        else if (v instanceof String)
+            prefs.put(prefName, (String)v);
+        else
+            assert false;
+    }
+    
     static void setFromPreferences() {
-        for (Map<String,Setting> ownerSettings: allSettings.values()) {
-            for (Setting setting: ownerSettings.values()) {
-                setting.setCachedObjFromPreferences();
-            }
-        }
+        for (Setting setting: allSettingsByXmlPath.values())
+            setting.setCachedObjFromPreferences();
     }
     
     /**
@@ -533,17 +545,33 @@ public class Setting {
         return changed;
     }
     
-    public static void printAllSettings(PrintStream out) {
+    static void printAllSettings(PrintStream out) {
         TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
-        for (Map<String,Setting> ownerSettings: allSettings.values()) {
-            for (Setting setting: ownerSettings.values()) {
-                sortedSettings.put(setting.prefs.absolutePath() + "/" + setting.prefName, setting);
-            }
-        }
+        for (Setting setting: allSettingsByXmlPath.values())
+            sortedSettings.put(setting.xmlPath, setting);
         out.println("PROJECT SETTINGS");
-        int  i = 0;
-        for (Setting setting: sortedSettings.values())
-            out.println((i++) + setting.prefs.absolutePath() + " " + setting.prefName + " " + setting.cachedObj);
+        i = 0;
+ //       for (Setting setting: sortedSettings.values())
+ //           out.println((i++) + "\t" + setting.xmlPath + " " + setting.cachedObj);
+        printSettings(out, ProjSettings.getSettings(), 0);
     }
 
+    private static int i;
+    
+    private static void printSettings(PrintStream out, ProjSettingsNode node, int level) {
+        Set<String> keys = node.getKeys();
+        for (String key: keys) {
+            out.print((i++) + "\t");
+            for (int i = 0; i < level; i++) out.print("  ");
+            out.print(key);
+            ProjSettingsNode subNode = node.getNode(key);
+            if (subNode != null) {
+                out.println(".");
+                printSettings(out, subNode, level + 1);
+                continue;
+            }
+            Setting setting = node.getValue(key);
+            out.println(" " + setting.prefName + " " + setting.cachedObj);
+        }
+   }
 }

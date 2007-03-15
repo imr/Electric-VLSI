@@ -54,7 +54,7 @@ public class nMOS extends Technology
 		setStaticTechnology();
 
         //Foundry
-        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
         foundries.add(noFoundry);
 
 		setFactoryTransparentLayers(new Color []

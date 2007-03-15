@@ -44,6 +44,8 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -57,6 +59,8 @@ public class ProjSettings {
     private static ProjSettingsNode settings = new ProjSettingsNode();
     private static File lastProjectSettingsFile = null;
     private static final String entry = "e";
+    private static final boolean READER_RESETS_DEFAULTS = true;
+    private static final boolean WRITER_WRITES_DEFAULTS = false;
 
     public static ProjSettingsNode getSettings() {
         return settings;
@@ -205,7 +209,8 @@ public class ProjSettings {
             } else if (value instanceof Setting) {
                 Setting setting = (Setting)value;
                 Object val = setting.getValue();
-                writeValue(key, val);
+                if (WRITER_WRITES_DEFAULTS || !setting.getFactoryValue().equals(val))
+                    writeValue(key, val);
             } else if (value instanceof ProjSettingsNode.UninitializedPref) {
                 ProjSettingsNode.UninitializedPref pref = (ProjSettingsNode.UninitializedPref)value;
                 writeValue(key, pref.value);
@@ -244,6 +249,7 @@ public class ProjSettings {
         private Locator locator;
         private boolean allowOverride;
         private boolean differencesFound;
+        private HashMap<Setting,Object> settings = new HashMap<Setting,Object>();
 
         private static final boolean DEBUG = false;
 
@@ -264,6 +270,10 @@ public class ProjSettings {
                 URLConnection conn = url.openConnection();
                 InputStream is = conn.getInputStream();
                 factory.newSAXParser().parse(is, this);
+                if (READER_RESETS_DEFAULTS) 
+                    commit(ProjSettings.getSettings());
+                else
+                    commit0();
                 if (differencesFound) return ReadResult.CONFLICTS;
                 return ReadResult.OK;
             } catch (IOException e) {
@@ -307,53 +317,30 @@ public class ProjSettings {
                     throw parseException("No node for key-value pair "+qName);
                 }
                 ProjSettingsNode currentNode = context.peek();
-                String value = null;
+                String valueStr = null;
+                Object value = null;
                 Setting setting = currentNode.getValue(key);
                 try {
-                    if ((value = attributes.getValue("string")) != null) {
-                        if (setting != null) {
-                            prDiff(setting, setting.getString(), value, allowOverride);
-                            if (allowOverride) setting.setString(value);
-                        } else if (allowOverride)
-                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(value));
-
-                    } else if ((value = attributes.getValue("int")) != null) {
-                        Integer i = new Integer(value);
-                        if (setting != null) {
-                            prDiff(setting, new Integer(setting.getInt()), i, allowOverride);
-                            if (allowOverride) setting.setInt(i.intValue());
-                        } else if (allowOverride)
-                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(i));
-
-                    } else if ((value = attributes.getValue("double")) != null) {
-                        Double d = new Double(value);
-                        if (setting != null) {
-                            prDiff(setting, new Double(setting.getDouble()), d, allowOverride);
-                            if (allowOverride) setting.setDouble(d.doubleValue());
-                        } else if (allowOverride)
-                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(d));
-
-                    } else if ((value = attributes.getValue("boolean")) != null) {
-                        Boolean b = new Boolean(value);
-                        if (setting != null) {
-                            prDiff(setting, new Boolean(setting.getBoolean()), b, allowOverride);
-                            if (allowOverride) setting.setBoolean(b.booleanValue());
-                        } else if (allowOverride)
-                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(b));
-
-                    } else if ((value = attributes.getValue("long")) != null) {
-                        Long l = new Long(value);
-                        if (setting != null) {
-                            prDiff(setting, new Long(setting.getLong()), l, allowOverride);
-                            if (allowOverride) setting.setLong(l.longValue());
-                        } else if (allowOverride)
-                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(l));
-
-                    } else {
+                    if ((valueStr = attributes.getValue("string")) != null)
+                        value = valueStr;
+                    else if ((valueStr = attributes.getValue("int")) != null)
+                        value = Integer.valueOf(valueStr);
+                    else if ((valueStr = attributes.getValue("double")) != null)
+                        value = Double.valueOf(valueStr);
+                    else if ((valueStr = attributes.getValue("boolean")) != null)
+                        value = Boolean.valueOf(valueStr);
+                    else if ((valueStr = attributes.getValue("long")) != null)
+                        value = Long.valueOf(valueStr);
+                    else
                         System.out.println("Error: Unsupported value for key "+key+", at line "+locator.getLineNumber()+": must be string, int, double, boolean, or long");
-                    }
                 } catch (NumberFormatException e) {
-                    System.out.println("Error converting "+value+" to a number at line "+locator.getLineNumber()+": "+e.getMessage());
+                    System.out.println("Error converting "+valueStr+" to a number at line "+locator.getLineNumber()+": "+e.getMessage());
+                }
+                if (value != null) {
+                    if (setting != null) {
+                        settings.put(setting, value);
+                    } else if (allowOverride)
+                        currentNode.put(key, new ProjSettingsNode.UninitializedPref(value));
                 }
             }
 
@@ -366,6 +353,32 @@ public class ProjSettings {
             }
         }
 
+        private void commit(ProjSettingsNode node) {
+            for (Object v: node.data.values()) {
+                if (v instanceof Setting) {
+                    Setting setting = (Setting)v;
+                    Object value = settings.get(setting);
+                    if (value == null)
+                        value = setting.getFactoryValue();
+                    prDiff(setting, setting.getValue(), value, allowOverride);
+                    if (allowOverride) setting.set(value);
+                } else if (v instanceof ProjSettingsNode) {
+                    commit((ProjSettingsNode)v);
+                }
+            }
+        }
+        
+        private boolean commit0() {
+            for (Map.Entry<Setting,Object> e: settings.entrySet()) {
+                Setting setting = e.getKey();
+                Object value = e.getValue();
+                prDiff(setting, setting.getValue(), value, allowOverride);
+                if (allowOverride) setting.set(value);
+            }
+            return differencesFound;
+            
+        }
+        
         private void prDiff(Setting setting, Object prefVal, Object xmlVal, boolean allowOverride) {
             if (!ProjSettingsNode.equal(xmlVal, setting)) {
                 differencesFound = true;

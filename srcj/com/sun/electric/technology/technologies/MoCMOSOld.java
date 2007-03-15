@@ -54,7 +54,7 @@ public class MoCMOSOld extends Technology
 		setStaticTechnology();
 
         // Foundry
-        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        Foundry mosis = new Foundry(this, Foundry.Type.MOSIS);
         foundries.add(mosis);
         
 		setFactoryTransparentLayers(new Color []
@@ -583,32 +583,59 @@ public class MoCMOSOld extends Technology
 		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
 
 		// The GDS names
-		mosis.setFactoryGDSLayer(M_lay, "10");		// Metal-1
-		mosis.setFactoryGDSLayer(M0_lay, "19");		// Metal-2
-		mosis.setFactoryGDSLayer(P_lay, "12");		// Polysilicon
-		mosis.setFactoryGDSLayer(SA_lay, "2");		// S-Active
-		mosis.setFactoryGDSLayer(DA_lay, "2");		// D-Active
-		mosis.setFactoryGDSLayer(PS_lay, "8");		// P-Select
-		mosis.setFactoryGDSLayer(NS_lay, "7");		// N-Select
-		mosis.setFactoryGDSLayer(PW_lay, "1");		// P-Well
-		mosis.setFactoryGDSLayer(NW_lay, "1");		// N-Well
-		mosis.setFactoryGDSLayer(CC_lay, "9");		// Contact-Cut
-		mosis.setFactoryGDSLayer(V_lay, "18");		// Via
-		mosis.setFactoryGDSLayer(P0_lay, "11");		// Passivation
-		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
-		mosis.setFactoryGDSLayer(PC_lay, "9");		// Poly-Cut
-		mosis.setFactoryGDSLayer(AC_lay, "9");		// Active-Cut
-		mosis.setFactoryGDSLayer(SAW_lay, "2");		// S-Active-Well
-		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal-1
-		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo-Metal-2
-		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
-		mosis.setFactoryGDSLayer(PSA_lay, "");		// Pseudo-S-Active
-		mosis.setFactoryGDSLayer(PDA_lay, "");		// Pseudo-D-Active
-		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo-P-Select
-		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo-N-Select
-		mosis.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
-		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo-N-Well
-		mosis.setFactoryGDSLayer(PF_lay, "");		// Pad-Frame
+        mosis.setFactoryGDSLayers(
+                "Metal-1 10",
+                "Metal-2 19",
+                "Polysilicon 12",
+                "S-Active 2",
+                "D-Active 2",
+                "P-Select 8",
+                "N-Select 7",
+                "P-Well 1",
+                "N-Well 1",
+                "Contact-Cut 9",
+                "Via 18",
+                "Passivation 11",
+                "Transistor ",
+                "Poly-Cut 9",
+                "Active-Cut 9",
+                "S-Active-Well 2",
+                "Pseudo-Metal-1 ",
+                "Pseudo-Metal-2 ",
+                "Pseudo-Polysilicon ",
+                "Pseudo-S-Active ",
+                "Pseudo-D-Active ",
+                "Pseudo-P-Select ",
+                "Pseudo-N-Select ",
+                "Pseudo-P-Well ",
+                "Pseudo-N-Well ",
+                "Pad-Frame ");
+//		mosis.setFactoryGDSLayer(M_lay, "10");		// Metal-1
+//		mosis.setFactoryGDSLayer(M0_lay, "19");		// Metal-2
+//		mosis.setFactoryGDSLayer(P_lay, "12");		// Polysilicon
+//		mosis.setFactoryGDSLayer(SA_lay, "2");		// S-Active
+//		mosis.setFactoryGDSLayer(DA_lay, "2");		// D-Active
+//		mosis.setFactoryGDSLayer(PS_lay, "8");		// P-Select
+//		mosis.setFactoryGDSLayer(NS_lay, "7");		// N-Select
+//		mosis.setFactoryGDSLayer(PW_lay, "1");		// P-Well
+//		mosis.setFactoryGDSLayer(NW_lay, "1");		// N-Well
+//		mosis.setFactoryGDSLayer(CC_lay, "9");		// Contact-Cut
+//		mosis.setFactoryGDSLayer(V_lay, "18");		// Via
+//		mosis.setFactoryGDSLayer(P0_lay, "11");		// Passivation
+//		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
+//		mosis.setFactoryGDSLayer(PC_lay, "9");		// Poly-Cut
+//		mosis.setFactoryGDSLayer(AC_lay, "9");		// Active-Cut
+//		mosis.setFactoryGDSLayer(SAW_lay, "2");		// S-Active-Well
+//		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal-1
+//		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo-Metal-2
+//		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
+//		mosis.setFactoryGDSLayer(PSA_lay, "");		// Pseudo-S-Active
+//		mosis.setFactoryGDSLayer(PDA_lay, "");		// Pseudo-D-Active
+//		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo-P-Select
+//		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo-N-Select
+//		mosis.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
+//		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo-N-Well
+//		mosis.setFactoryGDSLayer(PF_lay, "");		// Pad-Frame
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-1

@@ -69,7 +69,7 @@ public class Generic extends Technology
 		setNonStandard();
 
         //Foundry
-        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
         foundries.add(noFoundry);
         
 		setFactoryScale(1000, false);			// in nanometers: really 1 micron

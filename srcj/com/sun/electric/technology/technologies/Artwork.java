@@ -94,7 +94,7 @@ public class Artwork extends Technology
 		setStaticTechnology();
 
         // Foundry
-        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
         foundries.add(noFoundry);
 
 		//**************************************** LAYERS ****************************************
@@ -112,7 +112,9 @@ public class Artwork extends Technology
 		defaultLayer.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
+        noFoundry.setFactoryGDSLayers(
+                "Graphics 1");
+//        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
 //		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************

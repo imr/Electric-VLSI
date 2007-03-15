@@ -221,7 +221,7 @@ public class LibToTech
 		tech.setGroundNetIncluded(gi.includeGround);
 		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
-        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        Foundry mosis = new Foundry(tech, Foundry.Type.MOSIS);
         tech.addFoundry(mosis);
 
 		// create the layers

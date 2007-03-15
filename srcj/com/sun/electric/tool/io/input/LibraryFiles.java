@@ -107,7 +107,7 @@ public abstract class LibraryFiles extends Input
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
-    /** Meaning variables from library file. */                             private static HashMap<Object,Map<String,Object>> meaningVariables;
+    /** Project settings from library file. */                              private static HashMap<String,Object> projectSettings;
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
 
@@ -164,9 +164,9 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
-        HashMap<Object,Map<String,Object>> projectSettings = null;
+        HashMap<String,Object> projectSettings = null;
         if (Job.BATCHMODE) 
-            projectSettings = new HashMap<Object,Map<String,Object>>();
+            projectSettings = new HashMap<String,Object>();
         Library lib = readLibrary(fileURL, libName, type, quick, projectSettings);
 
         File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
@@ -191,7 +191,7 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
-            HashMap<Object,Map<String,Object>> meaningVariables)
+            HashMap<String,Object> projectSettings)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -207,7 +207,7 @@ public abstract class LibraryFiles extends Input
 		Library lib = null;
 		boolean formerQuiet = isChangeQuiet();
 		if (!formerQuiet) changesQuiet(true);
-        LibraryFiles.meaningVariables = meaningVariables; 
+        LibraryFiles.projectSettings = projectSettings; 
 		try {
 			// show progress
 			if (!quick) startProgressDialog("library", fileURL.getFile());
@@ -247,7 +247,7 @@ public abstract class LibraryFiles extends Input
 			Cell.setAllowCircularLibraryDependences(false);
 		}
 		if (!formerQuiet) changesQuiet(formerQuiet);
-        LibraryFiles.meaningVariables = null;
+        LibraryFiles.projectSettings = null;
 		if (lib != null && !quick)
 		{
 			long endTime = System.currentTimeMillis();
@@ -1133,12 +1133,7 @@ public abstract class LibraryFiles extends Input
 	 * @param vars Variables with meaning preferences.
 	 */
     void realizeMeaningPrefs(Object obj, Variable[] vars) {
-        if (meaningVariables == null) return;
-        Map<String,Object> meanings = meaningVariables.get(obj);
-        if (meanings == null) {
-            meanings = new HashMap<String,Object>();
-            meaningVariables.put(obj, meanings);
-        }
+        if (projectSettings == null) return;
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;
@@ -1150,14 +1145,22 @@ public abstract class LibraryFiles extends Input
                     continue;
             }
             String prefName = var.getKey().getName();
+            String prefPath = null;
             if (obj instanceof Technology) {
+                prefPath = Technology.getTechnologyPreferences().absolutePath() + "/";
                 Map<String,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
                 if (convertedVars != null) {
-                    meanings.putAll(convertedVars);
+                    for (Map.Entry<String,Object> e: convertedVars.entrySet()) {
+                        prefName = e.getKey();
+                        value = e.getValue();
+                        projectSettings.put(prefPath + prefName, value);
+                    }
                     continue;
                 }
+            } else if (obj instanceof Tool) {
+                prefPath = ((Tool)obj).prefs.absolutePath() + "/";
             }
-            meanings.put(var.getKey().getName(), value);
+            projectSettings.put(prefPath + prefName, value);
         }
 	}
 

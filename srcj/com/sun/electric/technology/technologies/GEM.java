@@ -62,7 +62,7 @@ public class GEM extends Technology
 		setNoNegatedArcs();
 
         //Foundry
-        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
         foundries.add(noFoundry);
         
 		setStaticTechnology();

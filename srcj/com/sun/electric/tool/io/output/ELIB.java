@@ -62,6 +62,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
@@ -589,7 +590,12 @@ public class ELIB extends Output
 	 * @param obj Object with attached project settings.
 	 */
     private void gatherSettings(Object obj) {
-        for (Setting setting: Setting.getSettings(obj)) {
+        ProjSettingsNode xmlGroup = null;
+        if (obj instanceof Tool)
+            xmlGroup = ((Tool)obj).getProjectSettings();
+        else if (obj instanceof Technology)
+            xmlGroup = ((Technology)obj).getProjectSettings();
+        for (Setting setting: Setting.getSettings(xmlGroup)) {
             gatherObj(obj);
             String name = setting.getPrefName();
             if (nameSpace != null) putNameSpace(name);
@@ -1119,7 +1125,12 @@ public class ELIB extends Output
      * Method to write a set of project settings.
      */
     void writeMeaningPrefs(Object obj) throws IOException {
-        List<Setting> settings = Setting.getSettings(obj);
+        ProjSettingsNode xmlGroup = null;
+        if (obj instanceof Tool)
+            xmlGroup = ((Tool)obj).getProjectSettings();
+        else if (obj instanceof Technology)
+            xmlGroup = ((Technology)obj).getProjectSettings();
+        List<Setting> settings = Setting.getSettings(xmlGroup);
         writeInt("variables: ", settings.size());
         for (Setting setting : settings) {
             // create the "type" field

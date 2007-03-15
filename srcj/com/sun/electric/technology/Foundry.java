@@ -25,12 +25,13 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 
 import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * This is supposed to better encapsulate a particular foundry
@@ -51,11 +52,13 @@ public class Foundry {
         public String toString() {return name();}
     }
 
-    private Type type;
+    private final Technology tech;
+    private final Type type;
     private List<DRCTemplate> rules;
-    private HashMap<String,Setting> gdsLayerPrefs = new HashMap<String, Setting>();
+    private Setting[] gdsLayerSettings;
 
-    public Foundry(Type mode) {
+    public Foundry(Technology tech, Type mode) {
+        this.tech = tech;
         this.type = mode;
     }
     public Type getType() { return type; }
@@ -117,42 +120,54 @@ public class Foundry {
     public String toString() { return type.name(); }
 
     /**
-     * Method to set the factory-default GDS name of this Layer.
+     * Method to set the factory-default GDS names of Layers in this Foundry.
+     * @param tech Technology of this Foundry.
      * @param factoryDefault the factory-default GDS name of this Layer.
      */
-    public void setFactoryGDSLayer(Layer layer, String factoryDefault)
-    {
-        // Getting rid of spaces
-        String value = factoryDefault.replaceAll(", ", ",");
-        makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, value);
+    public void setFactoryGDSLayers(String... gdsLayers) {
+        LinkedHashMap<Layer,String> gdsMap = new LinkedHashMap<Layer,String>();
+        for (String gdsDef: gdsLayers) {
+            int space = gdsDef.indexOf(' ');
+            Layer layer = tech.findLayer(gdsDef.substring(0, space));
+            while (space < gdsDef.length() && gdsDef.charAt(space) == ' ') space++;
+            if (layer == null || gdsMap.put(layer, gdsDef.substring(space)) != null)
+                throw new IllegalArgumentException(gdsDef);
+        }
+        
+        assert gdsLayerSettings == null;
+        gdsLayerSettings = new Setting[tech.getNumLayers()];
+        for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
+            Layer layer = e.getKey();
+            String factoryDefault = e.getValue();
+            // Getting rid of spaces
+            String value = factoryDefault.replaceAll(", ", ",");
+            makeLayerSetting(layer, value);
+        }
     }
 
+//    private static Foundry curFoundry = null;
+//    public void setFactoryGDSLayer(Layer layer, String factoryDefault)
+//    {
+//        if (!toString().equals("ST")) {
+//            if (this != curFoundry) {
+//                System.out.println(layer.getTechnology() + " " + this);
+//                curFoundry = this;
+//            }
+//            System.out.println("\"" + layer.getName() + " " + factoryDefault + "\",");
+//        }
+//        // Getting rid of spaces
+//        String value = factoryDefault.replaceAll(", ", ",");
+//        makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, value);
+//    }
+    
     /**
      * Method to return the GDS name of this layer.
      * @return the GDS name of this layer.
      */
     public String getGDSLayer(Layer layer)
     {
-        return getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs).getString();
-    }
-
-    private Setting getLayerSetting(Layer layer, String what, HashMap<String,Setting> map) {
-        return map.get(makeLayerKey(layer, what));
-    }
-    
-    private void makeLayerSetting(Layer layer, String what, HashMap<String,Setting> map, String factory) {
-        String techName = layer.getTechnology().getTechName();
-        String key = makeLayerKey(layer, what);
-        if (factory == null) factory = "";
-        Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
-                    layer.getTechnology(), getGDSNode(layer.getTechnology()), layer.getName(),
-                what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factory);
-        map.put(key, setting);
-    }
-    
-    private String makeLayerKey(Layer layer, String what) {
-        String techName = layer.getTechnology().getTechName();
-        return layer.getName() + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
+        assert layer.getTechnology() == tech;
+        return gdsLayerSettings[layer.getIndex()].getString();
     }
 
     /**
@@ -161,9 +176,23 @@ public class Foundry {
      */
     public void setGDSLayer(Layer layer, String gdsLayer)
     {
-        getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs).setString(gdsLayer);
+        assert layer.getTechnology() == tech;
+        gdsLayerSettings[layer.getIndex()].setString(gdsLayer);
     }
 
+    private void makeLayerSetting(Layer layer, String factory) {
+        assert layer.getTechnology() == tech;
+        int layerIndex = layer.getIndex();
+        assert gdsLayerSettings[layerIndex] == null;
+        String techName = layer.getTechnology().getTechName();
+        if (factory == null) factory = "";
+        String what = getGDSPrefName();
+        Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
+                getGDSNode(), layer.getName(),
+                what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factory);
+        gdsLayerSettings[layerIndex] = setting;
+    }
+    
     /**
      * Generate key name for GDS value depending on the foundry
      * @return
@@ -173,7 +202,7 @@ public class Foundry {
         return ("GDS("+type.name()+")");
     }
 
-    private ProjSettingsNode getGDSNode(Technology tech) {
+    private ProjSettingsNode getGDSNode() {
         ProjSettingsNode node = tech.getProjectSettings().getNode("GDS");
         if (type == Type.TSMC)
             return node.getNode("TSMC");
@@ -188,11 +217,12 @@ public class Foundry {
      /**
      * Method to finish initialization of this Foundry.
      */
-    void finish(Technology tech) {
-        for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
-            Layer layer = it.next();
-            if (getLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs) == null)
-                makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, "");
+    void finish() {
+        if (gdsLayerSettings == null)
+            gdsLayerSettings = new Setting[tech.getNumLayers()];
+        for (int layerIndex = 0; layerIndex < tech.getNumLayers(); layerIndex++) {
+            if (gdsLayerSettings != null) continue;
+            makeLayerSetting(tech.getLayer(layerIndex), "");
         }
     }
 }

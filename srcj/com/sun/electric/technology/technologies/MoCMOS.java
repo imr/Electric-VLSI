@@ -138,21 +138,21 @@ public class MoCMOS extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
+    /**
+     * Constructs MOCMOS technology without TSMC180 foundry.
+     */
 	protected MoCMOS()
     {
-		this("mocmos", Foundry.Type.MOSIS.name(), 200); // in nanometers: really 0.2 micron
-		setTechShortName("MOSIS CMOS");
-		setTechDesc("MOSIS CMOS");
-        initMoCMOS(true);
+		this("mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200); // in nanometers: really 0.2 micron
+        initFoundryMOSIS();
     }
 
-    protected MoCMOS(String techName, String foundryName, double factoryScale) {
-        super(techName, foundryName);
+    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale) {
+        super(techName, defaultFoundryType.name());
         setFactoryScale(factoryScale, true);
-    }
-
-    protected void initMoCMOS(boolean hasMosisFoundry)
-    {
+        setTechShortName(techShortName);
+        setTechDesc(techDesc);
+        
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setFactoryTransparentLayers(new Color []
@@ -165,18 +165,6 @@ public class MoCMOS extends Technology
 		});
 
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
-        Foundry mosis = null;
-        if (hasMosisFoundry) {
-            mosis = new Foundry(Foundry.Type.MOSIS);
-            foundries.add(mosis);
-
-            // Reading Mosis rules stored in Mosis.xml
-            URL fileURL = MOSRules.class.getResource("Mosis180.xml");
-            DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
-            assert(parser.getRules().size() == 1);
-            assert(parser.isParseOK());
-            mosis.setRules(parser.getRules().get(0).drcRules);
-        }
 
 		//**************************************** LAYERS ****************************************
 		/** metal-1 layer */
@@ -956,39 +944,6 @@ public class MoCMOS extends Technology
 		pseudoWellLayers[P_TYPE].setFactoryCIFLayer("CWP");			// Pseudo-P-Well
 		pseudoWellLayers[N_TYPE].setFactoryCIFLayer("CWN");			// Pseudo-N-Well
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
-
-		// The GDS names for MOSIS
-        if (hasMosisFoundry) {
-            mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t"); // Metal-1
-            mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t"); // Metal-2
-            mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t"); // Metal-3
-            mosis.setFactoryGDSLayer(metalLayers[3], "31, 63p, 63t"); // Metal-4
-            mosis.setFactoryGDSLayer(metalLayers[4], "33, 64p, 64t"); // Metal-5
-            mosis.setFactoryGDSLayer(metalLayers[5], "37, 68p, 68t"); // Metal-6
-            mosis.setFactoryGDSLayer(poly1Layer, "46, 77p, 77t"); // Polysilicon-1
-            mosis.setFactoryGDSLayer(transistorPolyLayer, "46"); // Transistor-Poly
-            mosis.setFactoryGDSLayer(poly2_lay, "56"); // Polysilicon-2
-            mosis.setFactoryGDSLayer(activeLayers[P_TYPE], "43"); // P-Active
-            mosis.setFactoryGDSLayer(activeLayers[N_TYPE], "43"); // N-Active
-            mosis.setFactoryGDSLayer(pActiveWellLayer, "43"); // P-Active-Well
-            mosis.setFactoryGDSLayer(selectLayers[P_TYPE], "44"); // P-Select
-            mosis.setFactoryGDSLayer(selectLayers[N_TYPE], "45"); // N-Select
-            mosis.setFactoryGDSLayer(wellLayers[P_TYPE], "41"); // P-Well
-            mosis.setFactoryGDSLayer(wellLayers[N_TYPE], "42"); // N-Well
-            mosis.setFactoryGDSLayer(polyCutLayer, "25"); // Poly-Cut
-            mosis.setFactoryGDSLayer(activeCutLayer, "25"); // Active-Cut
-            mosis.setFactoryGDSLayer(viaLayers[0], "50"); // Via-1
-            mosis.setFactoryGDSLayer(viaLayers[1], "61"); // Via-2
-            mosis.setFactoryGDSLayer(viaLayers[2], "30"); // Via-3
-            mosis.setFactoryGDSLayer(viaLayers[3], "32"); // Via-4
-            mosis.setFactoryGDSLayer(viaLayers[4], "36"); // Via-5
-
-            mosis.setFactoryGDSLayer(passivationLayer, "52"); // Passivation
-            mosis.setFactoryGDSLayer(polyCapLayer, "28"); // Poly-Cap
-            mosis.setFactoryGDSLayer(silicideBlockLayer, "29"); // Silicide-Block
-            mosis.setFactoryGDSLayer(thickActiveLayer, "60"); // Thick-Active
-            mosis.setFactoryGDSLayer(padFrameLayer, "26"); // Pad-Frame
-        }
 
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1
@@ -2318,6 +2273,79 @@ public class MoCMOS extends Technology
 //        buildTechPalette();
     }
 
+    protected void initFoundryMOSIS() {
+        Foundry mosis = new Foundry(this, Foundry.Type.MOSIS);
+        foundries.add(mosis);
+        
+        // Reading Mosis rules stored in Mosis.xml
+        URL fileURL = MOSRules.class.getResource("Mosis180.xml");
+        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
+        assert(parser.getRules().size() == 1);
+        assert(parser.isParseOK());
+        mosis.setRules(parser.getRules().get(0).drcRules);
+        
+        // The GDS names for MOSIS
+        mosis.setFactoryGDSLayers(
+                "Metal-1 49, 80p, 80t",
+                "Metal-2 51, 82p, 82t",
+                "Metal-3 62, 93p, 93t",
+                "Metal-4 31, 63p, 63t",
+                "Metal-5 33, 64p, 64t",
+                "Metal-6 37, 68p, 68t",
+                "Polysilicon-1 46, 77p, 77t",
+                "Transistor-Poly 46",
+                "Polysilicon-2 56",
+                "P-Active 43",
+                "N-Active 43",
+                "P-Active-Well 43",
+                "P-Select 44",
+                "N-Select 45",
+                "P-Well 41",
+                "N-Well 42",
+                "Poly-Cut 25",
+                "Active-Cut 25",
+                "Via1 50",
+                "Via2 61",
+                "Via3 30",
+                "Via4 32",
+                "Via5 36",
+                
+                "Passivation 52",
+                "Poly-Cap 28",
+                "Silicide-Block 29",
+                "Thick-Active 60",
+                "Pad-Frame 26");
+//            mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t"); // Metal-1
+//            mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t"); // Metal-2
+//            mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t"); // Metal-3
+//            mosis.setFactoryGDSLayer(metalLayers[3], "31, 63p, 63t"); // Metal-4
+//            mosis.setFactoryGDSLayer(metalLayers[4], "33, 64p, 64t"); // Metal-5
+//            mosis.setFactoryGDSLayer(metalLayers[5], "37, 68p, 68t"); // Metal-6
+//            mosis.setFactoryGDSLayer(poly1Layer, "46, 77p, 77t"); // Polysilicon-1
+//            mosis.setFactoryGDSLayer(transistorPolyLayer, "46"); // Transistor-Poly
+//            mosis.setFactoryGDSLayer(poly2_lay, "56"); // Polysilicon-2
+//            mosis.setFactoryGDSLayer(activeLayers[P_TYPE], "43"); // P-Active
+//            mosis.setFactoryGDSLayer(activeLayers[N_TYPE], "43"); // N-Active
+//            mosis.setFactoryGDSLayer(pActiveWellLayer, "43"); // P-Active-Well
+//            mosis.setFactoryGDSLayer(selectLayers[P_TYPE], "44"); // P-Select
+//            mosis.setFactoryGDSLayer(selectLayers[N_TYPE], "45"); // N-Select
+//            mosis.setFactoryGDSLayer(wellLayers[P_TYPE], "41"); // P-Well
+//            mosis.setFactoryGDSLayer(wellLayers[N_TYPE], "42"); // N-Well
+//            mosis.setFactoryGDSLayer(polyCutLayer, "25"); // Poly-Cut
+//            mosis.setFactoryGDSLayer(activeCutLayer, "25"); // Active-Cut
+//            mosis.setFactoryGDSLayer(viaLayers[0], "50"); // Via-1
+//            mosis.setFactoryGDSLayer(viaLayers[1], "61"); // Via-2
+//            mosis.setFactoryGDSLayer(viaLayers[2], "30"); // Via-3
+//            mosis.setFactoryGDSLayer(viaLayers[3], "32"); // Via-4
+//            mosis.setFactoryGDSLayer(viaLayers[4], "36"); // Via-5
+//
+//            mosis.setFactoryGDSLayer(passivationLayer, "52"); // Passivation
+//            mosis.setFactoryGDSLayer(polyCapLayer, "28"); // Poly-Cap
+//            mosis.setFactoryGDSLayer(silicideBlockLayer, "29"); // Silicide-Block
+//            mosis.setFactoryGDSLayer(thickActiveLayer, "60"); // Thick-Active
+//            mosis.setFactoryGDSLayer(padFrameLayer, "26"); // Pad-Frame
+    }
+    
     /**
      * Method to load primitive nodes in the palette after rules have been loaded
      */
@@ -3270,8 +3298,8 @@ public class MoCMOS extends Technology
 
 	/******************** OPTIONS ********************/
 
-    private final Setting cacheNumberOfMetalLayers = TechSetting.makeIntSetting(this, "MoCMOSNumberOfMetalLayers",
-    	"Technology tab", "MOSIS CMOS: Number of Metal Layers", getProjectSettings(), "NumMetalLayers", 6);
+    private static final Setting cacheNumberOfMetalLayers = TechSetting.makeIntSetting(tech, "MoCMOSNumberOfMetalLayers",
+    	"Technology tab", "MOSIS CMOS: Number of Metal Layers", tech.getProjectSettings(), "NumMetalLayers", 6);
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.
 	 * The default is "4".
@@ -3284,9 +3312,9 @@ public class MoCMOS extends Technology
 	 */
 	public static void setNumMetal(int num) { tech.cacheNumberOfMetalLayers.setInt(num); }
 
-    private final Setting cacheRuleSet = TechSetting.makeIntSetting(this, "MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
-        getProjectSettings(), "MOCMOS Rule Set", 1);
-    {
+    private static final Setting cacheRuleSet = TechSetting.makeIntSetting(tech, "MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
+        tech.getProjectSettings(), "MOCMOS Rule Set", 1);
+    static {
     	cacheRuleSet.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
 	}
 	/**
@@ -3296,7 +3324,7 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-    public static int getRuleSet() { return tech.cacheRuleSet.getInt(); }
+    public int getRuleSet() { return tech.cacheRuleSet.getInt(); }
 
 //    private static DRCTemplate.DRCMode getRuleMode()
 //    {
@@ -3318,43 +3346,43 @@ public class MoCMOS extends Technology
 	 */
 	public static void setRuleSet(int set) { tech.cacheRuleSet.setInt(set); }
 
-	private final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(this, "MoCMOSSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer",
-		getProjectSettings(), "UseSecondPolysilicon", true);
+	private static final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(tech, "MoCMOSSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer",
+		tech.getProjectSettings(), "UseSecondPolysilicon", true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
 	 * @return true if there are 2 polysilicon layers in this Technology.
 	 * If false, there is only 1 polysilicon layer.
 	 */
-	public static boolean isSecondPolysilicon() { return tech.cacheSecondPolysilicon.getBoolean(); }
+	public boolean isSecondPolysilicon() { return tech.cacheSecondPolysilicon.getBoolean(); }
 	/**
 	 * Method to set a second polysilicon layer in this Technology.
 	 * @param on true if there are 2 polysilicon layers in this Technology.
 	 */
 	public static void setSecondPolysilicon(boolean on) { tech.cacheSecondPolysilicon.setBoolean(on); }
 
-	private final Setting cacheDisallowStackedVias = TechSetting.makeBooleanSetting(this, "MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
-        getProjectSettings(), "DisallowStackedVias", false);
+	private static final Setting cacheDisallowStackedVias = TechSetting.makeBooleanSetting(tech, "MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
+        tech.getProjectSettings(), "DisallowStackedVias", false);
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
 	 * The default is false (they are allowed).
 	 * @return true if the MOCMOS technology disallows stacked vias.
 	 */
-	public static boolean isDisallowStackedVias() { return tech.cacheDisallowStackedVias.getBoolean(); }
+	public boolean isDisallowStackedVias() { return tech.cacheDisallowStackedVias.getBoolean(); }
 	/**
 	 * Method to set whether this Technology disallows stacked vias.
 	 * @param on true if the MOCMOS technology will allow disallows vias.
 	 */
 	public static void setDisallowStackedVias(boolean on) { tech.cacheDisallowStackedVias.setBoolean(on); }
 
-	private final Setting cacheAlternateActivePolyRules = TechSetting.makeBooleanSetting(this, "MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
-		getProjectSettings(), "UseAlternativeActivePolyRules", false);
+	private static final Setting cacheAlternateActivePolyRules = TechSetting.makeBooleanSetting(tech, "MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
+		tech.getProjectSettings(), "UseAlternativeActivePolyRules", false);
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * The default is false.
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
-	public static boolean isAlternateActivePolyRules() { return tech.cacheAlternateActivePolyRules.getBoolean(); }
+	public boolean isAlternateActivePolyRules() { return tech.cacheAlternateActivePolyRules.getBoolean(); }
 	/**
 	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
 	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.

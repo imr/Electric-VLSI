@@ -583,7 +583,7 @@ public class Technology implements Comparable<Technology>
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
 
-	/** name of this technology */							private String techName;
+	/** name of this technology */							private final String techName;
 	/** short, readable name of this technology */			private String techShortName;
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
@@ -594,17 +594,18 @@ public class Technology implements Comparable<Technology>
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
-	/** list of primitive nodes in this technology */		private LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
+    /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
+	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
-	/** list of arcs in this technology */					private LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
-	/** list of NodeLayers in this Technology. */			private List<NodeLayer> nodeLayers;
+	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+	/** list of NodeLayers in this Technology. */			private final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
 	/** scale for this Technology. */						private Setting prefScale;
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private final Setting prefFoundry;
-    /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
+    /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
 	/** Minimum resistance for this Technology. */			private Setting prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Setting prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private final Setting prefGateLengthSubtraction;
@@ -646,17 +647,16 @@ public class Technology implements Comparable<Technology>
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(String techName, String foundryName)
+	protected Technology(String techName, String defaultFoundryName)
 	{
 		this.techName = techName;
-		this.nodeLayers = new ArrayList<NodeLayer>();
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
         prefFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", foundryName.toUpperCase());
+        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundryName.toUpperCase());
         prefMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         prefGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
 		prefIncludeGate = makeParasiticSetting("Gate Inclusion", false);
@@ -672,9 +672,6 @@ public class Technology implements Comparable<Technology>
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
-
-        // Initialize foundries
-        foundries = new ArrayList<Foundry>();
 	}
     
 	private static final String [] extraTechnologies = {"tsmc.CMOS90", "tsmc.TSMC180"};
@@ -947,6 +944,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public Iterator<Layer> getLayers()
 	{
+        layersAllocationLocked = true;
 		return layers.iterator();
 	}
 
@@ -966,6 +964,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public int getNumLayers()
 	{
+        layersAllocationLocked = true;
 		return layers.size();
 	}
 
@@ -1048,8 +1047,10 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void addLayer(Layer layer)
 	{
-		layer.setIndex(layers.size());
-		layers.add(layer);
+        if (layersAllocationLocked)
+            throw new IllegalStateException("layers allocation is locked");
+        layer.setIndex(layers.size());
+        layers.add(layer);
 	}
 
 	/**
@@ -2685,7 +2686,7 @@ public class Technology implements Comparable<Technology>
     private Setting makeParasiticSetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
+        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
                 getProjectSettings(), what,
                 "Parasitic tab", techShortName + " " + what, factory);
     }
@@ -2693,7 +2694,7 @@ public class Technology implements Comparable<Technology>
     private Setting makeParasiticSetting(String what, boolean factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeBooleanSetting(what + "IN" + getTechName(), prefs, this,
+        return Setting.makeBooleanSetting(what + "IN" + getTechName(), prefs,
                 getProjectSettings(), what,
                 "Parasitic tab", techShortName + " " + what, factory);
     }
@@ -2841,17 +2842,17 @@ public class Technology implements Comparable<Technology>
 
     private ProjSettingsNode getLESettingsNode() {
         ProjSettingsNode node = getProjectSettings().getNode("LogicalEffort");
-        if (node == null) {
-            node = new ProjSettingsNode();
-            getProjectSettings().putNode("LogicalEffort", node);
-        }
+//        if (node == null) {
+//            node = new ProjSettingsNode();
+//            getProjectSettings().putNode("LogicalEffort", node);
+//        }
         return node;
     }
 
     private Setting makeLESetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
+        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
                 getLESettingsNode(), what,
                 "Logical Effort tab", techShortName + " " + what, factory);
     }
@@ -2859,7 +2860,7 @@ public class Technology implements Comparable<Technology>
     private Setting makeLESetting(String what, int factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeIntSetting(what + "IN" + getTechName(), prefs, this,
+        return Setting.makeIntSetting(what + "IN" + getTechName(), prefs,
                 getLESettingsNode(), what,
                 "Logical Effort tab", techShortName + " " + what, factory);
         
@@ -3107,19 +3108,21 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setTechName(String techName)
 	{
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (tech == this) continue;
-			if (tech.techName.equalsIgnoreCase(techName))
-			{
-				System.out.println("Cannot rename " + this + "to '" + techName + "' because that name is used by another technology");
-				return;
-			}
-		}
-		if (!jelibSafeName(techName))
-			System.out.println("Technology name " + techName + " is not safe to write into JELIB");
-		this.techName = techName;
+        throw new UnsupportedOperationException(); // Correct implementation must also rename ProjectSettings and Preferences of this Technology
+        
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			if (tech == this) continue;
+//			if (tech.techName.equalsIgnoreCase(techName))
+//			{
+//				System.out.println("Cannot rename " + this + "to '" + techName + "' because that name is used by another technology");
+//				return;
+//			}
+//		}
+//		if (!jelibSafeName(techName))
+//			System.out.println("Technology name " + techName + " is not safe to write into JELIB");
+//		this.techName = techName;
 	}
 
 	/**
@@ -3207,7 +3210,7 @@ public class Technology implements Comparable<Technology>
 		this.scaleRelevant = scaleRelevant;
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-		prefScale = Setting.makeDoubleSetting(getScaleVariableName(), prefs, this,
+		prefScale = Setting.makeDoubleSetting(getScaleVariableName(), prefs,
                 getProjectSettings(), "Scale", "Scale tab", techShortName + " scale", factory);
 		prefScale.setValidOption(isScaleRelevant());
     }
@@ -3829,8 +3832,9 @@ public class Technology implements Comparable<Technology>
         if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
             setFactoryLESettings(DEFAULT_GATECAP, DEFAULT_WIRERATIO, DEFAULT_DIFFALPHA);
         }
+        layersAllocationLocked = true;
         for (Foundry foundry: foundries) {
-            foundry.finish(this);
+            foundry.finish();
         }
         for (Layer layer: layers) {
             layer.finish();
@@ -4099,7 +4103,7 @@ public class Technology implements Comparable<Technology>
         private Technology tech;
 
         private TechSetting(String prefName, Pref.Group group, Technology tech, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
-            super(prefName, Technology.prefs, tech, xmlNode, xmlName, location, description, factoryObj);
+            super(prefName, Technology.prefs, xmlNode, xmlName, location, description, factoryObj);
             this.tech = tech;
         }
 
@@ -4167,10 +4171,10 @@ public class Technology implements Comparable<Technology>
 
     public ProjSettingsNode getProjectSettings() {
         ProjSettingsNode node = ProjSettings.getSettings().getNode(getTechName());
-        if (node == null) {
-            node = new ProjSettingsNode();
-            ProjSettings.getSettings().putNode(getTechName(), node);
-        }
+//        if (node == null) {
+//            node = new ProjSettingsNode();
+//            ProjSettings.getSettings().putNode(getTechName(), node);
+//        }
         return node;
     }
 }

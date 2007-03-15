@@ -220,18 +220,14 @@ public class OptionReconcile extends EDialog
 	 */
 	private static class DoReconciliation extends Job
 	{
-        private Map<Object,Map<String,Object>> settingsToSerialize = new HashMap<Object,Map<String,Object>>();
+        private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
         
         private DoReconciliation(Map<Setting,Object> settingsToReconcile) {
             super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
                 Setting setting = e.getKey();
-                Map<String,Object> ownerSettings = this.settingsToSerialize.get(setting.getOwnerObject());
-                if (ownerSettings == null) {
-                    ownerSettings = new HashMap<String,Object>();
-                    this.settingsToSerialize.put(setting.getOwnerObject(), ownerSettings);
-                }
-                ownerSettings.put(setting.getPrefName(), e.getValue());
+                Object newValue = e.getValue();
+                settingsToSerialize.put(setting.getXmlPath(), newValue);
             }
             startJob();
         }
@@ -239,14 +235,12 @@ public class OptionReconcile extends EDialog
 		public boolean doIt() throws JobException
 		{
             Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-            for (Map.Entry<Object,Map<String,Object>> e1: settingsToSerialize.entrySet()) {
-                Object ownerObj = e1.getKey();
-                for (Map.Entry<String,Object> e2: e1.getValue().entrySet()) {
-                    String prefName = e2.getKey();
-                    Setting setting = Setting.getSetting(ownerObj, prefName);
-                    if (setting == null) continue;
-                    settingsToReconcile.put(setting, e2.getValue());
-                }
+            for (Map.Entry<String,Object> e: settingsToSerialize.entrySet()) {
+                String xmlPath = e.getKey();
+                Object newValue = e.getValue();
+                Setting setting = Setting.getSetting(xmlPath);
+                if (setting == null) continue;
+                settingsToReconcile.put(setting, newValue);
             }
             Setting.finishSettingReconcilation(settingsToReconcile);
 			return true;

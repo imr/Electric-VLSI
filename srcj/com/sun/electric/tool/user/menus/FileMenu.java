@@ -402,7 +402,7 @@ public class FileMenu {
 		private FileType type;
 		private Library deleteLib;
         private String cellName; // cell to view once the library is open
-        private HashMap<Object,Map<String,Object>> projectSettings;
+        private HashMap<String,Object> projectSettings;
         private Library lib;
 
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName)
@@ -424,7 +424,7 @@ public class FileMenu {
 				deleteLib = null;
 			}
             fieldVariableChanged("projectSettings");
-            projectSettings = new HashMap<Object,Map<String,Object>>();
+            projectSettings = new HashMap<String,Object>();
         	lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
             if (lib == null) return false;
             fieldVariableChanged("lib");

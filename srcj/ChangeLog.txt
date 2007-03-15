@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/14/07, DN) Reader of "projsettings.xml" resets project Settings value to factory default,
+   it this Setting  was not encountered in ".xml" file.
+
 BUG: (3/13/07, GVG) Min area issues reported by Misook (Bug#1244, 1240)
 FIX: Special treatment of active in transistors so they will be added to left and right networks.
 DRC regression has new minArea test.

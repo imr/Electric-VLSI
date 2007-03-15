@@ -101,7 +101,7 @@ public class TechnologyTab extends ProjSettingsPanel
 	public void init()
 	{
 		// MOCMOS
-		int initialTechRules = MoCMOS.getRuleSet();
+		int initialTechRules = MoCMOS.tech.getRuleSet();
 		if (initialTechRules == MoCMOS.SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
 			if (initialTechRules == MoCMOS.SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
 				techMOCMOSDeepRules.setSelected(true);
@@ -113,8 +113,8 @@ public class TechnologyTab extends ProjSettingsPanel
 		techMetalLayers.addItem("6 Layers");
 		techMetalLayers.setSelectedIndex(MoCMOS.tech.getNumMetal()-2);
 		techMOCMOSSecondPoly.setSelected(MoCMOS.tech.isSecondPolysilicon());
-		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.isDisallowStackedVias());
-		techMOCMOSAlternateContactRules.setSelected(MoCMOS.isAlternateActivePolyRules());
+		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.tech.isDisallowStackedVias());
+		techMOCMOSAlternateContactRules.setSelected(MoCMOS.tech.isAlternateActivePolyRules());
 
 		// Technologies
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -195,28 +195,28 @@ public class TechnologyTab extends ProjSettingsPanel
             MoCMOS.setNumMetal(currentNumMetals);
             changeInMoCMOS = true;
         }
-        if (currentRules != MoCMOS.getRuleSet())
+        if (currentRules != MoCMOS.tech.getRuleSet())
         {
             MoCMOS.setRuleSet(currentRules);
             changeInMoCMOS = true;
         }
 
 		boolean newVal = techMOCMOSSecondPoly.isSelected();
-		if (newVal != MoCMOS.isSecondPolysilicon())
+		if (newVal != MoCMOS.tech.isSecondPolysilicon())
         {
             MoCMOS.setSecondPolysilicon(newVal);
             changeInMoCMOS = true;
         }
 
 		newVal = techMOCMOSDisallowStackedVias.isSelected();
-		if (newVal != MoCMOS.isDisallowStackedVias())
+		if (newVal != MoCMOS.tech.isDisallowStackedVias())
         {
             MoCMOS.setDisallowStackedVias(newVal);
             changeInMoCMOS = true;
         }
 
 		newVal = techMOCMOSAlternateContactRules.isSelected();
-		if (newVal != MoCMOS.isAlternateActivePolyRules())
+		if (newVal != MoCMOS.tech.isAlternateActivePolyRules())
         {
             MoCMOS.setAlternateActivePolyRules(newVal);
             changeInMoCMOS = true;
