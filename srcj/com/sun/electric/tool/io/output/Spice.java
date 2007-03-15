@@ -1104,7 +1104,7 @@ public class Spice extends Topology
                             Object obj = context.evalSpice(resistVar, false);
                             extra = String.valueOf(obj);
                         }
-                        if (extra == null)
+                        if (extra == "")
                             extra = resistVar.describe(context, ni);
                         if (TextUtils.isANumber(extra))
 						{
@@ -1151,7 +1151,7 @@ public class Spice extends Topology
                             Object obj = context.evalSpice(capacVar, false);
                             extra = String.valueOf(obj);
                         }
-                        if (extra == null)
+                        if (extra == "")
                             extra = capacVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
@@ -1172,7 +1172,7 @@ public class Spice extends Topology
                             Object obj = context.evalSpice(inductVar, false);
                             extra = String.valueOf(obj);
                         }
-                        if (extra == null)
+                        if (extra == "")
                             extra = inductVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
