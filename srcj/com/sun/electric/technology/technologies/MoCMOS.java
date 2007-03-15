@@ -148,7 +148,7 @@ public class MoCMOS extends Technology
     }
 
     protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale) {
-        super(techName, defaultFoundryType.name());
+        super(techName, defaultFoundryType);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
         setTechDesc(techDesc);

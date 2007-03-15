@@ -45,7 +45,7 @@ public class BiCMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private BiCMOS()
 	{
-		super("bicmos");
+		super("bicmos", Foundry.Type.MOSIS);
 		setTechDesc("Bipolar/CMOS (from MOSIS, N-Well, SCE Rules)");
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();

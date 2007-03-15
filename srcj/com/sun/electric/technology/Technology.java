@@ -640,14 +640,14 @@ public class Technology implements Comparable<Technology>
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
 	protected Technology(String techName) {
-        this(techName, "");
+        this(techName, Foundry.Type.NONE);
     }
     
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(String techName, String defaultFoundryName)
+	protected Technology(String techName, Foundry.Type defaultFoundry)
 	{
 		this.techName = techName;
 		//this.scale = 1.0;
@@ -656,7 +656,7 @@ public class Technology implements Comparable<Technology>
 		userBits = 0;
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
         prefFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundryName.toUpperCase());
+        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.name().toUpperCase());
         prefMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         prefGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
 		prefIncludeGate = makeParasiticSetting("Gate Inclusion", false);

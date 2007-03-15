@@ -46,6 +46,7 @@ import java.util.prefs.Preferences;
 public class Setting {
     private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
+    private static final ArrayList<Object> values = new ArrayList<Object>();
     
     private final ProjSettingsNode xmlNode;
     private final String xmlName;
@@ -54,11 +55,10 @@ public class Setting {
     private final Preferences prefs;
     private final String prefName;
     private final String prefPath;
+    private final int index;
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
-    
-	private Object cachedObj;
     
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
@@ -70,14 +70,19 @@ public class Setting {
         this.xmlName = xmlName;
         xmlPath = xmlNode.getPath() + xmlName;
         assert !allSettingsByXmlPath.containsKey(xmlPath);
-        allSettingsByXmlPath.put(xmlPath, this);
         
         this.factoryObj = factoryObj;
         this.prefName = prefName;
         prefs = group.prefs;
         prefPath = prefs.absolutePath() + "/" + prefName;
         assert !allSettingsByPrefPath.containsKey(prefPath);
+        
+        index = values.size();
+        values.add(factoryObj);
+        allSettingsByXmlPath.put(xmlPath, this);
         allSettingsByPrefPath.put(prefPath, this);
+        assert allSettingsByXmlPath.size() == allSettingsByPrefPath.size();
+        assert allSettingsByXmlPath.size() == values.size();
         
         valid = true;
         this.description = description;
@@ -89,6 +94,7 @@ public class Setting {
     }
     
     private void setCachedObjFromPreferences() {
+        Object cachedObj = null;
         if (factoryObj instanceof Boolean) {
             cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
         } else if (factoryObj instanceof Integer) {
@@ -99,9 +105,9 @@ public class Setting {
             cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double)factoryObj).doubleValue()));
         } else if (factoryObj instanceof String) {
             cachedObj = prefs.get(prefName, (String)factoryObj);    
-        } else {
-            assert false;
         }
+        assert cachedObj != null;
+        values.set(index, cachedObj);
     }
     
     /**
@@ -146,12 +152,8 @@ public class Setting {
      * @param v the new boolean value of this TechSetting object.
      */
     public void setBoolean(boolean v) {
-        if (v == getBoolean()) return;
-        cachedObj = Boolean.valueOf(v);
-        prefs.putBoolean(prefName, v);
-        Pref.flushOptions_(prefs);
-        changed = true;
-        setSideEffect();
+        if (v != getBoolean())
+            set(Boolean.valueOf(v));
     }
     
     /**
@@ -159,12 +161,8 @@ public class Setting {
      * @param v the new integer value of this TechSetting object.
      */
     public void setInt(int v) {
-        if (v == getInt()) return;
-        cachedObj = Integer.valueOf(v);
-        prefs.putInt(prefName, v);
-        Pref.flushOptions_(prefs);
-        changed = true;
-        setSideEffect();
+        if (v != getInt())
+            set(Integer.valueOf(v));
      }
     
     /**
@@ -172,12 +170,8 @@ public class Setting {
      * @param v the new long value of this TechSetting object.
      */
     public void setLong(long v) {
-        if (v == getInt()) return;
-        cachedObj = Long.valueOf(v);
-        prefs.putLong(prefName, v);
-        Pref.flushOptions_(prefs);
-        changed = true;
-        setSideEffect();
+        if (v != getInt())
+            set(Long.valueOf(v));
     }
     
     /**
@@ -185,12 +179,8 @@ public class Setting {
      * @param v the new double value of this Pref object.
      */
     public void setDouble(double v) {
-        if (v == getDouble()) return;
-        cachedObj = Double.valueOf(v);
-        prefs.putDouble(prefName, v);
-        Pref.flushOptions_(prefs);
-        changed = true;
-        setSideEffect();
+        if (v != getDouble())
+            set(Double.valueOf(v));
     }
     
     /**
@@ -198,19 +188,15 @@ public class Setting {
      * @param str the new string value of this TechSetting object.
      */
     public void setString(String str) {
-        if (str.equals(getString())) return;
-        cachedObj = str;
-        prefs.put(prefName, str);
-        Pref.flushOptions_(prefs);
-        changed = true;
-        setSideEffect();
+        if (!str.equals(getString()))
+            set(str);
     }
     
     public void set(Object v) {
-        if (cachedObj.equals(v)) return;
+        if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new RuntimeException();
-        cachedObj = factoryObj.equals(v) ? factoryObj : v;
+        values.set(index, factoryObj.equals(v) ? factoryObj : v);
         setPreferencesToValue(v);
         Pref.flushOptions_(prefs);
         changed = true;
@@ -242,7 +228,7 @@ public class Setting {
 	 * methods such as getInt(), getBoolean(), etc.
 	 * @return the Object value of this Pref object.
 	 */
-	public Object getValue() { return cachedObj; }
+	public Object getValue() { return values.get(index); }
 
     /**
      * Method to return the user-command that can affect this Meaning option.
@@ -571,7 +557,7 @@ public class Setting {
                 continue;
             }
             Setting setting = node.getValue(key);
-            out.println(" " + setting.prefName + " " + setting.cachedObj);
+            out.println(" " + setting.prefName + " " + setting.getValue());
         }
    }
 }

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/15/07, DN) Factory values of Technology.Foundry setting should be one of supported foundries.
+FIX: In BiCMOS, Bipolar, MoCMOSOld, MoCMOSSub define factory value of Foundry as MOSIS.
+
+BUG: (3/15/07, DN) Crash entering GDS tab in project settings dialog.
+FIX: In Foundry.finish use "gdsLayerSettings[layerIndex] != null" instead of "gdsLayerSettings != null".
+
 IMP: (3/14/07, DN) Reader of "projsettings.xml" resets project Settings value to factory default,
    it this Setting  was not encountered in ".xml" file.
 

@@ -221,7 +221,7 @@ public class Foundry {
         if (gdsLayerSettings == null)
             gdsLayerSettings = new Setting[tech.getNumLayers()];
         for (int layerIndex = 0; layerIndex < tech.getNumLayers(); layerIndex++) {
-            if (gdsLayerSettings != null) continue;
+            if (gdsLayerSettings[layerIndex] != null) continue;
             makeLayerSetting(tech.getLayer(layerIndex), "");
         }
     }

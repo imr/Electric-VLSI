@@ -42,7 +42,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -57,6 +56,7 @@ import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -100,6 +100,10 @@ public class FPGA extends Technology
 		setStaticTechnology();
 		setNonStandard();
 		setNoPrimitiveNodes();
+
+        //Foundry
+        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
+        foundries.add(noFoundry);
 
 		//**************************************** LAYERS ****************************************
 
