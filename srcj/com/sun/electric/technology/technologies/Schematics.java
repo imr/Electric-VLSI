@@ -244,10 +244,6 @@ public class Schematics extends Technology
 		setNonStandard();
 		setStaticTechnology();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-        
 //		setFactoryTransparentLayers(new Color []
 //   		{
 //   			new Color(107, 226, 96)  // Bus
@@ -1392,6 +1388,9 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		globalPartitionNode.setFunction(PrimitiveNode.Function.CONNECT);
+        
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	}
 
 	//**************************************** METHODS ****************************************

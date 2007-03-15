@@ -29,7 +29,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.net.URL;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -2274,18 +2272,8 @@ public class MoCMOS extends Technology
     }
 
     protected void initFoundryMOSIS() {
-        Foundry mosis = new Foundry(this, Foundry.Type.MOSIS);
-        foundries.add(mosis);
-        
-        // Reading Mosis rules stored in Mosis.xml
-        URL fileURL = MOSRules.class.getResource("Mosis180.xml");
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
-        assert(parser.getRules().size() == 1);
-        assert(parser.isParseOK());
-        mosis.setRules(parser.getRules().get(0).drcRules);
-        
-        // The GDS names for MOSIS
-        mosis.setFactoryGDSLayers(
+        newFoundry(Foundry.Type.MOSIS, MOSRules.class.getResource("Mosis180.xml"),
+                // The GDS names for MOSIS
                 "Metal-1 49, 80p, 80t",
                 "Metal-2 51, 82p, 82t",
                 "Metal-3 62, 93p, 93t",

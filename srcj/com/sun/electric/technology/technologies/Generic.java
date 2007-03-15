@@ -67,10 +67,6 @@ public class Generic extends Technology
 		setTechShortName("Generic");
 		setTechDesc("Useful primitives");
 		setNonStandard();
-
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
         
 		setFactoryScale(1000, false);			// in nanometers: really 1 micron
 
@@ -281,6 +277,9 @@ public class Generic extends Technology
 		// The pure layer nodes
 		drcLay.setPureLayerNode(drcNode);
         afgLay.setPureLayerNode(afgNode);
+
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	}
 
     public static void setBackgroudColor(Color c)

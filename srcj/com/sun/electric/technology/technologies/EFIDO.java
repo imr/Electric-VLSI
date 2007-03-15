@@ -48,10 +48,6 @@ public class EFIDO extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(255,  0,  0), // layer 1
@@ -404,5 +400,8 @@ public class EFIDO extends Technology
         nodeGroups[++count][0] = wp_node; nodeGroups[count][1] = p_node;
         nodeGroups[++count][0] = bp_node; nodeGroups[count][1] = p0_node;
         nodeGroups[++count][0] = a_node;
+        
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	};
 }

@@ -93,10 +93,6 @@ public class Artwork extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
-        // Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-
 		//**************************************** LAYERS ****************************************
 
 		/** Graphics layer */
@@ -110,12 +106,6 @@ public class Artwork extends Technology
 
 		// The DXF names
 		defaultLayer.setFactoryDXFLayer("OBJECT");		// Graphics
-
-		// The GDS names
-        noFoundry.setFactoryGDSLayers(
-                "Graphics 1");
-//        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
-//		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************
 
@@ -432,6 +422,14 @@ public class Artwork extends Technology
 			});
 		thickCircleNode.setFunction(PrimitiveNode.Function.ART);
 		thickCircleNode.setEdgeSelect();
+        
+        // Foundry
+        newFoundry(Foundry.Type.NONE, null,
+                // The GDS names
+                "Graphics 1");
+//        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
+//		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
+
 	}
 
 	/**

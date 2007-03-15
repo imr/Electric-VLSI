@@ -37,7 +37,12 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -2409,7 +2414,7 @@ public class Manipulate
 
         // allocate space for all layer fields
 		int layerCount = tech.getNumLayers();
-        Foundry foundry = tech.getSelectedFoundry();
+        Map<Layer,String> gdsLayers = tech.getGDSLayers();
 
         DocColumn[] cols = new DocColumn[7];
         cols[0] = new DocColumn("Layer", layerCount);
@@ -2451,7 +2456,8 @@ public class Manipulate
             // CIF
             cols[3].add(layer.getCIFLayer());
             // GDS
-            cols[4].add((foundry != null)?foundry.getGDSLayer(layer):"");
+            String gdsLayer = gdsLayers.get(layer);
+            cols[4].add(gdsLayer != null ? gdsLayer : "");
             // Function
             cols[5].add(layer.getFunction().toString());
             // Coverage

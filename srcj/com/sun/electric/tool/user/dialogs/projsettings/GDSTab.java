@@ -37,6 +37,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -114,10 +115,10 @@ public class GDSTab extends ProjSettingsPanel
             for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
             {
                 Foundry foundry = itF.next();
-                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+                for (Map.Entry<Layer,String> e: foundry.getGDSLayers().entrySet())
                 {
-                    Layer layer = lIt.next();
-                    String gdsLayer = foundry.getGDSLayer(layer);
+                    Layer layer = e.getKey();
+                    String gdsLayer = e.getValue();
                     put(foundry, layer, gdsLayer);
 			    }
             }
@@ -161,7 +162,8 @@ public class GDSTab extends ProjSettingsPanel
     {
         HashMap<Layer,String> table = layerMap.get(f);
         if (table == null) return "";
-        return table.get(l);
+        String s = table.get(l);
+        return s != null ? s : "";
     }
 
     private void foundryChanged()
@@ -176,7 +178,7 @@ public class GDSTab extends ProjSettingsPanel
             Layer layer = lIt.next();
             String str = layer.getName();
             String gdsLayer = get(foundry, layer);
-            if (gdsLayer != null) str += " (" + gdsLayer + ")";
+            if (gdsLayer != null && gdsLayer.length() > 0) str += " (" + gdsLayer + ")";
 			gdsLayersModel.addElement(str);
         }
 		gdsLayersList.setSelectedIndex(0);
@@ -212,7 +214,7 @@ public class GDSTab extends ProjSettingsPanel
 		changingGDS = true;
 		String str = (String)gdsLayersList.getSelectedValue();
 		GDSLayers numbers = gdsGetNumbers(str);
-		if (numbers == null) return;
+		if (numbers == null) numbers = GDSLayers.EMPTY;
 		if (numbers.getNumLayers() == 0)
 		{
 			gdsLayerNumber.setText("");
@@ -267,12 +269,11 @@ public class GDSTab extends ProjSettingsPanel
 	private Layer gdsGetLayer(String str)
 	{
 		int openParen = str.indexOf('(');
-		if (openParen < 0) return null;
+		String layerName = openParen >= 0 ? str.substring(0, openParen-1) : str;
 
         Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
 		if (tech == null) return null;
 
-		String layerName = str.substring(0, openParen-1);
 		Layer layer = tech.findLayer(layerName);
 		return layer;
 	}
@@ -311,7 +312,8 @@ public class GDSTab extends ProjSettingsPanel
 			if (textType != 0) newLine += "/" + textType;
 			newLine += "t";
 		}
-		String wholeLine = layer.getName() + " (" + newLine + ")";
+		String wholeLine = layer.getName();
+        if (newLine.length() > 0) wholeLine = wholeLine + " (" + newLine + ")";
 		int index = gdsLayersList.getSelectedIndex();
 		gdsLayersModel.set(index, wholeLine);
         Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
@@ -345,6 +347,8 @@ public class GDSTab extends ProjSettingsPanel
             for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
             {
                 Foundry foundry = itF.next();
+                HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
+                Map<Layer,String> oldGdsLayers = foundry.getGDSLayers();
                 for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
                 {
                     Layer layer = lIt.next();
@@ -352,36 +356,12 @@ public class GDSTab extends ProjSettingsPanel
                     GDSLayers numbers = GDSLayers.parseLayerString(str);
                     if (numbers == null) continue;
 
-                    GDSLayers oldNumbers = GDSLayers.parseLayerString(foundry.getGDSLayer(layer));
+                    String oldStr = oldGdsLayers.get(layer);
+                    GDSLayers oldNumbers = oldStr != null ? GDSLayers.parseLayerString(oldStr) : GDSLayers.EMPTY;
                     if (!oldNumbers.equals(numbers))
-                    {
-                        String currentGDSNumbers = "";
-                        for(Iterator<Integer> it = numbers.getLayers(); it.hasNext(); )
-                        {
-                            Integer layVal = it.next();
-                            int layNum = layVal.intValue() & 0xFFFF;
-                            int layType = (layVal.intValue() >> 16) & 0xFFFF;
-                            currentGDSNumbers += Integer.toString(layNum);
-                            if (layType != 0) currentGDSNumbers += "/" + layType;
-                        }
-                        if (numbers.getPinLayer() != -1)
-                        {
-                            currentGDSNumbers += "," + (numbers.getPinLayer() & 0xFFFF);
-                            int pinType = (numbers.getPinLayer() >> 16) & 0xFFFF;
-                            if (pinType != 0) currentGDSNumbers += "/" + pinType;
-                            currentGDSNumbers += "p";
-                        }
-                        if (numbers.getTextLayer() != -1)
-                        {
-                            currentGDSNumbers += "," + (numbers.getTextLayer() & 0xFFFF);
-                            int textType = (numbers.getTextLayer() >> 16) & 0xFFFF;
-                            if (textType != 0) currentGDSNumbers += "/" + textType;
-                            currentGDSNumbers += "t";
-                        }
-    //					layer.setGDSLayer(currentGDSNumbers);
-                        foundry.setGDSLayer(layer, currentGDSNumbers);
-                    }
+                        gdsLayers.put(layer, numbers.toString());
                 }
+                foundry.setGDSLayers(gdsLayers);
             }
 		}
 		boolean currentValue = gdsOutputMergesBoxes.isSelected();

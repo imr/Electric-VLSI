@@ -24,10 +24,12 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -47,6 +50,7 @@ public class Setting {
     private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
     private static final ArrayList<Object> values = new ArrayList<Object>();
+    private static SettingChangeBatch changeBatch = null;
     
     private final ProjSettingsNode xmlNode;
     private final String xmlName;
@@ -62,6 +66,7 @@ public class Setting {
     
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
+        EDatabase.theDatabase.checkChanging();
         if (xmlNode == null)
             throw new NullPointerException();
         this.xmlNode = xmlNode;
@@ -145,8 +150,6 @@ public class Setting {
      */
     public String getString() { return (String)getValue(); }
     
-    private static boolean changed;
-    
     /**
      * Method to set a new boolean value on this TechSetting object.
      * @param v the new boolean value of this TechSetting object.
@@ -193,13 +196,21 @@ public class Setting {
     }
     
     public void set(Object v) {
+        if (changeBatch != null) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                if (!factoryObj.equals(v))
+                    changeBatch.add(this, v);
+                return;
+            }
+            changeBatch = null;
+        }
+        EDatabase.theDatabase.checkChanging();
         if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new RuntimeException();
         values.set(index, factoryObj.equals(v) ? factoryObj : v);
         setPreferencesToValue(v);
         Pref.flushOptions_(prefs);
-        changed = true;
         setSideEffect();
     }
     
@@ -515,22 +526,60 @@ public class Setting {
             setting.setCachedObjFromPreferences();
     }
     
-    /**
-     * Mark all preferences as "unchanged"
-     */
-    public static void clearChangedAllPrefs() {
-        changed = false;
+    public static class SettingChangeBatch implements Serializable {
+        public HashMap<String,Object> changesForSettings = new HashMap<String,Object>();
+        
+        private void add(Setting setting, Object newValue) {
+            changesForSettings.put(setting.xmlPath, newValue);
+        }
     }
 
-    /**
-     * Return true if any pref has changed since the last
-     * call to clearChangedAllPrefs()
-     * @return true if any pref has changed since changes were cleared
-     */
-    public static boolean anyPrefChanged() {
-        return changed;
+	/**
+	 * Method to start accumulation of Setting changes.
+	 * All changes to project settings after this call are gathered,
+	 * and not actually implemented.
+	 * Call "getSettingChanges()" to get the gathered changes, and call
+	 * "implementSettingChanges()" to actually make the changes.
+	 */
+    public static void gatherSettingChanges() {
+        changeBatch = new SettingChangeBatch();
     }
-    
+
+	/**
+	 * Method to get the accumulated Setting changes.
+	 * In order to make project settings changes on the server,
+	 * it is necessary to gather them on the client, and send
+	 * the changes to the server for actual change.
+	 * This method runs on the client and gets a serializable
+	 * object that can be sent to the server.
+	 * @return a collection of changes to project settings that have
+	 * been made since the call to "gatherSettingChanges()".
+	 * Call "implementSettingChanges()" with the returned collection
+	 * to actually make the changes.
+	 */
+    public static SettingChangeBatch getSettingChanges() {
+        SettingChangeBatch batch = changeBatch;
+        changeBatch = null;
+        return batch;
+    }
+
+	/**
+	 * Method to make a collection of project settings changes.
+	 * In order to make project settings changes on the server,
+	 * it is necessary to gather them on the client, and send
+	 * the changes to the server for actual change.
+	 * This method runs on the server.
+	 * @param obj the collection of project setting changes.
+	 */
+    public static void implementSettingChanges(SettingChangeBatch batch) {
+        for (Map.Entry<String,Object> e: batch.changesForSettings.entrySet()) {
+            String xmlPath = e.getKey();
+            Object newValue = e.getValue();
+            Setting setting = getSetting(xmlPath);
+            setting.set(newValue);
+        }
+    }
+
     static void printAllSettings(PrintStream out) {
         TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
         for (Setting setting: allSettingsByXmlPath.values())

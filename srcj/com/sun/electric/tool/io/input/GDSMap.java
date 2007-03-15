@@ -248,11 +248,11 @@ public class GDSMap extends EDialog
             return;
         }
 
+        HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
         for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
         {
             Layer layer = it.next();
-//                layer.setGDSLayer("");
-            foundry.setGDSLayer(layer, "");
+            gdsLayers.put(layer, "");
         }
 
 		// set the associations
@@ -277,8 +277,9 @@ public class GDSMap extends EDialog
 					break;
 				}
 			}
-            foundry.setGDSLayer(layer, layerInfo);
+            gdsLayers.put(layer, layerInfo);
 		}
+        foundry.setGDSLayers(gdsLayers);
 	}
 
 	private void ok()

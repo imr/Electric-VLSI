@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
@@ -60,12 +61,12 @@ import javax.swing.JOptionPane;
  */
 public class TechToLib
 {
-    public static String makeLibFromTechnology(Technology tech)
-    {
-		LibFromTechJob job = new LibFromTechJob(tech, true);
-        job.doIt();
-        return job.getLibraryName();
-    }
+//    public static String makeLibFromTechnology(Technology tech)
+//    {
+//		LibFromTechJob job = new LibFromTechJob(tech, true);
+//        job.doIt();
+//        return job.getLibraryName();
+//    }
 
 	/**
 	 * Method to convert the current technology into a library.
@@ -174,7 +175,7 @@ public class TechToLib
 		// create the layer nodes
 		System.out.println("Creating the layers...");
 		String [] layerSequence = new String[layerTotal];
-        Foundry foundry = tech.getSelectedFoundry();
+        Map<Layer,String> gdsLayers = tech.getGDSLayers();
 
 		for(int i=0; i<layerTotal; i++)
 		{
@@ -202,8 +203,9 @@ public class TechToLib
 
 			// compute foreign file formats
 			li.cif = layer.getCIFLayer();
-            if (foundry != null)
-                li.gds = foundry.getGDSLayer(layer);
+            String gdsLayer = gdsLayers.get(layer);
+            if (gdsLayer != null)
+                li.gds = gdsLayer;
 
 			// compute the SPICE information
 			li.spiRes = layer.getResistance();

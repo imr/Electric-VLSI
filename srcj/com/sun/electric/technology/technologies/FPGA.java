@@ -101,10 +101,6 @@ public class FPGA extends Technology
 		setNonStandard();
 		setNoPrimitiveNodes();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-
 		//**************************************** LAYERS ****************************************
 
 		/** Wire layer */
@@ -206,6 +202,9 @@ public class FPGA extends Technology
         nodeGroups[++count][0] = wirePinNode;
         nodeGroups[++count][0] = pipNode;
         nodeGroups[++count][0] = repeaterNode;
+
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	}
 
 	/******************** TREE STRUCTURE FOR ARCHITECTURE FILE ********************/

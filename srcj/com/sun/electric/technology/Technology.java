@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -3329,16 +3330,27 @@ public class Technology implements Comparable<Technology>
 	}
 
     /**
-     * Method to add a foundry to existing technology after the object was created.
-     * Remove the previus version of the foundry
-     * @param f
+     * Method to create a new on this technology.
+     * @param @mode factory type
+     * @param fileURL URL of xml file with description of rules
+     * @param gdsLayers stirngs with definition of gds numbers for layers
      */
-    public void addFoundry(Foundry f)
-    {
-        Foundry old = findFoundry(f.toString());
-        if (old != null) foundries.remove(old);
-        foundries.add(f);
+    protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
+        Foundry foundry = new Foundry(this, mode, fileURL);
+        foundries.add(foundry);
     }
+    
+//    /**
+//     * Method to add a foundry to existing technology after the object was created.
+//     * Remove the previus version of the foundry
+//     * @param f
+//     */
+//    public void addFoundry(Foundry f)
+//    {
+//        Foundry old = findFoundry(f.toString());
+//        if (old != null) foundries.remove(old);
+//        foundries.add(f);
+//    }
 
 	/**
 	 * Method to get the foundry index associated with this technology.
@@ -3353,6 +3365,18 @@ public class Technology implements Comparable<Technology>
         return null;
     }
 
+    /**
+     * Method to return the map from Layers of this Technology to their GDS names in current foundry.
+     * Only Layers with non-empty GDS names are present in the map
+     * @return the map from Layers to GDS names
+     */
+    public Map<Layer,String> getGDSLayers() {
+        Foundry foundry = getSelectedFoundry();
+        Map<Layer,String> gdsLayers = Collections.EMPTY_MAP;
+        if (foundry != null) gdsLayers = foundry.getGDSLayers();
+        return gdsLayers;
+    }
+    
 	/**
 	 * Sets the color map for transparent layers in this technology.
 	 * Users should never call this method.

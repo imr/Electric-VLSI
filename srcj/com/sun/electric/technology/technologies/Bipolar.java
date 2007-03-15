@@ -51,10 +51,6 @@ public class Bipolar extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
-        //Foundry
-        Foundry mosis = new Foundry(this, Foundry.Type.MOSIS);
-        foundries.add(mosis);
-
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(255,  0,  0), // layer 1
@@ -439,41 +435,6 @@ public class Bipolar extends Technology
 		B_lay.setFactoryDXFLayer("");		// Buried
 		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal1
 		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
-
-		// The GDS names
-        mosis.setFactoryGDSLayers(
-                "Metal1 8",
-                "Metal2 9",
-                "NPImplant 52",
-                "PPImplant 53",
-                "Poly_Definition 4",
-                "Field_Implant 2",
-                "Isolation 3",
-                "Sink_Implant 6",
-                "N_Implant 51",
-                "Silicide_Exclusion 45",
-                "Contact 7",
-                "Via 81",
-                "Scratch_Protection 10",
-                "Buried 1",
-                "Pseudo_Metal1 18",
-                "Pseudo_Metal2 19");
-//        mosis.setFactoryGDSLayer(M_lay, "8");		// Metal1
-//		mosis.setFactoryGDSLayer(M0_lay, "9");		// Metal2
-//		mosis.setFactoryGDSLayer(N_lay, "52");		// NPImplant
-//		mosis.setFactoryGDSLayer(P_lay, "53");		// PPImplant
-//		mosis.setFactoryGDSLayer(PD_lay, "4");		// Poly_Definition
-//		mosis.setFactoryGDSLayer(FI_lay, "2");		// Field_Implant
-//		mosis.setFactoryGDSLayer(I_lay, "3");		// Isolation
-//		mosis.setFactoryGDSLayer(SI_lay, "6");		// Sink_Implant
-//		mosis.setFactoryGDSLayer(NI_lay, "51");	// N_Implant
-//		mosis.setFactoryGDSLayer(SE_lay, "45");	// Silicide_Exclusion
-//		mosis.setFactoryGDSLayer(C_lay, "7");		// Contact
-//		mosis.setFactoryGDSLayer(V_lay, "81");		// Via
-//		mosis.setFactoryGDSLayer(SP_lay, "10");	// Scratch_Protection
-//		mosis.setFactoryGDSLayer(B_lay, "1");		// Buried
-//		mosis.setFactoryGDSLayer(PM_lay, "18");	// Pseudo_Metal1
-//		mosis.setFactoryGDSLayer(PM0_lay, "19");	// Pseudo_Metal2
 
 		//******************** DESIGN RULES ********************
 
@@ -1108,6 +1069,42 @@ public class Bipolar extends Technology
         nodeGroups[++count][0] = NPPoly_arc; nodeGroups[count][1] = np_node; nodeGroups[count][2] = mnc_node;
         nodeGroups[++count][0] = n0_node; nodeGroups[count][1] = n_node; nodeGroups[count][2] = p_node;
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
+
+        //Foundry
+        newFoundry(Foundry.Type.MOSIS, null,
+                // The GDS names
+                "Metal1 8",
+                "Metal2 9",
+                "NPImplant 52",
+                "PPImplant 53",
+                "Poly_Definition 4",
+                "Field_Implant 2",
+                "Isolation 3",
+                "Sink_Implant 6",
+                "N_Implant 51",
+                "Silicide_Exclusion 45",
+                "Contact 7",
+                "Via 81",
+                "Scratch_Protection 10",
+                "Buried 1",
+                "Pseudo_Metal1 18",
+                "Pseudo_Metal2 19");
+//        mosis.setFactoryGDSLayer(M_lay, "8");		// Metal1
+//		mosis.setFactoryGDSLayer(M0_lay, "9");		// Metal2
+//		mosis.setFactoryGDSLayer(N_lay, "52");		// NPImplant
+//		mosis.setFactoryGDSLayer(P_lay, "53");		// PPImplant
+//		mosis.setFactoryGDSLayer(PD_lay, "4");		// Poly_Definition
+//		mosis.setFactoryGDSLayer(FI_lay, "2");		// Field_Implant
+//		mosis.setFactoryGDSLayer(I_lay, "3");		// Isolation
+//		mosis.setFactoryGDSLayer(SI_lay, "6");		// Sink_Implant
+//		mosis.setFactoryGDSLayer(NI_lay, "51");	// N_Implant
+//		mosis.setFactoryGDSLayer(SE_lay, "45");	// Silicide_Exclusion
+//		mosis.setFactoryGDSLayer(C_lay, "7");		// Contact
+//		mosis.setFactoryGDSLayer(V_lay, "81");		// Via
+//		mosis.setFactoryGDSLayer(SP_lay, "10");	// Scratch_Protection
+//		mosis.setFactoryGDSLayer(B_lay, "1");		// Buried
+//		mosis.setFactoryGDSLayer(PM_lay, "18");	// Pseudo_Metal1
+//		mosis.setFactoryGDSLayer(PM0_lay, "19");	// Pseudo_Metal2
 	}
 
 	public DRCRules getFactoryDesignRules(boolean resizeNodes)

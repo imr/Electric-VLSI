@@ -49,7 +49,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -71,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -643,29 +643,23 @@ public class GDS extends Input
 		pinLayers = new HashSet<Integer>();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
-        Foundry foundry = curTech.getSelectedFoundry();
-		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
+		for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
 		{
-			Layer layer = it.next();
-            String gdsName = foundry.getGDSLayer(layer);
-			if (gdsName != null && gdsName.length() > 0)
-			{
-				GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);
-				for(Iterator<Integer> lIt = gdsl.getLayers(); lIt.hasNext(); )
-				{
-					Integer lVal = lIt.next();
-					Integer lay = new Integer(lVal.intValue());
-					if (layerNames.get(lay) == null) layerNames.put(lay, layer);
-				}
-				if (gdsl.getPinLayer() != -1)
-				{
-					pinLayers.add(new Integer(gdsl.getPinLayer()));
-					layerNames.put(new Integer(gdsl.getPinLayer()), layer);
-				}
-				if (gdsl.getTextLayer() != -1)
-					layerNames.put(new Integer(gdsl.getTextLayer()), layer);
-				valid = true;
-			}
+			Layer layer = e.getKey();
+            String gdsName = e.getValue();
+            GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);
+            for(Iterator<Integer> lIt = gdsl.getLayers(); lIt.hasNext(); ) {
+                Integer lVal = lIt.next();
+                Integer lay = new Integer(lVal.intValue());
+                if (layerNames.get(lay) == null) layerNames.put(lay, layer);
+            }
+            if (gdsl.getPinLayer() != -1) {
+                pinLayers.add(new Integer(gdsl.getPinLayer()));
+                layerNames.put(new Integer(gdsl.getPinLayer()), layer);
+            }
+            if (gdsl.getTextLayer() != -1)
+                layerNames.put(new Integer(gdsl.getTextLayer()), layer);
+            valid = true;
 		}
 		if (!valid)
 		{

@@ -45,9 +45,11 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -66,6 +68,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -157,11 +160,42 @@ public class LibToTech
 
 		private void setTransparentColors(Color [] colors)
 		{
-			this.setFactoryTransparentLayers(colors);
+			setFactoryTransparentLayers(colors);
 		}
+        
+        protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
+            super.newFoundry(mode, fileURL, gdsLayers);
+        }
 	}
 
-	private static void makeTech(String newName, boolean alsoJava)
+	/**
+	 * Class to create a technology-library from a technology (in a Job).
+	 */
+	private static class TechFromLibJob extends Job
+	{
+        private String newName;
+        private String fileName;
+
+        private TechFromLibJob(String newName, boolean alsoJava) {
+            super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.newName = newName;
+            if (alsoJava) {
+                // print the technology as Java code
+                String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code",
+                        newName + ".java");
+            }
+            startJob();
+		}
+        
+        @Override
+		public boolean doIt()
+		{
+			makeTech(newName, fileName);
+			return true;
+		}
+    }
+
+	private static void makeTech(String newName, String fileName)
 	{
 		Library lib = Library.getCurrent();
 
@@ -214,31 +248,35 @@ public class LibToTech
 		SoftTech tech = new SoftTech(newTechName);
 		tech.setTheScale(gi.scale);
 		tech.setTechDesc(gi.description);
-		tech.setMinResistance(gi.minRes);
-		tech.setMinCapacitance(gi.minCap);
+        tech.setFactoryParasitics(gi.minRes, gi.minCap);
+//		tech.setMinResistance(gi.minRes);
+//		tech.setMinCapacitance(gi.minCap);
 		tech.setGateLengthSubtraction(gi.gateShrinkage);
 		tech.setGateIncluded(gi.includeGateInResistance);
 		tech.setGroundNetIncluded(gi.includeGround);
 		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
-        Foundry mosis = new Foundry(tech, Foundry.Type.MOSIS);
-        tech.addFoundry(mosis);
-
 		// create the layers
+        String[] gdsLayers = new String[lList.length];
 		for(int i=0; i<lList.length; i++)
 		{
-			Layer lay = Layer.newInstance(tech, lList[i].name, lList[i].desc);
-			lay.setFunction(lList[i].fun, lList[i].funExtra);
-			lay.setCIFLayer(lList[i].cif);
-            mosis.setGDSLayer(lay, lList[i].gds);
-			lay.setResistance(lList[i].spiRes);
-			lay.setCapacitance(lList[i].spiCap);
-			lay.setEdgeCapacitance(lList[i].spiECap);
-			lay.setDistance(lList[i].height3d);
-			lay.setThickness(lList[i].thick3d);
-			lList[i].generated = lay;
+            LayerInfo li = lList[i];
+			Layer lay = Layer.newInstance(tech, li.name, li.desc);
+			lay.setFunction(li.fun, li.funExtra);
+			lay.setFactoryCIFLayer(li.cif);
+            gdsLayers[i] = li.name + " " + li.gds;
+//            mosis.setGDSLayer(lay, li.gds);
+            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiCap);
+//			lay.setResistance(li.spiRes);
+//			lay.setCapacitance(li.spiCap);
+//			lay.setEdgeCapacitance(li.spiCap);
+			lay.setDistance(li.height3d);
+			lay.setThickness(li.thick3d);
+			li.generated = lay;
 		}
-
+        
+        tech.newFoundry(Foundry.Type.MOSIS, null, gdsLayers);
+        
 		// create the arcs
 		for(int i=0; i<aList.length; i++)
 		{
@@ -354,32 +392,24 @@ public class LibToTech
 		// check technology for consistency
 		checkAndWarn(lList, aList, nList);
 
-		if (alsoJava)
-		{
-			// print the technology as Java code
-			String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code",
-				newTechName + ".java");
-			if (fileName != null)
-			{
+        if (fileName != null) {
 //				FileOutputStream fileOutputStream = null;
-				try {
-					PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
-
-					// write the layers, arcs, and nodes
-					dumpLayersToJava(buffWriter, newTechName, lList, gi);
-					dumpArcsToJava(buffWriter, newTechName, aList, gi);
-					dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
-					buffWriter.println("}");
-
-					// clean up
-					buffWriter.close();
-					System.out.println("Wrote " + fileName);
-				} catch (IOException e)
-				{
-					System.out.println("Error creating " + fileName);
-				}
-			}
-		}
+            try {
+                PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+                
+                // write the layers, arcs, and nodes
+                dumpLayersToJava(buffWriter, newTechName, lList, gi);
+                dumpArcsToJava(buffWriter, newTechName, aList, gi);
+                dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
+                buffWriter.println("}");
+                
+                // clean up
+                buffWriter.close();
+                System.out.println("Wrote " + fileName);
+            } catch (IOException e) {
+                System.out.println("Error creating " + fileName);
+            }
+        }
 
 //		// finish initializing the technology
 //		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
@@ -418,7 +448,7 @@ public class LibToTech
 		{
 			if (goodButton)
 			{
-				makeTech(newName.getText(), alsoJava.isSelected());
+				new TechFromLibJob(newName.getText(), alsoJava.isSelected());
 			}
 			dispose();
 		}

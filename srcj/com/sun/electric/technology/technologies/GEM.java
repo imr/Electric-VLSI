@@ -61,10 +61,6 @@ public class GEM extends Technology
 		setFactoryScale(1000, false);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-        
 		setStaticTechnology();
 		setNonStandard();
 
@@ -304,6 +300,9 @@ public class GEM extends Technology
         nodeGroups[++count][0] = "Cell"; nodeGroups[count][1] = e_node;
         nodeGroups[++count][0] = "Misc."; nodeGroups[count][1] = g_node;
         nodeGroups[++count][0] = "Pure.";
+        
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	};
 
 	//**************************************** METHODS ****************************************

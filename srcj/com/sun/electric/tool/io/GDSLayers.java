@@ -25,9 +25,12 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,25 +39,26 @@ import java.util.List;
  */
 public class GDSLayers
 {
-	private List<Integer> normalLayers;
-	private int pinLayer;
-	private int textLayer;
+    public static final GDSLayers EMPTY = new GDSLayers(Collections.<Integer>emptyList(), -1, -1);
+	private final Integer[] normalLayers;
+	private final int pinLayer;
+	private final int textLayer;
 
-	public GDSLayers()
+	public GDSLayers(List<Integer> normalLayers, int pinLayer, int textLayer)
 	{
-		normalLayers = new ArrayList<Integer>();
-		pinLayer = -1;
-		textLayer = -1;
+        this.normalLayers = normalLayers.toArray(new Integer[normalLayers.size()]);
+		this.pinLayer = pinLayer;
+		this.textLayer = textLayer;
 	}
 
-	public int getNumLayers() { return normalLayers.size(); }
+	public int getNumLayers() { return normalLayers.length; }
 
-	public Iterator<Integer> getLayers() { return normalLayers.iterator(); }
+	public Iterator<Integer> getLayers() { return ArrayIterator.iterator(normalLayers); }
 
 	public Integer getFirstLayer()
 	{
-		if (normalLayers.size() == 0) return new Integer(0);
-		return normalLayers.get(0);
+		if (normalLayers.length == 0) return Integer.valueOf(0);
+		return normalLayers[0];
 	}
 
 	public int getPinLayer() { return pinLayer; }
@@ -70,9 +74,33 @@ public class GDSLayers
 	{
 		if (pinLayer != other.pinLayer) return false;
 		if (textLayer != other.textLayer) return false;
-		return normalLayers.equals(other.normalLayers);
+		return Arrays.equals(normalLayers, other.normalLayers);
 	}
 
+    @Override
+    public String toString() {
+        String s = "";
+        for (Integer layVal: normalLayers) {
+            int layNum = layVal.intValue() & 0xFFFF;
+            int layType = (layVal.intValue() >> 16) & 0xFFFF;
+            s += Integer.toString(layNum);
+            if (layType != 0) s += "/" + layType;
+        }
+        if (pinLayer != -1) {
+            s += "," + (pinLayer & 0xFFFF);
+            int pinType = (pinLayer >> 16) & 0xFFFF;
+            if (pinType != 0) s += "/" + pinType;
+            s += "p";
+        }
+        if (textLayer != -1) {
+            s += "," + (textLayer & 0xFFFF);
+            int textType = (textLayer >> 16) & 0xFFFF;
+            if (textType != 0) s += "/" + textType;
+            s += "t";
+        }
+        return s;
+    }
+    
 	/**
 	 * Method to parse the GDS layer string and get the layer numbers and types (plain, text, and pin).
 	 * @param string the GDS layer string, of the form [NUM[/TYP]]*[,NUM[/TYP]t][,NUM[/TYP]p]
@@ -80,7 +108,9 @@ public class GDSLayers
 	 */
 	public static GDSLayers parseLayerString(String string)
 	{
-		GDSLayers answers = new GDSLayers();
+		ArrayList<Integer> normalLayers = new ArrayList<Integer>();
+		int pinLayer = -1;
+		int textLayer = -1;
 		for(;;)
 		{
 			String trimmed = string.trim();
@@ -98,20 +128,21 @@ public class GDSLayers
 				char lastCh = trimmed.charAt(endPos-1);
 				if (lastCh == 't')
 				{
-					answers.textLayer = number | (type << 16);
+					textLayer = number | (type << 16);
 				} else if (lastCh == 'p')
 				{
-					answers.pinLayer = number | (type << 16);
+					pinLayer = number | (type << 16);
 				} else
 				{
 					Integer normalLayer = new Integer(number | (type << 16));
-					answers.normalLayers.add(normalLayer);
+					normalLayers.add(normalLayer);
 				}
 				if (endPos == trimmed.length()) break;
 			}
 			string = trimmed.substring(endPos+1);
 		}
-		return answers;
+        if (normalLayers.isEmpty() && pinLayer == -1 && textLayer == -1) return EMPTY;
+		return new GDSLayers(normalLayers, pinLayer, textLayer);
 	}
 }
 

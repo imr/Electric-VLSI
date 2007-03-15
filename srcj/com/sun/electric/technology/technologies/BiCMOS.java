@@ -51,10 +51,6 @@ public class BiCMOS extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
-        // Foundry
-        Foundry mosis = new Foundry(this, Foundry.Type.MOSIS);
-        foundries.add(mosis);
-
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // layer 1
@@ -557,63 +553,6 @@ public class BiCMOS extends Technology
 		B_lay.setFactoryDXFLayer("");		// BCCD
 		OS_lay.setFactoryDXFLayer("");		// Ohmic_Substrate
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
-
-		// The GDS names
-        mosis.setFactoryGDSLayers(
-                "P_Select 8",
-                "N_Select 7",
-                "N_Well 1",
-                "Via ",
-                "Passivation 13",
-                "Pad_Frame 9",
-                "Transistor ",
-                "Active_Cut 35",
-                "Pseudo_Metal_1 ",
-                "Pseudo_Metal_2 ",
-                "Pseudo_Polysilicon ",
-                "Pseudo_P_Select ",
-                "Pseudo_N_Select ",
-                "Pseudo_N_Well ",
-                "Pseudo_Polysilicon_2 ",
-                "M1 10",
-                "M2 12",
-                "Poly1 4",
-                "Poly2 19",
-                "Active 31",
-                "Poly1_Cut 45",
-                "Poly2_Cut 55",
-                "Pseudo_Active ",
-                "P_Base_Active 33",
-                "BCCD 17",
-                "Ohmic_Substrate 3",
-                "Ohmic_Well 3");
-//		mosis.setFactoryGDSLayer(PS_lay, "8");		// P_Select
-//		mosis.setFactoryGDSLayer(NS_lay, "7");		// N_Select
-//		mosis.setFactoryGDSLayer(NW_lay, "1");		// N_Well
-//		mosis.setFactoryGDSLayer(V_lay, "");		// Via
-//		mosis.setFactoryGDSLayer(P_lay, "13");		// Passivation
-//		mosis.setFactoryGDSLayer(PF_lay, "9");		// Pad_Frame
-//		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
-//		mosis.setFactoryGDSLayer(AC_lay, "35");		// Active_Cut
-//		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo_Metal_1
-//		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo_Metal_2
-//		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo_Polysilicon
-//		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo_P_Select
-//		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo_N_Select
-//		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo_N_Well
-//		mosis.setFactoryGDSLayer(PP0_lay, "");		// Pseudo_Polysilicon_2
-//		mosis.setFactoryGDSLayer(M_lay, "10");		// M1
-//		mosis.setFactoryGDSLayer(M0_lay, "12");		// M2
-//		mosis.setFactoryGDSLayer(P0_lay, "4");		// Poly1
-//		mosis.setFactoryGDSLayer(P1_lay, "19");		// Poly2
-//		mosis.setFactoryGDSLayer(A_lay, "31");		// Active
-//		mosis.setFactoryGDSLayer(PC_lay, "45");		// Poly1_Cut
-//		mosis.setFactoryGDSLayer(PC0_lay, "55");		// Poly2_Cut
-//		mosis.setFactoryGDSLayer(PA_lay, "");		// Pseudo_Active
-//		mosis.setFactoryGDSLayer(PBA_lay, "33");		// P_Base_Active
-//		mosis.setFactoryGDSLayer(B_lay, "17");		// BCCD
-//		mosis.setFactoryGDSLayer(OS_lay, "3");		// Ohmic_Substrate
-//		mosis.setFactoryGDSLayer(OW_lay, "3");		// Ohmic_Well
 
 		//******************** DESIGN RULES ********************
 
@@ -1724,6 +1663,65 @@ public class BiCMOS extends Technology
         nodeGroups[++count][0] = msc_node; nodeGroups[count][1] = nt0_node; nodeGroups[count][2] = nt_node;
         nodeGroups[++count][0] = ppc_node; nodeGroups[count][1] = n_node; nodeGroups[count][2] = p_node;
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
+
+        // Foundry
+        newFoundry(Foundry.Type.MOSIS, null,
+                // The GDS names
+                "P_Select 8",
+                "N_Select 7",
+                "N_Well 1",
+//                "Via ",
+                "Passivation 13",
+                "Pad_Frame 9",
+//                "Transistor ",
+                "Active_Cut 35",
+//                "Pseudo_Metal_1 ",
+//                "Pseudo_Metal_2 ",
+//                "Pseudo_Polysilicon ",
+//                "Pseudo_P_Select ",
+//                "Pseudo_N_Select ",
+//                "Pseudo_N_Well ",
+//                "Pseudo_Polysilicon_2 ",
+                "M1 10",
+                "M2 12",
+                "Poly1 4",
+                "Poly2 19",
+                "Active 31",
+                "Poly1_Cut 45",
+                "Poly2_Cut 55",
+//                "Pseudo_Active ",
+                "P_Base_Active 33",
+                "BCCD 17",
+                "Ohmic_Substrate 3",
+                "Ohmic_Well 3");
+//		mosis.setFactoryGDSLayer(PS_lay, "8");		// P_Select
+//		mosis.setFactoryGDSLayer(NS_lay, "7");		// N_Select
+//		mosis.setFactoryGDSLayer(NW_lay, "1");		// N_Well
+//		mosis.setFactoryGDSLayer(V_lay, "");		// Via
+//		mosis.setFactoryGDSLayer(P_lay, "13");		// Passivation
+//		mosis.setFactoryGDSLayer(PF_lay, "9");		// Pad_Frame
+//		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
+//		mosis.setFactoryGDSLayer(AC_lay, "35");		// Active_Cut
+//		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo_Metal_1
+//		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo_Metal_2
+//		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo_Polysilicon
+//		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo_P_Select
+//		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo_N_Select
+//		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo_N_Well
+//		mosis.setFactoryGDSLayer(PP0_lay, "");		// Pseudo_Polysilicon_2
+//		mosis.setFactoryGDSLayer(M_lay, "10");		// M1
+//		mosis.setFactoryGDSLayer(M0_lay, "12");		// M2
+//		mosis.setFactoryGDSLayer(P0_lay, "4");		// Poly1
+//		mosis.setFactoryGDSLayer(P1_lay, "19");		// Poly2
+//		mosis.setFactoryGDSLayer(A_lay, "31");		// Active
+//		mosis.setFactoryGDSLayer(PC_lay, "45");		// Poly1_Cut
+//		mosis.setFactoryGDSLayer(PC0_lay, "55");		// Poly2_Cut
+//		mosis.setFactoryGDSLayer(PA_lay, "");		// Pseudo_Active
+//		mosis.setFactoryGDSLayer(PBA_lay, "33");		// P_Base_Active
+//		mosis.setFactoryGDSLayer(B_lay, "17");		// BCCD
+//		mosis.setFactoryGDSLayer(OS_lay, "3");		// Ohmic_Substrate
+//		mosis.setFactoryGDSLayer(OW_lay, "3");		// Ohmic_Well
+
 	}
 
     public DRCRules getFactoryDesignRules(boolean resizeNodes)

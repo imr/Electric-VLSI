@@ -52,10 +52,6 @@ public class CMOS extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(  0,  0,255), // Metal
@@ -349,22 +345,6 @@ public class CMOS extends Technology
 		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 		PP0_lay.setFactoryDXFLayer("");		// Pseudo-P+
 		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
-
-		// The GDS names
-//		noFoundry.setFactoryGDSLayer(M_lay, "");		// Metal
-//		noFoundry.setFactoryGDSLayer(P_lay, "");		// Polysilicon
-//		noFoundry.setFactoryGDSLayer(D_lay, "");		// Diffusion
-//		noFoundry.setFactoryGDSLayer(P0_lay, "");		// P+
-//		noFoundry.setFactoryGDSLayer(CC_lay, "");		// Contact-Cut
-//		noFoundry.setFactoryGDSLayer(OC_lay, "");		// Ohmic-Cut
-//		noFoundry.setFactoryGDSLayer(PW_lay, "");		// P-Well
-//		noFoundry.setFactoryGDSLayer(O_lay, "");		// Overglass
-//		noFoundry.setFactoryGDSLayer(T_lay, "");		// Transistor
-//		noFoundry.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal
-//		noFoundry.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
-//		noFoundry.setFactoryGDSLayer(PD_lay, "");		// Pseudo-Diffusion
-//		noFoundry.setFactoryGDSLayer(PP0_lay, "");		// Pseudo-P+
-//		noFoundry.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 
@@ -854,6 +834,24 @@ public class CMOS extends Technology
         nodeGroups[++count][0] = Diffusion_well_arc; nodeGroups[count][1] = dwp_node; nodeGroups[count][2] = mdwc_node;
         nodeGroups[++count][0] = t_node; nodeGroups[count][1] = tw_node; nodeGroups[count][2] = mdsc_node;
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
+
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
+		// The GDS names
+//		noFoundry.setFactoryGDSLayer(M_lay, "");		// Metal
+//		noFoundry.setFactoryGDSLayer(P_lay, "");		// Polysilicon
+//		noFoundry.setFactoryGDSLayer(D_lay, "");		// Diffusion
+//		noFoundry.setFactoryGDSLayer(P0_lay, "");		// P+
+//		noFoundry.setFactoryGDSLayer(CC_lay, "");		// Contact-Cut
+//		noFoundry.setFactoryGDSLayer(OC_lay, "");		// Ohmic-Cut
+//		noFoundry.setFactoryGDSLayer(PW_lay, "");		// P-Well
+//		noFoundry.setFactoryGDSLayer(O_lay, "");		// Overglass
+//		noFoundry.setFactoryGDSLayer(T_lay, "");		// Transistor
+//		noFoundry.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal
+//		noFoundry.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
+//		noFoundry.setFactoryGDSLayer(PD_lay, "");		// Pseudo-Diffusion
+//		noFoundry.setFactoryGDSLayer(PP0_lay, "");		// Pseudo-P+
+//		noFoundry.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
 	};
 
 	/**

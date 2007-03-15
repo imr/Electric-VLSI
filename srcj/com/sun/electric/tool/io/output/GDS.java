@@ -39,7 +39,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
@@ -176,7 +179,7 @@ public class GDS extends Geometry
 	{
 		// write this cell
 		Cell cell = cellGeom.cell;
-        Foundry foundry = cell.getTechnology().getSelectedFoundry();
+//        Foundry foundry = cell.getTechnology().getSelectedFoundry();
 		outputBeginStruct(cell);
         boolean renamePins = (cell == topCell && IOTool.getGDSConvertNCCExportsConnectedByParentPins());
         boolean colapseGndVddNames = (cell == topCell && IOTool.isGDSColapseVddGndPinNames());
@@ -198,7 +201,8 @@ public class GDS extends Geometry
             // No technology associated, case when art elements are added in layout
             // r.getTechnology() == Generic.tech for layer Glyph
             if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech) continue;
-			if (!selectLayer(foundry, layer))
+			if (!selectLayer(layer))
+//			if (!selectLayer(foundry, layer))
             {
                 System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
                 continue;
@@ -237,7 +241,8 @@ public class GDS extends Geometry
 				PrimitiveNode pNp = (PrimitiveNode)bottomNi.getProto();
 				Technology.NodeLayer [] nLay = pNp.getLayers();
 				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
-				selectLayer(foundry, layer);
+				selectLayer(layer);
+//				selectLayer(foundry, layer);
 
 				int textLayer = -1, pinLayer = -1, textType = 0, pinType = 0;
 				textLayer = pinLayer = IOTool.getGDSOutDefaultTextLayer();
@@ -365,29 +370,50 @@ public class GDS extends Geometry
      */
     protected boolean includeGeometric() { return false; }
 
-	private boolean selectLayer(Foundry foundry, Layer layer)
-	{
-		boolean validLayer = true;
-		GDSLayers numbers = layerNumbers.get(layer);
-		if (numbers == null)
-		{
-//			String layerName = layer.getGDSLayer();
-            String layerName = foundry.getGDSLayer(layer);
-			if (layerName == null)
-			{
-				numbers = new GDSLayers();
-//				validLayer = false;
-			} else
-			{
-				numbers = GDSLayers.parseLayerString(layerName);
-			}
-			layerNumbers.put(layer, numbers);
-		}
+    private boolean selectLayer(Layer layer) {
+        GDSLayers numbers = layerNumbers.get(layer);
+        if (numbers == null) {
+            Technology tech = layer.getTechnology();
+            for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                Layer l = it.next();
+                layerNumbers.put(l, GDSLayers.EMPTY);
+            }
+            for (Map.Entry<Layer,String> e: tech.getGDSLayers().entrySet()) {
+                Layer l = e.getKey();
+                String gdsLayer = e.getValue();
+                layerNumbers.put(l, GDSLayers.parseLayerString(gdsLayer));
+            }
+            numbers = layerNumbers.get(layer);
+        }
+        assert numbers != null;
+        currentLayerNumbers = numbers;
         // validLayer false if layerName = "" like for pseudo metals
-        validLayer = numbers.getNumLayers() > 0;
-		currentLayerNumbers = numbers;
-		return validLayer;
-	}
+        return numbers.getNumLayers() > 0;
+    }
+
+//	private boolean selectLayer(Foundry, foundry, Layer layer)
+//	{
+//		boolean validLayer = true;
+//		GDSLayers numbers = layerNumbers.get(layer);
+//		if (numbers == null)
+//		{
+////			String layerName = layer.getGDSLayer();
+//            String layerName = foundry.getGDSLayer(layer);
+//			if (layerName == null)
+//			{
+//				numbers = new GDSLayers();
+////				validLayer = false;
+//			} else
+//			{
+//				numbers = GDSLayers.parseLayerString(layerName);
+//			}
+//			layerNumbers.put(layer, numbers);
+//		}
+//        // validLayer false if layerName = "" like for pseudo metals
+//        validLayer = numbers.getNumLayers() > 0;
+//		currentLayerNumbers = numbers;
+//		return validLayer;
+//	}
 
 	protected void writePoly(PolyBase poly, int layerNumber, int layerType)
 	{
@@ -478,7 +504,7 @@ public class GDS extends Geometry
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-            Foundry foundry = tech.getSelectedFoundry();
+//            Foundry foundry = tech.getSelectedFoundry();
 			Poly [] polys = tech.getShapeOfNode(ni);
 			Layer firstLayer = null;
 			for (int i=0; i<polys.length; i++)
@@ -490,7 +516,8 @@ public class GDS extends Geometry
 				{
 					// dump this text field
 					outputHeader(HDR_TEXT, 0);
-					if (firstLayer != null) selectLayer(foundry, firstLayer);
+					if (firstLayer != null) selectLayer(firstLayer);
+//					if (firstLayer != null) selectLayer(foundry, firstLayer);
 					Integer firstLayerVal = (Integer)currentLayerNumbers.getFirstLayer();
 					int layerNum = firstLayerVal.intValue() & 0xFFFF;
 					int layerType = (firstLayerVal.intValue() >> 16) & 0xFFFF;
@@ -550,11 +577,12 @@ public class GDS extends Geometry
 
 		// precache the layers in this technology
 		boolean foundValid = false;
-        Foundry foundry = tech.getSelectedFoundry();
+//        Foundry foundry = tech.getSelectedFoundry();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (selectLayer(foundry, layer)) foundValid = true;
+			if (selectLayer(layer)) foundValid = true;
+//			if (selectLayer(foundry, layer)) foundValid = true;
 		}
 		if (!foundValid)
 		{

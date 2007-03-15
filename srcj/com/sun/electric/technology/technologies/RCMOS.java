@@ -51,10 +51,6 @@ public class RCMOS extends Technology
 		setNonStandard();
 		setStaticTechnology();
 
-        //Foundry
-        Foundry noFoundry = new Foundry(this, Foundry.Type.NONE);
-        foundries.add(noFoundry);
-        
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // Metal-1
@@ -1040,5 +1036,7 @@ public class RCMOS extends Technology
         nodeGroups[++count][0] = metal1_arc; nodeGroups[count][1] = metal1Pin_node; nodeGroups[count][2] = metal1Metal2Con_node;
         nodeGroups[++count][0] = metal2_arc; nodeGroups[count][1] = metal2Pin_node; nodeGroups[count][2] = "Cell";
 
+        //Foundry
+        newFoundry(Foundry.Type.NONE, null);
 	};
 }

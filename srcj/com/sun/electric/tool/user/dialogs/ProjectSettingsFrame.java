@@ -350,7 +350,7 @@ public class ProjectSettingsFrame extends EDialog
 	private static class OKUpdate extends Job
 	{
 		private transient ProjectSettingsFrame dialog;
-		private Pref.PrefChangeBatch changeBatch;
+		private Setting.SettingChangeBatch changeBatch;
         private boolean issueWarning;
 
         private OKUpdate(ProjectSettingsFrame dialog, boolean issueWarning)
@@ -360,21 +360,26 @@ public class ProjectSettingsFrame extends EDialog
             this.issueWarning = issueWarning;
 
             // gather preference changes on the client
-			Pref.gatherPrefChanges();
-            Setting.clearChangedAllPrefs();
-            for(ProjSettingsPanel ti : dialog.optionPanes)
-			{
-				if (ti.isInited())
-					ti.term();
-			}
-            if (Setting.anyPrefChanged()) this.issueWarning = true;
-            changeBatch = Pref.getPrefChanges();
-			startJob();
+			Setting.gatherSettingChanges();
+            try {
+                for(ProjSettingsPanel ti : dialog.optionPanes) {
+                    if (ti.isInited())
+                        ti.term();
+                }
+            } finally {
+                changeBatch = Setting.getSettingChanges();
+            }
+            if (changeBatch.changesForSettings.isEmpty()) {
+               dialog.closeDialog(null);
+               return;
+            }
+            this.issueWarning = true;
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Pref.implementPrefChanges(changeBatch);
+			Setting.implementSettingChanges(changeBatch);
 			return true;
 		}
 

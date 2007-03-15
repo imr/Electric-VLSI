@@ -46,7 +46,6 @@ import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -69,6 +68,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class reads files in EDIF files.
@@ -3546,12 +3546,10 @@ public class EDIF extends Input
 		protected void pop()
 		{
 			// for all layers assign their GDS number
-            Foundry foundry = curTechnology.getSelectedFoundry();
-			for (Iterator<Layer> it = curTechnology.getLayers(); it.hasNext(); )
+			for (Map.Entry<Layer,String> e: curTechnology.getGDSLayers().entrySet())
 			{
-				Layer layer = it.next();
-                String gdsLayer = foundry.getGDSLayer(layer);
-				if (gdsLayer == null || gdsLayer.length() == 0) continue;
+				Layer layer = e.getKey();
+                String gdsLayer = e.getValue();
 
 				// search for this layer
 				boolean found = false;
