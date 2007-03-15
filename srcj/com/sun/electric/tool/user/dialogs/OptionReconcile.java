@@ -126,7 +126,8 @@ public class OptionReconcile extends EDialog
             String[] trueMeaning = setting.getTrueMeaning();
             if (settingValue instanceof Boolean) {
                 oldValue = setting.getBoolean() ? "ON" : "OFF";
-                newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
+                boolean b = obj instanceof Boolean ? ((Boolean)obj).booleanValue() : ((Integer)obj).intValue() != 0;
+                newValue = b ? "ON" : "OFF";
             } else if (trueMeaning != null) {
                 oldValue = trueMeaning[setting.getInt()];
                 newValue = trueMeaning[((Integer)obj).intValue()];

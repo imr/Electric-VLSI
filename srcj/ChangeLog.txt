@@ -4,10 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
-IMP: (3/15/07, DN) Added project setting "tsmc180.NumMetalLayers".
+BUG: (3/15/07, DN) ClassCastException in OptionReconcile
+FIX: Consider both Boolean and Integer objects in OptionReconcile constructor.
 
-BUG: (3/15/07, SMR) Status bar doesn't update when cell changes (Bug #1293).
-FIX: In EditWindow.showCell() call StatusBar.updateStatusBar().
+BUG: (3/15/07, DN) Broken numberofmetals setting in MoCMOS technology.
+FIX: In TSMC180.getNumMetal distinguish what technology isthis.
+
+IMP: (3/15/07, DN) Added project setting "tsmc180.NumMetalLayers".
 
 BUG: (3/15/07, DN) Factory values of Technology.Foundry setting should be one of supported foundries.
 FIX: In BiCMOS, Bipolar, MoCMOSOld, MoCMOSSub define factory value of Foundry as MOSIS.
@@ -23,8 +26,6 @@ FIX: Special treatment of active in transistors so they will be added to left an
 DRC regression has new minArea test.
 
 ************************* Version 8.05i: *********************************
-
-IMP: (3/13/07, SMR) Added CRC checksum information to CIF output.
 
 BUG: (3/12/07, DN) Electric doesn't start when User.getDefaultTechnology is artwork.
 FIX: In Technology.initAllTechnology set "curLayoutTech = MoCMOS.tech".
