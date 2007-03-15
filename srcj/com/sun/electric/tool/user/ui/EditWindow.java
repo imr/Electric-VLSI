@@ -1106,6 +1106,9 @@ public class EditWindow extends JPanel
 
 		// clear list of cross-probed levels for this EditWindow
 		clearCrossProbeLevels();
+
+		// update cell information in the status bar
+		StatusBar.updateStatusBar();
 	}
 
 	/**
