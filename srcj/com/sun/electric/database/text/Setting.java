@@ -198,7 +198,7 @@ public class Setting {
     public void set(Object v) {
         if (changeBatch != null) {
             if (SwingUtilities.isEventDispatchThread()) {
-                if (!factoryObj.equals(v))
+                if (!v.equals(getValue()))
                     changeBatch.add(this, v);
                 return;
             }

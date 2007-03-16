@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/15/07, DN) Setting don't change when new value is factory value.
+FIX: In Setting.set compare new value with getValue() instead of factoryObj.
+
 BUG: (3/15/07, DN) Sturtup fails in MDI mode.
 FIX: In TopLevel move MDI initialization from OSInitialize to InitializeWindows,
      so that it is executed after technology initialization.
