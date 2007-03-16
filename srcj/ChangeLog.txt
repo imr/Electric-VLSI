@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/16/07, GVG) Patching XMLRules so they can still be loaded even if project settings are inconsistent.
+This is related to Bug#1294.
+
 IMP: (3/16/07, DN) Added project setting "tsmc180.UseSecondPolysilicon".
 
 IMP: (3/16/07, SMR) Added "tsmc180" technology project settings.

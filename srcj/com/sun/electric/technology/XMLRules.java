@@ -999,9 +999,16 @@ public class XMLRules implements DRCRules {
         int index = getRuleIndex(cutSurNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
         // Try first to get any rule under NodeLayersRule and if nothing found then get pair set defined as Layersrule
         DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+        DRCTemplate rule = null;
 
-        assert(cutSize != null); assert(cutSur != null);
-        return resizeContact(contact, cutNode, cutSurNode, cutSize, cutSur, contactName);
+        if (cutSize == null || cutSur == null)
+            System.out.println("No cut or surround rule found for " + contactName + " for layers "
+                    + cutNode.getLayer().getName() + " " + cutSurNode.getLayer().getName()
+                    + ".\n Correct size of contact " + contactName + " is not guaranteed");
+//        assert(cutSize != null); assert(cutSur != null);
+        else
+            rule = resizeContact(contact, cutNode, cutSurNode, cutSize, cutSur, contactName);
+        return rule;
     }
 
     private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode,
@@ -1182,6 +1189,11 @@ public class XMLRules implements DRCRules {
         Technology.NodeLayer cutNode = contact.getLayers()[2]; // Cut
         Technology.NodeLayer polyNode = contact.getLayers()[1]; // poly
         DRCTemplate cutSur = resizeContact(contact, cutNode, polyNode, contact.getName());
+
+        if (cutSur == null) // error in getting the rule
+        {
+            System.out.println("Error reading surround rule in poly contact " + contact.getName());
+        }
 
         // If doesn't have NODSIZ rule then apply the min on the poly
 //        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
