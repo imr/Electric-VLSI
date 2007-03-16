@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/15/07, DN) Technology.getTSMC180Technology() and TechType.TSMC180 link to
+     TSMC180 technology instead of TSMC foundry of MOCMOS technology.
+
 BUG: (3/15/07, DN) Setting don't change when new value is factory value.
 FIX: In Setting.set compare new value with getValue() instead of factoryObj.
 

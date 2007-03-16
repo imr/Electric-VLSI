@@ -737,13 +737,25 @@ public class Technology implements Comparable<Technology>
         finishAllTechnologies();
 	}
     
+    private static Technology tsmc180 = null;
+    private static boolean tsmc180Cached = false;
 	/**
-	 * Method to return the CMOS 180 nanometer technology.
+	 * Method to return the TSMC 180 nanometer technology.
 	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
-	 * @return the CMOS180 technology object (null if it does not exist).
+	 * @return the TSMC180 technology object (null if it does not exist).
 	 */
-    public static Technology getCMOS180Technology() {
-        return MoCMOS.tech; // for now
+    public static Technology getTSMC180Technology() {
+    	if (tsmc180Cached) return tsmc180;
+    	tsmc180Cached = true;
+		try
+		{
+			Class tsmc180Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[1]);
+			java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("tech");
+			tsmc180 = (Technology) techField.get(null);
+ 		} catch (Exception e)
+        {
+        }
+ 		return tsmc180;
     }
     
     private static Technology cmos90 = null;

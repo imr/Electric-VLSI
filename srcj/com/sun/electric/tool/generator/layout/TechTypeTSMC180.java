@@ -13,7 +13,7 @@ public class TechTypeTSMC180 extends TechType {
 		LayoutLib.error(pred, msg);
 	}
 	private TechTypeTSMC180() {
-		super(Technology.findTechnology("MOCMOS"), LAYER_NAMES);
+		super(Technology.findTechnology("TSMC180"), LAYER_NAMES);
         error(wellWidth != 17, "wrong value in Tech");
 	    wellSurroundDiff = 4.3;
 	    gateExtendPastMOS = 2.5;
