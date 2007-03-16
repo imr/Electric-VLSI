@@ -3302,17 +3302,17 @@ public class Technology implements Comparable<Technology>
         prefFoundry.setString(t);
     }
 
-    /**
-     * Method to set the foundry for DRC rules and call the side effects
-     * @param t
-     * @param resize
-     */
-    public void setPrefFoundryAndResize(String t, boolean resize)
-    {
-        setPrefFoundry(t);
-        // Call side effect
-        TechSetting.technologyChanged(this, resize);
-    }
+//    /**
+//     * Method to set the foundry for DRC rules and call the side effects
+//     * @param t
+//     * @param resize
+//     */
+//    public void setPrefFoundryAndResize(String t, boolean resize)
+//    {
+//        setPrefFoundry(t);
+//        // Call side effect
+//        TechSetting.technologyChangedFromDatabase(this, resize);
+//    }
 
     /**
 	 * Find the Foundry in this technology with a particular name. Protected so sub classes will use it
@@ -4146,7 +4146,9 @@ public class Technology implements Comparable<Technology>
         @Override
 		protected void setSideEffect()
 		{
-			technologyChanged(tech, true);
+			//technologyChangedFromDatabase(tech, true);
+            tech.setState(true);
+            reloadUIData();
 		}
 
         private static void reloadUIData()
@@ -4165,19 +4167,19 @@ public class Technology implements Comparable<Technology>
             });
         }
 
-        public static void allTechnologiesChanged()
-        {
-            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-            {
-                Technology tech = it.next();
-                tech.setState(true);
-            }
-            reloadUIData();
-        }
+//        public static void allTechnologiesChanged()
+//        {
+//            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//            {
+//                Technology tech = it.next();
+//                tech.setState(true);
+//            }
+//            reloadUIData();
+//        }
 
         public static void technologyChanged(Technology tech, boolean resizeNodes)
 		{
-            tech.setState(resizeNodes);
+//            tech.setState(resizeNodes);
             reloadUIData();
         }
 

@@ -54,6 +54,9 @@ public class SnapshotTest {
     private Snapshot initialSnapshot;
     
     @Before public void setUp() throws Exception {
+        EDatabase.theDatabase.lock(true);
+        EDatabase.theDatabase.lowLevelBeginChanging(null);
+        
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         
@@ -77,6 +80,9 @@ public class SnapshotTest {
     @After public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
+        
+        EDatabase.theDatabase.lowLevelEndChanging();
+        EDatabase.theDatabase.unlock();
     }
 
     public static junit.framework.Test suite() {

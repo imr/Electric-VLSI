@@ -42,6 +42,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -176,6 +177,7 @@ public class ColorPatternPanel extends JPanel
 	private MyPreviewPanel colorPreviewPanel;
 	private boolean warnedOfTransparentLayerSharing;
 	private String otherTransparentLayers;
+    private HashMap<Outline,ImageIcon> outlineImageIcons = new HashMap<Outline,ImageIcon>();
 
 	/**
 	 * Create a Panel for editing color and pattern information.
@@ -193,7 +195,9 @@ public class ColorPatternPanel extends JPanel
 		});
 		for(Outline o : Outline.getOutlines())
 		{
-			outlinePattern.addItem(o.getSample());
+            ImageIcon imageIcon = getSample(o);
+            outlineImageIcons.put(o, imageIcon);
+			outlinePattern.addItem(imageIcon);
 		}
 		outlinePattern.addActionListener(new ActionListener()
 		{
@@ -432,7 +436,7 @@ public class ColorPatternPanel extends JPanel
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		if (li.outlinePatternDisplay != null) // special cases such text don't have outlinePattern
-            outlinePattern.setSelectedItem(li.outlinePatternDisplay.getSample());
+            outlinePattern.setSelectedItem(outlineImageIcons.get(li.outlinePatternDisplay));
 		outlinePattern.setEnabled(li.useStippleDisplay);
 		if (showPrinter)
 		{
@@ -1067,6 +1071,41 @@ public class ColorPatternPanel extends JPanel
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}
 	}
+
+    private static final int SAMPLEWID = 60;
+    private static final int SAMPLEHEI = 11;
+    
+    public ImageIcon getSample(Outline o) {
+        // construct a sample of this outline texture
+        int pattern = o.getPattern();
+        int len = o.getLen();
+        int thickness = o.getThickness();
+        
+        BufferedImage bi = new BufferedImage(SAMPLEWID+SAMPLEHEI, SAMPLEHEI, BufferedImage.TYPE_INT_RGB);
+        int startX = SAMPLEHEI / 2;
+        int startY = (SAMPLEHEI-thickness) / 2;
+        for(int y=0; y<SAMPLEHEI; y++)
+            for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++)
+                bi.setRGB(x, y, 0xFFFFFF);
+        for(int x=0; x<SAMPLEWID+SAMPLEHEI; x++) {
+            bi.setRGB(x, 0, 0);
+            bi.setRGB(x, SAMPLEHEI-1, 0);
+        }
+        for(int y=0; y<SAMPLEHEI; y++) {
+            bi.setRGB(0, y, 0);
+            bi.setRGB(SAMPLEWID+SAMPLEHEI-1, y, 0);
+        }
+        for(int y=0; y<thickness; y++) {
+            int patPos = 0;
+            for(int x=0; x<SAMPLEWID; x++) {
+                if ((pattern & (1<<patPos)) != 0) bi.setRGB(x+startX, y+startY, 0); else
+                    bi.setRGB(x+startX, y+startY, 0xFFFFFF);
+                patPos++;
+                if (patPos >= len) patPos = 0;
+            }
+        }
+        return new ImageIcon(bi);
+    }
 
    /** This method is called from within the constructor to
     * initialize the form.

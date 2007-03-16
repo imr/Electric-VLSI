@@ -27,6 +27,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -2435,6 +2436,8 @@ public class MoCMOS extends Technology
      */
 	public void setState(boolean resizeNodes)
 	{
+        EDatabase.theDatabase.checkChanging();
+        
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed(true);
 		metalPinNodes[3].setNotUsed(true);
@@ -2521,7 +2524,7 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to describe the technology when it is in state "state".
 	 */
-	private String describeState()
+	protected String describeState()
 	{
 		int numMetals = getNumMetal();
 		String rules = "";

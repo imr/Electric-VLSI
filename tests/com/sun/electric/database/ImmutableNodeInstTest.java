@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
@@ -38,6 +39,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
 import static org.junit.Assert.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,9 +53,17 @@ public class ImmutableNodeInstTest {
     private ImmutableNodeInst n0;
     
     @Before public void setUp() throws Exception {
+        EDatabase.theDatabase.lock(true);
+        EDatabase.theDatabase.lowLevelBeginChanging(null);
+        
         pn = MoCMOS.tech.findNodeProto("Metal-1-P-Active-Con");
         nameA0 = Name.findName("a0");
         n0 = ImmutableNodeInst.newInstance(0, pn, nameA0, null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+    
+    @After public void tearDown() {
+        EDatabase.theDatabase.lowLevelEndChanging();
+        EDatabase.theDatabase.unlock();
     }
 
     public static junit.framework.Test suite() {

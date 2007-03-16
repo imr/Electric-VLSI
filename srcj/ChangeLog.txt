@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/16/07, DN) Actual changing of project settings is performed in Change Jobs.
+    Project setting dialog submit jobs to change project settings.
+
+BUG: (3/16/07, DN) Database JUnit regressions loads AWT classes.
+FIX: Move ImageIcon stuff from EGraphics.Outline to ColorPatternPanel.
+
+BUG: (3/16/07, DN) Database JUnit regressions crash in Setting initialization.
+FIX: Add "EDatabase.theDatabase.lowLevelBeginChanging(null);" to JUnit "setUp()" methods.
+
 IMP: (3/15/07, DN) Technology.getTSMC180Technology() and TechType.TSMC180 link to
      TSMC180 technology instead of TSMC foundry of MOCMOS technology.
 

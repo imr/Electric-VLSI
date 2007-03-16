@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -40,13 +41,12 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
-
-import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import org.junit.After;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -70,6 +70,9 @@ public class ImmutableArcInstTest {
     private ImmutableArcInst a0;
     
     @Before public void setUp() throws Exception {
+        EDatabase.theDatabase.lock(true);
+        EDatabase.theDatabase.lowLevelBeginChanging(null);
+        
         pn = MoCMOS.tech.findNodeProto("Metal-1-P-Active-Con");
         pp = pn.getPort(0);
         ap = MoCMOS.tech.findArcProto("P-Active");
@@ -80,6 +83,11 @@ public class ImmutableArcInstTest {
         n1 = ImmutableNodeInst.newInstance(1, pn, Name.findName("n1"), null, Orientation.IDENT, EPoint.fromLambda(21, 2), EPoint.fromLambda(17, 17), 0, 0, null);
         nameA0 = Name.findName("a0");
         a0 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+
+    @After public void tearDown() {
+        EDatabase.theDatabase.lowLevelEndChanging();
+        EDatabase.theDatabase.unlock();
     }
 
     public static junit.framework.Test suite() {

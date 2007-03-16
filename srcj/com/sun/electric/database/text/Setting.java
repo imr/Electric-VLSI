@@ -239,7 +239,16 @@ public class Setting {
 	 * methods such as getInt(), getBoolean(), etc.
 	 * @return the Object value of this Pref object.
 	 */
-	public Object getValue() { return values.get(index); }
+	public Object getValue() {
+        if (changeBatch != null) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                Object pendingChange = changeBatch.changesForSettings.get(this);
+                if (pendingChange != null)
+                    return pendingChange;
+            }
+        }
+        return values.get(index);
+    }
 
     /**
      * Method to return the user-command that can affect this Meaning option.
@@ -288,7 +297,7 @@ public class Setting {
      * @return the array of strings that should be used for this integer Meaning option.
      */
     public String [] getTrueMeaning() { return trueMeaning; }
-        
+    
 	/**
 	 * Method to get the factory-default value of this Pref object.
 	 * @return the factory-default value of this Pref object.

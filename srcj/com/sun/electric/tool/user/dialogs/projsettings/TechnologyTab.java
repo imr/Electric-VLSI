@@ -139,6 +139,15 @@ public class TechnologyTab extends ProjSettingsPanel
         {
             System.out.println("Exceptions while importing extra technologies");
         }
+        jPanel1.remove(tsmc180Panel);
+        try
+        {
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180Tab");
+            extraTechClass.getMethod("openTechnologyTab", JPanel.class).invoke(null, jPanel1);
+        } catch (Exception e)
+        {
+            System.out.println("Exceptions while importing extra technologies");
+        }
 
 //        mosisPanel.setVisible(Technology.getCurrent() == MoCMOS.tech);
 //        double scale = MoCMOS.tech.getScale();
@@ -245,6 +254,14 @@ public class TechnologyTab extends ProjSettingsPanel
         {
             System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
         }
+        try
+        {
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180Tab");
+            extraTechClass.getMethod("closeTechnologyTab").invoke(null);
+        } catch (Exception e)
+        {
+            System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
+        }
 	}
 
     /**
@@ -272,7 +289,12 @@ public class TechnologyTab extends ProjSettingsPanel
             if (val != 2)
             {
                 boolean modifyNodes = val == 0; // user wants to resize the nodes
-                tech.setPrefFoundryAndResize(foundry.name(), modifyNodes);
+                
+                //tech.setPrefFoundryAndResize(foundry.name(), modifyNodes);
+                tech.setPrefFoundry(foundry.name());
+                // Call side effect
+                Technology.TechSetting.technologyChanged(tech, modifyNodes);
+                
                 changed = false; // rules set already updated as side effect of changing the foundry name
             }
         }
@@ -308,6 +330,8 @@ public class TechnologyTab extends ProjSettingsPanel
         techDefaultFoundryPulldown = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
         cmos90Panel = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
+        tsmc180Panel = new javax.swing.JPanel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -467,6 +491,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         technology.add(mosisPanel, gridBagConstraints);
 
@@ -480,6 +505,20 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         technology.add(jPanel3, gridBagConstraints);
+
+        jPanel1.setPreferredSize(new java.awt.Dimension(20, 35));
+        tsmc180Panel.setLayout(new java.awt.GridBagLayout());
+
+        tsmc180Panel.setBorder(javax.swing.BorderFactory.createTitledBorder("TSMC180"));
+        tsmc180Panel.setMinimumSize(new java.awt.Dimension(10, 25));
+        tsmc180Panel.setPreferredSize(new java.awt.Dimension(10, 25));
+        jPanel1.add(tsmc180Panel);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
+        technology.add(jPanel1, gridBagConstraints);
 
         getContentPane().add(technology, new java.awt.GridBagConstraints());
 
@@ -505,9 +544,11 @@ public class TechnologyTab extends ProjSettingsPanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel cmos90Panel;
     private javax.swing.JLabel defaultTechLabel;
     private javax.swing.JComboBox defaultTechPulldown;
     private javax.swing.JLabel jLabel59;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel mosisPanel;
@@ -524,7 +565,7 @@ public class TechnologyTab extends ProjSettingsPanel
     private javax.swing.JComboBox techMetalLayers;
     private javax.swing.JPanel technology;
     private javax.swing.JComboBox technologyPopup;
-    private javax.swing.JPanel cmos90Panel;
+    private javax.swing.JPanel tsmc180Panel;
     // End of variables declaration//GEN-END:variables
 
 }

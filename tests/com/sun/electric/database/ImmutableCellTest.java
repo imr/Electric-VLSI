@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -35,6 +36,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import org.junit.After;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -54,6 +56,9 @@ public class ImmutableCellTest {
     private Variable var;
     
     @Before public void setUp() {
+        EDatabase.theDatabase.lock(true);
+        EDatabase.theDatabase.lowLevelBeginChanging(null);
+        
         idManager = new IdManager();
         libId = idManager.newLibId("libId0");
         fooName = CellName.parseName("foo;1{lay}");
@@ -63,6 +68,11 @@ public class ImmutableCellTest {
         var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true) );
     }
     
+    @After public void tearDown() {
+        EDatabase.theDatabase.lowLevelEndChanging();
+        EDatabase.theDatabase.unlock();
+    }
+
     public static junit.framework.Test suite() {
         return new junit.framework.JUnit4TestAdapter(ImmutableCellTest.class);
     }
