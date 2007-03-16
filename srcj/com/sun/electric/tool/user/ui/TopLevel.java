@@ -157,6 +157,26 @@ public class TopLevel extends JFrame
 	 */
 	public static void InitializeWindows()
 	{
+		// in MDI, create the top frame now
+		if (isMDIMode())
+		{
+			String loc = cacheWindowLoc.getString();
+			Rectangle bound = parseBound(loc);
+			if (bound == null)
+				bound = new Rectangle(scrnSize);
+
+			// make the desktop
+			desktop = new JDesktopPane();
+            try{
+			topLevel = new TopLevel("Electric", bound, null, null);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+            topLevel.setVisible(true);
+		}
+        
 		// initialize the messagesWindow window
         messagesWindow = new MessagesWindow();
         MessagesStream stream = MessagesStream.getMessagesStream();
@@ -235,24 +255,24 @@ public class TopLevel extends JFrame
             // default is to use last used dir
 
 		// in MDI, create the top frame now
-		if (isMDIMode())
-		{
-			String loc = cacheWindowLoc.getString();
-			Rectangle bound = parseBound(loc);
-			if (bound == null)
-				bound = new Rectangle(scrnSize);
-
-			// make the desktop
-			desktop = new JDesktopPane();
-            try{
-			topLevel = new TopLevel("Electric", bound, null, null);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-            topLevel.setVisible(true);
-		}
+//		if (isMDIMode())
+//		{
+//			String loc = cacheWindowLoc.getString();
+//			Rectangle bound = parseBound(loc);
+//			if (bound == null)
+//				bound = new Rectangle(scrnSize);
+//
+//			// make the desktop
+//			desktop = new JDesktopPane();
+//            try{
+//			topLevel = new TopLevel("Electric", bound, null, null);
+//            } catch (Exception e)
+//            {
+//                e.printStackTrace();
+//            }
+//			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+//            topLevel.setVisible(true);
+//		}
 	}
 
 	private static Rectangle parseBound(String loc)

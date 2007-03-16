@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/15/07, DN) Sturtup fails in MDI mode.
+FIX: In TopLevel move MDI initialization from OSInitialize to InitializeWindows,
+     so that it is executed after technology initialization.
+
 BUG: (3/15/07, DN) ClassCastException in OptionReconcile
 FIX: Consider both Boolean and Integer objects in OptionReconcile constructor.
 
