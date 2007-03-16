@@ -1923,7 +1923,7 @@ public class ToolMenu {
         private Technology tech;
 
     	public ImportDRCDeckJob(List<DRCTemplate.DRCXMLBucket> rules, Technology tech) {
-            super("ImportDRCDecj", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("ImportDRCDeck", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.rules = rules;
             this.tech = tech;
             startJob();
