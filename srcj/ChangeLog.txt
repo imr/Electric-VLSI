@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/16/07, SMR) Added "tsmc180" technology project settings.
+
 IMP: (3/16/07, DN) Actual changing of project settings is performed in Change Jobs.
     Project setting dialog submit jobs to change project settings.
 
