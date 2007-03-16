@@ -490,7 +490,6 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         technology.add(mosisPanel, gridBagConstraints);
 
         cmos90Panel.setLayout(new java.awt.GridBagLayout());
@@ -499,6 +498,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         technology.add(cmos90Panel, gridBagConstraints);
 
         tsmc180Panel.setLayout(new java.awt.GridBagLayout());
@@ -507,6 +507,7 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         technology.add(tsmc180Panel, gridBagConstraints);
 
         getContentPane().add(technology, new java.awt.GridBagConstraints());
