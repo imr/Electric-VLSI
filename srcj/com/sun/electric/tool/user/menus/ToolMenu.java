@@ -68,6 +68,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.DRCTemplate.DRCXMLBucket;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1885,34 +1886,76 @@ public class ToolMenu {
 
         if (!parser.isParseOK())  return; // errors in the file
         
-        for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
-        {
-            boolean done = false;
+        new ImportDRCDeckJob(parser.getRules(), tech);
+//        for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
+//        {
+//            boolean done = false;
+//
+//            // set the new rules under the foundry imported
+//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)  
+//            {
+//                Foundry f = itF.next();
+//                if (f.getType().name().equalsIgnoreCase(bucket.foundry))
+//                {
+//                    f.setRules(bucket.drcRules);
+//                    System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
+//                            tech.getTechName() + "'");
+//                    // Need to clean cells using this foundry because the rules might have changed.
+//                    DRC.cleanCellsDueToFoundryChanges(tech, f);
+//                    // Only when the rules belong to the selected foundry, then reload the rules
+//                    if (f == tech.getSelectedFoundry())
+//                        tech.setState(true);
+//                    done = true;
+//                    break;
+//                }
+//            }
+//            if (!done)
+//            {
+//                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+//                    "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
+//                    "Importing DRC Deck", JOptionPane.ERROR_MESSAGE);
+//            }
+//        }
+    }
 
-            // set the new rules under the foundry imported
-            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)  
-            {
-                Foundry f = itF.next();
-                if (f.getType().name().equalsIgnoreCase(bucket.foundry))
-                {
-                    f.setRules(bucket.drcRules);
-                    System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
-                            tech.getTechName() + "'");
-                    // Need to clean cells using this foundry because the rules might have changed.
-                    DRC.cleanCellsDueToFoundryChanges(tech, f);
-                    // Only when the rules belong to the selected foundry, then reload the rules
-                    if (f == tech.getSelectedFoundry())
-                        tech.setState(true);
-                    done = true;
-                    break;
+    private static class ImportDRCDeckJob extends Job {
+        private List<DRCTemplate.DRCXMLBucket> rules;
+        private Technology tech;
+
+    	public ImportDRCDeckJob(List<DRCTemplate.DRCXMLBucket> rules, Technology tech) {
+            super("ImportDRCDecj", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.rules = rules;
+            this.tech = tech;
+            startJob();
+        }
+
+        public boolean doIt() {
+            for (DRCTemplate.DRCXMLBucket bucket : rules) {
+                boolean done = false;
+                
+                // set the new rules under the foundry imported
+                for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();) {
+                    Foundry f = itF.next();
+                    if (f.getType().name().equalsIgnoreCase(bucket.foundry)) {
+                        f.setRules(bucket.drcRules);
+                        System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
+                                tech.getTechName() + "'");
+                        // Need to clean cells using this foundry because the rules might have changed.
+                        DRC.cleanCellsDueToFoundryChanges(tech, f);
+                        // Only when the rules belong to the selected foundry, then reload the rules
+                        if (f == tech.getSelectedFoundry())
+                            tech.setState(true);
+                        done = true;
+                        break;
+                    }
+                }
+                if (!done) {
+                    Job.getUserInterface().showErrorMessage(
+                            "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
+                            "Importing DRC Deck");
                 }
             }
-            if (!done)
-            {
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                    "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
-                    "Importing DRC Deck", JOptionPane.ERROR_MESSAGE);
-            }
+            return true;
         }
     }
 

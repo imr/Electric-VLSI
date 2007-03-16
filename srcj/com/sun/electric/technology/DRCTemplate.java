@@ -48,7 +48,7 @@ import org.xml.sax.SAXParseException;
 /**
  * Class to define rules from TSCM files...
  */
-public class DRCTemplate
+public class DRCTemplate implements Serializable
 {
     public enum DRCMode
     {
@@ -397,7 +397,7 @@ public class DRCTemplate
 
 
     /** Class used to store read rules and foundry associated to them */
-    public static class DRCXMLBucket
+    public static class DRCXMLBucket implements Serializable
     {
         public List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
         public String foundry = Foundry.Type.NONE.name();
