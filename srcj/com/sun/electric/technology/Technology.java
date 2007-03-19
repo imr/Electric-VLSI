@@ -3348,7 +3348,7 @@ public class Technology implements Comparable<Technology>
      * @param gdsLayers stirngs with definition of gds numbers for layers
      */
     protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
-        Foundry foundry = new Foundry(this, mode, fileURL);
+        Foundry foundry = new Foundry(this, mode, fileURL, gdsLayers);
         foundries.add(foundry);
     }
     
