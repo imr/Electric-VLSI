@@ -404,9 +404,17 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param message the error message to show.
      * @param title the title of a dialog with the error message.
      */
-    public void showErrorMessage(Object message, String title)
+    public void showErrorMessage(final Object message, final String title)
     {
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.ERROR_MESSAGE);
+        if (SwingUtilities.isEventDispatchThread())
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.ERROR_MESSAGE);
+        else {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    showErrorMessage(message, title);
+                }
+            });
+        }
     }
 
     /**
@@ -414,9 +422,17 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param message the message to show.
      * @param title the title of a dialog with the message.
      */
-    public void showInformationMessage(Object message, String title)
+    public void showInformationMessage(final Object message, final String title)
     {
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
+         if (SwingUtilities.isEventDispatchThread())
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
+        else {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    showInformationMessage(message, title);
+                }
+            });
+        }
     }
 
     /**

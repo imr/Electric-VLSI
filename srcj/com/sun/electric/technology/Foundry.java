@@ -59,7 +59,7 @@ public class Foundry {
     private boolean rulesLoaded;
     private Setting[] gdsLayerSettings;
 
-    Foundry(Technology tech, Type mode, URL fileURL, String... gdsLayers) {
+    Foundry(Technology tech, Type mode, URL fileURL, String[] gdsLayers) {
         this.tech = tech;
         this.type = mode;
         this.fileURL = fileURL;
@@ -184,7 +184,7 @@ public class Foundry {
      * @param tech Technology of this Foundry.
      * @param factoryDefault the factory-default GDS name of this Layer.
      */
-    private void setFactoryGDSLayers(String... gdsLayers) {
+    private void setFactoryGDSLayers(String[] gdsLayers) {
         LinkedHashMap<Layer,String> gdsMap = new LinkedHashMap<Layer,String>();
         for (String gdsDef: gdsLayers) {
             int space = gdsDef.indexOf(' ');
@@ -254,6 +254,6 @@ public class Foundry {
      */
     void finish() {
         if (gdsLayerSettings == null)
-            setFactoryGDSLayers();
+            setFactoryGDSLayers(new String[0]);
     }
 }

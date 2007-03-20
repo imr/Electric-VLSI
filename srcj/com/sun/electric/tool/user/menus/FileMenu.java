@@ -402,7 +402,6 @@ public class FileMenu {
 		private FileType type;
 		private Library deleteLib;
         private String cellName; // cell to view once the library is open
-        private HashMap<String,Object> projectSettings;
         private Library lib;
 
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName)
@@ -423,26 +422,11 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-            fieldVariableChanged("projectSettings");
-            projectSettings = new HashMap<String,Object>();
+            HashMap<String,Object> projectSettings = new HashMap<String,Object>();
         	lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
             if (lib == null) return false;
             fieldVariableChanged("lib");
 
-            // new library open: check for default "noname" library and close if empty
-            Library noname = Library.findLibrary("noname");
-            if (noname != null) {
-                if (!noname.getCells().hasNext()) {
-                    noname.kill("delete");
-                }
-            }
-//            Undo.noUndoAllowed();
-            lib.setCurrent();
-			return true;
-		}
-
-        public void terminateOK()
-        {
             // read project settings
             File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
             if (projsettings.exists()) {
@@ -452,7 +436,20 @@ public class FileMenu {
                 projectSettings = null;
             }
 
-            Cell showThisCell = (cellName != null) ?
+             // new library open: check for default "noname" library and close if empty
+            Library noname = Library.findLibrary("noname");
+            if (noname != null) {
+                if (!noname.getCells().hasNext()) {
+                    noname.kill("delete");
+                }
+            }
+            lib.setCurrent();
+			return true;
+		}
+
+        public void terminateOK()
+        {
+           Cell showThisCell = (cellName != null) ?
                     lib.findNodeProto(cellName) :
                     Job.getUserInterface().getCurrentCell(lib);
         	doneOpeningLibrary(showThisCell);

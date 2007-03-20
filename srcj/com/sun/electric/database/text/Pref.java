@@ -192,7 +192,6 @@ public class Pref
                             break;
                     }
                 }
-                Setting.setPreferencesToFactoryValue();
             }
 			resumePrefFlushing();
 
@@ -206,29 +205,23 @@ public class Pref
                 for(Pref pref : allPrefs) {
                     switch (pref.type) {
                         case BOOLEAN:
-//                            boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
-//                            pref.cachedObj = new Integer(curBoolean ? 1 : 0);
                             pref.setBoolean(pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue()));
                             break;
                         case INTEGER:
                             pref.setInt(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
-//                            pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
                             break;
                         case LONG:
                             pref.setLong(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
-//                            pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
                             break;
                         case DOUBLE:
-//                            pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
                             pref.setDouble(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
                             break;
                         case STRING:
                             pref.setString(pref.prefs.get(pref.name, pref.getStringFactoryValue()));
-//                            pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
                             break;
                     }
                 }
-                Setting.setFromPreferences();
+                Setting.saveAllSettingsToPreferences();
             }
 			resumePrefFlushing();
 
@@ -302,11 +295,6 @@ public class Pref
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 			printWriter.print(xmlFormatted);
 			printWriter.close();
-
-//			Preferences root = Preferences.userNodeForPackage(Main.class);
-//			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
-//			root.exportSubtree(outputStream);
-//			outputStream.close();
 		} catch (Exception e)
 		{
             if (Job.getDebug())
@@ -327,7 +315,6 @@ public class Pref
 	protected void initBoolean(boolean factory)
 	{
 		this.type = PrefType.BOOLEAN;
-//		this.meaning = null;
 		this.factoryObj = new Integer(factory ? 1 : 0);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
 			this.cachedObj = new Integer(factory ? 1 : 0);
@@ -354,7 +341,6 @@ public class Pref
 	protected void initInt(int factory)
 	{
 		this.type = PrefType.INTEGER;
-//		this.meaning = null;
 		this.factoryObj = new Integer(factory);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
 			this.cachedObj = new Integer(factory);
@@ -381,7 +367,6 @@ public class Pref
 	protected void initLong(long factory)
 	{
 		this.type = PrefType.LONG;
-//		this.meaning = null;
 		this.factoryObj = new Long(factory);
 		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
 			this.cachedObj = new Long(factory);
@@ -408,7 +393,6 @@ public class Pref
 	protected void initDouble(double factory)
 	{
 		this.type = PrefType.DOUBLE;
-//		this.meaning = null;
 		this.factoryObj = new Double(factory);
 		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
 			this.cachedObj = new Double(factory);
@@ -435,7 +419,6 @@ public class Pref
 	protected void initString(String factory)
 	{
 		this.type = PrefType.STRING;
-//		this.meaning = null;
 		this.factoryObj = new String(factory);
 		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
 			this.cachedObj = new String(factory);
@@ -629,11 +612,6 @@ public class Pref
 		for(Preferences p : queueForFlushing)
 			flushOptions(p);
 	}
-    
-    static void flushOptions_(Preferences prefs) {
-        if (doFlushing) flushOptions(prefs); else
-            queueForFlushing.add(prefs);
-    }
     
 	/**
 	 * Method to set a new boolean value on this Pref object.

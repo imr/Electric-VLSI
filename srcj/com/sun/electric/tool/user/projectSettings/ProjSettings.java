@@ -31,7 +31,6 @@ import org.xml.sax.Attributes;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.swing.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.io.*;
@@ -42,7 +41,9 @@ import java.util.Set;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,9 +88,8 @@ public class ProjSettings {
         if (result == ReadResult.ERROR) return;
 
         if (result == ReadResult.CONFLICTS && lastProjectSettingsFile != null) {
-            SwingUtilities.invokeLater(new Runnable() { public void run() {
-                Job.getUserInterface().showInformationMessage("Warning: Project Settings conflicts; ignoring new settings. See messages window", "Project Settings Conflict"); }
-            });
+            String message = "Warning: Project Settings conflicts;" + (allowOverride ? "" : " ignoring new settings.") + " See messages window";
+            Job.getUserInterface().showInformationMessage(message, "Project Settings Conflict");
             System.out.println("Project Setting conflicts found: "+lastProjectSettingsFile.getPath()+" vs "+file.getPath());
         }
         lastProjectSettingsFile = file;
@@ -115,7 +115,26 @@ public class ProjSettings {
     public static void importSettings() {
         String ifile = OpenFile.chooseInputFile(FileType.XML, "Import Project Settings", false, FileType.LIBRARYFORMATS.getGroupPath(), false);
         if (ifile == null) return;
-        readSettings(new File(ifile), true);
+        new ImportSettingsJob(ifile);
+    }
+
+    /**
+     * Class to read a library in a new thread.
+     * For a non-interactive script, use ReadLibrary job = new ReadLibrary(filename, format).
+     */
+    public static class ImportSettingsJob extends Job {
+        private String fileName;
+        
+        public ImportSettingsJob(String fileName) {
+            super("Import Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.fileName = fileName;
+            startJob();
+        }
+        
+        public boolean doIt() throws JobException {
+            readSettings(new File(fileName), true);
+            return true;
+        }
     }
 
     // ----------------------------- Private -------------------------------

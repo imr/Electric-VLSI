@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/17/07, DN) "importPrefs" command doesn't change project settings.
+
+BUG: (3/17/07, DN) GDS layers settings are not initialized to factory values.
+FIX: In Technology.newFoundry() method pass "gdsLayers" to Foundry constructor.
+
 IMP: (3/16/07, GVG) Patching XMLRules so they can still be loaded even if project settings are inconsistent.
 This is related to Bug#1294.
 

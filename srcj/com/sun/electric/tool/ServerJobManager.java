@@ -579,8 +579,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void showErrorMessage(Object message, String title)
         {
+            Job.currentUI.showErrorMessage(message, title);
 //            System.out.println("UserInterface.showErrorMessage was called from DatabaseChangesThread");
-        	System.out.println(message);
+//        	System.out.println(message);
         }
 
         /**
@@ -590,8 +591,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void showInformationMessage(Object message, String title)
         {
+            Job.currentUI.showInformationMessage(message, title);
 //            System.out.println("UserInterface.showInformationMessage was called from DatabaseChangesThread");
-        	System.out.println(message);
+//        	System.out.println(message);
         }
 
         /**

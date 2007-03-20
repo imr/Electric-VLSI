@@ -98,23 +98,6 @@ public class Setting {
         setCachedObjFromPreferences();
     }
     
-    private void setCachedObjFromPreferences() {
-        Object cachedObj = null;
-        if (factoryObj instanceof Boolean) {
-            cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
-        } else if (factoryObj instanceof Integer) {
-            cachedObj = Integer.valueOf(prefs.getInt(prefName, ((Integer)factoryObj).intValue()));
-        } else if (factoryObj instanceof Long) {
-            cachedObj = Long.valueOf(prefs.getLong(prefName, ((Long)factoryObj).longValue()));
-        } else if (factoryObj instanceof Double) {
-            cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double)factoryObj).doubleValue()));
-        } else if (factoryObj instanceof String) {
-            cachedObj = prefs.get(prefName, (String)factoryObj);    
-        }
-        assert cachedObj != null;
-        values.set(index, cachedObj);
-    }
-    
     /**
      * Method to get the boolean value on this TechSetting object.
      * The object must have been created as "boolean".
@@ -209,8 +192,7 @@ public class Setting {
         if (v.getClass() != factoryObj.getClass())
             throw new RuntimeException();
         values.set(index, factoryObj.equals(v) ? factoryObj : v);
-        setPreferencesToValue(v);
-        Pref.flushOptions_(prefs);
+        saveToPreferences(v);
         setSideEffect();
     }
     
@@ -507,15 +489,19 @@ public class Setting {
         Pref.resumePrefFlushing();
     }
     
-    static void setPreferencesToFactoryValue() {
+    static void saveAllSettingsToPreferences() {
         for (Setting setting: allSettingsByXmlPath.values()) {
-            if (setting.getValue().equals(setting.getFactoryValue())) continue;
-            setting.setPreferencesToValue(setting.getFactoryValue());
+            Object value = setting.getValue();
+            setting.saveToPreferences(value);
         }
     }
     
-    private void setPreferencesToValue(Object v) {
+    private void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
+        if (v.equals(factoryObj)) {
+             prefs.remove(prefName);
+             return;
+        }
         if (v instanceof Boolean)
             prefs.putBoolean(prefName, ((Boolean)v).booleanValue());
         else if (v instanceof Integer)
@@ -526,13 +512,26 @@ public class Setting {
             prefs.putDouble(prefName, ((Double)v).doubleValue());
         else if (v instanceof String)
             prefs.put(prefName, (String)v);
-        else
+        else {
             assert false;
+        }
     }
     
-    static void setFromPreferences() {
-        for (Setting setting: allSettingsByXmlPath.values())
-            setting.setCachedObjFromPreferences();
+    private void setCachedObjFromPreferences() {
+        Object cachedObj = null;
+        if (factoryObj instanceof Boolean) {
+            cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
+        } else if (factoryObj instanceof Integer) {
+            cachedObj = Integer.valueOf(prefs.getInt(prefName, ((Integer)factoryObj).intValue()));
+        } else if (factoryObj instanceof Long) {
+            cachedObj = Long.valueOf(prefs.getLong(prefName, ((Long)factoryObj).longValue()));
+        } else if (factoryObj instanceof Double) {
+            cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double)factoryObj).doubleValue()));
+        } else if (factoryObj instanceof String) {
+            cachedObj = prefs.get(prefName, (String)factoryObj);    
+        }
+        assert cachedObj != null;
+        values.set(index, cachedObj);
     }
     
     public static class SettingChangeBatch implements Serializable {
