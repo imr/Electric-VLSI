@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -338,7 +338,14 @@ public class ParasiticTab extends ProjSettingsPanel {
             for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
             {
                 Layer layer = (Layer)lIt.next();
-                layer.resetToFactoryParasitics();
+//                layer.resetToFactoryParasitics();
+                Setting resistanceSetting = layer.getResistanceSetting();
+                setDouble(resistanceSetting, resistanceSetting.getDoubleFactoryValue());
+                Setting capacitanceSetting = layer.getCapacitanceSetting();
+                setDouble(capacitanceSetting, capacitanceSetting.getDoubleFactoryValue());
+                Setting edgeCapcitanceSetting = layer.getEdgeCapacitanceSetting();
+                setDouble(edgeCapcitanceSetting, edgeCapcitanceSetting.getDoubleFactoryValue());
+
             }
 			init();
 		}

@@ -348,6 +348,13 @@ public class NetworkTool extends Tool
 	 * @param i true if resistors are ignored in the circuit.
 	 */
 	public static void setIgnoreResistors(boolean i) { tool.cacheIgnoreResistors.setBoolean(i); }
+	/**
+	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 * When ignored, they appear as a "short", connecting the two sides.
+	 * When included, they appear as a component with different networks on either side.
+	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 */
+	public static Setting getIgnoreResistorsSetting() { return tool.cacheIgnoreResistors; }
 
     private Setting cacheIgnoreResistors;
     

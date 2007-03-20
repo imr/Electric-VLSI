@@ -537,7 +537,7 @@ public class Setting {
     public static class SettingChangeBatch implements Serializable {
         public HashMap<String,Object> changesForSettings = new HashMap<String,Object>();
         
-        private void add(Setting setting, Object newValue) {
+        public void add(Setting setting, Object newValue) {
             changesForSettings.put(setting.xmlPath, newValue);
         }
     }

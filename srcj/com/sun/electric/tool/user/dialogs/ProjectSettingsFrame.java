@@ -282,7 +282,23 @@ public class ProjectSettingsFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		new OKUpdate(this, false);
+        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        // gather preference changes on the client
+        Setting.gatherSettingChanges();
+        try {
+            for(ProjSettingsPanel ti : optionPanes) {
+                if (ti.isInited())
+                    ti.term();
+            }
+        } finally {
+            changeBatch = Setting.getSettingChanges();
+        }
+        if (changeBatch.changesForSettings.isEmpty()) {
+            closeDialog(null);
+            return;
+        }
+        new OKUpdate(this, changeBatch, true);
+//		new OKUpdate(this, false);
 	}
 
     private void helpActionPerformed()
@@ -344,38 +360,31 @@ public class ProjectSettingsFrame extends EDialog
 
 	protected void escapePressed() { cancelActionPerformed(); }
 
+    /**
+     * Change project settings according to changeBatch and close dialog on success.
+     * @param changeBatch batch of changed project settings
+     * @param dialogToClose dialog to close on success.
+     */
+    public static void updateProjectSettings(Setting.SettingChangeBatch changeBatch, EDialog dialogToClose) {
+        new OKUpdate(dialogToClose, changeBatch, false);
+    }
+    
 	/**
 	 * Class to update primitive node information.
 	 */
 	private static class OKUpdate extends Job
 	{
-		private transient ProjectSettingsFrame dialog;
+		private transient EDialog dialog;
 		private Setting.SettingChangeBatch changeBatch;
         private boolean issueWarning;
 
-        private OKUpdate(ProjectSettingsFrame dialog, boolean issueWarning)
-		{
+        private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning) {
 			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
+            this.dialog = dialog;
+            this.changeBatch = changeBatch;
             this.issueWarning = issueWarning;
-
-            // gather preference changes on the client
-			Setting.gatherSettingChanges();
-            try {
-                for(ProjSettingsPanel ti : dialog.optionPanes) {
-                    if (ti.isInited())
-                        ti.term();
-                }
-            } finally {
-                changeBatch = Setting.getSettingChanges();
-            }
-            if (changeBatch.changesForSettings.isEmpty()) {
-               dialog.closeDialog(null);
-               return;
-            }
-            this.issueWarning = true;
             startJob();
-		}
+        }
 
 		public boolean doIt() throws JobException
 		{
@@ -430,7 +439,11 @@ public class ProjectSettingsFrame extends EDialog
                     }
                 }
             }
-            dialog.closeDialog(null);
+            if (dialog != null) {
+                dialog.setVisible(false);
+                dialog.dispose();
+            }
+//            dialog.closeDialog(null);
 		}
 	}
 

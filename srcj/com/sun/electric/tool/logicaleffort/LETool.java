@@ -1092,6 +1092,11 @@ public class LETool extends Tool {
 	 * @param on whether to use local settings for Logical Effort
 	 */
 	public static void setUseLocalSettings(boolean on) { tool.cacheUseLocalSettings.setBoolean(on); }
+	/**
+	 * Returns project Setting to tell whether to use local settings for Logical Effort
+	 * @return project Setting to tell whether to use local settings for Logical Effort
+	 */
+	public static Setting getUseLocalSettingsSetting() { return tool.cacheUseLocalSettings; }
 
 //	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
 //	/**
@@ -1125,12 +1130,16 @@ public class LETool extends Tool {
 	 * @return the Global Fanout for Logical Effort.
 	 */
 	public static double getGlobalFanout() { return tool.cacheGlobalFanout.getDouble(); }
-
 	/**
      * Method to set the Global Fanout for Logical Effort.
 	 * @param fo the Global Fanout for Logical Effort.
 	 */
 	public static void setGlobalFanout(double fo) { tool.cacheGlobalFanout.setDouble(fo); }
+	/**
+     * Returns project Setting to tell the Global Fanout for Logical Effort.
+     * @return project Setting to tell the Global Fanout for Logical Effort.
+	 */
+	public static Setting getGlobalFanoutSetting() { return tool.cacheGlobalFanout; }
 
 	/**
 	 * Method to get the Convergence Epsilon value for Logical Effort.
@@ -1138,12 +1147,16 @@ public class LETool extends Tool {
 	 * @return the Convergence Epsilon value for Logical Effort.
 	 */
 	public static double getConvergenceEpsilon() { return tool.cacheConvergenceEpsilon.getDouble(); }
-
 	/**
 	 * Method to set the Convergence Epsilon value for Logical Effort.
 	 * @param ep the Convergence Epsilon value for Logical Effort.
 	 */
 	public static void setConvergenceEpsilon(double ep) { tool.cacheConvergenceEpsilon.setDouble(ep); }
+	/**
+	 * Returns project Setting to tell the Convergence Epsilon value for Logical Effort.
+	 * @return project Setting to tell the Convergence Epsilon value for Logical Effort.
+	 */
+	public static Setting getConvergenceEpsilonSetting() { return tool.cacheConvergenceEpsilon; }
 
     /**
 	 * Method to get the maximum number of iterations for Logical Effort.
@@ -1156,6 +1169,11 @@ public class LETool extends Tool {
 	 * @param it the maximum number of iterations for Logical Effort.
 	 */
 	public static void setMaxIterations(int it) { tool.cacheMaxIterations.setInt(it); }
+	/**
+	 * Returns project Setting to tell the maximum number of iterations for Logical Effort.
+	 * @return project Setting to tell the maximum number of iterations for Logical Effort.
+	 */
+	public static Setting getMaxIterationsSetting() { return tool.cacheMaxIterations; }
 
 //	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
 //	/**
@@ -1202,12 +1220,16 @@ public class LETool extends Tool {
 	 * @return the keeper size ratio for Logical Effort.
 	 */
 	public static double getKeeperRatio() { return tool.cacheKeeperRatio.getDouble(); }
-
 	/**
 	 * Method to set the keeper size ratio for Logical Effort.
 	 * @param kr the keeper size ratio for Logical Effort.
 	 */
 	public static void setKeeperRatio(double kr) { tool.cacheKeeperRatio.setDouble(kr); }
+	/**
+	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
+	 * @eturn project Setting to tell the keeper size ratio for Logical Effort.
+	 */
+	public static Setting getKeeperRatioSetting() { return tool.cacheKeeperRatio; }
 
 	private Setting cacheUseLocalSettings;
     private Setting cacheGlobalFanout;

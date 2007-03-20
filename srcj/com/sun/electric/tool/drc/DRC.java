@@ -42,8 +42,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.EFIDO;
-import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -876,7 +874,7 @@ public class DRC extends Listener
                         errorLog.logError(msg, ni, cell, null, errorSortNodes);
                     }
                 } else if (np.getFunction() == PrimitiveNode.Function.PIN &&
-                        cell.getTechnology() != GEM.tech && cell.getTechnology() != EFIDO.tech && !ni.hasConnections()) {
+                        cell.getTechnology().isLayout() && !ni.hasConnections()) {
                     if (unconnectedPins == null)
                         unconnectedPins = new HashMap<NodeProto,ArrayList<NodeInst>>();
                     ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);

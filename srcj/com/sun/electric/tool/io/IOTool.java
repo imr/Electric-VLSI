@@ -63,7 +63,7 @@ public class IOTool extends Tool
 	/****************************** SKILL FORMAT INTERFACE ******************************/
 
     private static boolean skillChecked = false;
-	private static Class skillClass = null;
+	private static Class<?> skillClass = null;
 	private static Method skillOutputMethod;
 
 	/**
@@ -125,7 +125,7 @@ public class IOTool extends Tool
 	/****************************** DAIS FORMAT INTERFACE ******************************/
 
     private static boolean daisChecked = false;
-	private static Class daisClass = null;
+	private static Class<?> daisClass = null;
 	private static Method daisInputMethod;
 
 	/**
@@ -226,6 +226,11 @@ public class IOTool extends Tool
 	 * @param u true to add the copyright message to output decks.
 	 */
 	public static void setUseCopyrightMessage(boolean u) { tool.cacheUseCopyrightMessage.setBoolean(u); }
+	/**
+	 * Returns project Setting to tell whether to add the copyright message to output decks.
+	 * @return project Setting to tell whether to add the copyright message to output decks.
+	 */
+	public static Setting getUseCopyrightMessageSetting() { return tool.cacheUseCopyrightMessage; }
 
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
@@ -238,6 +243,11 @@ public class IOTool extends Tool
 	 * @param m the copyright message that will be added to output decks.
 	 */
 	public static void setCopyrightMessage(String m) { tool.cacheCopyrightMessage.setString(m); }
+	/**
+	 * Returns project Setting to tell the copyright message that will be added to output decks.
+	 * @return project Setting to tell the copyright message that will be added to output decks.
+	 */
+	public static Setting getCopyrightMessageSetting() { return tool.cacheCopyrightMessage; }
 
     private Setting cacheUseCopyrightMessage;
 	private Setting cacheCopyrightMessage;
@@ -321,6 +331,13 @@ public class IOTool extends Tool
 	 * @param on true if CIF Output mimics the display.
 	 */
 	public static void setCIFOutMimicsDisplay(boolean on) { tool.cacheCIFMimicsDisplay.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether CIF Output mimics the display.
+	 * To mimic the display, unexpanded cell instances are described as black boxes,
+	 * instead of calls to their contents.
+	 * @return Setting to tell whether CIF Output mimics the display.
+	 */
+	public static Setting getCIFOutMimicsDisplaySetting() { return tool.cacheCIFMimicsDisplay; }
 
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
@@ -335,6 +352,12 @@ public class IOTool extends Tool
 	 * @param on true if CIF Output merges boxes into complex polygons.
 	 */
 	public static void setCIFOutMergesBoxes(boolean on) { tool.cacheCIFMergesBoxes.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether CIF Output merges boxes into complex polygons.
+	 * This takes more time but produces a smaller output file.
+	 * @return Setting to tell whether CIF Output merges boxes into complex polygons.
+	 */
+	public static Setting getCIFOutMergesBoxesSetting() { return tool.cacheCIFMergesBoxes; }
 
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
@@ -349,6 +372,12 @@ public class IOTool extends Tool
 	 * @param on true if CIF Output merges boxes into complex polygons.
 	 */
 	public static void setCIFOutInstantiatesTopLevel(boolean on) { tool.cacheCIFInstantiatesTopLevel.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether CIF Output merges boxes into complex polygons.
+	 * When this happens, a CIF "call" to the top cell is emitted.
+	 * @return Setting to tell whether CIF Output merges boxes into complex polygons.
+	 */
+	public static Setting getCIFOutInstantiatesTopLevelSetting() { return tool.cacheCIFInstantiatesTopLevel; }
 
 	private Setting cacheCIFMimicsDisplay;
  	private Setting cacheCIFMergesBoxes;
@@ -431,6 +460,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Output merges boxes into complex polygons.
 	 */
 	public static void setGDSOutMergesBoxes(boolean on) { tool.cacheGDSMergesBoxes.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether GDS Output merges boxes into complex polygons.
+	 * This takes more time but produces a smaller output file.
+	 * @return Setting to tell if GDS Output merges boxes into complex polygons.
+	 */
+	public static Setting getGDSOutMergesBoxesSetting() { return tool.cacheGDSMergesBoxes; }
 
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
@@ -445,6 +480,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Output writes pins at Export locations.
 	 */
 	public static void setGDSOutWritesExportPins(boolean on) { tool.cacheGDSWritesExportPins.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether GDS Output writes pins at Export locations.
+	 * Some systems can use this information to reconstruct export locations.
+	 * @return Setting to tell whether GDS Output writes pins at Export locations.
+	 */
+	public static Setting getGDSOutWritesExportPinsSetting() { return tool.cacheGDSWritesExportPins; }
 
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
@@ -459,6 +500,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Output makes all text upper-case.
 	 */
 	public static void setGDSOutUpperCase(boolean on) { tool.cacheGDSOutputUpperCase.setBoolean(on); }
+	/**
+	 * Returns Setting to tell whether GDS Output makes all text upper-case.
+	 * Some systems insist on this.
+	 * @return Setting to tell whether GDS Output makes all text upper-case.
+	 */
+	public static Setting getGDSOutUpperCaseSetting() { return tool.cacheGDSOutputUpperCase; }
 
 	/**
 	 * Method to tell the default GDS layer to use for the text of Export pins.
@@ -475,6 +522,13 @@ public class IOTool extends Tool
 	 * If this is negative, do not write Export pins.
 	 */
 	public static void setGDSOutDefaultTextLayer(int num) { tool.cacheGDSDefaultTextLayer.setInt(num); }
+	/**
+	 * Returns Setting to tell the default GDS layer to use for the text of Export pins.
+	 * Export pins are annotated with text objects on this layer.
+	 * If this is negative, do not write Export pins.
+	 * @return Setting to tell to set the default GDS layer to use for the text of Export pins.
+	 */
+	public static Setting getGDSOutDefaultTextLayerSetting() { return tool.cacheGDSDefaultTextLayer; }
 
     /**
      * Method to get the state of whether the GDS writer converts brackets
@@ -486,6 +540,12 @@ public class IOTool extends Tool
      * to underscores in export names.
      */
     public static void setGDSOutputConvertsBracketsInExports(boolean b) { tool.cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
+    /**
+     * Returns Setting to tell the state of whether the GDS writer converts brackets
+     * to underscores in export names.
+     * @return Setting to tell the state of whether the GDS writer converts brackets
+     */
+    public static Setting getGDSOutputConvertsBracketsInExportsSetting() { return tool.cacheGDSOutputConvertsBracketsInExports; }
 
     /**
      * Get the maximum length (number of chars) for Cell names in the GDS output file
@@ -496,6 +556,11 @@ public class IOTool extends Tool
      * Set the maximum length (number of chars) for Cell names in the GDS output file
      */
     public static void setGDSCellNameLenMax(int len) { tool.cacheGDSCellNameLenMax.setInt(len); }
+    /**
+     * Returns Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
+     * @return Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
+     */
+    public static Setting getGDSCellNameLenMaxSetting() { return tool.cacheGDSCellNameLenMax; }
 
 	private Setting cacheGDSMergesBoxes;
 	private Setting cacheGDSWritesExportPins;
@@ -963,6 +1028,23 @@ public class IOTool extends Tool
 	 * @param s the DXF scale.
 	 */
 	public static void setDXFScale(int s) { tool.cacheDXFScale.setInt(s); }
+	/**
+	 * Returns project Settings to tell the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * @return project Settings to tell the DXF scale.
+	 */
+	public static Setting getDXFScaleSetting() { return tool.cacheDXFScale; }
 
 	private Setting cacheDXFScale;
     

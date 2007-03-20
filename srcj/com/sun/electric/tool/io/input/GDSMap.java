@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -32,6 +33,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
@@ -53,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -248,11 +251,10 @@ public class GDSMap extends EDialog
             return;
         }
 
-        HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
-        for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-        {
+        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
-            gdsLayers.put(layer, "");
+            changeBatch.add(foundry.getGDSLayerSetting(layer), "");
         }
 
 		// set the associations
@@ -277,15 +279,15 @@ public class GDSMap extends EDialog
 					break;
 				}
 			}
-            gdsLayers.put(layer, layerInfo);
+            changeBatch.add(foundry.getGDSLayerSetting(layer), layerInfo);
 		}
-        foundry.setGDSLayers(gdsLayers);
+        ProjectSettingsFrame.updateProjectSettings(changeBatch, this);
 	}
 
 	private void ok()
 	{
 		termDialog();
-		closeDialog(null);
+//		closeDialog(null); dialog is ProjectSettingsFrame.updateProjectSettings
 	}
 
 	/** Closes the dialog */

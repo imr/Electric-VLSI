@@ -747,6 +747,11 @@ public class User extends Listener
 	 * @param t the default technology to use in Tech Palette.
 	 */
 	public static void setDefaultTechnology(String t) { tool.cacheDefaultTechnology.setString(t); }
+	/**
+	 * Returns project Setting to tell default technique in Tech Palette.
+	 * @return project Setting to tell default technique in Tech Palette.
+	 */
+	public static Setting getDefaultTechnologySetting() { return tool.cacheDefaultTechnology; }
 
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
@@ -775,6 +780,14 @@ public class User extends Listener
         if (t == null) return;
         tool.cacheSchematicTechnology.setString(t.getTechName());
     }
+	/**
+	 * Returns project Setting to tell the layout Technology to use when schematics are found.
+	 * This is important in Spice deck generation (for example) because the Spice primitives may
+	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
+	 * numbers to real spacings for the deck.
+	 * @return project Setting to tell the Technology to use when schematics are found.
+	 */
+	public static Setting getSchematicTechnologySetting() { return tool.cacheSchematicTechnology; }
 
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
@@ -787,6 +800,11 @@ public class User extends Listener
 	 * @param on true if the system should include the date and Electric version in output files.
 	 */
 	public static void setIncludeDateAndVersionInOutput(boolean on) { tool.cacheIncludeDateAndVersionInOutput.setBoolean(on); }
+	/**
+	 * Returns project Setting to tell whether to include the date and Electric version in output files.
+	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 */
+	public static Setting getIncludeDateAndVersionInOutputSetting() { return tool.cacheIncludeDateAndVersionInOutput; }
 
     private Setting cacheDefaultTechnology;
     private Setting cacheSchematicTechnology;
@@ -1529,7 +1547,7 @@ public class User extends Listener
         // and update
         try
         {
-            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
             Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {

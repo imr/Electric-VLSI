@@ -101,8 +101,8 @@ public class ELIB extends Output
 		int primPortProtoIndex = 0;
 		int arcProtoIndex = 0;
 		int toolCount = 0;
-		int[] primNodeCounts = new int[Technology.getNumTechnologies()];
-		int[] primArcCounts = new int[Technology.getNumTechnologies()];
+		int[] primNodeCounts;
+		int[] primArcCounts;
         int[] groupRenumber;
 
 	ELIB()
@@ -274,8 +274,16 @@ public class ELIB extends Output
         }
         
         // count the number of technologies and primitives
+        ArrayList<Technology> technologies = new ArrayList<Technology>();
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
+            if (objInfo.containsKey(tech))
+                technologies.add(tech);
+        }
+        primNodeCounts = new int[technologies.size()];
+        primArcCounts = new int[technologies.size()];
+        for (techCount = 0; techCount < technologies.size(); techCount++) {
+            Technology tech = technologies.get(techCount);
             if (!objInfo.containsKey(tech)) continue;
             int primNodeStart = primNodeProtoIndex;
             for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); ) {
@@ -295,7 +303,6 @@ public class ELIB extends Output
                 putObjIndex(ap, -2 - arcProtoIndex++);
             }
             primArcCounts[techCount] = arcProtoIndex - primArcStart;
-            techCount++;
         }
         
         // count the number of tools

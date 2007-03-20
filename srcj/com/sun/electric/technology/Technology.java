@@ -44,20 +44,10 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.BiCMOS;
-import com.sun.electric.technology.technologies.Bipolar;
-import com.sun.electric.technology.technologies.CMOS;
-import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.FPGA;
-import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
-import com.sun.electric.technology.technologies.MoCMOSOld;
-import com.sun.electric.technology.technologies.MoCMOSSub;
-import com.sun.electric.technology.technologies.PCB;
-import com.sun.electric.technology.technologies.RCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
@@ -114,6 +104,7 @@ import javax.swing.SwingUtilities;
  */
 public class Technology implements Comparable<Technology>
 {
+    private static final boolean LAZY_TECHNOLOGIES = false;
     /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
@@ -580,6 +571,7 @@ public class Technology implements Comparable<Technology>
 
 	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
+	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyTechnologies = new TreeMap<String,String>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -613,13 +605,13 @@ public class Technology implements Comparable<Technology>
     /** Include gate in Resistance calculation */           private final Setting prefIncludeGate;
     /** Include ground network in parasitics calculation */ private final Setting prefIncludeGnd;
     /** Include ground network in parasitics calculation */ private final Setting prefMaxSeriesResistance;
-	/** Logical effort global fanout preference. */			private final Setting cacheGlobalFanout;
-	/** Logical effort convergence (epsilon) preference. */	private final Setting cacheConvergenceEpsilon;
-	/** Logical effort maximum iterations preference. */	private final Setting cacheMaxIterations;
+//	/** Logical effort global fanout preference. */			private final Setting cacheGlobalFanout;
+//	/** Logical effort convergence (epsilon) preference. */	private final Setting cacheConvergenceEpsilon;
+//	/** Logical effort maximum iterations preference. */	private final Setting cacheMaxIterations;
 	/** Logical effort gate capacitance preference. */		private Setting cacheGateCapacitance;
 	/** Logical effort wire ratio preference. */			private Setting cacheWireRatio;
 	/** Logical effort diff alpha preference. */			private Setting cacheDiffAlpha;
-	/** Logical effort keeper ratio preference. */			private final Setting cacheKeeperRatio;
+//	/** Logical effort keeper ratio preference. */			private final Setting cacheKeeperRatio;
 
 	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
 	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
@@ -662,21 +654,19 @@ public class Technology implements Comparable<Technology>
         prefGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
 		prefIncludeGate = makeParasiticSetting("Gate Inclusion", false);
 		prefIncludeGnd = makeParasiticSetting("Ground Net Inclusion", false);
-		cacheGlobalFanout = makeLESetting("GlobalFanout", DEFAULT_GLOBALFANOUT);
-		cacheConvergenceEpsilon = makeLESetting("ConvergenceEpsilon", DEFAULT_EPSILON);
-		cacheMaxIterations = makeLESetting("MaxIterations", DEFAULT_MAXITER);
+//		cacheGlobalFanout = makeLESetting("GlobalFanout", DEFAULT_GLOBALFANOUT);
+//		cacheConvergenceEpsilon = makeLESetting("ConvergenceEpsilon", DEFAULT_EPSILON);
+//		cacheMaxIterations = makeLESetting("MaxIterations", DEFAULT_MAXITER);
 //		cacheGateCapacitance = makeLESetting("GateCapacitance", DEFAULT_GATECAP);
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
-        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
+//        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
 
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
 	}
     
-	private static final String [] extraTechnologies = {"tsmc.CMOS90", "tsmc.TSMC180"};
-
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -690,41 +680,47 @@ public class Technology implements Comparable<Technology>
 
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Artwork.tech.setup();
-		BiCMOS.tech.setup();
-		Bipolar.tech.setup();
-		CMOS.tech.setup();
-		EFIDO.tech.setup();
+//		BiCMOS.tech.setup();
+//		Bipolar.tech.setup();
+//		CMOS.tech.setup();
+//		EFIDO.tech.setup();
 		FPGA.tech.setup();
-		GEM.tech.setup();
+//		GEM.tech.setup();
 		MoCMOS.tech.setup();
-		MoCMOSOld.tech.setup();
-		MoCMOSSub.tech.setup();
-		nMOS.tech.setup();
-		PCB.tech.setup();
-		RCMOS.tech.setup();
+//		MoCMOSOld.tech.setup();
+//		MoCMOSSub.tech.setup();
+//		nMOS.tech.setup();
+//		PCB.tech.setup();
+//		RCMOS.tech.setup();
 		Schematics.tech.setup();
 		Generic.tech.setup();
 
-		// initialize technologies that may not be present
-		for(int i=0; i<extraTechnologies.length; i++)
-		{
-			try
-			{
-				Class extraTechClass = Class.forName("com.sun.electric.plugins." + extraTechnologies[i]);
-				extraTechClass.getMethod("setItUp", (Class[])null).invoke(null, (Object[])null);
-			} catch (ClassNotFoundException e)
-            {
-                if (Job.getDebug())
-                 System.out.println("GNU Release can't find extra technologies");
-	 		} catch (Exception e)
-            {
-                System.out.println("Exceptions while importing extra technologies");
-                ActivityLogger.logException(e);
-            }
-		}
-
 		// finished batching preferences
 		Pref.resumePrefFlushing();
+
+		// setup the generic technology to handle all connections
+		Generic.tech.makeUnivList();
+        
+        lazyTechnologies.put("bicmos",    "com.sun.electric.technology.technologies.BiCMOS");
+        lazyTechnologies.put("bipolar",   "com.sun.electric.technology.technologies.Bipolar");
+        lazyTechnologies.put("cmos",      "com.sun.electric.technology.technologies.CMOS");
+        lazyTechnologies.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
+        lazyTechnologies.put("gem",       "com.sun.electric.technology.technologies.GEM");
+        lazyTechnologies.put("mocmosold", "com.sun.electric.technology.technologies.MoCMOSOld");
+        lazyTechnologies.put("mocmossub", "com.sun.electric.technology.technologies.MoCMOSSub");
+        lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
+        lazyTechnologies.put("pcb",       "com.sun.electric.technology.technologies.PCB");
+        lazyTechnologies.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
+        
+        lazyTechnologies.put("tsmc180",   "com.sun.electric.plugins.tsmc.TSMC180");
+        lazyTechnologies.put("cmos90",    "com.sun.electric.plugins.tsmc.CMOS90");
+        
+        if (!LAZY_TECHNOLOGIES) {
+            // initialize technologies that may not be present
+            for(String techClassName: lazyTechnologies.values()) {
+                setupTechnology(techClassName);
+            }
+        }
 
 		// set the current technology, given priority to user defined
         curLayoutTech = MoCMOS.tech;
@@ -732,10 +728,26 @@ public class Technology implements Comparable<Technology>
         if (tech == null) tech = MoCMOS.tech;
         tech.setCurrent();
 
-		// setup the generic technology to handle all connections
-		Generic.tech.makeUnivList();
-        finishAllTechnologies();
 	}
+    
+    private static void setupTechnology(String techClassName) {
+        Pref.delayPrefFlushing();
+        try {
+            Class<?> techClass = Class.forName(techClassName);
+            Technology tech = (Technology)techClass.getField("tech").get(null);
+            tech.setup();
+            Generic.tech.makeUnivList();
+        } catch (ClassNotFoundException e) {
+            if (Job.getDebug())
+                System.out.println("GNU Release can't find extra technologies");
+            
+        } catch (Exception e) {
+            System.out.println("Exceptions while importing extra technologies");
+            ActivityLogger.logException(e);
+        } finally {
+            Pref.resumePrefFlushing();
+        }
+    }
     
     private static Technology tsmc180 = null;
     private static boolean tsmc180Cached = false;
@@ -745,15 +757,9 @@ public class Technology implements Comparable<Technology>
 	 * @return the TSMC180 technology object (null if it does not exist).
 	 */
     public static Technology getTSMC180Technology() {
-    	if (tsmc180Cached) return tsmc180;
-    	tsmc180Cached = true;
-		try
-		{
-			Class tsmc180Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[1]);
-			java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("tech");
-			tsmc180 = (Technology) techField.get(null);
- 		} catch (Exception e)
-        {
+    	if (!tsmc180Cached) {
+            tsmc180Cached = true;
+            tsmc180 = findTechnology("tsmc180");
         }
  		return tsmc180;
     }
@@ -767,15 +773,9 @@ public class Technology implements Comparable<Technology>
 	 */
     public static Technology getCMOS90Technology()
     {
-    	if (cmos90Cached) return cmos90;
-    	cmos90Cached = true;
-		try
-		{
-			Class cmos90Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[0]);
-			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("tech");
-			cmos90 = (Technology) techField.get(null);
- 		} catch (Exception e)
-        {
+    	if (!cmos90Cached) {
+            cmos90Cached = true;
+            cmos90 = findTechnology("cmos90");
         }
  		return cmos90;
     }
@@ -808,7 +808,23 @@ public class Technology implements Comparable<Technology>
 					break;
 				}
 			}
-		}
+        }
+        
+        if (prefMinResistance == null || prefMinCapacitance == null) {
+            setFactoryParasitics(10, 0);
+        }
+        if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
+            setFactoryLESettings(DEFAULT_GATECAP, DEFAULT_WIRERATIO, DEFAULT_DIFFALPHA);
+        }
+        layersAllocationLocked = true;
+        for (Foundry foundry: foundries) {
+            foundry.finish();
+        }
+        for (Layer layer: layers) {
+            layer.finish();
+        }
+        
+        check();
 	}
 
 	/**
@@ -889,14 +905,14 @@ public class Technology implements Comparable<Technology>
 			curLayoutTech = this;
 	}
 
-	/**
-	 * Returns the total number of Technologies currently in Electric.
-	 * @return the total number of Technologies currently in Electric.
-	 */
-	public static int getNumTechnologies()
-	{
-		return technologies.size();
-	}
+//	/**
+//	 * Returns the total number of Technologies currently in Electric.
+//	 * @return the total number of Technologies currently in Electric.
+//	 */
+//	public static int getNumTechnologies()
+//	{
+//		return technologies.size();
+//	}
 
 	/**
 	 * Find the Technology with a particular name.
@@ -2730,7 +2746,6 @@ public class Technology implements Comparable<Technology>
 	{
 		return prefMinResistance.getDouble();
 	}
-
 	/**
 	 * Sets the minimum resistance of this Technology.
 	 * @param minResistance the minimum resistance of this Technology.
@@ -2739,6 +2754,11 @@ public class Technology implements Comparable<Technology>
 	{
 		prefMinResistance.setDouble(minResistance);
 	}
+	/**
+	 * Returns project Setting to tell the minimum resistance of this Technology.
+	 * @return project Setting to tell the minimum resistance of this Technology.
+	 */
+	public Setting getMinResistanceSetting() { return prefMinResistance; }
 
 	/**
 	 * Returns the minimum capacitance of this Technology.
@@ -2750,7 +2770,6 @@ public class Technology implements Comparable<Technology>
         // 0.0 is the default value
 		return prefMinCapacitance.getDouble();
 	}
-
 	/**
 	 * Sets the minimum capacitance of this Technology.
 	 * @param minCapacitance the minimum capacitance of this Technology.
@@ -2759,6 +2778,12 @@ public class Technology implements Comparable<Technology>
 	{
 		prefMinCapacitance.setDouble(minCapacitance);
 	}
+	/**
+	 * Returns project Setting to tell the minimum capacitance of this Technology.
+	 * @return project Setting to tell the minimum capacitance of this Technology.
+	 */
+	public Setting getMinCapacitanceSetting() { return prefMinCapacitance; }
+
 
     /**
      * Get the maximum series resistance for layout extraction
@@ -2769,7 +2794,6 @@ public class Technology implements Comparable<Technology>
     {
         return prefMaxSeriesResistance.getDouble();
     }
-
     /**
      * Set the maximum series resistance for layout extraction
      *  for this Technology.
@@ -2778,6 +2802,14 @@ public class Technology implements Comparable<Technology>
     {
         prefMaxSeriesResistance.setDouble(maxSeriesResistance);
     }
+    /**
+     * Returns project Setting to tell the maximum series resistance for layout extraction
+     *  for this Technology.
+     * @return project Setting to tell the maximum series resistance for layout extraction
+     *  for this Technology.
+     */
+    public Setting getMaxSeriesResistanceSetting() { return prefMaxSeriesResistance; }
+
 
 	/**
 	 * Returns true if gate is included in resistance calculation. False is the default.
@@ -2788,7 +2820,6 @@ public class Technology implements Comparable<Technology>
         // False is the default
 		return prefIncludeGate.getBoolean();
 	}
-
     /**
      * Sets tstate for gate inclusion. False is the default.
      * @param set state for gate inclusion
@@ -2797,6 +2828,12 @@ public class Technology implements Comparable<Technology>
     {
         prefIncludeGate.setBoolean(set);
     }
+    /**
+     * Returns project Setting to tell gate inclusion.
+     * @return project Setting to tell gate inclusion
+     */
+    public Setting getGateIncludedSetting() { return prefIncludeGate; }
+
 
 	/**
 	 * Sets state for ground network inclusion. False is the default.
@@ -2806,7 +2843,6 @@ public class Technology implements Comparable<Technology>
 	{
 		prefIncludeGnd.setBoolean(set);
 	}
-
     /**
      * Returns true if ground network is included in parasitics calculation. False is the default.
      * @return true if ground network is included.
@@ -2816,6 +2852,12 @@ public class Technology implements Comparable<Technology>
         // False is the default
         return prefIncludeGnd.getBoolean();
     }
+	/**
+	 * Returns project Setting to tell ground network inclusion.
+	 * @return project Setting to tell ground network inclusion
+	 */
+	public Setting getGroundNetIncludedSetting() { return prefIncludeGnd; }
+
 
     /**
      * Gets the gate length subtraction for this Technology (in microns).
@@ -2827,7 +2869,6 @@ public class Technology implements Comparable<Technology>
     {
         return prefGateLengthSubtraction.getDouble();
     }
-
     /**
      * Sets the gate length subtraction for this Technology (in microns)
      * This is used because there is sometimes a subtracted offset from the layout
@@ -2838,6 +2879,14 @@ public class Technology implements Comparable<Technology>
     {
         prefGateLengthSubtraction.setDouble(value);
     }
+    /**
+     * Returns project Setting to tell the gate length subtraction for this Technology (in microns)
+     * This is used because there is sometimes a subtracted offset from the layout
+     * to the drawn length.
+     * @return project Setting to tell the subtraction value for a gate length in microns
+     */
+    public Setting getGateLengthSubtractionSetting() { return prefGateLengthSubtraction; }
+
 
 	/**
 	 * Method to set default parasitic values on this Technology.
@@ -2880,77 +2929,77 @@ public class Technology implements Comparable<Technology>
     }
 
     // ************************ tech specific?  - start *****************************
-    /**
-	 * Method to get the Global Fanout for Logical Effort.
-	 * The default is DEFAULT_GLOBALFANOUT.
-	 * @return the Global Fanout for Logical Effort.
-	 */
-	public double getGlobalFanout()
-	{
-		return cacheGlobalFanout.getDouble();
-	}
-	/**
-	 * Method to set the Global Fanout for Logical Effort.
-	 * @param fo the Global Fanout for Logical Effort.
-	 */
-	public void setGlobalFanout(double fo)
-	{
-		cacheGlobalFanout.setDouble(fo);
-	}
-
-	/**
-	 * Method to get the Convergence Epsilon value for Logical Effort.
-	 * The default is DEFAULT_EPSILON.
-	 * @return the Convergence Epsilon value for Logical Effort.
-	 */
-	public double getConvergenceEpsilon()
-	{
-		return cacheConvergenceEpsilon.getDouble();
-	}
-	/**
-	 * Method to set the Convergence Epsilon value for Logical Effort.
-	 * @param ep the Convergence Epsilon value for Logical Effort.
-	 */
-	public void setConvergenceEpsilon(double ep)
-	{
-		cacheConvergenceEpsilon.setDouble(ep);
-	}
-
-	/**
-	 * Method to get the maximum number of iterations for Logical Effort.
-	 * The default is DEFAULT_MAXITER.
-	 * @return the maximum number of iterations for Logical Effort.
-	 */
-	public int getMaxIterations()
-	{
-		return cacheMaxIterations.getInt();
-	}
-	/**
-	 * Method to set the maximum number of iterations for Logical Effort.
-	 * @param it the maximum number of iterations for Logical Effort.
-	 */
-	public void setMaxIterations(int it)
-	{
-		cacheMaxIterations.setInt(it);
-	}
-
-    /**
-     * Method to get the keeper size ratio for Logical Effort.
-     * The default is DEFAULT_KEEPERRATIO.
-     * @return the keeper size ratio for Logical Effort.
-     */
-    public double getKeeperRatio()
-    {
-        return cacheKeeperRatio.getDouble();
-    }
-    /**
-     * Method to set the keeper size ratio for Logical Effort.
-     * @param kr the keeper size ratio for Logical Effort.
-     */
-    public void setKeeperRatio(double kr)
-    {
-        cacheKeeperRatio.setDouble(kr);
-    }
+//    /**
+//	 * Method to get the Global Fanout for Logical Effort.
+//	 * The default is DEFAULT_GLOBALFANOUT.
+//	 * @return the Global Fanout for Logical Effort.
+//	 */
+//	public double getGlobalFanout()
+//	{
+//		return cacheGlobalFanout.getDouble();
+//	}
+//	/**
+//	 * Method to set the Global Fanout for Logical Effort.
+//	 * @param fo the Global Fanout for Logical Effort.
+//	 */
+//	public void setGlobalFanout(double fo)
+//	{
+//		cacheGlobalFanout.setDouble(fo);
+//	}
+//
+//	/**
+//	 * Method to get the Convergence Epsilon value for Logical Effort.
+//	 * The default is DEFAULT_EPSILON.
+//	 * @return the Convergence Epsilon value for Logical Effort.
+//	 */
+//	public double getConvergenceEpsilon()
+//	{
+//		return cacheConvergenceEpsilon.getDouble();
+//	}
+//	/**
+//	 * Method to set the Convergence Epsilon value for Logical Effort.
+//	 * @param ep the Convergence Epsilon value for Logical Effort.
+//	 */
+//	public void setConvergenceEpsilon(double ep)
+//	{
+//		cacheConvergenceEpsilon.setDouble(ep);
+//	}
+//
+//	/**
+//	 * Method to get the maximum number of iterations for Logical Effort.
+//	 * The default is DEFAULT_MAXITER.
+//	 * @return the maximum number of iterations for Logical Effort.
+//	 */
+//	public int getMaxIterations()
+//	{
+//		return cacheMaxIterations.getInt();
+//	}
+//	/**
+//	 * Method to set the maximum number of iterations for Logical Effort.
+//	 * @param it the maximum number of iterations for Logical Effort.
+//	 */
+//	public void setMaxIterations(int it)
+//	{
+//		cacheMaxIterations.setInt(it);
+//	}
+//
+//    /**
+//     * Method to get the keeper size ratio for Logical Effort.
+//     * The default is DEFAULT_KEEPERRATIO.
+//     * @return the keeper size ratio for Logical Effort.
+//     */
+//    public double getKeeperRatio()
+//    {
+//        return cacheKeeperRatio.getDouble();
+//    }
+//    /**
+//     * Method to set the keeper size ratio for Logical Effort.
+//     * @param kr the keeper size ratio for Logical Effort.
+//     */
+//    public void setKeeperRatio(double kr)
+//    {
+//        cacheKeeperRatio.setDouble(kr);
+//    }
 
     // ************************ tech specific?  - end *****************************
 
@@ -2977,6 +3026,11 @@ public class Technology implements Comparable<Technology>
 	{
 		cacheGateCapacitance.setDouble(gc);
 	}
+	/**
+	 * Returns project Setting to tell the Gate Capacitance for Logical Effort.
+	 * @eturn project Setting to tell the Gate Capacitance for Logical Effort.
+	 */
+	public Setting getGateCapacitanceSetting() { return cacheGateCapacitance; }
 
 	/**
 	 * Method to get the wire capacitance ratio for Logical Effort.
@@ -2995,6 +3049,11 @@ public class Technology implements Comparable<Technology>
 	{
 		cacheWireRatio.setDouble(wr);
 	}
+	/**
+	 * Returns project Setting to tell the wire capacitance ratio for Logical Effort.
+	 * @return project Setting to tell the wire capacitance ratio for Logical Effort.
+	 */
+	public Setting getWireRatioSetting() { return cacheWireRatio; }
 
 	/**
 	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
@@ -3013,6 +3072,11 @@ public class Technology implements Comparable<Technology>
 	{
 		cacheDiffAlpha.setDouble(da);
 	}
+	/**
+	 * Returns project Setting to tell the diffusion to gate capacitance ratio for Logical Effort.
+	 * @return project Setting to tell the diffusion to gate capacitance ratio for Logical Effort.
+	 */
+	public Setting getDiffAlphaSetting() { return cacheDiffAlpha; }
 
     // ================================================================
 
@@ -3241,6 +3305,14 @@ public class Technology implements Comparable<Technology>
 	}
 
 	/**
+	 * Returns project Setting to tell the scale of this technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values (in nanometers).
+	 * @return project Setting to tell the scale between this technology and the real units.
+	 */
+	public Setting getScaleSetting() { return prefScale; }
+
+	/**
 	 * Method to tell whether scaling is relevant for this Technology.
 	 * Most technolgies produce drawings that are exact images of a final product.
 	 * For these technologies (CMOS, bipolar, etc.) the "scale" from displayed grid
@@ -3301,6 +3373,12 @@ public class Technology implements Comparable<Technology>
     {
         prefFoundry.setString(t);
     }
+
+	/**
+	 * Returns project Setting to tell foundry for DRC rules.
+	 * @eturn project Setting to tell the foundry for DRC rules.
+	 */
+	public Setting setPrefFoundrySetting() { return prefFoundry; }
 
 //    /**
 //     * Method to set the foundry for DRC rules and call the side effects
@@ -3384,7 +3462,7 @@ public class Technology implements Comparable<Technology>
      */
     public Map<Layer,String> getGDSLayers() {
         Foundry foundry = getSelectedFoundry();
-        Map<Layer,String> gdsLayers = Collections.EMPTY_MAP;
+        Map<Layer,String> gdsLayers = Collections.emptyMap();
         if (foundry != null) gdsLayers = foundry.getGDSLayers();
         return gdsLayers;
     }
@@ -3850,35 +3928,6 @@ public class Technology implements Comparable<Technology>
 	{
 		return "Technology " + techName;
 	}
-
-    private static void finishAllTechnologies() {
-        for (Technology tech: technologies.values()) {
-            tech.finish();
-            tech.check();
-        }
-    }
-    
-     /**
-     * Method to finish initialization of this Technology.
-     */
-    private void finish() {
-        if (prefMinResistance == null || prefMinCapacitance == null) {
-            setFactoryParasitics(10, 0);
-        }
-        if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
-            setFactoryLESettings(DEFAULT_GATECAP, DEFAULT_WIRERATIO, DEFAULT_DIFFALPHA);
-        }
-        layersAllocationLocked = true;
-        for (Foundry foundry: foundries) {
-            foundry.finish();
-        }
-        for (Layer layer: layers) {
-            layer.finish();
-        }
-        for (ArcProto ap: arcs.values()) {
-            ap.check();
-        }
-    }
 
    /**
      * Method to check invariants in this Technology.

@@ -145,7 +145,7 @@ public class Foundry {
      */
     public Map<Layer,String> getGDSLayers()
     {
-        HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
+        LinkedHashMap<Layer,String> gdsLayers = new LinkedHashMap<Layer,String>();
         assert gdsLayerSettings.length == tech.getNumLayers();
         for (int layerIndex = 0; layerIndex < gdsLayerSettings.length; layerIndex++) {
             String gdsLayer = gdsLayerSettings[layerIndex].getString();
@@ -156,29 +156,16 @@ public class Foundry {
     }
 
     /**
-     * Method to return the GDS name of this layer.
-     * @return the GDS name of this layer.
+     * Method to return the map from Layers of Foundry's technology to project settings
+     * which define their GDS names in this foundry.
+     * @return the map from Layers to project Setting with their GDS names
      */
-    public String getGDSLayer(Layer layer)
-    {
-        assert layer.getTechnology() == tech;
-        return gdsLayerSettings[layer.getIndex()].getString();
+    public Setting getGDSLayerSetting(Layer layer) {
+        if (layer.getTechnology() != tech)
+            throw new IllegalArgumentException();
+        return gdsLayerSettings[layer.getIndex()];
     }
-
-    /**
-     * Method to set the GDS names of Layers in this Foundry.
-     * @param gdsLayers map from Layer to the GDS name.
-     */
-    public void setGDSLayers(Map<Layer,String> gdsLayers)
-    {
-        for (Map.Entry<Layer,String> e: gdsLayers.entrySet()) {
-            Layer layer = e.getKey();
-            String gdsLayer = e.getValue();
-            assert layer.getTechnology() == tech;
-            gdsLayerSettings[layer.getIndex()].setString(gdsLayer);
-        }
-    }
-
+    
     /**
      * Method to set the factory-default GDS names of Layers in this Foundry.
      * @param tech Technology of this Foundry.

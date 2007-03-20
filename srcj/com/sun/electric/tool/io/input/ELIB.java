@@ -106,7 +106,7 @@ public class ELIB extends LibraryFiles
 	/** the number of technologies in the file */							private int techCount;
 	/** list of all Technologies in the library */							private Technology [] techList;
 	/** list of all technology-related errors in the library */				private String [] techError;
-	/** scale factors for each technology in the library */					private double [] techScale;
+	/** scale factors for each technology in the library */					private HashMap<Technology,Double> techScale = new HashMap<Technology,Double>();
 	/** the number of ArcProtos in the file */								private int arcProtoCount;
 	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
 	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
@@ -326,7 +326,6 @@ public class ELIB extends LibraryFiles
 		// allocate pointers for the Technologies
 		techList = new Technology[techCount];
 		techError = new String[techCount];
-		techScale = new double[Technology.getNumTechnologies()];
 		arcProtoList = new ArcProto[arcProtoCount];
 		arcProtoError = new String[arcProtoCount];
 		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
@@ -486,9 +485,8 @@ public class ELIB extends LibraryFiles
 			}
 			if (tech == null)
 			{
-				// cannot figure it out: just pick the first technology
-				Iterator<Technology> it = Technology.getTechnologies();
-				tech = it.next();
+				// cannot figure it out: just pick the generic technology
+				tech = Generic.tech;
 				techError[techIndex] = name;
 			} else techError[techIndex] = null;
 			techList[techIndex] = tech;
@@ -684,19 +682,13 @@ public class ELIB extends LibraryFiles
 			if (scaleLambdaBy20) lambda *= 20;
 
 			int index = tech.getIndex();
-			techScale[index] = lambda;
+            techScale.put(tech, Double.valueOf(lambda));
 			if (topLevelLibrary)
 			{
 				String varName = tech.getScaleVariableName();
                 Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
                 realizeMeaningPrefs(tech, new Variable[] { var });
 			}
-		}
-		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (techScale[tech.getIndex()] > 0.0) continue;
-			techScale[tech.getIndex()] = tech.getScale();
 		}
 
 		// read the global namespace
@@ -1157,7 +1149,7 @@ public class ELIB extends LibraryFiles
 
 	protected double computeLambda(Cell cell, int cellIndex)
 	{
-		double lambda = 1.0;
+//		double lambda = 1.0;
 // 		int startNode = firstNodeIndex[cellIndex];
 // 		int endNode = firstNodeIndex[cellIndex+1];
 // 		int startArc = firstArcIndex[cellIndex];
@@ -1165,9 +1157,13 @@ public class ELIB extends LibraryFiles
 // 		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
 // 		cell.setTechnology(cellTech);
 		Technology cellTech = cell.getTechnology();
-		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
-		return lambda;
+		return cellTech != null ? getScale(cellTech) : 1.0;
 	}
+    
+    private double getScale(Technology tech) {
+        Double scale = techScale.get(tech);
+        return scale != null ? scale : tech.getScale();
+    }
 
 	protected boolean canScale() { return true; }
 
@@ -1923,7 +1919,7 @@ public class ELIB extends LibraryFiles
             Technology tech = MoCMOS.tech;
             if (c.isIcon()) tech = Artwork.tech; else
                 if (c.isSchematic()) tech = Schematics.tech;
-            double lambda = techScale[tech.getIndex()];
+            double lambda = getScale(tech);
             int cX = (lowX + highX) / 2;
             int cY = (lowY + highY) / 2;
             double width = (highX - lowX) / lambda;
