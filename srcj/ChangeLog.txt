@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/21/07, SMR, from Bob Reese) Improved DEF import.
+
 IMP: (3/17/07, DN) "importPrefs" command doesn't change project settings.
 
 BUG: (3/17/07, DN) GDS layers settings are not initialized to factory values.

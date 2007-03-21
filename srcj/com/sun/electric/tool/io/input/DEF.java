@@ -30,32 +30,34 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.RTBounds;
-import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.input.LEFDEF.GetLayerInformation;
-import com.sun.electric.tool.io.input.LEFDEF.ViaDef;
-import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class reads files in DEF files.
@@ -63,14 +65,33 @@ import java.util.Enumeration;
  * Note that this reader was built by examining DEF files and reverse-engineering them.
  * It does not claim to be compliant with the DEF specification, but it also does not
  * claim to define a new specification.  It is merely incomplete.
+ *
+ * R. Reese (RBR) - modified Spring 2007 to be able to import a DEF file to a currently
+ * opened View. The intended use is for the Views to either be layout or schematic.
+ * If the view is layout, then all geometry is input and unrouted net connections
+ * are used to maintain connectivity between logical nets and physical geometries.
+ * At some point in the future, these unrouted nets need to be cleaned up, but for
+ * now, the use of unrouted nets allows the layout to pass DRC and to be simulated.
+ * Can also import to a schematic view - this creates a hodgepodge of icons in the
+ * schematic view but net connections are correct so NCC can be used to check
+ * layout vs schematic. This is useful in a hierarchical design where part of the
+ * design is imported DEF (say, a standard cell layout), and the rest of the design
+ * is manual layout. Having a schematic view for the imported DEF allows NCC to
+ * complain less when checking the design.
  */
 public class DEF extends LEFDEF
 {
 	private double  scaleUnits;
 	private ViaDef  firstViaDef;
-	private Hashtable specialNetsHT = null;
-	private Hashtable normalNetsHT = null;
-	
+	private Hashtable<String,PortInst> specialNetsHT = null;
+	private Hashtable<String,PortInst> normalNetsHT = null;
+	private Hashtable<Double,List<NodeInst>> PortHT = null;
+	private boolean schImport = false;
+
+	private Pattern pat_starleftbracket = Pattern.compile(".*\\\\"+ "\\[");
+	private Pattern pat_leftbracket = Pattern.compile("\\\\"+ "\\[");
+	private Pattern pat_starrightbracket = Pattern.compile(".*\\\\"+ "\\]");
+	private Pattern pat_rightbracket = Pattern.compile("\\\\"+ "\\]");
 
 	/**
 	 * Method to import a library from disk.
@@ -116,7 +137,7 @@ public class DEF extends LEFDEF
 	}
 
 	private double convertDEFString(String key)
-	{		
+	{
 		double v = TextUtils.atof(key) / scaleUnits;
 		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
 	}
@@ -156,16 +177,36 @@ public class DEF extends LEFDEF
 			{
 				String cellName = mustGetKeyword("DESIGN");
 				if (cellName == null) return true;
+
 				/* RBR - first, see if Cell name is equal to current cells
 				 * it exists then read into cell
 				 */
 				cell = lib.getCurCell();
-				if (cell == null || !cell.getCellName().getName().equals(cellName))
+				if (Input.isNewLibraryCreated()== false)
 				{
-					//does not equal current cell, so lets 
+					// reading into current cell, current library
+					if (cell == null)
+					{
+						reportError("A cell must be currently opened for this operation, aborting.");
+						return true;
+					}
+					if (!cell.getCellName().getName().equals(cellName))
+					{
+						reportError("Cell name in DEF file '" + cellName + "' does not equal current cell name '" + cell.getCellName().getName() + "', aborting.");
+						return true;
+					}
+					View cellView = cell.getCellName().getView();
+					if (cellView.getAbbreviation().equals("sch"))
+					{
+						schImport = true; // special flag when importing into schematic view
+					}
+				}
+				else if (cell == null || !cell.getCellName().getName().equals(cellName))
+				{
+					// does not equal current cell, so lets
 					cell = Cell.makeInstance(lib, cellName);
-				}				
-				
+				}
+
 				if (cell == null)
 				{
 					reportError("Cannot create cell '" + cellName + "'");
@@ -276,15 +317,21 @@ public class DEF extends LEFDEF
 		}
 		return new Point2D.Double(x, y);
 	}
-	
-	/* Find nodeProto with same view as the parent cell
-	 * 
+
+	/**
+	 * Find nodeProto with same view as the parent cell
 	 */
 	private Cell getNodeProto(String name, Library curlib, Cell parent)
 	{
 		// first see if this cell is in the current library
 		CellName cn;
-		cn = CellName.newName(name,parent.getView(),0);
+		if (schImport)
+		{
+			cn = CellName.newName(name,View.ICON,0);
+		} else
+		{
+			cn = CellName.newName(name,parent.getView(),0);
+		}
 		Cell cell = curlib.findNodeProto(cn.toString());
 		if (cell != null) return cell;
 
@@ -331,46 +378,41 @@ public class DEF extends LEFDEF
 		}
 		return null;
 	}
-	
+
 	//RBR - temp method until I figure out
 	//why in Java 6.0 my use of GetOrientation
 	//generates a compile error
-   private Orientation FetchOrientation()
-   throws IOException
-   {
-	     	String key = mustGetKeyword("orientation");
-			if (key == null) return null;
-           int angle;
-			boolean transpose = false;
-			if (key.equalsIgnoreCase("N")) { angle = 0; } else
-			if (key.equalsIgnoreCase("S")) { angle = 1800; } else
-			if (key.equalsIgnoreCase("E")) { angle = 2700; } else
-			if (key.equalsIgnoreCase("W")) { angle = 900; } else
-			if (key.equalsIgnoreCase("FN")) { angle = 900;  transpose = true; } else
-			if (key.equalsIgnoreCase("FS")) { angle = 2700; transpose = true; } else
-			if (key.equalsIgnoreCase("FE")) { angle = 1800; transpose = true; } else
-			if (key.equalsIgnoreCase("FW")) { angle = 0;    transpose = true; } else
-			{
-				reportError("Unknown orientation (" + key + ")");
-				return null;
-			}
-   		 return( Orientation.fromC(angle, transpose));
-	   }
-	   	   
-	  
+	private Orientation FetchOrientation() throws IOException
+	{
+		String key = mustGetKeyword("orientation");
+		if (key == null) return null;
+		int angle;
+		boolean transpose = false;
+		if (key.equalsIgnoreCase("N"))  { angle = 0;    } else
+		if (key.equalsIgnoreCase("S"))  { angle = 1800; } else
+		if (key.equalsIgnoreCase("E"))  { angle = 2700; } else
+		if (key.equalsIgnoreCase("W"))  { angle = 900;  } else
+		if (key.equalsIgnoreCase("FN")) { angle = 900;   transpose = true; } else
+		if (key.equalsIgnoreCase("FS")) { angle = 2700;  transpose = true; } else
+		if (key.equalsIgnoreCase("FE")) { angle = 1800;  transpose = true; } else
+		if (key.equalsIgnoreCase("FW")) { angle = 0;     transpose = true; } else
+		{
+			reportError("Unknown orientation (" + key + ")");
+			return null;
+		}
+		return (Orientation.fromC(angle, transpose));
+	}
 
 	private class GetOrientation
 	{
-//		private int angle;
-//		private boolean mX, mY;
-        private Orientation orient;
+		private Orientation orient;
 
 		private GetOrientation()
 			throws IOException
 		{
 			String key = mustGetKeyword("orientation");
 			if (key == null) return;
-            int angle;
+			int angle;
 			boolean transpose = false;
 			if (key.equalsIgnoreCase("N")) { angle = 0; } else
 			if (key.equalsIgnoreCase("S")) { angle = 1800; } else
@@ -384,10 +426,7 @@ public class DEF extends LEFDEF
 				reportError("Unknown orientation (" + key + ")");
 				return;
 			}
-    		orient = Orientation.fromC(angle, transpose);
-//			angle = or.getAngle();
-//			mX = or.isXMirrored();
-//			mY = or.isYMirrored();
+			orient = Orientation.fromC(angle, transpose);
 		}
 	}
 
@@ -396,22 +435,47 @@ public class DEF extends LEFDEF
 	 * at (x, y).  The connection can not be on "not" (if it is not null).
 	 * If found, return the PortInst.
 	 */
+	/*
+	 * This function became too slow as the number of nets in cell increased.
+	 * Replaced by function below. RBR Mar 2007
+	 */
+//	private PortInst findConnection(double x, double y, ArcProto ap, Cell cell, NodeInst noti)
+//	{
+//		Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
+//		Point2D pt = new Point2D.Double(x, y);
+//		for(Iterator<RTBounds> sea = cell.searchIterator(bound); sea.hasNext(); )
+//		{
+//			RTBounds geom = sea.next();
+//			if (!(geom instanceof NodeInst)) continue;
+//			NodeInst ni = (NodeInst)geom;
+//			if (ni == noti) continue;
+//			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
+//			{
+//				PortInst pi = (PortInst)it.next();
+//				if (!pi.getPortProto().connectsTo(ap)) continue;
+//				Poly poly = pi.getPoly();
+//				if (poly.isInside(pt)) return pi;
+//			}
+//		}
+//		return null;
+//	}
 	private PortInst findConnection(double x, double y, ArcProto ap, Cell cell, NodeInst noti)
 	{
-		Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
-		Point2D pt = new Point2D.Double(x, y);
-		for(Iterator<RTBounds> sea = cell.searchIterator(bound); sea.hasNext(); )
-		{
-			RTBounds geom = sea.next();
-			if (!(geom instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)geom;
-			if (ni == noti) continue;
-			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
+		if (PortHT.containsKey(x+y)) {
+			List<NodeInst> pl = PortHT.get(x+y);
+			Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
+			Point2D pt = new Point2D.Double(x, y);
+			for (int i=0; i < pl.size(); i++)
 			{
-				PortInst pi = (PortInst)it.next();
-				if (!pi.getPortProto().connectsTo(ap)) continue;
-				Poly poly = pi.getPoly();
-				if (poly.isInside(pt)) return pi;
+				NodeInst ni = pl.get(i);
+				if (ni == noti) continue;
+				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
+				{
+					PortInst pi = (PortInst)it.next();
+					if (!pi.getPortProto().connectsTo(ap)) continue;
+					Poly poly = pi.getPoly();
+					if (poly.isInside(pt)) return pi;
+				}
 			}
 		}
 		return null;
@@ -433,11 +497,23 @@ public class DEF extends LEFDEF
 		double sX = pin.getDefWidth();
 		double sY = pin.getDefHeight();
 		NodeInst ni = NodeInst.makeInstance(pin, new Point2D.Double(x, y), sX, sY, cell);
+
 		if (ni == null)
 		{
 			reportError("Unable to create net pin");
 			return null;
 		}
+		List<NodeInst> pl;
+		if (PortHT.containsKey(x+y))
+		{
+			pl = PortHT.get(x+y);
+		} else
+		{
+			pl = new ArrayList<NodeInst>();
+			PortHT.put(x+y, pl);
+		}
+		pl.add(ni);
+
 		return ni.getOnlyPortInst();
 	}
 
@@ -470,13 +546,33 @@ public class DEF extends LEFDEF
 		return false;
 	}
 
+	private String translateDefName (String name)
+	{
+		Matcher m_starleftbracket = pat_starleftbracket.matcher(name);
+		Matcher m_starrightbracket = pat_starrightbracket.matcher(name);
+
+		if ( m_starleftbracket.matches() || m_starrightbracket.matches())
+		{
+			String tmpa, tmpb;
+			Matcher m_leftbracket = pat_leftbracket.matcher(name);
+
+			tmpa = m_leftbracket.replaceAll("[");
+			Matcher m_rightbracket = pat_rightbracket.matcher(tmpa);
+			tmpb = m_rightbracket.replaceAll("]");
+			return(tmpb);
+		} else
+		{
+			return name;
+		}
+	}
+
 	private boolean readPin(Cell cell)
 		throws IOException
 	{
 		// get the pin name
 		String key = mustGetKeyword("PIN");
 		if (key == null) return true;
-		String pinName = key;
+		String pinName = translateDefName(key);
 		PortCharacteristic portCharacteristic = null;
 		NodeProto np = null;
 		Point2D ll = null, ur = null, xy = null;
@@ -532,13 +628,16 @@ public class DEF extends LEFDEF
 				{
 					key = mustGetKeyword("LAYER");
 					if (key == null) return true;
-					GetLayerInformation li = new GetLayerInformation(key);
-					if (li.pin == null)
+					if (!schImport)
 					{
-						reportError("Unknown layer (" + key + ")");
-						return true;
+						GetLayerInformation li = new GetLayerInformation(key);
+						if (li.pin == null)
+						{
+							reportError("Unknown layer (" + key + ")");
+							return true;
+						}
+						np = li.pin;
 					}
-					np = li.pin;
 					ll = readCoordinate();
 					if (ll == null) return true;
 					ur = readCoordinate();
@@ -560,13 +659,36 @@ public class DEF extends LEFDEF
 			if (key.equals(";"))
 				break;
 		}
+		if (schImport)
+		{
+			ArcProto apTry = null;
+			for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
+			{
+				apTry = (ArcProto)it.next();
+				if (apTry.getName().equals("wire")) break;
+			}
+			if (apTry == null)
+			{
+				reportError("Unable to resolve pin component");
+				return true;
+			}
+			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode loc_np = (PrimitiveNode)it.next();
+				// must have just one port
+				if (loc_np.getNumPorts() != 1) continue;
+
+				// port must connect to both arcs
+				PortProto pp = loc_np.getPort(0);
+				if (pp.connectsTo(apTry)) { np = loc_np;   break; }
+			}
+		}
 
 		// all factors read, now place the pin
 		if (np != null && haveCoord)
 		{
 			// determine the pin size
 			AffineTransform trans = orient.orient.pureRotate();
-//			AffineTransform trans = NodeInst.pureRotate(orient.angle, orient.mX, orient.mY);
 			trans.transform(ll, ll);
 			trans.transform(ur, ur);
 			double sX = Math.abs(ll.getX() - ur.getX());
@@ -621,10 +743,11 @@ public class DEF extends LEFDEF
 		}
 		return false;
 	}
+
 	private static Variable.Key prXkey = Variable.newKey("ATTR_prWidth");
 	private static Variable.Key prYkey = Variable.newKey("ATTR_prHeight");
-	
-    /* cell is the parent cell */
+
+	/* cell is the parent cell */
 	private boolean readComponent(Cell cell)
 		throws IOException
 	{
@@ -638,13 +761,15 @@ public class DEF extends LEFDEF
 
 		// find the named cell
 		Cell np;
-		if (cell.getView() != null) {
-			np = getNodeProto(modelName, cell.getLibrary(), cell);			
-		}else {
+		if (cell.getView() != null)
+		{
+			np = getNodeProto(modelName, cell.getLibrary(), cell);
+		} else
+		{
 			/* cell does not have a view yet, have no idea
 			 * what view we need, so just get the first one
-			 */			
-		  np = getNodeProto(modelName, cell.getLibrary());
+			 */
+			np = getNodeProto(modelName, cell.getLibrary());
 		}
 		if (np == null)
 		{
@@ -665,54 +790,59 @@ public class DEF extends LEFDEF
 				{
 					// handle placement
 					Point2D pt = readCoordinate();
+					if (pt == null) return true;
 					double nx = pt.getX();
 					double ny = pt.getY();
-					
-					if (pt == null) return true;
 					Orientation or = FetchOrientation();
-					//GetOrientation or = new GetOrientation();
 
 					// place the node
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
-					
+
 					Variable prX = np.getVar(prXkey);
 					double width=0;
-					if (prX != null){
-						Integer tmp = (Integer)prX.getObject();
+					if (prX != null)
+					{
+						String tmps = prX.getPureValue(0);
+						int tmp = Integer.parseInt(tmps);
 						width = (double)tmp;
-					}else {
+					} else
+					{
 						width = sX;  //no PR boundary, use cell boundary
 					}
 					Variable prY = np.getVar(prYkey);
 					double height=0;
-					if (prY != null){
-						Integer tmp = (Integer)prY.getObject();
+					if (prY != null)
+					{
+						String tmps = prY.getPureValue(0);
+						int tmp = Integer.parseInt(tmps);
 						height = (double)tmp;
-					}else {
+					} else
+					{
 						height = sY; //no PR boundary, use cell boundary
 					}
-					/*DEF orientations require translations from Java orientations
+
+					/* DEF orientations require translations from Java orientations
 					 * Need to add W, E, FW, FE support
 					 */
-				
-					if (or.equals(Orientation.YRR)) { // FN DEF orientation
-						nx = nx + width;						
+					if (or.equals(Orientation.YRR))
+					{
+						// FN DEF orientation
+						nx = nx + width;
 					}
-					if (or.equals(Orientation.Y)){ // FS DEF orientation
+					if (or.equals(Orientation.Y))
+					{
+						// FS DEF orientation
 						ny = ny + height;
 					}
-					if (or.equals(Orientation.RR)){ // S DEF orientation
+					if (or.equals(Orientation.RR))
+					{
+						// S DEF orientation
 						ny = ny + height;
 						nx = nx + width;
 					}
 					Point2D npt = new Point2D.Double(nx,ny);
-					
-					
-//					if (or.mX) sX = -sX;
-//					if (or.mY) sY = -sY;
 					NodeInst ni = NodeInst.makeInstance(np, npt, sX, sY, cell, or, compName, 0);
-//					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0);
 					if (ni == null)
 					{
 						reportError("Unable to create node");
@@ -733,8 +863,9 @@ public class DEF extends LEFDEF
 	private boolean readNets(Cell cell, boolean special)
 		throws IOException
 	{
-		if (special) specialNetsHT = new Hashtable();
-		else normalNetsHT = new Hashtable();
+		if (special) specialNetsHT = new Hashtable<String,PortInst>();
+			else normalNetsHT = new Hashtable<String,PortInst>();
+		PortHT = new Hashtable<Double,List<NodeInst>>();
 		for(;;)
 		{
 			// get the next keyword
@@ -764,50 +895,49 @@ public class DEF extends LEFDEF
 		PortInst lastPi = null;
 		NodeInst ni = null;
 		PortProto pp = null;
-				
+
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{   
+		{
 			ni = (NodeInst)it.next();
-			pp = ni.getProto().findPortProto(portName);			
-			if (pp == null)
-			{
-				continue;
-			}
+			pp = ni.getProto().findPortProto(portName);
+			if (pp == null) continue;
 			pi = ni.findPortInstFromProto(pp);
 			if (lastPi != null)
 			{
 				//do connection
 				ArcProto ap = Generic.tech.unrouted_arc;
 				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastPi);
-					if (ai == null)
-					{
-						reportError("Could not create unrouted arc");
-						return null;
-					}
+				if (ai == null)
+				{
+					reportError("Could not create unrouted arc");
+					return null;
+				}
 			}
 			lastPi = pi;
-			
 		}
 		return lastPi;
 	}
-	
+
 	/*
 	 * Look for special nets that need to be merged with normal nets
 	 * Synopsys Astro router places patches of metal in special nets
 	 * to cover normal nets as a method of filling notches
 	 */
-	private void connectSpecialNormalNets(){
-		
+	private void connectSpecialNormalNets()
+	{
 		if (specialNetsHT == null) return;
 		if (normalNetsHT == null) return;
-		for (Enumeration  enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();){
+		for (Enumeration enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
+		{
 			String netName = (String)enSpec.nextElement();
 			PortInst specPi = (PortInst)specialNetsHT.get(netName);
 			PortInst normalPi = null;
-			if (normalNetsHT.containsKey(netName)) {
+			if (normalNetsHT.containsKey(netName))
+			{
 				normalPi = (PortInst)(normalNetsHT.get(netName));
-				if (normalPi != null){
-					//create a logical net between these two points
+				if (normalPi != null)
+				{
+					// create a logical net between these two points
 					ArcProto ap = Generic.tech.unrouted_arc;
 					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), specPi, normalPi);
 					if (ai == null)
@@ -816,14 +946,13 @@ public class DEF extends LEFDEF
 						return;
 					}
 				}
-			}			
+			}
 		}
-		
 	}
-	
-    private ViaDef checkForVia (String key) 
-    {
-    	ViaDef vd = null;
+
+	private ViaDef checkForVia (String key)
+	{
+		ViaDef vd = null;
 		for(vd = firstViaDef; vd != null; vd = vd.nextViaDef)
 			if (key.equalsIgnoreCase(vd.viaName)) break;
 		if (vd == null)
@@ -833,16 +962,22 @@ public class DEF extends LEFDEF
 				if (key.equalsIgnoreCase(vd.viaName)) break;
 		}
 		return vd;
-    }
+	}
 
 	private boolean readNet(Cell cell, boolean special)
 		throws IOException
 	{
-		String netName;
+		if (schImport && special)
+		{
+			// when doing schematic import, ignore special nets
+			ignoreToSemicolon("NET");
+			return false;
+		}
+
 		// get the net name
 		String key = mustGetKeyword("NET");
 		if (key == null) return true;
-		netName = key;    //save this so net can be placed in hashtable
+		String netName = translateDefName(key);    // save this so net can be placed in hashtable
 
 		// get the next keyword
 		key = mustGetKeyword("NET");
@@ -866,13 +1001,16 @@ public class DEF extends LEFDEF
 		for(;;)
 		{
 			// examine the next keyword
-			if (key.equals(";")) {
-				if (lastPi != null){
+			if (key.equals(";"))
+			{
+				if (lastPi != null)
+				{
 					// remember at least one physical port instance for this net!
 					if (special) specialNetsHT.put(netName,lastPi);
-					else normalNetsHT.put(netName,lastPi);					
+						else normalNetsHT.put(netName,lastPi);
 				}
-				if (lastLogPi != null && lastPi != null){
+				if (lastLogPi != null && lastPi != null)
+				{
 					//connect logical network and physical network so that DRC passes
 					ArcProto ap = Generic.tech.unrouted_arc;
 					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
@@ -882,13 +1020,18 @@ public class DEF extends LEFDEF
 						return true;
 					}
 				}
-				
 				break;
 			}
 
 			if (key.equals("+"))
 			{
 				wantPinPairs = false;
+				if (schImport)
+				{
+					// ignore the remainder
+					ignoreToSemicolon("NET");
+					break;
+				}
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
 
@@ -964,6 +1107,7 @@ public class DEF extends LEFDEF
 					// find the export
 					key = mustGetKeyword("NET");
 					if (key == null) return true;
+					key = translateDefName(key);
 					Export pp = (Export)cell.findPortProto(key);
 					if (pp == null)
 					{
@@ -976,7 +1120,7 @@ public class DEF extends LEFDEF
 				{
 					NodeInst found = null;
 					if (key.equals("*")) connectAllComponents = true;
-					 else connectAllComponents = false;
+						else connectAllComponents = false;
 					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					{
 						NodeInst ni = (NodeInst)it.next();
@@ -990,7 +1134,7 @@ public class DEF extends LEFDEF
 
 					// get the port name
 					key = mustGetKeyword("NET");
-					if (key == null) return true;					
+					if (key == null) return true;
 					PortProto pp = found.getProto().findPortProto(key);
 					if (pp == null)
 					{
@@ -1012,19 +1156,20 @@ public class DEF extends LEFDEF
 				if (IOTool.isDEFLogicalPlacement())
 				{
 					if (connectAllComponents)
-					{//must connect all components in netlist
+					{
+						//must connect all components in netlist
 						pi = connectGlobal(cell, wildcardPort);
 						if (pi == null) return true;
-					}else
-						if (lastLogPi != null )
+					} else
+						if (lastLogPi != null)
 						{
 							ArcProto ap = Generic.tech.unrouted_arc;
 							ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
-								if (ai == null)
-								{
-									reportError("Could not create unrouted arc");
-									return true;
-								}
+							if (ai == null)
+							{
+								reportError("Could not create unrouted arc");
+								return true;
+							}
 						}
 				}
 				lastLogPi = pi;
@@ -1051,7 +1196,7 @@ public class DEF extends LEFDEF
 						return true;
 					}
 				}
-				
+
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
 				li = new GetLayerInformation(key);
@@ -1075,8 +1220,8 @@ public class DEF extends LEFDEF
 				continue;
 			}
 
-			if (!stackedViaFlag) foundCoord = false; 
-			
+			if (!stackedViaFlag) foundCoord = false;
+
 			if (key.equals("("))
 			{
 				// get the X coordinate
@@ -1104,25 +1249,24 @@ public class DEF extends LEFDEF
 					reportError("Expected ')' of coordinate pair");
 					return true;
 				}
-				
 			}
 
 			/*
 			 * if stackedViaFlag is set, then we have already fetched
-			 * this Via key word, so don't fetch next keyword 
+			 * this Via key word, so don't fetch next keyword
 			 */
-			if (!stackedViaFlag) 
+			if (!stackedViaFlag)
 			{
-//				 get the next keyword
+				// get the next keyword
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
 			}
 
 			// see if it is a via name
 			ViaDef vd = checkForVia(key) ;
-			
+
 			// stop now if not placing physical nets
-			if (!IOTool.isDEFPhysicalPlacement())
+			if (!IOTool.isDEFPhysicalPlacement() || schImport)
 			{
 				// ignore the next keyword if a via name is coming
 				if (vd != null)
@@ -1231,58 +1375,70 @@ public class DEF extends LEFDEF
 					Double wid = widthsFromLEF.get(li.arc);
 					if (wid != null) width = wid.doubleValue();
 				}
-				if (adjustPinLocLastPi && special) {//starting pin
-					//have to adjust the last pin location
+				if (adjustPinLocLastPi && special)
+				{
+					// starting pin; have to adjust the last pin location
 					double dX = 0;
 					double dY = 0;
-					if (curX != lastX){
+					if (curX != lastX)
+					{
 						//horizontal route
-						dX = width/2;  //default, adjust left
-						if (curX < lastX){
-							dX = -dX; //route runs right to left, adjust right
+						dX = width/2;  // default, adjust left
+						if (curX < lastX)
+						{
+							dX = -dX; // route runs right to left, adjust right
 						}
 					}
-					if (curY != lastY){
-						//vertical route
-						dY = width/2; //default, adjust up
-						if (curY < lastY){
-							dY = -dY; //route runs top to bottom, adjust down
-						}						
+					if (curY != lastY)
+					{
+						// vertical route
+						dY = width/2; // default, adjust up
+						if (curY < lastY)
+						{
+							dY = -dY; // route runs top to bottom, adjust down
+						}
 					}
 					lastPi.getNodeInst().move(dX,dY);
 					adjustPinLocLastPi = false;
 				}
+
 				/* note that this adjust is opposite of previous since
 				 * this pin is on the end of the wire instead of the beginning
 				 */
-				if (adjustPinLocPi && special) {//ending pin
-					//have to adjust the last pin location
+				if (adjustPinLocPi && special)
+				{
+					// ending pin; have to adjust the last pin location
 					double dX = 0;
 					double dY = 0;
-					if (curX != lastX){
-						//horizontal route
-						dX = -width/2;  //default, adjust right
-						if (curX < lastX){
-							dX = -dX; //route runs right to left, adjust left
+					if (curX != lastX)
+					{
+						// horizontal route
+						dX = -width/2;  // default, adjust right
+						if (curX < lastX)
+						{
+							dX = -dX; // route runs right to left, adjust left
 						}
 					}
-					if (curY != lastY){
-						//vertical route
-						dY = -width/2; //default, adjust down
-						if (curY < lastY){
+					if (curY != lastY)
+					{
+						// vertical route
+						dY = -width/2; // default, adjust down
+						if (curY < lastY)
+						{
 							dY = -dY; //route runs top to bottom, adjust up
-						}						
+						}
 					}
 					pi.getNodeInst().move(dX,dY);
 					adjustPinLocPi = false;
 				}
-				
+
 				ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
 				if (ai == null)
 				{
 					reportError("Unable to create net path");
 					return true;
 				}
+
 			}
 			lastX = curX;   lastY = curY;
 			pathStart = false;
@@ -1319,12 +1475,14 @@ public class DEF extends LEFDEF
 						Double wid = widthsFromLEF.get(li.arc);
 						if (wid != null) width = wid.doubleValue();
 					}
+
 					ArcInst ai = ArcInst.makeInstance(li.arc, width, pi, nextPi);
 					if (ai == null)
 					{
 						reportError("Unable to create net ending point");
 						return true;
 					}
+
 				}
 			}
 		}
@@ -1363,6 +1521,12 @@ public class DEF extends LEFDEF
 	private boolean readVia()
 		throws IOException
 	{
+		if (schImport)
+		{
+			ignoreToSemicolon("VIA");
+			return false;
+		}
+
 		// get the via name
 		String key = mustGetKeyword("VIA");
 		if (key == null) return true;

@@ -46,6 +46,7 @@ public class Input
 
     /** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
 	private static boolean doChangesQuietly = false;
+	private static boolean newLibraryCreated = true;
 
 	/** Name of the file being input. */					protected String filePath;
 	/** The raw input stream. */							protected InputStream inputStream;
@@ -61,6 +62,12 @@ public class Input
 	}
 
 	// ----------------------- public methods -------------------------------
+
+	/**
+	 * Method to tell if a new library was created for this import operation.
+	 * @return true if a new library was created.
+	 */
+	public static boolean isNewLibraryCreated() { return(newLibraryCreated); }
 
 	/**
 	 * Method to import a Library from disk.
@@ -85,6 +92,7 @@ public class Input
 
 		// create a new library
 		Library lib = Library.newInstance(libName, fileURL);
+		newLibraryCreated = true;
 		return importLibraryCommon(fileURL, type, lib);
 	}
 
@@ -101,6 +109,7 @@ public class Input
 
 		// get the name of the imported library
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+		newLibraryCreated = false;
 
 		// import to current library
 		return importLibraryCommon(fileURL, type, Library.getCurrent());
