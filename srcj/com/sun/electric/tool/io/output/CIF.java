@@ -26,12 +26,12 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -80,8 +80,8 @@ public class CIF extends Geometry
 
 	/**
 	 * User Interface independent entry point for CIF output.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
+	 * @param cell the top-level cell to write.
+	 * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
 	 * @return the number of errors detected
 	 */
@@ -147,20 +147,20 @@ public class CIF extends Geometry
 			writeLine("C " + cellNumber + ";");
 		writeLine("E");
 
-//		// finish up crc stuff
-//		if (!crcPrevIsCharSep)
-//		{
-//			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-//			crcNumChars++;
-//		}
-//		int bytesread = crcNumChars;
-//		while (bytesread > 0)
-//		{
-//			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
-//			bytesread >>= 8;
-//		}
-//		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
-//		System.out.println("MOSIS CRC: " + GenMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
+		// finish up crc stuff
+		if (!crcPrevIsCharSep)
+		{
+			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+			crcNumChars++;
+		}
+		int bytesread = crcNumChars;
+		while (bytesread > 0)
+		{
+			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
+			bytesread >>= 8;
+		}
+		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
+		System.out.println("MOSIS CRC: " + GenMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
 	}
 
 	/**
@@ -172,6 +172,7 @@ public class CIF extends Geometry
 		writeLine("DS " + cellNumber + " 1 1;");
 		String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
 			cellGeom.cell.getName() + ";";
+
 		// remove bad chars from cell name
 		StringBuffer sb = new StringBuffer();
 		for (int i=0; i<cellName.length(); i++)
@@ -327,7 +328,7 @@ public class CIF extends Geometry
 	}
 
 	/**
-	 * Write a line to the CIF file, and accumlate 
+	 * Write a line to the CIF file, and accumulate 
 	 * checksum information.
 	 */
 	private void writeLine(String line)
@@ -335,21 +336,21 @@ public class CIF extends Geometry
 		line = line + '\n';
 		printWriter.print(line);
 
-//		// crc checksum stuff
-//		for (int i=0; i < line.length(); i++)
-//		{
-//			char c = line.charAt(i);
-//			if (c > ' ')
-//			{
-//				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
-//				crcPrevIsCharSep = false;
-//			} else if (!crcPrevIsCharSep)
-//			{
-//				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-//				crcPrevIsCharSep = true;
-//			}
-//			crcNumChars++;
-//		}
+		// crc checksum stuff
+		for (int i=0; i < line.length(); i++)
+		{
+			char c = line.charAt(i);
+			if (c > ' ')
+			{
+				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
+				crcPrevIsCharSep = false;
+			} else if (!crcPrevIsCharSep)
+			{
+				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+				crcPrevIsCharSep = true;
+			}
+			crcNumChars++;
+		}
 	}
 
 	/**
@@ -359,11 +360,6 @@ public class CIF extends Geometry
 	{
 		return (int)(scaleFactor * n);
 	}
-
-//	private double unscale(int n)
-//	{
-//		return (double)(n / scaleFactor);
-//	}
 
 	/**
 	 * Check Poly for CIF Resolution Errors
@@ -393,8 +389,8 @@ public class CIF extends Geometry
 		boolean badResolution = false;
 //		if (minAllowedResolution != 0)
 //		{
-////			if ((x % minAllowedResolution) != 0 || (y % minAllowedResolution) != 0)
-//            if (DBMath.hasRemainder(x, minAllowedResolution) || DBMath.hasRemainder(y, minAllowedResolution))
+////		if ((x % minAllowedResolution) != 0 || (y % minAllowedResolution) != 0)
+//			if (DBMath.hasRemainder(x, minAllowedResolution) || DBMath.hasRemainder(y, minAllowedResolution))
 //			{
 //				badResolution = true;
 //			}
