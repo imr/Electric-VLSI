@@ -1440,7 +1440,7 @@ public class Routing extends Listener
 	 */
 	public static void setSeaOfGatesMaxWidth(double w) { cacheSOGMaxWidth.setDouble(w); }
 
-	private static Pref cacheSOGComplexityLimit = Pref.makeIntPref("SeaOfGatesComplexityLimit", Routing.getRoutingTool().prefs, 1000000);
+	private static Pref cacheSOGComplexityLimit = Pref.makeIntPref("SeaOfGatesComplexityLimit", Routing.getRoutingTool().prefs, 200000);
 	/**
 	 * Method to get the "sea-of-gates" complexity limit.
 	 * This is the maximum number of steps allowed when searching for a routing path.

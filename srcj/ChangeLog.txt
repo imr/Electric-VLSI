@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/21/07, SMR) Improved sea-of-gates router.
+
 IMP: (3/21/07, SMR) Restored CRC checksum reporting to CIF export.
 
 IMP: (3/21/07, SMR, from Bob Reese) Improved DEF import.
