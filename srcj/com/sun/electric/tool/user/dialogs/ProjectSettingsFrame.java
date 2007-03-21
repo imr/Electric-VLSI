@@ -50,12 +50,13 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
@@ -80,10 +81,13 @@ public class ProjectSettingsFrame extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
+    private List<Object> originalContext;
+    private List<Object> currentContext;
 	JButton cancel;
 	JButton ok;
 
-    List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
+    ProjSettingsPanel currentOptionPanel;
+//    List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
@@ -101,6 +105,8 @@ public class ProjectSettingsFrame extends EDialog
 	public ProjectSettingsFrame(Frame parent, boolean modal)
 	{
 		super(parent, modal);
+        originalContext = Setting.getContext();
+        currentContext = new ArrayList<Object>(originalContext);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Project Settings");
 		setName("");
@@ -119,53 +125,66 @@ public class ProjectSettingsFrame extends EDialog
 		optionTree.addMouseListener(handler);
 		optionTree.addTreeExpansionListener(handler);
 
-		CIFTab cit = new CIFTab(parent, modal);
-		optionPanes.add(cit);
-		rootNode.add(new DefaultMutableTreeNode(cit.getName()));
-
-		GDSTab gdt = new GDSTab(parent, modal);
-		optionPanes.add(gdt);
-		rootNode.add(new DefaultMutableTreeNode(gdt.getName()));
-
-		DXFTab dxt = new DXFTab(parent, modal);
-		optionPanes.add(dxt);
-		rootNode.add(new DefaultMutableTreeNode(dxt.getName()));
-		
-		GateLayGenTab glgt = new GateLayGenTab(parent, modal);
-		optionPanes.add(glgt);
-		rootNode.add(new DefaultMutableTreeNode(glgt.getName()));
-
-		LogicalEffortTab let = new LogicalEffortTab(parent, modal);
-		optionPanes.add(let);
-		rootNode.add(new DefaultMutableTreeNode(let.getName()));
-
-		NetlistsTab nt = new NetlistsTab(parent, modal);
-		optionPanes.add(nt);
-		rootNode.add(new DefaultMutableTreeNode(nt.getName()));
-
-		ParasiticTab parat = new ParasiticTab(parent, modal);
-		optionPanes.add(parat);
-		rootNode.add(new DefaultMutableTreeNode(parat.getName()));
-
-		ScaleTab scat = new ScaleTab(parent, modal);
-		optionPanes.add(scat);
-		rootNode.add(new DefaultMutableTreeNode(scat.getName()));
-
+		rootNode.add(new DefaultMutableTreeNode("CIF"));
+		rootNode.add(new DefaultMutableTreeNode("GDS"));
+		rootNode.add(new DefaultMutableTreeNode("DXF"));
+		rootNode.add(new DefaultMutableTreeNode("Gate Layout Generator"));
+		rootNode.add(new DefaultMutableTreeNode("Logical Effort"));
+		rootNode.add(new DefaultMutableTreeNode("Netlists"));
+		rootNode.add(new DefaultMutableTreeNode("Parasitic"));
+		rootNode.add(new DefaultMutableTreeNode("Scale"));
 		if (IOTool.hasSkill())
-		{
-			SkillTab skt = new SkillTab(parent, modal);
-			optionPanes.add(skt);
-			rootNode.add(new DefaultMutableTreeNode(skt.getName()));
-		}
+			rootNode.add(new DefaultMutableTreeNode("Skill"));
+		rootNode.add(new DefaultMutableTreeNode("Technology"));
+		rootNode.add(new DefaultMutableTreeNode("Verilog"));
 
-		TechnologyTab tect = new TechnologyTab(parent, modal);
-		optionPanes.add(tect);
-		rootNode.add(new DefaultMutableTreeNode(tect.getName()));
-
-		VerilogTab vet = new VerilogTab(parent, modal);
-		optionPanes.add(vet);
-		rootNode.add(new DefaultMutableTreeNode(vet.getName()));
-
+//		CIFTab cit = new CIFTab(this, modal);
+//		optionPanes.add(cit);
+//		rootNode.add(new DefaultMutableTreeNode(cit.getName()));
+//
+//		GDSTab gdt = new GDSTab(this, modal);
+//		optionPanes.add(gdt);
+//		rootNode.add(new DefaultMutableTreeNode(gdt.getName()));
+//
+//		DXFTab dxt = new DXFTab(this, modal);
+//		optionPanes.add(dxt);
+//		rootNode.add(new DefaultMutableTreeNode(dxt.getName()));
+//		
+//		GateLayGenTab glgt = new GateLayGenTab(this, modal);
+//		optionPanes.add(glgt);
+//		rootNode.add(new DefaultMutableTreeNode(glgt.getName()));
+//
+//		LogicalEffortTab let = new LogicalEffortTab(this, modal);
+//		optionPanes.add(let);
+//		rootNode.add(new DefaultMutableTreeNode(let.getName()));
+//
+//		NetlistsTab nt = new NetlistsTab(this, modal);
+//		optionPanes.add(nt);
+//		rootNode.add(new DefaultMutableTreeNode(nt.getName()));
+//
+//		ParasiticTab parat = new ParasiticTab(this, modal);
+//		optionPanes.add(parat);
+//		rootNode.add(new DefaultMutableTreeNode(parat.getName()));
+//
+//		ScaleTab scat = new ScaleTab(this, modal);
+//		optionPanes.add(scat);
+//		rootNode.add(new DefaultMutableTreeNode(scat.getName()));
+//
+//		if (IOTool.hasSkill())
+//		{
+//			SkillTab skt = new SkillTab(this, modal);
+//			optionPanes.add(skt);
+//			rootNode.add(new DefaultMutableTreeNode(skt.getName()));
+//		}
+//
+//		TechnologyTab tect = new TechnologyTab(this, modal);
+//		optionPanes.add(tect);
+//		rootNode.add(new DefaultMutableTreeNode(tect.getName()));
+//
+//		VerilogTab vet = new VerilogTab(this, modal);
+//		optionPanes.add(vet);
+//		rootNode.add(new DefaultMutableTreeNode(vet.getName()));
+//
 		// pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
 		optionTree.expandPath(topPath);
@@ -259,6 +278,8 @@ public class ProjectSettingsFrame extends EDialog
 		finishInitialization();
 	}
 
+    public List<Object> getContext() { return currentContext; }
+    
     private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
     {
         for (int i = 0; i < rootNode.getChildCount(); i++)
@@ -283,21 +304,28 @@ public class ProjectSettingsFrame extends EDialog
 	private void okActionPerformed()
 	{
         Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        boolean checkAndRepair = false;
         // gather preference changes on the client
-        Setting.gatherSettingChanges();
-        try {
-            for(ProjSettingsPanel ti : optionPanes) {
-                if (ti.isInited())
-                    ti.term();
-            }
-        } finally {
-            changeBatch = Setting.getSettingChanges();
+        if (currentOptionPanel != null) {
+            currentOptionPanel.term();
+            currentOptionPanel = null;
+        }
+//        for(ProjSettingsPanel ti : optionPanes) {
+//            if (ti.isInited())
+//                ti.term();
+//        }
+        for (Setting setting: Setting.getSettings()) {
+            Object v = setting.getValue(currentContext);
+            if (setting.getValue(originalContext).equals(v)) continue;
+            changeBatch.add(setting, v);
+            if (setting instanceof Technology.TechSetting)
+                checkAndRepair = true;
         }
         if (changeBatch.changesForSettings.isEmpty()) {
             closeDialog(null);
             return;
         }
-        new OKUpdate(this, changeBatch, true);
+        new OKUpdate(this, changeBatch, true, checkAndRepair);
 //		new OKUpdate(this, false);
 	}
 
@@ -343,20 +371,53 @@ public class ProjectSettingsFrame extends EDialog
 
 	private void loadOptionPanel()
 	{
-		for(ProjSettingsPanel ti : optionPanes)
-		{
-			if (ti.getName().equals(currentTabName))
-			{
-				if (!ti.isInited())
-				{
-					ti.init();
-					ti.setInited();
-				}
-				splitPane.setRightComponent(ti.getPanel());
-				return;
-			}
-		}
+        ProjSettingsPanel ti = createOptionPanel(isModal());
+        if (ti == null) return;
+        if (currentOptionPanel != null)
+            currentOptionPanel.term();
+        currentOptionPanel = ti;
+        ti.init();
+        splitPane.setRightComponent(ti.getPanel());
+//		for(ProjSettingsPanel ti : optionPanes)
+//		{
+//			if (ti.getName().equals(currentTabName))
+//			{
+//				if (!ti.isInited())
+//				{
+//					ti.init();
+//					ti.setInited();
+//				}
+//				splitPane.setRightComponent(ti.getPanel());
+//				return;
+//			}
+//		}
 	}
+    
+    private ProjSettingsPanel createOptionPanel(boolean modal) {
+        if (currentTabName.equals("CIF"))
+            return new CIFTab(this, modal);
+        if (currentTabName.equals("GDS"))
+            return new GDSTab(this, modal);
+        if (currentTabName.equals("DXF"))
+            return new DXFTab(this, modal);
+        if (currentTabName.equals("Gate Layout Generator"))
+            return new GateLayGenTab(this, modal);
+        if (currentTabName.equals("Logical Effort"))
+            return new LogicalEffortTab(this, modal);
+        if (currentTabName.equals("Netlists"))
+            return new NetlistsTab(this, modal);
+        if (currentTabName.equals("Parasitic"))
+            return new ParasiticTab(this, modal);
+        if (currentTabName.equals("Scale"))
+            return new ScaleTab(this, modal);
+        if (currentTabName.equals("Skill"))
+            return new SkillTab(this, modal);
+        if (currentTabName.equals("Technology"))
+            return new TechnologyTab(this, modal);
+        if (currentTabName.equals("Verilog"))
+            return new VerilogTab(this, modal);
+        return null;
+    }
 
 	protected void escapePressed() { cancelActionPerformed(); }
 
@@ -366,7 +427,7 @@ public class ProjectSettingsFrame extends EDialog
      * @param dialogToClose dialog to close on success.
      */
     public static void updateProjectSettings(Setting.SettingChangeBatch changeBatch, EDialog dialogToClose) {
-        new OKUpdate(dialogToClose, changeBatch, false);
+        new OKUpdate(dialogToClose, changeBatch, false, false);
     }
     
 	/**
@@ -377,12 +438,14 @@ public class ProjectSettingsFrame extends EDialog
 		private transient EDialog dialog;
 		private Setting.SettingChangeBatch changeBatch;
         private boolean issueWarning;
+        private boolean checkAndRepair;
 
-        private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning) {
+        private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning, boolean checkAndRepair) {
 			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.dialog = dialog;
             this.changeBatch = changeBatch;
             this.issueWarning = issueWarning;
+            this.checkAndRepair = checkAndRepair;
             startJob();
         }
 
@@ -444,6 +507,10 @@ public class ProjectSettingsFrame extends EDialog
                 dialog.dispose();
             }
 //            dialog.closeDialog(null);
+            if (checkAndRepair) {
+                // Repair libraries in case number of layers was changed.
+                CircuitChanges.checkAndRepairCommand(true);
+            }
 		}
 	}
 

@@ -23,18 +23,18 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -49,7 +49,7 @@ import javax.swing.event.DocumentListener;
 public class CIFTab extends ProjSettingsPanel
 {
 	/** Creates new form CIFTab */
-	public CIFTab(Frame parent, boolean modal)
+	public CIFTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -64,7 +64,10 @@ public class CIFTab extends ProjSettingsPanel
 	private JList cifLayersList;
 	private DefaultListModel cifLayersModel;
 	private boolean changingCIF = false;
-	private HashMap<Layer,String> cifLayerInfo;
+    
+    private Setting cifOutMimicsDisplaySetting = IOTool.getCIFOutMimicsDisplaySetting();
+    private Setting cifOutMergesBoxesSetting = IOTool.getCIFOutMergesBoxesSetting();
+    private Setting cifOutInstantiatesTopLevleSetting = IOTool.getCIFOutInstantiatesTopLevelSetting();
 
 	/**
 	 * Method called at the start of the dialog.
@@ -72,9 +75,9 @@ public class CIFTab extends ProjSettingsPanel
 	 */
 	public void init()
 	{
-		cifOutputMimicsDisplay.setSelected(IOTool.isCIFOutMimicsDisplay());
-		cifOutputMergesBoxes.setSelected(IOTool.isCIFOutMergesBoxes());
-		cifOutputInstantiatesTopLevel.setSelected(IOTool.isCIFOutInstantiatesTopLevel());
+		cifOutputMimicsDisplay.setSelected(getBoolean(cifOutMimicsDisplaySetting));
+		cifOutputMergesBoxes.setSelected(getBoolean(cifOutMergesBoxesSetting));
+		cifOutputInstantiatesTopLevel.setSelected(getBoolean(cifOutInstantiatesTopLevleSetting));
 
 		// build the layers list
 		cifLayersModel = new DefaultListModel();
@@ -86,20 +89,10 @@ public class CIFTab extends ProjSettingsPanel
 		{
 			public void mouseClicked(MouseEvent evt) { cifClickLayer(); }
 		});
-		cifLayerInfo = new HashMap<Layer,String>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				String str = layer.getName();
-				String cifLayer = layer.getCIFLayer();
-				if (cifLayer == null) cifLayer = "";
-				if (cifLayer.length() > 0) str += " (" + cifLayer + ")";
-				cifLayerInfo.put(layer, str);
-			}
 		}
 		technologySelection.addActionListener(new ActionListener()
 		{
@@ -119,7 +112,10 @@ public class CIFTab extends ProjSettingsPanel
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			String str = cifLayerInfo.get(layer);
+            String str = layer.getName();
+            String cifLayer = getString(layer.getCIFLayerSetting());
+            if (cifLayer == null) cifLayer = "";
+            if (cifLayer.length() > 0) str += " (" + cifLayer + ")";
 			cifLayersModel.addElement(str);
 		}
 		cifLayersList.setSelectedIndex(0);
@@ -181,7 +177,7 @@ public class CIFTab extends ProjSettingsPanel
 		if (newLayer.length() > 0) newLine += " (" + newLayer + ")";
 		int index = cifLayersList.getSelectedIndex();
 		cifLayersModel.set(index, newLine);
-		cifLayerInfo.put(layer, newLine);
+        setString(layer.getCIFLayerSetting(), newLayer);
 	}
 
 	/**
@@ -204,30 +200,9 @@ public class CIFTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				String str = cifLayerInfo.get(layer);
-
-				String currentCIFNumbers = cifGetLayerName(str);
-				if (currentCIFNumbers.equalsIgnoreCase(layer.getCIFLayer())) continue;
-				layer.setCIFLayer(currentCIFNumbers);
-			}
-		}
-		boolean currentValue = cifOutputMimicsDisplay.isSelected();
-		if (currentValue != IOTool.isCIFOutMimicsDisplay())
-			IOTool.setCIFOutMimicsDisplay(currentValue);
-
-		currentValue = cifOutputMergesBoxes.isSelected();
-		if (currentValue != IOTool.isCIFOutMergesBoxes())
-			IOTool.setCIFOutMergesBoxes(currentValue);
-
-		currentValue = cifOutputInstantiatesTopLevel.isSelected();
-		if (currentValue != IOTool.isCIFOutInstantiatesTopLevel())
-			IOTool.setCIFOutInstantiatesTopLevel(currentValue);
+        setBoolean(cifOutMimicsDisplaySetting, cifOutputMimicsDisplay.isSelected());
+        setBoolean(cifOutMergesBoxesSetting, cifOutputMergesBoxes.isSelected());
+        setBoolean(cifOutInstantiatesTopLevleSetting, cifOutputInstantiatesTopLevel.isSelected());
 	}
 
 	/** This method is called from within the constructor to

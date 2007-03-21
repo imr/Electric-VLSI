@@ -30,16 +30,14 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -53,7 +51,7 @@ import javax.swing.event.DocumentListener;
 public class GDSTab extends ProjSettingsPanel
 {
 	/** Creates new form GDSTab */
-	public GDSTab(Frame parent, boolean modal)
+	public GDSTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -68,7 +66,6 @@ public class GDSTab extends ProjSettingsPanel
 	private JList gdsLayersList;
 	private DefaultListModel gdsLayersModel;
 	private boolean changingGDS = false;
-	private HashMap<Foundry,HashMap<Layer,String>> layerMap;
     private Setting gdsOutMergesBoxesSetting = IOTool.getGDSOutMergesBoxesSetting();
     private Setting gdsOutWritesExportPinsSetting = IOTool.getGDSOutWritesExportPinsSetting();
     private Setting gdsOutUpperCaseSetting = IOTool.getGDSOutUpperCaseSetting();
@@ -101,12 +98,6 @@ public class GDSTab extends ProjSettingsPanel
 		gdsDefaultTextLayer.setText(Integer.toString(getInt(gdsOutDefaultTextLayerSetting)));
         gdsOutputConvertsBracketsInExports.setSelected(getBoolean(gdsOutputConvertsBracketsInExportsSetting));
         gdsCellNameLenMax.setText(Integer.toString(getInt(gdsCellNameLenMaxSetting)));
-//		gdsOutputMergesBoxes.setSelected(IOTool.isGDSOutMergesBoxes());
-//		gdsOutputWritesExportPins.setSelected(IOTool.isGDSOutWritesExportPins());
-//		gdsOutputUpperCase.setSelected(IOTool.isGDSOutUpperCase());
-//		gdsDefaultTextLayer.setText(Integer.toString(IOTool.getGDSOutDefaultTextLayer()));
-//        gdsOutputConvertsBracketsInExports.setSelected(IOTool.getGDSOutputConvertsBracketsInExports());
-//        gdsCellNameLenMax.setText(Integer.toString(IOTool.getGDSCellNameLenMax()));
 
 		// build the layers list
 		gdsLayersModel = new DefaultListModel();
@@ -118,22 +109,10 @@ public class GDSTab extends ProjSettingsPanel
 		{
 			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
 		});
-		layerMap = new HashMap<Foundry,HashMap<Layer,String>>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-
 			technologySelection.addItem(new TechGDSTab(tech));
-
-            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
-            {
-                Foundry foundry = itF.next();
-                for (Iterator<Layer> lit = tech.getLayers(); lit.hasNext(); )
-                {
-                    Layer layer = lit.next();
-                    put(foundry, layer, getString(foundry.getGDSLayerSetting(layer)));
-			    }
-            }
 		}
 		technologySelection.addActionListener(new ActionListener()
 		{
@@ -159,28 +138,10 @@ public class GDSTab extends ProjSettingsPanel
 		gdsTextType.getDocument().addDocumentListener(myDocumentListener);
 	}
 
-    private void put(Foundry f, Layer l, String s)
-    {
-        HashMap<Layer,String> table = layerMap.get(f);
-        if (table == null)
-        {
-            table = new HashMap<Layer,String>();
-            layerMap.put(f, table);
-        }
-        table.put(l, s);
-    }
-
-    private String get(Foundry f, Layer l)
-    {
-        HashMap<Layer,String> table = layerMap.get(f);
-        if (table == null) return "";
-        String s = table.get(l);
-        return s != null ? s : "";
-    }
-
     private void foundryChanged()
     {
         Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
+        if (foundry == null) return;
         Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
 		// show the list of layers in the technology
 		gdsLayersModel.clear();
@@ -189,7 +150,7 @@ public class GDSTab extends ProjSettingsPanel
         {
             Layer layer = lIt.next();
             String str = layer.getName();
-            String gdsLayer = get(foundry, layer);
+            String gdsLayer = getString(foundry.getGDSLayerSetting(layer));
             if (gdsLayer != null && gdsLayer.length() > 0) str += " (" + gdsLayer + ")";
 			gdsLayersModel.addElement(str);
         }
@@ -329,7 +290,7 @@ public class GDSTab extends ProjSettingsPanel
 		int index = gdsLayersList.getSelectedIndex();
 		gdsLayersModel.set(index, wholeLine);
         Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
-		put(foundry, layer, newLine);
+        setString(foundry.getGDSLayerSetting(layer), newLine);
 	}
 
 	/**
@@ -352,54 +313,35 @@ public class GDSTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-
-            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
-            {
-                Foundry foundry = itF.next();
-                HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
-                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-                {
-                    Layer layer = lIt.next();
-                    String str = get(foundry, layer);
-                    GDSLayers numbers = GDSLayers.parseLayerString(str);
-                    if (numbers == null) continue;
-
-                    Setting setting = foundry.getGDSLayerSetting(layer);
-                    String oldStr = getString(setting);
-                    GDSLayers oldNumbers = oldStr != null ? GDSLayers.parseLayerString(oldStr) : GDSLayers.EMPTY;
-                    if (!oldNumbers.equals(numbers))
-                        setString(setting, numbers.toString());
-                }
-            }
-		}
+//		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
+//		{
+//			Technology tech = tIt.next();
+//
+//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+//            {
+//                Foundry foundry = itF.next();
+//                HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
+//                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+//                {
+//                    Layer layer = lIt.next();
+//                    String str = get(foundry, layer);
+//                    GDSLayers numbers = GDSLayers.parseLayerString(str);
+//                    if (numbers == null) continue;
+//
+//                    Setting setting = foundry.getGDSLayerSetting(layer);
+//                    String oldStr = getString(setting);
+//                    GDSLayers oldNumbers = oldStr != null ? GDSLayers.parseLayerString(oldStr) : GDSLayers.EMPTY;
+//                    if (!oldNumbers.equals(numbers))
+//                        setString(setting, numbers.toString());
+//                }
+//            }
+//		}
         setBoolean(gdsOutMergesBoxesSetting, gdsOutputMergesBoxes.isSelected());
         setBoolean(gdsOutWritesExportPinsSetting, gdsOutputWritesExportPins.isSelected());
         setBoolean(gdsOutUpperCaseSetting, gdsOutputUpperCase.isSelected());
         setInt(gdsOutDefaultTextLayerSetting, TextUtils.atoi(gdsDefaultTextLayer.getText()));
         setBoolean(gdsOutputConvertsBracketsInExportsSetting, gdsOutputConvertsBracketsInExports.isSelected());
         setInt(gdsCellNameLenMaxSetting, TextUtils.atoi(gdsCellNameLenMax.getText()));
-//		boolean currentValue = gdsOutputMergesBoxes.isSelected();
-//		if (currentValue != IOTool.isGDSOutMergesBoxes())
-//			IOTool.setGDSOutMergesBoxes(currentValue);
-//		currentValue = gdsOutputWritesExportPins.isSelected();
-//		if (currentValue != IOTool.isGDSOutWritesExportPins())
-//			IOTool.setGDSOutWritesExportPins(currentValue);
-//		currentValue = gdsOutputUpperCase.isSelected();
-//		if (currentValue != IOTool.isGDSOutUpperCase())
-//			IOTool.setGDSOutUpperCase(currentValue);
-//        currentValue = gdsOutputConvertsBracketsInExports.isSelected();
-//        if (currentValue !=  IOTool.getGDSOutputConvertsBracketsInExports())
-//            IOTool.setGDSOutputConvertsBracketsInExports(currentValue);
-//
-//		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
-//		if (currentTextLayer != IOTool.getGDSOutDefaultTextLayer())
-//			IOTool.setGDSOutDefaultTextLayer(currentTextLayer);
-//        int currentCellNameLen = TextUtils.atoi(gdsCellNameLenMax.getText());
-//        if (currentCellNameLen != IOTool.getGDSCellNameLenMax())
-//            IOTool.setGDSCellNameLenMax(currentCellNameLen);
 	}
 
 	/** This method is called from within the constructor to

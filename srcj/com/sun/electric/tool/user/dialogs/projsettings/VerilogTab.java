@@ -25,8 +25,7 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.simulation.Simulation;
-
-import java.awt.Frame;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import javax.swing.JPanel;
 
@@ -39,7 +38,7 @@ public class VerilogTab extends ProjSettingsPanel
     private Setting verilogUseTriregSetting = Simulation.getVerilogUseTriregSetting();
     
 	/** Creates new form VerilogTab */
-	public VerilogTab(Frame parent, boolean modal)
+	public VerilogTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -59,8 +58,6 @@ public class VerilogTab extends ProjSettingsPanel
 	{
 		verUseAssign.setSelected(getBoolean(verilogUseAssignSetting));
 		verDefWireTrireg.setSelected(getBoolean(verilogUseTriregSetting));
-//		verUseAssign.setSelected(Simulation.getVerilogUseAssign());
-//		verDefWireTrireg.setSelected(Simulation.getVerilogUseTrireg());
 	}
 
 	/**
@@ -71,13 +68,6 @@ public class VerilogTab extends ProjSettingsPanel
 	{
         setBoolean(verilogUseAssignSetting, verUseAssign.isSelected());
         setBoolean(verilogUseTriregSetting, verDefWireTrireg.isSelected());
-//		boolean currBoolean = verUseAssign.isSelected();
-//		if (currBoolean != Simulation.getVerilogUseAssign())
-//			Simulation.setVerilogUseAssign(currBoolean);
-//
-//		currBoolean = verDefWireTrireg.isSelected();
-//		if (currBoolean != Simulation.getVerilogUseTrireg())
-//			Simulation.setVerilogUseTrireg(currBoolean);
 	}
 
 	/** This method is called from within the constructor to

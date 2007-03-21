@@ -3378,7 +3378,7 @@ public class Technology implements Comparable<Technology>
 	 * Returns project Setting to tell foundry for DRC rules.
 	 * @eturn project Setting to tell the foundry for DRC rules.
 	 */
-	public Setting setPrefFoundrySetting() { return prefFoundry; }
+	public Setting getPrefFoundrySetting() { return prefFoundry; }
 
 //    /**
 //     * Method to set the foundry for DRC rules and call the side effects

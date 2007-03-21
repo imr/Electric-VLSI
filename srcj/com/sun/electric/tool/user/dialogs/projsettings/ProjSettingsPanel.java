@@ -27,9 +27,10 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.Frame;
-
+import java.util.List;
 import javax.swing.JPanel;
 
 /**
@@ -37,14 +38,16 @@ import javax.swing.JPanel;
  */
 public class ProjSettingsPanel extends EDialog
 {
+    private final ProjectSettingsFrame parent;
 	protected Technology curTech = Technology.getCurrent();
 	protected Library curLib = Library.getCurrent();
 
 	private boolean inited = false;
 
-	public ProjSettingsPanel(Frame parent, boolean modal)
+	public ProjSettingsPanel(ProjectSettingsFrame parent, boolean modal)
 	{
-		super(parent, modal);
+		super((Frame)parent.getOwner(), modal);
+        this.parent = parent;
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -75,7 +78,7 @@ public class ProjSettingsPanel extends EDialog
      * @setting setting object.
      * @return the boolean value on the Setting object.
      */
-    public boolean getBoolean(Setting setting) { return setting.getBoolean(); }
+    public boolean getBoolean(Setting setting) { return setting.getBoolean(getContext()); }
     
     /**
      * Method to get the integer value on the Setting object.
@@ -83,7 +86,7 @@ public class ProjSettingsPanel extends EDialog
      * @setting setting object.
      * @return the integer value on the Setting object.
      */
-    public int getInt(Setting setting) { return setting.getInt(); }
+    public int getInt(Setting setting) { return setting.getInt(getContext()); }
     
     /**
      * Method to get the long value on the Setting object.
@@ -91,7 +94,7 @@ public class ProjSettingsPanel extends EDialog
      * @setting setting object.
      * @return the long value on the Setting object.
      */
-    public long getLong(Setting setting) { return setting.getLong(); }
+    public long getLong(Setting setting) { return setting.getLong(getContext()); }
     
     /**
      * Method to get the double value on the Setting object.
@@ -99,64 +102,51 @@ public class ProjSettingsPanel extends EDialog
      * @setting setting object.
      * @return the double value on the Setting object.
      */
-    public double getDouble(Setting setting) { return setting.getDouble(); }
+    public double getDouble(Setting setting) { return setting.getDouble(getContext()); }
     
     /**
      * Method to get the string value on the Setting object.
      * The object must have been created as "string".
      * @return the string value on the Setting object.
      */
-    public String getString(Setting setting) { return setting.getString(); }
+    public String getString(Setting setting) { return setting.getString(getContext()); }
     
     /**
      * Method to set a new boolean value on Setting object.
      * @param setting Setting object.
      * @param v the new boolean value of Setting object.
      */
-    public void setBoolean(Setting setting, boolean v) {
-        if (v != getBoolean(setting))
-            setting.setBoolean(v);
-    }
+    public void setBoolean(Setting setting, boolean v) { setting.setBoolean(getContext(), v); }
     
     /**
      * Method to set a new integer value on Setting object.
      * @param setting Setting object.
      * @param v the new integer value of Setting object.
      */
-    public void setInt(Setting setting, int v) {
-        if (v != getInt(setting))
-            setting.setInt(v);
-     }
+    public void setInt(Setting setting, int v) { setting.setInt(getContext(), v); }
     
     /**
      * Method to set a new long value on Setting object.
      * @param setting Setting object.
      * @param v the new long value of Setting object.
      */
-    public void setLong(Setting setting, long v) {
-        if (v != getLong(setting))
-            setting.setLong(v);
-    }
+    public void setLong(Setting setting, long v) { setting.setLong(getContext(), v); }
     
     /**
      * Method to set a new double value on Setting object.
      * @param setting Setting object.
      * @param v the new double value of Setting object.
      */
-    public void setDouble(Setting setting, double v) {
-        if (v != getDouble(setting))
-            setting.setDouble(v);
-    }
+    public void setDouble(Setting setting, double v) { setting.setDouble(getContext(), v); }
     
     /**
      * Method to set a new string value on Setting object.
      * @param setting Setting object.
      * @param str the new string value of Setting object.
      */
-    public void setString(Setting setting, String str) {
-        if (!str.equals(getString(setting)))
-            setting.setString(str);
-    }
+    public void setString(Setting setting, String str) { setting.setString(getContext(), str); }
+
+    private List<Object> getContext() { return parent.getContext(); }
     
 	/**
 	 * Method called at the start of the dialog.

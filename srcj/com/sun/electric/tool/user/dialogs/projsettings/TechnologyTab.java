@@ -23,15 +23,15 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
-
-import java.awt.Frame;
+import java.util.ArrayList;
 import java.util.Iterator;
-
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -40,8 +40,18 @@ import javax.swing.JPanel;
  */
 public class TechnologyTab extends ProjSettingsPanel
 {
+    private ArrayList<Object> extraTechTabs = new ArrayList<Object>();
+    
+    private Setting defaultTechnologySetting = User.getDefaultTechnologySetting();
+    private Setting schematicTechnologySetting = User.getSchematicTechnologySetting();
+    private Setting mocmosRuleSetSetting = MoCMOS.tech.getRuleSetSetting();
+    private Setting mocmosNumMetalSetting = MoCMOS.tech.getNumMetalSetting();
+    private Setting mocmosSecondPolysiliconSetting = MoCMOS.tech.getSecondPolysiliconSetting();
+    private Setting mocmosDisallowStackedViasSetting = MoCMOS.tech.getDisallowStackedViasSetting();
+    private Setting mocmosAlternateActivePolyRulesSetting = MoCMOS.tech.getAlternateActivePolyRulesSetting();
+    
 	/** Creates new form TechnologyTab */
-	public TechnologyTab(Frame parent, boolean modal)
+	public TechnologyTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -53,9 +63,9 @@ public class TechnologyTab extends ProjSettingsPanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Technology"; }
 
-    public static Foundry.Type setFoundrySelected(Technology tech, javax.swing.JComboBox pulldown)
+    public Foundry.Type setFoundrySelected(Technology tech, javax.swing.JComboBox pulldown)
     {
-        String selectedFoundry = tech.getPrefFoundry();
+        String selectedFoundry = getString(tech.getPrefFoundrySetting());
     	Foundry.Type foundry = Foundry.Type.NONE;
 
         for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
@@ -101,7 +111,8 @@ public class TechnologyTab extends ProjSettingsPanel
 	public void init()
 	{
 		// MOCMOS
-		int initialTechRules = MoCMOS.tech.getRuleSet();
+		int initialTechRules = getInt(mocmosRuleSetSetting);
+//		int initialTechRules = MoCMOS.tech.getRuleSet();
 		if (initialTechRules == MoCMOS.SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
 			if (initialTechRules == MoCMOS.SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
 				techMOCMOSDeepRules.setSelected(true);
@@ -111,10 +122,14 @@ public class TechnologyTab extends ProjSettingsPanel
 		techMetalLayers.addItem("4 Layers");
 		techMetalLayers.addItem("5 Layers");
 		techMetalLayers.addItem("6 Layers");
-		techMetalLayers.setSelectedIndex(MoCMOS.tech.getNumMetal()-2);
-		techMOCMOSSecondPoly.setSelected(MoCMOS.tech.isSecondPolysilicon());
-		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.tech.isDisallowStackedVias());
-		techMOCMOSAlternateContactRules.setSelected(MoCMOS.tech.isAlternateActivePolyRules());
+		techMetalLayers.setSelectedIndex(getInt(mocmosNumMetalSetting)-2);
+		techMOCMOSSecondPoly.setSelected(getBoolean(mocmosSecondPolysiliconSetting));
+		techMOCMOSDisallowStackedVias.setSelected(getBoolean(mocmosDisallowStackedViasSetting));
+		techMOCMOSAlternateContactRules.setSelected(getBoolean(mocmosAlternateActivePolyRulesSetting));
+//		techMetalLayers.setSelectedIndex(MoCMOS.tech.getNumMetal()-2);
+//		techMOCMOSSecondPoly.setSelected(MoCMOS.tech.isSecondPolysilicon());
+//		techMOCMOSDisallowStackedVias.setSelected(MoCMOS.tech.isDisallowStackedVias());
+//		techMOCMOSAlternateContactRules.setSelected(MoCMOS.tech.isAlternateActivePolyRules());
 
 		// Technologies
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -123,32 +138,15 @@ public class TechnologyTab extends ProjSettingsPanel
 			defaultTechPulldown.addItem(tech.getTechName());
 			if (tech.isScaleRelevant()) technologyPopup.addItem(tech.getTechName());
 		}
-        defaultTechPulldown.setSelectedItem(User.getDefaultTechnology());
+        defaultTechPulldown.setSelectedItem(getString(defaultTechnologySetting));
 		technologyPopup.setSelectedItem(User.getSchematicTechnology().getTechName());
 
         // Foundry for MoCMOS
         setFoundrySelected(MoCMOS.tech, techDefaultFoundryPulldown);
 
         // Tabs for extra technologies if available
-        try
-        {
-            Class<?> extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90Tab");
-            extraTechClass.getMethod("openTechnologyTab", JPanel.class).invoke(null, cmos90Panel);
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies");
-            remove(cmos90Panel);
-        }
-        try
-        {
-            Class<?> extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180Tab");
-            extraTechClass.getMethod("openTechnologyTab", JPanel.class).invoke(null, tsmc180Panel);
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies");
-            remove(tsmc180Panel);
-        }
-
+        initExtraTab("com.sun.electric.plugins.tsmc.CMOS90Tab", cmos90Panel);
+        initExtraTab("com.sun.electric.plugins.tsmc.TSMC180Tab", tsmc180Panel);
 //        mosisPanel.setVisible(Technology.getCurrent() == MoCMOS.tech);
 //        double scale = MoCMOS.tech.getScale();
 //        String extra = " Mosis";
@@ -158,6 +156,17 @@ public class TechnologyTab extends ProjSettingsPanel
 //            extra = ": 350nm";
 
 //        mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Scalable CMOS" + extra));
+    }
+    
+    private void initExtraTab(String className, JPanel panel) {
+        try {
+            Class<?> extraTechClass = Class.forName(className);
+            Object extraTechTab = extraTechClass.getConstructor(TechnologyTab.class, JPanel.class).newInstance(this, panel);
+            extraTechTabs.add(extraTechTab);
+        } catch (Exception e) {
+            System.out.println("Exceptions while importing extra technologies");
+            remove(panel);
+        }
     }
 
 	/**
@@ -199,68 +208,69 @@ public class TechnologyTab extends ProjSettingsPanel
 				break;
 		}
 
-		if (currentNumMetals != MoCMOS.tech.getNumMetal())
-        {
-            MoCMOS.setNumMetal(currentNumMetals);
-            changeInMoCMOS = true;
-        }
-        if (currentRules != MoCMOS.tech.getRuleSet())
-        {
-            MoCMOS.setRuleSet(currentRules);
-            changeInMoCMOS = true;
-        }
+        checkFoundry((Foundry.Type)techDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech);
+        setInt(mocmosNumMetalSetting, currentNumMetals);
+        setInt(mocmosRuleSetSetting, currentRules);
+//		if (currentNumMetals != MoCMOS.tech.getNumMetal())
+//        {
+//            MoCMOS.setNumMetal(currentNumMetals);
+//            changeInMoCMOS = true;
+//        }
+//        if (currentRules != MoCMOS.tech.getRuleSet())
+//        {
+//            MoCMOS.setRuleSet(currentRules);
+//            changeInMoCMOS = true;
+//        }
 
-		boolean newVal = techMOCMOSSecondPoly.isSelected();
-		if (newVal != MoCMOS.tech.isSecondPolysilicon())
-        {
-            MoCMOS.setSecondPolysilicon(newVal);
-            changeInMoCMOS = true;
-        }
-
-		newVal = techMOCMOSDisallowStackedVias.isSelected();
-		if (newVal != MoCMOS.tech.isDisallowStackedVias())
-        {
-            MoCMOS.setDisallowStackedVias(newVal);
-            changeInMoCMOS = true;
-        }
-
-		newVal = techMOCMOSAlternateContactRules.isSelected();
-		if (newVal != MoCMOS.tech.isAlternateActivePolyRules())
-        {
-            MoCMOS.setAlternateActivePolyRules(newVal);
-            changeInMoCMOS = true;
-        }
+        setBoolean(mocmosSecondPolysiliconSetting, techMOCMOSSecondPoly.isSelected());
+        setBoolean(mocmosDisallowStackedViasSetting, techMOCMOSDisallowStackedVias.isSelected());
+        setBoolean(mocmosAlternateActivePolyRulesSetting, techMOCMOSAlternateContactRules.isSelected());
+//		boolean newVal = techMOCMOSSecondPoly.isSelected();
+//		if (newVal != MoCMOS.tech.isSecondPolysilicon())
+//        {
+//            MoCMOS.setSecondPolysilicon(newVal);
+//            changeInMoCMOS = true;
+//        }
+//
+//		newVal = techMOCMOSDisallowStackedVias.isSelected();
+//		if (newVal != MoCMOS.tech.isDisallowStackedVias())
+//        {
+//            MoCMOS.setDisallowStackedVias(newVal);
+//            changeInMoCMOS = true;
+//        }
+//
+//		newVal = techMOCMOSAlternateContactRules.isSelected();
+//		if (newVal != MoCMOS.tech.isAlternateActivePolyRules())
+//        {
+//            MoCMOS.setAlternateActivePolyRules(newVal);
+//            changeInMoCMOS = true;
+//        }
 
 		// Technologies
 		String currentTechName = (String)technologyPopup.getSelectedItem();
-		Technology currentTech = Technology.findTechnology(currentTechName);
-		if (currentTech != User.getSchematicTechnology() && currentTech != null)
-			User.setSchematicTechnology(currentTech);
-
-        String defaultTech = (String)defaultTechPulldown.getSelectedItem();
-		if (!defaultTech.equals(User.getDefaultTechnology()))
-			User.setDefaultTechnology(defaultTech);
-
-        // Foundry for MoCMOS
-        if (changeInMoCMOS || checkFoundry((Foundry.Type)techDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech))
-            Technology.TechSetting.technologyChanged(MoCMOS.tech, true);  // including update of display
+		if (Technology.findTechnology(currentTechName) != null)
+            setString(schematicTechnologySetting, currentTechName);
+        setString(defaultTechnologySetting, (String)defaultTechPulldown.getSelectedItem());
+//		String currentTechName = (String)technologyPopup.getSelectedItem();
+//		Technology currentTech = Technology.findTechnology(currentTechName);
+//		if (currentTech != User.getSchematicTechnology() && currentTech != null)
+//			User.setSchematicTechnology(currentTech);
+//
+//        String defaultTech = (String)defaultTechPulldown.getSelectedItem();
+//		if (!defaultTech.equals(User.getDefaultTechnology()))
+//			User.setDefaultTechnology(defaultTech);
+//
+//        // Foundry for MoCMOS
+//        if (changeInMoCMOS || checkFoundry((Foundry.Type)techDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech))
+//            Technology.TechSetting.technologyChanged(MoCMOS.tech, true);  // including update of display
 
         // Tabs for extra technologies if available
-        try
-        {
-            Class<?> extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90Tab");
-            extraTechClass.getMethod("closeTechnologyTab").invoke(null);
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
-        }
-        try
-        {
-            Class<?> extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180Tab");
-            extraTechClass.getMethod("closeTechnologyTab").invoke(null);
-        } catch (Exception e)
-        {
-            System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
+        for (Object extraTechTab: extraTechTabs) {
+            try {
+                extraTechTab.getClass().getMethod("term").invoke(extraTechTab);
+            } catch (Exception e) {
+                System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
+            }
         }
 	}
 
@@ -269,12 +279,12 @@ public class TechnologyTab extends ProjSettingsPanel
      * @param foundry
      * @param tech
      */
-    public static boolean checkFoundry(Foundry.Type foundry, Technology tech)
+    public boolean checkFoundry(Foundry.Type foundry, Technology tech)
     {
         if (foundry == null) return false; // technology without design rules.
         boolean changed = false;
 
-        if (!foundry.name().equalsIgnoreCase(tech.getPrefFoundry()))
+        if (!foundry.name().equalsIgnoreCase(getString(tech.getPrefFoundrySetting())))
         {
             changed = true;
             String [] messages = {
@@ -288,14 +298,15 @@ public class TechnologyTab extends ProjSettingsPanel
                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
             if (val != 2)
             {
-                boolean modifyNodes = val == 0; // user wants to resize the nodes
-                
-                //tech.setPrefFoundryAndResize(foundry.name(), modifyNodes);
-                tech.setPrefFoundry(foundry.name());
-                // Call side effect
-                Technology.TechSetting.technologyChanged(tech, modifyNodes);
-                
-                changed = false; // rules set already updated as side effect of changing the foundry name
+                setString(tech.getPrefFoundrySetting(), foundry.name());
+//                boolean modifyNodes = val == 0; // user wants to resize the nodes
+//                
+//                //tech.setPrefFoundryAndResize(foundry.name(), modifyNodes);
+//                tech.setPrefFoundry(foundry.name());
+//                // Call side effect
+//                Technology.TechSetting.technologyChanged(tech, modifyNodes);
+//                
+//                changed = false; // rules set already updated as side effect of changing the foundry name
             }
         }
         return changed;

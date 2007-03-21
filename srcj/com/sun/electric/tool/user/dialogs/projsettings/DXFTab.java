@@ -23,12 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
-
-import java.awt.Frame;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import javax.swing.JPanel;
 
@@ -37,12 +36,13 @@ import javax.swing.JPanel;
  */
 public class DXFTab extends ProjSettingsPanel
 {
-	private Layer artworkLayer;
-	private String initialNames;
 	private TextUtils.UnitScale [] scales;
+    
+    private Setting artworkDXFLayerSetting = Artwork.tech.findLayer("Graphics").getDXFLayerSetting();
+    private Setting dxfScaleSetting = IOTool.getDXFScaleSetting();
 
 	/** Creates new form DXFTab */
-	public DXFTab(Frame parent, boolean modal)
+	public DXFTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -60,13 +60,7 @@ public class DXFTab extends ProjSettingsPanel
 	 */
 	public void init()
 	{
-		initialNames = "";
-		artworkLayer = Artwork.tech.findLayer("Graphics");
-		if (artworkLayer != null)
-		{
-			initialNames = artworkLayer.getDXFLayer();
-			dxfLayerName.setText(initialNames);
-		}
+        dxfLayerName.setText(getString(artworkDXFLayerSetting));
 
 		// initialize the scale popup
 		scales = TextUtils.UnitScale.getUnitScales();
@@ -74,7 +68,7 @@ public class DXFTab extends ProjSettingsPanel
 		{
 			dxfScale.addItem(scales[i].getName() + "Meter");
 		}
-		dxfScale.setSelectedItem(TextUtils.UnitScale.findFromIndex(IOTool.getDXFScale()).getName() + "Meter");
+		dxfScale.setSelectedItem(TextUtils.UnitScale.findFromIndex(getInt(dxfScaleSetting)).getName() + "Meter");
 	}
 
 	/**
@@ -83,13 +77,8 @@ public class DXFTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		String currentNames = dxfLayerName.getText();
-		if (!currentNames.equals(initialNames))
-			artworkLayer.setDXFLayer(currentNames);
-
-		int currentScale = scales[dxfScale.getSelectedIndex()].getIndex();
-		if (currentScale != IOTool.getDXFScale())
-			IOTool.setDXFScale(currentScale);
+        setString(artworkDXFLayerSetting, dxfLayerName.getText());
+        setInt(dxfScaleSetting, scales[dxfScale.getSelectedIndex()].getIndex());
 	}
 
 	/** This method is called from within the constructor to

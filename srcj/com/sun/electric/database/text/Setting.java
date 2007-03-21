@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -50,7 +51,6 @@ public class Setting {
     private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
     private static final ArrayList<Object> values = new ArrayList<Object>();
-    private static SettingChangeBatch changeBatch = null;
     
     private final ProjSettingsNode xmlNode;
     private final String xmlName;
@@ -99,39 +99,79 @@ public class Setting {
     }
     
     /**
-     * Method to get the boolean value on this TechSetting object.
+     * Method to get the boolean value on this Setting object.
      * The object must have been created as "boolean".
      * @return the boolean value on this TechSetting object.
      */
     public boolean getBoolean() { return ((Boolean)getValue()).booleanValue(); }
     
     /**
-     * Method to get the integer value on this TechSetting object.
+     * Method to get the integer value on this Setting object.
      * The object must have been created as "integer".
      * @return the integer value on this TechSetting object.
      */
     public int getInt() { return ((Integer)getValue()).intValue(); }
     
     /**
-     * Method to get the long value on this TechSetting object.
+     * Method to get the long value on this Setting object.
      * The object must have been created as "long".
      * @return the long value on this TechSetting object.
      */
     public long getLong() { return ((Long)getValue()).longValue(); }
     
     /**
-     * Method to get the double value on this TechSetting object.
+     * Method to get the double value on this Setting object.
      * The object must have been created as "double".
      * @return the double value on this TechSetting object.
      */
     public double getDouble() { return ((Double)getValue()).doubleValue(); }
     
     /**
-     * Method to get the string value on this TechSetting object.
+     * Method to get the string value on this Setting object.
      * The object must have been created as "string".
      * @return the string value on this TechSetting object.
      */
     public String getString() { return (String)getValue(); }
+    
+    /**
+     * Method to get the boolean value on this Setting object in a specified context.
+     * The object must have been created as "boolean".
+     * @param context specified context.
+     * @return the boolean value on this Setting object in the context.
+     */
+    public boolean getBoolean(List<Object> context) { return ((Boolean)getValue(context)).booleanValue(); }
+    
+    /**
+     * Method to get the integer value on this Setting object in a specified context.
+     * The object must have been created as "integer".
+     * @param context specified context.
+     * @return the integer value on this TechSetting object.
+     */
+    public int getInt(List<Object> context) { return ((Integer)getValue(context)).intValue(); }
+    
+    /**
+     * Method to get the long value on this Setting object in a specified context.
+     * The object must have been created as "long".
+     * @param context specified context.
+     * @return the long value on this TechSetting object.
+     */
+    public long getLong(List<Object> context) { return ((Long)getValue(context)).longValue(); }
+    
+    /**
+     * Method to get the double value on this Setting object in a specified context.
+     * The object must have been created as "double".
+     * @param context specified context.
+     * @return the double value on this TechSetting object.
+     */
+    public double getDouble(List<Object> context) { return ((Double)getValue(context)).doubleValue(); }
+    
+    /**
+     * Method to get the string value on this Setting object in a specified context.
+     * The object must have been created as "string".
+     * @param context specified context.
+     * @return the string value on this TechSetting object.
+     */
+    public String getString(List<Object> context) { return (String)getValue(context); }
     
     /**
      * Method to set a new boolean value on this TechSetting object.
@@ -179,21 +219,73 @@ public class Setting {
     }
     
     public void set(Object v) {
-        if (changeBatch != null) {
-            if (SwingUtilities.isEventDispatchThread()) {
-                if (!v.equals(getValue()))
-                    changeBatch.add(this, v);
-                return;
-            }
-            changeBatch = null;
-        }
+//        if (changeBatch != null) {
+//            if (SwingUtilities.isEventDispatchThread()) {
+//                if (!v.equals(getValue()))
+//                    changeBatch.add(this, v);
+//                return;
+//            }
+//            changeBatch = null;
+//        }
         EDatabase.theDatabase.checkChanging();
         if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
-            throw new RuntimeException();
+            throw new ClassCastException();
         values.set(index, factoryObj.equals(v) ? factoryObj : v);
         saveToPreferences(v);
         setSideEffect();
+    }
+    
+    /**
+     * Method to set a new boolean value on this TechSetting object.
+     * @param v the new boolean value of this TechSetting object.
+     */
+    public void setBoolean(List<Object> context, boolean v) {
+        if (v != getBoolean(context))
+            set(context, Boolean.valueOf(v));
+    }
+    
+    /**
+     * Method to set a new integer value on this TechSetting object.
+     * @param v the new integer value of this TechSetting object.
+     */
+    public void setInt(List<Object> context, int v) {
+        if (v != getInt(context))
+            set(context, Integer.valueOf(v));
+     }
+    
+    /**
+     * Method to set a new long value on this TechSetting object.
+     * @param v the new long value of this TechSetting object.
+     */
+    public void setLong(List<Object> context, long v) {
+        if (v != getInt(context))
+            set(context, Long.valueOf(v));
+    }
+    
+    /**
+     * Method to set a new double value on this TechSetting object.
+     * @param v the new double value of this Pref object.
+     */
+    public void setDouble(List<Object> context, double v) {
+        if (v != getDouble(context))
+            set(context, Double.valueOf(v));
+    }
+    
+    /**
+     * Method to set a new string value on this TechSetting object.
+     * @param str the new string value of this TechSetting object.
+     */
+    public void setString(List<Object> context, String str) {
+        if (!str.equals(getString(context)))
+            set(context, str);
+    }
+    
+    public void set(List<Object> context, Object v) {
+        if (getValue(context).equals(v)) return;
+        if (v.getClass() != factoryObj.getClass())
+            throw new ClassCastException();
+        context.set(index, factoryObj.equals(v) ? factoryObj : v);
     }
     
     /**
@@ -216,20 +308,31 @@ public class Setting {
     public String getPrefName() { return prefName; }
     
 	/**
-	 * Method to get the value of this Pref object as an Object.
+	 * Method to get the value of this Setting object as an Object.
 	 * The proper way to get the current value is to use one of the type-specific
 	 * methods such as getInt(), getBoolean(), etc.
-	 * @return the Object value of this Pref object.
+	 * @return the Object value of this Setting object.
 	 */
 	public Object getValue() {
-        if (changeBatch != null) {
-            if (SwingUtilities.isEventDispatchThread()) {
-                Object pendingChange = changeBatch.changesForSettings.get(this);
-                if (pendingChange != null)
-                    return pendingChange;
-            }
-        }
+//        if (changeBatch != null) {
+//            if (SwingUtilities.isEventDispatchThread()) {
+//                Object pendingChange = changeBatch.changesForSettings.get(this);
+//                if (pendingChange != null)
+//                    return pendingChange;
+//            }
+//        }
         return values.get(index);
+    }
+
+	/**
+	 * Method to get the value of this Setting object as an Object in a specified context.
+	 * The proper way to get the current value is to use one of the type-specific
+	 * methods such as getInt(), getBoolean(), etc.
+     * @param context specified context
+	 * @return the Object value of this Setting object in the specfied context.
+	 */
+	public Object getValue(List<Object> context) {
+        return context.get(index);
     }
 
     /**
@@ -543,35 +646,6 @@ public class Setting {
     }
 
 	/**
-	 * Method to start accumulation of Setting changes.
-	 * All changes to project settings after this call are gathered,
-	 * and not actually implemented.
-	 * Call "getSettingChanges()" to get the gathered changes, and call
-	 * "implementSettingChanges()" to actually make the changes.
-	 */
-    public static void gatherSettingChanges() {
-        changeBatch = new SettingChangeBatch();
-    }
-
-	/**
-	 * Method to get the accumulated Setting changes.
-	 * In order to make project settings changes on the server,
-	 * it is necessary to gather them on the client, and send
-	 * the changes to the server for actual change.
-	 * This method runs on the client and gets a serializable
-	 * object that can be sent to the server.
-	 * @return a collection of changes to project settings that have
-	 * been made since the call to "gatherSettingChanges()".
-	 * Call "implementSettingChanges()" with the returned collection
-	 * to actually make the changes.
-	 */
-    public static SettingChangeBatch getSettingChanges() {
-        SettingChangeBatch batch = changeBatch;
-        changeBatch = null;
-        return batch;
-    }
-
-	/**
 	 * Method to make a collection of project settings changes.
 	 * In order to make project settings changes on the server,
 	 * it is necessary to gather them on the client, and send
@@ -588,6 +662,9 @@ public class Setting {
         }
     }
 
+    public static List<Object> getContext() { return values; }
+    public static Collection<Setting> getSettings() { return allSettingsByXmlPath.values(); }
+    
     static void printAllSettings(PrintStream out) {
         TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
         for (Setting setting: allSettingsByXmlPath.values())

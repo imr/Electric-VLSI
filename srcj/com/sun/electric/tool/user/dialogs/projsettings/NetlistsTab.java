@@ -24,13 +24,13 @@
 package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
-import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
@@ -40,8 +40,13 @@ import javax.swing.JTextArea;
  */
 public class NetlistsTab extends ProjSettingsPanel
 {
+    private Setting ignoreResistorsSetting = NetworkTool.getIgnoreResistorsSetting();
+    private Setting includeDateAndVersionInOutputSetting = User.getIncludeDateAndVersionInOutputSetting();
+    private Setting useCopyrightMessageSetting = IOTool.getUseCopyrightMessageSetting();
+    private Setting copyrightMessageSetting = IOTool.getCopyrightMessageSetting();
+    
 	/** Creates new form NetlistsTab */
-	public NetlistsTab(Frame parent, boolean modal)
+	public NetlistsTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -61,15 +66,15 @@ public class NetlistsTab extends ProjSettingsPanel
 	 */
 	public void init()
 	{
-		netIgnoreResistors.setSelected(NetworkTool.isIgnoreResistors());
-		generalIncludeDateAndVersion.setSelected(User.isIncludeDateAndVersionInOutput());
+		netIgnoreResistors.setSelected(getBoolean(ignoreResistorsSetting));
+		generalIncludeDateAndVersion.setSelected(getBoolean(includeDateAndVersionInOutputSetting));
 
-		if (IOTool.isUseCopyrightMessage()) copyrightUse.setSelected(true); else
+		if (getBoolean(useCopyrightMessageSetting)) copyrightUse.setSelected(true); else
 			copyrightNone.setSelected(true);
 
 		copyrightTextArea = new JTextArea();
 		copyrightMessage.setViewportView(copyrightTextArea);
-		copyrightTextArea.setText(IOTool.getCopyrightMessage());
+		copyrightTextArea.setText(getString(copyrightMessageSetting));
 		copyrightTextArea.addKeyListener(new KeyAdapter()
 		{
 			public void keyTyped(KeyEvent evt) { copyrightMessageKeyTyped(evt); }
@@ -87,21 +92,10 @@ public class NetlistsTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		boolean nowBoolean = netIgnoreResistors.isSelected();
-		if (NetworkTool.isIgnoreResistors() != nowBoolean)
-			NetworkTool.setIgnoreResistors(nowBoolean);
-
-		boolean includeDateAndVersion = generalIncludeDateAndVersion.isSelected();
-		if (includeDateAndVersion != User.isIncludeDateAndVersionInOutput())
-			User.setIncludeDateAndVersionInOutput(includeDateAndVersion);
-
-		boolean currentUseCopyrightMessage = copyrightUse.isSelected();
-		if (currentUseCopyrightMessage != IOTool.isUseCopyrightMessage())
-			IOTool.setUseCopyrightMessage(currentUseCopyrightMessage);
-
-		String msg = copyrightTextArea.getText();
-		if (!msg.equals(IOTool.getCopyrightMessage()))
-			IOTool.setCopyrightMessage(msg);
+        setBoolean(ignoreResistorsSetting, netIgnoreResistors.isSelected());
+        setBoolean(includeDateAndVersionInOutputSetting, generalIncludeDateAndVersion.isSelected());
+        setBoolean(useCopyrightMessageSetting, copyrightUse.isSelected());
+        setString(copyrightMessageSetting, copyrightTextArea.getText());
 	}
 
 	/** This method is called from within the constructor to

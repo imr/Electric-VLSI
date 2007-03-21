@@ -26,13 +26,12 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -47,11 +46,10 @@ public class SkillTab extends ProjSettingsPanel
 {
 	private JList skillLayerList;
 	private DefaultListModel skillLayerModel;
-	private HashMap<Layer,String> skillLayers;
 	private Technology curTech;
 
 	/** Creates new form SkillTab */
-	public SkillTab(Frame parent, boolean modal)
+	public SkillTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -80,15 +78,12 @@ public class SkillTab extends ProjSettingsPanel
 			public void mouseClicked(MouseEvent evt) { skillClickLayer(); }
 		});
 		skillLayerModel.clear();
-		skillLayers = new HashMap<Layer,String>();
 		curTech = Technology.getCurrent();
 		skillTechnology.setText("Skill layers for technology: " + curTech.getTechName());
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			String skillLayerName = layer.getSkillLayer();
-			if (skillLayerName == null) skillLayerName = "";
-			skillLayers.put(layer, skillLayerName);
+			String skillLayerName = getString(layer.getSkillLayerSetting());
 			skillLayerModel.addElement(layer.getName() + " (" + skillLayerName + ")");
 		}
 		skillLayerList.setSelectedIndex(0);
@@ -126,7 +121,7 @@ public class SkillTab extends ProjSettingsPanel
 		if (layer == null) return;
 
 		String layerName = skillLayerName.getText();
-		skillLayers.put(layer, layerName);
+		setString(layer.getSkillLayerSetting(), layerName);
 		String newLine = layer.getName() + " (" + layerName + ")";
 		int index = skillLayerList.getSelectedIndex();
 		skillLayerModel.set(index, newLine);
@@ -142,24 +137,7 @@ public class SkillTab extends ProjSettingsPanel
 		if (spacePos >= 0) str = str.substring(0, spacePos);
 		Layer layer = curTech.findLayer(str);
 		if (layer == null) return;
-		String shownValue = skillLayers.get(layer);
-		skillLayerName.setText(shownValue);
-	}
-
-	/**
-	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the Skill tab.
-	 */
-	public void term()
-	{
-		for(Layer layer : skillLayers.keySet())
-		{
-			String layerName = skillLayers.get(layer);
-			if (!layer.getSkillLayer().equals(layerName))
-			{
-				layer.setSkillLayer(layerName);
-			}
-		}
+		skillLayerName.setText(getString(layer.getSkillLayerSetting()));
 	}
 
 	/** This method is called from within the constructor to

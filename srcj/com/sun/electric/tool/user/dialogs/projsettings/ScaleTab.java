@@ -25,13 +25,12 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
-
-import java.awt.Frame;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import java.util.HashMap;
 import java.util.Iterator;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -45,7 +44,7 @@ import javax.swing.event.DocumentListener;
 public class ScaleTab extends ProjSettingsPanel
 {
 	/** Creates new form ScaleTab */
-	public ScaleTab(Frame parent, boolean modal)
+	public ScaleTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -59,7 +58,6 @@ public class ScaleTab extends ProjSettingsPanel
 
 	private JList unitsTechnologyList;
 	private DefaultListModel unitsTechnologyModel;
-	private HashMap<Technology,Double> unitValues;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -78,15 +76,13 @@ public class ScaleTab extends ProjSettingsPanel
 			public void mouseClicked(MouseEvent evt) { unitsClickTechnology(); }
 		});
 		unitsTechnologyModel.clear();
-		unitValues = new HashMap<Technology,Double>();
 		int wantIndex = 0;
 		int index = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
 			if (!tech.isScaleRelevant()) continue;
-			double shownScale = tech.getScale();
-			unitValues.put(tech, new Double(shownScale));
+			double shownScale = getDouble(tech.getScaleSetting());
 			unitsTechnologyModel.addElement(tech.getTechName() + " (scale=" + shownScale + " nanometers)");
 			if (tech == Technology.getCurrent()) wantIndex = index;
 			index++;
@@ -123,7 +119,7 @@ public class ScaleTab extends ProjSettingsPanel
 		if (tech == null) return;
 
 		double shownScale = TextUtils.atof(unitsScaleValue.getText());
-		unitValues.put(tech, new Double(shownScale));
+		setDouble(tech.getScaleSetting(), shownScale);
 		String newLine = tech.getTechName() + " (scale=" + shownScale + " nanometers)";
 		int index = unitsTechnologyList.getSelectedIndex();
 		unitsTechnologyModel.set(index, newLine);
@@ -140,27 +136,11 @@ public class ScaleTab extends ProjSettingsPanel
 		if (spacePos >= 0) str = str.substring(0, spacePos);
 		Technology tech = Technology.findTechnology(str);
 		if (tech == null) return;
-		Double shownValue = unitValues.get(tech);
-		unitsScaleValue.setText(TextUtils.formatDouble(shownValue.doubleValue()));
-		unitsAlternateScale.setText("nanometers (" + (shownValue.doubleValue()/1000.0) + " microns)");
+		double shownValue = getDouble(tech.getScaleSetting());
+		unitsScaleValue.setText(TextUtils.formatDouble(shownValue));
+		unitsAlternateScale.setText("nanometers (" + (shownValue/1000.0) + " microns)");
 	}
-
-	/**
-	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the Scale tab.
-	 */
-	public void term()
-	{
-		for(Technology tech : unitValues.keySet())
-		{
-			Double scaleValue = unitValues.get(tech);
-			if (scaleValue.doubleValue() != tech.getScale())
-			{
-				tech.setScale(scaleValue.doubleValue());
-			}
-		}
-	}
-
+    
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

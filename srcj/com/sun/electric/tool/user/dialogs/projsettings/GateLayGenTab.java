@@ -6,23 +6,12 @@
 
 package com.sun.electric.tool.user.dialogs.projsettings;
 
-import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.generator.layout.GateLayGenSettings;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.StdCellParams;
-import java.awt.GridBagConstraints;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.BasicStroke;
-import java.awt.Font;
-import java.awt.Color;
-import java.io.*;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 
 /**
  *
@@ -32,35 +21,39 @@ public class GateLayGenTab extends ProjSettingsPanel {
 	public static final long serialVersionUID=0;
     java.awt.Frame parent;
     
+    private Setting foundrySetting = GateLayGenSettings.getFoundrySetting();
+    private Setting enableNCCSetting = GateLayGenSettings.getEnableNCCSetting();
+    private Setting sizeQuantizationErrorSetting = GateLayGenSettings.getSizeQuantizationErrorSetting();
+    private Setting maxMosWidthSetting = GateLayGenSettings.getMaxMosWidthSetting();
+    private Setting vddYSetting = GateLayGenSettings.getVddYSetting();
+    private Setting gndYSetting = GateLayGenSettings.getGndYSetting();
+    private Setting nmosWellHeightSetting = GateLayGenSettings.getNmosWellHeightSetting();
+    private Setting pmosWellHeightSetting = GateLayGenSettings.getPmosWellHeightSetting();
+    private Setting simpleNameSetting = GateLayGenSettings.getSimpleNameSetting();
+    
     //private JPanel paintinv;
     
     /** Creates new form Layout_Gen */
-    public GateLayGenTab(java.awt.Frame parent, boolean modal) {
+    public GateLayGenTab(ProjectSettingsFrame parent, boolean modal) {
         super(parent, modal);
-        this.parent = parent;
+        this.parent = (java.awt.Frame)parent.getOwner();
         initComponents();
         initializeFields();
     }
     
     void initializeFields() {
-        techCombo.setSelectedItem(GateLayGenSettings.getFoundry());
+        techCombo.setSelectedItem(getString(foundrySetting));
         
-        String str = GateLayGenSettings.getEnableNCC();
-        if(str==null) {
-            libLabel.setEnabled(false);
-            libCombo.setEnabled(false);
-        } else {
-            libLabel.setEnabled(true);
-            libCombo.setSelectedItem(str);
-        }
+//        libLabel.setEnabled(true);
+        libCombo.setSelectedItem(getString(enableNCCSetting));
         
-        quantText.setText(String.valueOf(GateLayGenSettings.getSizeQuantizationError()));
-        mosWidthText.setText(String.valueOf(GateLayGenSettings.getMaxMosWidth()));
-        vddyText.setText(String.valueOf(GateLayGenSettings.getVddY()));
-        gndyText.setText(String.valueOf(GateLayGenSettings.getGndY()));
-        nmoswellText.setText(String.valueOf(GateLayGenSettings.getNmosWellHeight()));
-        pmoswellText.setText(String.valueOf(GateLayGenSettings.getPmosWellHeight()));
-        simpleNameCheck.setSelected(GateLayGenSettings.getSimpleName());
+        quantText.setText(String.valueOf(getInt(sizeQuantizationErrorSetting)));
+        mosWidthText.setText(String.valueOf(getInt(maxMosWidthSetting)));
+        vddyText.setText(String.valueOf(getInt(vddYSetting)));
+        gndyText.setText(String.valueOf(getInt(gndYSetting)));
+        nmoswellText.setText(String.valueOf(getInt(nmosWellHeightSetting)));
+        pmoswellText.setText(String.valueOf(getInt(pmosWellHeightSetting)));
+        simpleNameCheck.setSelected(getBoolean(simpleNameSetting));
     }
     
     /** return the panel to use for this preferences tab. */
@@ -515,49 +508,18 @@ public class GateLayGenTab extends ProjSettingsPanel {
     public void term() {
         if(!fieldsAreValid()) return;
 
-        String storedFoundry = GateLayGenSettings.getFoundry();
-    	String newFoundry = (String)techCombo.getSelectedItem();
-    	if (!storedFoundry.equals(newFoundry))
-    		GateLayGenSettings.setFoundry(newFoundry);
+        setString(foundrySetting, (String)techCombo.getSelectedItem());
 
-        String storedNccCheck = GateLayGenSettings.getEnableNCC();
-        String newNccCheck = nccCheck.isSelected() ?
-        		(String)libCombo.getSelectedItem() : "";
-        if (!storedNccCheck.equals(newNccCheck))
-            GateLayGenSettings.setEnableNCC(newNccCheck);
+        String newNccCheck = nccCheck.isSelected() ? (String)libCombo.getSelectedItem() : "";
+        setString(enableNCCSetting, newNccCheck);
         
-        int storedSizeQuant = GateLayGenSettings.getSizeQuantizationError();
-        int newSizeQuant = Integer.parseInt(quantText.getText());
-        if (storedSizeQuant!=newSizeQuant) 
-        	GateLayGenSettings.setSizeQuantizationError(newSizeQuant);
-        
-        int storedMaxMosWid = GateLayGenSettings.getMaxMosWidth();
-        int newMaxMosWid = Integer.parseInt(mosWidthText.getText());
-        if (storedMaxMosWid!=newMaxMosWid) 
-        	GateLayGenSettings.setMaxMosWidth(newMaxMosWid);
-        
-        int storedVddY = GateLayGenSettings.getVddY();
-        int newVddY = Integer.parseInt(vddyText.getText());
-        if (storedVddY!=newVddY) GateLayGenSettings.setVddY(newVddY);
-        
-        int storedGndY = GateLayGenSettings.getGndY();
-        int newGndY = Integer.parseInt(gndyText.getText());
-        if (storedGndY!=newGndY) GateLayGenSettings.setGndY(newGndY);
-        
-        int storedPmosWellHeight = GateLayGenSettings.getPmosWellHeight();
-        int newPmosWellHeight = Integer.parseInt((pmoswellText.getText()));
-        if (storedPmosWellHeight!=newPmosWellHeight) 
-        	GateLayGenSettings.setPmosWellHeight(newPmosWellHeight);
-        
-        int storedNmosWellHeight = GateLayGenSettings.getNmosWellHeight();
-        int newNmosWellHeight = Integer.parseInt(nmoswellText.getText());
-        if (storedNmosWellHeight!=newNmosWellHeight) 
-        	GateLayGenSettings.setNmosWellHeight(newNmosWellHeight);
-        
-        boolean storedSimpleName = GateLayGenSettings.getSimpleName();
-        boolean newSimpleName = simpleNameCheck.isSelected();
-        if (storedSimpleName!=newSimpleName)
-        	GateLayGenSettings.setSimpleName(newSimpleName);
+        setInt(sizeQuantizationErrorSetting, Integer.parseInt(quantText.getText()));
+        setInt(maxMosWidthSetting, Integer.parseInt(mosWidthText.getText()));
+        setInt(vddYSetting, Integer.parseInt(vddyText.getText()));
+        setInt(gndYSetting, Integer.parseInt(gndyText.getText()));
+        setInt(nmosWellHeightSetting, Integer.parseInt(nmoswellText.getText()));
+        setInt(pmosWellHeightSetting, Integer.parseInt(pmoswellText.getText()));
+        setBoolean(simpleNameSetting, simpleNameCheck.isSelected());
     }
     
     private boolean fieldsAreValid() {
@@ -628,19 +590,19 @@ public class GateLayGenTab extends ProjSettingsPanel {
         
     }//GEN-LAST:event_nccCheckActionPerformed
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[])
-    {
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                new GateLayGenTab(new javax.swing.JFrame(), true).setVisible(true);
-            }
-        });
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[])
+//    {
+//        java.awt.EventQueue.invokeLater(new Runnable()
+//        {
+//            public void run()
+//            {
+//                new GateLayGenTab(new javax.swing.JFrame(), true).setVisible(true);
+//            }
+//        });
+//    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel gndyLabel;

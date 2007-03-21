@@ -23,28 +23,19 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 
 /**
  * Class to handle the "Logical Effort" tab of the Project Settings dialog.
@@ -52,7 +43,7 @@ import javax.swing.text.Document;
 public class LogicalEffortTab extends ProjSettingsPanel
 {
 	/** Creates new form LogicalEffortTab */
-	public LogicalEffortTab(java.awt.Frame parent, boolean modal)
+	public LogicalEffortTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -64,8 +55,13 @@ public class LogicalEffortTab extends ProjSettingsPanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Logical Effort"; }
 
-	private HashMap<Technology,Double> gateCapacitance, wireCapRatio, diffToGateCapRatio;
 	private boolean changingLE;
+    
+    private Setting useLocalSettingsSetting = LETool.getUseLocalSettingsSetting();
+    private Setting globalFanoutSetting = LETool.getGlobalFanoutSetting();
+    private Setting convergenceEpsilonSetting = LETool.getConvergenceEpsilonSetting();
+    private Setting maxIterationsSetting = LETool.getMaxIterationsSetting();
+    private Setting keeperRatioSetting = LETool.getKeeperRatioSetting();
 
 	/**
 	 * Method called at the start of the dialog.
@@ -74,24 +70,18 @@ public class LogicalEffortTab extends ProjSettingsPanel
 	public void init()
 	{
         // tech-independent settings
-		leUseLocalSettings.setSelected(LETool.isUseLocalSettings());
-        leGlobalFanOut.setText(TextUtils.formatDouble(LETool.getGlobalFanout()));
-        leConvergence.setText(TextUtils.formatDouble(LETool.getConvergenceEpsilon()));
-        leMaxIterations.setText(String.valueOf(LETool.getMaxIterations()));
-        leKeeperSizeRatio.setText(TextUtils.formatDouble(LETool.getKeeperRatio()));
+		leUseLocalSettings.setSelected(getBoolean(useLocalSettingsSetting));
+        leGlobalFanOut.setText(TextUtils.formatDouble(getDouble(globalFanoutSetting)));
+        leConvergence.setText(TextUtils.formatDouble(getDouble(convergenceEpsilonSetting)));
+        leMaxIterations.setText(String.valueOf(getInt(maxIterationsSetting)));
+        leKeeperSizeRatio.setText(TextUtils.formatDouble(getDouble(keeperRatioSetting)));
 
         // tech-dependent settings
-		gateCapacitance = new HashMap<Technology,Double>();
-		wireCapRatio = new HashMap<Technology,Double>();
-		diffToGateCapRatio = new HashMap<Technology,Double>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
             if (!tech.isLayout()) continue;
 			leTechnology.addItem(tech.getTechName());
-			gateCapacitance.put(tech, new Double(tech.getGateCapacitance()));
-			wireCapRatio.put(tech, new Double(tech.getWireRatio()));
-			diffToGateCapRatio.put(tech, new Double(tech.getDiffAlpha()));
 		}
 		leTechnology.addActionListener(new ActionListener()
 		{
@@ -116,12 +106,9 @@ public class LogicalEffortTab extends ProjSettingsPanel
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
 
-		double dVal = TextUtils.atof(leGateCapacitance.getText());
-		gateCapacitance.put(tech, new Double(dVal));
-		dVal = TextUtils.atof(leDefaultWireCapRatio.getText());
-		wireCapRatio.put(tech, new Double(dVal));
-		dVal = TextUtils.atof(leDiffToGateCapRatio.getText());
-		diffToGateCapRatio.put(tech, new Double(dVal));
+		setDouble(tech.getGateCapacitanceSetting(), TextUtils.atof(leGateCapacitance.getText()));
+		setDouble(tech.getWireRatioSetting(), TextUtils.atof(leDefaultWireCapRatio.getText()));
+		setDouble(tech.getDiffAlphaSetting(), TextUtils.atof(leDiffToGateCapRatio.getText()));
 	}
 
 	/**
@@ -145,12 +132,9 @@ public class LogicalEffortTab extends ProjSettingsPanel
 		if (tech == null) return;
 
 		changingLE = true;
-		Double dVal = (Double)gateCapacitance.get(tech);
-		leGateCapacitance.setText(TextUtils.formatDouble(dVal.doubleValue()));
-		dVal = (Double)wireCapRatio.get(tech);
-		leDefaultWireCapRatio.setText(TextUtils.formatDouble(dVal.doubleValue()));
-		dVal = (Double)diffToGateCapRatio.get(tech);
-		leDiffToGateCapRatio.setText(TextUtils.formatDouble(dVal.doubleValue()));
+		leGateCapacitance.setText(TextUtils.formatDouble(getDouble(tech.getGateCapacitanceSetting())));
+		leDefaultWireCapRatio.setText(TextUtils.formatDouble(getDouble(tech.getWireRatioSetting())));
+		leDiffToGateCapRatio.setText(TextUtils.formatDouble(getDouble(tech.getDiffAlphaSetting())));
 		changingLE = false;
 	}
 
@@ -160,35 +144,11 @@ public class LogicalEffortTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-        boolean nowBoolean = leUseLocalSettings.isSelected();
-		if (LETool.isUseLocalSettings() != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
-
-        double value = TextUtils.atof(leGlobalFanOut.getText());
-        if (LETool.getGlobalFanout() != value) LETool.setGlobalFanout(value);
-
-        value = TextUtils.atof(leConvergence.getText());
-        if (LETool.getConvergenceEpsilon() != value) LETool.setConvergenceEpsilon(value);
-
-        int i = Integer.parseInt(leMaxIterations.getText());
-        if (i != LETool.getMaxIterations()) LETool.setMaxIterations(i);
-
-        value = TextUtils.atof(leKeeperSizeRatio.getText());
-        if (LETool.getKeeperRatio() != value) LETool.setKeeperRatio(value);
-
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-            if (!tech.isLayout()) continue;
-
-			Double dVal = (Double)gateCapacitance.get(tech);
-			if (tech.getGateCapacitance() != dVal.doubleValue()) tech.setGateCapacitance(dVal.doubleValue());
-
-			dVal = (Double)wireCapRatio.get(tech);
-			if (tech.getWireRatio() != dVal.doubleValue()) tech.setWireRatio(dVal.doubleValue());
-
-			dVal = (Double)diffToGateCapRatio.get(tech);
-			if (tech.getDiffAlpha() != dVal.doubleValue()) tech.setDiffAlpha(dVal.doubleValue());
-		}
+        setBoolean(useLocalSettingsSetting, leUseLocalSettings.isSelected());
+        setDouble(globalFanoutSetting, TextUtils.atof(leGlobalFanOut.getText()));
+        setDouble(convergenceEpsilonSetting, TextUtils.atof(leConvergence.getText()));
+        setInt(maxIterationsSetting, Integer.parseInt(leMaxIterations.getText()));
+        setDouble(keeperRatioSetting, TextUtils.atof(leKeeperSizeRatio.getText()));
 	}
 
 	/** This method is called from within the constructor to
