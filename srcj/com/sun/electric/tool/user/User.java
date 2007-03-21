@@ -978,12 +978,12 @@ public class User extends Listener
 	 */
 	public static void setIconGenExportStyle(int style) { cacheIconGenExportStyle.setInt(style); }
 
-	private static Pref cacheIconGenExportTech = Pref.makeIntPref("IconGenExportTech", tool.prefs, 0);
+	private static Pref cacheIconGenExportTech = Pref.makeIntPref("IconGenExportTech", tool.prefs, 1);
 	/**
 	 * Method to tell how exports should be constructed in generated icons.
 	 * @return information about how exports should be constructed in generated icons.
-	 * 0: (the default) use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
-	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
+	 * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
+	 * 1: (the default) use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
 	public static int getIconGenExportTech() { return cacheIconGenExportTech.getInt(); }
 	/**
