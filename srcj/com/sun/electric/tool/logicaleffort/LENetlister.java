@@ -84,15 +84,13 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         }
 
         /** Create a new set of constants from the user's settings */
-        public NetlisterConstants(Technology technology) {
-            if (technology == Schematics.tech)
-                technology = Schematics.getDefaultSchematicTechnology();
+        public NetlisterConstants(Technology layoutTech) {
             su = (float)LETool.getGlobalFanout();
             epsilon = (float)LETool.getConvergenceEpsilon();
             maxIterations = LETool.getMaxIterations();
-            gateCap = (float)technology.getGateCapacitance();
-            wireRatio = (float)technology.getWireRatio();
-            alpha = (float)technology.getDiffAlpha();
+            gateCap = (float)layoutTech.getGateCapacitance();
+            wireRatio = (float)layoutTech.getWireRatio();
+            alpha = (float)layoutTech.getDiffAlpha();
             keeperRatio = (float)LETool.getKeeperRatio();
         }
 
@@ -109,6 +107,11 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         }
     }
     
+    Technology layoutTech;
+    
+    LENetlister(Technology layoutTech) {
+        this.layoutTech = layoutTech;
+    }
 
     /** Call to start netlisting. Returns false if failed */
     public abstract boolean netlist(Cell cell, VarContext context, boolean useCaching);
@@ -161,7 +164,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (ni.getVar(ATTR_LESETTINGS) != null) {
                 Technology tech = cell.getTechnology();
                 if (cell.getView() == View.SCHEMATIC)
-                    tech = Schematics.getDefaultSchematicTechnology();
+                    tech = layoutTech;
                 float su = (float)LETool.getGlobalFanout();
                 float epsilon = (float)LETool.getConvergenceEpsilon();
                 int maxIterations = LETool.getMaxIterations();

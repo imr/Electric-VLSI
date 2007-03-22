@@ -93,7 +93,7 @@ public class FPGA extends Technology
 
 	private FPGA()
 	{
-		super("fpga");
+		super("fpga", Foundry.Type.NONE, 1);
 		setTechShortName("FPGA");
 		setTechDesc("FPGA Building-Blocks");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

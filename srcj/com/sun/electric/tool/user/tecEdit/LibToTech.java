@@ -36,6 +36,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -142,9 +143,9 @@ public class LibToTech
 
 	private static class SoftTech extends Technology
 	{
-		private SoftTech(String name)
+		private SoftTech(String name, int numMetals)
 		{
-			super(name);
+			super(name, Foundry.Type.MOSIS, numMetals);
 			setNoNegatedArcs();
 		}
 
@@ -235,6 +236,12 @@ public class LibToTech
 		// get layer information
 		LayerInfo [] lList = extractLayers(dependentLibs);
 		if (lList == null) return;
+        int numMetals = 0;
+        for (LayerInfo li: lList) {
+            Layer.Function fun = li.fun;
+            if (fun.isMetal())
+                numMetals = Math.max(numMetals, fun.getLevel());
+        }
 
 		// get arc information
 		ArcInfo [] aList = extractArcs(dependentLibs, lList);
@@ -245,15 +252,19 @@ public class LibToTech
 		if (nList == null) return;
 
 		// create the technology
-		SoftTech tech = new SoftTech(newTechName);
+		SoftTech tech = new SoftTech(newTechName, numMetals);
 		tech.setTheScale(gi.scale);
 		tech.setTechDesc(gi.description);
         tech.setFactoryParasitics(gi.minRes, gi.minCap);
 //		tech.setMinResistance(gi.minRes);
 //		tech.setMinCapacitance(gi.minCap);
-		tech.setGateLengthSubtraction(gi.gateShrinkage);
-		tech.setGateIncluded(gi.includeGateInResistance);
-		tech.setGroundNetIncluded(gi.includeGround);
+        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        changeBatch.add(tech.getGateLengthSubtractionSetting(), Double.valueOf(gi.gateShrinkage));
+		changeBatch.add(tech.getGateIncludedSetting(), Boolean.valueOf(gi.includeGateInResistance));
+		changeBatch.add(tech.getGroundNetIncludedSetting(), Boolean.valueOf(gi.includeGround));
+//		tech.setGateLengthSubtraction(gi.gateShrinkage);
+//		tech.setGateIncluded(gi.includeGateInResistance);
+//		tech.setGroundNetIncluded(gi.includeGround);
 		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
 		// create the layers
@@ -276,6 +287,8 @@ public class LibToTech
 		}
         
         tech.newFoundry(Foundry.Type.MOSIS, null, gdsLayers);
+        
+        Setting.implementSettingChanges(changeBatch);
         
 		// create the arcs
 		for(int i=0; i<aList.length; i++)

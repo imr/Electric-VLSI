@@ -45,7 +45,7 @@ public class CMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private CMOS()
 	{
-		super("cmos");
+		super("cmos", Foundry.Type.NONE, 1);
 		setTechShortName("Generic CMOS");
 		setTechDesc("CMOS (N-Well, Griswold rules)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

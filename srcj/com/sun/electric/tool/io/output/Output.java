@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.PortInst;
@@ -41,6 +42,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
@@ -254,13 +256,16 @@ public class Output
 			if (tech == Generic.tech) continue;
 			if (tech.getScale() > largestScale) largestScale = tech.getScale();
 		}
+        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
 			if (tech.isScaleRelevant()) continue;
 			if (tech == Generic.tech) continue;
-			tech.setScale(largestScale);
+            changeBatch.add(tech.getScaleSetting(), Double.valueOf(largestScale));
+//			tech.setScale(largestScale);
 		}
+        Setting.implementSettingChanges(changeBatch);
 
 		// handle different file types
 		URL libFile = lib.getLibFile();
@@ -442,7 +447,8 @@ public class Output
 			GDS.writeGDSFile(cell, context, filePath);
 		} else if (type == FileType.IRSIM)
 		{
-			IRSIM.writeIRSIMFile(cell, context, filePath);
+            Technology layoutTech = Schematics.getDefaultSchematicTechnology();
+			IRSIM.writeIRSIMFile(cell, context, layoutTech, filePath);
 		} else if (type == FileType.L)
 		{
 			L.writeLFile(cell, filePath);

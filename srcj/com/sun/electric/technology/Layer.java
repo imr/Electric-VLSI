@@ -919,11 +919,6 @@ public class Layer
 	 */
 	public void setFactoryCIFLayer(String cifLayer) { cifLayerSetting = makeLayerSetting("CIF", cifLayer); }
 	/**
-	 * Method to set the CIF name of this Layer.
-	 * @param cifLayer the CIF name of this Layer.
-	 */
-	public void setCIFLayer(String cifLayer) { cifLayerSetting.setString(cifLayer); }
-	/**
 	 * Method to return the CIF name of this layer.
 	 * @return the CIF name of this layer.
 	 */
@@ -982,13 +977,6 @@ public class Layer
 	 */
 	public void setFactoryDXFLayer(String dxfLayer) { dxfLayerSetting = makeLayerSetting("DXF", dxfLayer); }
 	/**
-	 * Method to set the DXF name of this Layer.
-	 * @param dxfLayer the DXF name of this Layer.
-	 */
-    public void setDXFLayer(String dxfLayer) {
-        dxfLayerSetting.setString(dxfLayer);
-    }
-	/**
 	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.
 	 */
@@ -1004,11 +992,6 @@ public class Layer
 	 * @param skillLayer the factory-default Skill name of this Layer.
 	 */
 	public void setFactorySkillLayer(String skillLayer) { skillLayerSetting = makeLayerSetting("Skill", skillLayer); }
-	/**
-	 * Method to set the Skill name of this Layer.
-	 * @param skillLayer the Skill name of this Layer.
-	 */
-	public void setSkillLayer(String skillLayer) { skillLayerSetting.setString(skillLayer); }
 	/**
 	 * Method to return the Skill name of this layer.
 	 * @return the Skill name of this layer.
@@ -1055,12 +1038,6 @@ public class Layer
 	 */
 	public double getResistance() { return resistanceSetting.getDouble(); }
 	/**
-	 * Method to set the resistance for this Layer.
-	 * Also saves this information in the permanent options.
-	 * @param resistance the new resistance for this Layer.
-	 */
-	public void setResistance(double resistance) { resistanceSetting.setDouble(resistance); }
-	/**
 	 * Returns project Setting to tell the resistance for this Layer.
 	 * @eturn project Setting to tell the resistance for this Layer.
 	 */
@@ -1072,12 +1049,6 @@ public class Layer
 	 */
 	public double getCapacitance() { return capacitanceSetting.getDouble(); }
 	/**
-	 * Method to set the capacitance for this Layer.
-	 * Also saves this information in the permanent options.
-	 * @param capacitance the new capacitance for this Layer.
-	 */
-	public void setCapacitance(double capacitance) { capacitanceSetting.setDouble(capacitance); }
-	/**
 	 * Returns project Setting to tell the capacitance for this Layer.
 	 * Returns project Setting to tell the capacitance for this Layer.
 	 */
@@ -1088,12 +1059,6 @@ public class Layer
 	 * @return the edge capacitance for this layer.
 	 */
 	public double getEdgeCapacitance() { return edgeCapacitanceSetting.getDouble(); }
-    /**
-     * Method to set the edge capacitance for this Layer.
-     * Also saves this information in the permanent options.
-     * @param edgeCapacitance the new edge capacitance for this Layer.
-     */
-    public void setEdgeCapacitance(double edgeCapacitance) { edgeCapacitanceSetting.setDouble(edgeCapacitance); }
     /**
      * Returns project Setting to tell the edge capacitance for this Layer.
      * Returns project Setting to tell the edge capacitance for this Layer.

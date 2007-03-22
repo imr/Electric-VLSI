@@ -119,6 +119,7 @@ public class ScaleTab extends ProjSettingsPanel
 		if (tech == null) return;
 
 		double shownScale = TextUtils.atof(unitsScaleValue.getText());
+        if (shownScale <= 0) return;
 		setDouble(tech.getScaleSetting(), shownScale);
 		String newLine = tech.getTechName() + " (scale=" + shownScale + " nanometers)";
 		int index = unitsTechnologyList.getSelectedIndex();

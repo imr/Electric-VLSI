@@ -39,9 +39,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.logicaleffort.LENetlister.NetlisterConstants;
 import com.sun.electric.tool.user.ErrorLogger;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -83,7 +85,8 @@ public class LENetlister1 extends LENetlister {
     private static final boolean DEBUG = false;
 
     /** Creates a new instance of LENetlister */
-    public LENetlister1(Job job) {
+    public LENetlister1(Job job, Technology layoutTech) {
+        super(layoutTech);
         // get preferences for this package
         Tool leTool = Tool.findTool("logical effort");
         constants = null;
@@ -102,6 +105,7 @@ public class LENetlister1 extends LENetlister {
     }
     
     // Entry point: This netlists the cell
+    @Override
     public boolean netlist(Cell cell, VarContext context, boolean useCaching) {
 
         //ArrayList connectedPorts = new ArrayList();
@@ -115,7 +119,7 @@ public class LENetlister1 extends LENetlister {
         // read schematic-specific sizing options
         constants = getSettings(cell);
         if (constants == null) {
-            constants = new NetlisterConstants(cell.getTechnology());
+            constants = new NetlisterConstants(layoutTech);
             if (!saveSettings(constants, cell)) {
                 // couldn't save settings to cell, abort
                 return false;

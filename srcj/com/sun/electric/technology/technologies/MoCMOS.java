@@ -44,6 +44,7 @@ import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -146,7 +147,7 @@ public class MoCMOS extends Technology
     }
 
     protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale) {
-        super(techName, defaultFoundryType);
+        super(techName, defaultFoundryType, 6);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
         setTechDesc(techDesc);
@@ -2469,7 +2470,7 @@ public class MoCMOS extends Technology
 		metalArcs[5].setNotUsed(true);
 
 		// enable the desired nodes
-		switch (getNumMetal())
+		switch (getNumMetals())
 		{
 			case 6:
 				metalPinNodes[5].setNotUsed(false);
@@ -2525,7 +2526,7 @@ public class MoCMOS extends Technology
 	 */
 	protected String describeState()
 	{
-		int numMetals = getNumMetal();
+		int numMetals = getNumMetals();
 		String rules = "";
 		switch (getRuleSet())
 		{
@@ -2842,7 +2843,7 @@ public class MoCMOS extends Technology
 				String metal = "";
 				if ((when&(DRCTemplate.DRCMode.M2.mode()|DRCTemplate.DRCMode.M3.mode()|DRCTemplate.DRCMode.M4.mode()|DRCTemplate.DRCMode.M5.mode()|DRCTemplate.DRCMode.M6.mode())) != 0)
 				{
-					switch (getNumMetal())
+					switch (getNumMetals())
 					{
 						case 2:  metal = "2m";   break;
 						case 3:  metal = "3m";   break;
@@ -2878,7 +2879,7 @@ public class MoCMOS extends Technology
      */
     protected void resizeNodes(XMLRules rules)
     {
-        int numMetals = getNumMetal();
+        int numMetals = getNumMetals();
         rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
@@ -3284,28 +3285,7 @@ public class MoCMOS extends Technology
 		return null;
 	}
 
-    public int getNumMetals() { return getNumMetal(); }
-
 	/******************** OPTIONS ********************/
-
-    private static final Setting cacheNumberOfMetalLayers = TechSetting.makeIntSetting(tech, "MoCMOSNumberOfMetalLayers",
-    	"Technology tab", "MOSIS CMOS: Number of Metal Layers", tech.getProjectSettings(), "NumMetalLayers", 6);
-	/**
-	 * Method to tell the number of metal layers in the MoCMOS technology.
-	 * The default is "4".
-	 * @return the number of metal layers in the MoCMOS technology (from 2 to 6).
-	 */
-	public int getNumMetal() { return cacheNumberOfMetalLayers.getInt(); }
-	/**
-	 * Method to set the number of metal layers in the MoCMOS technology.
-	 * @param num the number of metal layers in the MoCMOS technology (from 2 to 6).
-	 */
-	public static void setNumMetal(int num) { tech.cacheNumberOfMetalLayers.setInt(num); }
-	/**
-	 * Returns project Setting to tell the number of metal layers in the MoCMOS technology.
-	 * @eeturn project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
-	 */
-	public static Setting getNumMetalSetting() { return tech.cacheNumberOfMetalLayers; }
 
     private static final Setting cacheRuleSet = TechSetting.makeIntSetting(tech, "MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
         tech.getProjectSettings(), "MOCMOS Rule Set", 1);
@@ -3339,15 +3319,6 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules<BR>
 	 * 2: Deep rules
 	 */
-	public static void setRuleSet(int set) { tech.cacheRuleSet.setInt(set); }
-    
-    /**
-	 * Method to set the rule set for this Technology.
-	 * @param set the new rule set for this Technology:<BR>
-	 * 0: SCMOS rules<BR>
-	 * 1: Submicron rules<BR>
-	 * 2: Deep rules
-	 */
 	public static Setting getRuleSetSetting() { return tech.cacheRuleSet; }
 
 	private static final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(tech, "MoCMOSSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer",
@@ -3359,11 +3330,6 @@ public class MoCMOS extends Technology
 	 * If false, there is only 1 polysilicon layer.
 	 */
 	public boolean isSecondPolysilicon() { return tech.cacheSecondPolysilicon.getBoolean(); }
-	/**
-	 * Method to set a second polysilicon layer in this Technology.
-	 * @param on true if there are 2 polysilicon layers in this Technology.
-	 */
-	public static void setSecondPolysilicon(boolean on) { tech.cacheSecondPolysilicon.setBoolean(on); }
 	/**
 	 * Returns project Setting to tell a second polysilicon layer in this Technology.
 	 * @eturn project Setting to tell a second polysilicon layer in this Technology.
@@ -3379,11 +3345,6 @@ public class MoCMOS extends Technology
 	 */
 	public boolean isDisallowStackedVias() { return tech.cacheDisallowStackedVias.getBoolean(); }
 	/**
-	 * Method to set whether this Technology disallows stacked vias.
-	 * @param on true if the MOCMOS technology will allow disallows vias.
-	 */
-	public static void setDisallowStackedVias(boolean on) { tech.cacheDisallowStackedVias.setBoolean(on); }
-	/**
 	 * Returns project Setting to tell whether this Technology disallows stacked vias.
 	 * @return project Setting to tell whether this Technology disallows stacked vias.
 	 */
@@ -3397,11 +3358,6 @@ public class MoCMOS extends Technology
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
 	public boolean isAlternateActivePolyRules() { return tech.cacheAlternateActivePolyRules.getBoolean(); }
-	/**
-	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
-	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.
-	 */
-	public static void setAlternateActivePolyRules(boolean on) { tech.cacheAlternateActivePolyRules.setBoolean(on); }
 	/**
 	 * Returns project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
 	 * @return project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
@@ -3436,6 +3392,9 @@ public class MoCMOS extends Technology
 	 */
 	public Map<String,Object> convertOldVariable(String varName, Object value)
 	{
+        if (varName.equals("MoCMOSNumberOfMetalLayers") && getTechName().equals("mocmos")) {
+            return Collections.singletonMap(getNumMetalsSetting().getPrefName(), value);
+        }
 		if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return null;
 		if (!(value instanceof Integer)) return null;
 		int oldBits = ((Integer)value).intValue();
@@ -3454,7 +3413,7 @@ public class MoCMOS extends Technology
 			case MOCMOS5METAL: numMetals = 5;   break;
 			case MOCMOS6METAL: numMetals = 6;   break;
 		}
-		meanings.put(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
+		meanings.put(getNumMetalsSetting().getPrefName(), new Integer(numMetals));
 
 		int ruleSet = 0;
 		switch (oldBits&MOCMOSRULESET)

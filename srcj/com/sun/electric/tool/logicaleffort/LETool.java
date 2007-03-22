@@ -36,6 +36,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -430,10 +432,13 @@ public class LETool extends Tool {
 //            } catch (InterruptedException e) {}
 
             // get sizer and netlister
+            Technology layoutTech = cell.getTechnology();
+            if (layoutTech == Schematics.tech)
+                layoutTech = Schematics.getDefaultSchematicTechnology();
             if (newAlg)
-                netlister = new LENetlister2(this);
+                netlister = new LENetlister2(this, layoutTech);
             else
-                netlister = new LENetlister1(this);
+                netlister = new LENetlister1(this, layoutTech);
             boolean success = netlister.netlist(cell, context, true);
             if (!success) return false;
 
@@ -1088,11 +1093,6 @@ public class LETool extends Tool {
 	 */
 	public static boolean isUseLocalSettings() { return tool.cacheUseLocalSettings.getBoolean(); }
 	/**
-	 * Method to set whether to use local settings for Logical Effort
-	 * @param on whether to use local settings for Logical Effort
-	 */
-	public static void setUseLocalSettings(boolean on) { tool.cacheUseLocalSettings.setBoolean(on); }
-	/**
 	 * Returns project Setting to tell whether to use local settings for Logical Effort
 	 * @return project Setting to tell whether to use local settings for Logical Effort
 	 */
@@ -1131,11 +1131,6 @@ public class LETool extends Tool {
 	 */
 	public static double getGlobalFanout() { return tool.cacheGlobalFanout.getDouble(); }
 	/**
-     * Method to set the Global Fanout for Logical Effort.
-	 * @param fo the Global Fanout for Logical Effort.
-	 */
-	public static void setGlobalFanout(double fo) { tool.cacheGlobalFanout.setDouble(fo); }
-	/**
      * Returns project Setting to tell the Global Fanout for Logical Effort.
      * @return project Setting to tell the Global Fanout for Logical Effort.
 	 */
@@ -1148,11 +1143,6 @@ public class LETool extends Tool {
 	 */
 	public static double getConvergenceEpsilon() { return tool.cacheConvergenceEpsilon.getDouble(); }
 	/**
-	 * Method to set the Convergence Epsilon value for Logical Effort.
-	 * @param ep the Convergence Epsilon value for Logical Effort.
-	 */
-	public static void setConvergenceEpsilon(double ep) { tool.cacheConvergenceEpsilon.setDouble(ep); }
-	/**
 	 * Returns project Setting to tell the Convergence Epsilon value for Logical Effort.
 	 * @return project Setting to tell the Convergence Epsilon value for Logical Effort.
 	 */
@@ -1164,11 +1154,6 @@ public class LETool extends Tool {
 	 * @return the maximum number of iterations for Logical Effort.
 	 */
 	public static int getMaxIterations() { return tool.cacheMaxIterations.getInt(); }
-	/**
-	 * Method to set the maximum number of iterations for Logical Effort.
-	 * @param it the maximum number of iterations for Logical Effort.
-	 */
-	public static void setMaxIterations(int it) { tool.cacheMaxIterations.setInt(it); }
 	/**
 	 * Returns project Setting to tell the maximum number of iterations for Logical Effort.
 	 * @return project Setting to tell the maximum number of iterations for Logical Effort.
@@ -1220,11 +1205,6 @@ public class LETool extends Tool {
 	 * @return the keeper size ratio for Logical Effort.
 	 */
 	public static double getKeeperRatio() { return tool.cacheKeeperRatio.getDouble(); }
-	/**
-	 * Method to set the keeper size ratio for Logical Effort.
-	 * @param kr the keeper size ratio for Logical Effort.
-	 */
-	public static void setKeeperRatio(double kr) { tool.cacheKeeperRatio.setDouble(kr); }
 	/**
 	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
 	 * @eturn project Setting to tell the keeper size ratio for Logical Effort.

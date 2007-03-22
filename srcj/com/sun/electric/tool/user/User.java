@@ -743,11 +743,6 @@ public class User extends Listener
 	 */
 	public static String getDefaultTechnology() { return tool.cacheDefaultTechnology.getString(); }
 	/**
-	 * Method to set default technique in Tech Palette.
-	 * @param t the default technology to use in Tech Palette.
-	 */
-	public static void setDefaultTechnology(String t) { tool.cacheDefaultTechnology.setString(t); }
-	/**
 	 * Returns project Setting to tell default technique in Tech Palette.
 	 * @return project Setting to tell default technique in Tech Palette.
 	 */
@@ -769,18 +764,6 @@ public class User extends Listener
         return tech;
     }
 	/**
-	 * Method to set the layout Technology to use when schematics are found.
-	 * This is important in Spice deck generation (for example) because the Spice primitives may
-	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
-	 * numbers to real spacings for the deck.
-	 * @param t the Technology to use when schematics are found.
-	 */
-	public static void setSchematicTechnology(Technology t)
-	{
-        if (t == null) return;
-        tool.cacheSchematicTechnology.setString(t.getTechName());
-    }
-	/**
 	 * Returns project Setting to tell the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
@@ -795,11 +778,6 @@ public class User extends Listener
 	 * @return true if the system should include the date and Electric version in output files.
 	 */
 	public static boolean isIncludeDateAndVersionInOutput() { return tool.cacheIncludeDateAndVersionInOutput.getBoolean(); }
-	/**
-	 * Method to set whether to include the date and Electric version in output files.
-	 * @param on true if the system should include the date and Electric version in output files.
-	 */
-	public static void setIncludeDateAndVersionInOutput(boolean on) { tool.cacheIncludeDateAndVersionInOutput.setBoolean(on); }
 	/**
 	 * Returns project Setting to tell whether to include the date and Electric version in output files.
 	 * @return project Setting to tell whether to include the date and Electric version in output files.

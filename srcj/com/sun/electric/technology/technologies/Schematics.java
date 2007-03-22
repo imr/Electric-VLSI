@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -40,7 +41,17 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeSize;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -237,7 +248,7 @@ public class Schematics extends Technology
 
 	private Schematics()
 	{
-		super("schematic");
+		super("schematic", Foundry.Type.NONE, 1);
 		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -2367,7 +2378,7 @@ public class Schematics extends Technology
 			bestTech = MoCMOS.tech;
 		}
 
-		User.setSchematicTechnology(bestTech);
+//		User.setSchematicTechnology(bestTech);
 		return bestTech;
 	}
 

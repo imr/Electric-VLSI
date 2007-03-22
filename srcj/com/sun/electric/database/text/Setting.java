@@ -173,51 +173,6 @@ public class Setting {
      */
     public String getString(List<Object> context) { return (String)getValue(context); }
     
-    /**
-     * Method to set a new boolean value on this TechSetting object.
-     * @param v the new boolean value of this TechSetting object.
-     */
-    public void setBoolean(boolean v) {
-        if (v != getBoolean())
-            set(Boolean.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new integer value on this TechSetting object.
-     * @param v the new integer value of this TechSetting object.
-     */
-    public void setInt(int v) {
-        if (v != getInt())
-            set(Integer.valueOf(v));
-     }
-    
-    /**
-     * Method to set a new long value on this TechSetting object.
-     * @param v the new long value of this TechSetting object.
-     */
-    public void setLong(long v) {
-        if (v != getInt())
-            set(Long.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new double value on this TechSetting object.
-     * @param v the new double value of this Pref object.
-     */
-    public void setDouble(double v) {
-        if (v != getDouble())
-            set(Double.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new string value on this TechSetting object.
-     * @param str the new string value of this TechSetting object.
-     */
-    public void setString(String str) {
-        if (!str.equals(getString()))
-            set(str);
-    }
-    
     public void set(Object v) {
 //        if (changeBatch != null) {
 //            if (SwingUtilities.isEventDispatchThread()) {
@@ -234,51 +189,6 @@ public class Setting {
         values.set(index, factoryObj.equals(v) ? factoryObj : v);
         saveToPreferences(v);
         setSideEffect();
-    }
-    
-    /**
-     * Method to set a new boolean value on this TechSetting object.
-     * @param v the new boolean value of this TechSetting object.
-     */
-    public void setBoolean(List<Object> context, boolean v) {
-        if (v != getBoolean(context))
-            set(context, Boolean.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new integer value on this TechSetting object.
-     * @param v the new integer value of this TechSetting object.
-     */
-    public void setInt(List<Object> context, int v) {
-        if (v != getInt(context))
-            set(context, Integer.valueOf(v));
-     }
-    
-    /**
-     * Method to set a new long value on this TechSetting object.
-     * @param v the new long value of this TechSetting object.
-     */
-    public void setLong(List<Object> context, long v) {
-        if (v != getInt(context))
-            set(context, Long.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new double value on this TechSetting object.
-     * @param v the new double value of this Pref object.
-     */
-    public void setDouble(List<Object> context, double v) {
-        if (v != getDouble(context))
-            set(context, Double.valueOf(v));
-    }
-    
-    /**
-     * Method to set a new string value on this TechSetting object.
-     * @param str the new string value of this TechSetting object.
-     */
-    public void setString(List<Object> context, String str) {
-        if (!str.equals(getString(context)))
-            set(context, str);
     }
     
     public void set(List<Object> context, Object v) {
@@ -570,21 +480,15 @@ public class Setting {
                 obj = setting.factoryObj;
             
             // set the option
-            if (setting.factoryObj instanceof Boolean) {
-                if (obj instanceof Boolean) setting.setBoolean(((Boolean)obj).booleanValue()); else
-                    if (obj instanceof Integer) setting.setBoolean(((Integer)obj).intValue() != 0);
-            } else if (setting.factoryObj instanceof Integer) {
-                setting.setInt(((Integer)obj).intValue());
-            } else if (setting.factoryObj instanceof Long) {
-                setting.setLong(((Long)obj).longValue());
-            } else if (setting.factoryObj instanceof Double) {
-                if (obj instanceof Double) setting.setDouble(((Double)obj).doubleValue()); else
-                    if (obj instanceof Float) setting.setDouble((double)((Float)obj).floatValue());
-            } else if (setting.factoryObj instanceof String) {
-                setting.setString((String)obj);
-            } else {
-                continue;
+            if (obj.getClass() != setting.factoryObj.getClass()) {
+                if (obj instanceof Integer && setting.factoryObj instanceof Boolean)
+                    obj = Boolean.valueOf(((Integer)obj).intValue() != 0);
+                else if (obj instanceof Float && setting.factoryObj instanceof Double)
+                    obj = Double.valueOf(((Float)obj).doubleValue());
+                else
+                    continue;
             }
+            setting.set(obj);
             System.out.println("Project Setting "+setting.xmlPath+" changed to "+obj);
         }
         

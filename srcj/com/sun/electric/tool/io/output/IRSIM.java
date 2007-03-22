@@ -68,10 +68,10 @@ public class IRSIM extends Output
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
 	 */
-	public static void writeIRSIMFile(Cell cell, VarContext context, String filePath)
+	public static void writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
 	{
 		IRSIM out = new IRSIM(cell);
-        out.writeNetlist(cell, context, filePath);
+        out.writeNetlist(cell, context, layoutTech, filePath);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class IRSIM extends Output
 		return components;
 	}
 
-	private void writeNetlist(Cell cell, VarContext context, String filePath)
+	private void writeNetlist(Cell cell, VarContext context, Technology layoutTech, String filePath)
 	{
 		// gather all components
         List<Object> parasitics = getNetlist(cell, context);
@@ -105,7 +105,6 @@ public class IRSIM extends Output
 
 		// write the header
 		double scale = technology.getScale() / 10;
-        Technology layoutTech = Schematics.getDefaultSchematicTechnology();
 		printWriter.println("| units: " + scale + " tech: " + technology.getTechName() + " format: SU");
 		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName());

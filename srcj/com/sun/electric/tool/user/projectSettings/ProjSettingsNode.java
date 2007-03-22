@@ -124,16 +124,7 @@ public class ProjSettingsNode implements Serializable {
 
         if (previousVal != null && !equal(previousVal, setting)) {
             System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+setting.getValue());
-            if (previousVal instanceof Boolean)
-                setting.setBoolean(((Boolean)previousVal).booleanValue());
-            else if (previousVal instanceof Integer)
-                setting.setInt(((Integer)previousVal).intValue());
-            else if (previousVal instanceof Double)
-                setting.setDouble(((Double)previousVal).doubleValue());
-            else if (previousVal instanceof String)
-                setting.setString(previousVal.toString());
-            else if (previousVal instanceof Long)
-                setting.setLong(((Long)previousVal).longValue());
+            setting.set(previousVal);
         }
     }
 

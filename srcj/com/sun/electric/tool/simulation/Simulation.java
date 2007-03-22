@@ -1145,11 +1145,6 @@ public class Simulation extends Tool
 	 */
 	public static boolean getVerilogUseAssign() { return tool.cacheVerilogUseAssign.getBoolean(); }
 	/**
-	 * Method to set whether Verilog deck generation should use the Assign statement.
-	 * @param use true if Verilog deck generation should use the Assign statement.
-	 */
-	public static void setVerilogUseAssign(boolean use) { tool.cacheVerilogUseAssign.setBoolean(use); }
-	/**
 	 * Returns setting to tell whether Verilog deck generation should use the Assign statement.
 	 * @return setting to tell whether Verilog deck generation should use the Assign statement.
 	 */
@@ -1162,12 +1157,6 @@ public class Simulation extends Tool
 	 * @return true if Verilog deck generation should use Trireg by default.
 	 */
 	public static boolean getVerilogUseTrireg() { return tool.cacheVerilogUseTrireg.getBoolean(); }
-	/**
-	 * Method to set whether Verilog deck generation should use Trireg by default.
-	 * The alternative is to use the "wire" statement.
-	 * @param use true if Verilog deck generation should use Trireg by default.
-	 */
-	public static void setVerilogUseTrireg(boolean use) { tool.cacheVerilogUseTrireg.setBoolean(use); }
 	/**
 	 * Returns setting to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.

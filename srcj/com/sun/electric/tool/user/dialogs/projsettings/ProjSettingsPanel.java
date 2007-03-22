@@ -116,35 +116,50 @@ public class ProjSettingsPanel extends EDialog
      * @param setting Setting object.
      * @param v the new boolean value of Setting object.
      */
-    public void setBoolean(Setting setting, boolean v) { setting.setBoolean(getContext(), v); }
+    public void setBoolean(Setting setting, boolean v) {
+        if (v != setting.getBoolean(getContext()))
+            setting.set(getContext(), Boolean.valueOf(v));
+    }
     
     /**
      * Method to set a new integer value on Setting object.
      * @param setting Setting object.
      * @param v the new integer value of Setting object.
      */
-    public void setInt(Setting setting, int v) { setting.setInt(getContext(), v); }
+    public void setInt(Setting setting, int v) {
+        if (v != setting.getInt(getContext()))
+            setting.set(getContext(), Integer.valueOf(v));
+    }
     
     /**
      * Method to set a new long value on Setting object.
      * @param setting Setting object.
      * @param v the new long value of Setting object.
      */
-    public void setLong(Setting setting, long v) { setting.setLong(getContext(), v); }
+    public void setLong(Setting setting, long v) {
+        if (v != setting.getLong(getContext()))
+            setting.set(getContext(), Long.valueOf(v));
+    }
     
     /**
      * Method to set a new double value on Setting object.
      * @param setting Setting object.
      * @param v the new double value of Setting object.
      */
-    public void setDouble(Setting setting, double v) { setting.setDouble(getContext(), v); }
+    public void setDouble(Setting setting, double v) {
+        if (v != setting.getDouble(getContext()))
+            setting.set(getContext(), Double.valueOf(v));
+    }
     
     /**
      * Method to set a new string value on Setting object.
      * @param setting Setting object.
      * @param str the new string value of Setting object.
      */
-    public void setString(Setting setting, String str) { setting.setString(getContext(), str); }
+    public void setString(Setting setting, String str) {
+        if (!str.equals(setting.getString(getContext())))
+            setting.set(getContext(), str);
+    }
 
     private List<Object> getContext() { return parent.getContext(); }
     

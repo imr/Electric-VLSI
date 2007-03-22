@@ -43,7 +43,7 @@ public class RCMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private RCMOS()
 	{
-		super("rcmos");
+		super("rcmos", Foundry.Type.NONE, 2);
 		setTechShortName("Round CMOS");
 		setTechDesc("Complementary MOS (round, from MOSIS, P-Well, double metal)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

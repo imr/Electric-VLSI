@@ -46,7 +46,7 @@ public class nMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private nMOS()
 	{
-		super("nmos");
+		super("nmos", Foundry.Type.NONE, 1);
 		setTechShortName("nMOS");
 		setTechDesc("nMOS (Mead & Conway abstract rules)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

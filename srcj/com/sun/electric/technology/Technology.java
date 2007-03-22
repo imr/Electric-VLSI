@@ -595,16 +595,17 @@ public class Technology implements Comparable<Technology>
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
-	/** scale for this Technology. */						private Setting prefScale;
     /** resolution for this Technology */                   private Pref prefResolution;
-    /** default foundry for this Technology */              private final Setting prefFoundry;
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
-	/** Minimum resistance for this Technology. */			private Setting prefMinResistance;
-	/** Minimum capacitance for this Technology. */			private Setting prefMinCapacitance;
-    /** Gate Length subtraction (in microns) for this Tech*/private final Setting prefGateLengthSubtraction;
-    /** Include gate in Resistance calculation */           private final Setting prefIncludeGate;
-    /** Include ground network in parasitics calculation */ private final Setting prefIncludeGnd;
-    /** Include ground network in parasitics calculation */ private final Setting prefMaxSeriesResistance;
+    /** default foundry for this Technology */              private final Setting cacheFoundry;
+	/** scale for this Technology. */						private Setting cacheScale;
+    /** number of metals for this Technology. */            private final Setting cacheNumMetalLayers; 
+	/** Minimum resistance for this Technology. */			private Setting cacheMinResistance;
+	/** Minimum capacitance for this Technology. */			private Setting cacheMinCapacitance;
+    /** Gate Length subtraction (in microns) for this Tech*/private final Setting cacheGateLengthSubtraction;
+    /** Include gate in Resistance calculation */           private final Setting cacheIncludeGate;
+    /** Include ground network in parasitics calculation */ private final Setting cacheIncludeGnd;
+    /** Include ground network in parasitics calculation */ private final Setting cacheMaxSeriesResistance;
 //	/** Logical effort global fanout preference. */			private final Setting cacheGlobalFanout;
 //	/** Logical effort convergence (epsilon) preference. */	private final Setting cacheConvergenceEpsilon;
 //	/** Logical effort maximum iterations preference. */	private final Setting cacheMaxIterations;
@@ -633,14 +634,14 @@ public class Technology implements Comparable<Technology>
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
 	protected Technology(String techName) {
-        this(techName, Foundry.Type.NONE);
+        this(techName, Foundry.Type.NONE, 0);
     }
     
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(String techName, Foundry.Type defaultFoundry)
+	protected Technology(String techName, Foundry.Type defaultFoundry, int defaultNumMetals)
 	{
 		this.techName = techName;
 		//this.scale = 1.0;
@@ -648,12 +649,15 @@ public class Technology implements Comparable<Technology>
 		this.techIndex = techNumber++;
 		userBits = 0;
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
-        prefFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
+        cacheFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.name().toUpperCase());
-        prefMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
-        prefGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
-		prefIncludeGate = makeParasiticSetting("Gate Inclusion", false);
-		prefIncludeGnd = makeParasiticSetting("Ground Net Inclusion", false);
+        cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName.toUpperCase() + "NumberOfMetalLayers",
+            "Technology tab", techName + ": Number of Metal Layers", getProjectSettings(), "NumMetalLayers", defaultNumMetals);
+        
+        cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
+        cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
+		cacheIncludeGate = makeParasiticSetting("Gate Inclusion", false);
+		cacheIncludeGnd = makeParasiticSetting("Ground Net Inclusion", false);
 //		cacheGlobalFanout = makeLESetting("GlobalFanout", DEFAULT_GLOBALFANOUT);
 //		cacheConvergenceEpsilon = makeLESetting("ConvergenceEpsilon", DEFAULT_EPSILON);
 //		cacheMaxIterations = makeLESetting("MaxIterations", DEFAULT_MAXITER);
@@ -810,7 +814,7 @@ public class Technology implements Comparable<Technology>
 			}
         }
         
-        if (prefMinResistance == null || prefMinCapacitance == null) {
+        if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
         }
         if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
@@ -1157,7 +1161,12 @@ public class Technology implements Comparable<Technology>
      * technologies.  Can by changed by user preferences.
      * @return the number of metal layers currently specified for the technology
      */
-    public int getNumMetals() { return 0; }
+    public int getNumMetals() { return cacheNumMetalLayers.getInt(); }
+	/**
+	 * Returns project Setting to tell the number of metal layers in the MoCMOS technology.
+	 * @eeturn project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
+	 */
+	public Setting getNumMetalsSetting() { return cacheNumMetalLayers; }
 
 	/****************************** ARCS ******************************/
 
@@ -2744,21 +2753,13 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinResistance()
 	{
-		return prefMinResistance.getDouble();
-	}
-	/**
-	 * Sets the minimum resistance of this Technology.
-	 * @param minResistance the minimum resistance of this Technology.
-	 */
-	public void setMinResistance(double minResistance)
-	{
-		prefMinResistance.setDouble(minResistance);
+		return cacheMinResistance.getDouble();
 	}
 	/**
 	 * Returns project Setting to tell the minimum resistance of this Technology.
 	 * @return project Setting to tell the minimum resistance of this Technology.
 	 */
-	public Setting getMinResistanceSetting() { return prefMinResistance; }
+	public Setting getMinResistanceSetting() { return cacheMinResistance; }
 
 	/**
 	 * Returns the minimum capacitance of this Technology.
@@ -2768,21 +2769,13 @@ public class Technology implements Comparable<Technology>
 	public double getMinCapacitance()
 	{
         // 0.0 is the default value
-		return prefMinCapacitance.getDouble();
-	}
-	/**
-	 * Sets the minimum capacitance of this Technology.
-	 * @param minCapacitance the minimum capacitance of this Technology.
-	 */
-	public void setMinCapacitance(double minCapacitance)
-	{
-		prefMinCapacitance.setDouble(minCapacitance);
+		return cacheMinCapacitance.getDouble();
 	}
 	/**
 	 * Returns project Setting to tell the minimum capacitance of this Technology.
 	 * @return project Setting to tell the minimum capacitance of this Technology.
 	 */
-	public Setting getMinCapacitanceSetting() { return prefMinCapacitance; }
+	public Setting getMinCapacitanceSetting() { return cacheMinCapacitance; }
 
 
     /**
@@ -2792,15 +2785,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getMaxSeriesResistance()
     {
-        return prefMaxSeriesResistance.getDouble();
-    }
-    /**
-     * Set the maximum series resistance for layout extraction
-     *  for this Technology.
-     */
-    public void setMaxSeriesResistance(double maxSeriesResistance)
-    {
-        prefMaxSeriesResistance.setDouble(maxSeriesResistance);
+        return cacheMaxSeriesResistance.getDouble();
     }
     /**
      * Returns project Setting to tell the maximum series resistance for layout extraction
@@ -2808,7 +2793,7 @@ public class Technology implements Comparable<Technology>
      * @return project Setting to tell the maximum series resistance for layout extraction
      *  for this Technology.
      */
-    public Setting getMaxSeriesResistanceSetting() { return prefMaxSeriesResistance; }
+    public Setting getMaxSeriesResistanceSetting() { return cacheMaxSeriesResistance; }
 
 
 	/**
@@ -2818,31 +2803,14 @@ public class Technology implements Comparable<Technology>
 	public boolean isGateIncluded()
 	{
         // False is the default
-		return prefIncludeGate.getBoolean();
+		return cacheIncludeGate.getBoolean();
 	}
-    /**
-     * Sets tstate for gate inclusion. False is the default.
-     * @param set state for gate inclusion
-     */
-    public void setGateIncluded(boolean set)
-    {
-        prefIncludeGate.setBoolean(set);
-    }
     /**
      * Returns project Setting to tell gate inclusion.
      * @return project Setting to tell gate inclusion
      */
-    public Setting getGateIncludedSetting() { return prefIncludeGate; }
+    public Setting getGateIncludedSetting() { return cacheIncludeGate; }
 
-
-	/**
-	 * Sets state for ground network inclusion. False is the default.
-	 * @param set state for ground network inclusion
-	 */
-	public void setGroundNetIncluded(boolean set)
-	{
-		prefIncludeGnd.setBoolean(set);
-	}
     /**
      * Returns true if ground network is included in parasitics calculation. False is the default.
      * @return true if ground network is included.
@@ -2850,13 +2818,13 @@ public class Technology implements Comparable<Technology>
     public boolean isGroundNetIncluded()
     {
         // False is the default
-        return prefIncludeGnd.getBoolean();
+        return cacheIncludeGnd.getBoolean();
     }
 	/**
 	 * Returns project Setting to tell ground network inclusion.
 	 * @return project Setting to tell ground network inclusion
 	 */
-	public Setting getGroundNetIncludedSetting() { return prefIncludeGnd; }
+	public Setting getGroundNetIncludedSetting() { return cacheIncludeGnd; }
 
 
     /**
@@ -2867,17 +2835,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getGateLengthSubtraction()
     {
-        return prefGateLengthSubtraction.getDouble();
-    }
-    /**
-     * Sets the gate length subtraction for this Technology (in microns)
-     * This is used because there is sometimes a subtracted offset from the layout
-     * to the drawn length.
-     * @param value the subtraction value for a gate length in microns
-     */
-    public void setGateLengthSubtraction(double value)
-    {
-        prefGateLengthSubtraction.setDouble(value);
+        return cacheGateLengthSubtraction.getDouble();
     }
     /**
      * Returns project Setting to tell the gate length subtraction for this Technology (in microns)
@@ -2885,7 +2843,7 @@ public class Technology implements Comparable<Technology>
      * to the drawn length.
      * @return project Setting to tell the subtraction value for a gate length in microns
      */
-    public Setting getGateLengthSubtractionSetting() { return prefGateLengthSubtraction; }
+    public Setting getGateLengthSubtractionSetting() { return cacheGateLengthSubtraction; }
 
 
 	/**
@@ -2896,8 +2854,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-		prefMinResistance = makeParasiticSetting("MininumResistance", minResistance);
-		prefMinCapacitance = makeParasiticSetting("MininumCapacitance", minCapacitance);
+		cacheMinResistance = makeParasiticSetting("MininumResistance", minResistance);
+		cacheMinCapacitance = makeParasiticSetting("MininumCapacitance", minCapacitance);
 	}
 
     /*********************** LOGICAL EFFORT SETTINGS ***************************/
@@ -3019,14 +2977,6 @@ public class Technology implements Comparable<Technology>
 		return cacheGateCapacitance.getDouble();
 	}
 	/**
-	 * Method to set the Gate Capacitance for Logical Effort.
-	 * @param gc the Gate Capacitance for Logical Effort.
-	 */
-	public void setGateCapacitance(double gc)
-	{
-		cacheGateCapacitance.setDouble(gc);
-	}
-	/**
 	 * Returns project Setting to tell the Gate Capacitance for Logical Effort.
 	 * @eturn project Setting to tell the Gate Capacitance for Logical Effort.
 	 */
@@ -3042,14 +2992,6 @@ public class Technology implements Comparable<Technology>
 		return cacheWireRatio.getDouble();
 	}
 	/**
-	 * Method to set the wire capacitance ratio for Logical Effort.
-	 * @param wr the wire capacitance ratio for Logical Effort.
-	 */
-	public void setWireRatio(double wr)
-	{
-		cacheWireRatio.setDouble(wr);
-	}
-	/**
 	 * Returns project Setting to tell the wire capacitance ratio for Logical Effort.
 	 * @return project Setting to tell the wire capacitance ratio for Logical Effort.
 	 */
@@ -3063,14 +3005,6 @@ public class Technology implements Comparable<Technology>
 	public double getDiffAlpha()
 	{
 		return cacheDiffAlpha.getDouble();
-	}
-	/**
-	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
-	 * @param da the diffusion to gate capacitance ratio for Logical Effort.
-	 */
-	public void setDiffAlpha(double da)
-	{
-		cacheDiffAlpha.setDouble(da);
 	}
 	/**
 	 * Returns project Setting to tell the diffusion to gate capacitance ratio for Logical Effort.
@@ -3260,7 +3194,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getScale()
 	{
-		return prefScale.getDouble();
+		return cacheScale.getDouble();
 	}
 
 	/**
@@ -3287,22 +3221,10 @@ public class Technology implements Comparable<Technology>
 		this.scaleRelevant = scaleRelevant;
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-		prefScale = Setting.makeDoubleSetting(getScaleVariableName(), prefs,
+		cacheScale = Setting.makeDoubleSetting(getScaleVariableName(), prefs,
                 getProjectSettings(), "Scale", "Scale tab", techShortName + " scale", factory);
-		prefScale.setValidOption(isScaleRelevant());
+		cacheScale.setValidOption(isScaleRelevant());
     }
-
-	/**
-	 * Sets the scale of this technology.
-	 * The technology's scale is for manufacturing output, which must convert
-	 * the unit-based values in Electric to real-world values (in nanometers).
-	 * @param scale the new scale between this technology and the real units.
-	 */
-	public void setScale(double scale)
-	{
-		if (scale == 0) return;
-		prefScale.setDouble(scale);
-	}
 
 	/**
 	 * Returns project Setting to tell the scale of this technology.
@@ -3310,7 +3232,7 @@ public class Technology implements Comparable<Technology>
 	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @return project Setting to tell the scale between this technology and the real units.
 	 */
-	public Setting getScaleSetting() { return prefScale; }
+	public Setting getScaleSetting() { return cacheScale; }
 
 	/**
 	 * Method to tell whether scaling is relevant for this Technology.
@@ -3362,23 +3284,14 @@ public class Technology implements Comparable<Technology>
 	 */
 	public String getPrefFoundry()
     {
-        return prefFoundry.getString().toUpperCase();
-    }
-
-	/**
-	 * Method to set foundry for DRC rules.
-	 * @param t the foundry for DRC rules.
-	 */
-	public void setPrefFoundry(String t)
-    {
-        prefFoundry.setString(t);
+        return cacheFoundry.getString().toUpperCase();
     }
 
 	/**
 	 * Returns project Setting to tell foundry for DRC rules.
 	 * @eturn project Setting to tell the foundry for DRC rules.
 	 */
-	public Setting getPrefFoundrySetting() { return prefFoundry; }
+	public Setting getPrefFoundrySetting() { return cacheFoundry; }
 
 //    /**
 //     * Method to set the foundry for DRC rules and call the side effects

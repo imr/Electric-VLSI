@@ -42,7 +42,7 @@ public class PCB extends Technology
 	// -------------------- private and protected methods ------------------------
 	private PCB()
 	{
-		super("pcb");
+		super("pcb", Foundry.Type.NONE, 8);
 		setTechDesc("Printed Circuit Board (eight-layer)");
 		setFactoryScale(1270000, true);   // in nanometers: really 1270 microns
 		setNoNegatedArcs();

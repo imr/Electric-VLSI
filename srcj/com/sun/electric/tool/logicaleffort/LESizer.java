@@ -63,15 +63,16 @@ public class LESizer {
     /** error logger */                             private ErrorLogger errorLogger;
 
     /** Alg is a typesafe enum class that describes the algorithm to be used */
-    public static class Alg implements Serializable {
+    public static enum Alg {
+        
+        /** Sizes all gates for user specified equal gate delay */
+        EQUALGATEDELAYS("Equal Gate Delays"),
+        /** Sizes for optimal path delay */
+        PATHDELAY("Path Delay");
+        
         private final String name;
         private Alg(String name) { this.name = name; }
         public String toString() { return name; }
-        
-        /** Sizes all gates for user specified equal gate delay */
-        public static final Alg EQUALGATEDELAYS = new Alg("Equal Gate Delays");
-        /** Sizes for optimal path delay */
-        public static final Alg PATHDELAY = new Alg("Path Delay");
     }
         
     /** Creates a new instance of LESizer */
@@ -433,7 +434,7 @@ public class LESizer {
         System.out.println("=========================");
         
         float su = (float)4.0;
-        LENetlister1 netlist = new LENetlister1(null);
+        LENetlister1 netlist = new LENetlister1(null, null);
                 
         {
         // inv1

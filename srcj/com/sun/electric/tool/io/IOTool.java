@@ -222,11 +222,6 @@ public class IOTool extends Tool
 	 */
 	public static boolean isUseCopyrightMessage() { return tool.cacheUseCopyrightMessage.getBoolean(); }
 	/**
-	 * Method to set whether to add the copyright message to output decks.
-	 * @param u true to add the copyright message to output decks.
-	 */
-	public static void setUseCopyrightMessage(boolean u) { tool.cacheUseCopyrightMessage.setBoolean(u); }
-	/**
 	 * Returns project Setting to tell whether to add the copyright message to output decks.
 	 * @return project Setting to tell whether to add the copyright message to output decks.
 	 */
@@ -238,11 +233,6 @@ public class IOTool extends Tool
 	 * @return the copyright message that will be added to output decks.
 	 */
 	public static String getCopyrightMessage() { return tool.cacheCopyrightMessage.getString(); }
-	/**
-	 * Method to set the copyright message that will be added to output decks.
-	 * @param m the copyright message that will be added to output decks.
-	 */
-	public static void setCopyrightMessage(String m) { tool.cacheCopyrightMessage.setString(m); }
 	/**
 	 * Returns project Setting to tell the copyright message that will be added to output decks.
 	 * @return project Setting to tell the copyright message that will be added to output decks.
@@ -325,13 +315,6 @@ public class IOTool extends Tool
 	 */
 	public static boolean isCIFOutMimicsDisplay() { return tool.cacheCIFMimicsDisplay.getBoolean(); }
 	/**
-	 * Method to set whether CIF Output mimics the display.
-	 * To mimic the display, unexpanded cell instances are described as black boxes,
-	 * instead of calls to their contents.
-	 * @param on true if CIF Output mimics the display.
-	 */
-	public static void setCIFOutMimicsDisplay(boolean on) { tool.cacheCIFMimicsDisplay.setBoolean(on); }
-	/**
 	 * Returns Setting to tell whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
 	 * instead of calls to their contents.
@@ -347,12 +330,6 @@ public class IOTool extends Tool
 	 */
 	public static boolean isCIFOutMergesBoxes() { return tool.cacheCIFMergesBoxes.getBoolean(); }
 	/**
-	 * Method to set whether CIF Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * @param on true if CIF Output merges boxes into complex polygons.
-	 */
-	public static void setCIFOutMergesBoxes(boolean on) { tool.cacheCIFMergesBoxes.setBoolean(on); }
-	/**
 	 * Returns Setting to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * @return Setting to tell whether CIF Output merges boxes into complex polygons.
@@ -366,12 +343,6 @@ public class IOTool extends Tool
 	 * @return true if CIF Output merges boxes into complex polygons.
 	 */
 	public static boolean isCIFOutInstantiatesTopLevel() { return tool.cacheCIFInstantiatesTopLevel.getBoolean(); }
-	/**
-	 * Method to set whether CIF Output merges boxes into complex polygons.
-	 * When this happens, a CIF "call" to the top cell is emitted.
-	 * @param on true if CIF Output merges boxes into complex polygons.
-	 */
-	public static void setCIFOutInstantiatesTopLevel(boolean on) { tool.cacheCIFInstantiatesTopLevel.setBoolean(on); }
 	/**
 	 * Returns Setting to tell whether CIF Output merges boxes into complex polygons.
 	 * When this happens, a CIF "call" to the top cell is emitted.
@@ -455,12 +426,6 @@ public class IOTool extends Tool
 	 */
 	public static boolean isGDSOutMergesBoxes() { return tool.cacheGDSMergesBoxes.getBoolean(); }
 	/**
-	 * Method to set whether GDS Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * @param on true if GDS Output merges boxes into complex polygons.
-	 */
-	public static void setGDSOutMergesBoxes(boolean on) { tool.cacheGDSMergesBoxes.setBoolean(on); }
-	/**
 	 * Returns Setting to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * @return Setting to tell if GDS Output merges boxes into complex polygons.
@@ -475,12 +440,6 @@ public class IOTool extends Tool
 	 */
 	public static boolean isGDSOutWritesExportPins() { return tool.cacheGDSWritesExportPins.getBoolean(); }
 	/**
-	 * Method to set whether GDS Output writes pins at Export locations.
-	 * Some systems can use this information to reconstruct export locations.
-	 * @param on true if GDS Output writes pins at Export locations.
-	 */
-	public static void setGDSOutWritesExportPins(boolean on) { tool.cacheGDSWritesExportPins.setBoolean(on); }
-	/**
 	 * Returns Setting to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
 	 * @return Setting to tell whether GDS Output writes pins at Export locations.
@@ -494,12 +453,6 @@ public class IOTool extends Tool
 	 * @return true if GDS Output makes all text upper-case.
 	 */
 	public static boolean isGDSOutUpperCase() { return tool.cacheGDSOutputUpperCase.getBoolean(); }
-	/**
-	 * Method to set whether GDS Output makes all text upper-case.
-	 * Some systems insist on this.
-	 * @param on true if GDS Output makes all text upper-case.
-	 */
-	public static void setGDSOutUpperCase(boolean on) { tool.cacheGDSOutputUpperCase.setBoolean(on); }
 	/**
 	 * Returns Setting to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
@@ -516,13 +469,6 @@ public class IOTool extends Tool
 	 */
 	public static int getGDSOutDefaultTextLayer() { return tool.cacheGDSDefaultTextLayer.getInt(); }
 	/**
-	 * Method to set the default GDS layer to use for the text of Export pins.
-	 * Export pins are annotated with text objects on this layer.
-	 * @param num the default GDS layer to use for the text of Export pins.
-	 * If this is negative, do not write Export pins.
-	 */
-	public static void setGDSOutDefaultTextLayer(int num) { tool.cacheGDSDefaultTextLayer.setInt(num); }
-	/**
 	 * Returns Setting to tell the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.
 	 * If this is negative, do not write Export pins.
@@ -536,11 +482,6 @@ public class IOTool extends Tool
      */
     public static boolean getGDSOutputConvertsBracketsInExports() { return tool.cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
     /**
-     * Method to set the state of whether the GDS writer converts brackets
-     * to underscores in export names.
-     */
-    public static void setGDSOutputConvertsBracketsInExports(boolean b) { tool.cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
-    /**
      * Returns Setting to tell the state of whether the GDS writer converts brackets
      * to underscores in export names.
      * @return Setting to tell the state of whether the GDS writer converts brackets
@@ -552,10 +493,6 @@ public class IOTool extends Tool
      * @return the number of chars
      */
     public static int getGDSCellNameLenMax() { return tool.cacheGDSCellNameLenMax.getInt(); }
-    /**
-     * Set the maximum length (number of chars) for Cell names in the GDS output file
-     */
-    public static void setGDSCellNameLenMax(int len) { tool.cacheGDSCellNameLenMax.setInt(len); }
     /**
      * Returns Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
      * @return Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
@@ -1011,23 +948,6 @@ public class IOTool extends Tool
 	 * @return the DXF scale.
 	 */
 	public static int getDXFScale() { return tool.cacheDXFScale.getInt(); }
-	/**
-	 * Method to set the DXF scale.
-	 * The DXF scale is:
-	 * <UL>
-	 * <LI>-3: GigaMeters
-	 * <LI>-2: MegaMeters
-	 * <LI>-1: KiloMeters
-	 * <LI>0: Meters
-	 * <LI>1: MilliMeters
-	 * <LI>2: MicroMeters
-	 * <LI>3: NanoMeters
-	 * <LI>4: PicoMeters
-	 * <LI>5: FemtoMeters
-	 * </UL>
-	 * @param s the DXF scale.
-	 */
-	public static void setDXFScale(int s) { tool.cacheDXFScale.setInt(s); }
 	/**
 	 * Returns project Settings to tell the DXF scale.
 	 * The DXF scale is:

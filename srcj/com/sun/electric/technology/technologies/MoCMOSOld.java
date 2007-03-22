@@ -46,7 +46,7 @@ public class MoCMOSOld extends Technology
 	// -------------------- private and protected methods ------------------------
 	private MoCMOSOld()
 	{
-		super("mocmosold", Foundry.Type.MOSIS);
+		super("mocmosold", Foundry.Type.MOSIS, 2);
 		setTechShortName("Old MOSIS CMOS");
 		setTechDesc("MOSIS CMOS (old rules, P-Well, double metal)");
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
