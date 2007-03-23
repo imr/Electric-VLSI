@@ -156,11 +156,11 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+     * This method doesn't change project settings.
 	 * @param fileURL the URL to the disk file.
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
-	 * (used when reading a library internally).
+	 * @param quick true to read the library without verbosity (used when reading a library internally).
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
@@ -185,9 +185,8 @@ public abstract class LibraryFiles extends Input
 	 * @param fileURL the URL to the disk file.
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
-	 * (used when reading a library internally).
-     * @param meaningVariables meaning variables for reconcillation are returned to this map.
+	 * @param quick true to read the library without verbosity (used when reading a library internally).
+     * @param projectSettings project settings for reconcillation are returned to this map.
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,

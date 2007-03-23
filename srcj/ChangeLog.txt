@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/21/07, DN) ProjSettings.writeSettings writes all Settings (even with default values).
+
 IMP/MAN: (3/21/07, SMR) Default state of "icon technology" is now schematic,
      not universal (Bug #1295).
 
@@ -13,7 +15,7 @@ IMP: (3/21/07, SMR) Restored CRC checksum reporting to CIF export.
 
 IMP: (3/21/07, SMR, from Bob Reese) Improved DEF import.
 
-IMP: (3/17/07, DN) "importPrefs" command doesn't change project settings.
+IMP/MAN: (3/17/07, DN) "importPrefs" command doesn't change project settings.
 
 BUG: (3/17/07, DN) GDS layers settings are not initialized to factory values.
 FIX: In Technology.newFoundry() method pass "gdsLayers" to Foundry constructor.

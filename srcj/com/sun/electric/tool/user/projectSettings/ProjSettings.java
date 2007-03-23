@@ -61,7 +61,7 @@ public class ProjSettings {
     private static File lastProjectSettingsFile = null;
     private static final String entry = "e";
     private static final boolean READER_RESETS_DEFAULTS = true;
-    private static final boolean WRITER_WRITES_DEFAULTS = false;
+    private static final boolean WRITER_WRITES_DEFAULTS = true;
 
     public static ProjSettingsNode getSettings() {
         return settings;
