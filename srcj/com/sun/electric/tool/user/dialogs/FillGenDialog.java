@@ -230,7 +230,7 @@ public class FillGenDialog extends EDialog {
 
         try
         {
-            Class extraPanelClass = Class.forName("com.sun.electric.plugins.generator.FillCelllGenPanel");
+            Class<?> extraPanelClass = Class.forName("com.sun.electric.plugins.generator.FillCelllGenPanel");
             Constructor instance = extraPanelClass.getDeclaredConstructor(FillGenDialog.class, JPanel.class,
             ButtonGroup.class, JButton.class, JRadioButton.class);  // using varargs
             instance.newInstance(this, floorplanPanel, topGroup, okButton, templateButton); // using varargs

@@ -747,7 +747,7 @@ public class EGraphics extends Observable
 
         if (obj3D != null)
         {
-            Class app3DClass = Resources.get3DClass("utils.J3DAppearance");
+            Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
             try
             {
                 Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});

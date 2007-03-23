@@ -289,7 +289,7 @@ public class ManualViewer extends EDialog
         }
         // to guarantee the redisplay with extended 
 
-        Class plugin3D = Resources.get3DClass("ui.J3DMenu");
+        Class<?> plugin3D = Resources.get3DClass("ui.J3DMenu");
         if (plugin3D != null)
         {
             // Adding 3D/Demo menu
@@ -317,7 +317,7 @@ public class ManualViewer extends EDialog
             System.out.println("Can't open 3D demo file '" + fileName + "'");
             return;
         }
-        Class plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
+        Class<?> plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
         if (plugin3D != null)
         {
             // Adding 3D/Demo menu

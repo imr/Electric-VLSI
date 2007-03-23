@@ -191,7 +191,7 @@ public class LayersTab extends PreferencePanel
         // 3D Stuff
         try
         {
-            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
             if (j3DUtilsClass != null)
             {
                 Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {HashMap.class});
@@ -364,7 +364,7 @@ public class LayersTab extends PreferencePanel
         // 3D Stuff
         try
         {
-            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
             Method setMethod = j3DUtilsClass.getDeclaredMethod("set3DColorsInTab", new Class[] {LayersTab.class});
             Object color3DChanged = setMethod.invoke(j3DUtilsClass, new Object[]{this});
             if (!changed && color3DChanged != null)

@@ -893,8 +893,8 @@ class LayerDrawing
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
             
 		// set colors to use
-        offscreen.textColor = new Color(User.getColorText());
-		offscreen.textGraphics.setColor(offscreen.textColor);
+        LayerDrawing.textColor = new Color(User.getColorText());
+        LayerDrawing.textGraphics.setColor(LayerDrawing.textColor);
         
 		// initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();

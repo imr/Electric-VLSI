@@ -56,7 +56,7 @@ public class Regression {
             Socket socket = null;
             for (int i = 0; i < 100; i++) {
                 try {
-                    Thread.currentThread().sleep(20);
+                    Thread.sleep(20);
                     socket = new Socket((String)null, port);
                 } catch (IOException e) {
                 } catch (InterruptedException e) {

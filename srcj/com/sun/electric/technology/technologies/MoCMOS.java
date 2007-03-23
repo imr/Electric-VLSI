@@ -3299,7 +3299,7 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-    public int getRuleSet() { return tech.cacheRuleSet.getInt(); }
+    public int getRuleSet() { return MoCMOS.cacheRuleSet.getInt(); }
 
 //    private static DRCTemplate.DRCMode getRuleMode()
 //    {
@@ -3319,7 +3319,7 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules<BR>
 	 * 2: Deep rules
 	 */
-	public static Setting getRuleSetSetting() { return tech.cacheRuleSet; }
+	public static Setting getRuleSetSetting() { return MoCMOS.cacheRuleSet; }
 
 	private static final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(tech, "MoCMOSSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer",
 		tech.getProjectSettings(), "UseSecondPolysilicon", true);
@@ -3329,12 +3329,12 @@ public class MoCMOS extends Technology
 	 * @return true if there are 2 polysilicon layers in this Technology.
 	 * If false, there is only 1 polysilicon layer.
 	 */
-	public boolean isSecondPolysilicon() { return tech.cacheSecondPolysilicon.getBoolean(); }
+	public boolean isSecondPolysilicon() { return MoCMOS.cacheSecondPolysilicon.getBoolean(); }
 	/**
 	 * Returns project Setting to tell a second polysilicon layer in this Technology.
 	 * @eturn project Setting to tell a second polysilicon layer in this Technology.
 	 */
-	public static Setting getSecondPolysiliconSetting() { return tech.cacheSecondPolysilicon; }
+	public static Setting getSecondPolysiliconSetting() { return MoCMOS.cacheSecondPolysilicon; }
 
 	private static final Setting cacheDisallowStackedVias = TechSetting.makeBooleanSetting(tech, "MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
         tech.getProjectSettings(), "DisallowStackedVias", false);
@@ -3343,12 +3343,12 @@ public class MoCMOS extends Technology
 	 * The default is false (they are allowed).
 	 * @return true if the MOCMOS technology disallows stacked vias.
 	 */
-	public boolean isDisallowStackedVias() { return tech.cacheDisallowStackedVias.getBoolean(); }
+	public boolean isDisallowStackedVias() { return MoCMOS.cacheDisallowStackedVias.getBoolean(); }
 	/**
 	 * Returns project Setting to tell whether this Technology disallows stacked vias.
 	 * @return project Setting to tell whether this Technology disallows stacked vias.
 	 */
-	public static Setting getDisallowStackedViasSetting() { return tech.cacheDisallowStackedVias; }
+	public static Setting getDisallowStackedViasSetting() { return MoCMOS.cacheDisallowStackedVias; }
 
 	private static final Setting cacheAlternateActivePolyRules = TechSetting.makeBooleanSetting(tech, "MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
 		tech.getProjectSettings(), "UseAlternativeActivePolyRules", false);
@@ -3357,12 +3357,12 @@ public class MoCMOS extends Technology
 	 * The default is false.
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
-	public boolean isAlternateActivePolyRules() { return tech.cacheAlternateActivePolyRules.getBoolean(); }
+	public boolean isAlternateActivePolyRules() { return MoCMOS.cacheAlternateActivePolyRules.getBoolean(); }
 	/**
 	 * Returns project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
 	 * @return project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
 	 */
-	public static Setting getAlternateActivePolyRulesSetting() { return tech.cacheAlternateActivePolyRules; }
+	public static Setting getAlternateActivePolyRulesSetting() { return MoCMOS.cacheAlternateActivePolyRules; }
 
     /** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
 //	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;

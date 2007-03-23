@@ -792,7 +792,7 @@ public class FillGeneratorTool extends Tool {
         FillGeneratorTool tool;
         try
         {
-            Class extraClass = Class.forName("com.sun.electric.plugins.generator.FillCellTool");
+            Class<?> extraClass = Class.forName("com.sun.electric.plugins.generator.FillCellTool");
             Constructor instance = extraClass.getDeclaredConstructor(TechType.class); // varags
             Object obj = instance.newInstance(TechType.MOCMOS);  // varargs;
             tool = (FillGeneratorTool)obj;
@@ -974,7 +974,7 @@ public class FillGeneratorTool extends Tool {
         CapCell c = null;
         try
 		{
-			Class cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90");
+			Class<?> cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90");
             Constructor capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class,
                     StdCellParams.class);   // varargs
             Object cell = capCellC.newInstance(lib, plan, params);
