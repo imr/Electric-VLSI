@@ -566,7 +566,22 @@ public class Setting {
         }
     }
 
-    public static List<Object> getContext() { return values; }
+    public static List<Object> getContext() { return new ArrayList<Object>(values); }
+    public static List<Object> resetContext() {
+        List<Object> savedContext = new ArrayList<Object>(values);
+        for (Setting setting: allSettingsByXmlPath.values()) {
+            setting.set(setting.getFactoryValue());
+        }
+        return savedContext;
+    }
+    public  static void restoreContext(List<Object> savedContext) {
+        for (Setting setting: allSettingsByXmlPath.values()) {
+            int index = setting.index;
+            Object savedValue = index < savedContext.size() ? savedContext.get(index) : null;
+            if (savedValue != null)
+                setting.set(savedValue);
+        }
+    }
     public static Collection<Setting> getSettings() { return allSettingsByXmlPath.values(); }
     
     static void printAllSettings(PrintStream out) {

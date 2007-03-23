@@ -4,7 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
-IMP: (3/21/07, DN) ProjSettings.writeSettings writes all Settings (even with default values).
+BUG: (3/23/07, DN) When libraries are specified in a command-line, project settings may be read from
+    directory other than libraries.
+FIX: In FileMenu use "TextUtils.getFilePath(fileURL)" instead of "User.getWorkingDirectory()".
+
+BUG: (3/23/07, DN) Reading Spice, SiliconCompiler, PLA, PAD libraries changes all project settings.
+FIX: In LibraryReader.readLibrary don't change project settings.
+
+IMP: (3/23/07, DN) Project settings are reset before each AbstractTest and restored after it.
+
+IMP: (3/22/07, DN) ProjSettings.exportSettings writes all Settings (even with default values).
 
 IMP/MAN: (3/21/07, SMR) Default state of "icon technology" is now schematic,
      not universal (Bug #1295).

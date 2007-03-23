@@ -156,7 +156,7 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-     * This method doesn't change project settings.
+     * This method doesn't read project settings contained in library file.
 	 * @param fileURL the URL to the disk file.
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
@@ -164,19 +164,20 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
-        HashMap<String,Object> projectSettings = null;
-        if (Job.BATCHMODE) 
-            projectSettings = new HashMap<String,Object>();
-        Library lib = readLibrary(fileURL, libName, type, quick, projectSettings);
-
-        File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
-        if (projsettings.exists()) {
-            ProjSettings.readSettings(projsettings, false);
-        } else {
-            if (projectSettings != null)
-                Setting.reconcileSettings(lib.getName(), projectSettings);
-        }
-        return lib;
+        return readLibrary(fileURL, libName, type, quick, null);
+//        HashMap<String,Object> projectSettings = null;
+//        if (Job.BATCHMODE) 
+//            projectSettings = new HashMap<String,Object>();
+//        Library lib = readLibrary(fileURL, libName, type, quick, projectSettings);
+//
+//        File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
+//        if (projsettings.exists()) {
+//            ProjSettings.readSettings(projsettings, false);
+//        } else {
+//            if (projectSettings != null)
+//                Setting.reconcileSettings(lib.getName(), projectSettings);
+//        }
+//        return lib;
     }
     
 	/**

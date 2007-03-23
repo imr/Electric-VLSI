@@ -372,7 +372,7 @@ public class FileMenu {
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
-			new ReadLibrary(fileURL, type, deleteLib, null);
+			new ReadLibrary(fileURL, type, TextUtils.getFilePath(fileURL), deleteLib, null);
         }
     }
 
@@ -400,15 +400,21 @@ public class FileMenu {
 	{
 		private URL fileURL;
 		private FileType type;
+        private String settingsDirectory;
 		private Library deleteLib;
         private String cellName; // cell to view once the library is open
         private Library lib;
 
-		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName)
+		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName) {
+            this(fileURL, type, null, deleteLib, cellName);
+        }
+        
+		public ReadLibrary(URL fileURL, FileType type, String settingsDirectory, Library deleteLib, String cellName)
 		{
 			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
+            this.settingsDirectory = settingsDirectory;
 			this.deleteLib = deleteLib;
             this.cellName = cellName;
 			startJob();
@@ -422,19 +428,22 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
+            // read project settings
             HashMap<String,Object> projectSettings = new HashMap<String,Object>();
+            if (settingsDirectory != null) {
+                File projsettings = new File(settingsDirectory, "projsettings.xml");
+                if (projsettings.exists()) {
+                    projectSettings = null;
+                    ProjSettings.readSettings(projsettings, false);
+                }
+            }
         	lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
             if (lib == null) return false;
             fieldVariableChanged("lib");
 
-            // read project settings
-            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
-            if (projsettings.exists()) {
-                ProjSettings.readSettings(projsettings, false);
-            } else {
+            // reconcile project settings if project settings file was not found
+            if (projectSettings != null)
                 Setting.reconcileSettings(lib.getName(), projectSettings);
-                projectSettings = null;
-            }
 
              // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
@@ -621,7 +630,7 @@ public class FileMenu {
                     }
                 }
                 if (defType == null) defType = FileType.DEFAULTLIB;
-                new ReadLibrary(file, defType, null, null);
+                new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null);
 //                showThisCell = openALibrary(file, defType);
             }
 //			fieldVariableChanged("showThisCell");
