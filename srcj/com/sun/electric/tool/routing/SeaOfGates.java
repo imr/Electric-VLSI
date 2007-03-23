@@ -86,9 +86,9 @@ import java.util.TreeSet;
  * > Prefers to run odd metal layers on horizontal, even layers on vertical
  * > Users can request that some layers not be used, can request that some layers be favored
  * > Routes are made as wide as the widest arc already connected to any point
+ * > Cost penalty also includes space left in the track on either side of a segment
  *
  * Things to do:
- *     Cost penalty for space left in the track
  *     Detect "river routes" and route specially
  *     Ability to route to any previous part of route when daisy-chaining?
  *     Rip-up
@@ -1267,8 +1267,12 @@ public class SeaOfGates
 				} else
 				{
 					// not changing layers: compute penalty for unused tracks on either side of run
-//					int jumpSize1 = getJumpSize(nX, nY, nZ, dx, dy, jumpBound, netID, minWidth);
-//					int jumpSize2 = getJumpSize(curX, curY, curZ, -dx, -dy, jumpBound, netID, minWidth);
+					int jumpSize1 = Math.abs(getJumpSize(nX, nY, nZ, dx, dy, jumpBound, netID, minWidth));
+					int jumpSize2 = Math.abs(getJumpSize(curX, curY, curZ, -dx, -dy, jumpBound, netID, minWidth));
+					if (jumpSize1 > 1 && jumpSize2 > 1)
+					{
+						svNext.cost += (jumpSize1 * jumpSize2) / 10;
+					}
 
 					// not changing layers: penalize if turning in X or Y
 					if (svCurrent.last != null)
