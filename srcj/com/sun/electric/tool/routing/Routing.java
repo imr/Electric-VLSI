@@ -465,7 +465,7 @@ public class Routing extends Listener
 	/****************************** SUN ROUTER INTERFACE ******************************/
 
 	private static boolean sunRouterChecked = false;
-	private static Class sunRouterClass = null;
+	private static Class<?> sunRouterClass = null;
 	private static Method sunRouterMethod;
 
 	/**

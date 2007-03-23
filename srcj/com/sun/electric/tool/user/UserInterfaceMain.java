@@ -138,7 +138,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (!Client.isOSMac()) return;
 
             try {
-                Class osXClass = Class.forName(getMacClassName());
+                Class<?> osXClass = Class.forName(getMacClassName());
                 Method osXSetJobMethod = null;
 
                 // find the necessary methods on the Mac OS/X class
@@ -172,7 +172,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             // see if there is a Mac OS/X interface
             if (Client.isOSMac()) {
                 try {
-                    Class osXClass = Class.forName(getMacClassName());
+                    Class<?> osXClass = Class.forName(getMacClassName());
                     Method osXRegisterMethod = null;
 
                     // find the necessary methods on the Mac OS/X class

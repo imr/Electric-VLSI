@@ -91,11 +91,11 @@ public class Simulation extends Tool
 	/** constant for IRSIM simulation */					public static final int IRSIM_ENGINE = 1;
 
 	private static boolean irsimChecked = false;
-	private static Class irsimClass = null;
+	private static Class<?> irsimClass = null;
 	private static Method irsimSimulateMethod;
 
 	private static boolean fleetChecked = false;
-	private static Class fleetClass = null;
+	private static Class<?> fleetClass = null;
 	private static Method fleetSimulateMethod;
 
 	/**

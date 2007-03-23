@@ -681,7 +681,7 @@ class LayerDrawing
         }
         
         private static boolean joglChecked = false;
-        private static Class layerDrawerClass;
+        private static Class<?> layerDrawerClass;
         private static Method joglShowLayerMethod;
         
         /**

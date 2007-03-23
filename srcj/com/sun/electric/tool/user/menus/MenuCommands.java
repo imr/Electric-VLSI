@@ -85,7 +85,7 @@ public final class MenuCommands
 
         // Adding developers menus. They are accessed by DevelopersMenus
         try {
-            Class menuClass = Class.forName("com.sun.electric.plugins.tests.DevelopersMenus");
+            Class<?> menuClass = Class.forName("com.sun.electric.plugins.tests.DevelopersMenus");
             java.lang.reflect.Method makeMenus = menuClass.getMethod("makeMenus"); // varargs
             Object menus = makeMenus.invoke(null); // varargs
             if (menus != null)
@@ -99,7 +99,7 @@ public final class MenuCommands
 
     static EMenu makeExtraMenu(String plugin) {
         try {
-            Class menuClass = Class.forName("com.sun.electric.plugins."+plugin);
+            Class<?> menuClass = Class.forName("com.sun.electric.plugins."+plugin);
             java.lang.reflect.Method makeMenu = menuClass.getMethod("makeMenu"); // varargs
             return (EMenu)makeMenu.invoke(null); // varargs
         } catch (Exception e) {

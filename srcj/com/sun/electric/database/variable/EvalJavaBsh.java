@@ -57,8 +57,8 @@ public class EvalJavaBsh
     /** The bean shell interpreter set method */    private static Method setMethod;
     /** The bean shell interpreter set method */    private static Method getMethod;
     /** The bean shell TargetError getTarget method */ private static Method getTargetMethod;
-    /** The bean shell interpreter class */         private static Class interpreterClass = null;
-    /** The bean shell TargetError class */         private static Class targetErrorClass;
+    /** The bean shell interpreter class */         private static Class<?> interpreterClass = null;
+    /** The bean shell TargetError class */         private static Class<?> targetErrorClass;
 
     /** For replacing @variable */					private static final Pattern atPat = Pattern.compile("@(\\w+)");
     /** For replacing @variable */					private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
