@@ -47,7 +47,6 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -59,6 +58,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
@@ -84,6 +84,7 @@ public class ELIB extends Output
 	/** Map of referenced objects for library files */          HashMap<Object,Integer> objInfo;
 	/** Maps memory face index to disk face index */            private int[] faceMap = new int[TextDescriptor.ActiveFont.getMaxIndex() + 1];
 	/** Name space of variable names */                         private TreeMap<String,Short> nameSpace;
+    /** Scale for irrelevant technologies. */                   private double irrelevantScale;
     
 	/** map with "next in cell group" pointers */				private HashMap<CellId,CellId> cellInSameGroup = new HashMap<CellId,CellId>();
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
@@ -186,6 +187,15 @@ public class ELIB extends Output
             e.setValue(new Short(varIndex++));
         }
 
+		// make sure all technologies with irrelevant scale information have the same scale value
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			if (tech.isScaleRelevant()) continue;
+			if (tech == Generic.tech) continue;
+			irrelevantScale = Math.max(irrelevantScale, tech.getScale());
+		}
+        
         // Sort CellIds
         TreeMap<String,LibId> sortedLibIds = new TreeMap<String,LibId>(TextUtils.STRING_NUMBER_ORDER);
         HashMap<LibId,TreeMap<CellName,CellId>> sortedCellIds = new HashMap<LibId,TreeMap<CellName,CellId>>();
@@ -1337,7 +1347,9 @@ public class ELIB extends Output
         return (int)Math.round(gridCoord * getScale(tech)*2/DBMath.GRID);
     }
     
-    double getScale(Technology tech) { return tech.getScale(); }
+    double getScale(Technology tech) {
+        return tech.isScaleRelevant() || tech == Generic.tech ? tech.getScale() : irrelevantScale;
+    }
     
     /**
      * Method to write an integer (4 bytes) to the ouput stream.

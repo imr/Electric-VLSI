@@ -247,25 +247,25 @@ public class Output
         Snapshot snapshot = lib.getDatabase().backup();
         LibId libId = lib.getId();
 
-		// make sure all technologies with irrelevant scale information have the same scale value
-		double largestScale = 0;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (tech.isScaleRelevant()) continue;
-			if (tech == Generic.tech) continue;
-			if (tech.getScale() > largestScale) largestScale = tech.getScale();
-		}
-        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (tech.isScaleRelevant()) continue;
-			if (tech == Generic.tech) continue;
-            changeBatch.add(tech.getScaleSetting(), Double.valueOf(largestScale));
-//			tech.setScale(largestScale);
-		}
-        Setting.implementSettingChanges(changeBatch);
+//		// make sure all technologies with irrelevant scale information have the same scale value
+//		double largestScale = 0;
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			if (tech.isScaleRelevant()) continue;
+//			if (tech == Generic.tech) continue;
+//			if (tech.getScale() > largestScale) largestScale = tech.getScale();
+//		}
+//        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			if (tech.isScaleRelevant()) continue;
+//			if (tech == Generic.tech) continue;
+//            changeBatch.add(tech.getScaleSetting(), Double.valueOf(largestScale));
+////			tech.setScale(largestScale);
+//		}
+//        Setting.implementSettingChanges(changeBatch);
 
 		// handle different file types
 		URL libFile = lib.getLibFile();
