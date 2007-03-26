@@ -468,7 +468,8 @@ public class ELIB extends Output
 		{
 			Technology tech = it.next();
 			if (!objInfo.containsKey(tech)) continue;
-			writeBigInteger((int)Math.round(tech.getScale()*2));
+			writeBigInteger(gridCoordToElib(tech, DBMath.GRID));
+//			writeBigInteger((int)Math.round(tech.getScale()*2));
 		}
 
 		// write the global namespace
@@ -685,7 +686,6 @@ public class ELIB extends Output
     }
 
     void startCell(CellBackup cellBackup, int baseNodeIndex) {
-        double gridScale = cellBackup.d.tech.getScale()*2/DBMath.GRID;
         int maxNodeId = -1;
         for (ImmutableNodeInst n: cellBackup.nodes)
             maxNodeId = Math.max(maxNodeId, n.nodeId);
@@ -753,14 +753,18 @@ public class ELIB extends Output
         // write the nodeproto bounding box
         Technology tech = cellBackup.d.tech;
         ERectangle bounds = snapshot.getCellBounds(cellId);
-        int lowX = (int)Math.round((bounds.getLambdaMinX() * tech.getScale()*2));
-        int highX = (int)Math.round((bounds.getLambdaMaxX() * tech.getScale()*2));
-        int lowY = (int)Math.round((bounds.getLambdaMinY() * tech.getScale()*2));
-        int highY = (int)Math.round((bounds.getLambdaMaxY() * tech.getScale()*2));
-        writeInt("lowx: ", lowX);
-        writeInt("highx: ", highX);
-        writeInt("lowy: ", lowY);
-        writeInt("highy: ", highY);
+        writeGridCoord(cellBackup, "lowx: ", bounds.getGridMinX());
+        writeGridCoord(cellBackup, "highx: ", bounds.getGridMaxX());
+        writeGridCoord(cellBackup, "lowy: ", bounds.getGridMinY());
+        writeGridCoord(cellBackup, "highy: ", bounds.getGridMaxY());
+//        int lowX = (int)Math.round((bounds.getLambdaMinX() * tech.getScale()*2));
+//        int highX = (int)Math.round((bounds.getLambdaMaxX() * tech.getScale()*2));
+//        int lowY = (int)Math.round((bounds.getLambdaMinY() * tech.getScale()*2));
+//        int highY = (int)Math.round((bounds.getLambdaMaxY() * tech.getScale()*2));
+//        writeInt("lowx: ", lowX);
+//        writeInt("highx: ", highX);
+//        writeInt("lowy: ", lowY);
+//        writeInt("highy: ", highY);
     }
     
     private void writeNodeProto(CellBackup cellBackup) throws IOException {
@@ -785,41 +789,52 @@ public class ELIB extends Output
             writeTxt("**node: " + nodeIndex);
             
             // write descriptive information
-            int lowX, highX, lowY, highY;
+//            int lowX, highX, lowY, highY;
+            double trueCenterX, trueCenterY, xSize, ySize;
             NodeProtoId protoId = n.protoId;
             writeObj(protoId);
             if (protoId instanceof CellId) {
                 writeTxt("type: [" + objInfo.get(protoId).intValue() + "]");
                 ERectangle bounds = snapshot.getCellBounds((CellId)protoId);
                 Rectangle2D dstBounds = new Rectangle2D.Double();
-                n.orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), n.anchor.getX(), n.anchor.getY(), dstBounds);
-                double trueCenterX = dstBounds.getCenterX();
-                double trueCenterY = dstBounds.getCenterY();
-                double xSize = bounds.getLambdaWidth();
-                double ySize = bounds.getLambdaHeight();
+                n.orient.rectangleBounds(bounds.getGridMinX(), bounds.getGridMinY(), bounds.getGridMaxX(), bounds.getGridMaxY(), n.anchor.getGridX(), n.anchor.getGridY(), dstBounds);
+                trueCenterX = dstBounds.getCenterX();
+                trueCenterY = dstBounds.getCenterY();
+                xSize = bounds.getGridWidth();
+                ySize = bounds.getGridHeight();
                 
-                lowX = (int)Math.round((trueCenterX - xSize/2) * tech.getScale()*2);
-                highX = (int)Math.round((trueCenterX + xSize/2) * tech.getScale()*2);
-                lowY = (int)Math.round((trueCenterY - ySize/2) * tech.getScale()*2);
-                highY = (int)Math.round((trueCenterY + ySize/2) * tech.getScale()*2);
+//                lowX = (int)Math.round((trueCenterX - xSize/2) * tech.getScale()*2);
+//                highX = (int)Math.round((trueCenterX + xSize/2) * tech.getScale()*2);
+//                lowY = (int)Math.round((trueCenterY - ySize/2) * tech.getScale()*2);
+//                highY = (int)Math.round((trueCenterY + ySize/2) * tech.getScale()*2);
             } else {
+                trueCenterX = n.anchor.getGridX();
+                trueCenterY = n.anchor.getGridY();
+                xSize = n.size.getGridX();
+                ySize = n.size.getGridY();
                 writeTxt("type: " + ((PrimitiveNode)protoId).getFullName());
-                lowX = (int)Math.round((n.anchor.getLambdaX() - n.size.getLambdaX()/2) * tech.getScale()*2);
-                highX = (int)Math.round((n.anchor.getLambdaX() + n.size.getLambdaX()/2) * tech.getScale()*2);
-                lowY = (int)Math.round((n.anchor.getLambdaY() - n.size.getLambdaY()/2) * tech.getScale()*2);
-                highY = (int)Math.round((n.anchor.getLambdaY() + n.size.getLambdaY()/2) * tech.getScale()*2);
+//                lowX = (int)Math.round((n.anchor.getLambdaX() - n.size.getLambdaX()/2) * tech.getScale()*2);
+//                highX = (int)Math.round((n.anchor.getLambdaX() + n.size.getLambdaX()/2) * tech.getScale()*2);
+//                lowY = (int)Math.round((n.anchor.getLambdaY() - n.size.getLambdaY()/2) * tech.getScale()*2);
+//                highY = (int)Math.round((n.anchor.getLambdaY() + n.size.getLambdaY()/2) * tech.getScale()*2);
             }
-            writeInt("lowx: ", lowX);
-            writeInt("lowy: ", lowY);
-            writeInt("highx: ", highX);
-            writeInt("highy: ", highY);
+            writeGridCoord(cellBackup, "lowx: ", trueCenterX - xSize*0.5);
+            writeGridCoord(cellBackup, "lowy: ", trueCenterY - ySize*0.5);
+            writeGridCoord(cellBackup, "highx: ", trueCenterX + xSize*0.5);
+            writeGridCoord(cellBackup, "highy: ", trueCenterY + ySize*0.5);
+//            writeInt("lowx: ", lowX);
+//            writeInt("lowy: ", lowY);
+//            writeInt("highx: ", highX);
+//            writeInt("highy: ", highY);
             
             // write anchor point too
             if (protoId instanceof CellId && !compatibleWith6) {
-                int anchorX = (int)Math.round(n.anchor.getLambdaX() * tech.getScale() * 2);
-                int anchorY = (int)Math.round(n.anchor.getLambdaY() * tech.getScale() * 2);
-                writeBigInteger(anchorX);
-                writeBigInteger(anchorY);
+                writeGridCoord(cellBackup, null, n.anchor.getGridX());
+                writeGridCoord(cellBackup, null, n.anchor.getGridY());
+//                int anchorX = (int)Math.round(n.anchor.getLambdaX() * tech.getScale() * 2);
+//                int anchorY = (int)Math.round(n.anchor.getLambdaY() * tech.getScale() * 2);
+//                writeBigInteger(anchorX);
+//                writeBigInteger(anchorY);
             }
             
             Orientation or = n.orient;
@@ -891,7 +906,7 @@ public class ELIB extends Output
     }
     
 	void writeArcs(CellBackup cellBackup) throws IOException {
-        double gridScale = cellBackup.d.tech.getScale()*2/DBMath.GRID;
+//        double gridScale = cellBackup.d.tech.getScale()*2/DBMath.GRID;
         
         for (int arcIndex = 0; arcIndex < cellBackup.arcs.size(); arcIndex++) {
             ImmutableArcInst a = cellBackup.arcs.get(arcIndex);
@@ -903,21 +918,27 @@ public class ELIB extends Output
             
             // write basic arcinst information
             int userBits = a.getElibBits();
-            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
-            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
+            writeGridCoord(cellBackup, "width: ", a.getGridFullWidth());
+            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellBackup.d.tech)*2/DBMath.GRID));
+//            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
+//            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
             writeTxt("userbits: " + userBits); // only TXT
             
             // write the arcinst tail information
             writeTxt("*end: 0");
-            writeInt("xpos: ", (int)Math.round(a.tailLocation.getGridX() * gridScale));
-            writeInt("ypos: ", (int)Math.round(a.tailLocation.getGridY() * gridScale));
+            writeGridCoord(cellBackup, "xpos: ", a.tailLocation.getGridX());
+            writeGridCoord(cellBackup, "ypos: ", a.tailLocation.getGridY());
+//            writeInt("xpos: ", (int)Math.round(a.tailLocation.getGridX() * gridScale));
+//            writeInt("ypos: ", (int)Math.round(a.tailLocation.getGridY() * gridScale));
             writeInt("node: ", nodeIndexByNodeId[a.tailNodeId]);
             writeTxt("nodeport: " + a.tailPortId.getName(snapshot));
             
             // write the arcinst head information
             writeTxt("*end: 1");
-            writeInt("xpos: ", (int)Math.round(a.headLocation.getGridX() * gridScale));
-            writeInt("ypos: ", (int)Math.round(a.headLocation.getGridY() * gridScale));
+            writeGridCoord(cellBackup, "xpos: ", a.headLocation.getGridX());
+            writeGridCoord(cellBackup, "ypos: ", a.headLocation.getGridY());
+//            writeInt("xpos: ", (int)Math.round(a.headLocation.getGridX() * gridScale));
+//            writeInt("ypos: ", (int)Math.round(a.headLocation.getGridY() * gridScale));
             writeInt("node: ", nodeIndexByNodeId[a.headNodeId]);
             writeTxt("nodeport: " + a.headPortId.getName(snapshot));
             
@@ -1300,6 +1321,23 @@ public class ELIB extends Output
             objIndex = objInfo.get(obj).intValue();
         writeBigInteger(objIndex);
     }
+    
+    /**
+     * Method to write a coordinate as (4 bytes) integer to the ouput stream.
+     * @param cellBackup cell to determine scale
+     * @param keyword keywork fro ReadableDump
+     * @param gridCoord coordinate in grid units.
+     */
+    private void writeGridCoord(CellBackup cellBackup, String keyword, double gridCoord) throws IOException {
+        int i = gridCoordToElib(cellBackup.d.tech, gridCoord);
+        writeInt(keyword, gridCoordToElib(cellBackup.d.tech, gridCoord));
+    }
+    
+    int gridCoordToElib(Technology tech, double gridCoord) {
+        return (int)Math.round(gridCoord * getScale(tech)*2/DBMath.GRID);
+    }
+    
+    double getScale(Technology tech) { return tech.getScale(); }
     
     /**
      * Method to write an integer (4 bytes) to the ouput stream.

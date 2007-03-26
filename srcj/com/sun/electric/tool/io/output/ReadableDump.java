@@ -31,6 +31,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -95,7 +96,8 @@ public class ReadableDump extends ELIB {
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
             if (!objInfo.containsKey(tech)) continue;
-            printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
+            printWriter.println("techname: " + tech.getTechName() + " lambda: " + gridCoordToElib(tech, DBMath.GRID));
+//            printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
             writeMeaningPrefs(tech);
         }
         for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
@@ -329,6 +331,7 @@ public class ReadableDump extends ELIB {
      */
     @Override
     void writeInt(String keyword, int i) throws IOException {
+        if (keyword == null) return;
         printWriter.println(keyword + i);
     }
     
