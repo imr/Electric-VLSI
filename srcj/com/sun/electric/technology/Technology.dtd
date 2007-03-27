@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : Technology.dtd
+    Created on : March 26, 2007, 10:13 PM
+    Author     : dn146861
+    Description:
+        Technology description.
+
+    TODO define vocabulary identification data
+    PUBLIC ID  : -//vendor//vocabulary//EN
+    SYSTEM ID  : http://server/path/Technology.dtd
+-->
+
+<!-- TODO define your own vocabulary/syntax. Example follows:  -->
+<!ELEMENT Technology (TransparentLayers*, Layer*, ArcProto*)>
+<!ATTLIST Technology
+    version CDATA #REQUIRED
+    name CDATA #REQUIRED
+    shortName CDATA #IMPLIED
+    defaultFoundry CDATA #REQUIRED
+    minNumMetals CDATA #REQUIRED
+    maxNumMetals CDATA #REQUIRED
+    defaultNumMetals CDATA #REQUIRED
+    minResistance CDATA #REQUIRED
+    minCapacitance CDATA #REQUIRED
+    maxSeriesResistance CDATA #REQUIRED
+    gateLengthSubtraction CDATA #REQUIRED
+    gateInclusion CDATA #REQUIRED
+    groundNetInclusion CDATA #REQUIRED
+>
+<!ELEMENT TransparentLayer EMPTY>
+<!ATTLIST TransparentLayer
+    i CDATA #REQUIRED
+    r CDATA #REQUIRED
+    g CDATA #REQUIRED
+    b CDATA #REQUIRED
+>
+<!ELEMENT Layer ((TransparentColor|OpaqueColor), PatternLine*, Layer3D?, CifLayer?, Parasitics?)>
+<!ATTLIST Layer
+    name CDATA #REQUIRED
+    fun (
+        UNKNOWN |
+        METAL1 | METAL2 | METAL3 | METAL4 | METAL5 | METAL6 |
+        METAL7 | METAL8 | METAL9 | METAL10 | METAL11 | METAL12 |
+        POLY1 | POLY2 | POLY3 |
+        GATE |
+        DIFF | DIFFP | DIFFN |
+        IMPLANT | IMPLANTP | IMPLANTN |
+        CONTACT1 | CONTACT2 | CONTACT3 | CONTACT4 | CONTACT5 | CONTACT6 |
+        CONTACT7 | CONTACT8 | CONTACT9 | CONTACT10 | CONTACT11 | CONTACT12 |
+        PLUG |
+        OVERGLASS |
+        RESISTOR |
+        CAP |
+        TRANSISTOR |
+        EMITTER | BASE | COLLECTOR | SUBSTRATE |
+        WELL | WELLP | WELLN |
+        GUARD |
+        ISOLATION |
+        BUS |
+        ART |
+        CONTROL |
+        TILENOT
+    ) #REQUIRED
+    extraFun (
+        PSEUDO | NONELEC |
+        CONMETAL | CONPOLY | CONDIFF |
+        DEPLETION_HEAVY | DEPLETION_LIGHT | ENHANCEMENT_HEAVY | ENHANCEMENT_LIGHT |
+        HLVT | THICK
+    ) #IMPLIED
+    patternedOnDisplay CDATA #REQUIRED
+    patternedOnPrinter CDATA #REQUIRED
+    outline CDATA #IMPLIED
+>
+<!ELEMENT TransparentColor EMPTY>
+<!ATTLIST TransparentColor transparent CDATA #REQUIRED>
+<!ELEMENT OpaqueColor EMPTY>
+<!ATTLIST OpaqueColor
+    r CDATA #REQUIRED
+    g CDATA #REQUIRED
+    b CDATA #REQUIRED
+>
+<!ELEMENT PatternLine EMPTY>
+<!ATTLIST PatternLine line CDATA #REQUIRED>
+<!ELEMENT Layer3D EMPTY>
+<!ATTLIST Layer3D
+    thick CDATA #REQUIRED
+    height CDATA #REQUIRED
+>
+<!ELEMENT CifLayer EMPTY>
+<!ATTLIST CifLayer cif CDATA #REQUIRED>
+<!ELEMENT Parasitics EMPTY>
+<!ATTLIST Parasitics
+    resistance CDATA #REQUIRED
+    capacitance CDATA #REQUIRED
+    edgeCapacitance CDATA #REQUIRED
+>
+<!ELEMENT ArcProto (ArcLayer*)>
+<!ATTLIST ArcProto
+    name CDATA #REQUIRED
+    fun (
+        UNKNOWN |
+	METAL1 | METAL2 | METAL3 | METAL4 | METAL5 | METAL6 |
+	METAL7 | METAL8 | METAL9 | METAL10 | METAL11 | METAL12 |
+	POLY1 | POLY2 | POLY3 |
+        DIFF | DIFFP | DIFFN | DIFFS | DIFFW |
+	BUS |
+	UNROUTED |
+	NONELEC
+    ) #REQUIRED
+    widthOffset CDATA #REQUIRED
+    defaultWidth CDATA #REQUIRED
+>
+<!ELEMENT ArcLayer EMPTY>
+<!ATTLIST ArcLayer
+    layer CDATA #REQUIRED
+    widthOffset CDATA #REQUIRED
+    style (FILLED | CLOSED) #REQUIRED
+>

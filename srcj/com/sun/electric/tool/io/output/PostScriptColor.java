@@ -235,7 +235,7 @@ public class PostScriptColor
 		{
 			Layer layer = tech.getLayer(i);
 			Layer.Function fun = layer.getFunction();
-			if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			layerSorts.add(layer);
 		}
 

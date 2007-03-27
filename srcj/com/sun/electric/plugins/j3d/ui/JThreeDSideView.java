@@ -184,7 +184,7 @@ public class JThreeDSideView extends JPanel
         for(Iterator<Layer> it = parentDialog.getTech().getLayers(); it.hasNext(); )
         {
             Layer layer = (Layer)it.next();
-            if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+            if (layer.isPseudoLayer()) continue;
             //if (!layer.isVisible()) continue;
             double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
             J3DAppearance ap = (J3DAppearance)parentDialog.transparencyMap.get(layer);

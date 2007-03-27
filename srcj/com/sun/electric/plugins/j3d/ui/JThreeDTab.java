@@ -130,7 +130,7 @@ public class JThreeDTab extends ThreeDTab
         // Sorted by Height to be consistent with LayersTab
 		for(Layer layer : curTech.getLayersSortedByHeight())
 		{
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
 			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
@@ -280,7 +280,7 @@ public class JThreeDTab extends ThreeDTab
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
             J3DAppearance newApp = transparencyMap.get(layer);

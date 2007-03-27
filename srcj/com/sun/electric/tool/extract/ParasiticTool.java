@@ -209,7 +209,7 @@ public class ParasiticTool extends Tool {
 
                     Layer layer = poly.getLayer();
                     if (layer.getTechnology() != Technology.getCurrent()) continue;
-                    if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+                    if (layer.isPseudoLayer()) continue;
 
                     if (isDiffArc || layer.getCapacitance() > 0.0)
                     //if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))

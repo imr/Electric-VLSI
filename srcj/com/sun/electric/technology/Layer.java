@@ -616,7 +616,16 @@ public class Layer
 	public void setFunction(Function function, int functionExtras)
 	{
 		this.function = function;
-		this.functionExtras = functionExtras;
+        int numBits = 0;
+        for (int i = 0; i < 32; i++) {
+            if ((functionExtras & (1 << i)) != 0)
+                numBits++;
+        }
+        if (numBits >= 2 &&
+                functionExtras != (DEPLETION|HEAVY) && functionExtras != (DEPLETION|LIGHT) &&
+                functionExtras != (ENHANCEMENT|HEAVY) && functionExtras != (ENHANCEMENT|LIGHT))
+            throw new IllegalArgumentException("functionExtras=" + Integer.toHexString(functionExtras));
+        this.functionExtras = functionExtras;
 	}
 
 	/**
@@ -661,14 +670,15 @@ public class Layer
      */
     public boolean isDiffusionLayer()
     {
-        int extras = getFunctionExtras();
-		if ((extras&Layer.Function.PSEUDO) == 0)
-		{
-			if (getFunction().isDiff()) return true;
-		}
-		return false;
+		return !isPseudoLayer() && getFunction().isDiff();
     }
 
+	/**
+	 * Method to return true if this is pseudo-Layer.
+	 * Pseudo layers are those used in pins, and have no real geometry.
+	 * @return true if this is pseudo-layer.
+	 */
+	public boolean isPseudoLayer() { return (functionExtras&Layer.Function.PSEUDO) != 0; }
 	/**
 	 * Method to return the non-pseudo layer associated with this pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.

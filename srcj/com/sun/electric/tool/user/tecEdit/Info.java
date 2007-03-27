@@ -99,6 +99,10 @@ public class Info
 	/** true if gate is included in resistance (info cell) */	static final int TECHGATEINCLUDED  = 43;
 	/** true to include the ground network (info cell) */		static final int TECHGROUNDINCLUDED= 44;
 	/** the transparent colors (info cell) */					static final int TECHTRANSPCOLORS  = 45;
+	/** short name (info cell) */								static final int TECHSHORTNAME     = 46;
+	/** default foundry name (info cell) */						static final int TECHFOUNDRY       = 47;
+	/** default number of metals (info cell) */					static final int TECHDEFMETALS     = 48;
+	/** maximum series resistance (info cell) */				static final int TECHMAXSERIESRES  = 49;
 
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
@@ -158,8 +162,17 @@ public class Info
 			String str = null;
 			switch (table[i].funct)
 			{
+				case TECHSHORTNAME:
+					str = "ShortName: " + (String)table[i].value;
+					break;
 				case TECHSCALE:
 					str = "Scale: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHFOUNDRY:
+					str = "DefaultFoundry: " + (String)table[i].value;
+					break;
+				case TECHDEFMETALS:
+					str = "Default Number Of Metals: " + ((Integer)table[i].value).intValue();
 					break;
 				case TECHDESCRIPT:
 					str = "Description: " + (String)table[i].value;
@@ -169,6 +182,9 @@ public class Info
 					break;
 				case TECHSPICEMINCAP:
 					str = "Minimum Capacitance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHMAXSERIESRES:
+					str = "Max Series Resistance: " + ((Double)table[i].value).doubleValue();
 					break;
 				case TECHGATESHRINK:
 					str = "Gate Shrinkage: " + ((Double)table[i].value).doubleValue();

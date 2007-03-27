@@ -371,9 +371,9 @@ public class nMOS extends Technology
 		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 
 		// The SPICE information
-		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal
-		P_lay.setFactoryParasitics(50.0f, 0.04f, 0);		// Polysilicon
-		D_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// Diffusion
+		M_lay.setFactoryParasitics(0.03, 0.03, 0);		// Metal
+		P_lay.setFactoryParasitics(50.0, 0.04, 0);		// Polysilicon
+		D_lay.setFactoryParasitics(10.0, 0.1, 0);		// Diffusion
 		I_lay.setFactoryParasitics(0, 0, 0);		// Implant
 		CC_lay.setFactoryParasitics(0, 0, 0);		// Contact-Cut
 		BC_lay.setFactoryParasitics(0, 0, 0);		// Buried-Contact

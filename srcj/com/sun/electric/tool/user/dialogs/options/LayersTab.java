@@ -153,8 +153,7 @@ public class LayersTab extends PreferencePanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-				if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0 &&
-					layer.getNonPseudoLayer() != layer) continue;
+				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 				layerName.addItem(layer.getName());
                 ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
                 layerMap.put(layer, li);
@@ -226,8 +225,7 @@ public class LayersTab extends PreferencePanel
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
-			if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0 &&
-				layer.getNonPseudoLayer() != layer) continue;
+			if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 			layerName.addItem(layer.getName());
 		}
 
@@ -298,7 +296,7 @@ public class LayersTab extends PreferencePanel
 				Layer layer = lIt.next();
 				ColorPatternPanel.Info li = layerMap.get(layer);
 				EGraphics graphics = layer.getGraphics();
-				if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0)
+				if (layer.isPseudoLayer())
 				{
 					ColorPatternPanel.Info altLI = layerMap.get(layer.getNonPseudoLayer());
 					if (altLI != null) li = altLI;

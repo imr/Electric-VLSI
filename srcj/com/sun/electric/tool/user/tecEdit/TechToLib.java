@@ -154,10 +154,16 @@ public class TechToLib
 
 		// build the layer cell
 		GeneralInfo gi = new GeneralInfo();
+        gi.shortName = tech.getTechShortName();
+        if (gi.shortName == null)
+            gi.shortName = tech.getTechName();
 		gi.scale = tech.getScale();
+        gi.defaultFoundry = tech.getPrefFoundry();
+        gi.defaultNumMetals = tech.getNumMetals();
 		gi.description = tech.getTechDesc();
 		gi.minRes = tech.getMinResistance();
 		gi.minCap = tech.getMinCapacitance();
+        gi.maxSeriesResistance = tech.getMaxSeriesResistance();
 		gi.gateShrinkage = tech.getGateLengthSubtraction();
 		gi.includeGateInResistance = tech.isGateIncluded();
 		gi.includeGround = tech.isGroundNetIncluded();
@@ -175,6 +181,7 @@ public class TechToLib
 		// create the layer nodes
 		System.out.println("Creating the layers...");
 		String [] layerSequence = new String[layerTotal];
+        LayerInfo [] lList = new LayerInfo[layerTotal];
         Map<Layer,String> gdsLayers = tech.getGDSLayers();
 
 		for(int i=0; i<layerTotal; i++)
@@ -197,6 +204,8 @@ public class TechToLib
 			layerCells.put(layer, lNp);
 
 			LayerInfo li = new LayerInfo();
+            lList[i] = li;
+            li.name = layer.getName();
 			li.fun = layer.getFunction();
 			li.funExtra = layer.getFunctionExtras();
 			li.desc = desc;
@@ -227,6 +236,7 @@ public class TechToLib
 		// create the arc cells
 		System.out.println("Creating the arcs...");
 		int arcTotal = 0;
+        ArcInfo[] aList = new ArcInfo[tech.getNumArcs()];
 		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
@@ -247,6 +257,8 @@ public class TechToLib
 			aNp.setInTechnologyLibrary();
 
 			ArcInfo aIn = new ArcInfo();
+            aList[arcTotal] = aIn;
+            aIn.name = ap.getName();
 			aIn.func = ap.getFunction();
 			aIn.fixAng = ap.isFixedAngle();
 			aIn.wipes = ap.isWipable();
@@ -261,12 +273,17 @@ public class TechToLib
 			double widX4 = wid * 4;
 			if (widX4 <= 0) widX4 = 10;
 			Poly [] polys = ap.getShapeOfDummyArc(widX4);
+            aIn.arcDetails = new ArcInfo.LayerDetails[polys.length];
 			double xOff = wid*2 + wid/2 + ap.getLambdaWidthOffset()/2;
 			for(int i=0; i<polys.length; i++)
 			{
+                ArcInfo.LayerDetails al = new ArcInfo.LayerDetails();
+                aIn.arcDetails[i] = al;
+                
 				Poly poly = polys[i];
 				Layer arcLayer = poly.getLayer();
 				if (arcLayer == null) continue;
+                al.layer = lList[0];
 				EGraphics arcDesc = arcLayer.getGraphics();
 
 				// scale the arc geometry appropriately
@@ -645,6 +662,8 @@ public class TechToLib
 //
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
+        
+        Xml.writeXml(System.out, tech, gi, lList, aList, null);
 
 		// clean up
 		System.out.println("Done.");

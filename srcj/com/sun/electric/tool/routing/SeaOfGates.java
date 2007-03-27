@@ -442,7 +442,7 @@ public class SeaOfGates
 		{
 			Layer lay = it.next();
 			if (!lay.getFunction().isMetal()) continue;
-			if ((lay.getFunctionExtras()&Layer.Function.PSEUDO) != 0) continue;
+			if (lay.isPseudoLayer()) continue;
 			int layerIndex = lay.getFunction().getLevel()-1;
 			if (layerIndex < numMetalLayers) metalLayers[layerIndex] = lay;
 		}
@@ -1593,7 +1593,7 @@ public class SeaOfGates
 		Layer layer = poly.getLayer();
 		if (canPlacePseudo) layer = layer.getNonPseudoLayer(); else
 		{
-			if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) return;
+			if (layer.isPseudoLayer()) return;
 		}
 		Layer.Function fun = layer.getFunction();
 		if (fun.isMetal())

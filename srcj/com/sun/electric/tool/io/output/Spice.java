@@ -531,7 +531,7 @@ public class Spice extends Topology
 
                     Layer layer = poly.getLayer();
                     if (layer.getTechnology() != layoutTechnology) continue;
-                    if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+                    if (layer.isPseudoLayer()) continue;
 
                     if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
                         double areacap = area * layer.getCapacitance();
@@ -3020,7 +3020,7 @@ public class Spice extends Topology
 
 			Layer layer = poly.getLayer();
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 
 			if (layer.isDiffusionLayer()||
 				(!isDiffArc && layer.getCapacitance() > 0.0))

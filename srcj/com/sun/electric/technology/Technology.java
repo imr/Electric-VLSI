@@ -798,15 +798,15 @@ public class Technology implements Comparable<Technology>
 		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			int extras = layer.getFunctionExtras();
-			if ((extras & Layer.Function.PSEUDO) == 0) continue;
+			if (!layer.isPseudoLayer()) continue;
 			Layer.Function fun = layer.getFunction();
+			int extras = layer.getFunctionExtras() & ~Layer.Function.PSEUDO;
 			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
 			{
 				Layer oLayer = oIt.next();
 				int oExtras = oLayer.getFunctionExtras();
 				Layer.Function oFun = oLayer.getFunction();
-				if (oFun == fun && (oExtras == (extras & ~Layer.Function.PSEUDO)))
+				if (oFun == fun && oExtras == extras)
 				{
 					layer.setNonPseudoLayer(oLayer);
 					break;

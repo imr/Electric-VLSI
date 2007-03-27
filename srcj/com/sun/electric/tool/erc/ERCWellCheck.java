@@ -728,8 +728,7 @@ public class ERCWellCheck
 	private static int getWellLayerType(Layer layer)
 	{
 		Layer.Function fun = layer.getFunction();
-		int extra = layer.getFunctionExtras();
-		if ((extra&Layer.Function.PSEUDO) != 0) return ERCPSEUDO;
+		if (layer.isPseudoLayer()) return ERCPSEUDO;
 		if (fun == Layer.Function.WELLP) return ERCPWell;
 		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return ERCNWell;
 		if (fun == Layer.Function.IMPLANTP)
@@ -738,6 +737,7 @@ public class ERCWellCheck
 			return ERCNSelect;
 		if (fun == Layer.Function.SUBSTRATE)
 		{
+            int extra = layer.getFunctionExtras();
 			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;
 			return ERCNSelect;
 		}

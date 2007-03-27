@@ -227,8 +227,8 @@ public class Connectivity
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
-			if (fun == Layer.Function.POLY1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer1 = layer;
-			if (fun == Layer.Function.METAL1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer2 = layer;
+			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
+			if (fun == Layer.Function.METAL1 && layer.isPseudoLayer()) tempLayer2 = layer;
 			if (Extract.isUnifyActive())
 			{
 				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;

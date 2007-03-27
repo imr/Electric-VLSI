@@ -162,7 +162,7 @@ public class LayerTab extends JPanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer.isPseudoLayer()) continue;
 				visibility.put(layer, new Boolean(layer.isVisible()));
 			}
 		}
@@ -220,7 +220,7 @@ public class LayerTab extends JPanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer.isPseudoLayer()) continue;
 				if (noDimming) highlighted.put(layer, new Boolean(false)); else
 					highlighted.put(layer, new Boolean(!layer.isDimmed()));
 			}
@@ -232,7 +232,7 @@ public class LayerTab extends JPanel
 		layersInList = new ArrayList<Layer>();
 		for(Layer layer : tech.getLayersSortedByHeight())
 		{
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			layersInList.add(layer);
 
 			// add the line to the scroll list
@@ -258,7 +258,7 @@ public class LayerTab extends JPanel
 		Boolean layerVisible = visibility.get(layer);
 		if (layerVisible.booleanValue()) layerName.append("\u2713 "); else
 			layerName.append("  ");
-		if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName.append(" (for pins)");
+		if (layer.isPseudoLayer()) layerName.append(" (for pins)");
 		Boolean layerHighlighted = highlighted.get(layer);
 		layerName.append(layer.getName());
 		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");

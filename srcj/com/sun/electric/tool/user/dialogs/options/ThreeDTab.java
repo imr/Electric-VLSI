@@ -122,7 +122,7 @@ public class ThreeDTab extends PreferencePanel
         // Sorted by Height to be consistent with LayersTab
 		for(Layer layer : curTech.getLayersSortedByHeight())
 		{
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
 			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
@@ -159,7 +159,7 @@ public class ThreeDTab extends PreferencePanel
 			for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer.isPseudoLayer()) continue;
 				if (!layer.isVisible()) continue;
 				GenMath.MutableDouble thickness = dialog.threeDThicknessMap.get(layer);
 				GenMath.MutableDouble distance = dialog.threeDDistanceMap.get(layer);
@@ -196,7 +196,7 @@ public class ThreeDTab extends PreferencePanel
 			for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer.isPseudoLayer()) continue;
 				//if (!layer.isVisible()) continue;
 				if (layer == selectedLayer) g.setColor(Color.RED); else
 					g.setColor(Color.BLACK);
@@ -245,7 +245,7 @@ public class ThreeDTab extends PreferencePanel
 				for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 				{
 					Layer layer = it.next();
-					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+					if (layer.isPseudoLayer()) continue;
 					height = dialog.threeDDistanceMap.get(layer);
 					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 					int dist = Math.abs(yValue - evt.getY());
@@ -329,7 +329,7 @@ public class ThreeDTab extends PreferencePanel
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			if (layer.isPseudoLayer()) continue;
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
 			if (thickness.doubleValue() != layer.getThickness())

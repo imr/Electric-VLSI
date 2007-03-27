@@ -38,9 +38,13 @@ import java.util.Iterator;
  */
 public class GeneralInfo extends Info
 {
-	/** the full description of the technology */	String   description;
+    /** the short name of the technology */         String   shortName;
 	/** the scale factor of the technology */		double   scale;
+    /** default foundry name of the technology */   String   defaultFoundry;
+    /** default number of metals */                 int      defaultNumMetals;
+	/** the full description of the technology */	String   description;
 	/** minimum resistance/capacitance */			double   minRes, minCap;
+    /** max series resistance */                    double   maxSeriesResistance;
 	/** gate shrinkage for the technology */		double   gateShrinkage;
 	/** true to include gates in resistance calc */	boolean  includeGateInResistance;
 	/** true to include ground in parasitics */		boolean  includeGround;
@@ -48,14 +52,18 @@ public class GeneralInfo extends Info
 
 	static SpecialTextDescr [] genTextTable =
 	{
-		new SpecialTextDescr(0,   3, TECHSCALE),
+        new SpecialTextDescr(0,  12, TECHSHORTNAME),
+		new SpecialTextDescr(0,   9, TECHSCALE),
+        new SpecialTextDescr(0,   6, TECHFOUNDRY),
+        new SpecialTextDescr(0,   3, TECHDEFMETALS),
 		new SpecialTextDescr(0,   0, TECHDESCRIPT),
 		new SpecialTextDescr(0,  -3, TECHSPICEMINRES),
 		new SpecialTextDescr(0,  -6, TECHSPICEMINCAP),
-		new SpecialTextDescr(0,  -9, TECHGATESHRINK),
-		new SpecialTextDescr(0, -12, TECHGATEINCLUDED),
-		new SpecialTextDescr(0, -15, TECHGROUNDINCLUDED),
-		new SpecialTextDescr(0, -18, TECHTRANSPCOLORS),
+		new SpecialTextDescr(0,  -9, TECHMAXSERIESRES),
+		new SpecialTextDescr(0, -12, TECHGATESHRINK),
+		new SpecialTextDescr(0, -15, TECHGATEINCLUDED),
+		new SpecialTextDescr(0, -18, TECHGROUNDINCLUDED),
+		new SpecialTextDescr(0, -21, TECHTRANSPCOLORS),
 	};
 
 	/**
@@ -69,13 +77,17 @@ public class GeneralInfo extends Info
 	void generate(Cell np)
 	{
 		// load up the structure with the current values
-		loadTableEntry(genTextTable, TECHSCALE, new Double(scale));
+		loadTableEntry(genTextTable, TECHSHORTNAME, shortName);
+		loadTableEntry(genTextTable, TECHSCALE, Double.valueOf(scale));
+        loadTableEntry(genTextTable, TECHFOUNDRY, defaultFoundry);
+        loadTableEntry(genTextTable, TECHDEFMETALS, Integer.valueOf(defaultNumMetals));
 		loadTableEntry(genTextTable, TECHDESCRIPT, description);
-		loadTableEntry(genTextTable, TECHSPICEMINRES, new Double(minRes));
-		loadTableEntry(genTextTable, TECHSPICEMINCAP, new Double(minCap));
-		loadTableEntry(genTextTable, TECHGATESHRINK, new Double(gateShrinkage));
-		loadTableEntry(genTextTable, TECHGATEINCLUDED, new Boolean(includeGateInResistance));
-		loadTableEntry(genTextTable, TECHGROUNDINCLUDED, new Boolean(includeGround));
+		loadTableEntry(genTextTable, TECHSPICEMINRES, Double.valueOf(minRes));
+		loadTableEntry(genTextTable, TECHSPICEMINCAP, Double.valueOf(minCap));
+		loadTableEntry(genTextTable, TECHMAXSERIESRES, Double.valueOf(maxSeriesResistance));
+		loadTableEntry(genTextTable, TECHGATESHRINK, Double.valueOf(gateShrinkage));
+		loadTableEntry(genTextTable, TECHGATEINCLUDED, Boolean.valueOf(includeGateInResistance));
+		loadTableEntry(genTextTable, TECHGROUNDINCLUDED, Boolean.valueOf(includeGround));
 		loadTableEntry(genTextTable, TECHTRANSPCOLORS, transparentColors);
 
 		// now create those text objects
@@ -97,8 +109,17 @@ public class GeneralInfo extends Info
 			String str = getValueOnNode(ni);
 			switch (opt)
 			{
+				case TECHSHORTNAME:
+					gi.shortName = str;
+					break;
 				case TECHSCALE:
 					gi.scale = TextUtils.atof(str);
+					break;
+				case TECHFOUNDRY:
+					gi.defaultFoundry = str;
+					break;
+				case TECHDEFMETALS:
+					gi.defaultNumMetals = TextUtils.atoi(str);
 					break;
 				case TECHDESCRIPT:
 					gi.description = str;
@@ -108,6 +129,9 @@ public class GeneralInfo extends Info
 					break;
 				case TECHSPICEMINCAP:
 					gi.minCap = TextUtils.atof(str);
+					break;
+				case TECHMAXSERIESRES:
+					gi.maxSeriesResistance = TextUtils.atof(str);
 					break;
 				case TECHGATESHRINK:
 					gi.gateShrinkage = TextUtils.atof(str);

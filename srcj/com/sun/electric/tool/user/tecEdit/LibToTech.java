@@ -143,9 +143,9 @@ public class LibToTech
 
 	private static class SoftTech extends Technology
 	{
-		private SoftTech(String name, int numMetals)
+		private SoftTech(String name, String foundryName, int numMetals)
 		{
-			super(name, Foundry.Type.MOSIS, numMetals);
+			super(name, Foundry.Type.valueOf(foundryName), numMetals);
 			setNoNegatedArcs();
 		}
 
@@ -157,6 +157,11 @@ public class LibToTech
         private void setTheScale(double scale)
 		{
 			setFactoryScale(scale, true);
+		}
+
+        protected void setTechShortName(String techShortName)
+		{
+			super.setTechShortName(techShortName);
 		}
 
 		private void setTransparentColors(Color [] colors)
@@ -236,12 +241,6 @@ public class LibToTech
 		// get layer information
 		LayerInfo [] lList = extractLayers(dependentLibs);
 		if (lList == null) return;
-        int numMetals = 0;
-        for (LayerInfo li: lList) {
-            Layer.Function fun = li.fun;
-            if (fun.isMetal())
-                numMetals = Math.max(numMetals, fun.getLevel());
-        }
 
 		// get arc information
 		ArcInfo [] aList = extractArcs(dependentLibs, lList);
@@ -252,13 +251,15 @@ public class LibToTech
 		if (nList == null) return;
 
 		// create the technology
-		SoftTech tech = new SoftTech(newTechName, numMetals);
+		SoftTech tech = new SoftTech(newTechName, gi.defaultFoundry, gi.defaultNumMetals);
+        tech.setTechShortName(gi.shortName);
 		tech.setTheScale(gi.scale);
 		tech.setTechDesc(gi.description);
         tech.setFactoryParasitics(gi.minRes, gi.minCap);
 //		tech.setMinResistance(gi.minRes);
 //		tech.setMinCapacitance(gi.minCap);
         Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        changeBatch.add(tech.getMaxSeriesResistanceSetting(), Double.valueOf(gi.maxSeriesResistance));
         changeBatch.add(tech.getGateLengthSubtractionSetting(), Double.valueOf(gi.gateShrinkage));
 		changeBatch.add(tech.getGateIncludedSetting(), Boolean.valueOf(gi.includeGateInResistance));
 		changeBatch.add(tech.getGroundNetIncludedSetting(), Boolean.valueOf(gi.includeGround));
@@ -2610,12 +2611,13 @@ public class LibToTech
 
 		buffWriter.println("\tprivate " + techName + "()");
 		buffWriter.println("\t{");
-		buffWriter.println("\t\tsuper(\"" + techName + "\");");
+		buffWriter.println("\t\tsuper(\"" + techName + "\", Foundry.Type." + gi.defaultFoundry + ", " + gi.defaultNumMetals + ");");
+		buffWriter.println("\t\tsetShortName(\"" + gi.shortName + "\");");
 		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
 		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale) + ", true);   // in nanometers: really " +
 			(gi.scale / 1000) + " microns");
-		buffWriter.println("\t\tsetMinResistance(" + gi.minRes + ");");
-		buffWriter.println("\t\tsetMinCapacitance(" + gi.minCap + ");");
+		buffWriter.println("\t\tsetFactoryParasitics(" + gi.minRes + ", " + gi.minCap + ");");
+		buffWriter.println("\t\tsetMaxSeriesResistance(" + gi.maxSeriesResistance + ");");
 		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
 		buffWriter.println("\t\tsetGateIncluded(" + gi.includeGateInResistance + ");");
 		buffWriter.println("\t\tsetGroundNetIncluded(" + gi.includeGround + ");");

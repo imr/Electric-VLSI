@@ -134,7 +134,7 @@ public class Maxwell extends Output
 	{
 		Layer layer = poly.getLayer();
 		if (layer.getTechnology() != Technology.getCurrent()) return;
-		if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) return;
+		if (layer.isPseudoLayer()) return;
 		Rectangle2D box = poly.getBox();
 		if (box == null) return;
 		Color color = layer.getGraphics().getColor();
