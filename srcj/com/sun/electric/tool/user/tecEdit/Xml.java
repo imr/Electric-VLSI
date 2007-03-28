@@ -41,7 +41,7 @@ public class Xml {
     private Xml() {
     }
     
-    static void writeXml(PrintStream out, Technology tech, GeneralInfo gi, LayerInfo[] lList, ArcInfo[] aList, NodeInfo nist) {
+    static void writeXml(PrintStream out, Technology tech, GeneralInfo gi, LayerInfo[] lList, ArcInfo[] aList, NodeInfo[] nList) {
         String techName = tech.getTechName();
         out.println("---------------------------------------");
         out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -119,9 +119,19 @@ public class Xml {
         out.println();
         
         for (ArcInfo ai: aList) {
+            if (ai == null) continue;
             writeXml(out, ai);
             out.println();
         }
+        
+        for (NodeInfo ni: nList) {
+            writeXml(out, ni);
+            out.println();
+        }
+        
+        writeSpiceHeaderXml(out, 1, gi.spiceLevel1Header);
+        writeSpiceHeaderXml(out, 2, gi.spiceLevel2Header);
+        writeSpiceHeaderXml(out, 3, gi.spiceLevel3Header);
         
         out.println("</Technology>");
         out.println("---------------------------------------");
@@ -205,9 +215,18 @@ public class Xml {
         out.print("  <ArcProto");
         printAttribute(out, " name", ai.name);
         printlnAttribute(out, " fun", ai.func.getConstantName());
-        printlnAttribute(out, "    widthOffset", ai.widthOffset);
-        printAttribute(out, "    defaultWidth", ai.maxWidth);
+        
+        printAttribute(out, "    widthOffset", ai.widthOffset);
+        printlnAttribute(out, " defaultWidth", ai.maxWidth);
+        
+        printAttribute(out, "    wipable", ai.wipes);
+        printAttribute(out, " fixedAngle", ai.fixAng);
+        printlnAttribute(out, " extended", !ai.noExtend);
+        
+        printlnAttribute(out, "    angleIncrement", ai.angInc);
+        printAttribute(out, "    antennaRatio", ai.antennaRatio);
         out.println(">");
+        
         for (ArcInfo.LayerDetails al: ai.arcDetails) {
             out.print("    <ArcLayer");
             printAttribute(out, " layer", al.layer.name);
@@ -216,6 +235,104 @@ public class Xml {
             out.println("/>");
         }
         out.println("  </ArcProto>");
+    }
+    
+    private static void writeXml(PrintStream out, NodeInfo ni) {
+        out.print("  <PrimitiveNode");
+        printAttribute(out, " name", ni.name);
+        printlnAttribute(out, " fun", ni.func.name());
+        
+        printAttribute(out, "    defaultWidth", ni.xSize);
+        printAttribute(out, " defaultHeight", ni.ySize);
+        out.println(">");
+        if (ni.so != null) {
+            out.print("    <SizeOffset");
+            printAttribute(out, " lx", ni.so.getLowXOffset());
+            printAttribute(out, " hx", ni.so.getHighXOffset());
+            printAttribute(out, " ly", ni.so.getLowYOffset());
+            printAttribute(out, " hy", ni.so.getHighYOffset());
+            out.println("/>");
+        }
+        
+        for(int j=0; j<ni.nodeLayers.length; j++) {
+            NodeInfo.LayerDetails nl = ni.nodeLayers[j];
+            out.print("    <NodeLayer");
+            printAttribute(out, " layer", nl.layer.name);
+            printAttribute(out, " style", nl.style.name());
+            if (nl.portIndex > 0)
+                printAttribute(out, " portNum", nl.portIndex);
+            out.println(">");
+            switch (nl.representation) {
+                case Technology.NodeLayer.BOX:
+                    out.println("      <Box/>");
+                    break;
+                case Technology.NodeLayer.MINBOX:
+                    out.println("      <Minbox/>");
+                    break;
+                case Technology.NodeLayer.POINTS:
+                    out.println("      <Points/>");
+                    break;
+                default:
+                    out.println("      <?????/>");
+                    break;
+            }
+            for (Technology.TechPoint tp: nl.values) {
+                out.print("      <TechPoint");
+                printAttribute(out, " xm", tp.getX().getMultiplier());
+                printAttribute(out, " xa", tp.getX().getAdder());
+                printAttribute(out, " ym", tp.getY().getMultiplier());
+                printAttribute(out, " ya", tp.getY().getAdder());
+                out.println("/>");
+            }
+            out.println("    </NodeLayer>");
+        }
+//            int portNum = nList[i].nodeLayers[j].portIndex;
+//            buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+//                    nList[i].nodeLayers[j].layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+//                    nList[i].nodeLayers[j].style.getConstantName() + ",");
+//            switch (nList[i].nodeLayers[j].representation) {
+//                case Technology.NodeLayer.BOX:
+//                    buffWriter.print(" Technology.NodeLayer.BOX,");     break;
+//                case Technology.NodeLayer.MINBOX:
+//                    buffWriter.print(" Technology.NodeLayer.MINBOX,");  break;
+//                case Technology.NodeLayer.POINTS:
+//                    buffWriter.print(" Technology.NodeLayer.POINTS,");  break;
+//                default:
+//                    buffWriter.print(" Technology.NodeLayer.????,");    break;
+//            }
+//            buffWriter.println(" new Technology.TechPoint [] {");
+//            int totLayers = nList[i].nodeLayers[j].values.length;
+//            for(int k=0; k<totLayers; k++) {
+//                Technology.TechPoint tp = nList[i].nodeLayers[j].values[k];
+//                buffWriter.print("\t\t\t\t\tnew Technology.TechPoint(" +
+//                        getEdgeLabel(tp, false) + ", " + getEdgeLabel(tp, true) + ")");
+//                if (k < totLayers-1) buffWriter.println(","); else
+//                    buffWriter.print("}");
+//            }
+//            if (nList[i].specialType == PrimitiveNode.SERPTRANS) {
+//                buffWriter.print(", " + nList[i].nodeLayers[j].lWidth + ", " + nList[i].nodeLayers[j].rWidth + ", " +
+//                        nList[i].nodeLayers[j].extendB + ", " + nList[i].nodeLayers[j].extendT);
+//            }
+//            buffWriter.print(")");
+//            if (j+1 < tot) buffWriter.print(",");
+//            buffWriter.println();
+//        }
+//        buffWriter.println("\t\t\t});");
+
+        out.println("  </PrimitiveNode>");
+    }
+    
+    private static void writeSpiceHeaderXml(PrintStream out, int level, String[] spiceHeader) {
+        if (spiceHeader == null) return;
+        out.print("  <SpiceHeader");
+        printAttribute(out, " level", level);
+        out.println(">");
+        for (String line: spiceHeader) {
+            out.print("    <SpiceLine");
+            printAttribute(out, " line", line);
+            out.println("/>");
+        }
+        out.println("  </SpiceHeader>");
     }
     
     private static void printlnAttribute(PrintStream out, String name, Object value) {

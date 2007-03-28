@@ -578,16 +578,159 @@ public class Poly extends PolyBase {
 	/**
 	 * Type is a typesafe enum class that describes the nature of a Poly.
 	 */
-	public static class Type
+	public static enum Type
 	{
-		private String name;
-		private String constName;
-		private boolean isText;
+		// ************************ polygons ************************
+		/**
+		 * Describes a closed polygon which is filled in.
+		 */
+		FILLED("filled", false),
+		/**
+		 * Describes a closed polygon with only the outline drawn.
+		 */
+		CLOSED("closed", false),
+		/**
+		 * Describes a closed rectangle with the outline drawn and an "X" drawn through it.
+		 */
+		CROSSED("crossed", false),
 
-		private Type(String name, String constName, boolean isText)
+		// ************************ lines ************************
+		/**
+		 * Describes an open outline.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		OPENED("opened", false),
+		/**
+		 * Describes an open outline, drawn with a dotted texture.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		OPENEDT1("opened-dotted", false),
+		/**
+		 * Describes an open outline, drawn with a dashed texture.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		OPENEDT2("opened-dashed", false),
+		/**
+		 * Describes an open outline, drawn with thicker lines.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		OPENEDT3("opened-thick", false),
+		/**
+		 * Describes a vector endpoint pairs, solid.
+		 * There must be an even number of points in the Poly so that vectors can be drawn from point 0 to 1,
+		 * then from point 2 to 3, etc.
+		 */
+		VECTORS("vectors", false),
+
+		// ************************ curves ************************
+		/**
+		 * Describes a circle (only the outline is drawn).
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		CIRCLE("circle", false),
+		/**
+		 * Describes a circle, drawn with thick lines (only the outline is drawn).
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		THICKCIRCLE("thick-circle", false),
+		/**
+		 * Describes a filled circle.
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		DISC("disc", false),
+		/**
+		 * Describes an arc of a circle.
+		 * The first point is the center of the circle, the second point is the start of the arc, and
+		 * the third point is the end of the arc.
+		 * The arc will be drawn counter-clockwise from the start point to the end point.
+		 */
+		CIRCLEARC("circle-arc", false),
+		/**
+		 * Describes an arc of a circle, drawn with thick lines.
+		 * The first point is the center of the circle, the second point is the start of the arc, and
+		 * the third point is the end of the arc.
+		 * The arc will be drawn counter-clockwise from the start point to the end point.
+		 */
+		THICKCIRCLEARC("thick-circle-arc", false),
+
+		// ************************ text ************************
+		/**
+		 * Describes text that should be centered about the Poly point.
+		 * Only one point need be specified.
+		 */
+		TEXTCENT("text-center", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the top-center.
+		 * Only one point need be specified, and the text will be below that point.
+		 */
+		TEXTTOP("text-top", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the bottom-center.
+		 * Only one point need be specified, and the text will be above that point.
+		 */
+		TEXTBOT("text-bottom", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the left-center.
+		 * Only one point need be specified, and the text will be to the right of that point.
+		 */
+		TEXTLEFT("text-left", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the right-center.
+		 * Only one point need be specified, and the text will be to the left of that point.
+		 */
+		TEXTRIGHT("text-right", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the upper-left.
+		 * Only one point need be specified, and the text will be to the lower-right of that point.
+		 */
+		TEXTTOPLEFT("text-topleft", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the lower-left.
+		 * Only one point need be specified, and the text will be to the upper-right of that point.
+		 * This is the normal starting point for most text.
+		 */
+		TEXTBOTLEFT("text-botleft", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the upper-right.
+		 * Only one point need be specified, and the text will be to the lower-left of that point.
+		 */
+		TEXTTOPRIGHT("text-topright", true),
+		/**
+		 * Describes text that should be placed so that the Poly point is at the lower-right.
+		 * Only one point need be specified, and the text will be to the upper-left of that point.
+		 */
+		TEXTBOTRIGHT("text-botright", true),
+		/**
+		 * Describes text that is centered in the Poly and must remain inside.
+		 * If the letters do not fit, a smaller font will be used, and if that still does not work,
+		 * any letters that cannot fit are not written.
+		 * The Poly coordinates must define an area for the text to live in.
+		 */
+		TEXTBOX("text-box", true),
+
+		// ************************ miscellaneous ************************
+		/**
+		 * Describes a small cross, drawn at the specified location.
+		 * Typically there will be only one point in this polygon
+		 * but if there are more they are averaged and the cross is drawn in the center.
+		 */
+		CROSS("cross", false),
+		/**
+		 * Describes a big cross, drawn at the specified location.
+		 * Typically there will be only one point in this polygon
+		 * but if there are more they are averaged and the cross is drawn in the center.
+		 */
+		BIGCROSS("big-cross", false);
+
+		private final String name;
+		private final boolean isText;
+
+		private Type(String name, boolean isText)
 		{
 			this.name = name;
-			this.constName = constName;
 			this.isText = isText;
 		}
 
@@ -602,158 +745,6 @@ public class Poly extends PolyBase {
 		 * @return a printable version of this Type.
 		 */
 		public String toString() { return "Poly.Type "+name; }
-
-		/**
-		 * Returns the constant name for this Type.
-		 * Constant names are used when writing Java code, so they must be the same as the actual symbol name.
-		 * @return the constant name for this Type.
-		 */
-		public String getConstantName() { return constName; }
-
-		// ************************ polygons ************************
-		/**
-		 * Describes a closed polygon which is filled in.
-		 */
-		public static final Type FILLED = new Type("filled", "FILLED", false);
-		/**
-		 * Describes a closed polygon with only the outline drawn.
-		 */
-		public static final Type CLOSED = new Type("closed", "CLOSED", false);
-		/**
-		 * Describes a closed rectangle with the outline drawn and an "X" drawn through it.
-		 */
-		public static final Type CROSSED = new Type("crossed", "CROSSED", false);
-
-		// ************************ lines ************************
-		/**
-		 * Describes an open outline.
-		 * The last point is not implicitly connected to the first point.
-		 */
-		public static final Type OPENED = new Type("opened", "OPENED", false);
-		/**
-		 * Describes an open outline, drawn with a dotted texture.
-		 * The last point is not implicitly connected to the first point.
-		 */
-		public static final Type OPENEDT1 = new Type("opened-dotted", "OPENEDT1", false);
-		/**
-		 * Describes an open outline, drawn with a dashed texture.
-		 * The last point is not implicitly connected to the first point.
-		 */
-		public static final Type OPENEDT2 = new Type("opened-dashed", "OPENEDT2", false);
-		/**
-		 * Describes an open outline, drawn with thicker lines.
-		 * The last point is not implicitly connected to the first point.
-		 */
-		public static final Type OPENEDT3 = new Type("opened-thick", "OPENEDT3", false);
-		/**
-		 * Describes a vector endpoint pairs, solid.
-		 * There must be an even number of points in the Poly so that vectors can be drawn from point 0 to 1,
-		 * then from point 2 to 3, etc.
-		 */
-		public static final Type VECTORS = new Type("vectors", "VECTORS", false);
-
-		// ************************ curves ************************
-		/**
-		 * Describes a circle (only the outline is drawn).
-		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
-		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
-		 */
-		public static final Type CIRCLE = new Type("circle", "CIRCLE", false);
-		/**
-		 * Describes a circle, drawn with thick lines (only the outline is drawn).
-		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
-		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
-		 */
-		public static final Type THICKCIRCLE = new Type("thick-circle", "THICKCIRCLE", false);
-		/**
-		 * Describes a filled circle.
-		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
-		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
-		 */
-		public static final Type DISC = new Type("disc", "DISC", false);
-		/**
-		 * Describes an arc of a circle.
-		 * The first point is the center of the circle, the second point is the start of the arc, and
-		 * the third point is the end of the arc.
-		 * The arc will be drawn counter-clockwise from the start point to the end point.
-		 */
-		public static final Type CIRCLEARC = new Type("circle-arc", "CIRCLEARC", false);
-		/**
-		 * Describes an arc of a circle, drawn with thick lines.
-		 * The first point is the center of the circle, the second point is the start of the arc, and
-		 * the third point is the end of the arc.
-		 * The arc will be drawn counter-clockwise from the start point to the end point.
-		 */
-		public static final Type THICKCIRCLEARC = new Type("thick-circle-arc", "THICKCIRCLEARC", false);
-
-		// ************************ text ************************
-		/**
-		 * Describes text that should be centered about the Poly point.
-		 * Only one point need be specified.
-		 */
-		public static final Type TEXTCENT = new Type("text-center", "TEXTCENT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the top-center.
-		 * Only one point need be specified, and the text will be below that point.
-		 */
-		public static final Type TEXTTOP = new Type("text-top", "TEXTTOP", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the bottom-center.
-		 * Only one point need be specified, and the text will be above that point.
-		 */
-		public static final Type TEXTBOT = new Type("text-bottom", "TEXTBOT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the left-center.
-		 * Only one point need be specified, and the text will be to the right of that point.
-		 */
-		public static final Type TEXTLEFT = new Type("text-left", "TEXTLEFT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the right-center.
-		 * Only one point need be specified, and the text will be to the left of that point.
-		 */
-		public static final Type TEXTRIGHT = new Type("text-right", "TEXTRIGHT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the upper-left.
-		 * Only one point need be specified, and the text will be to the lower-right of that point.
-		 */
-		public static final Type TEXTTOPLEFT = new Type("text-topleft", "TEXTTOPLEFT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the lower-left.
-		 * Only one point need be specified, and the text will be to the upper-right of that point.
-		 * This is the normal starting point for most text.
-		 */
-		public static final Type TEXTBOTLEFT = new Type("text-botleft", "TEXTBOTLEFT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the upper-right.
-		 * Only one point need be specified, and the text will be to the lower-left of that point.
-		 */
-		public static final Type TEXTTOPRIGHT = new Type("text-topright", "TEXTTOPRIGHT", true);
-		/**
-		 * Describes text that should be placed so that the Poly point is at the lower-right.
-		 * Only one point need be specified, and the text will be to the upper-left of that point.
-		 */
-		public static final Type TEXTBOTRIGHT = new Type("text-botright", "TEXTBOTRIGHT", true);
-		/**
-		 * Describes text that is centered in the Poly and must remain inside.
-		 * If the letters do not fit, a smaller font will be used, and if that still does not work,
-		 * any letters that cannot fit are not written.
-		 * The Poly coordinates must define an area for the text to live in.
-		 */
-		public static final Type TEXTBOX = new Type("text-box", "TEXTBOX", true);
-
-		// ************************ miscellaneous ************************
-		/**
-		 * Describes a small cross, drawn at the specified location.
-		 * Typically there will be only one point in this polygon
-		 * but if there are more they are averaged and the cross is drawn in the center.
-		 */
-		public static final Type CROSS = new Type("cross", "CROSS", false);
-		/**
-		 * Describes a big cross, drawn at the specified location.
-		 * Typically there will be only one point in this polygon
-		 * but if there are more they are averaged and the cross is drawn in the center.
-		 */
-		public static final Type BIGCROSS = new Type("big-cross", "BIGCROSS", false);
 
 		/**
 		 * Method to tell whether this is a style that can draw an opened polygon.

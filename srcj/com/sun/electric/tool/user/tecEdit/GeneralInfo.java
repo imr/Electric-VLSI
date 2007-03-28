@@ -49,6 +49,9 @@ public class GeneralInfo extends Info
 	/** true to include gates in resistance calc */	boolean  includeGateInResistance;
 	/** true to include ground in parasitics */		boolean  includeGround;
 	/** the transparent colors in the technology */	Color [] transparentColors;
+	/** spice level 1 header */                     String [] spiceLevel1Header;
+	/** spice level 2 header */                     String [] spiceLevel2Header;
+	/** spice level 3 header */                     String [] spiceLevel3Header;
 
 	static SpecialTextDescr [] genTextTable =
 	{

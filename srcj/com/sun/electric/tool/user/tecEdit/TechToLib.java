@@ -172,6 +172,9 @@ public class TechToLib
 		gi.transparentColors = new Color[numLayers];
 		for(int i=0; i<numLayers; i++)
 			gi.transparentColors[i] = wholeMap[1<<i];
+        gi.spiceLevel1Header = tech.getSpiceHeaderLevel1();
+        gi.spiceLevel2Header = tech.getSpiceHeaderLevel1();
+        gi.spiceLevel3Header = tech.getSpiceHeaderLevel1();
 		gi.generate(fNp);
 
 		// create the layer node names
@@ -260,6 +263,7 @@ public class TechToLib
             aList[arcTotal] = aIn;
             aIn.name = ap.getName();
 			aIn.func = ap.getFunction();
+            aIn.maxWidth = ap.getDefaultLambdaFullWidth();
 			aIn.fixAng = ap.isFixedAngle();
 			aIn.wipes = ap.isWipable();
 			aIn.noExtend = ap.isExtended();
@@ -283,7 +287,11 @@ public class TechToLib
 				Poly poly = polys[i];
 				Layer arcLayer = poly.getLayer();
 				if (arcLayer == null) continue;
-                al.layer = lList[0];
+                for(int j=0; j<lList.length; j++) {
+                    if (arcLayer.getName().equals(lList[j].name)) { al.layer = lList[j];   break; }
+                }
+                al.style = poly.getStyle();
+                al.width = ap.getArcLayer(i).getLambdaOffset();
 				EGraphics arcDesc = arcLayer.getGraphics();
 
 				// scale the arc geometry appropriately
@@ -332,11 +340,24 @@ public class TechToLib
 			if (!pnp.isNotUsed()) nodeTotal++;
 		}
 		String [] nodeSequence = new String[nodeTotal];
+        NodeInfo[] nList = new NodeInfo[nodeTotal];
 		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = it.next();
 			if (pnp.isNotUsed()) continue;
+            NodeInfo nIn = new NodeInfo();
+            nList[nodeIndex] = nIn;
+            nIn.name = pnp.getName();
+            nIn.func = pnp.getFunction();
+            nIn.serp = false;
+            if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
+                    nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
+            nIn.square = pnp.isSquare();
+            nIn.wipes = pnp.isWipeOn1or2();
+            nIn.lockable = pnp.isLockedPrim();
+            nIn.xSize = pnp.getDefWidth();
+            nIn.ySize = pnp.getDefHeight();
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;
 
@@ -389,6 +410,9 @@ public class TechToLib
                 oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newSize));
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
+                if (e == 0) {
+                    nIn.nodeLayers = new NodeInfo.LayerDetails[polys.length];
+                }
 				for(int i=0; i<j; i++)
 				{
 					Poly poly = polys[i];
@@ -399,6 +423,16 @@ public class TechToLib
 					// accumulate total size of main example
 					if (e == 0)
 					{
+                        NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
+                        Technology.NodeLayer nl = pnp.getLayers()[i];
+                        nIn.nodeLayers[i] = nld;
+                        nld.style = nl.getStyle();
+                        nld.portIndex = nl.getPortNum();
+                        nld.representation = nl.getRepresentation();
+                        nld.values = nl.getPoints();
+                        for(int k=0; k<lList.length; k++) {
+                            if (nodeLayer.getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
+                        }
 						Rectangle2D polyBounds = poly.getBounds2D();
 						if (i == 0)
 						{
@@ -427,14 +461,6 @@ public class TechToLib
 
 						nNp.setTechnology(Artwork.tech);
 						nNp.setInTechnologyLibrary();
-						NodeInfo nIn = new NodeInfo();
-						nIn.func = pnp.getFunction();
-						nIn.serp = false;
-						if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
-							nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
-						nIn.square = pnp.isSquare();
-						nIn.wipes = pnp.isWipeOn1or2();
-						nIn.lockable = pnp.isLockedPrim();
 						nIn.generate(nNp);
 					}
 
@@ -663,7 +689,7 @@ public class TechToLib
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
         
-        Xml.writeXml(System.out, tech, gi, lList, aList, null);
+        Xml.writeXml(System.out, tech, gi, lList, aList, nList);
 
 		// clean up
 		System.out.println("Done.");

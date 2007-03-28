@@ -35,10 +35,10 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import java.util.Arrays;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 
@@ -54,28 +54,331 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * Functions are technology-independent and include different types of transistors,
 	 * contacts, and other circuit elements.
 	 */
-	public static class Function
+	public static enum Function
 	{
+		/**
+		 * Describes a node with unknown behavior.
+		 */
+		UNKNOWN("unknown", "node"),
+		/**
+		 * Describes a single-layer pin.
+		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
+		 */
+		PIN("pin", "pin"),
+		/**
+		 * Describes a two-layer contact.
+		 * Contacts connects wires of two different layers in the center of the node.
+		 */
+		CONTACT("contact", "contact"),
+		/**
+		 * Describes a pure-layer node.
+		 * Pure-layer nodes have a solid piece of geometry on a single layer.
+		 */
+		NODE("pure-layer-node", "plnode"),
+		/**
+		 * node a node that connects all ports.
+		 */
+		CONNECT("connection", "conn"),
+		/**
+		 * Describes a MOS enhancement transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		TRANMOS("nMOS-transistor", "nmos"),
+		/**
+		 * Describes a MOS depletion transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		TRADMOS("DMOS-transistor", "dmos"),
+		/**
+		 * Describes a MOS complementary transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		TRAPMOS("pMOS-transistor", "pmos"),
+		/**
+		 * Describes a NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		TRANPN("NPN-transistor", "npn"),
+		/**
+		 * Describes a PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		TRAPNP("PNP-transistor", "pnp"),
+		/**
+		 * Describes a N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		TRANJFET("n-type-JFET-transistor", "njfet"),
+		/**
+		 * Describes a P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		TRAPJFET("p-type-JFET-transistor", "pjfet"),
+		/**
+		 * Describes a MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		TRADMES("depletion-mesfet", "dmes"),
+		/**
+		 * Describes a MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		TRAEMES("enhancement-mesfet", "emes"),
+		/**
+		 * Describes a general-purpose transistor.
+		 * It is defined self-referentially by the prototype name of the primitive.
+		 */
+		TRANSREF("prototype-defined-transistor","tref"),
+		/**
+		 * Describes an undetermined transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
+		 */
+		TRANS("transistor", "trans"),
+		/**
+		 * Describes a 4-port MOS enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4NMOS("4-port-nMOS-transistor", "nmos4p"),
+		/**
+		 * Describes a 4-port MOS depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4DMOS("4-port-DMOS-transistor", "dmos4p"),
+		/**
+		 * Describes a 4-port MOS complementary transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4PMOS("4-port-pMOS-transistor", "pmos4p"),
+		/**
+		 * Describes a 4-port NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		TRA4NPN("4-port-NPN-transistor", "npn4p"),
+		/**
+		 * Describes a 4-port PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		TRA4PNP("4-port-PNP-transistor", "pnp4p"),
+		/**
+		 * Describes a 4-port N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4NJFET("4-port-n-type-JFET-transistor","njfet4p"),
+		/**
+		 * Describes a 4-port P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4PJFET("4-port-p-type-JFET-transistor","pjfet4p"),
+		/**
+		 * Describes a 4-port MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4DMES("4-port-depletion-mesfet", "dmes4p"),
+		/**
+		 * Describes a 4-port MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		TRA4EMES("4-port-enhancement-mesfet",	"emes4p"),
+		/**
+		 * Describes a general-purpose transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
+		 */
+		TRANS4("4-port-transistor", "trans4p"),
+		/**
+		 * Describes a resistor.
+		 */
+		RESIST("resistor", "res"),
+        /**
+		 * Describes a poly resistor.
+		 */
+		PRESIST("poly-resistor", "pres"),
+		/**
+		 * Describes a well resistor.
+		 */
+		WRESIST("well-resistor", "wres"),
+        /**
+		 * Describes an esd device
+		 */
+		ESDDEVICE("esd-device", "esdd"),
+        /**
+		 * Describes a capacitor.
+		 */
+		CAPAC("capacitor", "cap"),
+		/**
+		 * Describes an electrolytic capacitor.
+		 */
+		ECAPAC("electrolytic-capacitor", "ecap"),
+		/**
+		 * Describes a diode.
+		 */
+		DIODE("diode", "diode"),
+		/**
+		 * Describes a zener diode.
+		 */
+		DIODEZ("zener-diode", "zdiode"),
+		/**
+		 * Describes an inductor.
+		 */
+		INDUCT("inductor", "ind"),
+		/**
+		 * Describes a meter.
+		 */
+		METER("meter", "meter"),
+		/**
+		 * Describes a transistor base.
+		 */
+		BASE("base", "base"),
+		/**
+		 * Describes a transistor emitter.
+		 */
+		EMIT("emitter", "emit"),
+		/**
+		 * Describes a transistor collector.
+		 */
+		COLLECT("collector", "coll"),
+		/**
+		 * Describes a buffer.
+		 * It has input on the first port, clocking on the second port, and output on the third port.
+		 */
+		BUFFER("buffer", "buf"),
+		/**
+		 * Describes an AND gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		GATEAND("AND-gate", "and"),
+		/**
+		 * Describes an OR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		GATEOR("OR-gate", "or"),
+		/**
+		 * Describes an XOR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		GATEXOR("XOR-gate", "xor"),
+		/**
+		 * Describes a RS flip-flop with master-slave triggering.
+		 */
+		FLIPFLOPRSMS("flip-flop-RS-MS", "ffRSms"),
+		/**
+		 * Describes a RS flip-flop with positive triggering.
+		 */
+		FLIPFLOPRSP("flip-flop-RS-P", "ffRSp"),
+		/**
+		 * Describes a RS flip-flop with negative triggering.
+		 */
+		FLIPFLOPRSN("flip-flop-RS-N", "ffRSn"),
+		/**
+		 * Describes a JK flip-flop with master-slave triggering.
+		 */
+		FLIPFLOPJKMS("flip-flop-JK-MS", "ffJKms"),
+		/**
+		 * Describes a JK flip-flop with positive triggering.
+		 */
+		FLIPFLOPJKP("flip-flop-JK-P", "ffJKp"),
+		/**
+		 * Describes a JK flip-flop with negative triggering.
+		 */
+		FLIPFLOPJKN("flip-flop-JK-N", "ffJKn"),
+		/**
+		 * Describes a D flip-flop with master-slave triggering.
+		 */
+		FLIPFLOPDMS("flip-flop-D-MS", "ffDms"),
+		/**
+		 * Describes a D flip-flop with positive triggering.
+		 */
+		FLIPFLOPDP("flip-flop-D-P", "ffDp"),
+		/**
+		 * Describes a D flip-flop with negative triggering.
+		 */
+		FLIPFLOPDN("flip-flop-D-N", "ffDn"),
+		/**
+		 * Describes a T flip-flop with master-slave triggering.
+		 */
+		FLIPFLOPTMS("flip-flop-T-MS", "ffTms"),
+		/**
+		 * Describes a T flip-flop with positive triggering.
+		 */
+		FLIPFLOPTP("flip-flop-T-P", "ffTp"),
+		/**
+		 * Describes a T flip-flop with negative triggering.
+		 */
+		FLIPFLOPTN("flip-flop-T-N", "ffTn"),
+		/**
+		 * Describes a multiplexor.
+		 */
+		MUX("multiplexor", "mux"),
+		/**
+		 * Describes a power connection.
+		 */
+		CONPOWER("power", "pwr"),
+		/**
+		 * Describes a ground connection.
+		 */
+		CONGROUND("ground", "gnd"),
+		/**
+		 * Describes voltage or current source.
+		 */
+		SOURCE("source", "source"),
+		/**
+		 * Describes a substrate contact.
+		 */
+		SUBSTRATE("substrate", "substr"),
+		/**
+		 * Describes a well contact.
+		 */
+		WELL("well", "well"),
+		/**
+		 * Describes a pure artwork.
+		 */
+		ART("artwork", "art"),
+		/**
+		 * Describes an array.
+		 */
+		ARRAY("array", "array"),
+		/**
+		 * Describes an alignment object.
+		 */
+		ALIGN("align", "align"),
+		/**
+		 * Describes a current-controlled voltage source.
+		 */
+		CCVS("ccvs", "ccvs"),
+		/**
+		 * Describes a current-controlled current source.
+		 */
+		CCCS("cccs", "cccs"),
+		/**
+		 * Describes a voltage-controlled voltage source.
+		 */
+		VCVS("vcvs", "vcvs"),
+		/**
+		 * Describes a voltage-controlled current source.
+		 */
+		VCCS("vccs", "vccs"),
+		/**
+		 * Describes a transmission line.
+		 */
+		TLINE("transmission-line", "transm");
+        
 		private final String name;
 		private final String shortName;
 		private final Name basename;
-		private final String constantName;
-		private static List<Function> allFunctions = new ArrayList<Function>();
 
-		private Function(String name, String shortName, String constantName)
+		private Function(String name, String shortName)
 		{
 			this.name = name;
 			this.shortName = shortName;
-			this.constantName = constantName;
 			this.basename = Name.findName(TextUtils.canonicString(shortName)+"@0").getBasename();
-			allFunctions.add(this);
 		}
 
 		/**
 		 * Method to return a List of all Functions that exist.
 		 * @return a List of all Functions that exist.
 		 */
-		public static List<Function> getFunctions() { return allFunctions; }
+		public static List<Function> getFunctions() { return Arrays.asList(Function.class.getEnumConstants()); }
 
 		/**
 		 * Returns a name of this Function.
@@ -88,7 +391,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		 * Constant names are used when writing Java code, so they must be the same as the actual symbol name.
 		 * @return the constant name for this Function.
 		 */
-		public String getConstantName() { return constantName; }
+		public String getConstantName() { return name(); }
 
 		/**
 		 * Returns a short name of this Function.
@@ -152,313 +455,6 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		 * @return a printable version of this Function.
 		 */
 		public String toString() { return name; }
-
-		/**
-		 * Describes a node with unknown behavior.
-		 */
-		public static final Function UNKNOWN =   new Function("unknown", "node", "UNKNOWN");
-		/**
-		 * Describes a single-layer pin.
-		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
-		 */
-		public static final Function PIN =       new Function("pin", "pin", "PIN");
-		/**
-		 * Describes a two-layer contact.
-		 * Contacts connects wires of two different layers in the center of the node.
-		 */
-		public static final Function CONTACT =   new Function("contact", "contact", "CONTACT");
-		/**
-		 * Describes a pure-layer node.
-		 * Pure-layer nodes have a solid piece of geometry on a single layer.
-		 */
-		public static final Function NODE =      new Function("pure-layer-node", "plnode", "NODE");
-		/**
-		 * node a node that connects all ports.
-		 */
-		public static final Function CONNECT =   new Function("connection", "conn", "CONNECT");
-		/**
-		 * Describes a MOS enhancement transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		public static final Function TRANMOS =   new Function("nMOS-transistor", "nmos", "TRANMOS");
-		/**
-		 * Describes a MOS depletion transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		public static final Function TRADMOS =   new Function("DMOS-transistor", "dmos", "TRADMOS");
-		/**
-		 * Describes a MOS complementary transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		public static final Function TRAPMOS =   new Function("pMOS-transistor", "pmos", "TRAPMOS");
-		/**
-		 * Describes a NPN junction transistor.
-		 * It has base on the first port, emitter on the second port, and collector on the third port.
-		 */
-		public static final Function TRANPN =    new Function("NPN-transistor", "npn", "TRANPN");
-		/**
-		 * Describes a PNP junction transistor.
-		 * It has base on the first port, emitter on the second port, and collector on the third port.
-		 */
-		public static final Function TRAPNP =    new Function("PNP-transistor", "pnp", "TRAPNP");
-		/**
-		 * Describes a N-channel junction transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		public static final Function TRANJFET =  new Function("n-type-JFET-transistor", "njfet", "TRANJFET");
-		/**
-		 * Describes a P-channel junction transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		public static final Function TRAPJFET =  new Function("p-type-JFET-transistor", "pjfet", "TRAPJFET");
-		/**
-		 * Describes a MESFET depletion transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		public static final Function TRADMES =   new Function("depletion-mesfet", "dmes", "TRADMES");
-		/**
-		 * Describes a MESFET enhancement transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		public static final Function TRAEMES =   new Function("enhancement-mesfet", "emes", "TRAEMES");
-		/**
-		 * Describes a general-purpose transistor.
-		 * It is defined self-referentially by the prototype name of the primitive.
-		 */
-		public static final Function TRANSREF =  new Function("prototype-defined-transistor","tref", "TRANSREF");
-		/**
-		 * Describes an undetermined transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
-		 */
-		public static final Function TRANS =     new Function("transistor", "trans", "TRANS");
-		/**
-		 * Describes a 4-port MOS enhancement transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4NMOS =  new Function("4-port-nMOS-transistor", "nmos4p", "TRA4NMOS");
-		/**
-		 * Describes a 4-port MOS depletion transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4DMOS =  new Function("4-port-DMOS-transistor", "dmos4p", "TRA4DMOS");
-		/**
-		 * Describes a 4-port MOS complementary transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4PMOS =  new Function("4-port-pMOS-transistor", "pmos4p", "TRA4PMOS");
-		/**
-		 * Describes a 4-port NPN junction transistor.
-		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4NPN =   new Function("4-port-NPN-transistor", "npn4p", "TRA4NPN");
-		/**
-		 * Describes a 4-port PNP junction transistor.
-		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4PNP =   new Function("4-port-PNP-transistor", "pnp4p", "TRA4PNP");
-		/**
-		 * Describes a 4-port N-channel junction transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4NJFET = new Function("4-port-n-type-JFET-transistor","njfet4p", "TRA4NJFET");
-		/**
-		 * Describes a 4-port P-channel junction transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4PJFET = new Function("4-port-p-type-JFET-transistor","pjfet4p", "TRA4PJFET");
-		/**
-		 * Describes a 4-port MESFET depletion transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4DMES =  new Function("4-port-depletion-mesfet", "dmes4p", "TRA4DMES");
-		/**
-		 * Describes a 4-port MESFET enhancement transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		public static final Function TRA4EMES =  new Function("4-port-enhancement-mesfet",	"emes4p", "TRA4EMES");
-		/**
-		 * Describes a general-purpose transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
-		 */
-		public static final Function TRANS4 =    new Function("4-port-transistor", "trans4p", "TRANS4");
-		/**
-		 * Describes a resistor.
-		 */
-		public static final Function RESIST =    new Function("resistor", "res", "RESIST");
-        /**
-		 * Describes a poly resistor.
-		 */
-		public static final Function PRESIST =    new Function("poly-resistor", "pres", "PRESIST");
-		/**
-		 * Describes a well resistor.
-		 */
-		public static final Function WRESIST =    new Function("well-resistor", "wres", "WRESIST");
-        /**
-		 * Describes an esd device
-		 */
-		public static final Function ESDDEVICE =    new Function("esd-device", "esdd", "ESDDEVICE");
-        /**
-		 * Describes a capacitor.
-		 */
-		public static final Function CAPAC =     new Function("capacitor", "cap", "CAPAC");
-		/**
-		 * Describes an electrolytic capacitor.
-		 */
-		public static final Function ECAPAC =    new Function("electrolytic-capacitor", "ecap", "ECAPAC");
-		/**
-		 * Describes a diode.
-		 */
-		public static final Function DIODE =     new Function("diode", "diode", "DIODE");
-		/**
-		 * Describes a zener diode.
-		 */
-		public static final Function DIODEZ =    new Function("zener-diode", "zdiode", "DIODEZ");
-		/**
-		 * Describes an inductor.
-		 */
-		public static final Function INDUCT =    new Function("inductor", "ind", "INDUCT");
-		/**
-		 * Describes a meter.
-		 */
-		public static final Function METER =     new Function("meter", "meter", "METER");
-		/**
-		 * Describes a transistor base.
-		 */
-		public static final Function BASE =      new Function("base", "base", "BASE");
-		/**
-		 * Describes a transistor emitter.
-		 */
-		public static final Function EMIT =      new Function("emitter", "emit", "EMIT");
-		/**
-		 * Describes a transistor collector.
-		 */
-		public static final Function COLLECT =   new Function("collector", "coll", "COLLECT");
-		/**
-		 * Describes a buffer.
-		 * It has input on the first port, clocking on the second port, and output on the third port.
-		 */
-		public static final Function BUFFER =    new Function("buffer", "buf", "BUFFER");
-		/**
-		 * Describes an AND gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		public static final Function GATEAND =   new Function("AND-gate", "and", "GATEAND");
-		/**
-		 * Describes an OR gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		public static final Function GATEOR =    new Function("OR-gate", "or", "GATEOR");
-		/**
-		 * Describes an XOR gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		public static final Function GATEXOR =   new Function("XOR-gate", "xor", "GATEXOR");
-		/**
-		 * Describes a RS flip-flop with master-slave triggering.
-		 */
-		public static final Function FLIPFLOPRSMS =  new Function("flip-flop-RS-MS", "ffRSms", "FLIPFLOP");
-		/**
-		 * Describes a RS flip-flop with positive triggering.
-		 */
-		public static final Function FLIPFLOPRSP =  new Function("flip-flop-RS-P", "ffRSp", "FLIPFLOP");
-		/**
-		 * Describes a RS flip-flop with negative triggering.
-		 */
-		public static final Function FLIPFLOPRSN =  new Function("flip-flop-RS-N", "ffRSn", "FLIPFLOP");
-		/**
-		 * Describes a JK flip-flop with master-slave triggering.
-		 */
-		public static final Function FLIPFLOPJKMS =  new Function("flip-flop-JK-MS", "ffJKms", "FLIPFLOP");
-		/**
-		 * Describes a JK flip-flop with positive triggering.
-		 */
-		public static final Function FLIPFLOPJKP =  new Function("flip-flop-JK-P", "ffJKp", "FLIPFLOP");
-		/**
-		 * Describes a JK flip-flop with negative triggering.
-		 */
-		public static final Function FLIPFLOPJKN =  new Function("flip-flop-JK-N", "ffJKn", "FLIPFLOP");
-		/**
-		 * Describes a D flip-flop with master-slave triggering.
-		 */
-		public static final Function FLIPFLOPDMS =  new Function("flip-flop-D-MS", "ffDms", "FLIPFLOP");
-		/**
-		 * Describes a D flip-flop with positive triggering.
-		 */
-		public static final Function FLIPFLOPDP =  new Function("flip-flop-D-P", "ffDp", "FLIPFLOP");
-		/**
-		 * Describes a D flip-flop with negative triggering.
-		 */
-		public static final Function FLIPFLOPDN =  new Function("flip-flop-D-N", "ffDn", "FLIPFLOP");
-		/**
-		 * Describes a T flip-flop with master-slave triggering.
-		 */
-		public static final Function FLIPFLOPTMS =  new Function("flip-flop-T-MS", "ffTms", "FLIPFLOP");
-		/**
-		 * Describes a T flip-flop with positive triggering.
-		 */
-		public static final Function FLIPFLOPTP =  new Function("flip-flop-T-P", "ffTp", "FLIPFLOP");
-		/**
-		 * Describes a T flip-flop with negative triggering.
-		 */
-		public static final Function FLIPFLOPTN =  new Function("flip-flop-T-N", "ffTn", "FLIPFLOP");
-		/**
-		 * Describes a multiplexor.
-		 */
-		public static final Function MUX =       new Function("multiplexor", "mux", "MUX");
-		/**
-		 * Describes a power connection.
-		 */
-		public static final Function CONPOWER =  new Function("power", "pwr", "CONPOWER");
-		/**
-		 * Describes a ground connection.
-		 */
-		public static final Function CONGROUND = new Function("ground", "gnd", "CONGROUND");
-		/**
-		 * Describes voltage or current source.
-		 */
-		public static final Function SOURCE =    new Function("source", "source", "SOURCE");
-		/**
-		 * Describes a substrate contact.
-		 */
-		public static final Function SUBSTRATE = new Function("substrate", "substr", "SUBSTRATE");
-		/**
-		 * Describes a well contact.
-		 */
-		public static final Function WELL =      new Function("well", "well", "WELL");
-		/**
-		 * Describes a pure artwork.
-		 */
-		public static final Function ART =       new Function("artwork", "art", "ART");
-		/**
-		 * Describes an array.
-		 */
-		public static final Function ARRAY =     new Function("array", "array", "ARRAY");
-		/**
-		 * Describes an alignment object.
-		 */
-		public static final Function ALIGN =     new Function("align", "align", "ALIGN");
-		/**
-		 * Describes a current-controlled voltage source.
-		 */
-		public static final Function CCVS =      new Function("ccvs", "ccvs", "CCVS");
-		/**
-		 * Describes a current-controlled current source.
-		 */
-		public static final Function CCCS =      new Function("cccs", "cccs", "CCCS");
-		/**
-		 * Describes a voltage-controlled voltage source.
-		 */
-		public static final Function VCVS =      new Function("vcvs", "vcvs", "VCVS");
-		/**
-		 * Describes a voltage-controlled current source.
-		 */
-		public static final Function VCCS =      new Function("vccs", "vccs", "VCCS");
-		/**
-		 * Describes a transmission line.
-		 */
-		public static final Function TLINE =     new Function("transmission-line", "transm", "TLINE");
 	}
 
 	// constants used in the "specialType" field

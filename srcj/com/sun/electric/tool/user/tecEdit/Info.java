@@ -103,6 +103,9 @@ public class Info
 	/** default foundry name (info cell) */						static final int TECHFOUNDRY       = 47;
 	/** default number of metals (info cell) */					static final int TECHDEFMETALS     = 48;
 	/** maximum series resistance (info cell) */				static final int TECHMAXSERIESRES  = 49;
+	/** spice level 1 header (info cell) */                     static final int TECHSPICELEVEL1   = 50;
+	/** spice level 2 header (info cell) */                     static final int TECHSPICELEVEL2   = 51;
+	/** spice level 3 header (info cell) */                     static final int TECHSPICELEVEL3   = 52;
 
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");

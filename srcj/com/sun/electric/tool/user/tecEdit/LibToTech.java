@@ -187,7 +187,7 @@ public class LibToTech
             this.newName = newName;
             if (alsoJava) {
                 // print the technology as Java code
-                String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code",
+                fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code",
                         newName + ".java");
             }
             startJob();
@@ -2578,12 +2578,11 @@ public class LibToTech
 		buffWriter.println("import com.sun.electric.database.geometry.EGraphics;");
 		buffWriter.println("import com.sun.electric.database.geometry.Poly;");
 		buffWriter.println("import com.sun.electric.database.prototype.PortCharacteristic;");
-		buffWriter.println("import com.sun.electric.database.prototype.PortProto;");
-		buffWriter.println("import com.sun.electric.database.prototype.NodeProto;");
 		buffWriter.println("import com.sun.electric.technology.ArcProto;");
 		buffWriter.println("import com.sun.electric.technology.DRCRules;");
 		buffWriter.println("import com.sun.electric.technology.EdgeH;");
 		buffWriter.println("import com.sun.electric.technology.EdgeV;");
+		buffWriter.println("import com.sun.electric.technology.Foundry;");
 		buffWriter.println("import com.sun.electric.technology.Layer;");
 		buffWriter.println("import com.sun.electric.technology.PrimitiveNode;");
 		buffWriter.println("import com.sun.electric.technology.PrimitivePort;");
@@ -2612,11 +2611,10 @@ public class LibToTech
 		buffWriter.println("\tprivate " + techName + "()");
 		buffWriter.println("\t{");
 		buffWriter.println("\t\tsuper(\"" + techName + "\", Foundry.Type." + gi.defaultFoundry + ", " + gi.defaultNumMetals + ");");
-		buffWriter.println("\t\tsetShortName(\"" + gi.shortName + "\");");
+		buffWriter.println("\t\tsetTechShortName(\"" + gi.shortName + "\");");
 		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
 		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale) + ", true);   // in nanometers: really " +
 			(gi.scale / 1000) + " microns");
-		buffWriter.println("\t\tsetFactoryParasitics(" + gi.minRes + ", " + gi.minCap + ");");
 		buffWriter.println("\t\tsetMaxSeriesResistance(" + gi.maxSeriesResistance + ");");
 		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
 		buffWriter.println("\t\tsetGateIncluded(" + gi.includeGateInResistance + ");");
@@ -2644,7 +2642,7 @@ public class LibToTech
 		for(int i=0; i<lList.length; i++)
 		{
 			lList[i].javaName = makeJavaName(lList[i].name);
-			buffWriter.print("\t\t/** " + lList[i].name + " layer */");
+			buffWriter.println("\t\t/** " + lList[i].name + " layer */");
 			buffWriter.println("\t\tLayer " + lList[i].javaName + "_lay = Layer.newInstance(this, \"" + lList[i].name + "\",");
 			buffWriter.print("\t\t\tnew EGraphics(");
 			if (lList[i].desc.isPatternedOnDisplay()) buffWriter.print("true"); else
@@ -2811,6 +2809,7 @@ public class LibToTech
 				break;
 			}
 		}
+		buffWriter.println("\t\tsetFactoryParasitics(" + gi.minRes + ", " + gi.minCap + ");");
 
 		// write design rules
 //		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
@@ -3016,7 +3015,7 @@ public class LibToTech
 				int portNum = nList[i].nodeLayers[j].portIndex;
 				buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
 					nList[i].nodeLayers[j].layer.javaName + "_lay, " + portNum + ", Poly.Type." +
-					nList[i].nodeLayers[j].style.getConstantName() + ",");
+					nList[i].nodeLayers[j].style.name() + ",");
 				switch (nList[i].nodeLayers[j].representation)
 				{
 					case Technology.NodeLayer.BOX:
@@ -3077,7 +3076,7 @@ public class LibToTech
 
 			// print the node information
 			PrimitiveNode.Function fun = nList[i].func;
-			buffWriter.println("\t\t" + ab + "_node.setFunction(PrimitiveNode.Function." + fun.getConstantName() + ");");
+			buffWriter.println("\t\t" + ab + "_node.setFunction(PrimitiveNode.Function." + fun.name() + ");");
 
 			if (nList[i].wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
 			if (nList[i].square) buffWriter.println("\t\t" + ab + "_node.setSquare();");

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xml.netbeans.org/schema/Technology"
+            xmlns:tns="http://xml.netbeans.org/schema/Technology"
+            elementFormDefault="qualified">
+                
+    <xsd:simpleType name="ColorComponent">
+        <xsd:restriction base="xsd:unsignedByte"/>
+    </xsd:simpleType>
+    <xsd:complexType name="Color">
+        <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
+        <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
+        <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="NumMetals">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="12"/>
+            <xsd:whiteSpace value="collapse"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="Foundry">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="NONE"/>
+            <xsd:enumeration value="MOCMOS"/>
+            <xsd:enumeration value="TSMC"/>
+            <xsd:enumeration value="ST"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="TransparentLayer">
+        <xsd:restriction base="xsd:positiveInteger">
+            <xsd:maxInclusive value="12"/>
+            <xsd:whiteSpace value="collapse"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LayerFun">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="UNKNOWN"/>
+            <xsd:enumeration value="METAL1"/>
+            <xsd:enumeration value="METAL2"/>
+            <xsd:enumeration value="METAL3"/>
+            <xsd:enumeration value="METAL4"/>
+            <xsd:enumeration value="METAL5"/>
+            <xsd:enumeration value="METAL6"/>
+            <xsd:enumeration value="METAL7"/>
+            <xsd:enumeration value="METAL8"/>
+            <xsd:enumeration value="METAL9"/>
+            <xsd:enumeration value="METAL10"/>
+            <xsd:enumeration value="METAL11"/>
+            <xsd:enumeration value="METAL12"/>
+            <xsd:enumeration value="POLY1"/>
+            <xsd:enumeration value="POLY2"/>
+            <xsd:enumeration value="POLY3"/>
+            <xsd:enumeration value="GATE"/>
+            <xsd:enumeration value="DIFF"/>
+            <xsd:enumeration value="DIFFP"/>
+            <xsd:enumeration value="DIFFN"/>
+            <xsd:enumeration value="IMPLANT"/>
+            <xsd:enumeration value="IMPLANTP"/>
+            <xsd:enumeration value="IMPLANTN"/>
+            <xsd:enumeration value="CONTACT1"/>
+            <xsd:enumeration value="CONTACT2"/>
+            <xsd:enumeration value="CONTACT3"/>
+            <xsd:enumeration value="CONTACT4"/>
+            <xsd:enumeration value="CONTACT5"/>
+            <xsd:enumeration value="CONTACT6"/>
+            <xsd:enumeration value="CONTACT7"/>
+            <xsd:enumeration value="CONTACT8"/>
+            <xsd:enumeration value="CONTACT9"/>
+            <xsd:enumeration value="CONTACT10"/>
+            <xsd:enumeration value="CONTACT11"/>
+            <xsd:enumeration value="CONTACT12"/>
+            <xsd:enumeration value="PLUG"/>
+            <xsd:enumeration value="OVERGLASS"/>
+            <xsd:enumeration value="RESISTOR"/>
+            <xsd:enumeration value="CAP"/>
+            <xsd:enumeration value="TRANSISTOR"/>
+            <xsd:enumeration value="EMITTER"/>
+            <xsd:enumeration value="BASE"/>
+            <xsd:enumeration value="COLLECTOR"/>
+            <xsd:enumeration value="SUBSTRATE"/>
+            <xsd:enumeration value="WELL"/>
+            <xsd:enumeration value="WELLP"/>
+            <xsd:enumeration value="WELLN"/>
+            <xsd:enumeration value="GUARD"/>
+            <xsd:enumeration value="ISOLATION"/>
+            <xsd:enumeration value="BUS"/>
+            <xsd:enumeration value="ART"/>
+            <xsd:enumeration value="CONTROL"/>
+            <xsd:enumeration value="TILENOT"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LayerExtraFun">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="PSEUDO"/>
+            <xsd:enumeration value="NONELEC"/>
+            <xsd:enumeration value="CONMETAL"/>
+            <xsd:enumeration value="CONPOLY"/>
+            <xsd:enumeration value="CONDIFF"/>
+            <xsd:enumeration value="DEPLETION_HEAVY"/>
+            <xsd:enumeration value="DEPLETION_LIGHT"/>
+            <xsd:enumeration value="ENHANCEMENT_HEAVY"/>
+            <xsd:enumeration value="ENHANCEMENT_LIGHT"/>
+            <xsd:enumeration value="HLVT"/>
+            <xsd:enumeration value="THICK"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LayerOutline">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="NOPAT"/>
+            <xsd:enumeration value="PAT_S"/>
+            <xsd:enumeration value="PAT_T1"/>
+            <xsd:enumeration value="PAT_T2"/>
+            <xsd:enumeration value="PAT_DO1"/>
+            <xsd:enumeration value="PAT_DO2"/>
+            <xsd:enumeration value="PAT_DA1"/>
+            <xsd:enumeration value="PAT_DA2"/>
+            <xsd:enumeration value="PAT_DD1"/>
+            <xsd:enumeration value="PAT_DD2"/>
+            <xsd:enumeration value="PAT_DO1_T1"/>
+            <xsd:enumeration value="PAT_DO2_T1"/>
+            <xsd:enumeration value="PAT_DA1_T1"/>
+            <xsd:enumeration value="PAT_DO1_T2"/>
+            <xsd:enumeration value="PAT_DO2_T2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:element name="technology">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="shortName" type="xsd:string"></xsd:element>
+                <xsd:element name="numMetals">
+                    <xsd:complexType>
+                        <xsd:attribute name="min" type="tns:NumMetals" use="required"/>
+                        <xsd:attribute name="max" type="tns:NumMetals" use="required"/>
+                        <xsd:attribute name="default" type="tns:NumMetals" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="defaultFoundry" default="NONE" minOccurs="0" type="tns:Foundry"></xsd:element>
+                <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
+                    <xsd:complexType>
+                        <xsd:complexContent>
+                            <xsd:extension base="tns:Color">
+                                <xsd:attribute name="transparent" type="tns:TransparentLayer" use="required"/>
+                            </xsd:extension>
+                        </xsd:complexContent>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="layer" maxOccurs="unbounded" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:choice>
+                                <xsd:element name="transparentColor">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="opaqueColor" type="tns:Color"></xsd:element>
+                            </xsd:choice>
+                            <xsd:element name="patternedOnDisplay" type="xsd:boolean"></xsd:element>
+                            <xsd:element name="patternedOnPrinter" type="xsd:boolean"></xsd:element>
+                            <xsd:element name="pattern" minOccurs="16" maxOccurs="16">
+                                <xsd:simpleType>
+                                    <xsd:restriction base="xsd:string">
+                                        <xsd:pattern value="[X ]{16}"/>
+                                    </xsd:restriction>
+                                </xsd:simpleType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="xsd:ID" use="required"/>
+                        <xsd:attribute name="fun" use="required" type="tns:LayerFun"></xsd:attribute>
+                        <xsd:attribute name="extraFun" type="tns:LayerExtraFun"></xsd:attribute>
+                        <xsd:attribute name="outline" type="tns:LayerOutline"></xsd:attribute>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+        </xsd:complexType>
+        
+        <xsd:key name="transparent">
+            <xsd:selector xpath="./tns:transparentLayer"/>
+            <xsd:field xpath="@transparent"/>
+        </xsd:key>   
+        
+        <xsd:keyref name="transparentUse" refer="tns:transparent">
+            <!-- every vehicle refers to its state -->
+            <xsd:selector xpath=".//tns:transparentColor"/>
+            <xsd:field xpath="@transparent"/>
+        </xsd:keyref>
+    </xsd:element>
+</xsd:schema>

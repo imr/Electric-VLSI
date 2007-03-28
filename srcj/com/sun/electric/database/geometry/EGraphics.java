@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Observable;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * Class to define the appearance of a piece of geometry.
@@ -46,41 +47,61 @@ public class EGraphics extends Observable
 	/**
 	 * Class to define the type of outline around a stipple pattern.
 	 */
-	public static class Outline
+	public static enum Outline
 	{
+		/** Draw stipple pattern with no outline. */
+		NOPAT("None", 0, 32, 1),
+		/** Draw stipple pattern with solid outline. */
+		PAT_S("Solid", -1, 32, 1),
+		/** Draw stipple pattern with solid thick outline. */
+		PAT_T1("Solid-Thick", -1, 32, 3),
+		/** Draw stipple pattern with solid thicker outline. */
+		PAT_T2("Solid-Thicker", -1, 32, 5),
+		/** Draw stipple pattern with close dotted outline. */
+		PAT_DO1("Dotted-Close", 0x55, 8, 1),
+		/** Draw stipple pattern with far dotted outline. */
+		PAT_DO2("Dotted-Far", 0x11, 8, 1),
+		/** Draw stipple pattern with short dashed outline. */
+		PAT_DA1("Dashed-Short", 0x33, 8, 1),
+		/** Draw stipple pattern with long dashed outline. */
+		PAT_DA2("Dashed-Long", 0xF, 6, 1),
+		/** Draw stipple pattern with short dotted-dashed outline. */
+		PAT_DD1("Dotted-Dashed-Short", 0x39, 8, 1),
+		/** Draw stipple pattern with long dotted-dashed outline. */
+		PAT_DD2("Dotted-Dashed-Long", 0xF3, 10, 1),
+		/** Draw stipple pattern with close dotted thick outline. */
+		PAT_DO1_T1("Dotted-Close-Thick", 0xF, 6, 3),
+		/** Draw stipple pattern with far dotted thick outline. */
+		PAT_DO2_T1("Dotted-Far-Thick", 0xF, 8, 3),
+		/** Draw stipple pattern with dashed thick outline. */
+		PAT_DA1_T1("Dashed-Thick", 0x1FFFF, 19, 3),
+		/** Draw stipple pattern with close dotted thicker outline. */
+		PAT_DO1_T2("Dotted-Close-Thicker", 0x1F, 8, 5),
+		/** Draw stipple pattern with far dotted thicker outline. */
+		PAT_DO2_T2("Dotted-Far-Thicker", 0x7F, 9, 5);
+        
 		private static final int SAMPLEWID = 60;
 		private static final int SAMPLEHEI = 11;
 
 		private String name;
-		private String constName;
 		private int pattern, len;
 		private int thickness;
-		private int index;
 		private boolean solid;
 
-		private static List<Outline> allOutlines = new ArrayList<Outline>();
-		private static HashMap<Integer,Outline> outlineByIndex = new HashMap<Integer,Outline>();
-		private static HashMap<String,Outline> outlineByName = new HashMap<String,Outline>();
-
-		private Outline(String name, String constName, int pattern, int len, int thickness, int index)
+		private Outline(String name, int pattern, int len, int thickness)
 		{
 			this.name = name;
-			this.constName = constName;
 			this.pattern = pattern;
 			this.len = len;
 			this.thickness = thickness;
-			this.index = index;
 			this.solid = (pattern == -1);
-			allOutlines.add(this);
-			outlineByIndex.put(new Integer(index), this);
-			outlineByName.put(name, this);
 		}
 
 		public String getName() { return name; }
 
-		public String getConstName() { return constName; }
+		public String getConstName() { return name(); }
 
-		public int getIndex() { return index; }
+		public int getIndex() { return ordinal(); }
 
 		public boolean isSolidPattern() { return solid; }
 
@@ -92,50 +113,17 @@ public class EGraphics extends Observable
 
 		public static Outline findOutline(int index)
 		{
-			Outline o = outlineByIndex.get(new Integer(index));
-			return o;
+            return Outline.class.getEnumConstants()[index];
 		}
 
 		public static Outline findOutline(String name)
 		{
-			Outline o = outlineByName.get(name);
-			return o;
+            return valueOf(name);
 		}
 
-		public static List<Outline> getOutlines() { return allOutlines; }
+		public static List<Outline> getOutlines() { return Arrays.asList(Outline.class.getEnumConstants()); }
 
 		public String toString() { return name; }
-
-		/** Draw stipple pattern with no outline. */
-		public final static Outline NOPAT      = new Outline("None", "NOPAT", 0, 32, 1, 0);
-		/** Draw stipple pattern with solid outline. */
-		public final static Outline PAT_S      = new Outline("Solid", "PAT_S", -1, 32, 1, 1);
-		/** Draw stipple pattern with solid thick outline. */
-		public final static Outline PAT_T1     = new Outline("Solid-Thick", "PAT_T1", -1, 32, 3, 2);
-		/** Draw stipple pattern with solid thicker outline. */
-		public final static Outline PAT_T2     = new Outline("Solid-Thicker", "PAT_T2", -1, 32, 5, 3);
-		/** Draw stipple pattern with close dotted outline. */
-		public final static Outline PAT_DO1    = new Outline("Dotted-Close", "PAT_DO1", 0x55, 8, 1, 4);
-		/** Draw stipple pattern with far dotted outline. */
-		public final static Outline PAT_DO2    = new Outline("Dotted-Far", "PAT_DO2", 0x11, 8, 1, 5);
-		/** Draw stipple pattern with short dashed outline. */
-		public final static Outline PAT_DA1    = new Outline("Dashed-Short", "PAT_DA1", 0x33, 8, 1, 6);
-		/** Draw stipple pattern with long dashed outline. */
-		public final static Outline PAT_DA2    = new Outline("Dashed-Long", "PAT_DA2", 0xF, 6, 1, 7);
-		/** Draw stipple pattern with short dotted-dashed outline. */
-		public final static Outline PAT_DD1    = new Outline("Dotted-Dashed-Short", "PAT_DD1", 0x39, 8, 1, 8);
-		/** Draw stipple pattern with long dotted-dashed outline. */
-		public final static Outline PAT_DD2    = new Outline("Dotted-Dashed-Long", "PAT_DD2", 0xF3, 10, 1, 9);
-		/** Draw stipple pattern with close dotted thick outline. */
-		public final static Outline PAT_DO1_T1 = new Outline("Dotted-Close-Thick", "PAT_DO1_T1", 0xF, 6, 3, 10);
-		/** Draw stipple pattern with far dotted thick outline. */
-		public final static Outline PAT_DO2_T1 = new Outline("Dotted-Far-Thick", "PAT_DO2_T1", 0xF, 8, 3, 11);
-		/** Draw stipple pattern with dashed thick outline. */
-		public final static Outline PAT_DA1_T1 = new Outline("Dashed-Thick", "PAT_DA1_T1", 0x1FFFF, 19, 3, 12);
-		/** Draw stipple pattern with close dotted thicker outline. */
-		public final static Outline PAT_DO1_T2 = new Outline("Dotted-Close-Thicker", "PAT_DO1_T2", 0x1F, 8, 5, 13);
-		/** Draw stipple pattern with far dotted thicker outline. */
-		public final static Outline PAT_DO2_T2 = new Outline("Dotted-Far-Thicker", "PAT_DO2_T2", 0x7F, 9, 5, 14);
 	}
 
 	/** the Layer associated with this graphics. */			private Layer layer;
@@ -332,7 +320,7 @@ public class EGraphics extends Observable
 		if (oldOutlinePatternDisplayPref.getBoolean()) patternOutline = Outline.PAT_S;
 
 		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layerTechMsg,
-				Technology.getTechnologyPreferences(), patternOutline.index);
+				Technology.getTechnologyPreferences(), patternOutline.getIndex());
 		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
 		outlinePatternMap.put(layer, outlinePatternPref);
 
@@ -534,7 +522,7 @@ public class EGraphics extends Observable
 		if (layer != null)
 		{
 			Pref pref = outlinePatternMap.get(layer);
-			if (pref != null) pref.setInt(o.index);
+			if (pref != null) pref.setInt(o.getIndex());
 		}
 	}
 
