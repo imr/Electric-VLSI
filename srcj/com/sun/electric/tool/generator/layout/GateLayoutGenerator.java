@@ -179,8 +179,8 @@ public class GateLayoutGenerator {
         stdCell.setGndY(-24);
         stdCell.setVddWidth(9);
         stdCell.setGndWidth(9);
-        stdCell.setNmosWellHeight(90);
-        stdCell.setPmosWellHeight(90);
+        stdCell.setNmosWellHeight(60);
+        stdCell.setPmosWellHeight(60);
         stdCell.setSimpleName(true);
         return stdCell;
     }
