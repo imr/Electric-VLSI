@@ -41,7 +41,6 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -60,11 +59,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.AttributesTable;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
@@ -117,8 +112,10 @@ public class Connectivity
 	/** associates arc prototypes with layers */				private HashMap<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private HashMap<Cell,Cell> convertedCells;
 	/** map of export indices in each extracted cell */			private HashMap<Cell,GenMath.MutableInteger> exportNumbers;
+	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
+	/** true if all active layers should be unified */			private boolean unifyActive;
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
@@ -156,7 +153,7 @@ public class Connectivity
 
 		public boolean doIt() throws JobException
 		{
-			Connectivity c = new Connectivity(cell.getTechnology());
+			Connectivity c = new Connectivity(cell);
 			String expansionPattern = Extract.getCellExpandPattern();
 			Pattern pat;
 			try
@@ -211,12 +208,39 @@ public class Connectivity
 	 * Constructor to initialize connectivity extraction.
 	 * @param tech the Technology to extract to.
 	 */
-	private Connectivity(Technology tech)
+	private Connectivity(Cell cell)
 	{
-		this.tech = tech;
+		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
 		exportNumbers = new HashMap<Cell,GenMath.MutableInteger>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
+
+		// see if active layers should be unified
+		unifyActive = Extract.isUnifyActive();
+		if (!unifyActive)
+		{
+			boolean haveNActive = false, havePActive = false;
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance()) continue;
+				Poly[] polys = ni.getProto().getTechnology().getShapeOfNode(ni);
+				for(int i=0; i<polys.length; i++)
+				{
+					Layer layer = polys[i].getLayer();
+					if (layer == null) continue;
+					if (!layer.getFunction().isDiff()) continue;
+					if (layer.getFunction() == Layer.Function.DIFFN) haveNActive = true;
+					if (layer.getFunction() == Layer.Function.DIFFP) havePActive = true;
+				}
+				if (haveNActive && havePActive) break;
+			}
+			if (!haveNActive || !havePActive)
+			{
+				System.out.println("Found only one type of active layer...unifying all active layers");
+				unifyActive = true;
+			}
+		}
 
 		// find important layers
 		polyLayer = null;
@@ -229,7 +253,7 @@ public class Connectivity
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
 			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
 			if (fun == Layer.Function.METAL1 && layer.isPseudoLayer()) tempLayer2 = layer;
-			if (Extract.isUnifyActive())
+			if (unifyActive)
 			{
 				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
 			} else
@@ -240,7 +264,7 @@ public class Connectivity
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
 		pActiveLayer = pActiveLayer.getNonPseudoLayer();
-		if (Extract.isUnifyActive()) nActiveLayer = pActiveLayer; else
+		if (unifyActive) nActiveLayer = pActiveLayer; else
 			nActiveLayer = nActiveLayer.getNonPseudoLayer();
 
 		// figure out which arcs to use for a layer
@@ -271,7 +295,7 @@ public class Connectivity
 		{
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
-			if (Extract.isUnifyActive())
+			if (unifyActive)
 			{
 				if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
 					fun = Layer.Function.DIFF;
@@ -330,6 +354,7 @@ public class Connectivity
 
 		// convert the nodes
 		Set<Cell> expandedCells = new HashSet<Cell>();
+		exportsToRestore = new ArrayList<Export>();
 		extractCell(oldCell, newCell, pat, expandedCells, merge, GenMath.MATID);
 		if (expandedCells.size() > 0)
 		{
@@ -383,6 +408,9 @@ public class Connectivity
 		convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 		System.out.println("Extracted geometry");
+
+		// reexport any that were there before
+		restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
 		PolyMerge originalUnscaledMerge = new PolyMerge();
@@ -511,6 +539,12 @@ public class Connectivity
 				continue;
 			}
 
+			// see if the size is at an odd coordinate (and may suffer rounding problems)
+			EPoint ctr = ni.getAnchorCenter();
+			boolean growABit = false;
+			if (((int)(ni.getXSize() * DBMath.GRID) % 2) != 0 ||
+				((int)(ni.getYSize() * DBMath.GRID) % 2) != 0) growABit = true;
+
 			// extract the geometry from the pure-layer node
 			AffineTransform trans = ni.rotateOut(prevTrans);
 			Poly [] polys = tech.getShapeOfNode(ni);
@@ -532,11 +566,33 @@ public class Connectivity
 				{
 					for(int i=0; i<points.length; i++)
 						Job.getUserInterface().alignToGrid(points[i]);
+				} else
+				{
+					// grow the polygon to account for rounding problems
+					if (growABit)
+					{
+						double growth = DBMath.getEpsilon()/2;
+						Point2D polyCtr = poly.getCenter();
+						for(int i=0; i<points.length; i++)
+						{
+							double x = points[i].getX();
+							double y = points[i].getY();
+							if (x < polyCtr.getX()) x -= growth; else x += growth;
+							if (y < polyCtr.getY()) y -= growth; else y += growth;
+							points[i].setLocation(x, y);
+						}
+					}
 				}
-
 				for(int i=0; i<points.length; i++)
 					points[i].setLocation(scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 				merge.addPolygon(layer, poly);
+			}
+
+			// save exports on pure-layer nodes for restoration later
+			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
+			{
+				Export e = it.next();
+				exportsToRestore.add(e);
 			}
 		}
 
@@ -859,8 +915,9 @@ public class Connectivity
 
 		public String toString()
 		{
-			return "CENTERLINE from ("+start.getX()+","+start.getY()+") to ("+end.getX()+","+end.getY()+") wid="+width+
-			", len="+start.distance(end);
+			return "CENTERLINE from ("+(start.getX()/SCALEFACTOR)+","+(start.getY()/SCALEFACTOR)+") to ("+
+				(end.getX()/SCALEFACTOR)+","+(end.getY()/SCALEFACTOR)+") wid="+width/SCALEFACTOR+
+			", len="+(start.distance(end)/SCALEFACTOR);
 		}
 	}
 
@@ -1207,7 +1264,6 @@ public class Connectivity
 					if (originalMerge.contains(l, ctr))
 						layersPresent.add(geometricLayer(l));
 				}
-
 				boolean ignorePWell = false, ignoreNWell = false;
 				if (pWellProcess)
 				{
@@ -1695,7 +1751,7 @@ public class Connectivity
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
 		for(int i=0; i<points.length; i++)
-			points[i] = new EPoint((points[i].getX() - cX) / SCALEFACTOR, (points[i].getY() - cY) / SCALEFACTOR);
+			points[i] = new EPoint((points[i].getX()) / SCALEFACTOR, (points[i].getY()) / SCALEFACTOR);
 		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell);
 	}
 
@@ -2164,19 +2220,20 @@ public class Connectivity
 		{
 			// decompose all polygons
 			boolean foundNew = false;
+//System.out.println("====== ANALYZING "+polysToAnalyze.size()+" POLYGONS: ======");
 			for(PolyBase aPoly : polysToAnalyze)
 			{
 				// first make a list of all parallel wires in the polygon
 				aPoly.setLayer(layer);
 //System.out.print("FOR POLY:");
 //Point2D [] points = aPoly.getPoints();
-//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
+//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()/SCALEFACTOR+","+points[i].getY()/SCALEFACTOR+")");
 //System.out.println();
 				List<Centerline> centerlines = gatherCenterlines(aPoly, merge, originalMerge);
 
 //System.out.println("GATHERED:");
 //for(Centerline cl : centerlines)
-//	System.out.println("    "+cl.toString());
+//	System.out.println("    "+cl);
 				// now pull out the relevant ones
 				double lastWidth = -1;
 				boolean lastWidthNonManhattan = false;
@@ -2199,6 +2256,13 @@ public class Connectivity
 
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
+
+					// if wider than long, this cannot be the first centerline
+					if (validCenterlines.size() == 0)
+					{
+						double len = cl.start.distance(cl.end);
+						if (cl.width > len) continue;
+					}
 
 					// for nonmanhattan centerlines, do extra work to ensure uniqueness
 					boolean isNonManhattan = false;
@@ -2229,7 +2293,7 @@ public class Connectivity
 					}
 					if (Math.abs(cl.width - lastWidth) > 1)
 					{
-						if (lastWidthNonManhattan == isNonManhattan) break;
+						if (lastWidthNonManhattan != isNonManhattan) break;
 						double smallest = Math.min(cl.width, lastWidth);
 						if (smallest != 0 && Math.max(cl.width, lastWidth) / smallest > 1.2) break;
 					}
@@ -2248,7 +2312,7 @@ public class Connectivity
 		}
 		merge.deleteLayer(tempLayer1);
 
-//for(int i=0; i<validCenterlines.size(); i++) System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i).toString());
+//for(int i=0; i<validCenterlines.size(); i++) System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i));
 
 		// now extend centerlines so they meet
 		Centerline [] both = new Centerline[2];
@@ -2268,7 +2332,7 @@ public class Connectivity
 				double maxOCLY = Math.max(oCl.start.getY(), oCl.end.getY());
 				if (minOCLX > maxCLX || maxOCLX < minCLX || minOCLY > maxCLY || maxOCLY < minCLY) continue;
 
-//System.out.println("COMPARE "+cl.toString()+" WITH "+oCl.toString());
+//System.out.println("COMPARE "+cl+" WITH "+oCl);
 				Point2D intersect = GenMath.intersect(cl.start, cl.angle, oCl.start, oCl.angle);
 				if (intersect == null) continue;
 //				if (cl.start.distance(intersect) <= oCl.width/2 || cl.end.distance(intersect) <= oCl.width/2 ||
@@ -2328,11 +2392,11 @@ public class Connectivity
 							}
 						}
 					}
-				}					
+				}
 			}
 		}
 //System.out.println("FINAL CENTERLINE: ");
-//for(Centerline cl : validCenterlines) System.out.println("    "+cl.toString());
+//for(Centerline cl : validCenterlines) System.out.println("    "+cl);
 		return validCenterlines;
 	}
 
@@ -2874,8 +2938,136 @@ public class Connectivity
 				}
 				NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
 					polyBounds.getHeight() / SCALEFACTOR, newPoints, newCell);
+
+				// connect to the rest if possible
+				if (ap != null)
+				{
+					PortInst fPi = ni.getOnlyPortInst();
+					EPoint fLoc = fPi.getPoly().getCenter();
+					EPoint fLocScaled = new EPoint(scaleUp(fLoc.getX()), scaleUp(fLoc.getY()));
+					Rectangle2D searchBound = new Rectangle2D.Double(polyBounds.getMinX()/SCALEFACTOR, polyBounds.getMinY()/SCALEFACTOR,
+						polyBounds.getWidth()/SCALEFACTOR, polyBounds.getHeight()/SCALEFACTOR);
+					PortInst bestTPi = null;
+					double bestLen = Double.MAX_VALUE;
+					for(Iterator<RTBounds> it = newCell.searchIterator(searchBound); it.hasNext(); )
+					{
+						RTBounds geom = it.next();
+						if (!(geom instanceof NodeInst)) continue;
+						NodeInst oNi = (NodeInst)geom;
+						if (oNi == ni) continue;
+						for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )
+						{
+							PortInst tPi = pIt.next();
+							PortProto pp = tPi.getPortProto();
+							if (!pp.connectsTo(ap)) continue;
+							EPoint tLoc = tPi.getPoly().getCenter();
+							EPoint tLocScaled = new EPoint(scaleUp(tLoc.getX()), scaleUp(tLoc.getY()));
+							double len = scaleUp(fLoc.distance(tLoc));
+							int angle = GenMath.figureAngle(fLoc, tLoc);
+							Poly conPoly = Poly.makeEndPointPoly(len, 0, angle, fLocScaled, 0, tLocScaled, 0, Poly.Type.FILLED);
+							if (originalMerge.contains(layer, conPoly))
+							{
+								if (len < bestLen)
+								{
+									bestLen = len;
+									bestTPi = tPi;
+								}
+							}
+						}
+					}
+					if (bestTPi != null)
+					{
+						EPoint tLoc = bestTPi.getPoly().getCenter();
+						ArcInst ai = realizeArc(ap, fPi, bestTPi, fLoc, tLoc, 0, false, false, merge);
+						ai.setFixedAngle(false);
+					}
+				}
 			}
 		}
+	}
+
+	/**
+	 * Method to restore exports that were in the original cell.
+	 * These exports were on pure-layer nodes and must now be placed back
+	 * as close to the original as possible.
+	 */
+	private void restoreExports(Cell oldCell, Cell newCell)
+	{
+		for(Export e : exportsToRestore)
+		{
+			EPoint loc = e.getOriginalPort().getPoly().getCenter();
+			boolean found = false;
+			Rectangle2D bounds = new Rectangle2D.Double(loc.getX(), loc.getY(), 0, 0);
+			for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
+			{
+				RTBounds geom = it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = pIt.next();
+					PortProto pp = pi.getPortProto();
+					if (!sameConnection(e, pp)) continue;
+					EPoint pLoc = pi.getPoly().getCenter();
+					if (loc.equals(pLoc))
+					{
+						Export.newInstance(newCell, pi, e.getName());
+						found = true;
+						break;
+					}
+				}
+			}
+			if (!found)
+			{
+				// did not reexport: create the pin and export...let it get autorouted in
+				PrimitiveNode pnUse = null;
+				for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+				{
+					PrimitiveNode pn = it.next();
+					if (pn.getFunction() != PrimitiveNode.Function.PIN) continue;
+					if (!sameConnection(e, pn.getPort(0))) continue;
+					pnUse = pn;
+					break;
+				}
+				if (pnUse == null) continue;
+				NodeInst ni = NodeInst.makeInstance(pnUse, loc, pnUse.getDefWidth(), pnUse.getDefHeight(), newCell);
+				Export.newInstance(newCell, ni.getOnlyPortInst(), e.getName());
+			}
+		}
+	}
+
+	/**
+	 * Method to compare two ports to see that they connect to the same set of arcs.
+	 * @param pp1 the first port.
+	 * @param pp2 the second port.
+	 * @return true if they connect to the same arcs.
+	 */
+	private boolean sameConnection(PortProto pp1, PortProto pp2)
+	{
+		ArcProto [] arcs1 = pp1.getBasePort().getConnections();
+		ArcProto [] arcs2 = pp2.getBasePort().getConnections();
+		if (arcs1 == arcs2) return true;
+		boolean [] found = new boolean[arcs2.length];
+		for(int i=0; i<arcs1.length; i++)
+		{
+			if (arcs1[i].getTechnology() == Generic.tech) continue;
+			int j = 0;
+			for( ; j<arcs2.length; j++)
+			{
+				if (arcs1[i] == arcs2[j])
+				{
+					found[j] = true;
+					break;
+				}
+			}
+			if (j >= arcs2.length) return false;
+		}
+		for(int j=0; j<arcs2.length; j++)
+		{
+			if (found[j]) continue;
+			if (arcs2[j].getTechnology() != Generic.tech) return false;
+		}
+		return true;
 	}
 
 	private NodeInst createNode(NodeProto np, Point2D loc, double wid, double hei, EPoint [] points, Cell cell)
@@ -2928,10 +3120,10 @@ public class Connectivity
 			{
 				for(int i=1; i<points.length; i++)
 				{
-					double sx = points[i-1].getX() + cX;
-					double sy = points[i-1].getY() + cY;
-					double ex = points[i].getX() + cX;
-					double ey = points[i].getY() + cY;
+					double sx = points[i-1].getX();
+					double sy = points[i-1].getY();
+					double ex = points[i].getX();
+					double ey = points[i].getY();
 					addedLines.add(ERectangle.fromLambda(sx, sy, ex-sx, ey-sy));
 				}
 			}
@@ -3037,7 +3229,7 @@ public class Connectivity
 		}
 
 		// all active is one layer
-		if (Extract.isUnifyActive())
+		if (unifyActive)
 		{
 			if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
 				fun = Layer.Function.DIFF;
