@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/28/07, GVG) Adding Poly-Active spacing rule to ST/TSMC 90nm DRC decks.
+
 IMP: (3/26/07, DN) ELIB/ReadableDump writers don't modify scale settings of irrelevant technologies.
 
 BUG: (3/23/07, DN) When libraries are specified in a command-line, project settings may be read from
