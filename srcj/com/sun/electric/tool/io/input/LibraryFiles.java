@@ -552,14 +552,17 @@ public abstract class LibraryFiles extends Input
 		Library elib = Library.findLibrary(legalLibName);
 		if (elib != null) return elib;
         
-		URL url = TextUtils.makeURLToFile(theFileName);
-		String fileName = url.getFile();
-		File libFile = new File(fileName);
+//		URL url = TextUtils.makeURLToFile(theFileName);
+//		String fileName = url.getFile();
+//		File libFile = new File(fileName);
 
 		// see if this library is already read in
-		String libFileName = libFile.getName();
+		String libFileName = theFileName;
+//		String libFileName = libFile.getName();
 
 		// special case if the library path came from a different computer system and still has separators
+		while (libFileName.endsWith("\\") || libFileName.endsWith(":") || libFileName.endsWith("/"))
+			libFileName = libFileName.substring(0, libFileName.length()-1);
 		int backSlashPos = libFileName.lastIndexOf('\\');
 		int colonPos = libFileName.lastIndexOf(':');
 		int slashPos = libFileName.lastIndexOf('/');
@@ -595,23 +598,23 @@ public abstract class LibraryFiles extends Input
 
         // first try the library name with the extension it came with
         // However, do not look in electric library area to avoid problems with spice configurations for old chips
-        URL externalURL = getLibrary(libName + "." + preferredType.getExtensions()[0], libFile.getParent(), errmsg, true);
+        URL externalURL = getLibrary(libName + "." + preferredType.getExtensions()[0], theFileName, errmsg, true);
         // Now try all file types, starting with jelib
         // try JELIB
         if (externalURL == null && preferredType != FileType.JELIB) {
-            externalURL = getLibrary(libName + "." + FileType.JELIB.getExtensions()[0], libFile.getParent(), errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.JELIB.getExtensions()[0], theFileName, errmsg, true);
         }
         // try ELIB
         if (externalURL == null && preferredType != FileType.ELIB) {
-            externalURL = getLibrary(libName + "." + FileType.ELIB.getExtensions()[0], libFile.getParent(), errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.ELIB.getExtensions()[0], theFileName, errmsg, true);
         }
         // try DELIB
         if (externalURL == null && preferredType != FileType.DELIB) {
-            externalURL = getLibrary(libName + "." + FileType.DELIB.getExtensions()[0], libFile.getParent(), errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.DELIB.getExtensions()[0], theFileName, errmsg, true);
         }
         // try txt
         if (externalURL == null && preferredType != FileType.READABLEDUMP) {
-            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getExtensions()[0], libFile.getParent(), errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getExtensions()[0], theFileName, errmsg, true);
         }
 
         boolean exists = (externalURL == null) ? false : true;
@@ -664,7 +667,7 @@ public abstract class LibraryFiles extends Input
 
         if (elib == null)
         {
-            System.out.println("Error: cannot find referenced library " + libFile.getPath());
+            System.out.println("Error: cannot find referenced library " + theFileName);
             System.out.println("...Creating new "+legalLibName+" Library instead");
             elib = Library.newInstance(legalLibName, null);
             elib.setLibFile(TextUtils.makeURLToFile(theFileName));
@@ -717,6 +720,11 @@ public abstract class LibraryFiles extends Input
 
         // try the exact path specified in the reference
         if (originalPath != null) {
+    		URL url = TextUtils.makeURLToFile(originalPath);
+        	String fileName = url.getFile();
+            File libFile = new File(fileName);
+            originalPath = libFile.getParent();
+
             URL secondURL = TextUtils.makeURLToFile(originalPath + File.separator + libFileName);
             if (secondURL != null && !searchedURLs.containsKey(secondURL.getFile()))
             {
