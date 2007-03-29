@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/29/07, SMR) Wiring from unrouted arc no longer moves the unrouted arc (Bug #1290).
+FIX: In Router.createRouteNoJob(), fixed computation of other end of arc.
+
 BUG: (3/29/07, SMR) Text Properties dialog has inconsistent focus rules (Bug #945).
 FIX: In GetInfoText, do not request focus for text area until dialog gets focus.
 

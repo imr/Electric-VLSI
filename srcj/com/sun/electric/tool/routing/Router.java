@@ -163,15 +163,15 @@ public abstract class Router {
 	                ArcInst ai = conn.getArc();
 	                if (ai.getProto() == Generic.tech.unrouted_arc)
 	                {
-	                    Connection oconn = (ai.getHead() == conn ? ai.getTail() : ai.getHead());
+	                    Connection oconn = ai.getConnection(1-conn.getEndIndex());
 	                    // make new unrouted arc from end of route to arc end point,
 	                    // otherwise just get rid of it
 	                    if (oconn.getPortInst() != route.getEnd().getPortInst())
 	                    {
-	                        RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
+	                    	RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
 	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
 	                                Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), route.getEnd(), newEnd,
-	                                route.getEnd().getLocation(), newEnd.getLocation(), null,
+	                                route.getEnd().getLocation(), oconn.getLocation(), null,
 	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
 	                        newArc.doAction();
 	                    }

@@ -320,7 +320,7 @@ public class RouteElementArc extends RouteElement {
             if (!headPoly.isInside(headPoint)) {
                 // can't connect
             	Rectangle2D headBounds = headPi.getBounds();
-                System.out.println("Arc head (" + headPoint.getX() + "," + headPoint.getY() + ") not inside port " + headPi + " which is "+
+                System.out.println("Arc head (" + headPoint.getX() + "," + headPoint.getY() + ") not inside " + headPi + " which is "+
                		headBounds.getMinX() + "<=X<=" + headBounds.getMaxX() + " and " + headBounds.getMinY() + "<=Y<=" + headBounds.getMaxY());
                 System.out.println("  Arc ran from " + headPi.getNodeInst() + ", port " + headPi.getPortProto().getName() +
                 	" to " + tailPi.getNodeInst() + ", port " + tailPi.getPortProto().getName());
@@ -347,7 +347,7 @@ public class RouteElementArc extends RouteElement {
             if (!tailPoly.isInside(tailPoint)) {
                 // can't connect
             	Rectangle2D tailBounds = tailPi.getBounds();
-                System.out.println("Arc tail (" + tailPoint.getX() + "," + tailPoint.getY() + ") not inside port " + headPi + " which is "+
+                System.out.println("Arc tail (" + tailPoint.getX() + "," + tailPoint.getY() + ") not inside " + headPi + " which is "+
                		tailBounds.getMinX() + "<=X<=" + tailBounds.getMaxX() + " and " + tailBounds.getMinY() + "<=Y<=" + tailBounds.getMaxY());
                 System.out.println("  Arc ran from " + headPi.getNodeInst() + ", port " + headPi.getPortProto().getName() +
                    	" to " + tailPi.getNodeInst() + ", port " + tailPi.getPortProto().getName());
