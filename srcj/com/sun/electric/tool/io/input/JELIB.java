@@ -47,6 +47,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -430,7 +431,7 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logWarning(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
-				Variable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
+				Variable[] vars = readVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
                 
                 if (!fromDelib) {
                     realizeVariables(lib, vars);
@@ -453,7 +454,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional meaning preferences starting at position 1
-                Variable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(null, pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(tool, vars);
 //				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
@@ -498,7 +499,7 @@ public class JELIB extends LibraryFiles
 				curPrim = null;
 
 				// get additional meaning preferences  starting at position 1
-                Variable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(null, pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(curTech, vars);
 //				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
@@ -670,7 +671,7 @@ public class JELIB extends LibraryFiles
 
         // add variables
         assert fieldIndex == numPieces;
-        Variable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
+        Variable[] vars = readVariables(newCell, pieces, numPieces, filePath, lineReader.getLineNumber());
         realizeVariables(newCell, vars);
 
         // gather the contents of the cell into a list of Strings
@@ -983,7 +984,7 @@ public class JELIB extends LibraryFiles
 			diskName.put(diskNodeName, ni);
 
 			// add variables in fields 10 and up
-			Variable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(ni, vars);
 		}
 
@@ -1069,7 +1070,7 @@ public class JELIB extends LibraryFiles
 			}
 
             // add variables in tail fields
-			Variable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(pp, vars);
 		}
 
@@ -1214,7 +1215,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// add variables in fields 13 and up
-			Variable[] vars = readVariables(pieces, 13, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);
             realizeVariables(ai, vars);
 		}
 		cc.filledIn = true;
@@ -1401,7 +1402,7 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
      * @return an array of Variables. 
 	 */
-	private Variable[] readVariables(List<String> pieces, int position, String fileName, int lineNumber)
+	private Variable[] readVariables(ElectricObject parentObj, List<String> pieces, int position, String fileName, int lineNumber)
 	{
         variablesBuf.clear();
 		int total = pieces.size();
@@ -1424,7 +1425,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 			String varName = unQuote(piece.substring(0, openPos));
-			Variable.Key varKey = Variable.newKey(varName);
+			Variable.Key varKey = Variable.newKey(varName, parentObj);
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)
 			{

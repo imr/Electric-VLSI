@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+IMP: (3/29/07, SMR) When variable names are similar, examples are given (Bug #1211).
+
 BUG: (3/29/07, SMR) Wiring schematics at 30 or 45 degrees doesn't work (Bug #1251)
 FIX: Improved SimpleWirer.planRoute() to handle direct arcs where appropriate.
 

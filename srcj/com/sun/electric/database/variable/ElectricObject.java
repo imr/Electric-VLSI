@@ -599,7 +599,7 @@ public abstract class ElectricObject implements Serializable
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable newVar(String name, Object value) { return newVar(Variable.newKey(name), value); }
+	public Variable newVar(String name, Object value) { return newVar(Variable.newKey(name, this), value); }
 
 	/**
 	 * Method to create a displayable Variable on this ElectricObject with the specified values.

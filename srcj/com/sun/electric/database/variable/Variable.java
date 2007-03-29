@@ -46,6 +46,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -156,6 +157,18 @@ public class Variable implements Serializable
 	 */
 	public static synchronized Key newKey(String name)
 	{
+		return newKey(name, null);
+	}
+
+	/**
+	 * Method to find or create the Key object for a given Variable name.
+	 * Variable Key objects are caches of the actual string name of the Variable.
+	 * @param name given Variable name.
+	 * @param parent the object on which this Variable key will reside.
+	 * @return the Key object for a given Variable name.
+	 */
+	public static synchronized Key newKey(String name, ElectricObject parent)
+	{
 		Key key = (Key)varKeys.get(name);
         if (key != null) return key;
         name = name.intern();
@@ -165,7 +178,36 @@ public class Variable implements Serializable
 		Key	key2 = (Variable.Key)varCanonicKeys.get(canonicName);
         if (key2 != null)
         {
-            String msg = "WARNING: Variables with similar names are used: \"" + name + "\" and \"" + key2.getName() + "\"";
+        	// find examples of these two variables
+        	String ex = null;
+        	for(Library lib : Library.getVisibleLibraries())
+        	{
+        		if (ex == null) ex = findVariable(lib, key2);
+        		for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+        		{
+        			Cell cell = cIt.next();
+            		if (ex == null) ex = findVariable(cell, key2);
+        			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+        			{
+        				NodeInst ni = nIt.next();
+                		if (ex == null) ex = findVariable(ni, key2);
+        			}
+        			for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
+        			{
+        				ArcInst ai = aIt.next();
+                		if (ex == null) ex = findVariable(ai, key2);
+        			}
+        			for(Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
+        			{
+        				Export e = eIt.next();
+                		if (ex == null) ex = findVariable(e, key2);
+        			}
+        		}
+        	}
+            String msg = "WARNING: Variables with similar names are used: \"" + name + "\"";
+            if (parent != null) msg += " (on " + getObjectName(parent) + ")";
+            msg += " and \"" + key2.getName() + "\"";
+            if (ex != null) msg += " (on " + ex + ")";
             ActivityLogger.logMessage(msg);
             System.out.println(msg);
         } else {
@@ -174,7 +216,27 @@ public class Variable implements Serializable
 		return key;
 	}
 
-    /** empty array of Variables. */
+	private static String findVariable(ElectricObject eObj, Key key)
+	{
+		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
+		{
+			Variable var = it.next();
+			if (var.getKey() == key) return getObjectName(eObj);
+		}
+		return null;
+	}
+
+	private static String getObjectName(ElectricObject eObj)
+	{
+		if (eObj instanceof Library) return "Library " + ((Library)eObj).getName();
+		if (eObj instanceof Cell) return "Cell " + ((Cell)eObj).describe(false);
+		if (eObj instanceof Export) return "Export " + ((Export)eObj).getName() + " in Cell " + ((Export)eObj).getParent().describe(false);
+		if (eObj instanceof NodeInst) return "Node " + ((NodeInst)eObj).describe(false) + " in Cell " + ((NodeInst)eObj).getParent().describe(false);
+		if (eObj instanceof ArcInst) return "Arc " + ((ArcInst)eObj).describe(false) + " in Cell " + ((ArcInst)eObj).getParent().describe(false);
+		return eObj.toString();
+	}
+
+	/** empty array of Variables. */
     public static final Variable[] NULL_ARRAY = {};
     /** type if value. */
     private final static byte ARRAY = 1;
