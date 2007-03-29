@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/29/07, DN) Reading ELIB libraries is slow in NFS because "TextUtils.getFileNameWithoutExtension(URL fileURL);"
+    is called on each external NodeInst, and this methods requests NFS to resolve absolute path (200 msec from
+    St.Petersburg).
+FIX: Use new method "TextUtils.getFileNameWithoutExtension(Strign filePath);"
+
 IMP: (3/28/07, GVG) Adding Poly-Active spacing rule to ST/TSMC 90nm DRC decks (bug#1287)
 
 IMP: (3/26/07, DN) ELIB/ReadableDump writers don't modify scale settings of irrelevant technologies.

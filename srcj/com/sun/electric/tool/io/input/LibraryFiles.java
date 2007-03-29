@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
@@ -49,7 +48,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.cvspm.CVS;
@@ -61,8 +59,6 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
@@ -551,8 +547,12 @@ public abstract class LibraryFiles extends Input
 	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType)
 	{
 		// get the path to the library file
+		String legalLibName = TextUtils.getFileNameWithoutExtension(theFileName);
+        // Checking if the library is already open
+		Library elib = Library.findLibrary(legalLibName);
+		if (elib != null) return elib;
+        
 		URL url = TextUtils.makeURLToFile(theFileName);
-		String legalLibName = TextUtils.getFileNameWithoutExtension(url);
 		String fileName = url.getFile();
 		File libFile = new File(fileName);
 
@@ -590,10 +590,6 @@ public abstract class LibraryFiles extends Input
 			// no recognizable extension, add one to the file name
 			libFileName += "." + defaultType.getExtensions()[0];
 		}
-
-        // Checking if the library is already open
-		Library elib = Library.findLibrary(legalLibName);
-		if (elib != null) return elib;
 
         StringBuffer errmsg = new StringBuffer();
 
