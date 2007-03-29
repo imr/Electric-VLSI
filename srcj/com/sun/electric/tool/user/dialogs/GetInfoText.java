@@ -49,11 +49,15 @@ import java.awt.font.GlyphVector;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.Graphics;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
@@ -77,6 +81,7 @@ import javax.swing.border.EmptyBorder;
 public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
 	private static GetInfoText theDialog = null;
     private CachedTextInfo cti;
+    private TextPropertiesFocusListener dialogFocusListener;
 
 	/**
 	 * Class to hold information about the text being manipulated.
@@ -190,7 +195,11 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             // not appear on top. I've tried using toFront(), requestFocus(),
             // but none of that works.  Instead, I brute force it and
             // rebuild the dialog from scratch each time.
-            if (theDialog != null) theDialog.dispose();
+            if (theDialog != null)
+            {
+            	theDialog.removeWindowFocusListener(theDialog.dialogFocusListener);
+            	theDialog.dispose();
+            }
             theDialog = null;
         }
         if (theDialog == null) {
@@ -216,14 +225,26 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
         UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
+        dialogFocusListener = new TextPropertiesFocusListener();
+        addWindowFocusListener(dialogFocusListener);
 
         loadTextInfo();
 		finishInitialization();
     }
 
+    private class TextPropertiesFocusListener implements WindowFocusListener
+	{
+		public synchronized void windowGainedFocus(WindowEvent e)
+		{
+	        theText.requestFocus();
+		}
+
+		public void windowLostFocus(WindowEvent e) {}
+	}
+
     /**
-     * Reloads the dialog when Highlights change
-     */
+	 * Reloads the dialog when Highlights change
+	 */
     public void highlightChanged(Highlighter which)
     {
         if (!isVisible()) return;
@@ -848,7 +869,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
         getContentPane().add(theText, gridBagConstraints);
 
         pack();
-        theText.requestFocus();
+//        theText.requestFocus();
     }
 
     private String getDelimtedText(javax.swing.text.JTextComponent c) {
