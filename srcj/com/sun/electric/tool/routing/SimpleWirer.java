@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
@@ -62,14 +63,30 @@ public class SimpleWirer extends InteractiveRouter {
         // first, find location of corner of L if routing will be an L shape
         Point2D cornerLoc = null;
 
-        if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() ||
-                (useArc != null && (useArc.getAngleIncrement() == 0))) {
+    	// see if it fits the angle increment so that a single arc can be drawn
+        boolean singleArc = false;
+    	if (useArc != null)
+    	{
+    		int inc = useArc.getAngleIncrement();
+    		if (inc == 0) singleArc = true; else
+    		{
+    			int ang = GenMath.figureAngle(startLoc, endLoc);
+    			if ((ang % inc) == 0) singleArc = true;
+    		}
+    	} else
+    	{
+    		// no arc specified: allow direct if manhattan
+            if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) singleArc = true;
+    	}
+        if (singleArc)
+        {
             // single arc
             if (contactsOnEndObj)
                 cornerLoc = endLoc;
             else
                 cornerLoc = startLoc;
-        } else {
+        } else
+        {
             Point2D pin1 = new Point2D.Double(startLoc.getX(), endLoc.getY());
             Point2D pin2 = new Point2D.Double(endLoc.getX(), startLoc.getY());
             // find which pin to use
@@ -135,19 +152,6 @@ public class SimpleWirer extends InteractiveRouter {
         if (width2 > width) width = width2;
 
         // see if we should only draw a single arc
-		boolean singleArc = false;
-		if (useArc.getAngleIncrement() == 0) singleArc = true; else
-		{
-			if (useArc.getAngleIncrement() == 90)
-			{
-				if (endLoc.getX() == startLoc.getX() || endLoc.getY() == startLoc.getY()) singleArc = true; else
-				{
-			        double angleD = Math.atan2(endLoc.getY()-startLoc.getY(), endLoc.getX()-startLoc.getX());
-			        int angle = (int)Math.round(angleD * 180 / Math.PI);
-					if ((angle % useArc.getAngleIncrement()) == 0) singleArc = true;
-				}
-			}
-		}
         if (singleArc) {
             // draw single
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE,

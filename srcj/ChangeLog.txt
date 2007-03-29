@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05j: *********************************
 
+BUG: (3/29/07, SMR) Wiring schematics at 30 or 45 degrees doesn't work (Bug #1251)
+FIX: Improved SimpleWirer.planRoute() to handle direct arcs where appropriate.
+
 BUG: (3/29/07, SMR) Wiring from unrouted arc no longer moves the unrouted arc (Bug #1290).
 FIX: In Router.createRouteNoJob(), fixed computation of other end of arc.
 
