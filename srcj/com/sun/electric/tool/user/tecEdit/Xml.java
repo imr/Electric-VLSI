@@ -301,6 +301,20 @@ public class Xml {
 //            buffWriter.println();
 //        }
 //        buffWriter.println("\t\t\t});");
+        for (int j = 0; j < ni.nodePortDetails.length; j++) {
+            NodeInfo.PortDetails pd = ni.nodePortDetails[j];
+            b("primitivePort"); a("name", pd.name); cl();
+            b("portAngle"); a("primary", pd.angle); a("range", pd.range); el();
+            bcpel("portTopology", pd.netIndex);
+            for (int k = 0; k < 2; k++) {
+                double xm = pd.values[k].getX().getMultiplier();
+                double xa = pd.values[k].getX().getAdder();
+                double ym = pd.values[k].getY().getMultiplier();
+                double ya = pd.values[k].getY().getAdder();
+                b("techPoint"); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
+            }
+            el("primitivePort");
+        }
 
         el("primitiveNode");
     }

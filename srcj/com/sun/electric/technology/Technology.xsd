@@ -419,18 +419,26 @@
                                                 </xsd:complexType>
                                             </xsd:element>
                                         </xsd:choice>
-                                        <xsd:element name="techPoint" minOccurs="2" maxOccurs="unbounded">
-                                            <xsd:complexType>
-                                                <xsd:attribute name="xm" type="xsd:double" use="required"/>
-                                                <xsd:attribute name="xa" type="xsd:double" use="required"/>
-                                                <xsd:attribute name="ym" type="xsd:double" use="required"/>
-                                                <xsd:attribute name="ya" type="xsd:double" use="required"/>
-                                            </xsd:complexType>
-                                        </xsd:element>
+                                        <xsd:element name="techPoint" minOccurs="2" maxOccurs="unbounded" type="tns:TechPoint"></xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
                                     <xsd:attribute name="portNum" type="xsd:integer"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="primitivePort" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="portAngle">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="primary" type="xsd:int" use="required"/>
+                                                <xsd:attribute name="range" type="xsd:int" use="required"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        <xsd:element name="portTopology" type="xsd:integer"></xsd:element>
+                                        <xsd:element name="techPoint" type="tns:TechPoint" maxOccurs="2" minOccurs="2"></xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="name" type="xsd:NCName" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
@@ -481,4 +489,10 @@
             <xsd:field xpath="@transparent"/>
         </xsd:keyref>
     </xsd:element>
+    <xsd:complexType name="TechPoint">
+        <xsd:attribute name="xm" type="xsd:double" use="required"/>
+        <xsd:attribute name="xa" type="xsd:double" use="required"/>
+        <xsd:attribute name="ym" type="xsd:double" use="required"/>
+        <xsd:attribute name="ya" type="xsd:double" use="required"/>
+    </xsd:complexType>
 </xsd:schema>

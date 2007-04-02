@@ -432,6 +432,7 @@ public class TechToLib
 				int j = polys.length;
                 if (e == 0) {
                     nIn.nodeLayers = new NodeInfo.LayerDetails[polys.length];
+                    nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
                 }
 				for(int i=0; i<j; i++)
 				{
@@ -550,6 +551,14 @@ public class TechToLib
 
 					// on the first sample, also show angle and connection
 					if (e != 0) continue;
+                    NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
+                    nIn.nodePortDetails[pp.getPortIndex()] = pd;
+                    pd.name = pp.getName();
+                    pd.angle = pp.getAngle();
+                    pd.range = pp.getAngleRange();
+                    pd.values = new Technology.TechPoint[] {
+                        new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
+                        new Technology.TechPoint(pp.getRight(), pp.getTop())};
 					if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
 					{
 						pNi.newVar(Info.PORTANGLE_KEY, new Integer(pp.getAngle()));
@@ -567,6 +576,7 @@ public class TechToLib
 					}
 					if (validConns.size() > 0)
 					{
+                        pd.connections = new ArcInfo[validConns.size()];
 						CellId [] aplist = new CellId[validConns.size()];
 						for(int i=0; i<validConns.size(); i++) {
                             Cell cell = (Cell)validConns.get(i);
