@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.user.tecEdit.Info.SpecialTextDescr;
 
 import java.awt.Color;
 import java.util.Iterator;
@@ -40,6 +41,7 @@ public class GeneralInfo extends Info
 {
     /** the short name of the technology */         String   shortName;
 	/** the scale factor of the technology */		double   scale;
+    /** is scale factor relvant */                  boolean  scaleRelevant;
     /** default foundry name of the technology */   String   defaultFoundry;
     /** default number of metals */                 int      defaultNumMetals;
 	/** the full description of the technology */	String   description;
@@ -52,6 +54,8 @@ public class GeneralInfo extends Info
 	/** spice level 1 header */                     String [] spiceLevel1Header;
 	/** spice level 2 header */                     String [] spiceLevel2Header;
 	/** spice level 3 header */                     String [] spiceLevel3Header;
+    /** spacing of connected polys */               double [] conDist;
+    /** spacing of non-connected polys */           double [] unConDist;
 
 	static SpecialTextDescr [] genTextTable =
 	{

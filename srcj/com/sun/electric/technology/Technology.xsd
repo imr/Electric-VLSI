@@ -24,7 +24,7 @@
     <xsd:simpleType name="Foundry">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="NONE"/>
-            <xsd:enumeration value="MOCMOS"/>
+            <xsd:enumeration value="MOSIS"/>
             <xsd:enumeration value="TSMC"/>
             <xsd:enumeration value="ST"/>
         </xsd:restriction>
@@ -131,10 +131,158 @@
         </xsd:restriction>
     </xsd:simpleType>
     
+    <xsd:simpleType name="ArcProtoFun">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="UNKNOWN"/>
+            <xsd:enumeration value="METAL1"/>
+            <xsd:enumeration value="METAL2"/>
+            <xsd:enumeration value="METAL3"/>
+            <xsd:enumeration value="METAL4"/>
+            <xsd:enumeration value="METAL5"/>
+            <xsd:enumeration value="METAL6"/>
+            <xsd:enumeration value="METAL7"/>
+            <xsd:enumeration value="METAL8"/>
+            <xsd:enumeration value="METAL9"/>
+            <xsd:enumeration value="METAL10"/>
+            <xsd:enumeration value="METAL11"/>
+            <xsd:enumeration value="METAL12"/>
+            <xsd:enumeration value="POLY1"/>
+            <xsd:enumeration value="POLY2"/>
+            <xsd:enumeration value="POLY3"/>
+            <xsd:enumeration value="DIFF"/>
+            <xsd:enumeration value="DIFFP"/>
+            <xsd:enumeration value="DIFFN"/>
+            <xsd:enumeration value="DIFFS"/>
+            <xsd:enumeration value="DIFFW"/>
+            <xsd:enumeration value="BUS"/>
+            <xsd:enumeration value="UNROUTED"/>
+            <xsd:enumeration value="NONELEC"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="ArcLayerStyle">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FILLED"/>
+            <xsd:enumeration value="CLOSED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="PrimitiveNodeFun">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="UNKNOWN"/>
+            <xsd:enumeration value="PIN"/>
+            <xsd:enumeration value="CONTACT"/>
+            <xsd:enumeration value="NODE"/>
+            <xsd:enumeration value="CONNECT"/>
+            <xsd:enumeration value="TRANMOS"/>
+            <xsd:enumeration value="TRADMOS"/>
+            <xsd:enumeration value="TRAPMOS"/>
+            <xsd:enumeration value="TRANPN"/>
+            <xsd:enumeration value="TRAPNP"/>
+            <xsd:enumeration value="TRANJFET"/>
+            <xsd:enumeration value="TRAPJFET"/>
+            <xsd:enumeration value="TRADMES"/>
+            <xsd:enumeration value="TRAEMES"/>
+            <xsd:enumeration value="TRANSREF"/>
+            <xsd:enumeration value="TRANS"/>
+            <xsd:enumeration value="TRA4NMOS"/>
+            <xsd:enumeration value="TRA4DMOS"/>
+            <xsd:enumeration value="TRA4PMOS"/>
+            <xsd:enumeration value="TRA4NPN"/>
+            <xsd:enumeration value="TRA4PNP"/>
+            <xsd:enumeration value="TRA4NJFET"/>
+            <xsd:enumeration value="TRA4PJFET"/>
+            <xsd:enumeration value="TRA4DMES"/>
+            <xsd:enumeration value="TRA4EMES"/>
+            <xsd:enumeration value="TRANS4"/>
+            <xsd:enumeration value="RESIST"/>
+            <xsd:enumeration value="PRESIST"/>
+            <xsd:enumeration value="WRESIST"/>
+            <xsd:enumeration value="ESDDEVICE"/>
+            <xsd:enumeration value="CAPAC"/>
+            <xsd:enumeration value="ECAPAC"/>
+            <xsd:enumeration value="DIODE"/>
+            <xsd:enumeration value="DIODEZ"/>
+            <xsd:enumeration value="INDUCT"/>
+            <xsd:enumeration value="METER"/>
+            <xsd:enumeration value="BASE"/>
+            <xsd:enumeration value="EMIT"/>
+            <xsd:enumeration value="COLLECT"/>
+            <xsd:enumeration value="BUFFER"/>
+            <xsd:enumeration value="GATEAND"/>
+            <xsd:enumeration value="GATEOR"/>
+            <xsd:enumeration value="GATEXOR"/>
+            <xsd:enumeration value="FLIPFLOPRSMS"/>
+            <xsd:enumeration value="FLIPFLOPRSP"/>
+            <xsd:enumeration value="FLIPFLOPRSN"/>
+            <xsd:enumeration value="FLIPFLOPJKMS"/>
+            <xsd:enumeration value="FLIPFLOPJKP"/>
+            <xsd:enumeration value="FLIPFLOPJKN"/>
+            <xsd:enumeration value="FLIPFLOPDMS"/>
+            <xsd:enumeration value="FLIPFLOPDP"/>
+            <xsd:enumeration value="FLIPFLOPDN"/>
+            <xsd:enumeration value="FLIPFLOPTMS"/>
+            <xsd:enumeration value="FLIPFLOPTP"/>
+            <xsd:enumeration value="FLIPFLOPTN"/>
+            <xsd:enumeration value="MUX"/>
+            <xsd:enumeration value="CONPOWER"/>
+            <xsd:enumeration value="CONGROUND"/>
+            <xsd:enumeration value="SOURCE"/>
+            <xsd:enumeration value="SUBSTRATE"/>
+            <xsd:enumeration value="WELL"/>
+            <xsd:enumeration value="ART"/>
+            <xsd:enumeration value="ARRAY"/>
+            <xsd:enumeration value="ALIGN"/>
+            <xsd:enumeration value="CCVS"/>
+            <xsd:enumeration value="CCCS"/>
+            <xsd:enumeration value="VCVS"/>
+            <xsd:enumeration value="VCCS"/>
+            <xsd:enumeration value="TLINE"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="NodeLayerStyle">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FILLED"/>
+            <xsd:enumeration value="CLOSED"/>
+            <xsd:enumeration value="CROSSED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="SpiceLevel">
+        <xsd:restriction base="xsd:int">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="3"/>
+            <xsd:whiteSpace value="collapse"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="DesignRuleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="CONSPA"/>
+            <xsd:enumeration value="UCONSPA"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="DesignRuleWhen">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ALL"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:element name="color">
+        <xsd:complexType>
+            <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
+            <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
+            <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+    
     <xsd:element name="technology">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element name="shortName" type="xsd:string"></xsd:element>
+                <xsd:element name="shortName" type="xsd:string"/>
+                <xsd:element name="description" type="xsd:string"/>
                 <xsd:element name="numMetals">
                     <xsd:complexType>
                         <xsd:attribute name="min" type="tns:NumMetals" use="required"/>
@@ -142,14 +290,33 @@
                         <xsd:attribute name="default" type="tns:NumMetals" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="defaultFoundry" default="NONE" minOccurs="0" type="tns:Foundry"></xsd:element>
+                <xsd:element name="scale">
+                    <xsd:complexType>
+                        <xsd:attribute name="value" type="xsd:double" use="required"/>
+                        <xsd:attribute name="relevant" type="xsd:boolean" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="defaultFoundry">
+                    <xsd:complexType>
+                        <xsd:attribute name="value" type="tns:Foundry" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="minResistance">
+                    <xsd:complexType>
+                        <xsd:attribute name="value" type="xsd:double" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="minCapacitance">
+                    <xsd:complexType>
+                        <xsd:attribute name="value" type="xsd:double" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
                     <xsd:complexType>
-                        <xsd:complexContent>
-                            <xsd:extension base="tns:Color">
-                                <xsd:attribute name="transparent" type="tns:TransparentLayer" use="required"/>
-                            </xsd:extension>
-                        </xsd:complexContent>
+                        <xsd:sequence>
+                            <xsd:element ref="tns:color"/>
+                        </xsd:sequence>
+                        <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
                     </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="layer" maxOccurs="unbounded" minOccurs="0">
@@ -172,11 +339,131 @@
                                     </xsd:restriction>
                                 </xsd:simpleType>
                             </xsd:element>
+                            <xsd:element name="outlined" type="tns:LayerOutline"></xsd:element>
+                            <xsd:element name="display3D" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="thick" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="height" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="cifLayer" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="cif" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="parasitics" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="resistance" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="capacitance" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="edgeCapacitance" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="xsd:ID" use="required"/>
                         <xsd:attribute name="fun" use="required" type="tns:LayerFun"></xsd:attribute>
                         <xsd:attribute name="extraFun" type="tns:LayerExtraFun"></xsd:attribute>
-                        <xsd:attribute name="outline" type="tns:LayerOutline"></xsd:attribute>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="arcProto" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="widthOffset" type="xsd:double"/>
+                            <xsd:element name="defaultWidth" type="xsd:double"/>
+                            <xsd:element name="extended" type="xsd:boolean"/>
+                            <xsd:element name="fixedAngle" type="xsd:boolean"/>
+                            <xsd:element name="wipable" type="xsd:boolean"/>
+                            <xsd:element name="angleIncrement" type="xsd:integer"/>
+                            <xsd:element name="antennaRatio" type="xsd:double"/>
+                            <xsd:element name="arcLayer" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
+                                    <xsd:attribute name="widthOffset" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="style" type="tns:ArcLayerStyle" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+                        <xsd:attribute name="fun" type="tns:ArcProtoFun" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="primitiveNode" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="defaultWidth" type="xsd:double"/>
+                            <xsd:element name="defaultHeight" type="xsd:double"/>
+                            <xsd:element name="sizeOffset" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="lx" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="hx" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="ly" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="hy" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="nodeLayer" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:choice>
+                                            <xsd:element name="box">
+                                                <xsd:complexType>
+                                                    <xsd:sequence/>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                            <xsd:element name="minbox">
+                                                <xsd:complexType>
+                                                    <xsd:sequence/>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                            <xsd:element name="points">
+                                                <xsd:complexType>
+                                                    <xsd:sequence/>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                        </xsd:choice>
+                                        <xsd:element name="techPoint" minOccurs="2" maxOccurs="unbounded">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="xm" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="xa" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="ym" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="ya" type="xsd:double" use="required"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
+                                    <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
+                                    <xsd:attribute name="portNum" type="xsd:integer"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="spiceHeader" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="spiceLine" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:attribute name="line" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="level" type="tns:SpiceLevel"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="Foundry">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="LayersRule" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:attribute name="ruleName" type="xsd:string"/>
+                                    <xsd:attribute name="layerNames" type="xsd:string"/>
+                                    <xsd:attribute name="type" type="tns:DesignRuleType" use="required"/>
+                                    <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                    <xsd:attribute name="value" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="tns:Foundry" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:sequence>
@@ -188,7 +475,7 @@
             <xsd:field xpath="@transparent"/>
         </xsd:key>   
         
-        <xsd:keyref name="transparentUse" refer="tns:transparent">
+        <xsd:keyref name="transparentRef" refer="tns:transparent">
             <!-- every vehicle refers to its state -->
             <xsd:selector xpath=".//tns:transparentColor"/>
             <xsd:field xpath="@transparent"/>

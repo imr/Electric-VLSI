@@ -1,0 +1,890 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: nmos.xml
+ * nmos technology description
+ * Generated automatically from a library
+ *
+ * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+<technology name="nmos"
+     xmlns="http://xml.netbeans.org/schema/Technology"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://xml.netbeans.org/schema/Technology file:/home/dn146861/electric/srcj/com/sun/electric/technology/Technology.xsd">
+
+    <shortName>nMOS</shortName>
+    <description>nMOS (Mead &amp; Conway abstract rules)</description>
+    <numMetals min="1" max="1" default="1"/>
+    <scale value="2000.0" relevant="true"/>
+    <defaultFoundry value="NONE"/>
+    <minResistance value="50.0"/>
+    <minCapacitance value="50.0"/>
+
+    <!-- Transparent layers -->
+    <transparentLayer transparent="1"><color r="0" g="0" b="200"/></transparentLayer>
+    <transparentLayer transparent="2"><color r="220" g="0" b="120"/></transparentLayer>
+    <transparentLayer transparent="3"><color r="70" g="250" b="70"/></transparentLayer>
+    <transparentLayer transparent="4"><color r="250" g="250" b="0"/></transparentLayer>
+    <transparentLayer transparent="5"><color r="180" g="180" b="180"/></transparentLayer>
+
+    <!-- **************************************** LAYERS **************************************** -->
+    <layer name="Metal" fun="METAL1">
+        <transparentColor transparent="1"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NM"/>
+        <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
+    </layer>
+
+    <layer name="Polysilicon" fun="POLY1">
+        <transparentColor transparent="2"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NP"/>
+        <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
+    </layer>
+
+    <layer name="Diffusion" fun="DIFF">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="ND"/>
+        <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
+    </layer>
+
+    <layer name="Implant" fun="IMPLANT" extraFun="DEPLETION_HEAVY">
+        <transparentColor transparent="4"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NI"/>
+    </layer>
+
+    <layer name="Contact-Cut" fun="CONTACT1">
+        <opaqueColor r="180" g="130" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NC"/>
+    </layer>
+
+    <layer name="Buried-Contact" fun="IMPLANT">
+        <transparentColor transparent="5"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NB"/>
+    </layer>
+
+    <layer name="Overglass" fun="OVERGLASS">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X X X X X X X X</pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X X X X X X X X</pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X X X X X X X X</pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern> X X X X X X X X</pattern>
+        <pattern>  X   X   X   X </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NG"/>
+    </layer>
+
+    <layer name="Light-Implant" fun="IMPLANT" extraFun="DEPLETION_LIGHT">
+        <opaqueColor r="150" g="90" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>XX  XX  XX  XX  </pattern>
+        <pattern>                </pattern>
+        <pattern>XX  XX  XX  XX  </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>XX  XX  XX  XX  </pattern>
+        <pattern>                </pattern>
+        <pattern>XX  XX  XX  XX  </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NJ"/>
+    </layer>
+
+    <layer name="Oversize-Contact" fun="CONTACT3">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NO"/>
+    </layer>
+
+    <layer name="Hard-Enhancement" fun="IMPLANT" extraFun="ENHANCEMENT_HEAVY">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NE"/>
+    </layer>
+
+    <layer name="Light-Enhancement" fun="IMPLANT" extraFun="ENHANCEMENT_LIGHT">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>X       X       </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>X       X       </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>  X       X     </pattern>
+        <outlined>NOPAT</outlined>
+        <cifLayer cif="NF"/>
+    </layer>
+
+    <layer name="Transistor" fun="TRANSISTOR" extraFun="PSEUDO">
+        <opaqueColor r="200" g="200" b="200"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+    </layer>
+
+    <layer name="Pseudo-Metal" fun="METAL1" extraFun="PSEUDO">
+        <transparentColor transparent="1"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <outlined>NOPAT</outlined>
+    </layer>
+
+    <layer name="Pseudo-Polysilicon" fun="POLY1" extraFun="PSEUDO">
+        <transparentColor transparent="2"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <outlined>NOPAT</outlined>
+    </layer>
+
+    <layer name="Pseudo-Diffusion" fun="DIFF" extraFun="PSEUDO">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <outlined>NOPAT</outlined>
+    </layer>
+
+    <!-- ******************** ARCS ******************** -->
+    <arcProto name="Metal" fun="METAL1">
+        <widthOffset>0.0</widthOffset>
+        <defaultWidth>3.0</defaultWidth>
+        <extended>false</extended>
+        <fixedAngle>true</fixedAngle>
+        <wipable>true</wipable>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>400.0</antennaRatio>
+        <arcLayer  layer="Metal" widthOffset="0.0" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Polysilicon" fun="POLY1">
+        <widthOffset>0.0</widthOffset>
+        <defaultWidth>2.0</defaultWidth>
+        <extended>false</extended>
+        <fixedAngle>true</fixedAngle>
+        <wipable>true</wipable>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <arcLayer  layer="Polysilicon" widthOffset="0.0" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Diffusion" fun="DIFF">
+        <widthOffset>0.0</widthOffset>
+        <defaultWidth>2.0</defaultWidth>
+        <extended>false</extended>
+        <fixedAngle>true</fixedAngle>
+        <wipable>true</wipable>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <arcLayer  layer="Diffusion" widthOffset="0.0" style="FILLED"/>
+    </arcProto>
+
+    <!-- ******************** NODES ******************** -->
+    <primitiveNode name="Metal-Pin" fun="PIN">
+        <defaultWidth>3.0</defaultWidth>
+        <defaultHeight>3.0</defaultHeight>
+        <nodeLayer layer="Pseudo-Metal" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Polysilicon-Pin" fun="PIN">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Pseudo-Polysilicon" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Diffusion-Pin" fun="PIN">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Pseudo-Diffusion" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
+        <defaultWidth>4.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Metal" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Contact-Cut" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Metal-Diffusion-Con" fun="CONTACT">
+        <defaultWidth>4.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Metal" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Contact-Cut" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Butting-Con" fun="CONNECT">
+        <defaultWidth>6.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Metal" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="0.0" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Contact-Cut" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Cross" fun="CONNECT">
+        <defaultWidth>6.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Transistor" fun="TRANMOS">
+        <defaultWidth>6.0</defaultWidth>
+        <defaultHeight>6.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Implant-Transistor" fun="TRADMOS">
+        <defaultWidth>6.0</defaultWidth>
+        <defaultHeight>6.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Implant" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="0.5"/>
+            <techPoint xm="0.5" xa="-0.5" ym="0.5" ya="-0.5"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Cross-S" fun="CONNECT">
+        <defaultWidth>4.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Cross-T" fun="CONNECT">
+        <defaultWidth>5.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Polysurr" fun="CONNECT">
+        <defaultWidth>5.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Diffsurr-I" fun="CONNECT">
+        <defaultWidth>5.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <points/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-0.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-0.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Diffsurr-T" fun="CONNECT">
+        <defaultWidth>6.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <points/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="-0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Con-Diffsurr-L" fun="CONNECT">
+        <defaultWidth>5.0</defaultWidth>
+        <defaultHeight>4.0</defaultHeight>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <points/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="-0.5" ya="0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Metal-Node" fun="NODE">
+        <defaultWidth>3.0</defaultWidth>
+        <defaultHeight>3.0</defaultHeight>
+        <nodeLayer layer="Metal" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Polysilicon-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Polysilicon" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Diffusion-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Diffusion" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Implant-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Implant" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Cut-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Contact-Cut" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Buried-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Buried-Contact" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Overglass-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Overglass" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Light-Implant-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Light-Implant" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Oversize-Cut-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Oversize-Contact" style="CLOSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Hard-Enhancement-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Hard-Enhancement" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+
+    <primitiveNode name="Light-Enhancement-Node" fun="NODE">
+        <defaultWidth>2.0</defaultWidth>
+        <defaultHeight>2.0</defaultHeight>
+        <nodeLayer layer="Light-Enhancement" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="-0.0" ym="0.5" ya="-0.0"/>
+        </nodeLayer>
+    </primitiveNode>
+    
+    <spiceHeader level="1">
+        <spiceLine line="*NMOS 4UM PROCESS"/>
+        <spiceLine line=".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2"/>
+        <spiceLine line=".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
+    </spiceHeader>
+
+    <spiceHeader level="2">
+        <spiceLine line="*NMOS 4UM PROCESS"/>
+        <spiceLine line=".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2"/>
+        <spiceLine line=".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
+    </spiceHeader>
+
+    <spiceHeader level="3">
+        <spiceLine line="*NMOS 4UM PROCESS"/>
+        <spiceLine line=".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2"/>
+        <spiceLine line=".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44"/>
+        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
+        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
+        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
+    </spiceHeader>
+
+    <Foundry name="NONE">
+        <LayersRule ruleName="U0" layerNames="{Metal, Metal}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U15" layerNames="{Polysilicon, Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C16" layerNames="{Polysilicon, Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U16" layerNames="{Polysilicon, Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U17" layerNames="{Polysilicon, Implant}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U19" layerNames="{Polysilicon, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U29" layerNames="{Diffusion, Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U30" layerNames="{Diffusion, Implant}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U32" layerNames="{Diffusion, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U50" layerNames="{Implant, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U61" layerNames="{Contact-Cut, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+    </Foundry>
+</technology>

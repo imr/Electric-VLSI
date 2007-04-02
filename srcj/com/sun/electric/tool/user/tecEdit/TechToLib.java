@@ -49,6 +49,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -152,12 +153,15 @@ public class TechToLib
 		if (fNp == null) return null;
 		fNp.setInTechnologyLibrary();
 
+		int layerTotal = tech.getNumLayers();
+
 		// build the layer cell
 		GeneralInfo gi = new GeneralInfo();
         gi.shortName = tech.getTechShortName();
         if (gi.shortName == null)
             gi.shortName = tech.getTechName();
 		gi.scale = tech.getScale();
+        gi.scaleRelevant = tech.isScaleRelevant();
         gi.defaultFoundry = tech.getPrefFoundry();
         gi.defaultNumMetals = tech.getNumMetals();
 		gi.description = tech.getTechDesc();
@@ -175,10 +179,26 @@ public class TechToLib
         gi.spiceLevel1Header = tech.getSpiceHeaderLevel1();
         gi.spiceLevel2Header = tech.getSpiceHeaderLevel1();
         gi.spiceLevel3Header = tech.getSpiceHeaderLevel1();
+        DRCRules drcRules = tech.getFactoryDesignRules(false);
+        int rulesSize = layerTotal*(layerTotal + 1)/2;
+        gi.conDist = new double[rulesSize];
+        gi.unConDist = new double[rulesSize];
+        Arrays.fill(gi.conDist, -1);
+        Arrays.fill(gi.unConDist, -1);
+        for (int i1 = 0; i1 < layerTotal; i1++) {
+            for (int i2 = i1; i2 < layerTotal; i2++) {
+                int ruleIndex = drcRules.getRuleIndex(i1, i2);
+                for (DRCTemplate t: drcRules.getSpacingRules(ruleIndex, DRCTemplate.DRCRuleType.SPACING, false)) {
+                    if (t.ruleType == DRCTemplate.DRCRuleType.CONSPA)
+                        gi.conDist[ruleIndex] = t.getValue(0);
+                    else if (t.ruleType == DRCTemplate.DRCRuleType.UCONSPA)
+                        gi.unConDist[ruleIndex] = t.getValue(0);
+                }
+           }
+        }
 		gi.generate(fNp);
 
 		// create the layer node names
-		int layerTotal = tech.getNumLayers();
 		HashMap<Layer,Cell> layerCells = new HashMap<Layer,Cell>();
 
 		// create the layer nodes

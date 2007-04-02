@@ -106,6 +106,9 @@ public class Info
 	/** spice level 1 header (info cell) */                     static final int TECHSPICELEVEL1   = 50;
 	/** spice level 2 header (info cell) */                     static final int TECHSPICELEVEL2   = 51;
 	/** spice level 3 header (info cell) */                     static final int TECHSPICELEVEL3   = 52;
+    /** is technology scale relevant (info cell) */             static final int TECHSCALERELEVANT = 53;
+    /** array of distances (connected case) (info cell) */      static final int TECHCONDIST       = 54;
+    /** array of distances (unconnected case) (info cell) */    static final int TECHUNCONDIST     = 55;
 
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
