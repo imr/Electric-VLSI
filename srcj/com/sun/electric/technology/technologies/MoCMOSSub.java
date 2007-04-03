@@ -883,27 +883,27 @@ public class MoCMOSSub extends Technology
 		PF_lay.setFactory3DInfo(0, 33);		// Pad-Frame
 
 		// The SPICE information
-		M_lay.setFactoryParasitics(0.06f, 0.07f, 0);	// Metal-1
-		M0_lay.setFactoryParasitics(0.06f, 0.04f, 0);	// Metal-2
-		M1_lay.setFactoryParasitics(0.06f, 0.04f, 0);	// Metal-3
-		M2_lay.setFactoryParasitics(0.03f, 0.04f, 0);	// Metal-4
-		M3_lay.setFactoryParasitics(0.03f, 0.04f, 0);	// Metal-5
-		M4_lay.setFactoryParasitics(0.03f, 0.04f, 0);	// Metal-6
-		P_lay.setFactoryParasitics(2.5f, 0.09f, 0);		// Polysilicon-1
-		P0_lay.setFactoryParasitics(50.0f, 1.0f, 0);	// Polysilicon-2
-		PA_lay.setFactoryParasitics(2.5f, 0.9f, 0);		// P-Active
-		NA_lay.setFactoryParasitics(3.0f, 0.9f, 0);		// N-Active
+		M_lay.setFactoryParasitics(0.06, 0.07, 0);	// Metal-1
+		M0_lay.setFactoryParasitics(0.06, 0.04, 0);	// Metal-2
+		M1_lay.setFactoryParasitics(0.06, 0.04, 0);	// Metal-3
+		M2_lay.setFactoryParasitics(0.03, 0.04, 0);	// Metal-4
+		M3_lay.setFactoryParasitics(0.03, 0.04, 0);	// Metal-5
+		M4_lay.setFactoryParasitics(0.03, 0.04, 0);	// Metal-6
+		P_lay.setFactoryParasitics(2.5, 0.09, 0);		// Polysilicon-1
+		P0_lay.setFactoryParasitics(50.0, 1.0, 0);	// Polysilicon-2
+		PA_lay.setFactoryParasitics(2.5, 0.9, 0);		// P-Active
+		NA_lay.setFactoryParasitics(3.0, 0.9, 0);		// N-Active
 		PS_lay.setFactoryParasitics(0, 0, 0);			// P-Select
 		NS_lay.setFactoryParasitics(0, 0, 0);			// N-Select
 		PW_lay.setFactoryParasitics(0, 0, 0);			// P-Well
 		NW_lay.setFactoryParasitics(0, 0, 0);			// N-Well
-		PC_lay.setFactoryParasitics(2.2f, 0, 0);		// Poly-Cut
-		AC_lay.setFactoryParasitics(2.5f, 0, 0);		// Active-Cut
-		V_lay.setFactoryParasitics(1.0f, 0, 0);			// Via1
-		V0_lay.setFactoryParasitics(0.9f, 0, 0);		// Via2
-		V1_lay.setFactoryParasitics(0.8f, 0, 0);		// Via3
-		V2_lay.setFactoryParasitics(0.8f, 0, 0);		// Via4
-		V3_lay.setFactoryParasitics(0.8f, 0, 0);		// Via5
+		PC_lay.setFactoryParasitics(2.2, 0, 0);		// Poly-Cut
+		AC_lay.setFactoryParasitics(2.5, 0, 0);		// Active-Cut
+		V_lay.setFactoryParasitics(1.0, 0, 0);			// Via1
+		V0_lay.setFactoryParasitics(0.9, 0, 0);		// Via2
+		V1_lay.setFactoryParasitics(0.8, 0, 0);		// Via3
+		V2_lay.setFactoryParasitics(0.8, 0, 0);		// Via4
+		V3_lay.setFactoryParasitics(0.8, 0, 0);		// Via5
 		P1_lay.setFactoryParasitics(0, 0, 0);			// Passivation
 		T_lay.setFactoryParasitics(0, 0, 0);			// Transistor
 		PC0_lay.setFactoryParasitics(0, 0, 0);			// Poly-Cap

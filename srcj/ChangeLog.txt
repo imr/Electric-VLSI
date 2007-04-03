@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/02/07, DN) In MoCMOSOld, MoCMOSSub, nMOS use double constants instead of floats
+    for foundry values of parasistics.
+
 ************************* Version 8.05j: *********************************
 
 IMP: (3/29/07, SMR) When variable names are similar, examples are given (Bug #1211).

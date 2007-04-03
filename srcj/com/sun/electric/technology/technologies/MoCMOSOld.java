@@ -579,11 +579,11 @@ public class MoCMOSOld extends Technology
 		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
 
 		// The SPICE information
-		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-1
-		M0_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-2
-		P_lay.setFactoryParasitics(50.0f, 0.04f, 0);		// Polysilicon
-		SA_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// S-Active
-		DA_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// D-Active
+		M_lay.setFactoryParasitics(0.03, 0.03, 0);		// Metal-1
+		M0_lay.setFactoryParasitics(0.03, 0.03, 0);		// Metal-2
+		P_lay.setFactoryParasitics(50.0, 0.04, 0);		// Polysilicon
+		SA_lay.setFactoryParasitics(10.0, 0.1, 0);		// S-Active
+		DA_lay.setFactoryParasitics(10.0, 0.1, 0);		// D-Active
 		PS_lay.setFactoryParasitics(0, 0, 0);		// P-Select
 		NS_lay.setFactoryParasitics(0, 0, 0);		// N-Select
 		PW_lay.setFactoryParasitics(0, 0, 0);		// P-Well
