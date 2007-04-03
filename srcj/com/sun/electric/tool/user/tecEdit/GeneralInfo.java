@@ -56,6 +56,7 @@ public class GeneralInfo extends Info
 	/** spice level 3 header */                     String [] spiceLevel3Header;
     /** spacing of connected polys */               double [] conDist;
     /** spacing of non-connected polys */           double [] unConDist;
+    /** menu palette */                             Object[][] menuPalette;
 
 	static SpecialTextDescr [] genTextTable =
 	{

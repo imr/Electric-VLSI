@@ -90,6 +90,8 @@ import javax.swing.event.DocumentListener;
 */
 public class LibToTech
 {
+    private static int NUM_FRACTIONS = 0; // was 3
+    
 	/* the meaning of "us_tecflags" */
 //	private static final int HASDRCMINWID  =          01;				/* has DRC minimum width information */
 //	private static final int HASDRCMINWIDR =          02;				/* has DRC minimum width information */
@@ -302,7 +304,8 @@ public class LibToTech
 			newArc.setFactoryFixedAngle(aList[i].fixAng);
 			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
 			newArc.setFactoryAngleIncrement(aList[i].angInc);
-			newArc.setExtended(!aList[i].noExtend);
+			newArc.setFactoryExtended(!aList[i].noExtend);
+            if (aList[i].curvable) newArc.setCurvable();
 			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
 			aList[i].generated = newArc;
 		}
@@ -406,24 +409,8 @@ public class LibToTech
 		// check technology for consistency
 		checkAndWarn(lList, aList, nList);
 
-        if (fileName != null) {
-//				FileOutputStream fileOutputStream = null;
-            try {
-                PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
-                
-                // write the layers, arcs, and nodes
-                dumpLayersToJava(buffWriter, newTechName, lList, gi);
-                dumpArcsToJava(buffWriter, newTechName, aList, gi);
-                dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
-                buffWriter.println("}");
-                
-                // clean up
-                buffWriter.close();
-                System.out.println("Wrote " + fileName);
-            } catch (IOException e) {
-                System.out.println("Error creating " + fileName);
-            }
-        }
+        if (fileName != null)
+            dumpToJava(fileName, newTechName, gi, lList, nList, aList);
 
 //		// finish initializing the technology
 //		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
@@ -2535,6 +2522,56 @@ public class LibToTech
 
 	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
 
+    /**
+     * Dump technology information to Java
+     * @param fileName name of file to write
+     * @param newTechName new technology name
+     * @param gi general technology information
+     * @param lList information about layers
+     * @param nList information about primitive nodes
+     * @param aList information about primitive arcs.
+     */
+    static void dumpToJava(String fileName, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        try {
+            PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+            dumpToJava(buffWriter, newTechName, gi, lList, nList, aList);
+            buffWriter.close();
+            System.out.println("Wrote " + fileName);
+        } catch (IOException e) {
+            System.out.println("Error creating " + fileName);
+        }
+    }
+    
+    /**
+     * write the layers, arcs, and nodes
+     */
+    private static void dumpToJava(PrintStream buffWriter, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        // write the layers, arcs, and nodes
+        dumpLayersToJava(buffWriter, newTechName, lList, gi);
+        dumpArcsToJava(buffWriter, newTechName, aList, gi);
+        dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
+        dumpPaletteToJava(buffWriter, gi.menuPalette);
+        dumpFoundryToJava(buffWriter, gi, lList);
+		buffWriter.println("\t};");
+
+		// write method to reset rules
+		if (gi.conDist != null || gi.unConDist != null)
+		{
+			String conword = gi.conDist != null ? "conDist" : "null";
+			String unconword = gi.unConDist != null ? "unConDist" : "null";
+            buffWriter.println("\t/**");
+            buffWriter.println("\t * Method to return the \"factory \"design rules for this Technology.");
+            buffWriter.println("\t * @return the design rules for this Technology.");
+            buffWriter.println("\t * @param resizeNodes");
+            buffWriter.println("\t */");
+			buffWriter.println("\tpublic DRCRules getFactoryDesignRules(boolean resizeNodes)");
+			buffWriter.println("\t{");
+			buffWriter.println("\t\treturn MOSRules.makeSimpleRules(this, " + conword + ", " + unconword + ");");
+			buffWriter.println("\t}");
+		}
+        buffWriter.println("}");
+    }
+    
 	/**
 	 * Method to dump the layer information in technology "tech" to the stream in
 	 * "f".
@@ -2601,19 +2638,20 @@ public class LibToTech
 		buffWriter.println("{");
 		buffWriter.println("\t/** the " + gi.description + " Technology object. */	public static final " +
 				techName + " tech = new " + techName + "();");
-//		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
-//		{
-//			buffWriter.println("\tprivate static final double XX = -1;");
-//			buffWriter.println("\tprivate double [] conDist, unConDist;");
-//		}
-		buffWriter.println();
+        buffWriter.println();
+        if (gi.conDist != null || gi.unConDist != null) {
+            buffWriter.println("\tprivate static final double XX = -1;");
+            buffWriter.println("\tprivate double [] conDist, unConDist;");
+            buffWriter.println();
+        }
 
+        buffWriter.println("	// -------------------- private and protected methods ------------------------");
 		buffWriter.println("\tprivate " + techName + "()");
 		buffWriter.println("\t{");
 		buffWriter.println("\t\tsuper(\"" + techName + "\", Foundry.Type." + gi.defaultFoundry + ", " + gi.defaultNumMetals + ");");
 		buffWriter.println("\t\tsetTechShortName(\"" + gi.shortName + "\");");
 		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
-		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale) + ", true);   // in nanometers: really " +
+		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale, NUM_FRACTIONS) + ", true);   // in nanometers: really " +
 			(gi.scale / 1000) + " microns");
 		buffWriter.println("\t\tsetMaxSeriesResistance(" + gi.maxSeriesResistance + ");");
 		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
@@ -2768,18 +2806,18 @@ public class LibToTech
 			}
 		}
 
-		// write the Calma GDS-II layer number
-		for(int j=0; j<lList.length; j++)
-		{
-			if (lList[j].gds.length() > 0)
-			{
-				buffWriter.println("\n\t\t// The GDS names");
-				for(int i=0; i<lList.length; i++)
-					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryGDSLayer(\"" + lList[i].gds +
-						"\", \"mosis\");\t\t// " + lList[i].name);
-				break;
-			}
-		}
+//		// write the Calma GDS-II layer number
+//		for(int j=0; j<lList.length; j++)
+//		{
+//			if (lList[j].gds.length() > 0)
+//			{
+//				buffWriter.println("\n\t\t// The GDS names");
+//				for(int i=0; i<lList.length; i++)
+//					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryGDSLayer(\"" + lList[i].gds +
+//						"\", \"mosis\");\t\t// " + lList[i].name);
+//				break;
+//			}
+//		}
 
 		// write the 3D information
 		for(int j=0; j<lList.length; j++)
@@ -2789,7 +2827,7 @@ public class LibToTech
 				buffWriter.println("\n\t\t// The layer height");
 				for(int i=0; i<lList.length; i++)
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactory3DInfo(" +
-						TextUtils.formatDouble(lList[i].thick3d) + ", " + TextUtils.formatDouble(lList[i].height3d) +
+						TextUtils.formatDouble(lList[i].thick3d, NUM_FRACTIONS) + ", " + TextUtils.formatDouble(lList[i].height3d, NUM_FRACTIONS) +
 						");\t\t// " + lList[i].name);
 				break;
 			}
@@ -2803,79 +2841,102 @@ public class LibToTech
 				buffWriter.println("\n\t\t// The SPICE information");
 				for(int i=0; i<lList.length; i++)
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryParasitics(" +
-						TextUtils.formatDouble(lList[i].spiRes) + ", " +
-						TextUtils.formatDouble(lList[i].spiCap) + ", " +
-						TextUtils.formatDouble(lList[i].spiECap) + ");\t\t// " + lList[i].name);
+						TextUtils.formatDouble(lList[i].spiRes, NUM_FRACTIONS) + ", " +
+						TextUtils.formatDouble(lList[i].spiCap, NUM_FRACTIONS) + ", " +
+						TextUtils.formatDouble(lList[i].spiECap, NUM_FRACTIONS) + ");\t\t// " + lList[i].name);
 				break;
 			}
 		}
 		buffWriter.println("\t\tsetFactoryParasitics(" + gi.minRes + ", " + gi.minCap + ");");
+        
+        dumpSpiceHeader(buffWriter, 1, gi.spiceLevel1Header);
+        dumpSpiceHeader(buffWriter, 2, gi.spiceLevel2Header);
+        dumpSpiceHeader(buffWriter, 3, gi.spiceLevel3Header);
 
 		// write design rules
-//		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
-//		{
-//			buffWriter.println("\n\t\t//******************** DESIGN RULES ********************");
-//
-//			if ((us_tecflags&HASCONDRC) != 0)
-//			{
-//				buffWriter.println("\n\t\tconDist = new double[] {");
-//				us_teceditdumpjavadrctab(f, us_tecdrc_rules.conlist, tech, FALSE);
-//			}
-//			if ((us_tecflags&HASUNCONDRC) != 0)
-//			{
-//				buffWriter.println("\n\t\tunConDist = new double[] {");
-//				us_teceditdumpjavadrctab(f, us_tecdrc_rules.unconlist, tech, FALSE);
-//			}
-//		}
-	}
+        if (gi.conDist != null || gi.unConDist != null) {
+            buffWriter.println("\n\t\t//******************** DESIGN RULES ********************");
+            
+            if (gi.conDist != null) {
+                buffWriter.println("\n\t\tconDist = new double[] {");
+                dumpJavaDrcTab(buffWriter, gi.conDist, lList);
+            }
+            if (gi.unConDist != null) {
+                buffWriter.println("\n\t\tunConDist = new double[] {");
+                dumpJavaDrcTab(buffWriter, gi.unConDist, lList);
+            }
+        }
+    }
 
-//	private void us_teceditdumpjavadrctab(FILE *f, void *distances, TECHNOLOGY *tech, BOOLEAN isstring)
-//	{
+	private static void dumpJavaDrcTab(PrintStream buffWriter, double[] distances, LayerInfo[] lList/*), void *distances, TECHNOLOGY *tech, BOOLEAN isstring*/)
+	{
 //		REGISTER INTBIG i, j;
 //		REGISTER INTBIG amt, *amtlist;
 //		CHAR shortname[7], *msg, **distlist;
 //
-//		for(i=0; i<6; i++)
-//		{
-//			buffWriter.println("\t\t\t//            "));
-//			for(j=0; j<tech.layercount; j++)
-//			{
-//				if ((INTBIG)estrlen(us_teclayer_iname[j]) <= i) buffWriter.println(" ")); else
-//					buffWriter.println("%c"), us_teclayer_iname[j][i]);
-//				buffWriter.println("  "));
-//			}
-//			buffWriter.println();
-//		}
+		for(int i=0; i<6; i++)
+		{
+			buffWriter.print("\t\t\t//            ");
+			for(int j=0; j<lList.length; j++)
+			{
+				if (lList[j].name.length() <= i) buffWriter.print(" "); else
+					buffWriter.print(lList[j].name.charAt(i));
+				buffWriter.print("  ");
+			}
+			buffWriter.println();
+		}
 //		if (isstring) distlist = (CHAR **)distances; else
 //			amtlist = (INTBIG *)distances;
-//		for(j=0; j<tech.layercount; j++)
-//		{
-//			(void)estrncpy(shortname, us_teclayer_iname[j], 6);
-//			shortname[6] = 0;
-//			buffWriter.println("\t\t\t/* %-6s */ "), shortname);
-//			for(i=0; i<j; i++) buffWriter.println("   "));
-//			for(i=j; i<tech.layercount; i++)
-//			{
+        int ruleNum = 0;
+		for(int j=0; j<lList.length; j++)
+		{
+			String shortName = lList[j].name;
+            if (shortName.length() > 6)
+                shortName = shortName.substring(0, 6);
+            while (shortName.length() < 6)
+                shortName += ' ';
+			buffWriter.print("\t\t\t/* " + shortName + " */ ");
+			for(int i=0; i<j; i++) buffWriter.print("   ");
+			for(int i=j; i<lList.length; i++)
+			{
 //				if (isstring)
 //				{
 //					msg = *distlist++;
 //					buffWriter.println("x_(\"%s\")"), msg);
 //				} else
 //				{
-//					amt = *amtlist++;
-//					if (amt < 0) buffWriter.println("XX")); else
-//					{
-//						buffWriter.println("%g"), (float)amt/WHOLE);
+					double amt = distances[ruleNum++];
+					if (amt < 0) buffWriter.print("XX"); else
+					{
+                        String amtStr = Double.toString(amt);
+                        if (amtStr.endsWith(".0"))
+                            amtStr = amtStr.substring(0, amtStr.length() - 2);
+                        while (amtStr.length() < 2)
+                            amtStr = ' ' + amtStr;
+						buffWriter.print(amtStr)/*, (float)amt/WHOLE)*/;
 //					}
-//				}
-//				if (j != tech.layercount-1 || i != tech.layercount-1)
-//					buffWriter.println(","));
-//			}
-//			buffWriter.println("\n"));
-//		}
-//		buffWriter.println("\t\t};\n"));
-//	}
+				}
+				if (j != lList.length-1 || i != lList.length-1)
+					buffWriter.print(",");
+			}
+			buffWriter.println();
+		}
+		buffWriter.println("\t\t};");
+	}
 
+    private static void dumpSpiceHeader(PrintStream buffWriter, int level, String[] headerLines) {
+        if (headerLines == null) return;
+        buffWriter.println("\t\tString [] headerLevel" + level + " =");
+        buffWriter.println("\t\t{");
+        for (int i = 0; i < headerLines.length; i++) {
+            buffWriter.print("\t\t\t\"" + headerLines[i]  + "\"");
+            if (i < headerLines.length - 1)
+                buffWriter.print(',');
+            buffWriter.println();
+        }
+        buffWriter.println("\t\t};");
+		buffWriter.println("\t\tsetSpiceHeaderLevel" + level + "(headerLevel" + level + ");");
+    }
 	/**
 	 * Method to dump the arc information in technology "tech" to the stream in
 	 * "f".
@@ -2892,13 +2953,13 @@ public class LibToTech
 			aList[i].javaName = makeJavaName(aList[i].name);
 			buffWriter.println("\n\t\t/** " + aList[i].name + " arc */");
 			buffWriter.println("\t\tArcProto " + aList[i].javaName + "_arc = newArcProto(\"" + aList[i].name +
-                    "\", " + TextUtils.formatDouble(aList[i].widthOffset) +
-                    ", " + TextUtils.formatDouble(aList[i].maxWidth) +
+                    "\", " + TextUtils.formatDouble(aList[i].widthOffset, NUM_FRACTIONS) +
+                    ", " + TextUtils.formatDouble(aList[i].maxWidth, NUM_FRACTIONS) +
                     ", ArcProto.Function." + aList[i].func.getConstantName() + ",");
 			for(int k=0; k<aList[i].arcDetails.length; k++)
 			{
 				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + aList[i].arcDetails[k].layer.javaName + "_lay, ");
-				buffWriter.print(TextUtils.formatDouble(aList[i].arcDetails[k].width) + ",");
+				buffWriter.print(TextUtils.formatDouble(aList[i].arcDetails[k].width, NUM_FRACTIONS) + ",");
 				if (aList[i].arcDetails[k].style == Poly.Type.FILLED) buffWriter.print(" Poly.Type.FILLED)"); else
 					buffWriter.print(" Poly.Type.CLOSED)");
 				if (k+1 < aList[i].arcDetails.length) buffWriter.print(",");
@@ -2907,13 +2968,13 @@ public class LibToTech
 			buffWriter.println("\t\t);");
 			if (aList[i].wipes)
 				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWipable();");
-			if (aList[i].fixAng)
-				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryFixedAngle(true);");
-			if (aList[i].noExtend)
-				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryExtended(false);");
+			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryFixedAngle(" + aList[i].fixAng + ");");
+            if (aList[i].curvable)
+				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setCurvable();");
+			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryExtended(" + !aList[i].noExtend + ");");
 			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryAngleIncrement(" + aList[i].angInc + ");");
 			buffWriter.println("\t\tERC.getERCTool().setAntennaRatio(" + aList[i].javaName + "_arc, " +
-				TextUtils.formatDouble(aList[i].antennaRatio) + ");");
+				TextUtils.formatDouble(aList[i].antennaRatio, NUM_FRACTIONS) + ");");
 		}
 	}
 
@@ -2975,7 +3036,7 @@ public class LibToTech
 				char last = ab.charAt(l);
 				if (last >= '0' && last <= '8')
 				{
-					ab = ab.substring(0, l) + (last+1);
+					ab = ab.substring(0, l) + (char)(last+1);
 				} else
 				{
 					ab += "0";
@@ -2996,14 +3057,14 @@ public class LibToTech
 			buffWriter.println("\t\t/** " + nList[i].name + " */");
 
 			buffWriter.print("\t\tPrimitiveNode " + ab + "_node = PrimitiveNode.newInstance(\"" +
-				nList[i].name + "\", this, " + TextUtils.formatDouble(nList[i].xSize) + ", " +
-				TextUtils.formatDouble(nList[i].ySize) + ", ");
+				nList[i].name + "\", this, " + TextUtils.formatDouble(nList[i].xSize, NUM_FRACTIONS) + ", " +
+				TextUtils.formatDouble(nList[i].ySize, NUM_FRACTIONS) + ", ");
 			if (nList[i].so == null) buffWriter.println("null,"); else
 			{
-				buffWriter.println("new SizeOffset(" + TextUtils.formatDouble(nList[i].so.getLowXOffset()) + ", " +
-					TextUtils.formatDouble(nList[i].so.getHighXOffset()) + ", " +
-					TextUtils.formatDouble(nList[i].so.getLowYOffset()) + ", " +
-					TextUtils.formatDouble(nList[i].so.getHighYOffset()) + "),");
+				buffWriter.println("new SizeOffset(" + TextUtils.formatDouble(nList[i].so.getLowXOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nList[i].so.getHighXOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nList[i].so.getLowYOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nList[i].so.getHighYOffset(), NUM_FRACTIONS) + "),");
 			}
 
 			// print layers
@@ -3134,21 +3195,55 @@ public class LibToTech
 				}
 			}
 		}
-
-		buffWriter.println("\t};");
-
-//		// write method to reset rules
-//		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
-//		{
-//			CHAR *conword, *unconword;
-//			if ((us_tecflags&HASCONDRC) != 0) conword = "conDist"; else conword = "null";
-//			if ((us_tecflags&HASUNCONDRC) != 0) unconword = "unConDist"; else unconword = "null";
-//			buffWriter.println("\tpublic DRCRules getFactoryDesignRules()\n"));
-//			buffWriter.println("\t{\n"));
-//			buffWriter.println("\t\treturn MOSRules.makeSimpleRules(this, %s, %s);\n"), conword, unconword);
-//			buffWriter.println("\t}\n"));
-//		}
+        buffWriter.println();
 	}
+    
+    private static void dumpPaletteToJava(PrintStream buffWriter, Object[][] menuPalette) {
+        int numRows = menuPalette.length;
+        int numCols = menuPalette[0].length;
+        buffWriter.println("\t\t// Building information for palette");
+        buffWriter.println("\t\tnodeGroups = new Object[" + numRows + "][" + numCols + "];");
+        buffWriter.println("\t\tint count = -1;");
+        buffWriter.println();
+        for (int row = 0; row < numRows; row++) {
+            buffWriter.print("\t\t");
+            for (int col = 0; col < numCols; col++) {
+                if (col != 0) buffWriter.print(" ");
+                buffWriter.print("nodeGroups[");
+                if (col == 0) buffWriter.print("++");
+                buffWriter.print("count][" + col + "] = ");
+                Object menuObject = menuPalette[row][col];
+                if (menuObject instanceof ArcInfo) {
+                    buffWriter.print(((ArcInfo)menuObject).javaName + "_arc");
+                } else if (menuObject instanceof NodeInfo) {
+                    buffWriter.print(((NodeInfo)menuObject).abbrev + "_node");
+                } else if (menuObject instanceof String) {
+                    buffWriter.print("\"" + menuObject + "\"");
+                } else if (menuObject == null) {
+                    buffWriter.print("null");
+                }
+                buffWriter.print(";");
+            }
+            buffWriter.println();
+        }
+        buffWriter.println();
+    }
+    
+    private static void dumpFoundryToJava(PrintStream buffWriter, GeneralInfo gi, LayerInfo[] lList) {
+        List<String> gdsStrings = new ArrayList<String>();
+        for (LayerInfo li: lList) {
+            if (li.gds == null || li.gds.length() == 0) continue;
+            gdsStrings.add(li.name + " " + li.gds);
+        }
+        buffWriter.println("\t\t//Foundry");
+        buffWriter.print("\t\tnewFoundry(Foundry.Type." + gi.defaultFoundry + ", null");
+        for (String s: gdsStrings) {
+            buffWriter.println(",");
+            buffWriter.print("\t\t\t\"" + s + "\"");
+        }
+        buffWriter.println(");");
+        buffWriter.println();
+    }
 
 	/**
 	 * Method to remove illegal Java charcters from "string".
@@ -3200,7 +3295,7 @@ public class LibToTech
 				infstr.append("makeCenter()");
 			} else
 			{
-				infstr.append("fromCenter(" + TextUtils.formatDouble(add) + ")");
+				infstr.append("fromCenter(" + TextUtils.formatDouble(add, NUM_FRACTIONS) + ")");
 			}
 			return infstr.toString();
 		}
@@ -3216,22 +3311,22 @@ public class LibToTech
 				if (mul < 0)
 				{
 					if (add == 0) infstr.append("makeLeftEdge()"); else
-						infstr.append("fromLeft(" + TextUtils.formatDouble(amt) + ")");
+						infstr.append("fromLeft(" + TextUtils.formatDouble(amt, NUM_FRACTIONS) + ")");
 				} else
 				{
 					if (add == 0) infstr.append("makeRightEdge()"); else
-						infstr.append("fromRight(" + TextUtils.formatDouble(amt) + ")");
+						infstr.append("fromRight(" + TextUtils.formatDouble(amt, NUM_FRACTIONS) + ")");
 				}
 			} else
 			{
 				if (mul < 0)
 				{
 					if (add == 0) infstr.append("makeBottomEdge()"); else
-						infstr.append("fromBottom(" + TextUtils.formatDouble(amt) + ")");
+						infstr.append("fromBottom(" + TextUtils.formatDouble(amt, NUM_FRACTIONS) + ")");
 				} else
 				{
 					if (add == 0) infstr.append("makeTopEdge()"); else
-						infstr.append("fromTop(" + TextUtils.formatDouble(amt) + ")");
+						infstr.append("fromTop(" + TextUtils.formatDouble(amt, NUM_FRACTIONS) + ")");
 				}
 			}
 			return infstr.toString();
@@ -3239,8 +3334,8 @@ public class LibToTech
 
 		// generate two-value description
 		if (!yAxis)
-			infstr.append("new EdgeH(" + TextUtils.formatDouble(mul) + ", " + TextUtils.formatDouble(add) + ")"); else
-			infstr.append("new EdgeV(" + TextUtils.formatDouble(mul) + ", " + TextUtils.formatDouble(add) + ")");
+			infstr.append("new EdgeH(" + TextUtils.formatDouble(mul, NUM_FRACTIONS) + ", " + TextUtils.formatDouble(add, NUM_FRACTIONS) + ")"); else
+			infstr.append("new EdgeV(" + TextUtils.formatDouble(mul, NUM_FRACTIONS) + ", " + TextUtils.formatDouble(add, NUM_FRACTIONS) + ")");
 		return infstr.toString();
 	}
 

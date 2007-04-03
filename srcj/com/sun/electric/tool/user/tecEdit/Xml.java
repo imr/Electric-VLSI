@@ -42,23 +42,23 @@ public class Xml {
     private final String techName;
     private final GeneralInfo gi;
     private final LayerInfo[] lList;
-    private final ArcInfo[] aList;
     private final NodeInfo[] nList;
+    private final ArcInfo[] aList;
     private int indent;
     private boolean indentEmitted;
     
     /** Creates a new instance of Xml */
-    private Xml(PrintStream out, String techName, GeneralInfo gi, LayerInfo[] lList, ArcInfo[] aList, NodeInfo[] nList) {
+    private Xml(PrintStream out, String techName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
         this.out = out;
         this.techName = techName;
         this.gi = gi;
         this.lList = lList;
-        this.aList = aList;
         this.nList = nList;
+        this.aList = aList;
     }
     
-    static void writeXml(PrintStream out, Technology tech, GeneralInfo gi, LayerInfo[] lList, ArcInfo[] aList, NodeInfo[] nList) {
-        Xml xml = new Xml(out, tech.getTechName(), gi, lList, aList, nList);
+    static void writeXml(PrintStream out, Technology tech, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        Xml xml = new Xml(out, tech.getTechName(), gi, lList, nList, aList);
         xml.writeTechnology();
     }
     
@@ -135,7 +135,6 @@ public class Xml {
         
 		comment("******************** ARCS ********************");
         for (ArcInfo ai: aList) {
-            if (ai == null) continue;
             writeXml(ai);
             l();
         }
@@ -332,20 +331,22 @@ public class Xml {
     private void writeDesignRulesXml(String foundry, LayerInfo[] lList, double[] conDist, double[] uConDist) {
         b("Foundry"); a("name", foundry); cl();
         
-        int layerTotal = lList.length;
-        int ruleIndex = 0;
-        for (int i1 = 0; i1 < layerTotal; i1++) {
-            LayerInfo l1 = lList[i1];
-            for (int i2 = i1; i2 < layerTotal; i2++) {
-                LayerInfo l2 = lList[i2];
-                double conSpa = conDist[ruleIndex];
-                double uConSpa = uConDist[ruleIndex];
-                if (conSpa > -1)
-                    printDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa);
-                if (uConSpa > -1)
-                    printDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa);
-                ruleIndex++;
-           }
+        if (conDist != null && uConDist != null) {
+            int layerTotal = lList.length;
+            int ruleIndex = 0;
+            for (int i1 = 0; i1 < layerTotal; i1++) {
+                LayerInfo l1 = lList[i1];
+                for (int i2 = i1; i2 < layerTotal; i2++) {
+                    LayerInfo l2 = lList[i2];
+                    double conSpa = conDist[ruleIndex];
+                    double uConSpa = uConDist[ruleIndex];
+                    if (conSpa > -1)
+                        printDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa);
+                    if (uConSpa > -1)
+                        printDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa);
+                    ruleIndex++;
+                }
+            }
         }
         el("Foundry");
     }

@@ -56,6 +56,7 @@ public class ArcInfo extends Info
 	/** true for fixed-angle arcs */			boolean fixAng;
 	/** true if arcs wipe pins */				boolean wipes;
 	/** true if arcs don't extend endpoints */	boolean noExtend;
+    /** true if arc is curvable */              boolean curvable;
 	/** the arc angle increment */				int angInc;
 	/** the maximum antenna ratio */			double antennaRatio;
 	/** the ArcProto in the Technology */		ArcProto generated;

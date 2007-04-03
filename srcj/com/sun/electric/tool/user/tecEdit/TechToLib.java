@@ -177,24 +177,27 @@ public class TechToLib
 		for(int i=0; i<numLayers; i++)
 			gi.transparentColors[i] = wholeMap[1<<i];
         gi.spiceLevel1Header = tech.getSpiceHeaderLevel1();
-        gi.spiceLevel2Header = tech.getSpiceHeaderLevel1();
-        gi.spiceLevel3Header = tech.getSpiceHeaderLevel1();
+        gi.spiceLevel2Header = tech.getSpiceHeaderLevel2();
+        gi.spiceLevel3Header = tech.getSpiceHeaderLevel3();
         DRCRules drcRules = tech.getFactoryDesignRules(false);
-        int rulesSize = layerTotal*(layerTotal + 1)/2;
-        gi.conDist = new double[rulesSize];
-        gi.unConDist = new double[rulesSize];
-        Arrays.fill(gi.conDist, -1);
-        Arrays.fill(gi.unConDist, -1);
-        for (int i1 = 0; i1 < layerTotal; i1++) {
-            for (int i2 = i1; i2 < layerTotal; i2++) {
-                int ruleIndex = drcRules.getRuleIndex(i1, i2);
-                for (DRCTemplate t: drcRules.getSpacingRules(ruleIndex, DRCTemplate.DRCRuleType.SPACING, false)) {
-                    if (t.ruleType == DRCTemplate.DRCRuleType.CONSPA)
-                        gi.conDist[ruleIndex] = t.getValue(0);
-                    else if (t.ruleType == DRCTemplate.DRCRuleType.UCONSPA)
-                        gi.unConDist[ruleIndex] = t.getValue(0);
+        if (drcRules != null) {
+            int rulesSize = layerTotal*(layerTotal + 1)/2;
+            gi.conDist = new double[rulesSize];
+            gi.unConDist = new double[rulesSize];
+            Arrays.fill(gi.conDist, -1);
+            Arrays.fill(gi.unConDist, -1);
+            int ruleIndex = 0;
+            for (int i1 = 0; i1 < layerTotal; i1++) {
+                for (int i2 = i1; i2 < layerTotal; i2++) {
+                    for (DRCTemplate t: drcRules.getSpacingRules(drcRules.getRuleIndex(i1, i2), DRCTemplate.DRCRuleType.SPACING, false)) {
+                        if (t.ruleType == DRCTemplate.DRCRuleType.CONSPA)
+                            gi.conDist[ruleIndex] = t.getValue(0);
+                        else if (t.ruleType == DRCTemplate.DRCRuleType.UCONSPA)
+                            gi.unConDist[ruleIndex] = t.getValue(0);
+                    }
+                    ruleIndex++;
                 }
-           }
+            }
         }
 		gi.generate(fNp);
 
@@ -245,7 +248,7 @@ public class TechToLib
 			li.spiECap = layer.getEdgeCapacitance();
 
 			// compute the 3D information
-			li.height3d = layer.getDepth();
+			li.height3d = layer.getDistance();
 			li.thick3d = layer.getThickness();
 
 			// build the layer cell
@@ -259,7 +262,13 @@ public class TechToLib
 		// create the arc cells
 		System.out.println("Creating the arcs...");
 		int arcTotal = 0;
-        ArcInfo[] aList = new ArcInfo[tech.getNumArcs()];
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			if (!ap.isNotUsed()) arcTotal++;
+		}
+        ArcInfo[] aList = new ArcInfo[arcTotal];
+        arcTotal = 0;
 		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
@@ -283,10 +292,12 @@ public class TechToLib
             aList[arcTotal] = aIn;
             aIn.name = ap.getName();
 			aIn.func = ap.getFunction();
+            aIn.widthOffset = ap.getLambdaWidthOffset();
             aIn.maxWidth = ap.getDefaultLambdaFullWidth();
 			aIn.fixAng = ap.isFixedAngle();
 			aIn.wipes = ap.isWipable();
-			aIn.noExtend = ap.isExtended();
+			aIn.noExtend = !ap.isExtended();
+            aIn.curvable = ap.isCurvable();
 			aIn.angInc = ap.getAngleIncrement();
 			aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
 			arcCells.put(ap, aNp);
@@ -310,7 +321,7 @@ public class TechToLib
                 for(int j=0; j<lList.length; j++) {
                     if (arcLayer.getName().equals(lList[j].name)) { al.layer = lList[j];   break; }
                 }
-                al.style = poly.getStyle();
+                al.style = ap.getArcLayer(i).getStyle();
                 al.width = ap.getArcLayer(i).getLambdaOffset();
 				EGraphics arcDesc = arcLayer.getGraphics();
 
@@ -378,6 +389,11 @@ public class TechToLib
             nIn.lockable = pnp.isLockedPrim();
             nIn.xSize = pnp.getDefWidth();
             nIn.ySize = pnp.getDefHeight();
+            nIn.so = pnp.getProtoSizeOffset();
+            if (nIn.so.getLowXOffset() == 0 && nIn.so.getHighXOffset() == 0 && nIn.so.getLowYOffset() == 0 && nIn.so.getHighYOffset() == 0)
+                nIn.so = null;
+            nIn.specialType = pnp.getSpecialType();
+            nIn.specialValues = pnp.getSpecialValues();
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;
 
@@ -554,6 +570,7 @@ public class TechToLib
                     NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
                     nIn.nodePortDetails[pp.getPortIndex()] = pd;
                     pd.name = pp.getName();
+                    pd.netIndex = pp.getTopology();
                     pd.angle = pp.getAngle();
                     pd.range = pp.getAngleRange();
                     pd.values = new Technology.TechPoint[] {
@@ -568,15 +585,22 @@ public class TechToLib
 					// add in the "local" port connections (from this tech)
 					ArcProto [] connects = pp.getConnections();
 					List<Cell> validConns = new ArrayList<Cell>();
+                    List<ArcInfo> validArcInfoConns = new ArrayList<ArcInfo>();
 					for(int i=0; i<connects.length; i++)
 					{
 						if (connects[i].getTechnology() != tech) continue;
 						Cell cell = (Cell)arcCells.get(connects[i]);
 						if (cell != null) validConns.add(cell);
+                        for (int k = 0; k < aList.length; k++) {
+                            if (aList[k].name.equals(connects[i].getName())) {
+                                validArcInfoConns.add(aList[k]);
+                                break;
+                            }
+                        }
 					}
+                    pd.connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
 					if (validConns.size() > 0)
 					{
-                        pd.connections = new ArcInfo[validConns.size()];
 						CellId [] aplist = new CellId[validConns.size()];
 						for(int i=0; i<validConns.size(); i++) {
                             Cell cell = (Cell)validConns.get(i);
@@ -719,7 +743,42 @@ public class TechToLib
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
         
-        Xml.writeXml(System.out, tech, gi, lList, aList, nList);
+        Object[][] origPalette = tech.getNodesGrouped();
+        int numRows = origPalette.length;
+        int numCols = origPalette[0].length;
+        for (Object[] row: origPalette) {
+            assert row.length == numCols;
+        }
+        gi.menuPalette = new Object[numRows][numCols];
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                Object origEntry = origPalette[row][col];
+                Object newEntry = null;
+                if (origEntry instanceof ArcProto) {
+                    ArcProto ap = (ArcProto)origEntry;
+                    for (ArcInfo ai: aList) {
+                        if (ai.name.equals(ap.getName())) {
+                            newEntry = ai;
+                            break;
+                        }
+                    }
+                } else if (origEntry instanceof PrimitiveNode) {
+                    PrimitiveNode pnp = (PrimitiveNode)origEntry;
+                     for (NodeInfo ni: nList) {
+                        if (ni.name.equals(pnp.getName())) {
+                            newEntry = ni;
+                            break;
+                        }
+                    }
+                } else if (origEntry != null) {
+                    newEntry = origEntry.toString();
+                }
+                gi.menuPalette[row][col] = newEntry;
+            }
+        }
+        
+        Xml.writeXml(System.out, tech, gi, lList, nList, aList);
+        LibToTech.dumpToJava(tech.getTechName() + ".java", tech.getTechName(), gi, lList, nList, aList);
 
 		// clean up
 		System.out.println("Done.");

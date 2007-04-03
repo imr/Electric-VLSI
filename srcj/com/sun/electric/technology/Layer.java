@@ -73,59 +73,59 @@ public class Layer
 	 */
 	public static enum Function
 	{
-		/** Describes an unknown layer. */						UNKNOWN   ("unknown",    "UNKNOWN",    0, 0, 0, 35, 0),
-		/** Describes a metal layer 1. */						METAL1    ("metal-1",    "METAL1",     1, 0, 0, 17, 0),
-		/** Describes a metal layer 2. */						METAL2    ("metal-2",    "METAL2",     2, 0, 0, 19, 0),
-		/** Describes a metal layer 3. */						METAL3    ("metal-3",    "METAL3",     3, 0, 0, 21, 0),
-		/** Describes a metal layer 4. */						METAL4    ("metal-4",    "METAL4",     4, 0, 0, 23, 0),
-		/** Describes a metal layer 5. */						METAL5    ("metal-5",    "METAL5",     5, 0, 0, 25, 0),
-		/** Describes a metal layer 6. */						METAL6    ("metal-6",    "METAL6",     6, 0, 0, 27, 0),
-		/** Describes a metal layer 7. */						METAL7    ("metal-7",    "METAL7",     7, 0, 0, 29, 0),
-		/** Describes a metal layer 8. */						METAL8    ("metal-8",    "METAL8",     8, 0, 0, 31, 0),
-		/** Describes a metal layer 9. */						METAL9    ("metal-9",    "METAL9",     9, 0, 0, 33, 0),
-		/** Describes a metal layer 10. */						METAL10   ("metal-10",   "METAL10",   10, 0, 0, 35, 0),
-		/** Describes a metal layer 11. */						METAL11   ("metal-11",   "METAL11",   11, 0, 0, 37, 0),
-		/** Describes a metal layer 12. */						METAL12   ("metal-12",   "METAL12",   12, 0, 0, 39, 0),
-		/** Describes a polysilicon layer 1. */					POLY1     ("poly-1",     "POLY1",      0, 0, 1, 12, 0),
-		/** Describes a polysilicon layer 2. */					POLY2     ("poly-2",     "POLY2",      0, 0, 2, 13, 0),
-		/** Describes a polysilicon layer 3. */					POLY3     ("poly-3",     "POLY3",      0, 0, 3, 14, 0),
-		/** Describes a polysilicon gate layer. */				GATE      ("gate",       "GATE",       0, 0, 0, 15, Layer.INTRANS),
-		/** Describes a diffusion layer. */						DIFF      ("diffusion",  "DIFF",       0, 0, 0, 11, 0),
-		/** Describes a P-diffusion layer. */					DIFFP     ("p-diffusion","DIFF",       0, 0, 0, 11, Layer.PTYPE),
-		/** Describes a N-diffusion layer. */					DIFFN     ("n-diffusion","DIFF",       0, 0, 0, 11, Layer.NTYPE),
-		/** Describes an implant layer. */						IMPLANT   ("implant",    "IMPLANT",    0, 0, 0, 2, 0),
-		/** Describes a P-implant layer. */						IMPLANTP  ("p-implant",  "IMPLANT",    0, 0, 0, 2, Layer.PTYPE),
-		/** Describes an N-implant layer. */					IMPLANTN  ("n-implant",  "IMPLANT",    0, 0, 0, 2, Layer.NTYPE),
-		/** Describes a contact layer 1. */						CONTACT1  ("contact-1",  "CONTACT1",   0, 1, 0, 16, 0),
-		/** Describes a contact layer 2. */						CONTACT2  ("contact-2",  "CONTACT2",   0, 2, 0, 18, 0),
-		/** Describes a contact layer 3. */						CONTACT3  ("contact-3",  "CONTACT3",   0, 3, 0, 20, 0),
-		/** Describes a contact layer 4. */						CONTACT4  ("contact-4",  "CONTACT4",   0, 4, 0, 22, 0),
-		/** Describes a contact layer 5. */						CONTACT5  ("contact-5",  "CONTACT5",   0, 5, 0, 24, 0),
-		/** Describes a contact layer 6. */						CONTACT6  ("contact-6",  "CONTACT6",   0, 6, 0, 26, 0),
-		/** Describes a contact layer 7. */						CONTACT7  ("contact-7",  "CONTACT7",   0, 7, 0, 28, 0),
-		/** Describes a contact layer 8. */						CONTACT8  ("contact-8",  "CONTACT8",   0, 8, 0, 30, 0),
-		/** Describes a contact layer 9. */						CONTACT9  ("contact-9",  "CONTACT9",   0, 9, 0, 32, 0),
-		/** Describes a contact layer 10. */					CONTACT10 ("contact-10", "CONTACT10",  0,10, 0, 34, 0),
-		/** Describes a contact layer 11. */					CONTACT11 ("contact-11", "CONTACT11",  0,11, 0, 36, 0),
-		/** Describes a contact layer 12. */					CONTACT12 ("contact-12", "CONTACT12",  0,12, 0, 38, 0),
-		/** Describes a sinker (diffusion-to-buried plug). */	PLUG      ("plug",       "PLUG",       0, 0, 0, 40, 0),
-		/** Describes an overglass layer (passivation). */		OVERGLASS ("overglass",  "OVERGLASS",  0, 0, 0, 41, 0),
-		/** Describes a resistor layer. */						RESISTOR  ("resistor",   "RESISTOR",   0, 0, 0, 4, 0),
-		/** Describes a capacitor layer. */						CAP       ("capacitor",  "CAP",        0, 0, 0, 5, 0),
-		/** Describes a transistor layer. */					TRANSISTOR("transistor", "TRANSISTOR", 0, 0, 0, 3, 0),
-		/** Describes an emitter of bipolar transistor. */		EMITTER   ("emitter",    "EMITTER",    0, 0, 0, 6, 0),
-		/** Describes a base of bipolar transistor. */			BASE      ("base",       "BASE",       0, 0, 0, 7, 0),
-		/** Describes a collector of bipolar transistor. */		COLLECTOR ("collector",  "COLLECTOR",  0, 0, 0, 8, 0),
-		/** Describes a substrate layer. */						SUBSTRATE ("substrate",  "SUBSTRATE",  0, 0, 0, 1, 0),
-		/** Describes a well layer. */							WELL      ("well",       "WELL",       0, 0, 0, 0, 0),
-		/** Describes a P-well layer. */						WELLP     ("p-well",     "WELL",       0, 0, 0, 0, Layer.PTYPE),
-		/** Describes a N-well layer. */						WELLN     ("n-well",     "WELL",       0, 0, 0, 0, Layer.NTYPE),
-		/** Describes a guard layer. */							GUARD     ("guard",      "GUARD",      0, 0, 0, 9, 0),
-		/** Describes an isolation layer (bipolar). */			ISOLATION ("isolation",  "ISOLATION",  0, 0, 0, 10, 0),
-		/** Describes a bus layer. */							BUS       ("bus",        "BUS",        0, 0, 0, 42, 0),
-		/** Describes an artwork layer. */						ART       ("art",        "ART",        0, 0, 0, 43, 0),
-		/** Describes a control layer. */						CONTROL   ("control",    "CONTROL",    0, 0, 0, 44, 0),
-        /** Describes a tileNot layer. */						TILENOT   ("tileNot",    "TILENOT",    0, 0, 0, 45, 0);
+		/** Describes an unknown layer. */						UNKNOWN   ("unknown",     0, 0, 0, 35, 0),
+		/** Describes a metal layer 1. */						METAL1    ("metal-1",     1, 0, 0, 17, 0),
+		/** Describes a metal layer 2. */						METAL2    ("metal-2",     2, 0, 0, 19, 0),
+		/** Describes a metal layer 3. */						METAL3    ("metal-3",     3, 0, 0, 21, 0),
+		/** Describes a metal layer 4. */						METAL4    ("metal-4",     4, 0, 0, 23, 0),
+		/** Describes a metal layer 5. */						METAL5    ("metal-5",     5, 0, 0, 25, 0),
+		/** Describes a metal layer 6. */						METAL6    ("metal-6",     6, 0, 0, 27, 0),
+		/** Describes a metal layer 7. */						METAL7    ("metal-7",     7, 0, 0, 29, 0),
+		/** Describes a metal layer 8. */						METAL8    ("metal-8",     8, 0, 0, 31, 0),
+		/** Describes a metal layer 9. */						METAL9    ("metal-9",     9, 0, 0, 33, 0),
+		/** Describes a metal layer 10. */						METAL10   ("metal-10",   10, 0, 0, 35, 0),
+		/** Describes a metal layer 11. */						METAL11   ("metal-11",   11, 0, 0, 37, 0),
+		/** Describes a metal layer 12. */						METAL12   ("metal-12",   12, 0, 0, 39, 0),
+		/** Describes a polysilicon layer 1. */					POLY1     ("poly-1",      0, 0, 1, 12, 0),
+		/** Describes a polysilicon layer 2. */					POLY2     ("poly-2",      0, 0, 2, 13, 0),
+		/** Describes a polysilicon layer 3. */					POLY3     ("poly-3",      0, 0, 3, 14, 0),
+		/** Describes a polysilicon gate layer. */				GATE      ("gate",        0, 0, 0, 15, Layer.INTRANS),
+		/** Describes a diffusion layer. */						DIFF      ("diffusion",   0, 0, 0, 11, 0),
+		/** Describes a P-diffusion layer. */					DIFFP     ("p-diffusion", 0, 0, 0, 11, Layer.PTYPE),
+		/** Describes a N-diffusion layer. */					DIFFN     ("n-diffusion", 0, 0, 0, 11, Layer.NTYPE),
+		/** Describes an implant layer. */						IMPLANT   ("implant",     0, 0, 0, 2, 0),
+		/** Describes a P-implant layer. */						IMPLANTP  ("p-implant",   0, 0, 0, 2, Layer.PTYPE),
+		/** Describes an N-implant layer. */					IMPLANTN  ("n-implant",   0, 0, 0, 2, Layer.NTYPE),
+		/** Describes a contact layer 1. */						CONTACT1  ("contact-1",   0, 1, 0, 16, 0),
+		/** Describes a contact layer 2. */						CONTACT2  ("contact-2",   0, 2, 0, 18, 0),
+		/** Describes a contact layer 3. */						CONTACT3  ("contact-3",   0, 3, 0, 20, 0),
+		/** Describes a contact layer 4. */						CONTACT4  ("contact-4",   0, 4, 0, 22, 0),
+		/** Describes a contact layer 5. */						CONTACT5  ("contact-5",   0, 5, 0, 24, 0),
+		/** Describes a contact layer 6. */						CONTACT6  ("contact-6",   0, 6, 0, 26, 0),
+		/** Describes a contact layer 7. */						CONTACT7  ("contact-7",   0, 7, 0, 28, 0),
+		/** Describes a contact layer 8. */						CONTACT8  ("contact-8",   0, 8, 0, 30, 0),
+		/** Describes a contact layer 9. */						CONTACT9  ("contact-9",   0, 9, 0, 32, 0),
+		/** Describes a contact layer 10. */					CONTACT10 ("contact-10",  0,10, 0, 34, 0),
+		/** Describes a contact layer 11. */					CONTACT11 ("contact-11",  0,11, 0, 36, 0),
+		/** Describes a contact layer 12. */					CONTACT12 ("contact-12",  0,12, 0, 38, 0),
+		/** Describes a sinker (diffusion-to-buried plug). */	PLUG      ("plug",        0, 0, 0, 40, 0),
+		/** Describes an overglass layer (passivation). */		OVERGLASS ("overglass",   0, 0, 0, 41, 0),
+		/** Describes a resistor layer. */						RESISTOR  ("resistor",    0, 0, 0, 4, 0),
+		/** Describes a capacitor layer. */						CAP       ("capacitor",   0, 0, 0, 5, 0),
+		/** Describes a transistor layer. */					TRANSISTOR("transistor",  0, 0, 0, 3, 0),
+		/** Describes an emitter of bipolar transistor. */		EMITTER   ("emitter",     0, 0, 0, 6, 0),
+		/** Describes a base of bipolar transistor. */			BASE      ("base",        0, 0, 0, 7, 0),
+		/** Describes a collector of bipolar transistor. */		COLLECTOR ("collector",   0, 0, 0, 8, 0),
+		/** Describes a substrate layer. */						SUBSTRATE ("substrate",   0, 0, 0, 1, 0),
+		/** Describes a well layer. */							WELL      ("well",        0, 0, 0, 0, 0),
+		/** Describes a P-well layer. */						WELLP     ("p-well",      0, 0, 0, 0, Layer.PTYPE),
+		/** Describes a N-well layer. */						WELLN     ("n-well",      0, 0, 0, 0, Layer.NTYPE),
+		/** Describes a guard layer. */							GUARD     ("guard",       0, 0, 0, 9, 0),
+		/** Describes an isolation layer (bipolar). */			ISOLATION ("isolation",   0, 0, 0, 10, 0),
+		/** Describes a bus layer. */							BUS       ("bus",         0, 0, 0, 42, 0),
+		/** Describes an artwork layer. */						ART       ("art",         0, 0, 0, 43, 0),
+		/** Describes a control layer. */						CONTROL   ("control",     0, 0, 0, 44, 0),
+        /** Describes a tileNot layer. */						TILENOT   ("tileNot",     0, 0, 0, 45, 0);
         
         /** Describes a P-type layer. */												public static final int PTYPE = Layer.PTYPE;
         /** Describes a N-type layer. */												public static final int NTYPE = Layer.NTYPE;
@@ -143,7 +143,6 @@ public class Layer
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
     
 		private final String name;
-		private final String constantName;
 		private int level;
 		private final int height;
 		private final int extraBits;
@@ -154,10 +153,9 @@ public class Layer
             assert allFunctions.size() <= Long.SIZE;
         }
         
-		private Function(String name, String constantName, int metalLevel, int contactLevel, int polyLevel, int height, int extraBits)
+		private Function(String name, int metalLevel, int contactLevel, int polyLevel, int height, int extraBits)
 		{
 			this.name = name;
-			this.constantName = constantName;
 			this.height = height;
 			this.extraBits = extraBits;
 			if (metalLevel != 0) addToLayers(metalLayers, metalLevel);
@@ -198,7 +196,7 @@ public class Layer
 		 * Constant names are used when writing Java code, so they must be the same as the actual symbol name.
 		 * @return the constant name for this Function.
 		 */
-		public String getConstantName() { return constantName; }
+		public String getConstantName() { return name(); }
 
 		/**
 		 * Method to return a list of all Layer Functions.
