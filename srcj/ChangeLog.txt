@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/4/07, SMR) Dummy NodeInsts are always at the origin.
+FIX: In NodeInst.makeDummyInstance(), use the "center" parameter.
+
 BUG: (4/03/07, DN) Nodes "bicmos:Ndiff_Node" and "bicmos:Ndiff_Node" are marked as pure layer nodes,
     but the have more than one NodeLayer.
 FIX: Set their function to PrimitiveNode.Function.UNKNOWN .

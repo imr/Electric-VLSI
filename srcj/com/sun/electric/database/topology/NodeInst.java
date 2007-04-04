@@ -248,11 +248,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param orient the orientation of this NodeInst.
 	 * @return the dummy NodeInst.
 	 */
-	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
+	public static NodeInst makeDummyInstance(NodeProto np, EPoint center, double width, double height, Orientation orient)
 	{
         EPoint size = EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
-                orient, EPoint.ORIGIN, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
+                orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(d, null);
 	}
 

@@ -27,6 +27,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -4098,26 +4099,19 @@ public class Technology implements Comparable<Technology>
     public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
                                         String varName, double fontSize)
     {
-//        NodeInst ni = NodeInst.lowLevelAllocate();
         SizeOffset so = np.getProtoSizeOffset();
         Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
             (so.getHighYOffset() - so.getLowYOffset()) / 2);
 		Orientation orient = Orientation.fromAngle(angle);
 		AffineTransform trans = orient.pureRotate();
-//        AffineTransform trans = NodeInst.pureRotate(angle, false, false);
         trans.transform(pt, pt);
-        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), orient);
-//        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), angle);
-//        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
+        NodeInst ni = NodeInst.makeDummyInstance(np, new EPoint(pt.getX(), pt.getY()), np.getDefWidth(), np.getDefHeight(), orient);
         np.getTechnology().setPrimitiveFunction(ni, func);
         np.getTechnology().setDefaultOutline(ni);
 
 	    if (varName != null)
 	    {
             ni.newVar(TECH_TMPVAR, varName, TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize).withOff(0, -6));
-//		    Variable var = ni.newVar(TECH_TMPVAR, varName, display);
-//            var.setOff(0, -6);
-//            var.setRelSize(fontSize);
 	    }
 
         return ni;
