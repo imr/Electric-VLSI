@@ -1503,7 +1503,8 @@ public class BiCMOS extends Technology
 				PrimitivePort.newInstance(this, nn_node, new ArcProto [] {Active_arc, Pdiff_arc, Ndiff_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		nn_node.setFunction(PrimitiveNode.Function.NODE);
+		nn_node.setFunction(PrimitiveNode.Function.UNKNOWN);
+//		nn_node.setFunction(PrimitiveNode.Function.NODE);
 		nn_node.setHoldsOutline();
 		nn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
@@ -1594,7 +1595,8 @@ public class BiCMOS extends Technology
 				PrimitivePort.newInstance(this, pn2_node, new ArcProto [] {}, "Pdiff", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
-		pn2_node.setFunction(PrimitiveNode.Function.NODE);
+		pn2_node.setFunction(PrimitiveNode.Function.UNKNOWN);
+//		pn2_node.setFunction(PrimitiveNode.Function.NODE);
 		pn2_node.setHoldsOutline();
 		pn2_node.setSpecialType(PrimitiveNode.POLYGONAL);
 

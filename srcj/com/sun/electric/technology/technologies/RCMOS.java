@@ -903,6 +903,21 @@ public class RCMOS extends Technology
 		active_node.setHoldsOutline();
 		active_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+		/** D-Active node */
+		PrimitiveNode d_active_node = PrimitiveNode.newInstance("D-Active-Node", this, 4, 4, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(dActive_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+			});
+		d_active_node.addPrimitivePorts(new PrimitivePort[]
+			{
+				PrimitivePort.newInstance(this, d_active_node, new ArcProto [] {dActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
+			});
+		d_active_node.setFunction(PrimitiveNode.Function.NODE);
+		d_active_node.setHoldsOutline();
+		d_active_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		/** Select node */
 		PrimitiveNode select_node = PrimitiveNode.newInstance("Select-Node", this, 4, 4, null,
 			new Technology.NodeLayer []
@@ -1013,6 +1028,7 @@ public class RCMOS extends Technology
 		metal2_lay.setPureLayerNode(metal2_node);		// Metal-2-Node
 		polysilicon_lay.setPureLayerNode(polysilicon_node);		// Polysilicon-Node
 		sActive_lay.setPureLayerNode(active_node);		// Active-Node
+		dActive_lay.setPureLayerNode(d_active_node);		// D-Active-Node
 		select_lay.setPureLayerNode(select_node);		// Select-Node
 		cut_lay.setPureLayerNode(cut_node);		// Cut-Node
 		polyCut_lay.setPureLayerNode(polyCut_node);		// Poly-Cut-Node

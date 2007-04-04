@@ -1171,6 +1171,21 @@ public class MoCMOSOld extends Technology
 		psn_node.setHoldsOutline();
 		psn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+		/** N-Select-Node */
+		PrimitiveNode nsn_node = PrimitiveNode.newInstance("N-Select-Node", this, 6, 6, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+			});
+		nsn_node.addPrimitivePorts(new PrimitivePort[]
+			{
+				PrimitivePort.newInstance(this, nsn_node, new ArcProto [] {}, "select", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		nsn_node.setFunction(PrimitiveNode.Function.NODE);
+		nsn_node.setHoldsOutline();
+		nsn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		/** Cut-Node */
 		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 2, 2, null,
 			new Technology.NodeLayer []
@@ -1246,6 +1261,21 @@ public class MoCMOSOld extends Technology
 		pwn_node.setHoldsOutline();
 		pwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+		/** N-Well-Node */
+		PrimitiveNode nwn_node = PrimitiveNode.newInstance("N-Well-Node", this, 6, 6, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+			});
+		nwn_node.addPrimitivePorts(new PrimitivePort[]
+			{
+				PrimitivePort.newInstance(this, nwn_node, new ArcProto [] {D_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		nwn_node.setFunction(PrimitiveNode.Function.NODE);
+		nwn_node.setHoldsOutline();
+		nwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		/** Passivation-Node */
 		PrimitiveNode pn0_node = PrimitiveNode.newInstance("Passivation-Node", this, 8, 8, null,
 			new Technology.NodeLayer []
@@ -1276,6 +1306,21 @@ public class MoCMOSOld extends Technology
 		pfn_node.setHoldsOutline();
 		pfn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+		/** S-Active-Well-Node */
+		PrimitiveNode sawn_node = PrimitiveNode.newInstance("S-Active-Well-Node", this, 8, 8, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(SAW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+			});
+		sawn_node.addPrimitivePorts(new PrimitivePort[]
+			{
+				PrimitivePort.newInstance(this, sawn_node, new ArcProto [] {}, "s-active-well", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		sawn_node.setFunction(PrimitiveNode.Function.NODE);
+		sawn_node.setHoldsOutline();
+		sawn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		// The pure layer nodes
 		M_lay.setPureLayerNode(mn_node);		// Metal-1
 		M0_lay.setPureLayerNode(mn0_node);		// Metal-2
@@ -1283,15 +1328,15 @@ public class MoCMOSOld extends Technology
 		SA_lay.setPureLayerNode(an_node);		// S-Active
 		DA_lay.setPureLayerNode(dan_node);		// D-Active
 		PS_lay.setPureLayerNode(psn_node);		// P-Select
-		NS_lay.setPureLayerNode(psn_node);		// N-Select
+		NS_lay.setPureLayerNode(nsn_node);		// N-Select
 		PW_lay.setPureLayerNode(pwn_node);		// P-Well
-		NW_lay.setPureLayerNode(pwn_node);		// N-Well
+		NW_lay.setPureLayerNode(nwn_node);		// N-Well
 		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
 		V_lay.setPureLayerNode(vn_node);		// Via
 		P0_lay.setPureLayerNode(pn0_node);		// Passivation
 		PC_lay.setPureLayerNode(pcn_node);		// Poly-Cut
 		AC_lay.setPureLayerNode(acn_node);		// Active-Cut
-		SAW_lay.setPureLayerNode(pwn_node);		// S-Active-Well
+		SAW_lay.setPureLayerNode(sawn_node);		// S-Active-Well
 		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
 
         // Information for palette

@@ -2578,11 +2578,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return the Export at specified chronological index or null.
 	 */
 	public Export getExportChron(int chronIndex) {
-        try {
-            return chronExports[chronIndex];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
-        }
+        return chronIndex < chronExports.length ? chronExports[chronIndex] : null;
     }
 
 	/**
