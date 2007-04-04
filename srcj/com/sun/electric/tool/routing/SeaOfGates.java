@@ -79,6 +79,7 @@ import java.util.TreeSet;
  * This router replaces unrouted arcs with real geometry.  It has these features:
  * > The router only works in layout, and only routes metal wires.
  * > The router uses vias to move up and down the metal layers.
+ *   > Understands multiple vias and multiple via orientations.
  * > The router is not tracked: it runs on the Electric grid
  *   > All wires are on full-grid units
  *   > Tries to cover multiple grid units in a single jump
@@ -92,9 +93,11 @@ import java.util.TreeSet;
  *     Detect "river routes" and route specially
  *     Ability to route to any previous part of route when daisy-chaining?
  *     Rip-up
+ *     Global routing
  */
 public class SeaOfGates
 {
+	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = true;
 	/** True to search by more than 1 grid unit at a time. */					private static final boolean SEARCHINJUMPS = true;
 	/** True to search long stretches faster. */								private static final boolean FASTERJUMPS = true;
 
@@ -115,12 +118,13 @@ public class SeaOfGates
 	/** arcs to use for each metal layer. */									private ArcProto [] metalArcs;
 	/** favoritism for each metal layer. */										private boolean [] favorArcs;
 	/** avoidance for each metal layer. */										private boolean [] preventArcs;
-	/** vias to use to go up from each metal layer. */							private PrimitiveNode [] metalVias;
+	/** vias to use to go up from each metal layer. */							private MetalVias [] metalVias;
 	/** minimum spacing between this metal and itself. */						private double [] layerSurround;
 	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** intermediate seach vertices during Dijkstra search. */					private Map<Integer,Map<Integer,SearchVertex>> [] searchVertexPlanes;
 	/** destination coordinate for the current Dijkstra path. */				private int destX, destY, destZ;
 	/** the total length of wires routed */										private double totalWireLength;
+	/** true if this is the first failure of a route (for debugging) */			private boolean firstFailure;
 
 	/************************************** CONTROL **************************************/
 
@@ -317,6 +321,7 @@ public class SeaOfGates
 
 		// route the networks
 		int numFailedRoutes = 0;
+		firstFailure = true;
 		totalWireLength = 0;
 		int numToRoute = arcsToRoute.size();
 		for(int a=0; a<numToRoute; a++)
@@ -437,7 +442,8 @@ public class SeaOfGates
 		favorArcs = new boolean[numMetalLayers];
 		preventArcs = new boolean[numMetalLayers];
 		viaLayers = new Layer[numMetalLayers-1];
-		metalVias = new PrimitiveNode[numMetalLayers-1];
+		metalVias = new MetalVias[numMetalLayers-1];
+		for(int i=0; i<numMetalLayers-1; i++) metalVias[i] = new MetalVias();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer lay = it.next();
@@ -467,6 +473,7 @@ public class SeaOfGates
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
+			if (np.isNotUsed()) continue;
 			if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 			ArcProto [] conns = np.getPort(0).getConnections();
 			for(int i=0; i<numMetalLayers-1; i++)
@@ -474,16 +481,38 @@ public class SeaOfGates
 				if ((conns[0] == metalArcs[i] && conns[1] == metalArcs[i+1]) ||
 					(conns[1] == metalArcs[i] && conns[0] == metalArcs[i+1]))
 				{
-					if (metalVias[i] == null)
+					metalVias[i].addVia(np, 0);
+
+					// see if the node is asymmetric and should exist in rotated states
+					boolean square = true, offCenter = false;
+					SizeOffset so = np.getProtoSizeOffset();
+					NodeInst dummyNi = NodeInst.makeDummyInstance(np);
+					Poly [] conPolys = tech.getShapeOfNode(dummyNi);
+					for(int p=0; p<conPolys.length; p++)
 					{
-						metalVias[i] = np;
-						Technology.NodeLayer [] nodeLayers = np.getLayers();
-						for(int j=0; j<nodeLayers.length; j++)
+						Poly conPoly = conPolys[p];
+						Layer conLayer = conPoly.getLayer();
+						Layer.Function lFun = conLayer.getFunction();
+						if (lFun.isMetal())
 						{
-							Layer viaLayer = nodeLayers[j].getLayer();
-							if (viaLayer.getFunction().isContact())
-								viaLayers[i] = viaLayer;								
+							Rectangle2D conRect = conPoly.getBounds2D();
+							if (conRect.getWidth() != conRect.getHeight()) square = false;
+							if (conRect.getCenterX() != 0 || conRect.getCenterY() != 0) offCenter = true;
+						} else if (lFun.isContact())
+						{
+							viaLayers[i] = conLayer;
 						}
+					}
+					if (offCenter)
+					{
+						// off center: test in all 4 rotations
+						metalVias[i].addVia(np, 90);
+						metalVias[i].addVia(np, 180);
+						metalVias[i].addVia(np, 270);
+					} else if (!square)
+					{
+						// centered but not square: test in 90-degree rotation
+						metalVias[i].addVia(np, 90);
 					}
 					break;
 				}
@@ -503,7 +532,7 @@ public class SeaOfGates
 			}
 			if (i < numMetalLayers-1)
 			{
-				if (metalVias[i] == null)
+				if (metalVias[i].getVias().size() == 0)
 				{
 					System.out.println("ERROR: Cannot find contact node between Metal " + (i+1) + " and Metal " + (i+2));
 					return true;
@@ -657,13 +686,14 @@ public class SeaOfGates
 				for(int via = lowMetal-2; via < highMetal; via++)
 				{
 					if (via < 0 || via >= numMetalLayers-1) continue;
-					PrimitiveNode np = metalVias[via];
+					MetalVia mv = metalVias[via].getVias().get(0);
+					PrimitiveNode np = mv.via;
 					SizeOffset so = np.getProtoSizeOffset();
 					double xOffset = so.getLowXOffset() + so.getHighXOffset();
 					double yOffset = so.getLowYOffset() + so.getHighYOffset();
 					double wid = Math.max(np.getDefWidth()-xOffset, minWidth) + xOffset;
 					double hei = Math.max(np.getDefHeight()-yOffset, minWidth) + yOffset;					
-					NodeInst dummy = NodeInst.makeDummyInstance(metalVias[via], EPoint.ORIGIN, wid, hei, Orientation.IDENT);
+					NodeInst dummy = NodeInst.makeDummyInstance(np, EPoint.ORIGIN, wid, hei, Orientation.IDENT);
 					PolyBase [] polys = tech.getShapeOfNode(dummy);
 					for(int i=0; i<polys.length; i++)
 					{
@@ -671,6 +701,9 @@ public class SeaOfGates
 						Layer layer = viaPoly.getLayer();
 						if (!layer.getFunction().isMetal()) continue;
 						Rectangle2D viaBounds = viaPoly.getBounds2D();
+						SOGBound already = getMetalBlockage(netID, layer, viaBounds.getWidth()/2, viaBounds.getHeight()/2,
+							polyBounds.getMinX(), polyBounds.getMinY());
+						if (already != null) continue;
 						Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX() + polyBounds.getCenterX(),
 							viaBounds.getMinY() + polyBounds.getCenterY(), viaBounds.getWidth(), viaBounds.getHeight());
 						addRectangle(bounds, layer, netID);
@@ -841,8 +874,28 @@ public class SeaOfGates
 			return false;
 		}
 
+		// see if access is blocked
+		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[fromZ];
+		if (getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, fromX, fromY) != null)
+		{
+			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
+				" because it is blocked on layer " + metalLayers[fromZ].getName() + " (needs " + metalSpacing + " all around)");
+			return false;
+		}
+		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[toZ];
+		if (getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, toX, toY) != null)
+		{
+			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
+				" because it is blocked on layer " + metalLayers[toZ].getName() + " (needs " + metalSpacing + " all around)");
+			return false;
+		}
+
 		// do the Dijkstra
+//System.out.println("========== SEARCH 1 FROM ("+fromX+","+fromY+","+fromZ+")");
 		List<SearchVertex> vertices = doDijkstra(fromX, fromY, fromZ, toX, toY, toZ, netID, minWidth);
+		Map<Integer,Map<Integer,SearchVertex>> [] saveD1Planes = null;
+		if (DEBUGFAILURE && firstFailure) saveD1Planes = searchVertexPlanes;
+//System.out.println("========== SEARCH 2 FROM ("+toX+","+toY+","+toZ+")");
 		List<SearchVertex> verticesRev = doDijkstra(toX, toY, toZ, fromX, fromY, fromZ, netID, minWidth);
 		int verLength = getVertexLength(vertices);
 		int verLengthRev = getVertexLength(verticesRev);
@@ -858,6 +911,15 @@ public class SeaOfGates
 				System.out.println("ERROR: Failed to route from port " + fromPi.getPortProto().getName() +
 					" of node " + fromPi.getNodeInst().describe(false) + " to port " + toPi.getPortProto().getName() +
 					" of node " + toPi.getNodeInst().describe(false));
+			}
+			if (DEBUGFAILURE && firstFailure)
+			{
+				firstFailure = false;
+				EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+				wnd.clearHighlighting();
+				showSearchVertices(saveD1Planes, true);
+				showSearchVertices(searchVertexPlanes, false);
+				wnd.finishedHighlighting();
 			}
 			return false;
 		}
@@ -885,16 +947,18 @@ public class SeaOfGates
 				ArcProto type = metalArcs[toZ];
 				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				PrimitiveNode np = metalArcs[toZ].findPinProto();
-				if (v1.x == v2.x)
+				if (v1.getX() == v2.getX())
 				{
 					// first line is vertical: run a horizontal bit
-					NodeInst ni = makeNodeInst(np, new EPoint(v1.x, toPoly.getCenterY()), np.getDefWidth(), np.getDefHeight(), cell, netID);
+					NodeInst ni = makeNodeInst(np, new EPoint(v1.getX(), toPoly.getCenterY()),
+						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
 					ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
 					lastPort = ni.getOnlyPortInst();
-				} else if (v1.y == v2.y)
+				} else if (v1.getY() == v2.getY())
 				{
 					// first line is horizontal: run a vertical bit
-					NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.y), np.getDefWidth(), np.getDefHeight(), cell, netID);
+					NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.getY()),
+						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
 					ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
 					lastPort = ni.getOnlyPortInst();
 				}
@@ -907,15 +971,21 @@ public class SeaOfGates
 			while (i < vertices.size()-1)
 			{
 				SearchVertex svNext = vertices.get(i+1);
-				if (sv.x != svNext.x || sv.y != svNext.y || sv.z == svNext.z) break;
-				PrimitiveNode np = metalVias[Math.min(sv.z, svNext.z)];
+				if (sv.getX() != svNext.getX() || sv.getY() != svNext.getY() || sv.getZ() == svNext.getZ()) break;
+				List<MetalVia> nps = metalVias[Math.min(sv.getZ(), svNext.getZ())].getVias();
+				int cutNo = sv.getCutNo();
+//System.out.println("CUT RUNS FROM ("+sv.getX()+","+sv.getY()+","+sv.getZ()+"), CUT "+sv.getCutNo()+
+//	" TO ("+svNext.getX()+","+svNext.getY()+","+svNext.getZ()+"), CUT "+svNext.getCutNo());
+				MetalVia mv = nps.get(cutNo);
+				PrimitiveNode np = mv.via;
+				Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
 				SizeOffset so = np.getProtoSizeOffset();
 				double xOffset = so.getLowXOffset() + so.getHighXOffset();
 				double yOffset = so.getLowYOffset() + so.getHighYOffset();
 				double wid = Math.max(np.getDefWidth()-xOffset, minWidth) + xOffset;
 				double hei = Math.max(np.getDefHeight()-yOffset, minWidth) + yOffset;
-				NodeInst ni = makeNodeInst(np, new EPoint(sv.x, sv.y), wid, hei, cell, netID);
-				ArcProto type = metalArcs[sv.z];
+				NodeInst ni = makeNodeInst(np, new EPoint(sv.getX(), sv.getY()), wid, hei, orient, cell, netID);
+				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				ArcInst ai = makeArcInst(type, width, lastPort, ni.getOnlyPortInst(), netID);
 				lastPort = ni.getOnlyPortInst();
@@ -925,13 +995,13 @@ public class SeaOfGates
 			}
 			if (madeContacts && i != vertices.size()-1) continue;
 
-			PrimitiveNode np = metalArcs[sv.z].findPinProto();
+			PrimitiveNode np = metalArcs[sv.getZ()].findPinProto();
 			PortInst pi = null;
 			if (i == vertices.size()-1)
 			{
 				pi = fromPi;
 				PolyBase fromPoly = fromPi.getPoly();
-				if (fromPoly.getCenterX() != sv.x || fromPoly.getCenterY() != sv.y)
+				if (fromPoly.getCenterX() != sv.getX() || fromPoly.getCenterY() != sv.getY())
 				{
 					// end of route is off-grid: adjust it
 					if (vertices.size() >= 2)
@@ -940,18 +1010,20 @@ public class SeaOfGates
 						SearchVertex v2 = vertices.get(vertices.size()-1);
 						ArcProto type = metalArcs[fromZ];
 						double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
-						if (v1.x == v2.x)
+						if (v1.getX() == v2.getX())
 						{
 							// last line is vertical: run a horizontal bit
 							PrimitiveNode pNp = metalArcs[fromZ].findPinProto();
-							NodeInst ni = makeNodeInst(pNp, new EPoint(v1.x, fromPoly.getCenterY()), np.getDefWidth(), np.getDefHeight(), cell, netID);
+							NodeInst ni = makeNodeInst(pNp, new EPoint(v1.getX(), fromPoly.getCenterY()),
+								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
 							ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
 							pi = ni.getOnlyPortInst();
-						} else if (v1.y == v2.y)
+						} else if (v1.getY() == v2.getY())
 						{
 							// last line is horizontal: run a vertical bit
 							PrimitiveNode pNp = metalArcs[fromZ].findPinProto();
-							NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.y), np.getDefWidth(), np.getDefHeight(), cell, netID);
+							NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.getY()),
+								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
 							ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
 							pi = ni.getOnlyPortInst();
 						}
@@ -959,12 +1031,13 @@ public class SeaOfGates
 				}
 			} else
 			{
-				NodeInst ni = makeNodeInst(np, new EPoint(sv.x, sv.y), np.getDefWidth(), np.getDefHeight(), cell, netID);
+				NodeInst ni = makeNodeInst(np, new EPoint(sv.getX(), sv.getY()),
+					np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
 				pi = ni.getOnlyPortInst();
 			}
 			if (lastPort != null)
 			{
-				ArcProto type = metalArcs[sv.z];
+				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				ArcInst ai = makeArcInst(type, width, lastPort, pi, netID);
 			}
@@ -988,7 +1061,9 @@ public class SeaOfGates
 		for(SearchVertex sv : vertices)
 		{
 			if (last != null)
-				sum += Math.abs(sv.x - last.x) + Math.abs(sv.y - last.y) + Math.abs(sv.z - last.z)*10;
+				sum += Math.abs(sv.getX() - last.getX()) +
+					Math.abs(sv.getY() - last.getY()) +
+					Math.abs(sv.getZ() - last.getZ())*10;
 			last = sv;
 		}
 		return sum;
@@ -1000,13 +1075,14 @@ public class SeaOfGates
 	 * @param loc the location of the new NodeInst.
 	 * @param wid the width of the new NodeInst.
 	 * @param hei the height of the new NodeInst.
+	 * @param orient the orientation of the new NodeInst.
 	 * @param cell the Cell in which to place the new NodeInst.
 	 * @param netID the network ID of geometry in this NodeInst.
 	 * @return the NodeInst that was created (null on error).
 	 */
-	private NodeInst makeNodeInst(NodeProto np, EPoint loc, double wid, double hei, Cell cell, int netID)
+	private NodeInst makeNodeInst(NodeProto np, EPoint loc, double wid, double hei, Orientation orient, Cell cell, int netID)
 	{
-		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell);
+		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell, orient, null, 0);
 		if (ni != null)
 		{
 			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, false, null);
@@ -1073,7 +1149,7 @@ public class SeaOfGates
 		destX = toX;   destY = toY;   destZ = toZ;
 		int numSearchVertices = 0;
 
-		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ);
+		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0);
 		svStart.cost = 0;
 		setVertex(fromX, fromY, fromZ, svStart);
 		TreeSet<SearchVertex> active = new TreeSet<SearchVertex>();
@@ -1085,9 +1161,9 @@ public class SeaOfGates
 			// get the lowest cost point
 			SearchVertex svCurrent = active.first();
 			active.remove(svCurrent);
-			int curX = svCurrent.x;
-			int curY = svCurrent.y;
-			int curZ = svCurrent.z;
+			int curX = svCurrent.getX();
+			int curY = svCurrent.getY();
+			int curZ = svCurrent.getZ();
 
 			// look at all directions from this point
 			for(int i=0; i<6; i++)
@@ -1189,14 +1265,11 @@ public class SeaOfGates
 				if (nZ < 0 || nZ >= numMetalLayers) continue;
 				if (preventArcs[nZ]) continue;
 
-				// stop if we found the destination
-				if (nX == toX && nY == toY && nZ == toZ) { thread = svCurrent;   break; }
-
 				// see if the adjacent point has already been visited
-				SearchVertex svNext = getVertex(nX, nY, nZ);
-				if (svNext != null) continue;
+				if (getVertex(nX, nY, nZ) != null) continue;
 
 				// see if the space is available
+				int cutIndex = 0;
 				if (dz == 0)
 				{
 					// running on one layer: check surround
@@ -1208,46 +1281,97 @@ public class SeaOfGates
 				{
 					int lowMetal = Math.min(curZ, nZ);
 					int highMetal = Math.max(curZ, nZ);
-					PrimitiveNode np = metalVias[lowMetal];
-					SizeOffset so = np.getProtoSizeOffset();
-					double horizSpacing = Math.max(np.getDefWidth()-so.getLowXOffset()-so.getHighXOffset(), minWidth) / 2;
-					double vertSpacing = Math.max(np.getDefHeight()-so.getLowYOffset()-so.getHighYOffset(), minWidth) / 2;
-					if (getMetalBlockage(netID, metalLayers[lowMetal], horizSpacing + layerSurround[lowMetal],
-						vertSpacing + layerSurround[lowMetal], nX, nY) != null) continue;
-					if (getMetalBlockage(netID, metalLayers[highMetal], horizSpacing + layerSurround[highMetal],
-						vertSpacing + layerSurround[highMetal], nX, nY) != null) continue;
-
-					// make sure vias don't get too close
-					double surround = viaSurround[lowMetal];
-					if (getViaBlockage(netID, viaLayers[lowMetal], surround, surround, nX, nY) != null) continue;
-					boolean prevCutBlocks = false;
-					for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
+					List<MetalVia> nps = metalVias[lowMetal].getVias();
+					cutIndex = -1;
+					for(int cutNo = 0; cutNo < nps.size(); cutNo++)
 					{
-						SearchVertex lastSv = sv.last;
-						if (lastSv == null) break;
-						if (Math.min(sv.z, lastSv.z) == lowMetal && Math.max(sv.z, lastSv.z) == highMetal)
+						MetalVia mv = nps.get(cutNo);
+						PrimitiveNode np = mv.via;
+						Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
+						SizeOffset so = np.getProtoSizeOffset();
+						double conWid = Math.max(np.getDefWidth()-so.getLowXOffset()-so.getHighXOffset(), minWidth)+
+							so.getLowXOffset()+so.getHighXOffset();
+						double conHei = Math.max(np.getDefHeight()-so.getLowYOffset()-so.getHighYOffset(), minWidth)+
+							so.getLowYOffset()+so.getHighYOffset();
+						NodeInst dummyNi = NodeInst.makeDummyInstance(np, new EPoint(nX, nY), conWid, conHei, orient);
+						Poly [] conPolys = tech.getShapeOfNode(dummyNi);
+						AffineTransform trans = null;
+						if (orient != Orientation.IDENT) trans = dummyNi.rotateOut();
+						boolean failed = false;
+						for(int p=0; p<conPolys.length; p++)
 						{
-							// make sure the cut isn't too close
-							if (Math.abs(sv.x - nX) < surround && Math.abs(sv.y - nY) < surround)
+							Poly conPoly = conPolys[p];
+							if (trans != null) conPoly.transform(trans);
+							Layer conLayer = conPoly.getLayer();
+							Layer.Function lFun = conLayer.getFunction();
+							if (lFun.isMetal())
 							{
-								prevCutBlocks = true;
-								break;
+								Rectangle2D conRect = conPoly.getBounds2D();
+								int metalNo = lFun.getLevel() - 1;
+								if (getMetalBlockage(netID, conLayer, conRect.getWidth()/2 + layerSurround[metalNo],
+									conRect.getHeight()/2 + layerSurround[metalNo], conRect.getCenterX(), conRect.getCenterY()) != null)
+								{
+//System.out.println("CANNOT PLACE "+np.describe(false)+" AT ("+nX+","+nY+") BECAUSE LAYER "+conLayer.getName()+" IS BLOCKED");
+//System.out.println("  SEARCHED "+(conRect.getWidth()/2)+"x"+(conRect.getHeight()/2)+" WITH LAYER SURROUND "+layerSurround[metalNo]+" ABOUT ("+(nX+conRect.getCenterX())+","+(nY+conRect.getCenterY())+")");
+									failed = true;
+									break;
+								}
+//else System.out.println("--Can place layer "+conLayer.getName()+" of "+np.describe(false)+" at ("+conRect.getCenterX()+","+conRect.getCenterY()+") size "+
+//	TextUtils.formatDouble(conRect.getWidth())+"x"+TextUtils.formatDouble(conRect.getHeight()));
+							} else if (lFun.isContact())
+							{
+								// make sure vias don't get too close
+								Rectangle2D conRect = conPoly.getBounds2D();
+								double surround = viaSurround[lowMetal];
+								if (getViaBlockage(netID, conLayer, surround, surround, conRect.getCenterX(), conRect.getCenterY()) != null)
+								{
+									failed = true;
+									break;
+								}
+								for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
+								{
+									SearchVertex lastSv = sv.last;
+									if (lastSv == null) break;
+									if (Math.min(sv.getZ(), lastSv.getZ()) == lowMetal &&
+										Math.max(sv.getZ(), lastSv.getZ()) == highMetal)
+									{
+										// make sure the cut isn't too close
+										if (Math.abs(sv.getX() - nX) < surround && Math.abs(sv.getY() - nY) < surround)
+										{
+											failed = true;
+											break;
+										}
+									}
+								}
+								if (failed) break;
 							}
 						}
+						if (failed) continue;
+						cutIndex = cutNo;
+//System.out.println("Considering "+np.describe(false)+" WHICH IS NUMBER "+cutNo+" AT ("+nX+","+nY+")");
+						break;
 					}
-					if (prevCutBlocks) continue;
+					if (cutIndex < 0) continue;
 				}
 
 				// we have a candidate next-point
-				svNext = new SearchVertex(nX, nY, nZ);
-				numSearchVertices++;
-				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
-				{
-					// search too complex
-					return null;
-				}
-				svNext.cost = svCurrent.cost;
+				SearchVertex svNext = new SearchVertex(nX, nY, nZ, cutIndex);
+//System.out.println("Adding search vertex at ("+nX+","+nY+","+nZ+") with cut index "+cutIndex);
 				svNext.last = svCurrent;
+
+				// stop if we found the destination
+				if (nX == toX && nY == toY && nZ == toZ)
+				{
+					thread = svNext;
+					break;
+				}
+
+				// stop if the search is too complex
+				numSearchVertices++;
+				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit()) return null;
+
+				// compute the cost
+				svNext.cost = svCurrent.cost;
 				if (dx != 0)
 				{
 					if (toX == curX) svNext.cost += COSTWRONGDIRECTION/2; else
@@ -1277,15 +1401,16 @@ public class SeaOfGates
 					// not changing layers: penalize if turning in X or Y
 					if (svCurrent.last != null)
 					{
-						int lastDx = svCurrent.x - svCurrent.last.x;
-						int lastDy = svCurrent.y - svCurrent.last.y;
+						int lastDx = svCurrent.getX() - svCurrent.last.getX();
+						int lastDy = svCurrent.getY() - svCurrent.last.getY();
 						if (lastDx != dx || lastDy != dy) svNext.cost += COSTTURNING;
 					}
 				}
 				if (!favorArcs[nZ]) svNext.cost += (COSTLAYERCHANGE+COSTUNFAVORED)*Math.abs(dz) + COSTUNFAVORED*Math.abs(dx + dy);
+
+				// add this vertex into the data structures
 				setVertex(nX, nY, nZ, svNext);
 				active.add(svNext);
-//System.out.println("  ADDING VERTEX ("+nX+","+nY+","+nZ+") COST="+svNext.cost);
 			}
 			if (thread != null) break;
 		}
@@ -1294,11 +1419,12 @@ public class SeaOfGates
 		if (thread != null)
 		{
 			// found the path!
-			SearchVertex lastVertex = new SearchVertex(toX, toY, toZ);
+			SearchVertex lastVertex = thread;
 			realVertices.add(lastVertex);
+			thread = thread.last;
 			while (thread != null)
 			{
-				if (lastVertex.z != thread.z)
+				if (lastVertex.getZ() != thread.getZ())
 				{
 					realVertices.add(thread);
 					lastVertex = thread;
@@ -1306,13 +1432,14 @@ public class SeaOfGates
 				} else
 				{
 					// gather a run of vertices on this layer
-					int dx = thread.x - lastVertex.x;
-					int dy = thread.y - lastVertex.y;
+					int dx = thread.getX() - lastVertex.getX();
+					int dy = thread.getY() - lastVertex.getY();
 					lastVertex = thread;
 					thread = thread.last;
 					while (thread != null)
 					{
-						if (thread.x - lastVertex.x != dx || thread.y - lastVertex.y != dy) break;
+						if (thread.getX() - lastVertex.getX() != dx ||
+							thread.getY() - lastVertex.getY() != dy) break;
 						lastVertex = thread;
 						thread = thread.last;
 					}
@@ -1326,8 +1453,9 @@ public class SeaOfGates
 				SearchVertex last = realVertices.get(i-1);
 				SearchVertex cur = realVertices.get(i);
 				SearchVertex next = realVertices.get(i+1);
-				if (last.z != cur.z || next.z != cur.z) continue;
-				if ((last.x == cur.x && next.x == cur.x) || (last.y == cur.y && next.y == cur.y))
+				if (last.getZ() != cur.getZ() || next.getZ() != cur.getZ()) continue;
+				if ((last.getX() == cur.getX() && next.getX() == cur.getX()) ||
+					(last.getY() == cur.getY() && next.getY() == cur.getY()))
 				{
 					// colinear points
 					realVertices.remove(i);
@@ -1645,6 +1773,31 @@ public class SeaOfGates
 		if (newRoot != root) viaTrees.put(layer, newRoot);
     }
 
+    /**
+     * Class to define a list of possible nodes that can connect two layers.
+     * This includes orientation
+     */
+	private static class MetalVia
+	{
+		PrimitiveNode via;
+		int orientation;
+
+		MetalVia(PrimitiveNode v, int o) { via = v;   orientation = o; }
+	}
+
+    /**
+     * Class to define a list of possible nodes that can connect two layers.
+     * This includes orientation
+     */
+	private static class MetalVias
+	{
+		List<MetalVia> vias = new ArrayList<MetalVia>();
+
+		void addVia(PrimitiveNode pn, int o) { vias.add(new MetalVia(pn, o)); }
+
+		List<MetalVia> getVias() { return vias; }
+	}
+
 	/************************************** DIJKSTRA PATH SEARCHING **************************************/
 
     /**
@@ -1652,11 +1805,19 @@ public class SeaOfGates
      */
 	private class SearchVertex implements Comparable
 	{
-		/** the coordinate of the search vertex. */	private int x, y, z;
+		/** the coordinate of the search vertex. */	private int xv, yv, zv;
 		/** the cost of search to this vertex. */	private int cost;
 		/** the previous vertex in the search. */	private SearchVertex last;
 
-		SearchVertex(int x, int y, int z) { this.x = x;   this.y = y;   this.z = z; }
+		SearchVertex(int x, int y, int z, int cutNo) { xv = x;   yv = y;   zv = (z<<8) + (cutNo & 0xFF); }
+
+		int getX() { return xv; }
+
+		int getY() { return yv; }
+
+		int getZ() { return zv >> 8; }
+
+		int getCutNo() { return zv & 0xFF; }
 
 		/**
 		 * Method to sort SearchVertex objects by their cost.
@@ -1666,8 +1827,8 @@ public class SeaOfGates
         	SearchVertex sv = (SearchVertex)svo;
         	int diff = cost - sv.cost;
         	if (diff != 0) return diff;
-        	int thisDist = Math.abs(x-destX) + Math.abs(y-destY) + Math.abs(z-destZ);
-        	int otherDist = Math.abs(sv.x-destX) + Math.abs(sv.y-destY) + Math.abs(sv.z-destZ);
+        	int thisDist = Math.abs(xv-destX) + Math.abs(yv-destY) + Math.abs(zv-destZ);
+        	int otherDist = Math.abs(sv.xv-destX) + Math.abs(sv.yv-destY) + Math.abs(sv.zv-destZ);
         	return thisDist - otherDist;
         }
 	}
@@ -1780,6 +1941,39 @@ public class SeaOfGates
 				}
 			}
 			System.out.println();
+		}
+	}
+
+	private void showSearchVertices(Map<Integer,Map<Integer,SearchVertex>> [] planes, boolean horiz)
+	{
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		for(int i=0; i<numMetalLayers; i++)
+		{
+			double offset = i;
+			offset -= (numMetalLayers-2) / 2.0;
+			offset /= numMetalLayers+2;
+			Map<Integer,Map<Integer,SearchVertex>> plane = planes[i];
+			if (plane == null) continue;
+			for(Integer y : plane.keySet())
+			{
+				double yv = y.doubleValue();
+				Map<Integer,SearchVertex> row = plane.get(y);
+				for(Integer x : row.keySet())
+				{
+					double xv = x.doubleValue();
+					Point2D pt1, pt2;
+					if (horiz)
+					{
+						pt1 = new Point2D.Double(xv-0.5, yv+offset);
+						pt2 = new Point2D.Double(xv+0.5, yv+offset);
+					} else
+					{
+						pt1 = new Point2D.Double(xv+offset, yv-0.5);
+						pt2 = new Point2D.Double(xv+offset, yv+0.5);
+					}
+					wnd.addHighlightLine(pt1, pt2, cell, false);
+				}
+			}
 		}
 	}
 }
