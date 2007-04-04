@@ -2943,7 +2943,8 @@ public class Connectivity
 				if (ap != null)
 				{
 					PortInst fPi = ni.getOnlyPortInst();
-					EPoint fLoc = fPi.getPoly().getCenter();
+					Poly fPortPoly = fPi.getPoly();
+					Point2D fLoc = fPortPoly.closestPoint(fPortPoly.getCenter());
 					EPoint fLocScaled = new EPoint(scaleUp(fLoc.getX()), scaleUp(fLoc.getY()));
 					Rectangle2D searchBound = new Rectangle2D.Double(polyBounds.getMinX()/SCALEFACTOR, polyBounds.getMinY()/SCALEFACTOR,
 						polyBounds.getWidth()/SCALEFACTOR, polyBounds.getHeight()/SCALEFACTOR);
@@ -2977,9 +2978,10 @@ public class Connectivity
 					}
 					if (bestTPi != null)
 					{
-						EPoint tLoc = bestTPi.getPoly().getCenter();
+						Poly tPortPoly = bestTPi.getPoly();
+						Point2D tLoc = tPortPoly.closestPoint(tPortPoly.getCenter());
 						ArcInst ai = realizeArc(ap, fPi, bestTPi, fLoc, tLoc, 0, false, false, merge);
-						ai.setFixedAngle(false);
+						if (ai != null) ai.setFixedAngle(false);
 					}
 				}
 			}
