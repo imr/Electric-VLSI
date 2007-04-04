@@ -777,8 +777,9 @@ public class TechToLib
             }
         }
         
-        Xml.writeXml(System.out, tech, gi, lList, nList, aList);
-        LibToTech.dumpToJava(tech.getTechName() + ".java", tech.getTechName(), gi, lList, nList, aList);
+        String techName = tech.getTechName();
+        Xml.writeXml(techName + ".xml", techName, gi, lList, nList, aList);
+        LibToTech.dumpToJava(techName + ".java", techName, gi, lList, nList, aList);
 
 		// clean up
 		System.out.println("Done.");

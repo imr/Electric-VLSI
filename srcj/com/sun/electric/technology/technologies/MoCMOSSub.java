@@ -2046,7 +2046,7 @@ public class MoCMOSSub extends Technology
 		P1_lay.setPureLayerNode(pn1_node);		// Passivation
 		PC0_lay.setPureLayerNode(pcn0_node);		// Poly-Cap
 		PAW_lay.setPureLayerNode(pawn_node);		// P-Active-Well
-		PF_lay.setPureLayerNode(pn1_node);		// Pad-Frame
+		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
 
         // Information for palette
         int maxY = 6 /*metal arcs*/ + 3 /* active arcs */ + 1 /* text */ + 2 /* poly*/ + 1 /* trans */;

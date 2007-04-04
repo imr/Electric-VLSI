@@ -28,6 +28,8 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import java.awt.Color;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,8 +59,28 @@ public class Xml {
         this.aList = aList;
     }
     
-    static void writeXml(PrintStream out, Technology tech, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
-        Xml xml = new Xml(out, tech.getTechName(), gi, lList, nList, aList);
+    /**
+     * Dump technology information to Java
+     * @param fileName name of file to write
+     * @param newTechName new technology name
+     * @param gi general technology information
+     * @param lList information about layers
+     * @param nList information about primitive nodes
+     * @param aList information about primitive arcs.
+     */
+    static void writeXml(String fileName, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        try {
+            PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+            writeXml(buffWriter, newTechName, gi, lList, nList, aList);
+            buffWriter.close();
+            System.out.println("Wrote " + fileName);
+        } catch (IOException e) {
+            System.out.println("Error creating " + fileName);
+        }
+    }
+    
+    private static void writeXml(PrintStream out, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        Xml xml = new Xml(out, newTechName, gi, lList, nList, aList);
         xml.writeTechnology();
     }
     
@@ -152,7 +174,6 @@ public class Xml {
         writeDesignRulesXml(gi.defaultFoundry, lList, gi.conDist, gi.unConDist);
         
         el("technology");
-        pl("---------------------------------------");
      }
     
     private void writeXml(LayerInfo li) {
@@ -238,7 +259,7 @@ public class Xml {
             double hx = ni.so.getHighXOffset();
             double ly = ni.so.getLowYOffset();
             double hy = ni.so.getHighYOffset();
-            b("SizeOffset"); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
+            b("sizeOffset"); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
         }
         
         for(int j=0; j<ni.nodeLayers.length; j++) {

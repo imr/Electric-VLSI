@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/03/07, DN) "mocmossub:Pad-Frame" layer has "Passivation-Node" as its pure layer node.
+FIX: Change pure layer node of this layer to "Pad-Frame-Node".
+
+BUG: (4/03/07, DN) "cmos90:VTL-N-Node" and "cmos90:VTL-P-Node" have polygons of layer "VTH-N" and "VTH-P".
+FIX: Set layers to "VTL-N" and "VTL-P". 
+
+BUG: (4/03/07, DN) "cmos90:pseudo-RDL" layer has "UNKNOWN" function.
+FIX: Set its function by "pseudoRdlLayer.setFunction(Layer.Function.METAL10, Layer.Function.PSEUDO);".
+
 IMP: (4/02/07, DN) In MoCMOSOld, MoCMOSSub, nMOS use double constants instead of floats
     for foundry values of parasistics.
 
