@@ -411,7 +411,7 @@
     <arcProto name="Metal" fun="METAL1">
         <widthOffset>0.0</widthOffset>
         <defaultWidth>3.0</defaultWidth>
-        <extended>false</extended>
+        <extended>true</extended>
         <fixedAngle>true</fixedAngle>
         <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
@@ -422,7 +422,7 @@
     <arcProto name="Polysilicon" fun="POLY1">
         <widthOffset>0.0</widthOffset>
         <defaultWidth>2.0</defaultWidth>
-        <extended>false</extended>
+        <extended>true</extended>
         <fixedAngle>true</fixedAngle>
         <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
@@ -433,7 +433,7 @@
     <arcProto name="Diffusion" fun="DIFF">
         <widthOffset>0.0</widthOffset>
         <defaultWidth>2.0</defaultWidth>
-        <extended>false</extended>
+        <extended>true</extended>
         <fixedAngle>true</fixedAngle>
         <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
@@ -626,6 +626,7 @@
     <primitiveNode name="Transistor" fun="TRANMOS">
         <defaultWidth>6.0</defaultWidth>
         <defaultHeight>6.0</defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
@@ -638,7 +639,7 @@
         </nodeLayer>
         <primitivePort name="trans-poly-left">
             <portAngle primary="180" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>1</portTopology>
             <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="3.0"/>
             <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-3.0"/>
         </primitivePort>
@@ -650,13 +651,13 @@
         </primitivePort>
         <primitivePort name="trans-poly-right">
             <portAngle primary="0" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>1</portTopology>
             <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="3.0"/>
             <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-3.0"/>
         </primitivePort>
         <primitivePort name="trans-diff-bottom">
             <portAngle primary="270" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>3</portTopology>
             <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
             <techPoint xm="0.5" xa="-3.0" ym="-0.5" ya="1.0"/>
         </primitivePort>
@@ -665,6 +666,7 @@
     <primitiveNode name="Implant-Transistor" fun="TRADMOS">
         <defaultWidth>6.0</defaultWidth>
         <defaultHeight>6.0</defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
@@ -688,7 +690,7 @@
         </primitivePort>
         <primitivePort name="imp-trans-diff-top">
             <portAngle primary="90" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>2</portTopology>
             <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
             <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-1.0"/>
         </primitivePort>
@@ -700,7 +702,7 @@
         </primitivePort>
         <primitivePort name="imp-trans-diff-bottom">
             <portAngle primary="270" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>3</portTopology>
             <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
             <techPoint xm="0.5" xa="-3.0" ym="-0.5" ya="1.0"/>
         </primitivePort>
@@ -1138,28 +1140,22 @@
         <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
     </spiceHeader>
 
-    <spiceHeader level="2">
-        <spiceLine line="*NMOS 4UM PROCESS"/>
-        <spiceLine line=".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2"/>
-        <spiceLine line=".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41"/>
-        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
-        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
-        <spiceLine line=".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44"/>
-        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
-        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
-        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
-    </spiceHeader>
-
     <spiceHeader level="3">
         <spiceLine line="*NMOS 4UM PROCESS"/>
         <spiceLine line=".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2"/>
-        <spiceLine line=".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41"/>
-        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
-        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
-        <spiceLine line=".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44"/>
-        <spiceLine line="+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM"/>
-        <spiceLine line="+             JS=.2A/M^2 CJ=.11MF/M^2"/>
-        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/M^2"/>
+        <spiceLine line="* RSH SET TO ZERO (MOSIS: RSH = 12)"/>
+        <spiceLine line=".MODEL N NMOS LEVEL=3 VTO=0.849 LD=0.17U KP=2.98E-5 GAMMA=0.552"/>
+        <spiceLine line="+PHI=0.6 TOX=0.601E-7 NSUB=2.11E15 NSS=0 NFS=8.89E11 TPG=1 XJ=7.73E-7"/>
+        <spiceLine line="+UO=400 UEXP=1E-3 UCRIT=1.74E5 VMAX=1E5 NEFF=1E-2 DELTA=1.19"/>
+        <spiceLine line="+THETA=9.24E-3 ETA=0.77 KAPPA=3.25 RSH=0 CGSO=1.6E-10 CGDO=1.6E-10"/>
+        <spiceLine line="+CGBO=1.7E-10 CJ=1.1E-4 MJ=0.5 CJSW=1E-9"/>
+        <spiceLine line=".MODEL D NMOS LEVEL=3 VTO=-3.07 LD=0.219U KP=2.76E-5 GAMMA=0.315"/>
+        <spiceLine line="+PHI=0.6 TOX=0.601E-7 NSUB=8.76E14 NSS=0 NFS=4.31E12 TPG=1 XJ=0.421U"/>
+        <spiceLine line="+UO=650 UEXP=1E-3 UCRIT=8.05E5 VMAX=1.96E5 NEFF=1E-2 DELTA=2.41"/>
+        <spiceLine line="+THETA=0 ETA=2.0 KAPPA=0.411 RSH=0 CGSO=1.6E-10 CGDO=1.6E-10"/>
+        <spiceLine line="+CGBO=1.7E-10 CJ=1.1E-4 MJ=0.5 CJSW=1E-9"/>
+        <spiceLine line="*MOSIS IS NOT RESPONSIBLE FOR THE FOLLOWING DIOD DATA"/>
+        <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/m^2"/>
     </spiceHeader>
 
     <Foundry name="NONE">

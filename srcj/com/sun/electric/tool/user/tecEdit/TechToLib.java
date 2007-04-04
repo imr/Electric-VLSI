@@ -386,6 +386,7 @@ public class TechToLib
                     nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
             nIn.square = pnp.isSquare();
             nIn.wipes = pnp.isWipeOn1or2();
+            nIn.arcsShrink = pnp.isArcsShrink();
             nIn.lockable = pnp.isLockedPrim();
             nIn.xSize = pnp.getDefWidth();
             nIn.ySize = pnp.getDefHeight();

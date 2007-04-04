@@ -48,7 +48,7 @@ public class RCMOS extends Technology
 		setTechDesc("Complementary MOS (round, from MOSIS, P-Well, double metal)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
-		setNonStandard();
+//		setNonStandard();
 		setStaticTechnology();
 
 		setFactoryTransparentLayers(new Color []

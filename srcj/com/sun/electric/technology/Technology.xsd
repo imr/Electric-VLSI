@@ -8,7 +8,7 @@
     <xsd:simpleType name="ColorComponent">
         <xsd:restriction base="xsd:unsignedByte"/>
     </xsd:simpleType>
-    <xsd:complexType name="Color">
+    <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
@@ -328,7 +328,7 @@
                                         <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
                                     </xsd:complexType>
                                 </xsd:element>
-                                <xsd:element name="opaqueColor" type="tns:Color"></xsd:element>
+                                <xsd:element name="opaqueColor" type="tns:ColorRGB"></xsd:element>
                             </xsd:choice>
                             <xsd:element name="patternedOnDisplay" type="xsd:boolean"></xsd:element>
                             <xsd:element name="patternedOnPrinter" type="xsd:boolean"></xsd:element>

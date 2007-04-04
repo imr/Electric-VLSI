@@ -3142,7 +3142,8 @@ public class LibToTech
 			if (nList[i].wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
 			if (nList[i].square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
 			if (nList[i].lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
-			if (fun == PrimitiveNode.Function.PIN)
+			if (nList[i].arcsShrink)
+//			if (fun == PrimitiveNode.Function.PIN)
 			{
 				buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
 				buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");

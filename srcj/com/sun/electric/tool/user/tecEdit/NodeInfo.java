@@ -75,6 +75,7 @@ public class NodeInfo extends Info
 	boolean                serp;
 	boolean                square;
 	boolean                wipes;
+    boolean                arcsShrink;
 	boolean                lockable;
 	LayerDetails []        nodeLayers;
 	PortDetails []         nodePortDetails;

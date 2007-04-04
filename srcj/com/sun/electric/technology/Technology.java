@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -670,6 +671,74 @@ public class Technology implements Comparable<Technology>
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
 	}
+    
+    public Technology(com.sun.electric.technology.jaxb.Technology t) {
+        this(t.getName(), Foundry.Type.valueOf(t.getFoundry().getName().value()), t.getNumMetals().getDefault());
+        setTechShortName(t.getShortName());
+        setTechDesc(t.getDescription());
+        setFactoryScale(t.getScale().getValue(), t.getScale().isRelevant());
+        setFactoryParasitics(t.getMinResistance().getValue(), t.getMinCapacitance().getValue());
+        ArrayList<Color> transparentLayers = new ArrayList<Color>();
+        for (com.sun.electric.technology.jaxb.Technology.TransparentLayer tl: t.getTransparentLayer()) {
+            int transparent = tl.getTransparent().intValue();
+            while (transparentLayers.size() < transparent)
+                transparentLayers.add(null);
+            transparentLayers.set(transparent - 1, new Color(tl.getColor().getR(), tl.getColor().getG(), tl.getColor().getB()));
+        }
+        if (!transparentLayers.isEmpty())
+            setFactoryTransparentLayers(transparentLayers.toArray(new Color[transparentLayers.size()]));
+        for (com.sun.electric.technology.jaxb.Technology.Layer l: t.getLayer()) {
+            EGraphics.Outline o = l.getOutlined() != null ? EGraphics.Outline.valueOf(l.getOutlined().value()) : null;
+            int transparent = l.getTransparentColor() != null ? l.getTransparentColor().getTransparent().intValue() : 0;
+            int r = 0, g = 0, b = 0;
+            if (l.getOpaqueColor() != null) {
+                r = l.getOpaqueColor().getR();
+                g = l.getOpaqueColor().getG();
+                b = l.getOpaqueColor().getB();
+            } else if (transparent > 0) {
+                Color color = transparentLayers.get(transparent - 1);
+                r = color.getRed();
+                g = color.getGreen();
+                b = color.getBlue();
+            }
+            assert l.getPattern().size() == 16;
+            int[] pattern = new int[16];
+            for (int i = 0; i < pattern.length; i++) {
+                String s = l.getPattern().get(i);
+                int p = 0;
+                assert s.length() == 16;
+                for (int j = 0; j < s.length(); j++) {
+                    if (s.charAt(s.length() - j - 1) != ' ')
+                        p |= (1 << j);
+                }
+                pattern[i] = p;
+            }
+            EGraphics descript = new EGraphics(l.isPatternedOnDisplay(), l.isPatternedOnPrinter(), o, transparent, r, g, b, 0.8, true, pattern);
+            Layer layer = Layer.newInstance(this, l.getName(), descript);
+            int extraFun = 0;
+            if (l.getExtraFun() != null) {
+                String extraFunStr = l.getExtraFun() != null ? l.getExtraFun().value() : null;
+                if (extraFunStr.equals("DEPLETION_HEAVY"))
+                    extraFun = Layer.Function.DEPLETION|Layer.Function.HEAVY;
+                else if (extraFunStr.equals("DEPLETION_LIGHT"))
+                    extraFun = Layer.Function.DEPLETION|Layer.Function.LIGHT;
+                else if (extraFunStr.equals("ENHANCEMENT_HEAVY"))
+                    extraFun = Layer.Function.ENHANCEMENT|Layer.Function.HEAVY;
+                else if (extraFunStr.equals("ENHANCEMENT_LIGHT"))
+                    extraFun = Layer.Function.ENHANCEMENT|Layer.Function.LIGHT;
+                else
+                    extraFun = Layer.Function.parseExtraName(extraFunStr);
+            }
+            layer.setFunction(Layer.Function.valueOf(l.getFun().value()), extraFun);
+            if (l.getCifLayer() != null)
+                layer.setFactoryCIFLayer(l.getCifLayer().getCif());
+            if (l.getDisplay3D() != null)
+                layer.setFactory3DInfo(l.getDisplay3D().getThick(), l.getDisplay3D().getHeight());
+            if (l.getParasitics() != null)
+                layer.setFactoryParasitics(l.getParasitics().getResistance(), l.getParasitics().getCapacitance(), l.getParasitics().getEdgeCapacitance());
+        }
+        setup();
+    }
     
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.

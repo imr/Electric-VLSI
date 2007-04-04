@@ -111,6 +111,7 @@ public class Info
     /** array of distances (unconnected case) (info cell) */    static final int TECHUNCONDIST     = 55;
     /** description of menu palette (info cell) */              static final int TECHPALETTE       = 56;
 	/** curvable (arc cell) */                                  static final int ARCCURVABLE       = 57;
+	/** shrinks arcs (node cell) */                             static final int NODESHRINKSARCS   = 58;
 
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
