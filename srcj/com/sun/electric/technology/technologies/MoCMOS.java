@@ -58,19 +58,20 @@ public class MoCMOS extends Technology
     // Depending on plugins available
     private static MoCMOS initializeMoCMOS()
     {
-        MoCMOS tech;
-        try
-        {
-            Class<?> tsmcClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180");
-            tech = (MoCMOS)tsmcClass.getDeclaredConstructor().newInstance();
-        } catch (Exception e)
-        {
-//            e.printStackTrace();
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find TSMC180nm plugin");
-            tech = new MoCMOS();
-        }
-        return tech;
+        return new MoCMOS();
+//        MoCMOS tech;
+//        try
+//        {
+//            Class<?> tsmcClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180");
+//            tech = (MoCMOS)tsmcClass.getDeclaredConstructor().newInstance();
+//        } catch (Exception e)
+//        {
+////            e.printStackTrace();
+//            if (Job.getDebug())
+//                System.out.println("GNU Release can't find TSMC180nm plugin");
+//            tech = new MoCMOS();
+//        }
+//        return tech;
     }
 
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;

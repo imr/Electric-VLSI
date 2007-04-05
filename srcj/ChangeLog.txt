@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/4/07, DN) MoCMOS technology doesn't have TSMC foundry anymore.
+
 BUG: (4/4/07, SMR) Dummy NodeInsts are always at the origin.
 FIX: In NodeInst.makeDummyInstance(), use the "center" parameter.
 
