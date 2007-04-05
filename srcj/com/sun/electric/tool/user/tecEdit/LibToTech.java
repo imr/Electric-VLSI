@@ -2993,6 +2993,8 @@ public class LibToTech
 			char chr = pt.charAt(i);
 			if (Character.isLetterOrDigit(chr))
 			{
+                if (i == 0 && Character.isDigit(chr))
+                    infstr.append("_");
 				if (upper) infstr.append(Character.toUpperCase(chr)); else
 					infstr.append(Character.toLowerCase(chr));
 				while (Character.isLetterOrDigit(chr))
@@ -3051,71 +3053,33 @@ public class LibToTech
 		buffWriter.println("\t\t//******************** NODES ********************");
 		for(int i=0; i<nList.length; i++)
 		{
+            NodeInfo nIn = nList[i];
 			// header comment
-			String ab = nList[i].abbrev;
+			String ab = nIn.abbrev;
 			buffWriter.println();
-			buffWriter.println("\t\t/** " + nList[i].name + " */");
+			buffWriter.println("\t\t/** " + nIn.name + " */");
 
 			buffWriter.print("\t\tPrimitiveNode " + ab + "_node = PrimitiveNode.newInstance(\"" +
-				nList[i].name + "\", this, " + TextUtils.formatDouble(nList[i].xSize, NUM_FRACTIONS) + ", " +
+				nIn.name + "\", this, " + TextUtils.formatDouble(nIn.xSize, NUM_FRACTIONS) + ", " +
 				TextUtils.formatDouble(nList[i].ySize, NUM_FRACTIONS) + ", ");
-			if (nList[i].so == null) buffWriter.println("null,"); else
+			if (nIn.so == null) buffWriter.println("null,"); else
 			{
-				buffWriter.println("new SizeOffset(" + TextUtils.formatDouble(nList[i].so.getLowXOffset(), NUM_FRACTIONS) + ", " +
-					TextUtils.formatDouble(nList[i].so.getHighXOffset(), NUM_FRACTIONS) + ", " +
-					TextUtils.formatDouble(nList[i].so.getLowYOffset(), NUM_FRACTIONS) + ", " +
-					TextUtils.formatDouble(nList[i].so.getHighYOffset(), NUM_FRACTIONS) + "),");
+				buffWriter.println("new SizeOffset(" + TextUtils.formatDouble(nIn.so.getLowXOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nIn.so.getHighXOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nIn.so.getLowYOffset(), NUM_FRACTIONS) + ", " +
+					TextUtils.formatDouble(nIn.so.getHighYOffset(), NUM_FRACTIONS) + "),");
 			}
 
 			// print layers
-			buffWriter.println("\t\t\tnew Technology.NodeLayer []");
-			buffWriter.println("\t\t\t{");
-			int tot = nList[i].nodeLayers.length;
-			for(int j=0; j<tot; j++)
-			{
-				int portNum = nList[i].nodeLayers[j].portIndex;
-				buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
-					nList[i].nodeLayers[j].layer.javaName + "_lay, " + portNum + ", Poly.Type." +
-					nList[i].nodeLayers[j].style.name() + ",");
-				switch (nList[i].nodeLayers[j].representation)
-				{
-					case Technology.NodeLayer.BOX:
-						buffWriter.print(" Technology.NodeLayer.BOX,");     break;
-					case Technology.NodeLayer.MINBOX:
-						buffWriter.print(" Technology.NodeLayer.MINBOX,");  break;
-					case Technology.NodeLayer.POINTS:
-						buffWriter.print(" Technology.NodeLayer.POINTS,");  break;
-					default:
-						buffWriter.print(" Technology.NodeLayer.????,");    break;
-				}
-				buffWriter.println(" new Technology.TechPoint [] {");
-				int totLayers = nList[i].nodeLayers[j].values.length;
-				for(int k=0; k<totLayers; k++)
-				{
-					Technology.TechPoint tp = nList[i].nodeLayers[j].values[k];
-					buffWriter.print("\t\t\t\t\tnew Technology.TechPoint(" +
-						getEdgeLabel(tp, false) + ", " + getEdgeLabel(tp, true) + ")");
-					if (k < totLayers-1) buffWriter.println(","); else
-						buffWriter.print("}");
-				}
-				if (nList[i].specialType == PrimitiveNode.SERPTRANS)
-				{
-					buffWriter.print(", " + nList[i].nodeLayers[j].lWidth + ", " + nList[i].nodeLayers[j].rWidth + ", " +
-						nList[i].nodeLayers[j].extendB + ", " + nList[i].nodeLayers[j].extendT);
-				}
-				buffWriter.print(")");
-				if (j+1 < tot) buffWriter.print(",");
-				buffWriter.println();
-			}
-			buffWriter.println("\t\t\t});");
+            dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS);
 
 			// print ports
 			buffWriter.println("\t\t" + ab + "_node.addPrimitivePorts(new PrimitivePort[]");
 			buffWriter.println("\t\t\t{");
-			int numPorts = nList[i].nodePortDetails.length;
+			int numPorts = nIn.nodePortDetails.length;
 			for(int j=0; j<numPorts; j++)
 			{
-				NodeInfo.PortDetails portDetail = nList[i].nodePortDetails[j];
+				NodeInfo.PortDetails portDetail = nIn.nodePortDetails[j];
 				buffWriter.print("\t\t\t\tPrimitivePort.newInstance(this, " + ab + "_node, new ArcProto [] {");
 				ArcInfo [] conns = portDetail.connections;
 				for(int l=0; l<conns.length; l++)
@@ -3123,8 +3087,11 @@ public class LibToTech
 					buffWriter.print(conns[l].javaName + "_arc");
 					if (l+1 < conns.length) buffWriter.print(", ");
 				}
+                PortCharacteristic characteristic = portDetail.characterisitic;
+                if (characteristic == null)
+                    characteristic = PortCharacteristic.UNKNOWN;
 				buffWriter.println("}, \"" + portDetail.name + "\", " + portDetail.angle + "," +
-					portDetail.range + ", " + portDetail.netIndex + ", PortCharacteristic.UNKNOWN,");
+					portDetail.range + ", " + portDetail.netIndex + ", PortCharacteristic." + characteristic.name() + ",");
 				buffWriter.print("\t\t\t\t\t" + getEdgeLabel(portDetail.values[0], false) + ", " +
 					getEdgeLabel(portDetail.values[0], true) + ", " +
 					getEdgeLabel(portDetail.values[1], false) + ", " +
@@ -3134,32 +3101,43 @@ public class LibToTech
 				buffWriter.println();
 			}
 			buffWriter.println("\t\t\t});");
+            if (nIn.electricalLayers != null) {
+                buffWriter.println("\t\t" + ab + "_node.setElectricalLayers(");
+                dumpNodeLayersToJava(buffWriter, nIn.electricalLayers, nIn.specialType == PrimitiveNode.SERPTRANS);
+            }
+            for (int j = 0; j < numPorts; j++) {
+				NodeInfo.PortDetails portDetail = nIn.nodePortDetails[j];
+                if (portDetail.isolated)
+                    buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setIsolated();");
+                if (portDetail.negatable)
+                    buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setNegatable(true);");
+            }
 
 			// print the node information
-			PrimitiveNode.Function fun = nList[i].func;
+			PrimitiveNode.Function fun = nIn.func;
 			buffWriter.println("\t\t" + ab + "_node.setFunction(PrimitiveNode.Function." + fun.name() + ");");
 
-			if (nList[i].wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
-			if (nList[i].square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
-			if (nList[i].lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
-			if (nList[i].arcsShrink)
+			if (nIn.wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
+			if (nIn.square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
+			if (nIn.lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
+			if (nIn.arcsShrink)
 //			if (fun == PrimitiveNode.Function.PIN)
 			{
 				buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
 				buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
 			}
-			if (nList[i].specialType != 0)
+			if (nIn.specialType != 0)
 			{
-				switch (nList[i].specialType)
+				switch (nIn.specialType)
 				{
 					case PrimitiveNode.SERPTRANS:
 						buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
 						buffWriter.println("\t\t" + ab + "_node.setCanShrink();");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.SERPTRANS);");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
-							nList[i].specialValues[0] + ", " + nList[i].specialValues[1] + ", " +
-							nList[i].specialValues[2] + ", " + nList[i].specialValues[3] + ", " +
-							nList[i].specialValues[4] + ", " + nList[i].specialValues[5] + "});");
+							nIn.specialValues[0] + ", " + nIn.specialValues[1] + ", " +
+							nIn.specialValues[2] + ", " + nIn.specialValues[3] + ", " +
+							nIn.specialValues[4] + ", " + nIn.specialValues[5] + "});");
 						break;
 					case PrimitiveNode.POLYGONAL:
 						buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
@@ -3168,9 +3146,9 @@ public class LibToTech
 					case PrimitiveNode.MULTICUT:
 						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.MULTICUT);");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
-							nList[i].specialValues[0] + ", " + nList[i].specialValues[1] + ", " +
-							nList[i].specialValues[2] + ", " + nList[i].specialValues[3] + ", " +
-							nList[i].specialValues[4] + ", " + nList[i].specialValues[5] + "});");
+							nIn.specialValues[0] + ", " + nIn.specialValues[1] + ", " +
+							nIn.specialValues[2] + ", " + nIn.specialValues[3] + ", " +
+							nIn.specialValues[4] + ", " + nIn.specialValues[5] + "});");
 						break;
 				}
 			}
@@ -3198,6 +3176,47 @@ public class LibToTech
 		}
         buffWriter.println();
 	}
+    
+    private static void dumpNodeLayersToJava(PrintStream buffWriter, NodeInfo.LayerDetails[] layerDetails, boolean isSerpentine) {
+        // print layers
+        buffWriter.println("\t\t\tnew Technology.NodeLayer []");
+        buffWriter.println("\t\t\t{");
+        int tot = layerDetails.length;
+        for(int j=0; j<tot; j++) {
+            NodeInfo.LayerDetails nld = layerDetails[j];
+            int portNum = nld.portIndex;
+            buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+                    nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+                    nld.style.name() + ",");
+            switch (nld.representation) {
+                case Technology.NodeLayer.BOX:
+                    buffWriter.print(" Technology.NodeLayer.BOX,");     break;
+                case Technology.NodeLayer.MINBOX:
+                    buffWriter.print(" Technology.NodeLayer.MINBOX,");  break;
+                case Technology.NodeLayer.POINTS:
+                    buffWriter.print(" Technology.NodeLayer.POINTS,");  break;
+                default:
+                    buffWriter.print(" Technology.NodeLayer.????,");    break;
+            }
+            buffWriter.println(" new Technology.TechPoint [] {");
+            int totLayers = nld.values.length;
+            for(int k=0; k<totLayers; k++) {
+                Technology.TechPoint tp = nld.values[k];
+                buffWriter.print("\t\t\t\t\tnew Technology.TechPoint(" +
+                        getEdgeLabel(tp, false) + ", " + getEdgeLabel(tp, true) + ")");
+                if (k < totLayers-1) buffWriter.println(","); else
+                    buffWriter.print("}");
+            }
+            if (isSerpentine) {
+                buffWriter.print(", " + nld.lWidth + ", " + nld.rWidth + ", " +
+                        nld.extendB + ", " + nld.extendT);
+            }
+            buffWriter.print(")");
+            if (j+1 < tot) buffWriter.print(",");
+            buffWriter.println();
+        }
+        buffWriter.println("\t\t\t});");
+    }
     
     private static void dumpPaletteToJava(PrintStream buffWriter, Object[][] menuPalette) {
         int numRows = menuPalette.length;

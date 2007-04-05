@@ -154,7 +154,7 @@ public class Generic extends Technology
 		universalPinNode.addPrimitivePorts(new PrimitivePort [] {univPinPort});
 		universalPinNode.setFunction(PrimitiveNode.Function.PIN);
 		universalPinNode.setWipeOn1or2();
-		universalPinNode.setHoldsOutline();
+//		universalPinNode.setHoldsOutline();
 		universalPinNode.setCanBeZeroSize();
 
 		/** Invisible pin */

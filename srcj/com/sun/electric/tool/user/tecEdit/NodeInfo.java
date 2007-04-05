@@ -28,12 +28,15 @@ package com.sun.electric.tool.user.tecEdit;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.tecEdit.Info.SpecialTextDescr;
 
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +55,9 @@ public class NodeInfo extends Info
 		int                    range;
 		int                    netIndex;
 		Technology.TechPoint[] values;
+        PortCharacteristic     characterisitic;
+        boolean                isolated;
+        boolean                negatable;
 	}
 
 	static class LayerDetails
@@ -66,6 +72,8 @@ public class NodeInfo extends Info
 		double                 multiXS, multiYS;			/* size of multicut */
 		double                 multiIndent, multiSep;	/* indent and separation of multicuts */
 		double                 lWidth, rWidth, extendT, extendB;		/* serpentine transistor information */
+        String                 message;
+        TextDescriptor         descriptor;
 	}
 
 	String                 name;
@@ -78,6 +86,7 @@ public class NodeInfo extends Info
     boolean                arcsShrink;
 	boolean                lockable;
 	LayerDetails []        nodeLayers;
+    LayerDetails []        electricalLayers;
 	PortDetails []         nodePortDetails;
 	PrimitivePort[]        primPorts;
 	SizeOffset             so;

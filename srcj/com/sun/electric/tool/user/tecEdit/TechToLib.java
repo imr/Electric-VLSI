@@ -78,7 +78,7 @@ public class TechToLib
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			if (tech.isNonStandard()) continue;
+//			if (tech.isNonStandard()) continue;
 			techs.add(tech);
 		}
 		String [] techChoices = new String[techs.size()];
@@ -395,6 +395,33 @@ public class TechToLib
                 nIn.so = null;
             nIn.specialType = pnp.getSpecialType();
             nIn.specialValues = pnp.getSpecialValues();
+            Technology.NodeLayer[] nodeLayers = pnp.getLayers();
+            nIn.nodeLayers = new NodeInfo.LayerDetails[nodeLayers.length];
+            for (int i = 0; i < nodeLayers.length; i++)
+                nIn.nodeLayers[i] = genNodeLayerDetails(nodeLayers[i], lList);
+            Technology.NodeLayer[] electricalLayers = pnp.getElectricalLayers();
+            if (electricalLayers != null) {
+                nIn.electricalLayers = new NodeInfo.LayerDetails[electricalLayers.length];
+                for (int i = 0; i < electricalLayers.length; i++)
+                    nIn.electricalLayers[i] = genNodeLayerDetails(electricalLayers[i], lList);
+            }
+            nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
+            for (int i = 0; i < nIn.nodePortDetails.length; i++) {
+                PrimitivePort pp = pnp.getPort(i);
+                NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
+                nIn.nodePortDetails[i] = pd;
+                pd.name = pp.getName();
+                pd.netIndex = pp.getTopology();
+                pd.angle = pp.getAngle();
+                pd.range = pp.getAngleRange();
+                pd.values = new Technology.TechPoint[] {
+                    new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
+                    new Technology.TechPoint(pp.getRight(), pp.getTop())};
+                pd.characterisitic = pp.getCharacteristic();
+                pd.isolated = pp.isIsolated();
+                pd.negatable = pp.isNegatable();
+            }
+            
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;
 
@@ -447,10 +474,6 @@ public class TechToLib
                 oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newSize));
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
-                if (e == 0) {
-                    nIn.nodeLayers = new NodeInfo.LayerDetails[polys.length];
-                    nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
-                }
 				for(int i=0; i<j; i++)
 				{
 					Poly poly = polys[i];
@@ -461,16 +484,6 @@ public class TechToLib
 					// accumulate total size of main example
 					if (e == 0)
 					{
-                        NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
-                        Technology.NodeLayer nl = pnp.getLayers()[i];
-                        nIn.nodeLayers[i] = nld;
-                        nld.style = nl.getStyle();
-                        nld.portIndex = nl.getPortNum();
-                        nld.representation = nl.getRepresentation();
-                        nld.values = nl.getPoints();
-                        for(int k=0; k<lList.length; k++) {
-                            if (nodeLayer.getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
-                        }
 						Rectangle2D polyBounds = poly.getBounds2D();
 						if (i == 0)
 						{
@@ -504,7 +517,10 @@ public class TechToLib
 
 					// create the node to describe this layer
 					NodeInst ni = placeGeometry(poly, nNp);
-					if (ni == null) return null;
+					if (ni == null) {
+                        System.out.println("Error placing geometry " + poly.getStyle() + " on " + nNp);
+                        continue;
+                    }
 
 					// get graphics for this layer
 					Manipulate.setPatch(ni, desc);
@@ -514,7 +530,6 @@ public class TechToLib
 
 					// set minimum polygon factor on smallest example
 					if (e != 0) continue;
-					Technology.NodeLayer [] nodeLayers = pnp.getLayers();
 					if (i < nodeLayers.length)
 					{
 						if (nodeLayers[i].getRepresentation() == Technology.NodeLayer.MINBOX)
@@ -568,15 +583,6 @@ public class TechToLib
 
 					// on the first sample, also show angle and connection
 					if (e != 0) continue;
-                    NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
-                    nIn.nodePortDetails[pp.getPortIndex()] = pd;
-                    pd.name = pp.getName();
-                    pd.netIndex = pp.getTopology();
-                    pd.angle = pp.getAngle();
-                    pd.range = pp.getAngleRange();
-                    pd.values = new Technology.TechPoint[] {
-                        new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
-                        new Technology.TechPoint(pp.getRight(), pp.getTop())};
 					if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
 					{
 						pNi.newVar(Info.PORTANGLE_KEY, new Integer(pp.getAngle()));
@@ -599,7 +605,7 @@ public class TechToLib
                             }
                         }
 					}
-                    pd.connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
+                    nIn.nodePortDetails[pp.getPortIndex()].connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
 					if (validConns.size() > 0)
 					{
 						CellId [] aplist = new CellId[validConns.size()];
@@ -787,6 +793,18 @@ public class TechToLib
 		return(lib);
 	}
 
+    private static NodeInfo.LayerDetails genNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList) {
+        NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
+        nld.style = nl.getStyle();
+        nld.portIndex = nl.getPortNum();
+        nld.representation = nl.getRepresentation();
+        nld.values = nl.getPoints();
+        for(int k=0; k<lList.length; k++) {
+            if (nl.getLayer().getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
+        }
+        return nld;
+    }
+    
 	private static NodeInst placeGeometry(Poly poly, Cell cell)
 	{
 		Rectangle2D box = poly.getBox();
