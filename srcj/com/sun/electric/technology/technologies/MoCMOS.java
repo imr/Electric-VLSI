@@ -115,7 +115,7 @@ public class MoCMOS extends Technology
 	/** metal-1-polysilicon-1/2/1-2/-contact */	protected PrimitiveNode[] metal1PolyContactNodes = new PrimitiveNode[3];
     /** P/N-Transistors */                      protected PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
-    /** Scalable Transistors */			        protected PrimitiveNode[] scalableTransistorNodes = new PrimitiveNode[2];
+    /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes;
     /** M1M2 -> M5M6 contacts */				protected PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            protected PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
@@ -143,11 +143,11 @@ public class MoCMOS extends Technology
      */
 	protected MoCMOS()
     {
-		this("mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200); // in nanometers: really 0.2 micron
+		this("mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200, true); // in nanometers: really 0.2 micron
         initFoundryMOSIS();
     }
 
-    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale) {
+    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveScalableTransistors) {
         super(techName, defaultFoundryType, 6);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
@@ -1213,7 +1213,7 @@ public class MoCMOS extends Technology
 		polyArcs[1].setFactoryFixedAngle(true);
 		polyArcs[1].setWipable();
 		polyArcs[1].setFactoryAngleIncrement(90);
-		polyArcs[1].setNotUsed(true);
+//		polyArcs[1].setNotUsed(true);
 
 		/** P-active arc */
 		activeArcs[P_TYPE] = newArcProto("P-Active", 12.0, 15.0, ArcProto.Function.DIFFP,
@@ -1243,7 +1243,7 @@ public class MoCMOS extends Technology
 		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
 		active_arc.setFactoryAngleIncrement(90);
-		active_arc.setNotUsed(true);
+//		active_arc.setNotUsed(true);
 
 		//**************************************** NODES ****************************************
 
@@ -1321,7 +1321,7 @@ public class MoCMOS extends Technology
 		metalPinNodes[4].setFunction(PrimitiveNode.Function.PIN);
 		metalPinNodes[4].setArcsWipe();
 		metalPinNodes[4].setArcsShrink();
-		metalPinNodes[4].setNotUsed(true);
+//		metalPinNodes[4].setNotUsed(true);
 
 		/** metal-6-pin */
 		metalPinNodes[5] = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, null,
@@ -1337,7 +1337,7 @@ public class MoCMOS extends Technology
 		metalPinNodes[5].setFunction(PrimitiveNode.Function.PIN);
 		metalPinNodes[5].setArcsWipe();
 		metalPinNodes[5].setArcsShrink();
-		metalPinNodes[5].setNotUsed(true);
+//		metalPinNodes[5].setNotUsed(true);
 
 		/** polysilicon-1-pin */
 		polyPinNodes[0] = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, null,
@@ -1368,7 +1368,7 @@ public class MoCMOS extends Technology
 		polyPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
 		polyPinNodes[1].setArcsWipe();
 		polyPinNodes[1].setArcsShrink();
-		polyPinNodes[1].setNotUsed(true);
+//		polyPinNodes[1].setNotUsed(true);
 
 		/** P-active-pin */
 		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
@@ -1419,7 +1419,7 @@ public class MoCMOS extends Technology
 		activeGenPinNode.setFunction(PrimitiveNode.Function.PIN);
 		activeGenPinNode.setArcsWipe();
 		activeGenPinNode.setArcsShrink();
-        activeGenPinNode.setNotUsed(true);
+//        activeGenPinNode.setNotUsed(true);
 
 		/** metal-1-P-active-contact */
 		metalActiveContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
@@ -1495,7 +1495,7 @@ public class MoCMOS extends Technology
 		metal1PolyContactNodes[1].setFunction(PrimitiveNode.Function.CONTACT);
 		metal1PolyContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
 		metal1PolyContactNodes[1].setSpecialValues(new double [] {2, 2, 4, 4, 3, 3});
-		metal1PolyContactNodes[1].setNotUsed(true);
+//		metal1PolyContactNodes[1].setNotUsed(true);
 		metal1PolyContactNodes[1].setMinSize(10, 10, "?");
 
 		/** metal-1-polysilicon-1-2-contact */
@@ -1515,7 +1515,7 @@ public class MoCMOS extends Technology
 		metal1PolyContactNodes[2].setFunction(PrimitiveNode.Function.CONTACT);
 		metal1PolyContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
 		metal1PolyContactNodes[2].setSpecialValues(new double [] {2, 2, 6.5, 6.5, 3, 3});
-		metal1PolyContactNodes[2].setNotUsed(true);
+//		metal1PolyContactNodes[2].setNotUsed(true);
 		metal1PolyContactNodes[2].setMinSize(15, 15, "?");
 
 		/** P-Transistor */
@@ -1620,97 +1620,100 @@ public class MoCMOS extends Technology
             thickTransistorNodes[i].setNodeBit(PrimitiveNode.OD18BIT);
 		}
 
-		/** Scalable-P-Transistor */
-		scalableTransistorNodes[P_TYPE] = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(activeLayers[P_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
-				new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
-					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
-				new Technology.NodeLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
-				new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
-					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
-				new Technology.NodeLayer(activeLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
-					new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
-				new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(12)),
-					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
-				new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(selectLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
-					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
-				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
-					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
-			});
-		scalableTransistorNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {polyArcs[0]}, "p-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {polyArcs[0]}, "p-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
-			});
-		scalableTransistorNodes[P_TYPE].setFunction(PrimitiveNode.Function.TRAPMOS);
-		scalableTransistorNodes[P_TYPE].setCanShrink();
-		scalableTransistorNodes[P_TYPE].setMinSize(17, 26, "2.1, 3.1");
+        if (haveScalableTransistors) {
+             scalableTransistorNodes = new PrimitiveNode[2];
+            /** Scalable-P-Transistor */
+            scalableTransistorNodes[P_TYPE] = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
+                new Technology.NodeLayer []
+                {
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
+                    new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
+                    new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
+                    new Technology.NodeLayer(activeLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
+                        new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
+                    new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(12)),
+                        new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
+                    new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+                    new Technology.NodeLayer(selectLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
+                });
+            scalableTransistorNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
+                {
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {polyArcs[0]}, "p-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+                        EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {polyArcs[0]}, "p-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+                        EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
+                });
+            scalableTransistorNodes[P_TYPE].setFunction(PrimitiveNode.Function.TRAPMOS);
+            scalableTransistorNodes[P_TYPE].setCanShrink();
+            scalableTransistorNodes[P_TYPE].setMinSize(17, 26, "2.1, 3.1");
 
-		/** Scalable-N-Transistor */
-		scalableTransistorNodes[N_TYPE] = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(activeLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
-				new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
-					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
-				new Technology.NodeLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
-				new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
-					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
-				new Technology.NodeLayer(activeLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
-					new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
-				new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(12)),
-					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
-				new Technology.NodeLayer(wellLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(selectLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
-					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
-				new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
-					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
-			});
-		scalableTransistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {polyArcs[0]}, "n-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {polyArcs[0]}, "n-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
-			});
-		scalableTransistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
-		scalableTransistorNodes[N_TYPE].setCanShrink();
-		scalableTransistorNodes[N_TYPE].setMinSize(17, 26, "2.1, 3.1");
+            /** Scalable-N-Transistor */
+            scalableTransistorNodes[N_TYPE] = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
+                new Technology.NodeLayer []
+                {
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
+                    new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
+                    new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
+                    new Technology.NodeLayer(activeLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
+                        new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
+                    new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(12)),
+                        new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(12))}),
+                    new Technology.NodeLayer(wellLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+                    new Technology.NodeLayer(selectLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
+                    new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
+                });
+            scalableTransistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
+                {
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {polyArcs[0]}, "n-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+                        EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {polyArcs[0]}, "n-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+                        EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
+                });
+            scalableTransistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
+            scalableTransistorNodes[N_TYPE].setCanShrink();
+            scalableTransistorNodes[N_TYPE].setMinSize(17, 26, "2.1, 3.1");
+        }
 
 		/** metal-1-metal-2-contact */
 		metalContactNodes[0] = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
@@ -1782,7 +1785,7 @@ public class MoCMOS extends Technology
 		metalContactNodes[3].setFunction(PrimitiveNode.Function.CONTACT);
 		metalContactNodes[3].setSpecialType(PrimitiveNode.MULTICUT);
 		metalContactNodes[3].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
-		metalContactNodes[3].setNotUsed(true);
+//		metalContactNodes[3].setNotUsed(true);
 		metalContactNodes[3].setMinSize(7, 7, "25.3, 26.3");
 
 		/** metal-5-metal-6-contact */
@@ -1801,7 +1804,7 @@ public class MoCMOS extends Technology
 		metalContactNodes[4].setFunction(PrimitiveNode.Function.CONTACT);
 		metalContactNodes[4].setSpecialType(PrimitiveNode.MULTICUT);
 		metalContactNodes[4].setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
-		metalContactNodes[4].setNotUsed(true);
+//		metalContactNodes[4].setNotUsed(true);
 		metalContactNodes[4].setMinSize(8, 8, "29.3, 30.3");
 
         /**************************************************************************
@@ -1910,7 +1913,7 @@ public class MoCMOS extends Technology
 		metalNodes[4].setFunction(PrimitiveNode.Function.NODE);
 		metalNodes[4].setHoldsOutline();
 		metalNodes[4].setSpecialType(PrimitiveNode.POLYGONAL);
-		metalNodes[4].setNotUsed(true);
+//		metalNodes[4].setNotUsed(true);
 
 		/** Metal-6-Node */
 		metalNodes[5] = PrimitiveNode.newInstance("Metal-6-Node", this, 3.0, 3.0, null,
@@ -1926,7 +1929,7 @@ public class MoCMOS extends Technology
 		metalNodes[5].setFunction(PrimitiveNode.Function.NODE);
 		metalNodes[5].setHoldsOutline();
 		metalNodes[5].setSpecialType(PrimitiveNode.POLYGONAL);
-		metalNodes[5].setNotUsed(true);
+//		metalNodes[5].setNotUsed(true);
 
 		/** Polysilicon-1-Node */
 		polyNodes[0] = PrimitiveNode.newInstance("Polysilicon-1-Node", this, 2.0, 2.0, null,
@@ -1957,7 +1960,7 @@ public class MoCMOS extends Technology
 		polyNodes[1].setFunction(PrimitiveNode.Function.NODE);
 		polyNodes[1].setHoldsOutline();
 		polyNodes[1].setSpecialType(PrimitiveNode.POLYGONAL);
-		polyNodes[1].setNotUsed(true);
+//		polyNodes[1].setNotUsed(true);
 
         PrimitiveNode[] activeNodes = new PrimitiveNode[2];
 
@@ -2088,7 +2091,7 @@ public class MoCMOS extends Technology
 		viaNodes[3].setFunction(PrimitiveNode.Function.NODE);
 		viaNodes[3].setHoldsOutline();
 		viaNodes[3].setSpecialType(PrimitiveNode.POLYGONAL);
-		viaNodes[3].setNotUsed(true);
+//		viaNodes[3].setNotUsed(true);
 
 		/** Via-5-Node */
 		viaNodes[4] = PrimitiveNode.newInstance("Via-5-Node", this, 2.0, 2.0, null,
@@ -2104,7 +2107,7 @@ public class MoCMOS extends Technology
 		viaNodes[4].setFunction(PrimitiveNode.Function.NODE);
 		viaNodes[4].setHoldsOutline();
 		viaNodes[4].setSpecialType(PrimitiveNode.POLYGONAL);
-		viaNodes[4].setNotUsed(true);
+//		viaNodes[4].setNotUsed(true);
 
         PrimitiveNode[] wellNodes = new PrimitiveNode[2];
 
@@ -2339,10 +2342,10 @@ public class MoCMOS extends Technology
     /**
      * Method to load primitive nodes in the palette after rules have been loaded
      */
-    protected void buildTechPalette(boolean mosisFoundry)
+    protected void buildTechPalette()
     {
         // Information for palette
-        int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
+        int maxY = metalArcs.length + activeArcs.length + 2 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
         nodeGroups = new Object[maxY][3];
         int count = 0;
         List<NodeInst> tmp;
@@ -2355,7 +2358,8 @@ public class MoCMOS extends Technology
             String tmpVar = stdNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
-            tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            if (scalableTransistorNodes != null)
+                tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             nodeGroups[count][i+1] = tmp;
         }
 
@@ -2383,6 +2387,13 @@ public class MoCMOS extends Technology
         nodeGroups[count][1] = polyPinNodes[0];
         nodeGroups[count][2] = metal1PolyContactNodes[0];
 
+        nodeGroups[++count][0] = polyArcs[1];
+        nodeGroups[count][1] = polyPinNodes[1];
+        tmp = new ArrayList<NodeInst>();
+        tmp.add(makeNodeInst(metal1PolyContactNodes[1], metal1PolyContactNodes[1].getFunction(), 0, true, null, 5.5));
+        tmp.add(makeNodeInst(metal1PolyContactNodes[2], metal1PolyContactNodes[2].getFunction(), 0, true, null, 5.5));
+        nodeGroups[count][2] = tmp;
+
         // MXMY contacts
         for (int i = 0; i < metalArcs.length; i++)
         {
@@ -2397,126 +2408,22 @@ public class MoCMOS extends Technology
         nodeGroups[count][2] = "Cell";
 	}
 
-    /**
-     * This method resizes nodes according to selected foundry. It must be protected
-     * so it could be overwriten by subclasses
-     */
-    protected void resizeNodes(boolean mosisFoundry)
-    {
-        //Scalable transistors
-        for (int i = 0; i < 2; i++)
-        {
-            // polysilicon
-            Technology.NodeLayer node = scalableTransistorNodes[i].getLayers()[5];
-            node.getTopEdge().setAdder(-12); node.getBottomEdge().setAdder(12);
-            node.getLeftEdge().setAdder(5); node.getRightEdge().setAdder(-5);
-            // select
-            node = scalableTransistorNodes[i].getLayers()[7];
-            node.getLeftEdge().setAdder(4); node.getRightEdge().setAdder(-4);
-            // first cut
-            node = scalableTransistorNodes[i].getLayers()[8];
-            node.getTopEdge().setAdder(7.5); node.getBottomEdge().setAdder(9.5);
-            node.getLeftEdge().setAdder(7.5); node.getRightEdge().setAdder(9.5);
-            // second cut
-            node = scalableTransistorNodes[i].getLayers()[9];
-            node.getTopEdge().setAdder(-9.5); node.getBottomEdge().setAdder(-7.5);
-            node.getLeftEdge().setAdder(7.5); node.getRightEdge().setAdder(9.5);
-            scalableTransistorNodes[i].setSizeOffset(new SizeOffset(7, 7, 12.1, 12.1));
-        }
-
-        // Metal 6 arc width 4. Original value
-//        metalArcs[5].setDefaultLambdaFullWidth(4);
-    }
-
 	/******************** SUPPORT METHODS ********************/
 
     /**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
-     * @param resizeNodes
      */
-	public void setState(boolean resizeNodes)
+    @Override
+	public void setState()
 	{
         EDatabase.theDatabase.checkChanging();
-        
-		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
-		metalPinNodes[2].setNotUsed(true);
-		metalPinNodes[3].setNotUsed(true);
-		metalPinNodes[4].setNotUsed(true);
-		metalPinNodes[5].setNotUsed(true);
-		metalContactNodes[1].setNotUsed(true);
-		metalContactNodes[2].setNotUsed(true);
-		metalContactNodes[3].setNotUsed(true);
-		metalContactNodes[4].setNotUsed(true);
-		metalNodes[2].setNotUsed(true);
-		metalNodes[3].setNotUsed(true);
-		metalNodes[4].setNotUsed(true);
-		metalNodes[5].setNotUsed(true);
-		viaNodes[1].setNotUsed(true);
-		viaNodes[2].setNotUsed(true);
-		viaNodes[3].setNotUsed(true);
-		viaNodes[4].setNotUsed(true);
-
-		// disable Polysilicon-2
-		polyArcs[1].setNotUsed(true);
-		polyPinNodes[1].setNotUsed(true);
-		metal1PolyContactNodes[1].setNotUsed(true);
-		metal1PolyContactNodes[2].setNotUsed(true);
-		polyNodes[1].setNotUsed(true);
-
-		// disable metal 3-6 arcs
-		metalArcs[2].setNotUsed(true);
-		metalArcs[3].setNotUsed(true);
-		metalArcs[4].setNotUsed(true);
-		metalArcs[5].setNotUsed(true);
-
-		// enable the desired nodes
-		switch (getNumMetals())
-		{
-			case 6:
-				metalPinNodes[5].setNotUsed(false);
-				metalContactNodes[4].setNotUsed(false);
-				metalNodes[5].setNotUsed(false);
-				viaNodes[4].setNotUsed(false);
-				metalArcs[5].setNotUsed(false);
-				// FALLTHROUGH
-			case 5:
-				metalPinNodes[4].setNotUsed(false);
-				metalContactNodes[3].setNotUsed(false);
-				metalNodes[4].setNotUsed(false);
-				viaNodes[3].setNotUsed(false);
-				metalArcs[4].setNotUsed(false);
-				// FALLTHROUGH
-			case 4:
-				metalPinNodes[3].setNotUsed(false);
-				metalContactNodes[2].setNotUsed(false);
-				metalNodes[3].setNotUsed(false);
-				viaNodes[2].setNotUsed(false);
-				metalArcs[3].setNotUsed(false);
-				// FALLTHROUGH
-			case 3:
-				metalPinNodes[2].setNotUsed(false);
-				metalContactNodes[1].setNotUsed(false);
-				metalNodes[2].setNotUsed(false);
-				viaNodes[1].setNotUsed(false);
-				metalArcs[2].setNotUsed(false);
-				break;
-		}
-		if (getRuleSet() != DEEPRULES)
-		{
-			if (isSecondPolysilicon())
-			{
-				// non-DEEP: enable Polysilicon-2
-				polyArcs[1].setNotUsed(false);
-				polyPinNodes[1].setNotUsed(false);
-				metal1PolyContactNodes[1].setNotUsed(false);
-				metal1PolyContactNodes[2].setNotUsed(false);
-				polyNodes[1].setNotUsed(false);
-			}
-		}
+        setNotUsed(isSecondPolysilicon() ? 2 : 1);
+        findNodeProto("Active-Pin").setNotUsed(true);
+		findArcProto("Active").setNotUsed(true);
 
 		// set rules
-        cachedRules = getFactoryDesignRules(resizeNodes);
+        cachedRules = getFactoryDesignRules();
 
         // now rewrite the description
 		setTechDesc(describeState());
@@ -2573,7 +2480,7 @@ public class MoCMOS extends Technology
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
-		if (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE])
+		if (scalableTransistorNodes != null && (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE]))
             return getShapeOfNodeScalable(ni, null, reasonable);
 
         // Default
@@ -2758,9 +2665,9 @@ public class MoCMOS extends Technology
 	 * Method to build "factory" design rules, given the current technology settings.
 	 * @return the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
-     * @param resizeNodes
      */
-	public XMLRules getFactoryDesignRules(boolean resizeNodes)
+    @Override
+	public XMLRules getFactoryDesignRules()
 	{
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
@@ -2769,7 +2676,6 @@ public class MoCMOS extends Technology
         assert(foundry != null);
 
         // Resize primitives according to the foundry
-        boolean mosisFoundry = !(foundry.getType() == Foundry.Type.TSMC);
 //        resizeNodes(foundry.equals(Foundry.Type.TSMC.name());
 
 		// load the DRC tables from the explanation table
@@ -2865,12 +2771,9 @@ public class MoCMOS extends Technology
 		}
 
         // Resize primitives according to the foundry and existing rules.
-        if (resizeNodes)
-        {
-            resizeNodes(rules);
-            // Information for palette
-            buildTechPalette(mosisFoundry);
-        }
+        resizeNodes(rules);
+        // Information for palette
+        buildTechPalette();
 
         return rules;
 	}
@@ -3322,20 +3225,20 @@ public class MoCMOS extends Technology
 	 */
 	public static Setting getRuleSetSetting() { return MoCMOS.cacheRuleSet; }
 
-	private static final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(tech, "MoCMOSSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer",
-		tech.getProjectSettings(), "UseSecondPolysilicon", true);
+	private final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(this, getTechName() + "SecondPolysilicon", "Technology tab", getTechName().toUpperCase() + " CMOS: Second Polysilicon Layer",
+		getProjectSettings(), "UseSecondPolysilicon", true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
 	 * @return true if there are 2 polysilicon layers in this Technology.
 	 * If false, there is only 1 polysilicon layer.
 	 */
-	public boolean isSecondPolysilicon() { return MoCMOS.cacheSecondPolysilicon.getBoolean(); }
+	public boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
 	/**
 	 * Returns project Setting to tell a second polysilicon layer in this Technology.
 	 * @eturn project Setting to tell a second polysilicon layer in this Technology.
 	 */
-	public static Setting getSecondPolysiliconSetting() { return MoCMOS.cacheSecondPolysilicon; }
+	public Setting getSecondPolysiliconSetting() { return cacheSecondPolysilicon; }
 
 	private static final Setting cacheDisallowStackedVias = TechSetting.makeBooleanSetting(tech, "MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
         tech.getProjectSettings(), "DisallowStackedVias", false);
@@ -3393,10 +3296,12 @@ public class MoCMOS extends Technology
 	 */
 	public Map<String,Object> convertOldVariable(String varName, Object value)
 	{
-        if (varName.equals("MoCMOSNumberOfMetalLayers") && getTechName().equals("mocmos")) {
+        if (varName.equals("MoCMOSNumberOfMetalLayers") || varName.equals("MOCMOSNumberOfMetalLayers"))
             return Collections.singletonMap(getNumMetalsSetting().getPrefName(), value);
-        }
-		if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return null;
+        if (varName.equals("MoCMOSSecondPolysilicon"))
+            return Collections.singletonMap(getSecondPolysiliconSetting().getPrefName(), value);
+        
+        if (!varName.equalsIgnoreCase(TECH_LAST_STATE.getName())) return null;
 		if (!(value instanceof Integer)) return null;
 		int oldBits = ((Integer)value).intValue();
 
@@ -3465,7 +3370,7 @@ public class MoCMOS extends Technology
         Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
         Technology.NodeLayer polyCNode;
 
-        if (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE])
+        if (scalableTransistorNodes != null && (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE]))
         {
             polyCNode = primNode.getLayers()[5]; // poly center
         }

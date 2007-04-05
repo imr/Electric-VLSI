@@ -143,6 +143,9 @@ public class Layer
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
     
 		private final String name;
+        private final boolean isMetal;
+        private final boolean isContact;
+        private final boolean isPoly;
 		private int level;
 		private final int height;
 		private final int extraBits;
@@ -158,7 +161,10 @@ public class Layer
 			this.name = name;
 			this.height = height;
 			this.extraBits = extraBits;
-			if (metalLevel != 0) addToLayers(metalLayers, metalLevel);
+            isMetal = metalLevel != 0;
+            isContact = contactLevel != 0;
+            isPoly = polyLevel != 0;
+			if (isMetal) addToLayers(metalLayers, metalLevel);
 			if (contactLevel != 0) addToLayers(contactLayers, contactLevel);
 			if (polyLevel != 0) addToLayers(polyLayers, polyLevel);
 		}
@@ -329,14 +335,7 @@ public class Layer
 		 * Method to tell whether this layer function is metal.
 		 * @return true if this layer function is metal.
 		 */
-		public boolean isMetal()
-		{
-			if (this == METAL1  || this == METAL2  || this == METAL3 ||
-				this == METAL4  || this == METAL5  || this == METAL6 ||
-				this == METAL7  || this == METAL8  || this == METAL9 ||
-				this == METAL10 || this == METAL11 || this == METAL12) return true;
-			return false;
-		}
+		public boolean isMetal() { return isMetal; }
 
 		/**
 		 * Method to tell whether this layer function is diffusion (active).
@@ -352,11 +351,7 @@ public class Layer
 		 * Method to tell whether this layer function is polysilicon.
 		 * @return true if this layer function is polysilicon.
 		 */
-		public boolean isPoly()
-		{
-			if (this == POLY1 || this == POLY2 || this == POLY3 || this == GATE) return true;
-			return false;
-		}
+		public boolean isPoly() { return isPoly || this == GATE; };
 
 		/**
 		 * Method to tell whether this layer function is polysilicon in the gate of a transistor.
@@ -372,14 +367,7 @@ public class Layer
 		 * Method to tell whether this layer function is a contact.
 		 * @return true if this layer function is contact.
 		 */
-		public boolean isContact()
-		{
-			if (this == CONTACT1 || this == CONTACT2 || this == CONTACT3 ||
-				this == CONTACT4 || this == CONTACT5 || this == CONTACT6 ||
-				this == CONTACT7 || this == CONTACT8 || this == CONTACT9 ||
-				this == CONTACT10 || this == CONTACT11 || this == CONTACT12)  return true;
-			return false;
-		}
+		public boolean isContact() { return isContact; }
 
         /**
 		 * Method to tell whether this layer function is a well.
@@ -412,6 +400,23 @@ public class Layer
 			return (this == IMPLANT || this == IMPLANTN || this == IMPLANTP);
 		}
 
+        /**
+         * Method to tell whether this layer function is in subset
+         * of layer functions restricted by specified number
+         * of metals and polysilicons.
+         * @param numMetals number of metals in subset.
+         * @param numPolys number of polysilicons in subset
+         * @return true if this layer function is in subset.
+         */
+        public boolean isUsed(int numMetals, int numPolys) {
+            if (isMetal || isContact)
+                return level <= numMetals;
+            else if (isPoly)
+                return level <= numPolys;
+            else
+                return true;
+        }
+        
 		/**
 		 * Method to tell the distance of this layer function.
 		 * @return the distance of this layer function.

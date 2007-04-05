@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/5/07, DN) [NP]-Transistor-Scalable are excluded from TSMC180 technology.
+
+IMP: (4/5/07, DN) Second polysilicon (if available) is shown in "mocmos" and "tsmc180" tech palettes.
+
+IMP: (4/5/07, DN) Technology name is not uppercased in a name of "xxxSecondPolysilicon" preferences.
+
 IMP: (4/4/07, DN) MoCMOS technology doesn't have TSMC foundry anymore.
 
 BUG: (4/4/07, SMR) Dummy NodeInsts are always at the origin.

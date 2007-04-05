@@ -1944,7 +1944,7 @@ public class ToolMenu {
                         DRC.cleanCellsDueToFoundryChanges(tech, f);
                         // Only when the rules belong to the selected foundry, then reload the rules
                         if (f == tech.getSelectedFoundry())
-                            tech.setState(true);
+                            tech.setState();
                         done = true;
                         break;
                     }

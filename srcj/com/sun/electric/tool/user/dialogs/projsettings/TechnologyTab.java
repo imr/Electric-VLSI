@@ -46,7 +46,7 @@ public class TechnologyTab extends ProjSettingsPanel
     private Setting schematicTechnologySetting = User.getSchematicTechnologySetting();
     private Setting mocmosRuleSetSetting = MoCMOS.getRuleSetSetting();
     private Setting mocmosNumMetalSetting = MoCMOS.tech.getNumMetalsSetting();
-    private Setting mocmosSecondPolysiliconSetting = MoCMOS.getSecondPolysiliconSetting();
+    private Setting mocmosSecondPolysiliconSetting = MoCMOS.tech.getSecondPolysiliconSetting();
     private Setting mocmosDisallowStackedViasSetting = MoCMOS.getDisallowStackedViasSetting();
     private Setting mocmosAlternateActivePolyRulesSetting = MoCMOS.getAlternateActivePolyRulesSetting();
     

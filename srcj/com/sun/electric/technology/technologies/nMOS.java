@@ -1094,11 +1094,9 @@ public class nMOS extends Technology
 	/**
 	 * Method to return the "factory "design rules for this Technology.
 	 * @return the design rules for this Technology.
-     * @param resizeNodes
-
-
      */
-	public DRCRules getFactoryDesignRules(boolean resizeNodes)
+    @Override
+	public DRCRules getFactoryDesignRules()
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

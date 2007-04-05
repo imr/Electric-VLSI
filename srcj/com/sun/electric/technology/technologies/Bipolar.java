@@ -1107,7 +1107,8 @@ public class Bipolar extends Technology
 //		mosis.setFactoryGDSLayer(PM0_lay, "19");	// Pseudo_Metal2
 	}
 
-	public DRCRules getFactoryDesignRules(boolean resizeNodes)
+    @Override
+	public DRCRules getFactoryDesignRules()
 	{
 		return MOSRules.makeSimpleRules(this, null, unConDist);
 	}

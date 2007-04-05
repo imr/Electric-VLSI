@@ -653,7 +653,7 @@ public class Technology implements Comparable<Technology>
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
         cacheFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.name().toUpperCase());
-        cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName.toUpperCase() + "NumberOfMetalLayers",
+        cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName + "NumberOfMetalLayers",
             "Technology tab", techName + ": Number of Metal Layers", getProjectSettings(), "NumMetalLayers", defaultNumMetals);
         
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
@@ -904,9 +904,24 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
-     * @param resizeNodes
      */
-	public void setState(boolean resizeNodes) {}
+	public void setState() {}
+    
+    protected void setNotUsed(int numPolys) {
+        int numMetals = getNumMetals();
+        for (PrimitiveNode pn: nodes.values()) {
+            boolean isUsed = true;
+            for (NodeLayer nl: pn.getLayers())
+                isUsed = isUsed && nl.getLayer().getFunction().isUsed(numMetals, numPolys);
+            pn.setNotUsed(!isUsed);
+        }
+        for (ArcProto ap: arcs.values()) {
+            boolean isUsed = true;
+            for (ArcLayer al: ap.layers)
+                isUsed = isUsed && al.getLayer().getFunction().isUsed(numMetals, numPolys);
+            ap.setNotUsed(!isUsed);
+        }
+    }
 
 	/**
 	 * Method to initialize a technology. This will check and restore
@@ -934,7 +949,7 @@ public class Technology implements Comparable<Technology>
 		}
 
 		// initialize all design rules in the technology (overwrites arc widths)
-		setState(true);
+		setState();
 
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
@@ -3616,9 +3631,8 @@ public class Technology implements Comparable<Technology>
 	 * Individual technologies subclass this to create their own rules.
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
-     * @param resizeNodes
      */
-	public DRCRules getFactoryDesignRules(boolean resizeNodes)
+	public DRCRules getFactoryDesignRules()
 	{
         return null;
 	}
@@ -4083,6 +4097,11 @@ public class Technology implements Comparable<Technology>
                         if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isNotUsed())
                             obj = null;
                     }
+                    else if (o instanceof PrimitiveNode)
+                    {
+                        if (((PrimitiveNode)o).isNotUsed())
+                            obj = null;
+                    }
                 }
                 newMatrix[i][j] = obj;
             }
@@ -4172,7 +4191,7 @@ public class Technology implements Comparable<Technology>
 		protected void setSideEffect()
 		{
 			//technologyChangedFromDatabase(tech, true);
-            tech.setState(true);
+            tech.setState();
             reloadUIData();
 		}
 
@@ -4190,22 +4209,6 @@ public class Technology implements Comparable<Technology>
                     ui.repaintAllEditWindows();
                 }
             });
-        }
-
-//        public static void allTechnologiesChanged()
-//        {
-//            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-//            {
-//                Technology tech = it.next();
-//                tech.setState(true);
-//            }
-//            reloadUIData();
-//        }
-
-        public static void technologyChanged(Technology tech, boolean resizeNodes)
-		{
-//            tech.setState(resizeNodes);
-            reloadUIData();
         }
 
 		public static Setting makeBooleanSetting(Technology tech, String name, String location, String description,

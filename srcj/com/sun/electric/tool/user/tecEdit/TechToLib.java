@@ -179,7 +179,7 @@ public class TechToLib
         gi.spiceLevel1Header = tech.getSpiceHeaderLevel1();
         gi.spiceLevel2Header = tech.getSpiceHeaderLevel2();
         gi.spiceLevel3Header = tech.getSpiceHeaderLevel3();
-        DRCRules drcRules = tech.getFactoryDesignRules(false);
+        DRCRules drcRules = tech.getFactoryDesignRules();
         if (drcRules != null) {
             int rulesSize = layerTotal*(layerTotal + 1)/2;
             gi.conDist = new double[rulesSize];
