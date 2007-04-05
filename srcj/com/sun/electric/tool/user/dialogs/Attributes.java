@@ -112,6 +112,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         theDialog.loadAttributesInfo(false);
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
+		theDialog.toFront();
    }
 
     /**

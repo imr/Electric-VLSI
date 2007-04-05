@@ -213,6 +213,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         theDialog.loadTextInfo();
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
+		theDialog.toFront();
     }
 
     /**
@@ -322,7 +323,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             header.setText("No Text Selected");
             evaluation.setText(" ");
             theText.setText("");
-            theText.setEnabled(false);
+            // for some reason, the following line causes keyboard input to get ignored on SUSE Linux 9.1
+//            theText.setEnabled(false);
 			cti = null;
             textPanel.setTextDescriptor(null, null);
             attrPanel.setVariable(null, null);

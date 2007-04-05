@@ -103,6 +103,7 @@ public class Change extends EDialog implements HighlightListener
 		}
 		theDialog.loadInfo(true);
 		theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
 	/** Creates new form Change */

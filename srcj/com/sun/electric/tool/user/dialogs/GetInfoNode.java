@@ -134,6 +134,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             theDialog.pack();
         }
         theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
     /**

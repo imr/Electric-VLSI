@@ -182,6 +182,7 @@ public class SpecialProperties
 			initComponents(wnd, ni, title, TextUtils.formatDouble(num), theScales, scale.getName(), units);
 			cancelHit = moreHit = false;
 			setVisible(true);
+			toFront();
 
 			// all done: see if value should be updated
 			if (!cancelHit)

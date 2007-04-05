@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/5/07, SMR) Modeless dialogs are not brought to the front when created (Bug #949).
+FIX: Added "toFront()" call after creating modeless dialogs.
+
+BUG: (4/5/07, SMR) Keyboard input lost when Text Properties dialog appears (Bug #945).
+FIX: In GetInfoText.loadTextInfo() do not call "theText.setEnabled(false)"
+
 IMP: (4/5/07, DN) PortCharacteristic class converted to enum.
 
 IMP: (4/5/07, DN) Removed isHoldsOutline from "generic:Universal-Pin" node.

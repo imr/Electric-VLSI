@@ -180,6 +180,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         theDialog.loadMultiInfo();
         theDialog.pack();
 		theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
 	/**

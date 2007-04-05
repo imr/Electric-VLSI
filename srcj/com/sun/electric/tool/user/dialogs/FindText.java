@@ -63,6 +63,7 @@ public class FindText extends EDialog
 	{
 		FindText dialog = new FindText(TopLevel.getCurrentJFrame(), false);
 		dialog.setVisible(true);
+		dialog.toFront();
 	}
 
     // Method to clean last search

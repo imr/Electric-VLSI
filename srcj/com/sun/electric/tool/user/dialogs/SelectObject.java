@@ -93,6 +93,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         if (updateOnlyIfVisible && !theDialog.isVisible()) return; // it is not previously visible
 		theDialog.setVisible(true);
 		theDialog.buttonClicked(thisCell);
+		theDialog.toFront();
 	}
 
 	/** Creates new form SelectObject */

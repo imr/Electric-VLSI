@@ -82,6 +82,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
         theDialog.loadDialog();
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
 	/** Creates new form GetInfoOutline */

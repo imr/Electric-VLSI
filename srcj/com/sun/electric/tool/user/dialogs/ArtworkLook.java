@@ -129,6 +129,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		finishInitialization();
 		Highlighter.addHighlightListener(this);
 		setVisible(true);
+		toFront();
 	}
 
 	protected void escapePressed() { cancel(null); }
