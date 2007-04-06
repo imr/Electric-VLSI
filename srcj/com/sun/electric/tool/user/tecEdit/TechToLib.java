@@ -160,17 +160,22 @@ public class TechToLib
         gi.shortName = tech.getTechShortName();
         if (gi.shortName == null)
             gi.shortName = tech.getTechName();
+        gi.nonElectrical = tech.isNonElectrical();
 		gi.scale = tech.getScale();
         gi.scaleRelevant = tech.isScaleRelevant();
+        gi.resolution = tech.getResolution();
         gi.defaultFoundry = tech.getPrefFoundry();
         gi.defaultNumMetals = tech.getNumMetals();
 		gi.description = tech.getTechDesc();
-		gi.minRes = tech.getMinResistance();
-		gi.minCap = tech.getMinCapacitance();
+		gi.minRes = tech.getMinResistanceSetting().getDoubleFactoryValue();
+		gi.minCap = tech.getMinCapacitanceSetting().getDoubleFactoryValue();
         gi.maxSeriesResistance = tech.getMaxSeriesResistance();
 		gi.gateShrinkage = tech.getGateLengthSubtraction();
 		gi.includeGateInResistance = tech.isGateIncluded();
 		gi.includeGround = tech.isGroundNetIncluded();
+        gi.gateCapacitance = tech.getGateCapacitanceSetting().getDoubleFactoryValue();
+        gi.wireRatio = tech.getWireRatioSetting().getDoubleFactoryValue();
+        gi.diffAlpha = tech.getDiffAlphaSetting().getDoubleFactoryValue();
 		Color [] wholeMap = tech.getColorMap();
 		int numLayers = tech.getNumTransparentLayers();
 		gi.transparentColors = new Color[numLayers];
@@ -237,15 +242,17 @@ public class TechToLib
 			li.desc = desc;
 
 			// compute foreign file formats
-			li.cif = layer.getCIFLayer();
+			li.cif = (String)layer.getCIFLayerSetting().getFactoryValue();
+            li.dxf = (String)layer.getDXFLayerSetting().getFactoryValue();
+            li.skill = (String)layer.getSkillLayerSetting().getFactoryValue();
             String gdsLayer = gdsLayers.get(layer);
             if (gdsLayer != null)
                 li.gds = gdsLayer;
 
 			// compute the SPICE information
-			li.spiRes = layer.getResistance();
-			li.spiCap = layer.getCapacitance();
-			li.spiECap = layer.getEdgeCapacitance();
+			li.spiRes = layer.getResistanceSetting().getDoubleFactoryValue();
+			li.spiCap = layer.getCapacitanceSetting().getDoubleFactoryValue();
+			li.spiECap = layer.getEdgeCapacitanceSetting().getDoubleFactoryValue();
 
 			// compute the 3D information
 			li.height3d = layer.getDistance();
@@ -261,19 +268,17 @@ public class TechToLib
 
 		// create the arc cells
 		System.out.println("Creating the arcs...");
-		int arcTotal = 0;
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			if (!ap.isNotUsed()) arcTotal++;
-		}
-        ArcInfo[] aList = new ArcInfo[arcTotal];
-        arcTotal = 0;
+        int arcTotal = 0;
+        int arcCount = 0;
+        ArcInfo[] aList = new ArcInfo[tech.getNumArcs()];
 		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
+			ArcInfo aIn = makeArcInfo(ap, lList);
+            aList[arcCount++] = aIn;
 			if (ap.isNotUsed()) continue;
+            
 			String fName = "arc-" + ap.getName() + "{lay}";
 
 			// make sure the arc doesn't exist
@@ -288,18 +293,6 @@ public class TechToLib
 			aNp.setTechnology(Artwork.tech);
 			aNp.setInTechnologyLibrary();
 
-			ArcInfo aIn = new ArcInfo();
-            aList[arcTotal] = aIn;
-            aIn.name = ap.getName();
-			aIn.func = ap.getFunction();
-            aIn.widthOffset = ap.getLambdaWidthOffset();
-            aIn.maxWidth = ap.getDefaultLambdaFullWidth();
-			aIn.fixAng = ap.isFixedAngle();
-			aIn.wipes = ap.isWipable();
-			aIn.noExtend = !ap.isExtended();
-            aIn.curvable = ap.isCurvable();
-			aIn.angInc = ap.getAngleIncrement();
-			aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
 			arcCells.put(ap, aNp);
 			aIn.generate(aNp);
 
@@ -308,21 +301,12 @@ public class TechToLib
 			double widX4 = wid * 4;
 			if (widX4 <= 0) widX4 = 10;
 			Poly [] polys = ap.getShapeOfDummyArc(widX4);
-            aIn.arcDetails = new ArcInfo.LayerDetails[polys.length];
 			double xOff = wid*2 + wid/2 + ap.getLambdaWidthOffset()/2;
 			for(int i=0; i<polys.length; i++)
 			{
-                ArcInfo.LayerDetails al = new ArcInfo.LayerDetails();
-                aIn.arcDetails[i] = al;
-                
 				Poly poly = polys[i];
 				Layer arcLayer = poly.getLayer();
 				if (arcLayer == null) continue;
-                for(int j=0; j<lList.length; j++) {
-                    if (arcLayer.getName().equals(lList[j].name)) { al.layer = lList[j];   break; }
-                }
-                al.style = ap.getArcLayer(i).getStyle();
-                al.width = ap.getArcLayer(i).getLambdaOffset();
 				EGraphics arcDesc = arcLayer.getGraphics();
 
 				// scale the arc geometry appropriately
@@ -364,6 +348,7 @@ public class TechToLib
 
 		// create the node cells
 		System.out.println("Creating the nodes...");
+        NodeInfo[] nList = new NodeInfo[tech.getNumNodes()];
 		int nodeTotal = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
@@ -371,56 +356,15 @@ public class TechToLib
 			if (!pnp.isNotUsed()) nodeTotal++;
 		}
 		String [] nodeSequence = new String[nodeTotal];
-        NodeInfo[] nList = new NodeInfo[nodeTotal];
+        int nodeCount = 0;
 		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = it.next();
-			if (pnp.isNotUsed()) continue;
-            NodeInfo nIn = new NodeInfo();
-            nList[nodeIndex] = nIn;
-            nIn.name = pnp.getName();
-            nIn.func = pnp.getFunction();
-            nIn.serp = false;
-            if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
-                    nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
-            nIn.square = pnp.isSquare();
-            nIn.wipes = pnp.isWipeOn1or2();
-            nIn.arcsShrink = pnp.isArcsShrink();
-            nIn.lockable = pnp.isLockedPrim();
-            nIn.xSize = pnp.getDefWidth();
-            nIn.ySize = pnp.getDefHeight();
-            nIn.so = pnp.getProtoSizeOffset();
-            if (nIn.so.getLowXOffset() == 0 && nIn.so.getHighXOffset() == 0 && nIn.so.getLowYOffset() == 0 && nIn.so.getHighYOffset() == 0)
-                nIn.so = null;
-            nIn.specialType = pnp.getSpecialType();
-            nIn.specialValues = pnp.getSpecialValues();
             Technology.NodeLayer[] nodeLayers = pnp.getLayers();
-            nIn.nodeLayers = new NodeInfo.LayerDetails[nodeLayers.length];
-            for (int i = 0; i < nodeLayers.length; i++)
-                nIn.nodeLayers[i] = genNodeLayerDetails(nodeLayers[i], lList);
-            Technology.NodeLayer[] electricalLayers = pnp.getElectricalLayers();
-            if (electricalLayers != null) {
-                nIn.electricalLayers = new NodeInfo.LayerDetails[electricalLayers.length];
-                for (int i = 0; i < electricalLayers.length; i++)
-                    nIn.electricalLayers[i] = genNodeLayerDetails(electricalLayers[i], lList);
-            }
-            nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
-            for (int i = 0; i < nIn.nodePortDetails.length; i++) {
-                PrimitivePort pp = pnp.getPort(i);
-                NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
-                nIn.nodePortDetails[i] = pd;
-                pd.name = pp.getName();
-                pd.netIndex = pp.getTopology();
-                pd.angle = pp.getAngle();
-                pd.range = pp.getAngleRange();
-                pd.values = new Technology.TechPoint[] {
-                    new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
-                    new Technology.TechPoint(pp.getRight(), pp.getTop())};
-                pd.characterisitic = pp.getCharacteristic();
-                pd.isolated = pp.isIsolated();
-                pd.negatable = pp.isNegatable();
-            }
+            NodeInfo nIn = makeNodeInfo(pnp, lList, aList);
+            nList[nodeCount++] = nIn;
+			if (pnp.isNotUsed()) continue;
             
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;
@@ -592,7 +536,6 @@ public class TechToLib
 					// add in the "local" port connections (from this tech)
 					ArcProto [] connects = pp.getConnections();
 					List<Cell> validConns = new ArrayList<Cell>();
-                    List<ArcInfo> validArcInfoConns = new ArrayList<ArcInfo>();
 					for(int i=0; i<connects.length; i++)
 					{
 						if (connects[i].getTechnology() != tech) continue;
@@ -600,12 +543,10 @@ public class TechToLib
 						if (cell != null) validConns.add(cell);
                         for (int k = 0; k < aList.length; k++) {
                             if (aList[k].name.equals(connects[i].getName())) {
-                                validArcInfoConns.add(aList[k]);
                                 break;
                             }
                         }
 					}
-                    nIn.nodePortDetails[pp.getPortIndex()].connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
 					if (validConns.size() > 0)
 					{
 						CellId [] aplist = new CellId[validConns.size()];
@@ -793,7 +734,113 @@ public class TechToLib
 		return(lib);
 	}
 
-    private static NodeInfo.LayerDetails genNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList) {
+    private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList) {
+        ArcInfo aIn = new ArcInfo();
+        aIn.name = ap.getName();
+        aIn.func = ap.getFunction();
+        aIn.widthOffset = ap.getLambdaWidthOffset();
+        aIn.maxWidth = ap.getDefaultLambdaFullWidth();
+        aIn.fixAng = ap.isFixedAngle();
+        aIn.wipes = ap.isWipable();
+        aIn.noExtend = !ap.isExtended();
+        aIn.curvable = ap.isCurvable();
+        aIn.special = ap.isSpecialArc();
+        aIn.notUsed = ap.isNotUsed();
+        aIn.skipSizeInPalette = ap.isSkipSizeInPalette();
+        aIn.slidable = ap.isSlidable();
+        aIn.angInc = ap.getAngleIncrement();
+        aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
+        aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];
+        for(int i=0; i<aIn.arcDetails.length; i++) {
+            Technology.ArcLayer al = ap.getArcLayer(i);
+            ArcInfo.LayerDetails ald = new ArcInfo.LayerDetails();
+            aIn.arcDetails[i] = ald;
+            for(int j=0; j<lList.length; j++) {
+                if (lList[j].name.equals(al.getLayer().getName())) { ald.layer = lList[j];   break; }
+            }
+            ald.style = al.getStyle();
+            ald.width = al.getLambdaOffset();
+        }
+        return aIn;
+    }
+    
+    private static NodeInfo makeNodeInfo(PrimitiveNode pnp, LayerInfo[] lList, ArcInfo[] aList) {
+        Technology tech = pnp.getTechnology();
+        NodeInfo nIn = new NodeInfo();
+        nIn.name = pnp.getName();
+        nIn.func = pnp.getFunction();
+        nIn.serp = false;
+        if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
+                nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
+        nIn.arcsShrink = pnp.isArcsShrink();
+        assert pnp.isArcsWipe() == nIn.arcsShrink;
+        nIn.square = pnp.isSquare();
+        assert pnp.isHoldsOutline() == (pnp.getSpecialType() == PrimitiveNode.POLYGONAL || pnp.getSpecialType() == PrimitiveNode.SERPTRANS);
+        nIn.canBeZeroSize = pnp.isCanBeZeroSize();
+        nIn.wipes = pnp.isWipeOn1or2();
+        nIn.lockable = pnp.isLockedPrim();
+        nIn.edgeSelect = pnp.isEdgeSelect();
+        nIn.skipSizeInPalette = pnp.isSkipSizeInPalette();
+        nIn.notUsed = pnp.isNotUsed();
+        nIn.lowVt = pnp.isNodeBitOn(PrimitiveNode.LOWVTBIT);
+        nIn.highVt = pnp.isNodeBitOn(PrimitiveNode.HIGHVTBIT);
+        nIn.nativeBit = pnp.isNodeBitOn(PrimitiveNode.NATIVEBIT);
+        nIn.od18 = pnp.isNodeBitOn(PrimitiveNode.OD18BIT);
+        nIn.od25 = pnp.isNodeBitOn(PrimitiveNode.OD25BIT);
+        nIn.od33 = pnp.isNodeBitOn(PrimitiveNode.OD33BIT);
+        nIn.xSize = pnp.getDefWidth();
+        nIn.ySize = pnp.getDefHeight();
+        nIn.so = pnp.getProtoSizeOffset();
+        if (nIn != null && nIn.so.getLowXOffset() == 0 && nIn.so.getHighXOffset() == 0 && nIn.so.getLowYOffset() == 0 && nIn.so.getHighYOffset() == 0)
+            nIn.so = null;
+        nIn.nodeSizeRule = pnp.getMinSizeRule();
+        nIn.autoGrowth = pnp.getAutoGrowth();
+        nIn.specialType = pnp.getSpecialType();
+        nIn.specialValues = pnp.getSpecialValues();
+        Technology.NodeLayer[] nodeLayers = pnp.getLayers();
+        nIn.nodeLayers = new NodeInfo.LayerDetails[nodeLayers.length];
+        for (int i = 0; i < nodeLayers.length; i++)
+            nIn.nodeLayers[i] = makeNodeLayerDetails(nodeLayers[i], lList);
+        Technology.NodeLayer[] electricalLayers = pnp.getElectricalLayers();
+        if (electricalLayers != null) {
+            nIn.electricalLayers = new NodeInfo.LayerDetails[electricalLayers.length];
+            for (int i = 0; i < electricalLayers.length; i++)
+                nIn.electricalLayers[i] = makeNodeLayerDetails(electricalLayers[i], lList);
+        }
+        nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
+        for (int i = 0; i < nIn.nodePortDetails.length; i++) {
+            PrimitivePort pp = pnp.getPort(i);
+            NodeInfo.PortDetails pd = new NodeInfo.PortDetails();
+            nIn.nodePortDetails[i] = pd;
+            pd.name = pp.getName();
+            pd.netIndex = pp.getTopology();
+            pd.angle = pp.getAngle();
+            pd.range = pp.getAngleRange();
+            pd.values = new Technology.TechPoint[] {
+                new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
+                new Technology.TechPoint(pp.getRight(), pp.getTop())};
+            pd.characterisitic = pp.getCharacteristic();
+            pd.isolated = pp.isIsolated();
+            pd.negatable = pp.isNegatable();
+            
+            ArcProto [] connects = pp.getConnections();
+            List<ArcInfo> validArcInfoConns = new ArrayList<ArcInfo>();
+            for(int j=0; j<connects.length; j++) {
+                ArcProto ap = connects[j];
+                if (ap.getTechnology() != tech) continue;
+                for (int k = 0; k < aList.length; k++) {
+                    if (aList[k].name.equals(ap.getName())) {
+                        validArcInfoConns.add(aList[k]);
+                        break;
+                    }
+                }
+            }
+            pd.connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
+        }
+        return nIn;
+    }
+    
+    private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList) {
         NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
         nld.style = nl.getStyle();
         nld.portIndex = nl.getPortNum();

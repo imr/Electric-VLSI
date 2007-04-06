@@ -40,8 +40,10 @@ import java.util.Iterator;
 public class GeneralInfo extends Info
 {
     /** the short name of the technology */         String   shortName;
+    /** true if technology is "non-electrical" */   boolean  nonElectrical;
 	/** the scale factor of the technology */		double   scale;
     /** is scale factor relvant */                  boolean  scaleRelevant;
+    /** factory resolution */                       double   resolution;
     /** default foundry name of the technology */   String   defaultFoundry;
     /** default number of metals */                 int      defaultNumMetals;
 	/** the full description of the technology */	String   description;
@@ -50,6 +52,9 @@ public class GeneralInfo extends Info
 	/** gate shrinkage for the technology */		double   gateShrinkage;
 	/** true to include gates in resistance calc */	boolean  includeGateInResistance;
 	/** true to include ground in parasitics */		boolean  includeGround;
+	/** Logical effort gate capacitance preference. */double gateCapacitance;
+	/** Logical effort wire ratio preference. */	double wireRatio;
+	/** Logical effort diff alpha preference. */	double diffAlpha;
 	/** the transparent colors in the technology */	Color [] transparentColors;
 	/** spice level 1 header */                     String [] spiceLevel1Header;
 	/** spice level 2 header */                     String [] spiceLevel2Header;

@@ -4,6 +4,36 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/5/07, DN) Some pure layer nodes have no POLYGONAL special type.
+FIX: Set POLYGONAL special type to "generic:DRC-Node" and "generic:AFG-Node".
+
+BUG: (4/5/07. DN) Some pure layer nodes have non-zero port indent.
+FIX: Set zero port indenet for pure layer nodes:
+    tsmc180:NT-N-Node
+    cmos90:VTH-N-Node
+    cmos90:VTH-P-Node
+    cmos90:VTL-N-Node
+    cmos90:VTL-P-Node
+    cmos90:OD18-Node
+    cmos90:OD25-Node
+    cmos90:OD33-Node
+    cmos90:NT-N-Node
+    cmos90:Metal-1-Node
+    cmos90:Metal-2-Node
+    cmos90:Metal-3-Node
+    cmos90:Metal-4-Node
+    cmos90:Metal-5-Node
+    cmos90:Metal-6-Node
+    cmos90:Metal-7-Node
+    cmos90:Metal-8-Node
+    cmos90:Metal-9-Node
+    cmos90:Polysilicon-Node
+    cmos90:N-Active-Node
+    cmos90:P-Active-Node
+    cmos90:N-Well-Node
+    cmos90:P-Well-Node
+    cmos90:Transistor-Poly-Node
+
 BUG: (4/5/07, SMR) Modeless dialogs are not brought to the front when created (Bug #949).
 FIX: Added "toFront()" call after creating modeless dialogs.
 

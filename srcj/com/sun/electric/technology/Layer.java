@@ -47,20 +47,24 @@ import java.util.Collection;
  */
 public class Layer
 {
-    /** Describes a P-type layer. */												public static final int PTYPE =          0100;
-    /** Describes a N-type layer. */												public static final int NTYPE =          0200;
-    /** Describes a depletion layer. */												public static final int DEPLETION =      0400;
-    /** Describes a enhancement layer. */											public static final int ENHANCEMENT =   01000;
-    /** Describes a light doped layer. */											public static final int LIGHT =         02000;
-    /** Describes a heavy doped layer. */											public static final int HEAVY =         04000;
-    /** Describes a pseudo layer. */												public static final int PSEUDO =       010000;
-    /** Describes a nonelectrical layer (does not carry signals). */				public static final int NONELEC =      020000;
-    /** Describes a layer that contacts metal (used to identify contacts/vias). */	public static final int CONMETAL =     040000;
-    /** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY =     0100000;
-    /** Describes a layer that contacts diffusion (used to identify contacts). */	public static final int CONDIFF =     0200000;
-    /** Describes a layer that is VTH or VTL */								        public static final int HLVT =      010000000;
-    /** Describes a layer that is inside transistor. */								public static final int INTRANS =   020000000;
-    /** Describes a thick layer. */								                    public static final int THICK =     040000000;
+    private static final double DEFAULT_THICKNESS = 0;
+    private static final double DEFAULT_DISTANCE = 0;
+    private static final double DEFAULT_AREA_COVERAGE = 10; // 10%
+    
+    /** Describes a P-type layer. */												private static final int PTYPE =          0100;
+    /** Describes a N-type layer. */												private static final int NTYPE =          0200;
+    /** Describes a depletion layer. */												private static final int DEPLETION =      0400;
+    /** Describes a enhancement layer. */											private static final int ENHANCEMENT =   01000;
+    /** Describes a light doped layer. */											private static final int LIGHT =         02000;
+    /** Describes a heavy doped layer. */											private static final int HEAVY =         04000;
+    /** Describes a pseudo layer. */												private static final int PSEUDO =       010000;
+    /** Describes a nonelectrical layer (does not carry signals). */				private static final int NONELEC =      020000;
+    /** Describes a layer that contacts metal (used to identify contacts/vias). */	private static final int CONMETAL =     040000;
+    /** Describes a layer that contacts polysilicon (used to identify contacts). */	private static final int CONPOLY =     0100000;
+    /** Describes a layer that contacts diffusion (used to identify contacts). */	private static final int CONDIFF =     0200000;
+    /** Describes a layer that is VTH or VTL */								        private static final int HLVT =      010000000;
+    /** Describes a layer that is inside transistor. */								private static final int INTRANS =   020000000;
+    /** Describes a thick layer. */								                    private static final int THICK =     040000000;
     
     private static final ArrayList<Function> metalLayers = new ArrayList<Function>();
     private static final ArrayList<Function> contactLayers = new ArrayList<Function>();
@@ -127,8 +131,8 @@ public class Layer
 		/** Describes a control layer. */						CONTROL   ("control",     0, 0, 0, 44, 0),
         /** Describes a tileNot layer. */						TILENOT   ("tileNot",     0, 0, 0, 45, 0);
         
-        /** Describes a P-type layer. */												public static final int PTYPE = Layer.PTYPE;
-        /** Describes a N-type layer. */												public static final int NTYPE = Layer.NTYPE;
+//        /** Describes a P-type layer. */												public static final int PTYPE = Layer.PTYPE;
+//        /** Describes a N-type layer. */												public static final int NTYPE = Layer.NTYPE;
         /** Describes a depletion layer. */												public static final int DEPLETION = Layer.DEPLETION;
         /** Describes a enhancement layer. */											public static final int ENHANCEMENT = Layer.ENHANCEMENT;
         /** Describes a light doped layer. */											public static final int LIGHT = Layer.LIGHT;
@@ -139,7 +143,7 @@ public class Layer
         /** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY = Layer.CONPOLY;
         /** Describes a layer that contacts diffusion (used to identify contacts). */	public static final int CONDIFF = Layer.CONDIFF;
         /** Describes a layer that is VTH or VTL */								        public static final int HLVT = Layer.HLVT;
-        /** Describes a layer that is inside transistor. */								public static final int INTRANS = Layer.INTRANS;
+//        /** Describes a layer that is inside transistor. */								public static final int INTRANS = Layer.INTRANS;
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
     
 		private final String name;
@@ -499,7 +503,6 @@ public class Layer
 	private Setting dxfLayerSetting;
 //	private String gdsLayer;
 	private Setting skillLayerSetting;
-	private double thickness, distance, areaCoverage;
     private Setting resistanceSetting;
     private Setting capacitanceSetting;
     private Setting edgeCapacitanceSetting;
@@ -528,7 +531,6 @@ public class Layer
 		visibilityInitialized = false;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
-        this.areaCoverage = 10; // 10% as default
 	}
 
 	/**
@@ -855,10 +857,8 @@ public class Layer
 	 */
 	public void setFactory3DInfo(double thickness, double distance)
 	{
-		this.thickness = thickness;
-		this.distance = distance;
-		getDoublePref("Distance", layer3DDistancePrefs, this.distance).setDouble(this.distance);
-		getDoublePref("Thickness", layer3DThicknessPrefs, this.thickness).setDouble(this.thickness);
+		getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
+		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
 	}
 
 	/**
@@ -866,7 +866,7 @@ public class Layer
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane.
 	 */
-	public double getDistance() { return getDoublePref("Distance", layer3DDistancePrefs, distance).getDouble(); }
+	public double getDistance() { return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble(); }
 
 	/**
 	 * Method to set the distance of this layer.
@@ -886,7 +886,7 @@ public class Layer
             System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
             e.printStackTrace();
         }
-        getDoublePref("Distance", layer3DDistancePrefs, this.distance).setDouble(distance);
+        getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
     }
 
 	/**
@@ -903,7 +903,7 @@ public class Layer
 	 * Layers can have a thickness of 0, which causes them to be rendered flat.
 	 * @return the thickness of this layer.
 	 */
-	public double getThickness() { return getDoublePref("Thickness", layer3DThicknessPrefs, thickness).getDouble(); }
+	public double getThickness() { return getDoublePref("Thickness", layer3DThicknessPrefs, DEFAULT_THICKNESS).getDouble(); }
 
 	/**
 	 * Method to set the thickness of this layer.
@@ -918,7 +918,7 @@ public class Layer
         {
             Class<?> viewClass = Resources.get3DClass("View3DWindow");
             Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
-            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(distance), new Double(thickness)});
+            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(getDistance()), new Double(thickness)});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
             e.printStackTrace();
@@ -1084,21 +1084,20 @@ public class Layer
 	 */
 	public void setFactoryAreaCoverage(double area)
 	{
-		this.areaCoverage = area;
-		getDoublePref("AreaCoverageJob", areaCoveragePrefs, this.areaCoverage).setDouble(this.areaCoverage);
+		getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area);
 	}
 
     /**
 	 * Method to return the minimu area coverage that the layer must reach in the technology.
 	 * @return the minimum area coverage (in percentage).
 	 */
-	public double getAreaCoverage() { return getDoublePref("AreaCoverageJob", areaCoveragePrefs, areaCoverage).getDouble(); }
+	public double getAreaCoverage() { return getDoublePref("AreaCoverageJob", areaCoveragePrefs, DEFAULT_AREA_COVERAGE).getDouble(); }
 
     /**
      * Methot to set minimu area coverage that the layer must reach in the technology.
      * @param area the minimum area coverage (in percentage).
      */
-	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, areaCoverage).setDouble(area); }
+	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area); }
 
      /**
      * Method to finish initialization of this Technology.

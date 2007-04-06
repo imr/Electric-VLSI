@@ -229,7 +229,8 @@ public class Generic extends Technology
 			});
 		drcNode.setFunction(PrimitiveNode.Function.NODE);
 		drcNode.setHoldsOutline();
-
+        drcNode.setSpecialType(PrimitiveNode.POLYGONAL);
+        
         /** AFG Node */
 		afgNode = PrimitiveNode.newInstance("AFG-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
@@ -243,6 +244,7 @@ public class Generic extends Technology
 			});
 		afgNode.setFunction(PrimitiveNode.Function.NODE);
 		afgNode.setHoldsOutline();
+        afgNode.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Essential Bounds Node */
 		essentialBoundsNode = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, null,

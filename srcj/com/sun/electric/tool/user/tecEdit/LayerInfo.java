@@ -55,6 +55,8 @@ public class LayerInfo extends Info
 	Layer.Function fun;
 	int            funExtra;
 	String         cif;
+    String         dxf;
+    String         skill;
 	String         gds;
 	double         spiRes;
 	double         spiCap;

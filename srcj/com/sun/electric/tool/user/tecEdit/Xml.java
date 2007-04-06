@@ -181,9 +181,9 @@ public class Xml {
         String funString = null;
         if (li.funExtra != 0) {
             int funExtra = li.funExtra;
-            if ((funExtra&Layer.DEPLETION) != 0 || (funExtra&Layer.ENHANCEMENT) != 0) {
-                funString = Layer.Function.getExtraConstantName(funExtra&(Layer.DEPLETION|Layer.ENHANCEMENT));
-                funExtra &= ~(Layer.DEPLETION|Layer.ENHANCEMENT);
+            if ((funExtra&Layer.Function.DEPLETION) != 0 || (funExtra&Layer.Function.ENHANCEMENT) != 0) {
+                funString = Layer.Function.getExtraConstantName(funExtra&(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT));
+                funExtra &= ~(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT);
                 if (funExtra != 0)
                     funString += "_" + Layer.Function.getExtraConstantName(funExtra);
             } else {

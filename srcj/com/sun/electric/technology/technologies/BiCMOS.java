@@ -1726,7 +1726,8 @@ public class BiCMOS extends Technology
 
 	}
 
-    public DRCRules getFactoryDesignRules(boolean resizeNodes)
+    @Override
+    public DRCRules getFactoryDesignRules()
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

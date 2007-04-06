@@ -1293,7 +1293,8 @@ public class LibToTech
 							int funExtraOld = nIn.nodeLayers[difIndex].layer.funExtra;
 							int funExtraNew = nld.layer.funExtra;
 							if (funExtraOld == funExtraNew) continue;
-							if ((funExtraOld & ~(Layer.Function.PTYPE|Layer.Function.NTYPE)) == 0)
+							if (funExtraOld == 0)
+//							if ((funExtraOld & ~(Layer.Function.PTYPE|Layer.Function.NTYPE)) == 0)
 								continue;
 						}
 						difIndex = k;
@@ -2653,10 +2654,13 @@ public class LibToTech
 		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
 		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale, NUM_FRACTIONS) + ", true);   // in nanometers: really " +
 			(gi.scale / 1000) + " microns");
-		buffWriter.println("\t\tsetMaxSeriesResistance(" + gi.maxSeriesResistance + ");");
-		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
-		buffWriter.println("\t\tsetGateIncluded(" + gi.includeGateInResistance + ");");
-		buffWriter.println("\t\tsetGroundNetIncluded(" + gi.includeGround + ");");
+        buffWriter.println("\t\tsetFactoryResolution(" + gi.resolution + ");");
+//		buffWriter.println("\t\tsetMaxSeriesResistance(" + gi.maxSeriesResistance + ");");
+//		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
+//		buffWriter.println("\t\tsetGateIncluded(" + gi.includeGateInResistance + ");");
+//		buffWriter.println("\t\tsetGroundNetIncluded(" + gi.includeGround + ");");
+        if (gi.nonElectrical)
+            buffWriter.println("\t\tsetNonElectrical();");
 		buffWriter.println("\t\tsetNoNegatedArcs();");
 		buffWriter.println("\t\tsetStaticTechnology();");
 
@@ -2682,33 +2686,34 @@ public class LibToTech
 			lList[i].javaName = makeJavaName(lList[i].name);
 			buffWriter.println("\t\t/** " + lList[i].name + " layer */");
 			buffWriter.println("\t\tLayer " + lList[i].javaName + "_lay = Layer.newInstance(this, \"" + lList[i].name + "\",");
+            EGraphics desc = lList[i].desc;
 			buffWriter.print("\t\t\tnew EGraphics(");
-			if (lList[i].desc.isPatternedOnDisplay()) buffWriter.print("true"); else
+			if (desc.isPatternedOnDisplay()) buffWriter.print("true"); else
 				buffWriter.print("false");
 			buffWriter.print(", ");
 
-			if (lList[i].desc.isPatternedOnPrinter()) buffWriter.print("true"); else
+			if (desc.isPatternedOnPrinter()) buffWriter.print("true"); else
 				buffWriter.print("false");
 			buffWriter.print(", ");
 
-			EGraphics.Outline o = lList[i].desc.getOutlined();
+			EGraphics.Outline o = desc.getOutlined();
 			if (o == EGraphics.Outline.NOPAT) buffWriter.print("null"); else
 				buffWriter.print("EGraphics.Outline." + o.getConstName());
 			buffWriter.print(", ");
 
 			String transparent = "0";
-			if (lList[i].desc.getTransparentLayer() > 0)
-				transparent = "EGraphics.TRANSPARENT_" + lList[i].desc.getTransparentLayer();
-			int red = lList[i].desc.getColor().getRed();
-			int green = lList[i].desc.getColor().getGreen();
-			int blue = lList[i].desc.getColor().getBlue();
+			if (desc.getTransparentLayer() > 0)
+				transparent = "EGraphics.TRANSPARENT_" + desc.getTransparentLayer();
+			int red = desc.getColor().getRed();
+			int green = desc.getColor().getGreen();
+			int blue = desc.getColor().getBlue();
 			if (red < 0 || red > 255) red = 0;
 			if (green < 0 || green > 255) green = 0;
 			if (blue < 0 || blue > 255) blue = 0;
-			buffWriter.println(transparent + ", " + red + "," + green + "," + blue + ", 0.8,true,");
+			buffWriter.println(transparent + ", " + red + "," + green + "," + blue + ", " + desc.getOpacity() + ", " + desc.getForeground() + ",");
 
 			boolean hasPattern = false;
-			int [] pattern = lList[i].desc.getPattern();
+			int [] pattern = desc.getPattern();
 			for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
 			if (hasPattern)
 			{
@@ -2744,38 +2749,38 @@ public class LibToTech
 			Layer.Function fun = lList[i].fun;
 			int funExtra = lList[i].funExtra;
 			String infstr = lList[i].javaName + "_lay.setFunction(Layer.Function.";
-			if (fun.isDiff() && (funExtra&Layer.Function.PTYPE) != 0)
-			{
-				infstr += "DIFFP";
-				funExtra &= ~Layer.Function.PTYPE;
-			} else if (fun.isDiff() && (funExtra&Layer.Function.NTYPE) != 0)
-			{
-				infstr += "DIFFN";
-				funExtra &= ~Layer.Function.NTYPE;
-			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.PTYPE) != 0)
-			{
-				infstr += "WELLP";
-				funExtra &= ~Layer.Function.PTYPE;
-			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.NTYPE) != 0)
-			{
-				infstr += "WELLN";
-				funExtra &= ~Layer.Function.NTYPE;
-			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.PTYPE) != 0)
-			{
-				infstr += "IMPLANTP";
-				funExtra &= ~Layer.Function.PTYPE;
-			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.NTYPE) != 0)
-			{
-				infstr += "IMPLANTN";
-				funExtra &= ~Layer.Function.NTYPE;
-			} else if (fun.isPoly() && (funExtra&Layer.Function.INTRANS) != 0)
-			{
-				infstr += "GATE";
-				funExtra &= ~Layer.Function.INTRANS;
-			} else
-			{
+//			if (fun.isDiff() && (funExtra&Layer.Function.PTYPE) != 0)
+//			{
+//				infstr += "DIFFP";
+//				funExtra &= ~Layer.Function.PTYPE;
+//			} else if (fun.isDiff() && (funExtra&Layer.Function.NTYPE) != 0)
+//			{
+//				infstr += "DIFFN";
+//				funExtra &= ~Layer.Function.NTYPE;
+//			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.PTYPE) != 0)
+//			{
+//				infstr += "WELLP";
+//				funExtra &= ~Layer.Function.PTYPE;
+//			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.NTYPE) != 0)
+//			{
+//				infstr += "WELLN";
+//				funExtra &= ~Layer.Function.NTYPE;
+//			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.PTYPE) != 0)
+//			{
+//				infstr += "IMPLANTP";
+//				funExtra &= ~Layer.Function.PTYPE;
+//			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.NTYPE) != 0)
+//			{
+//				infstr += "IMPLANTN";
+//				funExtra &= ~Layer.Function.NTYPE;
+//			} else if (fun.isPoly() && (funExtra&Layer.Function.INTRANS) != 0)
+//			{
+//				infstr += "GATE";
+//				funExtra &= ~Layer.Function.INTRANS;
+//			} else
+//			{
 				infstr += fun.getConstantName();
-			}
+//			}
 			boolean extraFunction = false;
 			int [] extras = Layer.Function.getFunctionExtras();
 			for(int j=0; j<extras.length; j++)
@@ -2801,6 +2806,32 @@ public class LibToTech
 				buffWriter.println("\n\t\t// The CIF names");
 				for(int i=0; i<lList.length; i++)
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryCIFLayer(\"" + lList[i].cif +
+						"\");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+
+		// write the DXF layer names
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].dxf.length() > 0)
+			{
+				buffWriter.println("\n\t\t// The DXF names");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryDXFLayer(\"" + lList[i].dxf +
+						"\");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+
+		// write the Skill layer names
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].skill.length() > 0)
+			{
+				buffWriter.println("\n\t\t// The Skill names");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactorySkillLayer(\"" + lList[i].skill +
 						"\");\t\t// " + lList[i].name);
 				break;
 			}
@@ -2950,31 +2981,42 @@ public class LibToTech
 		// now write the arcs
 		for(int i=0; i<aList.length; i++)
 		{
-			aList[i].javaName = makeJavaName(aList[i].name);
-			buffWriter.println("\n\t\t/** " + aList[i].name + " arc */");
-			buffWriter.println("\t\tArcProto " + aList[i].javaName + "_arc = newArcProto(\"" + aList[i].name +
-                    "\", " + TextUtils.formatDouble(aList[i].widthOffset, NUM_FRACTIONS) +
-                    ", " + TextUtils.formatDouble(aList[i].maxWidth, NUM_FRACTIONS) +
-                    ", ArcProto.Function." + aList[i].func.getConstantName() + ",");
-			for(int k=0; k<aList[i].arcDetails.length; k++)
+            ArcInfo aIn = aList[i];
+			aIn.javaName = makeJavaName(aIn.name);
+			buffWriter.println("\n\t\t/** " + aIn.name + " arc */");
+			buffWriter.println("\t\tArcProto " + aIn.javaName + "_arc = newArcProto(\"" + aIn.name +
+                    "\", " + TextUtils.formatDouble(aIn.widthOffset, NUM_FRACTIONS) +
+                    ", " + TextUtils.formatDouble(aIn.maxWidth, NUM_FRACTIONS) +
+                    ", ArcProto.Function." + aIn.func.getConstantName() + ",");
+			for(int k=0; k<aIn.arcDetails.length; k++)
 			{
-				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + aList[i].arcDetails[k].layer.javaName + "_lay, ");
-				buffWriter.print(TextUtils.formatDouble(aList[i].arcDetails[k].width, NUM_FRACTIONS) + ",");
-				if (aList[i].arcDetails[k].style == Poly.Type.FILLED) buffWriter.print(" Poly.Type.FILLED)"); else
-					buffWriter.print(" Poly.Type.CLOSED)");
+                ArcInfo.LayerDetails al = aList[i].arcDetails[k];
+				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + al.layer.javaName + "_lay, ");
+				buffWriter.print(TextUtils.formatDouble(al.width, NUM_FRACTIONS) + ",");
+				buffWriter.print(" Poly.Type." + al.style.name() + ")");
+//				if (aList[i].arcDetails[k].style == Poly.Type.FILLED) buffWriter.print(" Poly.Type.FILLED)"); else
+//					buffWriter.print(" Poly.Type.CLOSED)");
 				if (k+1 < aList[i].arcDetails.length) buffWriter.print(",");
 				buffWriter.println();
 			}
 			buffWriter.println("\t\t);");
-			if (aList[i].wipes)
-				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWipable();");
-			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryFixedAngle(" + aList[i].fixAng + ");");
-            if (aList[i].curvable)
-				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setCurvable();");
-			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryExtended(" + !aList[i].noExtend + ");");
-			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryAngleIncrement(" + aList[i].angInc + ");");
-			buffWriter.println("\t\tERC.getERCTool().setAntennaRatio(" + aList[i].javaName + "_arc, " +
-				TextUtils.formatDouble(aList[i].antennaRatio, NUM_FRACTIONS) + ");");
+			if (aIn.wipes)
+				buffWriter.println("\t\t" + aIn.javaName + "_arc.setWipable();");
+            if (aIn.curvable)
+				buffWriter.println("\t\t" + aIn.javaName + "_arc.setCurvable();");
+            if (aIn.special)
+				buffWriter.println("\t\t" + aIn.javaName + "_arc.setSpecialArc();");
+            if (aIn.notUsed)
+				buffWriter.println("\t\t" + aIn.javaName + "_arc.setNotUsed(true);");
+            if (aIn.skipSizeInPalette)
+				buffWriter.println("\t\t" + aIn.javaName + "_arc.setSkipSizeInPalette();");
+			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryFixedAngle(" + aIn.fixAng + ");");
+            if (!aIn.slidable)
+    			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactorySlidable(" + aIn.slidable + ");");
+			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryExtended(" + !aIn.noExtend + ");");
+			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryAngleIncrement(" + aIn.angInc + ");");
+			buffWriter.println("\t\tERC.getERCTool().setAntennaRatio(" + aIn.javaName + "_arc, " +
+				TextUtils.formatDouble(aIn.antennaRatio, NUM_FRACTIONS) + ");");
 		}
 	}
 
@@ -3072,6 +3114,17 @@ public class LibToTech
 
 			// print layers
             dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS);
+            for(int k=0; k<nIn.nodeLayers.length; k++) {
+                NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+                if (nld.message != null)
+                    buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setMessage(\"" + nld.message + "\");");
+                TextDescriptor td = nld.descriptor;
+                if (td != null) {
+                    buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setDescriptor(TextDescriptor.newTextDescriptor(");
+                    buffWriter.println("\t\t\tnew MutableTextDescriptor(" + td.lowLevelGet() + ", " + td.getColorIndex() + ", " + td.isDisplay() +
+                            ", TextDescriptor.Code." + td.getCode().name() + ")));");
+                }
+            }
 
 			// print ports
 			buffWriter.println("\t\t" + ab + "_node.addPrimitivePorts(new PrimitivePort[]");
@@ -3119,13 +3172,30 @@ public class LibToTech
 
 			if (nIn.wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
 			if (nIn.square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
+            if (nIn.canBeZeroSize) buffWriter.println("\t\t" + ab + "_node.setCanBeZeroSize();");
 			if (nIn.lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
+            if (nIn.edgeSelect) buffWriter.println("\t\t" + ab + "_node.setEdgeSelect();");
+            if (nIn.skipSizeInPalette) buffWriter.println("\t\t" + ab + "_node.setSkipSizeInPalette();");
+            if (nIn.lowVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.LOWVTBIT);");
+            if (nIn.highVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.HIGHVTBIT);");
+            if (nIn.nativeBit) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.NATIVEBIT);");
+            if (nIn.od18) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD18BIT);");
+            if (nIn.od25) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD25BIT);");
+            if (nIn.od33) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD33BIT);");
+            if (nIn.notUsed) buffWriter.println("\t\t" + ab + "_node.setNotUsed(true);");
 			if (nIn.arcsShrink)
 //			if (fun == PrimitiveNode.Function.PIN)
 			{
 				buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
 				buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
 			}
+            if (nIn.nodeSizeRule != null) {
+				buffWriter.println("\t\t" + ab + "_node.setMinSize(" + nIn.nodeSizeRule.getWidth() + ", " + nIn.nodeSizeRule.getHeight() +
+                        ", \"" + nIn.nodeSizeRule.getRuleName() + "\");");
+            }
+            if (nIn.autoGrowth != null) {
+				buffWriter.println("\t\t" + ab + "_node.setAutoGrowth(" + nIn.autoGrowth.getWidth() + ", " + nIn.autoGrowth.getHeight() + ");");
+            }
 			if (nIn.specialType != 0)
 			{
 				switch (nIn.specialType)
