@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/6/07, GVG) Wrong numbers of expected results in DRCToolTest.primitiveTechTest due to change in
+TSMC180 tech.
+FIX: Expected numbers fixed.
+
 BUG: (4/6/07, GVG) Error in CSA GateTimModelWrap constructor.
 FIX: Set correct condition for second switch statement.
 
