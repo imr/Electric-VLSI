@@ -85,11 +85,13 @@ import java.util.TreeSet;
  *   > Tries to cover multiple grid units in a single jump
  * > Routes power and ground first, then goes by length (shortest nets first)
  * > Prefers to run odd metal layers on horizontal, even layers on vertical
+ * > Routes in both directions (from A to B and from B to A) and chooses the best
  * > Users can request that some layers not be used, can request that some layers be favored
  * > Routes are made as wide as the widest arc already connected to any point
  * > Cost penalty also includes space left in the track on either side of a segment
  *
  * Things to do:
+ *     At the end of routing, try again with those that failed
  *     Detect "river routes" and route specially
  *     Ability to route to any previous part of route when daisy-chaining?
  *     Rip-up
@@ -97,7 +99,7 @@ import java.util.TreeSet;
  */
 public class SeaOfGates
 {
-	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = true;
+	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
 	/** True to search by more than 1 grid unit at a time. */					private static final boolean SEARCHINJUMPS = true;
 	/** True to search long stretches faster. */								private static final boolean FASTERJUMPS = true;
 
@@ -876,17 +878,21 @@ public class SeaOfGates
 
 		// see if access is blocked
 		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[fromZ];
-		if (getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, fromX, fromY) != null)
+		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, fromX, fromY);
+		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[fromZ].getName() + " (needs " + metalSpacing + " all around)");
+				" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + metalSpacing + " all around, has blockage at ("+
+				block.bound.getCenterX()+","+block.bound.getCenterY()+") that is "+block.bound.getWidth()+"x"+block.bound.getHeight()+"]");
 			return false;
 		}
 		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[toZ];
-		if (getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, toX, toY) != null)
+		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, toX, toY);
+		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[toZ].getName() + " (needs " + metalSpacing + " all around)");
+				" because it is blocked on layer " + metalLayers[toZ].getName() + " [needs " + metalSpacing + " all around, has blockage at ("+
+				block.bound.getCenterX()+","+block.bound.getCenterY()+") that is "+block.bound.getWidth()+"x"+block.bound.getHeight()+"]");
 			return false;
 		}
 
@@ -1548,6 +1554,19 @@ public class SeaOfGates
 		public String toString() { return "SOGBound on net " + netID; }
 	}
 
+	private static class SOGPoly extends SOGBound
+	{
+		private PolyBase poly;
+
+		SOGPoly(Rectangle2D bound, int netID, PolyBase poly)
+		{
+			super(bound, netID);
+			this.poly = poly;
+		}
+		
+		public PolyBase getPoly() { return poly; }
+	}
+
 	/**
 	 * Class to define an R-Tree leaf node for vias in the blockage data structure.
 	 */
@@ -1596,6 +1615,13 @@ public class SeaOfGates
 			Rectangle2D bound = sBound.getBounds();
 			if (bound.getMaxX() <= lX || bound.getMinX() >= hX ||
 				bound.getMaxY() <= lY || bound.getMinY() >= hY) continue;
+
+			// if this is a polygon, do closer examination
+			if (sBound instanceof SOGPoly)
+			{
+				PolyBase poly = ((SOGPoly)sBound).getPoly();
+				if (!poly.contains(searchArea)) continue;
+			}
 			return sBound;
 		}
 		return null;
@@ -1726,9 +1752,15 @@ public class SeaOfGates
 		Layer.Function fun = layer.getFunction();
 		if (fun.isMetal())
 		{
-			Rectangle2D bounds = poly.getBounds2D();
-			GenMath.transformRect(bounds, trans);
-			addRectangle(bounds, layer, netID);
+			poly.transform(trans);
+			Rectangle2D bounds = poly.getBox();
+			if (bounds == null)
+			{
+				addPolygon(poly, layer, netID);
+			} else
+			{
+				addRectangle(bounds, layer, netID);
+			}
 		} else if (fun.isContact())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
@@ -1752,6 +1784,25 @@ public class SeaOfGates
 			metalTrees.put(layer, root);
 		}
 		RTNode newRoot = RTNode.linkGeom(null, root, new SOGBound(bounds, netID));
+		if (newRoot != root) metalTrees.put(layer, newRoot);
+    }
+
+    /**
+     * Method to add a polygon to the metal R-Tree.
+     * @param poly the polygon to add.
+     * @param layer the metal layer on which to add the rectangle.
+     * @param netID the global network ID of the geometry.
+     */
+    private void addPolygon(PolyBase poly, Layer layer, int netID)
+    {
+		RTNode root = metalTrees.get(layer);
+		if (root == null)
+		{
+			root = RTNode.makeTopLevel();
+			metalTrees.put(layer, root);
+		}
+		Rectangle2D bounds = poly.getBounds2D();
+		RTNode newRoot = RTNode.linkGeom(null, root, new SOGPoly(bounds, netID, poly));
 		if (newRoot != root) metalTrees.put(layer, newRoot);
     }
 
