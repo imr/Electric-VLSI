@@ -2944,18 +2944,19 @@ public class Connectivity
 				{
 					PortInst fPi = ni.getOnlyPortInst();
 					Poly fPortPoly = fPi.getPoly();
-					Point2D fLoc = fPortPoly.closestPoint(fPortPoly.getCenter());
-					EPoint fLocScaled = new EPoint(scaleUp(fLoc.getX()), scaleUp(fLoc.getY()));
 					Rectangle2D searchBound = new Rectangle2D.Double(polyBounds.getMinX()/SCALEFACTOR, polyBounds.getMinY()/SCALEFACTOR,
 						polyBounds.getWidth()/SCALEFACTOR, polyBounds.getHeight()/SCALEFACTOR);
 					PortInst bestTPi = null;
 					double bestLen = Double.MAX_VALUE;
+					Point2D bestFLoc = null;
 					for(Iterator<RTBounds> it = newCell.searchIterator(searchBound); it.hasNext(); )
 					{
 						RTBounds geom = it.next();
 						if (!(geom instanceof NodeInst)) continue;
 						NodeInst oNi = (NodeInst)geom;
 						if (oNi == ni) continue;
+						if (oNi.isCellInstance()) continue;
+						if (oNi.getProto().getTechnology() != tech) continue;
 						for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )
 						{
 							PortInst tPi = pIt.next();
@@ -2963,15 +2964,18 @@ public class Connectivity
 							if (!pp.connectsTo(ap)) continue;
 							EPoint tLoc = tPi.getPoly().getCenter();
 							EPoint tLocScaled = new EPoint(scaleUp(tLoc.getX()), scaleUp(tLoc.getY()));
+							Point2D fLoc = fPortPoly.closestPoint(tLoc);
+							EPoint fLocScaled = new EPoint(scaleUp(fLoc.getX()), scaleUp(fLoc.getY()));
 							double len = scaleUp(fLoc.distance(tLoc));
 							int angle = GenMath.figureAngle(fLoc, tLoc);
-							Poly conPoly = Poly.makeEndPointPoly(len, 0, angle, fLocScaled, 0, tLocScaled, 0, Poly.Type.FILLED);
+							Poly conPoly = Poly.makeEndPointPoly(len, 1, angle, fLocScaled, 0, tLocScaled, 0, Poly.Type.FILLED);
 							if (originalMerge.contains(layer, conPoly))
 							{
 								if (len < bestLen)
 								{
 									bestLen = len;
 									bestTPi = tPi;
+									bestFLoc = fLoc;
 								}
 							}
 						}
@@ -2980,8 +2984,11 @@ public class Connectivity
 					{
 						Poly tPortPoly = bestTPi.getPoly();
 						Point2D tLoc = tPortPoly.closestPoint(tPortPoly.getCenter());
-						ArcInst ai = realizeArc(ap, fPi, bestTPi, fLoc, tLoc, 0, false, false, merge);
+						ArcInst ai = realizeArc(ap, fPi, bestTPi, bestFLoc, tLoc, 0, false, false, merge);
 						if (ai != null) ai.setFixedAngle(false);
+					} else
+					{
+						System.out.println("Unable to connect unextracted polygon");
 					}
 				}
 			}
@@ -3206,7 +3213,7 @@ public class Connectivity
 
 	double scaleUp(double v)
 	{
-		return DBMath.round(v * SCALEFACTOR);
+		return DBMath.round(v) * SCALEFACTOR;
 	}
 
 	/**
