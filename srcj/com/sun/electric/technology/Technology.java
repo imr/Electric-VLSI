@@ -3449,8 +3449,14 @@ public class Technology implements Comparable<Technology>
         String foundryName = getPrefFoundry();
         Foundry f = findFoundry(foundryName);
         if (f != null) return f;
-        if (foundries.size() > 0) return foundries.get(0);
-        return null;
+        if (foundries.size() > 0)
+        {
+            f = foundries.get(0);
+            System.out.println("Foundry '" + foundryName + "' not available in Technology '" +  this.getTechName() +
+            "'. Setting '" + f.toString() + "' as foundry.");
+            return f;
+        }
+        return f;
     }
 
     /**

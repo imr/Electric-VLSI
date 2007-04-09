@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (5/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case the PrefFoundry is not available
+and the first one defined in the list is used. This is mainly to explain results in DRC primitives regression.
+
 BUG: (4/6/07, GVG) Wrong numbers of expected results in DRCToolTest.primitiveTechTest due to change in
 TSMC180 tech.
 FIX: Expected numbers fixed.
@@ -14,6 +17,8 @@ FIX: Set correct condition for second switch statement.
 BUG: (4/6/07, GVG) Precision issue in awe.awe_LUFactor(). 
 FIX: Added extra isZero condition. It might need to be used in other part of the code.
 Other issue related to wrong pointer increment done in Rice.
+
+IMP: (4/5/07, GVG) Changes in build.xml to automatically calculate the version in the MacOS package (plist file).
 
 BUG: (4/5/07, DN) Some pure layer nodes have no POLYGONAL special type.
 FIX: Set POLYGONAL special type to "generic:DRC-Node" and "generic:AFG-Node".
