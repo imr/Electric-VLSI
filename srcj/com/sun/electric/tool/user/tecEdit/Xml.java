@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.tecEdit;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import java.awt.Color;
 import java.io.FileOutputStream;
@@ -144,7 +145,11 @@ public class Xml {
             comment("Transparent layers");
             for (int i = 0; i < gi.transparentColors.length; i++) {
                 Color color = gi.transparentColors[i];
-                b("transparentLayer"); a("transparent", i + 1); c(); b("color"); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); e(); el("transparentLayer");
+                b("transparentLayer"); a("transparent", i + 1); cl();
+                bcpel("r", color.getRed());
+                bcpel("g", color.getGreen());
+                bcpel("b", color.getBlue());
+                el("transparentLayer");
             }
             l();
         }
@@ -261,10 +266,12 @@ public class Xml {
             double hy = ni.so.getHighYOffset();
             b("sizeOffset"); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
         }
+        if (ni.arcsShrink)
+            bel("shrinkArcs");
         
         for(int j=0; j<ni.nodeLayers.length; j++) {
             NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-            Integer portNum = nl.portIndex > 0 ? Integer.valueOf(nl.portIndex) : null;
+            Integer portNum = nl.portIndex != 0 ? Integer.valueOf(nl.portIndex) : null;
             b("nodeLayer"); a("layer", nl.layer.name); a("style", nl.style.name()); a(" portNum", portNum); cl();
             switch (nl.representation) {
                 case Technology.NodeLayer.BOX:
@@ -333,7 +340,28 @@ public class Xml {
                 double ya = pd.values[k].getY().getAdder();
                 b("techPoint"); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
             }
+            for (ArcInfo a: pd.connections)
+                bcpel("portArc", a.name);
             el("primitivePort");
+        }
+        switch (ni.specialType) {
+            case PrimitiveNode.MULTICUT:
+                b("multiCut"); cl();
+                for (int i = 0; i < 6; i++) {
+                    bcpel("specialValue", ni.specialValues[i]);
+                }
+                el("multiCut");
+                break;
+            case PrimitiveNode.POLYGONAL:
+                bel("polygonal");
+                break;
+            case PrimitiveNode.SERPTRANS:
+                b("serpTrans"); cl();
+                for (int i = 0; i < 6; i++) {
+                    bcpel("specialValue", ni.specialValues[i]);
+                }
+                el("serpTrans");
+                break;
         }
 
         el("primitiveNode");
@@ -401,6 +429,10 @@ public class Xml {
     private void bcpel(String key, Object v) {
         if (v == null) return;
         b(key); c(); p(v.toString()); el(key);
+    }
+    
+    private void bel(String key) {
+        b(key); el();
     }
     
     /**

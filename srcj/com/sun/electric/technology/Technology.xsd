@@ -8,6 +8,15 @@
     <xsd:simpleType name="ColorComponent">
         <xsd:restriction base="xsd:unsignedByte"/>
     </xsd:simpleType>
+    
+    <xsd:group name="Color">
+        <xsd:sequence>
+            <xsd:element name="r" type="tns:ColorComponent"></xsd:element>
+            <xsd:element name="g" type="tns:ColorComponent"></xsd:element>
+            <xsd:element name="b" type="tns:ColorComponent"></xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
     <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
@@ -15,9 +24,9 @@
     </xsd:complexType>
     
     <xsd:simpleType name="NumMetals">
-        <xsd:restriction base="xsd:nonNegativeInteger">
+        <xsd:restriction base="xsd:int">
+            <xsd:minInclusive value="0"/>
             <xsd:maxInclusive value="12"/>
-            <xsd:whiteSpace value="collapse"/>
         </xsd:restriction>
     </xsd:simpleType>
     
@@ -270,13 +279,12 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:element name="color">
-        <xsd:complexType>
-            <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
-            <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
-            <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
-        </xsd:complexType>
-    </xsd:element>
+    <xsd:complexType name="TechPoint">
+        <xsd:attribute name="xm" type="xsd:double" use="required"/>
+        <xsd:attribute name="xa" type="xsd:double" use="required"/>
+        <xsd:attribute name="ym" type="xsd:double" use="required"/>
+        <xsd:attribute name="ya" type="xsd:double" use="required"/>
+    </xsd:complexType>
     
     <xsd:element name="technology">
         <xsd:complexType>
@@ -314,7 +322,7 @@
                 <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element ref="tns:color"/>
+                            <xsd:group ref="tns:Color"/>
                         </xsd:sequence>
                         <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
                     </xsd:complexType>
@@ -360,8 +368,8 @@
                             </xsd:element>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="xsd:ID" use="required"/>
-                        <xsd:attribute name="fun" use="required" type="tns:LayerFun"></xsd:attribute>
-                        <xsd:attribute name="extraFun" type="tns:LayerExtraFun"></xsd:attribute>
+                        <xsd:attribute name="fun" type="tns:LayerFun" use="required"/>
+                        <xsd:attribute name="extraFun" type="tns:LayerExtraFun"/>
                     </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="arcProto" minOccurs="0" maxOccurs="unbounded">
@@ -399,6 +407,7 @@
                                     <xsd:attribute name="hy" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
+                            <xsd:element name="shrinkArcs" minOccurs="0"/>
                             <xsd:element name="nodeLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:sequence>
@@ -437,10 +446,28 @@
                                         </xsd:element>
                                         <xsd:element name="portTopology" type="xsd:integer"></xsd:element>
                                         <xsd:element name="techPoint" type="tns:TechPoint" maxOccurs="2" minOccurs="2"></xsd:element>
+                                        <xsd:element name="portArc" type="xsd:NCName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="name" type="xsd:NCName" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
+                            <xsd:choice minOccurs="0">
+                                <xsd:element name="serpTrans">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:element name="specualValue" type="xsd:double" maxOccurs="6" minOccurs="6"></xsd:element>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="polygonal"></xsd:element>
+                                <xsd:element name="multiCut">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:element name="specualValue" type="xsd:double" maxOccurs="6" minOccurs="6"></xsd:element>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
+                                </xsd:element>
+                            </xsd:choice>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="xsd:NCName" use="required"/>
                         <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
@@ -463,8 +490,8 @@
                         <xsd:sequence>
                             <xsd:element name="LayersRule" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:complexType>
-                                    <xsd:attribute name="ruleName" type="xsd:string"/>
-                                    <xsd:attribute name="layerNames" type="xsd:string"/>
+                                    <xsd:attribute name="ruleName" type="xsd:string" use="required"/>
+                                    <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
                                     <xsd:attribute name="type" type="tns:DesignRuleType" use="required"/>
                                     <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
                                     <xsd:attribute name="value" type="xsd:double" use="required"/>
@@ -489,10 +516,4 @@
             <xsd:field xpath="@transparent"/>
         </xsd:keyref>
     </xsd:element>
-    <xsd:complexType name="TechPoint">
-        <xsd:attribute name="xm" type="xsd:double" use="required"/>
-        <xsd:attribute name="xa" type="xsd:double" use="required"/>
-        <xsd:attribute name="ym" type="xsd:double" use="required"/>
-        <xsd:attribute name="ya" type="xsd:double" use="required"/>
-    </xsd:complexType>
 </xsd:schema>

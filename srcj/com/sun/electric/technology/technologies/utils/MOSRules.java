@@ -212,9 +212,12 @@ public class MOSRules implements DRCRules {
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
-			minNodeSize[j*2] = np.getMinSizeRule().getWidth();  // autoboxing
-			minNodeSize[j*2+1] = np.getMinSizeRule().getHeight(); // autoboxing
-			minNodeSizeRules[j] = np.getMinSizeRule().getRuleName();
+            PrimitiveNode.NodeSizeRule minSizeRule = np.getMinSizeRule();
+            if (minSizeRule == null)
+                minSizeRule = new PrimitiveNode.NodeSizeRule(0, 0, "");
+            minNodeSize[j*2] = minSizeRule.getWidth();  // autoboxing
+            minNodeSize[j*2+1] = minSizeRule.getHeight(); // autoboxing
+            minNodeSizeRules[j] = minSizeRule.getRuleName();
             cutNodeSizeRules[j] = "";
             cutNodeSize[j] = new Double(MOSNORULE);
             cutNodeSurroundRules[j] = "";
@@ -236,9 +239,22 @@ public class MOSRules implements DRCRules {
 	 */
 	public int getRuleIndex(int index1, int index2)
 	{
+        return getRuleIndex(index1, index2, tech.getNumLayers());
+	}
+
+    /**
+	 * Method to determine the index in the upper-left triangle array for two layers/nodes. This function
+     * assumes no rules for primitives nor single layers are stored.
+	 * @param index1 the first layer/node index.
+	 * @param index2 the second layer/node index.
+     * @param numLayers the number of layers
+	 * @return the index in the array that corresponds to these two layers/nodes.
+	 */
+	public static int getRuleIndex(int index1, int index2, int numLayers)
+	{
 		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
 		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
+		pIndex = index2 + numLayers * index1 - pIndex;
 		return pIndex;
 	}
 

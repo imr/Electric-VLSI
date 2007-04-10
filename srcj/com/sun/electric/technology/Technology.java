@@ -26,12 +26,12 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -50,7 +50,9 @@ import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
@@ -61,6 +63,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -628,6 +631,7 @@ public class Technology implements Comparable<Technology>
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
+    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
 
 	/****************************** CONTROL ******************************/
 
@@ -672,74 +676,122 @@ public class Technology implements Comparable<Technology>
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
 	}
-    
-//    public Technology(com.sun.electric.technology.jaxb.Technology t) {
-//        this(t.getName(), Foundry.Type.valueOf(t.getFoundry().getName().value()), t.getNumMetals().getDefault());
-//        setTechShortName(t.getShortName());
-//        setTechDesc(t.getDescription());
-//        setFactoryScale(t.getScale().getValue(), t.getScale().isRelevant());
-//        setFactoryParasitics(t.getMinResistance().getValue(), t.getMinCapacitance().getValue());
-//        ArrayList<Color> transparentLayers = new ArrayList<Color>();
-//        for (com.sun.electric.technology.jaxb.Technology.TransparentLayer tl: t.getTransparentLayer()) {
-//            int transparent = tl.getTransparent().intValue();
-//            while (transparentLayers.size() < transparent)
-//                transparentLayers.add(null);
-//            transparentLayers.set(transparent - 1, new Color(tl.getColor().getR(), tl.getColor().getG(), tl.getColor().getB()));
-//        }
-//        if (!transparentLayers.isEmpty())
-//            setFactoryTransparentLayers(transparentLayers.toArray(new Color[transparentLayers.size()]));
-//        for (com.sun.electric.technology.jaxb.Technology.Layer l: t.getLayer()) {
-//            EGraphics.Outline o = l.getOutlined() != null ? EGraphics.Outline.valueOf(l.getOutlined().value()) : null;
-//            int transparent = l.getTransparentColor() != null ? l.getTransparentColor().getTransparent().intValue() : 0;
-//            int r = 0, g = 0, b = 0;
-//            if (l.getOpaqueColor() != null) {
-//                r = l.getOpaqueColor().getR();
-//                g = l.getOpaqueColor().getG();
-//                b = l.getOpaqueColor().getB();
-//            } else if (transparent > 0) {
-//                Color color = transparentLayers.get(transparent - 1);
-//                r = color.getRed();
-//                g = color.getGreen();
-//                b = color.getBlue();
-//            }
-//            assert l.getPattern().size() == 16;
-//            int[] pattern = new int[16];
-//            for (int i = 0; i < pattern.length; i++) {
-//                String s = l.getPattern().get(i);
-//                int p = 0;
-//                assert s.length() == 16;
-//                for (int j = 0; j < s.length(); j++) {
-//                    if (s.charAt(s.length() - j - 1) != ' ')
-//                        p |= (1 << j);
-//                }
-//                pattern[i] = p;
-//            }
-//            EGraphics descript = new EGraphics(l.isPatternedOnDisplay(), l.isPatternedOnPrinter(), o, transparent, r, g, b, 0.8, true, pattern);
-//            Layer layer = Layer.newInstance(this, l.getName(), descript);
-//            int extraFun = 0;
-//            if (l.getExtraFun() != null) {
-//                String extraFunStr = l.getExtraFun() != null ? l.getExtraFun().value() : null;
-//                if (extraFunStr.equals("DEPLETION_HEAVY"))
-//                    extraFun = Layer.Function.DEPLETION|Layer.Function.HEAVY;
-//                else if (extraFunStr.equals("DEPLETION_LIGHT"))
-//                    extraFun = Layer.Function.DEPLETION|Layer.Function.LIGHT;
-//                else if (extraFunStr.equals("ENHANCEMENT_HEAVY"))
-//                    extraFun = Layer.Function.ENHANCEMENT|Layer.Function.HEAVY;
-//                else if (extraFunStr.equals("ENHANCEMENT_LIGHT"))
-//                    extraFun = Layer.Function.ENHANCEMENT|Layer.Function.LIGHT;
-//                else
-//                    extraFun = Layer.Function.parseExtraName(extraFunStr);
-//            }
-//            layer.setFunction(Layer.Function.valueOf(l.getFun().value()), extraFun);
-//            if (l.getCifLayer() != null)
-//                layer.setFactoryCIFLayer(l.getCifLayer().getCif());
-//            if (l.getDisplay3D() != null)
-//                layer.setFactory3DInfo(l.getDisplay3D().getThick(), l.getDisplay3D().getHeight());
-//            if (l.getParasitics() != null)
-//                layer.setFactoryParasitics(l.getParasitics().getResistance(), l.getParasitics().getCapacitance(), l.getParasitics().getEdgeCapacitance());
-//        }
-//        setup();
-//    }
+
+    public Technology(Xml.Technology t) {
+        this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
+        setTechShortName(t.shortTechName);
+        setTechDesc(t.description);
+        setFactoryScale(t.scaleValue, t.scaleRelevant);
+        setFactoryParasitics(t.minResistance, t.minCapacitance);
+        if (!t.transparentLayers.isEmpty())
+            setFactoryTransparentLayers(t.transparentLayers.toArray(new Color[t.transparentLayers.size()]));
+        HashMap<String,Layer> layers = new HashMap<String,Layer>();
+        for (Xml.Layer l: t.layers) {
+            Layer layer = Layer.newInstance(this, l.name, l.desc);
+            layers.put(l.name, layer);
+            layer.setFunction(l.function, l.extraFunction);
+            if (l.cif != null)
+                layer.setFactoryCIFLayer(l.cif);
+            layer.setFactory3DInfo(l.thick3D, l.height3D);
+            layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
+        }
+        HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
+        for (Xml.ArcProto a: t.arcs) {
+            ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
+            for (int i = 0; i < arcLayers.length; i++) {
+                Xml.ArcLayer al = a.arcLayers.get(i);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer), al.widthOffset, al.style);
+            }
+    		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth, a.function, arcLayers);
+            arcs.put(a.name, ap);
+            if (a.wipable)
+                ap.setWipable();
+            ap.setFactoryExtended(a.extended);
+            ap.setFactoryFixedAngle(a.fixedAngle);
+            ap.setFactoryAngleIncrement(a.angleIncrement);
+            ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
+        }
+        for (Xml.PrimitiveNode n: t.nodes) {
+            NodeLayer[] nodeLayers = new NodeLayer[n.nodeLayers.size()];
+            for (int i = 0; i < nodeLayers.length; i++) {
+                Xml.NodeLayer nl = n.nodeLayers.get(i);
+                TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
+                nodeLayers[i] = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
+            }
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth, n.defaultHeight, n.sizeOffset, nodeLayers);
+            pnp.setFunction(n.function);
+            if (n.shrinkArcs) {
+                pnp.setArcsWipe();
+                pnp.setArcsShrink();
+            }
+            PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
+            for (int i = 0; i < ports.length; i++) {
+                Xml.PrimitivePort p = n.ports.get(i);
+                ArcProto[] connections = new ArcProto[p.portArcs.size()];
+                for (int j = 0; j < connections.length; j++)
+                    connections[j] = arcs.get(p.portArcs.get(j));
+                ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
+                        PortCharacteristic.UNKNOWN, p.p0.getX(), p.p0.getY(), p.p1.getX(), p.p1.getY());
+            }
+            pnp.addPrimitivePorts(ports);
+            pnp.setSpecialType(n.specialType);
+            switch (n.specialType) {
+                case com.sun.electric.technology.PrimitiveNode.MULTICUT:
+                    pnp.setSpecialValues(n.specialValues);
+                    break;
+                case com.sun.electric.technology.PrimitiveNode.POLYGONAL:
+					pnp.setHoldsOutline();
+                    break;
+                case com.sun.electric.technology.PrimitiveNode.SERPTRANS:
+					pnp.setHoldsOutline();
+                    pnp.setCanShrink();
+                    pnp.setSpecialValues(n.specialValues);
+                    break;
+            }
+        }
+        for (Xml.SpiceHeader h: t.spiceHeaders) {
+            String[] spiceLines = h.spiceLines.toArray(new String[h.spiceLines.size()]);
+            switch (h.level) {
+                case 1:
+                    setSpiceHeaderLevel1(spiceLines);
+                    break;
+                case 2:
+                    setSpiceHeaderLevel2(spiceLines);
+                    break;
+                case 3:
+                    setSpiceHeaderLevel3(spiceLines);
+                    break;
+            }
+        }
+        for (Xml.Foundry f: t.foundries) {
+            if (!f.layerRules.isEmpty()) {
+                int layerTotal = t.layers.size();
+                int rulesSize = layerTotal*(layerTotal + 1)/2;
+                conDist = new double[rulesSize];
+                unConDist = new double[rulesSize];
+                Arrays.fill(conDist, -1);
+                Arrays.fill(unConDist, -1);
+                for (Xml.LayersRule r: f.layerRules) {
+                    String nm = r.layerNames;
+                    if (nm.length() < 2 || nm.charAt(0) != '{' || nm.charAt(nm.length() - 1) != '}')
+                        continue;
+                    nm = nm.substring(1, nm.length() - 1);
+                    int comma = nm.indexOf(',');
+                    Layer l1 = layers.get(nm.substring(0,comma).trim());
+                    Layer l2 = layers.get(nm.substring(comma + 1).trim());
+                    if (l1 == null || l2 == null) continue;
+                    int i1 = l1.getIndex();
+                    int i2 = l2.getIndex();
+                    int ruleIndex = MOSRules.getRuleIndex(i1, i2, layerTotal);
+                    if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
+                        conDist[ruleIndex] = r.value;
+                    else
+                        unConDist[ruleIndex] = r.value;
+                }
+            }
+        }
+        setup();
+    }
     
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
@@ -782,7 +834,11 @@ public class Technology implements Comparable<Technology>
         lazyTechnologies.put("gem",       "com.sun.electric.technology.technologies.GEM");
         lazyTechnologies.put("mocmosold", "com.sun.electric.technology.technologies.MoCMOSOld");
         lazyTechnologies.put("mocmossub", "com.sun.electric.technology.technologies.MoCMOSSub");
-        lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
+        if (false) {
+            new Technology(Xml.parseTechnology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml")));
+        } else {
+            lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
+        }
         lazyTechnologies.put("pcb",       "com.sun.electric.technology.technologies.PCB");
         lazyTechnologies.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
         
@@ -3640,7 +3696,7 @@ public class Technology implements Comparable<Technology>
      */
 	public DRCRules getFactoryDesignRules()
 	{
-        return null;
+		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}
 
 	/**
