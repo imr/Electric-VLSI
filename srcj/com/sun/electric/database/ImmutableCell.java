@@ -57,7 +57,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         this.groupName = groupName;
         this.creationDate = creationDate;
         this.tech = tech;
-        check();
+//        check();
     }
 
 	/**

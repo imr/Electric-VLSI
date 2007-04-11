@@ -45,12 +45,6 @@ import java.util.HashSet;
  */
 public class DELIB extends JELIB {
     
-//    private static String[] revisions =
-//    {
-//        // revision 1
-//        "8.04f"
-//    };
-
     private LineNumberReader headerReader;
     private HashSet<String> delibCellFiles = new HashSet<String>();
 
@@ -78,10 +72,11 @@ public class DELIB extends JELIB {
         return b;
     }
 
-    protected void readCell(String line) throws IOException {
+    @Override
+    void readCell(int revision, String line) throws IOException {
         if (lineReader != headerReader) {
             // already reading a separate cell file
-            super.readCell(line);
+            super.readCell(revision, line);
             return;
         }
 
@@ -130,7 +125,6 @@ public class DELIB extends JELIB {
             return;
         }
         Version savedVersion = version;
-        int savedRevision = revision;
         char savedEscapeChar = escapeChar;
         String savedCurLibName = curLibName;
         lineReader = cellReader;
@@ -140,7 +134,6 @@ public class DELIB extends JELIB {
             delibCellFiles.add(curReadFile);
         } finally {
             version = savedVersion;
-            revision = savedRevision;
             escapeChar = savedEscapeChar;
             curLibName = savedCurLibName;
             lineReader.close();

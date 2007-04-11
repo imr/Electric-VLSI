@@ -78,14 +78,16 @@ public class JELIB extends LibraryFiles
 {
 	private static class CellContents
 	{
+        int revision;
 		boolean filledIn;
 		int lineNumber;
         String groupName;
 		List<String> cellStrings;
 		String fileName;
 
-		CellContents()
+		CellContents(int revision)
 		{
+            this.revision = revision;
 			filledIn = false;
 			cellStrings = new ArrayList<String>();
 		}
@@ -122,7 +124,6 @@ public class JELIB extends LibraryFiles
     private HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
     private HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
 //	private Version version;
-	int revision;
 	char escapeChar = '\\';
 	String curLibName;
     String curReadFile;
@@ -189,7 +190,6 @@ public class JELIB extends LibraryFiles
 		lib.erase();
 		curLibName = null;
 		version = null;
-		revision = revisions.length;
 		curExternalLibName = "";
 		curExternalCellName = "";
 		curTech = null;
@@ -299,6 +299,7 @@ public class JELIB extends LibraryFiles
     }
 
     protected void readFromFile(boolean fromDelib) throws IOException {
+		int revision = revisions.length;
         boolean ignoreCvsMergedContent = false;
 		for(;;)
 		{
@@ -331,7 +332,7 @@ public class JELIB extends LibraryFiles
 
 			if (first == 'C')
 			{
-                readCell(line);
+                readCell(revision, line);
                 continue;
 			}
 
@@ -345,11 +346,11 @@ public class JELIB extends LibraryFiles
 						", External library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
-				curExternalLibName = unQuote(pieces.get(0));
+				curExternalLibName = unQuote(revision, pieces.get(0));
 				if (Library.findLibrary(curExternalLibName) != null) continue;
 
 				// recurse
-				readExternalLibraryFromFilename(unQuote(pieces.get(1)), getPreferredFileType());
+				readExternalLibraryFromFilename(unQuote(revision, pieces.get(1)), getPreferredFileType());
 				continue;
 			}
 
@@ -377,7 +378,7 @@ public class JELIB extends LibraryFiles
 					long rDate = Long.parseLong(pieces.get(6));
 				}
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
-				curExternalCellName = curExternalLibName + ":" + unQuote(pieces.get(0));
+				curExternalCellName = curExternalLibName + ":" + unQuote(revision, pieces.get(0));
 				externalCells.put(curExternalCellName, bounds);
 				continue;
 			}
@@ -392,7 +393,7 @@ public class JELIB extends LibraryFiles
 						", External export declaration needs 3 fields: " + line, -1);
 					continue;
 				}
-				String exportName = unQuote(pieces.get(0));
+				String exportName = unQuote(revision, pieces.get(0));
 				double posX = TextUtils.atof(pieces.get(1));
 				double posY = TextUtils.atof(pieces.get(1));
 				externalExports.put(curExternalCellName + ":" + exportName, new Point2D.Double(posX, posY));
@@ -425,13 +426,13 @@ public class JELIB extends LibraryFiles
 					escapeChar = '^';
 					pieces = parseLine(line);
 				}
-				curLibName = unQuote(pieces.get(0));
+				curLibName = unQuote(revision, pieces.get(0));
 				if (version.compareTo(Version.getVersion()) > 0)
 				{
 					Input.errorLogger.logWarning(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
-				Variable[] vars = readVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
+				Variable[] vars = readVariables(revision, lib, pieces, 2, filePath, lineReader.getLineNumber());
                 
                 if (!fromDelib) {
                     realizeVariables(lib, vars);
@@ -444,7 +445,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Tool information
 				List<String> pieces = parseLine(line);
-				String toolName = unQuote(pieces.get(0));
+				String toolName = unQuote(revision, pieces.get(0));
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
 				{
@@ -454,7 +455,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional meaning preferences starting at position 1
-                Variable[] vars = readVariables(null, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(revision, null, pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(tool, vars);
 //				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
@@ -465,11 +466,11 @@ public class JELIB extends LibraryFiles
 			{
 				// parse View information
 				List<String> pieces = parseLine(line);
-				String viewName = unQuote(pieces.get(0));
+				String viewName = unQuote(revision, pieces.get(0));
 				View view = View.findView(viewName);
 				if (view == null)
 				{
-					String viewAbbr = unQuote(pieces.get(1));
+					String viewAbbr = unQuote(revision, pieces.get(1));
 					view = View.newInstance(viewName, viewAbbr);
 					if (view == null)
 					{
@@ -488,7 +489,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse Technology information
 				List<String> pieces = parseLine(line);
-				String techName = unQuote(pieces.get(0));
+				String techName = unQuote(revision, pieces.get(0));
 				curTech = findTechnology(techName);
 				if (curTech == null)
 				{
@@ -499,7 +500,7 @@ public class JELIB extends LibraryFiles
 				curPrim = null;
 
 				// get additional meaning preferences  starting at position 1
-                Variable[] vars = readVariables(null, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(revision, null, pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
 					realizeMeaningPrefs(curTech, vars);
 //				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
@@ -510,7 +511,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitiveNode information
 				List<String> pieces = parseLine(line);
-				String primName = unQuote(pieces.get(0));
+				String primName = unQuote(revision, pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
@@ -534,7 +535,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse PrimitivePort information
 				List<String> pieces = parseLine(line);
-				String primPortName = unQuote(pieces.get(0));
+				String primPortName = unQuote(revision, pieces.get(0));
 				if (curPrim == null)
 				{
 					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
@@ -560,7 +561,7 @@ public class JELIB extends LibraryFiles
 			{
 				// parse ArcProto information
 				List<String> pieces = parseLine(line);
-				String arcName = unQuote(pieces.get(0));
+				String arcName = unQuote(revision, pieces.get(0));
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
@@ -588,7 +589,7 @@ public class JELIB extends LibraryFiles
 				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
-					String cellName = unQuote(pieces.get(i));
+					String cellName = unQuote(revision, pieces.get(i));
 					if (cellName.length() == 0) continue;
 					int colonPos = cellName.indexOf(':');
 					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
@@ -610,7 +611,7 @@ public class JELIB extends LibraryFiles
 		}
 	}
 
-    protected void readCell(String line) throws IOException {
+    void readCell(int revision, String line) throws IOException {
         // grab a cell description
         List<String> pieces = parseLine(line);
         int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
@@ -624,14 +625,14 @@ public class JELIB extends LibraryFiles
         String name;
         String groupName = null;
         if (revision >= 1) {
-            name = unQuote(pieces.get(fieldIndex++));
+            name = unQuote(revision, pieces.get(fieldIndex++));
             if (revision >= 2) {
                 String s = pieces.get(fieldIndex++);
                 if (s.length() > 0)
-                    groupName = unQuote(s);
+                    groupName = unQuote(revision, s);
             }
         } else {
-            name = unQuote(pieces.get(fieldIndex++));
+            name = unQuote(revision, pieces.get(fieldIndex++));
             String viewAbbrev = pieces.get(fieldIndex++);
             String versionString = pieces.get(fieldIndex++);
             name = name + ";" + versionString + "{" + viewAbbrev + "}";
@@ -643,7 +644,7 @@ public class JELIB extends LibraryFiles
                 ", Unable to create cell " + name, -1);
             return;
         }
-        Technology tech = findTechnology(unQuote(pieces.get(fieldIndex++)));
+        Technology tech = findTechnology(unQuote(revision, pieces.get(fieldIndex++)));
         newCell.setTechnology(tech);
         long cDate = Long.parseLong(pieces.get(fieldIndex++));
         long rDate = Long.parseLong(pieces.get(fieldIndex++));
@@ -671,11 +672,11 @@ public class JELIB extends LibraryFiles
 
         // add variables
         assert fieldIndex == numPieces;
-        Variable[] vars = readVariables(newCell, pieces, numPieces, filePath, lineReader.getLineNumber());
+        Variable[] vars = readVariables(revision, newCell, pieces, numPieces, filePath, lineReader.getLineNumber());
         realizeVariables(newCell, vars);
 
         // gather the contents of the cell into a list of Strings
-        CellContents cc = new CellContents();
+        CellContents cc = new CellContents(revision);
         cc.fileName = filePath;
         cc.lineNumber = lineReader.getLineNumber() + 1;
         cc.groupName = groupName;
@@ -761,7 +762,7 @@ public class JELIB extends LibraryFiles
 
 			// parse the node line
 			List<String> pieces = parseLine(cellString);
-			int numPieces = revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
+			int numPieces = cc.revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
 			if (pieces.size() < numPieces)
 			{
 				String lineNumber = "";
@@ -770,9 +771,9 @@ public class JELIB extends LibraryFiles
 					", Node instance needs " + numPieces + " fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = unQuote(pieces.get(0));
+			String protoName = unQuote(cc.revision, pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
+			String diskNodeName = cc.revision >= 1 ? pieces.get(1) : unQuote(cc.revision, pieces.get(1));
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -780,7 +781,7 @@ public class JELIB extends LibraryFiles
 				if (lastQuote > 1)
 				{
 					nodeName = nodeName.substring(1, lastQuote);
-					if (revision >= 1) nodeName = unQuote(nodeName);
+					if (cc.revision >= 1) nodeName = unQuote(cc.revision, nodeName);
 				}
 			}
 			String nameTextDescriptorInfo = pieces.get(2);
@@ -793,7 +794,7 @@ public class JELIB extends LibraryFiles
 			int colonPos = protoName.indexOf(':');
 			if (colonPos < 0)
 			{
-				if (firstChar == 'I' || revision < 1)
+				if (firstChar == 'I' || cc.revision < 1)
 					np = lib.findNodeProto(protoName);
 				else if (cell.getTechnology() != null)
 					np = findPrimitiveNode(cell.getTechnology(), protoName);
@@ -806,7 +807,7 @@ public class JELIB extends LibraryFiles
 					Technology tech = findTechnology(prefixName);
 					if (tech != null) np = findPrimitiveNode(tech, protoName);
 				}
-				if (firstChar == 'I' || revision < 1 && np == null)
+				if (firstChar == 'I' || cc.revision < 1 && np == null)
 				{
 					if (prefixName.equalsIgnoreCase(curLibName)) np = lib.findNodeProto(protoName); else
 					{
@@ -839,11 +840,11 @@ public class JELIB extends LibraryFiles
 			String orientString;
 			String stateInfo;
 			String textDescriptorInfo = "";
-			if (firstChar == 'N' || revision < 1)
+			if (firstChar == 'N' || cc.revision < 1)
 			{
 				wid = TextUtils.atof(pieces.get(5));
 				if (wid < 0 || wid == 0 && 1/wid < 0) {
-                    if (revision >= 1)
+                    if (cc.revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
         					", Negative width " + pieces.get(5) + " of cell instance", cell, -1);
                     flipX = true;
@@ -851,20 +852,20 @@ public class JELIB extends LibraryFiles
                 }
 				hei = TextUtils.atof(pieces.get(6));
 				if (hei < 0 || hei == 0 && 1/hei < 0) {
-                    if (revision >= 1)
+                    if (cc.revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
         					", Negative height " + pieces.get(5) + " of cell instance", cell, -1);
                     flipY = true;
                     hei = -hei;
                 }
-                if (revision >= 3) {
+                if (cc.revision >= 3) {
                     SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
                     wid += so.getLowXOffset() + so.getHighXOffset();
                     hei += so.getLowYOffset() + so.getHighYOffset();
                 }
 				orientString = pieces.get(7);
 				stateInfo = pieces.get(8);
-				if (revision < 1)
+				if (cc.revision < 1)
 					textDescriptorInfo = pieces.get(9);
 			} else
 			{
@@ -984,7 +985,7 @@ public class JELIB extends LibraryFiles
 			diskName.put(diskNodeName, ni);
 
 			// add variables in fields 10 and up
-			Variable[] vars = readVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(cc.revision, ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(ni, vars);
 		}
 
@@ -999,13 +1000,13 @@ public class JELIB extends LibraryFiles
 
 			// parse the export line
 			List<String> pieces = parseLine(cellString);
-            if (revision >= 2 && pieces.size() == 1) {
+            if (cc.revision >= 2 && pieces.size() == 1) {
                 // Unused ExportId
-                String exportName = unQuote(pieces.get(0));
+                String exportName = unQuote(cc.revision, pieces.get(0));
                 cellId.newExportId(exportName);
                 continue;
             }
-			int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
+			int numPieces = cc.revision >= 2 ? 6 : cc.revision == 1 ? 5 : 7;
 			if (pieces.size() < numPieces)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1013,22 +1014,22 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
             int fieldIndex = 0;
-			String exportName = unQuote(pieces.get(fieldIndex++));
+			String exportName = unQuote(cc.revision, pieces.get(fieldIndex++));
             String exportUserName = null;
-            if (revision >= 2) {
+            if (cc.revision >= 2) {
                 String s = pieces.get(fieldIndex++);
                 if (s.length() != 0)
-                    exportUserName = unQuote(s);
+                    exportUserName = unQuote(cc.revision, s);
             }
             if (exportUserName == null || exportName.equals(exportUserName))
                 exportName = Name.findName(exportName).toString(); // save memory using String from Name
             ExportId exportId = cellId.newExportId(exportName);
 			// get text descriptor in field 1
 			String textDescriptorInfo = pieces.get(fieldIndex++);
-			String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(pieces.get(fieldIndex++));
-			String portName = unQuote(pieces.get(fieldIndex++));
+			String nodeName = cc.revision >= 1 ? pieces.get(fieldIndex++) : unQuote(cc.revision, pieces.get(fieldIndex++));
+			String portName = unQuote(cc.revision, pieces.get(fieldIndex++));
 			Point2D pos = null;
-			if (revision < 1)
+			if (cc.revision < 1)
 			{
 				double x = TextUtils.atof(pieces.get(fieldIndex++));
 				double y = TextUtils.atof(pieces.get(fieldIndex++));
@@ -1070,7 +1071,7 @@ public class JELIB extends LibraryFiles
 			}
 
             // add variables in tail fields
-			Variable[] vars = readVariables(pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(cc.revision, pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(pp, vars);
 		}
 
@@ -1090,7 +1091,7 @@ public class JELIB extends LibraryFiles
 					", Arc instance needs 13 fields: " + cellString, cell, -1);
 				continue;
 			}
-			String protoName = unQuote(pieces.get(0));
+			String protoName = unQuote(cc.revision, pieces.get(0));
 			ArcProto ap = null;
             int indexOfColon = protoName.indexOf(':');
             Technology tech = cell.getTechnology();
@@ -1106,7 +1107,7 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
-			String diskArcName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
+			String diskArcName = cc.revision >= 1 ? pieces.get(1) : unQuote(cc.revision, pieces.get(1));
 			String arcName = diskArcName;
 			if (arcName.charAt(0) == '"')
 			{
@@ -1114,22 +1115,22 @@ public class JELIB extends LibraryFiles
 				if (lastQuote > 1)
 				{
 					arcName = arcName.substring(1, lastQuote);
-					if (revision >= 1) arcName = unQuote(arcName);
+					if (cc.revision >= 1) arcName = unQuote(cc.revision, arcName);
 				}
 			}
 			long gridFullWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
-            if (revision >= 3)
+            if (cc.revision >= 3)
                 gridFullWidth += ap.getGridWidthOffset();
 
-			String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
-			String headPortName = unQuote(pieces.get(6));
+			String headNodeName = cc.revision >= 1 ? pieces.get(5) : unQuote(cc.revision, pieces.get(5));
+			String headPortName = unQuote(cc.revision, pieces.get(6));
 			double headX = TextUtils.atof(pieces.get(7));
 			double headY = TextUtils.atof(pieces.get(8));
 			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, new Point2D.Double(headX, headY), diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
-			String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(pieces.get(9));
-			String tailPortName = unQuote(pieces.get(10));
+			String tailNodeName = cc.revision >= 1 ? pieces.get(9) : unQuote(cc.revision, pieces.get(9));
+			String tailPortName = unQuote(cc.revision, pieces.get(10));
 			double tailX = TextUtils.atof(pieces.get(11));
 			double tailY = TextUtils.atof(pieces.get(12));
 			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, new Point2D.Double(tailX, tailY), diskName, cc.fileName, cc.lineNumber + line);
@@ -1215,7 +1216,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// add variables in fields 13 and up
-			Variable[] vars = readVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);
+			Variable[] vars = readVariables(cc.revision, ai, pieces, 13, cc.fileName, cc.lineNumber + line);
             realizeVariables(ai, vars);
 		}
 		cc.filledIn = true;
@@ -1361,7 +1362,7 @@ public class JELIB extends LibraryFiles
 		return stringPieces;
 	}
 
-	private String unQuote(String line)
+	private String unQuote(int revision, String line)
 	{
 		int len = line.length();
 		if (revision >= 1)
@@ -1369,7 +1370,7 @@ public class JELIB extends LibraryFiles
 			if (len < 2 || line.charAt(0) != '"') return line;
 			int lastQuote = line.lastIndexOf('"');
 			if (lastQuote != len - 1)
-				return unQuote(line.substring(0, lastQuote + 1)) + line.substring(lastQuote + 1);
+				return unQuote(revision, line.substring(0, lastQuote + 1)) + line.substring(lastQuote + 1);
 			line = line.substring(1, len - 1);
 			len -= 2;
 		} else
@@ -1396,13 +1397,14 @@ public class JELIB extends LibraryFiles
 
 	/**
 	 * Method to read variables to an ElectricObject from a List of strings.
+     * @param revision the revision of JELIB format
 	 * @param pieces the array of Strings that described the ElectricObject.
 	 * @param position the index in the array of strings where Variable descriptions begin.
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
      * @return an array of Variables. 
 	 */
-	private Variable[] readVariables(ElectricObject parentObj, List<String> pieces, int position, String fileName, int lineNumber)
+	private Variable[] readVariables(int revision, ElectricObject parentObj, List<String> pieces, int position, String fileName, int lineNumber)
 	{
         variablesBuf.clear();
 		int total = pieces.size();
@@ -1424,7 +1426,7 @@ public class JELIB extends LibraryFiles
 					", Badly formed variable (no open parenthesis): " + piece, -1);
 				continue;
 			}
-			String varName = unQuote(piece.substring(0, openPos));
+			String varName = unQuote(revision, piece.substring(0, openPos));
 			Variable.Key varKey = Variable.newKey(varName, parentObj);
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)
@@ -1501,7 +1503,7 @@ public class JELIB extends LibraryFiles
 							}
 							objectPos++;
 						}
-						Object oneObj = getVariableValue(piece.substring(start, objectPos), varType, fileName, lineNumber);
+						Object oneObj = getVariableValue(revision, piece.substring(start, objectPos), varType, fileName, lineNumber);
 						objList.add(oneObj);
 						if (piece.charAt(objectPos) == ']') break;
 						objectPos++;
@@ -1549,7 +1551,7 @@ public class JELIB extends LibraryFiles
 				} else
 				{
 					// a scalar Variable
-					obj = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
+					obj = getVariableValue(revision, piece.substring(objectPos), varType, fileName, lineNumber);
                     if (obj == null) {
                         // ????
                         continue;
@@ -1781,13 +1783,14 @@ public class JELIB extends LibraryFiles
 
 	/**
 	 * Method to convert a String to an Object so that it can be stored in a Variable.
+     * @param revision the revision of JELIB format.
 	 * @param piece the String to be converted.
 	 * @param varType the type of the object to convert (a letter from the file).
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
 	 * @return the Object representation of the given String.
 	 */
-	private Object getVariableValue(String piece, char varType, String fileName, int lineNumber)
+	private Object getVariableValue(int revision, String piece, char varType, String fileName, int lineNumber)
 	{
 		int colonPos;
 		String libName;
@@ -1798,7 +1801,7 @@ public class JELIB extends LibraryFiles
 		int commaPos;
 
 		if (revision >= 1)
-			piece = unQuote(piece);
+			piece = unQuote(revision, piece);
 
 		switch (varType)
 		{

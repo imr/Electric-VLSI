@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
-BUG: (5/10/11, DN) DELIB reader get invalid sizes of rpimitives when versions of header file and cell file are different.
+BUG: (5/10/11, DN) DELIB reader gets invalid sizes of primitives when versions of header file and cell file are different.
 FIX: Add field revision to JELIB.CellContents and use it in realizeCellContent method.
 
 IMP: (5/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case the PrefFoundry is not available
