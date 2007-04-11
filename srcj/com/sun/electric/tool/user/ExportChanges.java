@@ -833,7 +833,7 @@ public final class ExportChanges
 			}
 
 			// if the node is arrayed, extend the range of the export
-			Netlist nl = cell.acquireUserNetlist();
+//			Netlist nl = cell.acquireUserNetlist();
 			int busWidth = pi.getNodeInst().getNameKey().busWidth();
 			if (busWidth > 1)
 			{
