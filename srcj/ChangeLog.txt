@@ -4,13 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
-BUG: (5/11/07, DN) Re-exporting a large number of ports takes a long time (Bug #1296).
+IMP: (4/13/07, GVG) Threading late/early modes in Oyster. More decent results for arrivals.
+
+BUG: (4/11/07, DN) Re-exporting a large number of ports takes a long time (Bug #1296).
 FIX: In ExportChanges.reExportPorts remove unused "acquireUserNetlist".
 
-BUG: (5/10/07, DN) DELIB reader gets invalid sizes of primitives when versions of header file and cell file are different.
+BUG: (4/10/07, DN) DELIB reader gets invalid sizes of primitives when versions of header file and cell file are different.
 FIX: Add field revision to JELIB.CellContents and use it in realizeCellContent method.
 
-IMP: (5/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case the PrefFoundry is not available
+IMP: (4/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case the PrefFoundry is not available
 and the first one defined in the list is used. This is mainly to explain results in DRC primitives regression.
 
 BUG: (4/6/07, GVG) Wrong numbers of expected results in DRCToolTest.primitiveTechTest due to change in
