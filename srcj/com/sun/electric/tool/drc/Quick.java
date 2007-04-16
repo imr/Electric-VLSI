@@ -691,7 +691,7 @@ public class Quick
         Area area = exclusionMap.get(cell);
         if (area != null && area.contains(geo.getBounds()))
         {
-            System.out.println("DRC Exclusion found");
+//            System.out.println("DRC Exclusion found");
             return true;
         }
         return false;
