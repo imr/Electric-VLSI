@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -95,9 +96,8 @@ public class Simulation extends Tool
 	private static Method irsimSimulateMethod;
 
 	private static boolean fleetChecked = false;
-	private static Class<?> fleetClass = null;
-	private static Method fleetSimulateMethod;
-
+	private static Class fleetClass = null;
+	private static EMenu fleetSimMenu= null;
 	/**
 	 * The constructor sets up the Simulation tool.
 	 */
@@ -360,7 +360,7 @@ public class Simulation extends Tool
 			// find the FLEET class
 			try
 			{
-				fleetClass = Class.forName("com.sunlabs.fleetsim.simulator.Simulator");
+				fleetClass = Class.forName("com.sunlabs.fleetsim.electricPlugin.FleetSimElectricPlugin");
 			} catch (ClassNotFoundException e)
 			{
 				fleetClass = null;
@@ -370,11 +370,16 @@ public class Simulation extends Tool
 			// find the necessary methods on the FLEET class
 			try
 			{
-				fleetSimulateMethod = fleetClass.getMethod("run", new Class[] {String.class, String.class});
+				Method fleetMenuMethod = fleetClass.getMethod("fleetSimMenu", new Class[] {});
+				fleetSimMenu= (EMenu)(fleetMenuMethod.invoke(fleetClass, new Object[]{}));
 			} catch (NoSuchMethodException e)
 			{
 				fleetClass = null;
 				return false;
+			}
+			catch (Exception e) {
+				System.out.println("Unable to get FleetSimMenu");
+		        e.printStackTrace(System.out);				
 			}
 		}
 
@@ -383,25 +388,8 @@ public class Simulation extends Tool
 	 	return true;
 	}
 
-	/**
-	 * Method to run the FLEET simulator on a given cell, context or file.
-	 * Uses reflection to find the FLEET simulator (if it exists).
-	 */
-	public static void runFLEET()
-	{
-		String fileName = OpenFile.chooseInputFile(FileType.ANY, "Input to Fleet Simulator");
-		if (fileName == null) return;
-		URL url = TextUtils.makeURLToFile(fileName);
-		String directoryPart = TextUtils.getFilePath(url);
-		try
-		{
-			fleetSimulateMethod.invoke(fleetClass, new Object[] {fileName, directoryPart});
-			return;
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the FLEET simulator");
-	        e.printStackTrace(System.out);
-		}
+	public static EMenu FLEETMenu() {
+		return fleetSimMenu;
 	}
 
 	/**
