@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/16/07, GVG) contact spacing incorrect for large contacts in tsmc180 (Bug#1298)
+FIX: This bug was most probably introduced around 8.04x. From now, multi-cut spacings in poly contacts (nxm)
+is dictated by CO.S.2.
+
 IMP: (4/13/07, GVG) Threading late/early modes in Oyster. More decent results for arrivals.
 
 BUG: (4/11/07, DN) Re-exporting a large number of ports takes a long time (Bug #1296).
