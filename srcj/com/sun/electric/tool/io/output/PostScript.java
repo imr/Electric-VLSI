@@ -83,7 +83,6 @@ public class PostScript extends Output
 	/** true if the "filled polygon" header code has been written. */	private boolean putHeaderFilledPolygon;
 	/** true if the "string" header code has been written. */			private boolean putHeaderString;
 	/** true to generate color PostScript. */							private boolean psUseColor;
-	/** true to generate stippled color PostScript. */					private boolean psUseColorStip;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
     private Rectangle2D printBounds;
@@ -183,14 +182,14 @@ public class PostScript extends Output
 		putHeaderString = false;
 
 		// get control options
-		psUseColor = psUseColorStip = psUseColorMerge = false;
+		psUseColor = psUseColorMerge = false;
 		switch (IOTool.getPrintColorMethod())
 		{
 			case 1:		// color
 				psUseColor = true;
 				break;
 			case 2:		// color stippled
-				psUseColor = psUseColorStip = true;
+				psUseColor = true;
 				break;
 			case 3:		// color merged
 				psUseColor = psUseColorMerge = true;
@@ -482,17 +481,17 @@ public class PostScript extends Output
 		if (plotDates)
 		{
 			putPSHeader(HEADERSTRING);
-			printWriter.print("0 " + (int)(2 * CORNERDATESIZE * PSSCALE) + " ");
+			printWriter.print("0 " + (2 * CORNERDATESIZE * PSSCALE) + " ");
 			writePSString("Cell: " + cell.describe(false));
-			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
+			printWriter.println(" " + (CORNERDATESIZE * PSSCALE) + " Botleftstring");
 
-			printWriter.print("0 " + (int)(CORNERDATESIZE * PSSCALE) + " ");
+			printWriter.print("0 " + (CORNERDATESIZE * PSSCALE) + " ");
 			writePSString("Created: " + TextUtils.formatDate(cell.getCreationDate()));
-			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
+			printWriter.println(" " + (CORNERDATESIZE * PSSCALE) + " Botleftstring");
 
 			printWriter.print("0 0 ");
 			writePSString("Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
-			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
+			printWriter.println(" " + (CORNERDATESIZE * PSSCALE) + " Botleftstring");
 		}
 
 		printWriter.println("showpage");
@@ -663,8 +662,6 @@ public class PostScript extends Output
 				// draw any displayable variables on the instance
 				if (User.isTextVisibilityOnNode())
 				{
-					Rectangle2D rect = ni.getUntransformedBounds();
-//					Rectangle2D rect = ni.getBounds();
 					Poly[] polys = ni.getDisplayableVariables(wnd);
 					for (int i=0; i<polys.length; i++)
 					{
@@ -1683,7 +1680,7 @@ public class PostScript extends Output
 	private char psPattern(EGraphics col)
 	{
 		// see if this graphics has been seen already
-		Integer index = (Integer)patternsEmitted.get(col);
+		Integer index = patternsEmitted.get(col);
 		if (index != null) return (char)('A' + index.intValue());
 
 		// add to list

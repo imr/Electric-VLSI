@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.PortInst;
@@ -41,10 +40,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -612,12 +609,9 @@ public class Output
 	/** number of characters written on a line */	private int lineCharCount = 0;
 	private int maxWidth = 80;
 	private boolean strictWidthLimit = false;
-	private char commentChar = 0;
 	private String continuationString = "";
 
 	protected void setOutputWidth(int width, boolean strict) { maxWidth = width;   strictWidthLimit = strict; }
-
-	protected void setCommentChar(char ch) { commentChar = ch; }
 
 	protected void setContinuationString(String str) { continuationString = str; }
 

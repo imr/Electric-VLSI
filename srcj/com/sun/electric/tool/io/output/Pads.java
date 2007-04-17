@@ -97,8 +97,6 @@ public class Pads extends Output
 		networks = new ArrayList<NetNames>();
 		PadsNetlister netlister = new PadsNetlister();
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
-//		Netlist netlist = cell.getNetlist(true);
-//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println("");
 		printWriter.println("*NET*");
 
@@ -112,12 +110,12 @@ public class Pads extends Output
 		Collections.sort(networks, new NetNamesSort());
 		for(int i=0; i<networks.size(); i++)
 		{
-			NetNames nn = (NetNames)networks.get(i);
+			NetNames nn = networks.get(i);
 			String baseName = nn.netName;
 			int endPos = i;
 			for(int j=i+1; j<networks.size(); j++)
 			{
-				NetNames oNn = (NetNames)networks.get(j);
+				NetNames oNn = networks.get(j);
 				if (!oNn.netName.equals(baseName)) break;
 				endPos = j;
 			}
@@ -125,7 +123,7 @@ public class Pads extends Output
 			printWriter.println("*SIGNAL* "+ baseName);
 			for(int j=i; j<=endPos; j++)
 			{
-				NetNames oNn = (NetNames)networks.get(j);
+				NetNames oNn = networks.get(j);
 				printWriter.println(oNn.nodeName + "." + oNn.portName);
 			}
 			printWriter.println("");

@@ -478,7 +478,6 @@ public class WindowFrame extends Observable
 			windowsEvents = new WindowsEvents(this);
 			jf.addWindowListener(windowsEvents);
 			jf.addWindowFocusListener(windowsEvents);
-			jf.setWindowFrame(this);
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 //			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
 //			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
@@ -517,7 +516,6 @@ public class WindowFrame extends Observable
 			jf.getContentPane().remove(js);
 			jf.removeWindowListener(windowsEvents);
 			jf.removeWindowFocusListener(windowsEvents);
-			jf.setWindowFrame(null);
 //			content.getPanel().removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
 //			content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 		}
@@ -903,7 +901,7 @@ public class WindowFrame extends Observable
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it
-            ((TopLevel)jf).finished();
+            jf.finished();
         }
     }
 

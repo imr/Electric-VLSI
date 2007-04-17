@@ -233,12 +233,12 @@ public class TextWindow implements WindowContent
 		public void removeUpdate(DocumentEvent e) { tw.textWindowContentChanged(); }
 		public void focusGained(FocusEvent e)
 		{
-			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+			TopLevel top = TopLevel.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(true);
 		}
 		public void focusLost(FocusEvent e)
 		{
-			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+			TopLevel top = TopLevel.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(false);
 			if (tw.dirty)
 				new SaveCellText(tw);

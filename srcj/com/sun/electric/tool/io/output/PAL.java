@@ -28,17 +28,16 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
+
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -67,8 +66,6 @@ public class PAL extends Output
 		out.initialize(cell);
 		PALNetlister netlister = new PALNetlister(out);
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
-//		Netlist netlist = cell.getNetlist(true);
-//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		out.terminate(cell);
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
@@ -189,8 +186,6 @@ public class PAL extends Output
 
 		private String getNetName(Network net, HierarchyEnumerator.CellInfo info)
 		{
-			Network originalNet = net;
-			HierarchyEnumerator.CellInfo originalInfo = info;
 			for(;;)
 			{
 				Network higher = info.getNetworkInParent(net);

@@ -29,8 +29,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -41,16 +41,15 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -257,7 +256,6 @@ public class Tegas extends Topology
 
 		// name every node
 		nodeNames = new HashMap<Nodable,Integer>();
-		int nodeCount = 1;
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
 			Nodable no = it.next();
@@ -543,7 +541,6 @@ public class Tegas extends Topology
 	{
 		if (no.isCellInstance()) return "";
 		NodeInst ni = (NodeInst)no;
-		PrimitiveNode.Function fun = ni.getFunction();
 
 		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
 		String str1 = "/1,";

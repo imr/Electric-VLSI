@@ -34,7 +34,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -64,7 +63,6 @@ public class FastHenry extends Output
 	 */
 	public static class FastHenryArcInfo
 	{
-		private ArcInst ai;
 		private String groupName;
 		private double thickness;
 		private int widthSubdivisions, heightSubdivisions;
@@ -81,7 +79,6 @@ public class FastHenry extends Output
 
 		public FastHenryArcInfo(ArcInst ai)
 		{
-			this.ai = ai;
 			Technology tech = ai.getProto().getTechnology();
 
 			// get the group membership
@@ -227,13 +224,13 @@ public class FastHenry extends Output
 		printWriter.println("* Traces");
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			// see if this node has a FastHenry arc on it
 			boolean found = false;
 			double nodeZVal = 0;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				FastHenryArcInfo fhai = new FastHenryArcInfo(ai);
 				if (fhai.getGroupName() == null) continue;
@@ -254,9 +251,8 @@ public class FastHenry extends Output
 			// node is an end point: get its name
 			String nname = ni.getName();
 			if (ni.hasExports())
-//			if (ni.getNumExports() > 0)
 			{
-				Export e = (Export)ni.getExports().next();
+				Export e = ni.getExports().next();
 				nname = e.getName();
 			}
 	
@@ -271,7 +267,7 @@ public class FastHenry extends Output
 		// look at every arc in the cell
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			// get info about this arc, stop if not part of the FastHenry output
 			FastHenryArcInfo fhai = new FastHenryArcInfo(ai);
 			if (fhai.getGroupName() == null) continue;
@@ -283,13 +279,11 @@ public class FastHenry extends Output
 			NodeInst n1 = ai.getHeadPortInst().getNodeInst();
 			String n1Name = n1.getName();
 			if (n1.hasExports())
-//			if (n1.getNumExports() > 0)
-				n1Name = ((Export)n1.getExports().next()).getName();
+				n1Name = n1.getExports().next().getName();
 			NodeInst n2 = ai.getTailPortInst().getNodeInst();
 			String n2Name = n2.getName();
 			if (n2.hasExports())
-//			if (n2.getNumExports() > 0)
-				n2Name = ((Export)n2.getExports().next()).getName();
+				n2Name = n2.getExports().next().getName();
 	
 			// write the "E" line
 			double w = TextUtils.convertDistance(wid, cell.getTechnology(), TextUtils.UnitScale.MICRO);
@@ -321,7 +315,7 @@ public class FastHenry extends Output
 			Connection con = null;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				con = (Connection)cIt.next();
+				con = cIt.next();
 				if (con.getArc().getVar(GROUP_NAME_KEY) != null) break;
 				con = null;
 			}
@@ -329,8 +323,6 @@ public class FastHenry extends Output
 	
 			// port "pp" is one end, now find the other
             int thatEnd = 1 - con.getEndIndex();
-//			int thatEnd = 0;
-//			if (con.getArc().getConnection(0) == con) thatEnd = 1;
 			Export oE = sim_fasthenryfindotherport(con.getArc(), thatEnd, arcsSeen);
 			if (oE == null)
 			{
@@ -346,7 +338,7 @@ public class FastHenry extends Output
 		// warn about arcs that aren't connected to ".external" lines
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			if (arcsSeen.contains(ai)) continue;
 			if (ai.getVar(GROUP_NAME_KEY) == null) continue;
 			System.out.println("Warning: " + ai + " is not connected to an export");
@@ -357,19 +349,16 @@ public class FastHenry extends Output
 	{
 		arcsSeen.add(ai);
 		NodeInst ni = ai.getPortInst(end).getNodeInst();
-		if (ni.hasExports()) return (Export)ni.getExports().next();
-//		if (ni.getNumExports() > 0) return (Export)ni.getExports().next();
+		if (ni.hasExports()) return ni.getExports().next();
 
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst oAi = con.getArc();
 			if (oAi == ai) continue;
 			Variable var = ai.getVar(GROUP_NAME_KEY);
 			if (var == null) continue;
             int thatEnd = 1 - con.getEndIndex();
-//			int thatEnd = 0;
-//			if (oAi.getConnection(0) == con) thatEnd = 1;
 			Export oE = sim_fasthenryfindotherport(oAi, thatEnd, arcsSeen);
 			if (oE != null) return oE;
 		}

@@ -141,7 +141,7 @@ public class DXF extends Output
 		cellsSeen = new HashSet<Cell>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.isCellInstance())
 			{
 				NodeProto np = ni.getProto();
@@ -168,7 +168,7 @@ public class DXF extends Output
 			cellsSeen.add(cell);
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
+				NodeInst ni = it.next();
 				NodeProto np = ni.getProto();
 				if (ni.isCellInstance() && !cellsSeen.contains(np))
 					writeDXFCell((Cell)np, true);
@@ -183,7 +183,7 @@ public class DXF extends Output
 
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 
 			// handle instances
@@ -254,7 +254,7 @@ public class DXF extends Output
 				{
 					startOffset = startOffset * 180.0 / Math.PI;
 					endAngle = endAngle * 180.0 / Math.PI;
-					double startAngle = (double)ni.getAngle() / 10.0 + startOffset;
+					double startAngle = ni.getAngle() / 10.0 + startOffset;
 					if (ni.isXMirrored() != ni.isYMirrored())
 					{
 						startAngle = 270.0 - startAngle - endAngle;
@@ -358,7 +358,7 @@ public class DXF extends Output
 				boolean found = false;
 				for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 				{
-					Cell oCell = (Cell)it.next();
+					Cell oCell = it.next();
 					if (oCell.getName().equalsIgnoreCase(buf)) { found = true;   break; }
 				}
 				if (!found) break;

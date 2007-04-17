@@ -118,7 +118,7 @@ public class ReadableDump extends ELIB {
             CellBackup cellBackup = snapshot.getCell(cellId);
             startCell(cellBackup, 0);
             int groupIndex = groupRenumber[snapshot.cellGroups[cellId.cellIndex]];
-            printWriter.println("***cell: " + ((Integer)entry.getValue()).intValue() + "/" + groupIndex);
+            printWriter.println("***cell: " + entry.getValue().intValue() + "/" + groupIndex);
             writeCellInfo(cellBackup);
             
             // write tool information

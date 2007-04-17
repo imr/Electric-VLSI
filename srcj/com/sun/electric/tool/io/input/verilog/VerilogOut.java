@@ -27,11 +27,11 @@ package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.io.input.Simulate;
 
 import java.io.IOException;
 import java.net.URL;
@@ -389,7 +389,7 @@ public class VerilogOut extends Simulate
 		int numSignalsInArray = curArray.size();
 		for(int j=0; j<numSignalsInArray; j++)
 		{
-			DigitalSignal sig = (DigitalSignal)curArray.get(j);
+			DigitalSignal sig = curArray.get(j);
 			int squarePos = sig.getSignalName().indexOf('[');
 			if (squarePos < 0) continue;
 			String purename = sig.getSignalName().substring(0, squarePos);
@@ -411,7 +411,7 @@ public class VerilogOut extends Simulate
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
 					{
-						DigitalSignal subSig = (DigitalSignal)curArray.get(firstEntry+i);
+						DigitalSignal subSig = curArray.get(firstEntry+i);
 						arraySig.addToBussedSignalList(subSig);
 					}
 					last = null;
@@ -427,7 +427,7 @@ public class VerilogOut extends Simulate
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)
 			{
-				DigitalSignal subSig = (DigitalSignal)curArray.get(firstEntry+i);
+				DigitalSignal subSig = curArray.get(firstEntry+i);
 				arraySig.addToBussedSignalList(subSig);
 			}
 		}

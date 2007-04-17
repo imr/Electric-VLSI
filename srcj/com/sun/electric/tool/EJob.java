@@ -187,7 +187,7 @@ class EJob {
         
     Throwable deserializeResult() {
         try {
-            Class jobClass = clientJob.getClass();
+//            Class jobClass = clientJob.getClass();
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedResult), EDatabase.clientDatabase());
             Throwable jobException = (Throwable)in.readObject();
             int numFields = in.readInt();
@@ -218,7 +218,7 @@ class EJob {
     
     private Field findField(String fieldName) {
         Class jobClass = getJob().getClass();
-        Field fld = null;
+//        Field fld = null;
         while (jobClass != Job.class) {
             try {
                 return jobClass.getDeclaredField(fieldName);

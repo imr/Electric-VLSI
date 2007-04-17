@@ -64,7 +64,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<Client> serverConnections = new ArrayList<Client>();
-    private final UserInterface redirectInterface = new UserInterfaceRedirect();
+//    private final UserInterface redirectInterface = new UserInterfaceRedirect();
     private int numThreads;
     private final int maxNumThreads;
     private boolean runningChangeJob;
@@ -388,7 +388,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         lock();
         try {
             if (finishedEJob != null) {
-                EJob.State state = finishedEJob.state;
+//                EJob.State state = finishedEJob.state;
                 setEJobState(finishedEJob, EJob.State.SERVER_DONE, "done");
             }
             for (;;) {

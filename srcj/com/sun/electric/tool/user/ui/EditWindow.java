@@ -158,7 +158,7 @@ public class EditWindow extends JPanel
 	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent;
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
-    /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
+//    /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
 
@@ -174,8 +174,8 @@ public class EditWindow extends JPanel
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 
 	/** true if drawing popup cloud */                      private boolean showPopupCloud = false;
-	/** Strings to write to popup cloud */                  private List<String> popupCloudText;
-	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
+//	/** Strings to write to popup cloud */                  private List<String> popupCloudText;
+//	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
     /** Highlighter for this window */                      private Highlighter highlighter;
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
@@ -303,7 +303,7 @@ public class EditWindow extends JPanel
 		setLayout(null);
 
 		// a drop target for the signal panel
-		DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, editWindowDropTarget, true);
+		new DropTarget(this, DnDConstants.ACTION_LINK, editWindowDropTarget, true);
 
 		//setAutoscrolls(true);
 
@@ -1304,7 +1304,7 @@ public class EditWindow extends JPanel
 		if (doingAreaDrag) showDragBox(g);
 
 		// add in popup cloud
-		if (showPopupCloud) drawPopupCloud((Graphics2D)g);
+		if (showPopupCloud) drawPopupCloud(g);
 
 		// add in shadow if doing in-place editing
 		if (inPlaceDisplay)
@@ -1360,7 +1360,7 @@ public class EditWindow extends JPanel
 					runningNow = redrawThese.get(0);
 					redrawThese.remove(0);
                     logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "restart RenderJob");
-					RenderJob nextJob = new RenderJob(runningNow, null, false);
+					new RenderJob(runningNow, null, false);
                     logger.exiting(CLASS_NAME, "paintComponent");
 					return;
 				}
@@ -1483,7 +1483,7 @@ public class EditWindow extends JPanel
 			handleWindowChangeRequests(this);
 			runningNow = this;
 		}
-		RenderJob renderJob = new RenderJob(this, bounds, fullInstantiate);
+		new RenderJob(this, bounds, fullInstantiate);
 
         // do the redraw in the main thread
         setScrollPosition();                        // redraw scroll bars
@@ -1847,7 +1847,7 @@ public class EditWindow extends JPanel
 			// convert the message to glyphs
 			GlyphVector gv = font.createGlyphVector(frc, string);
 			LineMetrics lm = font.getLineMetrics(string, frc);
-			Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+			Rectangle rect = gv.getOutline(0, lm.getAscent()-lm.getLeading()).getBounds();
 			double width = rect.width;
 			double height = lm.getHeight();
 			Point2D databaseSize = wnd.deltaScreenToDatabase((int)width, (int)height);
@@ -1861,7 +1861,7 @@ public class EditWindow extends JPanel
 				{
 					gv = font.createGlyphVector(frc, string);
 					lm = font.getLineMetrics(string, frc);
-					rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+					rect = gv.getOutline(0, lm.getAscent()-lm.getLeading()).getBounds();
 					width = rect.width;
 					height = lm.getHeight();
 				}
@@ -1935,91 +1935,91 @@ public class EditWindow extends JPanel
 	 * THIS METHOD IS NOT USED ANYMORE.  THE GRID IS NOW DRAWN INTO THE OFFSCREEN IMAGE.
 	 * SEE PixelDrawing.drawGrid()
 	 */
-	private void drawGrid(Graphics g)
-	{
-		// grid spacing
-		if (gridXSpacing == 0 || gridYSpacing == 0) return;
-		double spacingX = gridXSpacing;
-		double spacingY = gridYSpacing;
-		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
-		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
-		double boldSpacingThreshX = spacingX / 4;
-		double boldSpacingThreshY = spacingY / 4;
-
-		// screen extent
-		Rectangle2D displayable = displayableBounds();
-		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
-		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
-		double scaleX = sz.width / (hX - lX);
-		double scaleY = sz.height / (lY - hY);
-
-		// initial grid location
-		double x1 = DBMath.toNearest(lX, spacingX);
-		double y1 = DBMath.toNearest(lY, spacingY);
-
-		// adjust grid placement according to scale
-		boolean allBoldDots = false;
-		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
-		{
-			// normal grid is too fine: only show the "bold dots"
-			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
-			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
-
-			// if even the bold dots are too close, don't draw a grid
-			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
-		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
-		{
-			// if zoomed-out far enough, show all bold dots
-			allBoldDots = true;
-		}
-
-		// draw the grid
-		g.setColor(new Color(User.getColorGrid()));
-		for(double i = y1; i > hY; i -= spacingY)
-		{
-			double boldValueY = i;
-			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
-				boldValueY += boldSpacingThreshY/2;
-			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
-			for(double j = x1; j < hX; j += spacingX)
-			{
-				Point xy = databaseToScreen(j, i);
-				int x = xy.x;
-				int y = xy.y;
-				if (y < 0 || y > sz.height) continue;
-				double boldValueX = j;
-				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
-					boldValueX += boldSpacingThreshX/2;
-				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
-				if (allBoldDots && everyTenX && everyTenY)
-				{
-					g.fillRect(x-2,y, 5, 1);
-					g.fillRect(x,y-2, 1, 5);
-					g.fillRect(x-1,y-1, 3, 3);
-					continue;
-				}
-
-				// special case every 10 grid points in each direction
-				if (allBoldDots || (everyTenX && everyTenY))
-				{
-					g.fillRect(x-1,y, 3, 1);
-					g.fillRect(x,y-1, 1, 3);
-					continue;
-				}
-
-				// just a single dot
-				g.fillRect(x,y, 1, 1);
-			}
-		}
-		if (User.isGridAxesShown())
-		{
-			Point xy = databaseToScreen(0, 0);
-			if (xy.x >= 0 && xy.x < sz.width)
-				g.drawLine(xy.x, 0, xy.x, sz.height-1);
-			if (xy.y >= 0 && xy.y < sz.height)
-				g.drawLine(0, xy.y, sz.width-1, xy.y);
-		}
-	}
+//	private void drawGrid(Graphics g)
+//	{
+//		// grid spacing
+//		if (gridXSpacing == 0 || gridYSpacing == 0) return;
+//		double spacingX = gridXSpacing;
+//		double spacingY = gridYSpacing;
+//		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
+//		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
+//		double boldSpacingThreshX = spacingX / 4;
+//		double boldSpacingThreshY = spacingY / 4;
+//
+//		// screen extent
+//		Rectangle2D displayable = displayableBounds();
+//		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
+//		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
+//		double scaleX = sz.width / (hX - lX);
+//		double scaleY = sz.height / (lY - hY);
+//
+//		// initial grid location
+//		double x1 = DBMath.toNearest(lX, spacingX);
+//		double y1 = DBMath.toNearest(lY, spacingY);
+//
+//		// adjust grid placement according to scale
+//		boolean allBoldDots = false;
+//		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
+//		{
+//			// normal grid is too fine: only show the "bold dots"
+//			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
+//			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
+//
+//			// if even the bold dots are too close, don't draw a grid
+//			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
+//		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
+//		{
+//			// if zoomed-out far enough, show all bold dots
+//			allBoldDots = true;
+//		}
+//
+//		// draw the grid
+//		g.setColor(new Color(User.getColorGrid()));
+//		for(double i = y1; i > hY; i -= spacingY)
+//		{
+//			double boldValueY = i;
+//			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
+//				boldValueY += boldSpacingThreshY/2;
+//			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
+//			for(double j = x1; j < hX; j += spacingX)
+//			{
+//				Point xy = databaseToScreen(j, i);
+//				int x = xy.x;
+//				int y = xy.y;
+//				if (y < 0 || y > sz.height) continue;
+//				double boldValueX = j;
+//				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
+//					boldValueX += boldSpacingThreshX/2;
+//				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
+//				if (allBoldDots && everyTenX && everyTenY)
+//				{
+//					g.fillRect(x-2,y, 5, 1);
+//					g.fillRect(x,y-2, 1, 5);
+//					g.fillRect(x-1,y-1, 3, 3);
+//					continue;
+//				}
+//
+//				// special case every 10 grid points in each direction
+//				if (allBoldDots || (everyTenX && everyTenY))
+//				{
+//					g.fillRect(x-1,y, 3, 1);
+//					g.fillRect(x,y-1, 1, 3);
+//					continue;
+//				}
+//
+//				// just a single dot
+//				g.fillRect(x,y, 1, 1);
+//			}
+//		}
+//		if (User.isGridAxesShown())
+//		{
+//			Point xy = databaseToScreen(0, 0);
+//			if (xy.x >= 0 && xy.x < sz.width)
+//				g.drawLine(xy.x, 0, xy.x, sz.height-1);
+//			if (xy.y >= 0 && xy.y < sz.height)
+//				g.drawLine(0, xy.y, sz.width-1, xy.y);
+//		}
+//	}
 
 	// *************************** SEARCHING FOR TEXT ***************************
 
@@ -2474,7 +2474,7 @@ public class EditWindow extends JPanel
 	public void replaceText(String replace)
 	{
 		if (textSearch.currentStringInCell == null) return;
-		ReplaceTextJob job = new ReplaceTextJob(this, replace);
+		new ReplaceTextJob(this, replace);
 	}
 
 	/**
@@ -2483,7 +2483,7 @@ public class EditWindow extends JPanel
 	 */
 	public void replaceAllText(String replace)
 	{
-		ReplaceAllTextJob job = new ReplaceAllTextJob(this, replace);
+		new ReplaceAllTextJob(this, replace);
 	}
 
     /**
@@ -2557,8 +2557,8 @@ public class EditWindow extends JPanel
     public void setShowPopupCloud(List<String> text, Point2D point)
     {
         showPopupCloud = true;
-        popupCloudText = text;
-        popupCloudPoint = point;
+//        popupCloudText = text;
+//        popupCloudPoint = point;
     }
 
     public void clearShowPopupCloud() { showPopupCloud = false; }
@@ -2809,15 +2809,13 @@ public class EditWindow extends JPanel
 		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
 
-        // get bounds of cell including what is on-screen
-        Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
-
         // scroll bar is being repositioned: ignore the change events it generates
         ignoreScrollChange = true;
 
         // adjust scroll bars to reflect new bounds (only if not being adjusted now)
         // newValue, newThumbSize, newMin, newMax
         /*
+        Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
         if (!bottomScrollBar.getValueIsAdjusting()) {
             bottomScrollBar.getModel().setRangeProperties(
                     (int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
@@ -3139,18 +3137,18 @@ public class EditWindow extends JPanel
      */
     public VarContext getVarContext() { return cellVarContext; }
 
-    private PortInst[] pushSelectedPorts(PortInst pi) {
-        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length + 1];
-        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, selectedPorts.length);
-        newSelectedPorts[selectedPorts.length] = pi;
-        return newSelectedPorts;
-    }
-
-    private PortInst[] popSelectedPorts() {
-        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length - 1];
-        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, newSelectedPorts.length);
-        return newSelectedPorts;
-    }
+//    private PortInst[] pushSelectedPorts(PortInst pi) {
+//        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length + 1];
+//        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, selectedPorts.length);
+//        newSelectedPorts[selectedPorts.length] = pi;
+//        return newSelectedPorts;
+//    }
+//
+//    private PortInst[] popSelectedPorts() {
+//        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length - 1];
+//        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, newSelectedPorts.length);
+//        return newSelectedPorts;
+//    }
 
     /**
      * Push into an instance (go down the hierarchy)
@@ -3898,7 +3896,7 @@ public class EditWindow extends JPanel
 		Dimension dim = getSize();
 		double panningAmount = panningAmounts[User.getPanningDistance()];
 		double value = (direction == 0) ? dim.width : dim.height;
-		int mult = (int)((double)value * panningAmount / getScale());
+		int mult = (int)(value * panningAmount / getScale());
 		if (mult == 0) mult = 1;
 		Point2D wndOffset = getOffset();
 		Point2D newOffset = (direction == 0) ?

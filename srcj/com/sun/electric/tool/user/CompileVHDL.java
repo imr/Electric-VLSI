@@ -277,9 +277,9 @@ public class CompileVHDL
 
 	private static final int DBMODE_IN			= 1;
 	private static final int DBMODE_OUT			= 2;
-	private static final int DBMODE_DOTOUT		= 3;
-	private static final int DBMODE_INOUT		= 4;
-	private static final int DBMODE_LINKAGE		= 5;
+//	private static final int DBMODE_DOTOUT		= 3;
+//	private static final int DBMODE_INOUT		= 4;
+//	private static final int DBMODE_LINKAGE		= 5;
 
 	private static class DBPortList
 	{
@@ -465,8 +465,8 @@ public class CompileVHDL
 
 	/********** Bodies *****************************************************/
 
-	private static final int BODY_BEHAVIORAL	= 1;
-	private static final int BODY_ARCHITECTURAL	= 2;
+//	private static final int BODY_BEHAVIORAL	= 1;
+//	private static final int BODY_ARCHITECTURAL	= 2;
 
 	private static class Body
 	{
@@ -607,8 +607,8 @@ public class CompileVHDL
 	};
 
 	private static final int APORTLIST_NAME			= 1;
-	private static final int APORTLIST_TYPE_NAME	= 2;
-	private static final int APORTLIST_EXPRESSION	= 3;
+//	private static final int APORTLIST_TYPE_NAME	= 2;
+//	private static final int APORTLIST_EXPRESSION	= 3;
 
 	private static class APortList
 	{
@@ -831,19 +831,19 @@ public class CompileVHDL
 	};
 
 	/* special codes during VHDL generation */
-	/** ordinary block */				private static final int BLOCKNORMAL   =  0;
-	/** a MOS transistor */				private static final int BLOCKMOSTRAN  =  1;
-	/** a buffer */						private static final int BLOCKBUFFER   =  2;
-	/** an and, or, xor */				private static final int BLOCKPOSLOGIC =  3;
-	/** an inverter */					private static final int BLOCKINVERTER =  4;
-	/** a nand */						private static final int BLOCKNAND     =  5;
-	/** a nor */						private static final int BLOCKNOR      =  6;
-	/** an xnor */						private static final int BLOCKXNOR     =  7;
-	/** a settable D flip-flop */		private static final int BLOCKFLOPDS   =  8;
-	/** a resettable D flip-flop */		private static final int BLOCKFLOPDR   =  9;
-	/** a settable T flip-flop */		private static final int BLOCKFLOPTS   = 10;
-	/** a resettable T flip-flop */		private static final int BLOCKFLOPTR   = 11;
-	/** a general flip-flop */			private static final int BLOCKFLOP     = 12;
+//	/** ordinary block */				private static final int BLOCKNORMAL   =  0;
+//	/** a MOS transistor */				private static final int BLOCKMOSTRAN  =  1;
+//	/** a buffer */						private static final int BLOCKBUFFER   =  2;
+//	/** an and, or, xor */				private static final int BLOCKPOSLOGIC =  3;
+//	/** an inverter */					private static final int BLOCKINVERTER =  4;
+//	/** a nand */						private static final int BLOCKNAND     =  5;
+//	/** a nor */						private static final int BLOCKNOR      =  6;
+//	/** an xnor */						private static final int BLOCKXNOR     =  7;
+//	/** a settable D flip-flop */		private static final int BLOCKFLOPDS   =  8;
+//	/** a resettable D flip-flop */		private static final int BLOCKFLOPDR   =  9;
+//	/** a settable T flip-flop */		private static final int BLOCKFLOPTS   = 10;
+//	/** a resettable T flip-flop */		private static final int BLOCKFLOPTR   = 11;
+//	/** a general flip-flop */			private static final int BLOCKFLOP     = 12;
 
 	private static String	delimiterStr = "&'()*+,-./:;<=>|";
 	private static String	doubleDelimiterStr = "=>..**:=/=>=<=<>";
@@ -3622,11 +3622,11 @@ public class CompileVHDL
 		SymbolTree symbol = searchSymbol((String)body.entity.identifier.pointer, globalSymbols);
 		if (symbol == null)
 		{
-			reportErrorMsg((TokenList)body.entity.identifier, "Reference to undefined entity");
+			reportErrorMsg(body.entity.identifier, "Reference to undefined entity");
 			return dbBody;
 		} else if (symbol.type != SYMBOL_ENTITY)
 		{
-			reportErrorMsg((TokenList)body.entity.identifier, "Symbol is not an entity");
+			reportErrorMsg(body.entity.identifier, "Symbol is not an entity");
 			return dbBody;
 		} else
 		{
@@ -4725,7 +4725,7 @@ public class CompileVHDL
 					value %= value2;
 					break;
 				case MULOP_REM:
-					value -= (int)(value / value2) * value2;
+					value -= (value / value2) * value2;
 					break;
 				default:
 					break;
@@ -5452,7 +5452,7 @@ public class CompileVHDL
 	{
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
-			Cell np = (Cell)it.next();
+			Cell np = it.next();
 			if (np.getView() != View.NETLISTALS) continue;
 			StringBuffer infstr = new StringBuffer();
 			String cellName = np.getName();
@@ -5862,7 +5862,7 @@ public class CompileVHDL
 			boolean found = false;
 			for(Iterator<Cell> it = destLib.getCells(); it.hasNext(); )
 			{
-				Cell np = (Cell)it.next();
+				Cell np = it.next();
 				StringBuffer sb = new StringBuffer();
 				String name = np.getName();
 				for(int i=0; i<name.length();  i++)
@@ -5877,7 +5877,7 @@ public class CompileVHDL
 			{
 				for(Iterator<Cell> it = cellLib.getCells(); it.hasNext(); )
 				{
-					Cell np = (Cell)it.next();
+					Cell np = it.next();
 					StringBuffer sb = new StringBuffer();
 					String name = np.getName();
 					for(int i=0; i<name.length();  i++)

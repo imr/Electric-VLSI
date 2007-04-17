@@ -251,17 +251,17 @@ public class GDS extends Input
         }
 
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points) {
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null, null);
+            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null);
             insts.add(mi);
         }
 
 		private void makeExport(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, String exportName) {
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null, null);
+            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null);
             insts.add(mi);
         }
 
 		private void makeText(NodeProto proto, Point2D loc, String text, TextDescriptor textDescriptor) {
-            MakeInstance mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text), textDescriptor);
+            MakeInstance mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
             insts.add(mi);
         }
 
@@ -552,9 +552,8 @@ public class GDS extends Input
         private EPoint[] points; // trace
         private String exportName; // export
         private Name nodeName; // text
-        private TextDescriptor textDescriptor; // text
 
-		private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points, String exportName, Name nodeName, TextDescriptor textDescriptor)
+		private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points, String exportName, Name nodeName)
 		{
 			this.proto = proto;
 			this.loc = loc;
@@ -564,7 +563,6 @@ public class GDS extends Input
             this.points = points;
             this.exportName = exportName;
             this.nodeName = nodeName;
-            this.textDescriptor = textDescriptor;
 		}
 
         public int compareTo(MakeInstance that) {
@@ -671,18 +669,18 @@ public class GDS extends Input
 	 * Method to parse a string of layer numbers in "layernumbers" and return those layers
 	 * in the array "layers", with the size of the array in "total".
 	 */
-	private List<Integer> parseLayerNumbers(String layerNumbers)
-	{
-		String [] numberStrings = layerNumbers.split(",");
-		List<Integer> numbers = new ArrayList<Integer>();
-		for(int i=0; i<numberStrings.length; i++)
-		{
-			String numberString = numberStrings[i].trim();
-			if (TextUtils.isANumber(numberString))
-				numbers.add(new Integer(TextUtils.atoi(numberString)));
-		}
-		return numbers;
-	}
+//	private List<Integer> parseLayerNumbers(String layerNumbers)
+//	{
+//		String [] numberStrings = layerNumbers.split(",");
+//		List<Integer> numbers = new ArrayList<Integer>();
+//		for(int i=0; i<numberStrings.length; i++)
+//		{
+//			String numberString = numberStrings[i].trim();
+//			if (TextUtils.isANumber(numberString))
+//				numbers.add(new Integer(TextUtils.atoi(numberString)));
+//		}
+//		return numbers;
+//	}
 
 	private void loadFile()
 		throws IOException
@@ -729,13 +727,12 @@ public class GDS extends Input
 		if (theToken != GDS_BGNLIB) handleError("Begin library statement is missing");
 
 		getToken();
-		String createTime = determineTime();
-		String modTime = determineTime();
+		determineTime();		// creation time
+		determineTime();		// modification time
 		if (theToken == GDS_LIBNAME)
 		{
 			getToken();
 			if (theToken != GDS_IDENT) handleError("Library name is missing");
-			String libraryName = tokenString;
 		}
 	}
 
@@ -771,7 +768,6 @@ public class GDS extends Input
 		getToken();
 		if (theToken != GDS_REALNUM) handleError("Units statement has invalid number format");
 
-		double dbUnit = tokenValueDouble;
 		getToken();
 		double meterUnit = tokenValueDouble;
 		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
@@ -849,8 +845,8 @@ public class GDS extends Input
 		if (theToken != GDS_BGNSTR) handleError("Begin structure statement is missing");
 
 		getToken();
-		String createTime = determineTime();
-		String modTime = determineTime();
+		determineTime();	// creation time
+		determineTime();	// modification time
 		if (theToken != GDS_STRNAME) handleError("Strname statement is missing");
 
 		getToken();
@@ -926,7 +922,7 @@ public class GDS extends Input
 		}
 		if (theToken != GDS_XY) handleError("Array reference has no parameters");
 		getToken();
-		int n = determinePoints(3, 3);
+		determinePoints(3, 3);
 
 		boolean mY = false;
 		boolean mX = false;
@@ -964,7 +960,7 @@ public class GDS extends Input
 						(ir == (nRows-1) && ic == (nCols-1)))
 				{
 					Point2D loc = new Point2D.Double(ptX, ptY);
-					theCell.makeInstance((Cell)theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
+					theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
 				}
 
 				// add the row displacement
@@ -976,12 +972,12 @@ public class GDS extends Input
 		}
 	}
 
-	private void makeTransform(Point2D delta, int angle, boolean trans)
-	{
-        Orientation orient = Orientation.fromC(angle, trans);
-        AffineTransform xform = orient.pureRotate();
-		xform.transform(delta, delta);
-	}
+//	private void makeTransform(Point2D delta, int angle, boolean trans)
+//	{
+//        Orientation orient = Orientation.fromC(angle, trans);
+//        AffineTransform xform = orient.pureRotate();
+//		xform.transform(delta, delta);
+//	}
 
 	private class ReadOrientation
 	{
@@ -1042,7 +1038,7 @@ public class GDS extends Input
 		}
 		if (theToken != GDS_XY) handleError("Structure reference has no translation value");
 		getToken();
-		int n = determinePoints(1, 1);
+		determinePoints(1, 1);
 
 		Point2D loc = new Point2D.Double(theVertices[0].getX(), theVertices[0].getY());
 		boolean mY = false;
@@ -1051,7 +1047,7 @@ public class GDS extends Input
 			mY = true;
 			angle = (angle + 900) % 3600;
 		}
-		theCell.makeInstance((Cell)theNodeProto, loc, Orientation.fromJava(angle, false, mY), 0, 0, null);
+		theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, false, mY), 0, 0, null);
 	}
 
 	private void determineShape()
@@ -1069,7 +1065,6 @@ public class GDS extends Input
 	}
 
 	private void determineBoundary(int npts)
-		throws IOException
 	{
 		boolean is90 = true;
 		boolean is45 = true;
@@ -1107,7 +1102,7 @@ public class GDS extends Input
 				double sY = Math.abs(theVertices[1].getY() - theVertices[0].getY());
 				if (mergeThisCell)
 				{
-					PrimitiveNode plnp = (PrimitiveNode)layerNodeProto;
+					PrimitiveNode plnp = layerNodeProto;
 					NodeLayer [] layers = plnp.getLayers();
 					merge.addPolygon(layers[0].getLayer(), new Poly(ctr.getX(), ctr.getY(), sX, sY));
 				} else
@@ -1123,7 +1118,7 @@ public class GDS extends Input
 			if (!layerUsed) return;
 			if (mergeThisCell)
 			{
-				PrimitiveNode plnp = (PrimitiveNode)layerNodeProto;
+				PrimitiveNode plnp = layerNodeProto;
 				NodeLayer [] layers = plnp.getLayers();
 				merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
 			} else
@@ -1142,8 +1137,6 @@ public class GDS extends Input
 				}
 
 				// store the trace information
-				double cx = (hx + lx) / 2;
-				double cy = (hy + ly) / 2;
 				EPoint [] points = new EPoint[npts];
 				for(int i=0; i<npts; i++)
 				{
@@ -1269,7 +1262,7 @@ public class GDS extends Input
 
 					if (mergeThisCell)
 					{
-						PrimitiveNode plnp = (PrimitiveNode)layerNodeProto;
+						PrimitiveNode plnp = layerNodeProto;
 						NodeLayer [] layers = plnp.getLayers();
 						merge.addPolygon(layers[0].getLayer(), poly);
 					} else
@@ -1390,7 +1383,7 @@ public class GDS extends Input
 			if (theToken == GDS_XY)
 			{
 				getToken();
-				int n = determinePoints(1, 1);
+				determinePoints(1, 1);
 				continue;
 			}
 			if (theToken == GDS_ANGLE)
@@ -1423,7 +1416,6 @@ public class GDS extends Input
 	}
 
 	private void readText(String charstring, int vjust, int hjust, int angle, boolean trans, double scale)
-		throws IOException
 	{
 		// stop if layer invalid
 		if (!layerUsed) return;
@@ -1445,9 +1437,6 @@ public class GDS extends Input
 		double x = theVertices[0].getX() + MINFONTWIDTH * charstring.length();
 		double y = theVertices[0].getY() + MINFONTHEIGHT;
 		theVertices[1].setLocation(x, y);
-
-		// create a holding node
-        Orientation orient = Orientation.fromAngle(angle);
 
 		// set the text size and orientation
 		MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
@@ -1608,7 +1597,6 @@ public class GDS extends Input
 		if (theToken != GDS_PROPVALUE) handleError("Property has no value");
 
 		getToken();
-		String propvalue = tokenString;
 
 		// add to the current structure as a variable?
 		getToken();
@@ -1817,7 +1805,7 @@ public class GDS extends Input
 		}
 		if (binary_exponent < 0)
 			return (float)(sign * reg / makePower(2, -binary_exponent));
-		return (float)(sign * reg);
+		return sign * reg;
 	}
 
 	private static double makePower(int val, int power)

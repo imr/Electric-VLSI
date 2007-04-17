@@ -123,7 +123,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         }
         cellJList.setListData(cellList.toArray());
 
-        Rectangle rect = (Rectangle)viewPortMap.get(library);
+        Rectangle rect = viewPortMap.get(library);
         if (rect != null) {
             cellJList.scrollRectToVisible(rect);
         }

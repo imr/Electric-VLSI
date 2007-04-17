@@ -28,12 +28,10 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
@@ -96,29 +94,26 @@ public class SizeListener
 			System.out.println("Select just one object to size");
 			return;
 		}
-		Geometric geom = (Geometric)geomList.get(0);
-		if (geom instanceof Geometric)
+		Geometric geom = geomList.get(0);
+		EventListener newListener = null;
+
+		// remember the listener that was there before
+		EventListener oldListener = WindowFrame.getListener();
+		Cursor oldCursor = TopLevel.getCurrentCursor();
+
+		System.out.println("Click to stretch " + geom);
+		newListener = oldListener;
+		if (newListener == null || !(newListener instanceof SizeListener))
 		{
-			EventListener newListener = null;
-
-			// remember the listener that was there before
-			EventListener oldListener = WindowFrame.getListener();
-			Cursor oldCursor = TopLevel.getCurrentCursor();
-
-			System.out.println("Click to stretch " + geom);
-			newListener = oldListener;
-			if (newListener == null || !(newListener instanceof SizeListener))
-			{
-				newListener = new SizeListener();
-				WindowFrame.setListener(newListener);
-			}
-			((SizeListener)newListener).stretchGeom = geom;
-			((SizeListener)newListener).oldListener = oldListener;
-			((SizeListener)newListener).oldCursor = oldCursor;
-
-			// change the cursor
-			TopLevel.setCurrentCursor(sizeCursor);
+			newListener = new SizeListener();
+			WindowFrame.setListener(newListener);
 		}
+		((SizeListener)newListener).stretchGeom = geom;
+		((SizeListener)newListener).oldListener = oldListener;
+		((SizeListener)newListener).oldCursor = oldCursor;
+
+		// change the cursor
+		TopLevel.setCurrentCursor(sizeCursor);
 	}
 
 	/**
@@ -270,7 +265,7 @@ public class SizeListener
 			double yS = 0;
 			if (nodes)
 				yS = TextUtils.atof(ySize.getText());
-			ResizeStuff job = new ResizeStuff(wnd.getCell(), highlighted, xS, yS, nodes);
+			new ResizeStuff(wnd.getCell(), highlighted, xS, yS, nodes);
 			SizeObjectsClosing(null);
 		}
 
@@ -369,12 +364,12 @@ public class SizeListener
 			NodeInst ni = (NodeInst)stretchGeom;
 			Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			Point2D newSize = getNewNodeSize(evt, newCenter);
-			ScaleNode job = new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
+			new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
 		} else
 		{
 			ArcInst ai = (ArcInst)stretchGeom;
 			double newLambdaBaseWidth = getNewArcSize(evt);
-			ScaleArc job = new ScaleArc(ai, newLambdaBaseWidth);
+			new ScaleArc(ai, newLambdaBaseWidth);
 		}
 		wnd.repaint();
 	}
@@ -468,7 +463,6 @@ public class SizeListener
 
 		// get information about the node being stretched
 		NodeInst ni = (NodeInst)stretchGeom;
-		NodeProto np = ni.getProto();
 		SizeOffset so = ni.getSizeOffset();
 
 		// setup outline of node with standard offset

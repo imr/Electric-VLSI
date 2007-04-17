@@ -97,7 +97,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
-    private static EDatabase database = EDatabase.clientDatabase();
+//    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
     private SplashWindow sw = null;
@@ -251,7 +251,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         // adjust all windows showing this cell
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			WindowFrame wf = (WindowFrame)it.next();
+			WindowFrame wf = it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow_)) continue;
 			Cell cell = content.getCell();
@@ -347,7 +347,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                     boolean found = false;
                     for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
                     {
-                        WindowFrame wf = (WindowFrame)it2.next();
+                        WindowFrame wf = it2.next();
                         WindowContent content = wf.getContent();
                         if (!(content instanceof EditWindow)) continue;
                         wnd = (EditWindow)content;
@@ -457,7 +457,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public int askForChoice(String message, String title, String [] choices, String defaultChoice)
     {
         // make sure the message is not too long and add \n if necessary
-        String msg = (String)message;
+        String msg = message;
         int size = msg.length();
         int pos = 0;
         int lineNumber = 0;
@@ -531,7 +531,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     
     public void restoreSavedBindings(boolean initialCall)
     {
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        TopLevel top = TopLevel.getCurrentJFrame();
         top.getEMenuBar().restoreSavedBindings(false); //trying to cache again
     }
 

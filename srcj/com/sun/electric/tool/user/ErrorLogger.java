@@ -644,7 +644,7 @@ public class ErrorLogger implements Serializable
      * @return true if some logs were removed.
      */
     public synchronized boolean clearLogs(Cell cell) {
-        CellId cellId = (CellId)cell.getId();
+        CellId cellId = cell.getId();
         ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
         boolean removed = false;

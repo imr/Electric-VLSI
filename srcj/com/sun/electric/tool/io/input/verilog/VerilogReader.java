@@ -965,7 +965,6 @@ public class VerilogReader extends Input
      */
     Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent)
     {
-        String key = inst.element.name + "{" + View.SCHEMATIC.getAbbreviation() + "}";
         Cell schematics = buildCellFromModule(inst.element, lib);
         Cell icon = schematics.iconView();
         if (icon == null)
@@ -1015,9 +1014,7 @@ public class VerilogReader extends Input
                         PrimitiveNode primitive = (port.port.busPins!=null) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
                         pin = NodeInst.newInstance(primitive, getNextLocation(parent),
                                 primitiveWidth, primitiveHeight,
-    //                                        primitive.getDefWidth(), primitive.getDefHeight(),
                                 parent, Orientation.IDENT, /*null*/s, 0);  // not sure why it has to be null?
-    //                        pinsMap.put(s, pin);
                 }
 
                 ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;

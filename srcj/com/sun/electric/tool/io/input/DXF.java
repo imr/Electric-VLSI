@@ -69,8 +69,6 @@ public class DXF extends Input
 		private Cell       parent;
 		private double     x, y;
 		private int        rot;
-//		private int        xRep, yRep;
-//		private double     xSpa, ySpa;
 		private double     xSca, ySca;
 		private ForwardRef nextForwardRef;
 	}
@@ -669,7 +667,7 @@ public class DXF extends Input
 		throws IOException
 	{
 		DXFLayer layer = null;
-		double x = 0, y = 0, z = 0;
+		double x = 0, y = 0;
 		double rad = 0;
 		double sAngle = 0, eAngle = 0;
 		for(;;)
@@ -680,7 +678,7 @@ public class DXF extends Input
 				case 8:  layer = getLayer(text);          break;
 				case 10: x = scaleString(text);           break;
 				case 20: y = scaleString(text);           break;
-				case 30: z = scaleString(text);           break;
+				case 30: /* ignore Z */                   break;
 				case 40: rad = scaleString(text);         break;
 				case 50: sAngle = TextUtils.atof(text);   break;
 				case 51: eAngle = TextUtils.atof(text);   break;
@@ -727,7 +725,7 @@ public class DXF extends Input
 		throws IOException
 	{
 		DXFLayer layer = null;
-		double x = 0, y = 0, z = 0;
+		double x = 0, y = 0;
 		double rad = 0;
 		for(;;)
 		{
@@ -737,7 +735,7 @@ public class DXF extends Input
 				case 8:  layer = getLayer(text);    break;
 				case 10: x = scaleString(text);     break;
 				case 20: y = scaleString(text);     break;
-				case 30: z = scaleString(text);     break;
+				case 30: /* ignore Z */             break;
 				case 40: rad = scaleString(text);   break;
 			}
 			if (groupID == 0)
@@ -757,29 +755,27 @@ public class DXF extends Input
 	private boolean readInsertEntity(Library lib)
 		throws IOException
 	{
-		DXFLayer layer = null;
 		int rot = 0;
 		String name = null;
 		int xRep = 1, yRep = 1;
-		double x = 0, y = 0, z = 0;
-		double xSpa = 0, ySpa = 0;
+		double x = 0, y = 0;
 		double xSca = 1, ySca = 1;
 		for(;;)
 		{
 			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = getLayer(text);          break;
+				case 8:  /* ignore layer */               break;
 				case 10: x = scaleString(text);           break;
 				case 20: y = scaleString(text);           break;
-				case 30: z = scaleString(text);           break;
+				case 30: /* ignore Z */                   break;
 				case 50: rot = TextUtils.atoi(text);      break;
 				case 41: xSca = TextUtils.atof(text);     break;
 				case 42: ySca = TextUtils.atof(text);     break;
 				case 70: xRep = TextUtils.atoi(text);     break;
 				case 71: yRep = TextUtils.atoi(text);     break;
-				case 44: xSpa = scaleString(text);        break;
-				case 45: ySpa = scaleString(text);        break;
+				case 44: /* ignore X spacing */           break;
+				case 45: /* ignore Y spacing */           break;
 				case 2:  name = text;                     break;
 			}
 			if (groupID == 0)
@@ -845,8 +841,8 @@ public class DXF extends Input
 	{
 		DXFLayer layer = null;
 		int lineType = 0;
-		double x1 = 0, y1 = 0, z1 = 0;
-		double x2 = 0, y2 = 0, z2 = 0;
+		double x1 = 0, y1 = 0;
+		double x2 = 0, y2 = 0;
 		for(;;)
 		{
 			if (getNextPair()) return true;
@@ -855,10 +851,10 @@ public class DXF extends Input
 				case 8:  layer = getLayer(text);     break;
 				case 10: x1 = scaleString(text);     break;
 				case 20: y1 = scaleString(text);     break;
-				case 30: z1 = scaleString(text);     break;
+				case 30: /* ignore Z */              break;
 				case 11: x2 = scaleString(text);     break;
 				case 21: y2 = scaleString(text);     break;
-				case 31: z2 = scaleString(text);     break;
+				case 31: /* ignore Z */              break;
 			}
 			if (groupID == 0)
 			{
@@ -1129,10 +1125,10 @@ public class DXF extends Input
 	{
 		DXFLayer layer = null;
 		double factor = 1.0;
-		double x1 = 0, y1 = 0, z1 = 0;
-		double x2 = 0, y2 = 0, z2 = 0;
-		double x3 = 0, y3 = 0, z3 = 0;
-		double x4 = 0, y4 = 0, z4 = 0;
+		double x1 = 0, y1 = 0;
+		double x2 = 0, y2 = 0;
+		double x3 = 0, y3 = 0;
+		double x4 = 0, y4 = 0;
 		for(;;)
 		{
 			if (getNextPair()) return true;
@@ -1141,16 +1137,16 @@ public class DXF extends Input
 				case 8:  layer = getLayer(text);     break;
 				case 10: x1 = scaleString(text);     break;
 				case 20: y1 = scaleString(text);     break;
-				case 30: z1 = scaleString(text);     break;
+				case 30: /* ignore Z */              break;
 				case 11: x2 = scaleString(text);     break;
 				case 21: y2 = scaleString(text);     break;
-				case 31: z2 = scaleString(text);     break;
+				case 31: /* ignore Z */              break;
 				case 12: x3 = scaleString(text);     break;
 				case 22: y3 = scaleString(text);     break;
-				case 32: z3 = scaleString(text);     break;
+				case 32: /* ignore Z */              break;
 				case 13: x4 = scaleString(text);     break;
 				case 23: y4 = scaleString(text);     break;
-				case 33: z4 = scaleString(text);     break;
+				case 33: /* ignore Z */              break;
 				case 230:
 					factor = TextUtils.atof(text);
 					break;
@@ -1245,10 +1241,10 @@ public class DXF extends Input
 		throws IOException
 	{
 		DXFLayer layer = null;
-		double x1 = 0, y1 = 0, z1 = 0;
-		double x2 = 0, y2 = 0, z2 = 0;
-		double x3 = 0, y3 = 0, z3 = 0;
-		double x4 = 0, y4 = 0, z4 = 0;
+		double x1 = 0, y1 = 0;
+		double x2 = 0, y2 = 0;
+		double x3 = 0, y3 = 0;
+		double x4 = 0, y4 = 0;
 		for(;;)
 		{
 			if (getNextPair()) return true;
@@ -1257,19 +1253,19 @@ public class DXF extends Input
 				case 8:  layer = getLayer(text);   break;
 				case 10: x1 = scaleString(text);   break;
 				case 20: y1 = scaleString(text);   break;
-				case 30: z1 = scaleString(text);   break;
+				case 30: /* ignore Z */            break;
 
 				case 11: x2 = scaleString(text);   break;
 				case 21: y2 = scaleString(text);   break;
-				case 31: z2 = scaleString(text);   break;
+				case 31: /* ignore Z */            break;
 
 				case 12: x3 = scaleString(text);   break;
 				case 22: y3 = scaleString(text);   break;
-				case 32: z3 = scaleString(text);   break;
+				case 32: /* ignore Z */            break;
 
 				case 13: x4 = scaleString(text);   break;
 				case 23: y4 = scaleString(text);   break;
-				case 33: z4 = scaleString(text);   break;
+				case 33: /* ignore Z */            break;
 			}
 			if (groupID == 0)
 			{

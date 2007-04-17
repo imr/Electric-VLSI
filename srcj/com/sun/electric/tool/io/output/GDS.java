@@ -211,7 +211,7 @@ public class GDS extends Geometry
 			for (Object obj : polyList)
 			{
 				PolyBase poly = (PolyBase)obj;
-				Integer firstLayer = (Integer)currentLayerNumbers.getFirstLayer();
+				Integer firstLayer = currentLayerNumbers.getFirstLayer();
 				int layerNum = firstLayer.intValue() & 0xFFFF;
 				int layerType = (firstLayer.intValue() >> 16) & 0xFFFF;
 				writePoly(poly, layerNum, layerType);
@@ -329,8 +329,8 @@ public class GDS extends Geometry
 		outputShort((short)12);
 		outputShort(HDR_XY);
 		Poly portPoly = pp.getOriginalPort().getPoly();
-		outputInt((int)(scaleDBUnit(portPoly.getCenterX())));
-		outputInt((int)(scaleDBUnit(portPoly.getCenterY())));
+		outputInt(scaleDBUnit(portPoly.getCenterX()));
+		outputInt(scaleDBUnit(portPoly.getCenterY()));
 
 		// now the string
 		String str = pp.getName();
@@ -476,8 +476,8 @@ public class GDS extends Geometry
 		outputAngle(angle);
 		outputShort((short)12);
 		outputShort(HDR_XY);
-		outputInt((int)(scaleDBUnit(ni.getAnchorCenterX())));
-		outputInt((int)(scaleDBUnit(ni.getAnchorCenterY())));
+		outputInt(scaleDBUnit(ni.getAnchorCenterX()));
+		outputInt(scaleDBUnit(ni.getAnchorCenterY()));
 		outputHeader(HDR_ENDEL, 0);
 	}
 
@@ -517,8 +517,7 @@ public class GDS extends Geometry
 					// dump this text field
 					outputHeader(HDR_TEXT, 0);
 					if (firstLayer != null) selectLayer(firstLayer);
-//					if (firstLayer != null) selectLayer(foundry, firstLayer);
-					Integer firstLayerVal = (Integer)currentLayerNumbers.getFirstLayer();
+					Integer firstLayerVal = currentLayerNumbers.getFirstLayer();
 					int layerNum = firstLayerVal.intValue() & 0xFFFF;
 					int layerType = (firstLayerVal.intValue() >> 16) & 0xFFFF;
 					outputHeader(HDR_LAYER, layerNum);
@@ -537,8 +536,8 @@ public class GDS extends Geometry
 					outputShort((short)12);
 					outputShort(HDR_XY);
 					Point2D [] points = poly.getPoints();
-					outputInt((int)(scaleDBUnit(points[0].getX())));
-					outputInt((int)(scaleDBUnit(points[0].getY())));
+					outputInt(scaleDBUnit(points[0].getX()));
+					outputInt(scaleDBUnit(points[0].getY()));
 
 					// now the string
 					String str = poly.getString();
@@ -888,8 +887,8 @@ public class GDS extends Geometry
 			{
 				int j = i;
 				if (i == sofar) j = 0;
-				outputInt((int)(scaleDBUnit(points[j].getX())));
-				outputInt((int)(scaleDBUnit(points[j].getY())));
+				outputInt(scaleDBUnit(points[j].getX()));
+				outputInt(scaleDBUnit(points[j].getY()));
 			}
 			outputHeader(HDR_ENDEL, 0);
 			if (sofar >= count) break;
@@ -909,8 +908,8 @@ public class GDS extends Geometry
 		outputShort(HDR_XY);
 		for (int i = 0; i < points.length; i ++)
 		{
-			outputInt((int)(scaleDBUnit(points[i].getX())));
-			outputInt((int)(scaleDBUnit(points[i].getY())));
+			outputInt(scaleDBUnit(points[i].getX()));
+			outputInt(scaleDBUnit(points[i].getY()));
 		}
 		outputHeader(HDR_ENDEL, 0);
 	}
@@ -964,10 +963,10 @@ public class GDS extends Geometry
 	}
 
 	// Array of 4-byte integers or floating numbers in array  ptr, count n
-	private void outputIntArray(int [] ptr, int n)
-	{
-		for (int i = 0; i < n; i++) outputInt(ptr[i]);
-	}
+//	private void outputIntArray(int [] ptr, int n)
+//	{
+//		for (int i = 0; i < n; i++) outputInt(ptr[i]);
+//	}
 
     private void outputString(String str, short header) {
         // The usual maximum length for string is 512, though names etc may need to be shorter
@@ -984,7 +983,7 @@ public class GDS extends Geometry
 
         // round up string length to the nearest integer
         if ((j % 2) != 0) {
-            j = (int)(j / 2)*2 + 2;
+            j = (j / 2)*2 + 2;
         }
         // pad with a blank
         outputShort((short)(4+j));
@@ -1019,7 +1018,7 @@ public class GDS extends Geometry
 			for(int i=0; i<8; i++) outputByte((byte)0);
 			return;
 		}
-		BigDecimal reg = new BigDecimal((double)data).setScale(64, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal reg = new BigDecimal(data).setScale(64, BigDecimal.ROUND_HALF_EVEN);
 
 		boolean negSign = false;
 		if (reg.doubleValue() < 0)

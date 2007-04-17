@@ -385,16 +385,16 @@ public class ViewChanges
 		int numPorts = curCell.getNumPorts();
 		for(int i=0; i<numPorts; i++)
 		{
-			Export pp = (Export)curCell.getPort(i);
-			Network net = (Network)netMap.get(pp);
+			Export pp = curCell.getPort(i);
+			Network net = netMap.get(pp);
 			for(int j=i+1; j<numPorts; j++)
 			{
-				Export oPp = (Export)curCell.getPort(j);
-				Network oNet = (Network)netMap.get(oPp);
+				Export oPp = curCell.getPort(j);
+				Network oNet = netMap.get(oPp);
 				if (net != oNet) continue;
 
-				Export newPp = (Export)newPortMap.get(pp);
-				Export newOPp = (Export)newPortMap.get(oPp);
+				Export newPp = newPortMap.get(pp);
+				Export newOPp = newPortMap.get(oPp);
 				if (newPp == null || newOPp == null) continue;
 				ArcProto univ = Generic.tech.universal_arc;
 				ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultLambdaFullWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
@@ -667,7 +667,7 @@ public class ViewChanges
 			bbNi.setTrace(boxOutline);
 
 			// put the original cell name on it
-			Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
+			bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
 		}
 
 		// place pins around the Black Box
@@ -675,7 +675,7 @@ public class ViewChanges
 		for(Export pp : exportList)
 		{
 			if (pp.isBodyOnly()) continue;
-			Integer portPosition = (Integer)portIndex.get(pp);
+			Integer portPosition = portIndex.get(pp);
 
 			// determine location of the port
 			int index = iconPosition(pp, inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
@@ -873,7 +873,7 @@ public class ViewChanges
 	{
 		Cell oldCell = WindowFrame.needCurCell();
 		if (oldCell == null) return;
-		MakeSchematicView job = new MakeSchematicView(oldCell);
+		new MakeSchematicView(oldCell);
 	}
 
 	private static class MakeSchematicView extends Job
@@ -1061,8 +1061,8 @@ public class ViewChanges
 			ArcInst mosAI = it.next();
 			NodeInst mosHeadNI = mosAI.getHeadPortInst().getNodeInst();
 			NodeInst mosTailNI = mosAI.getTailPortInst().getNodeInst();
-			NodeInst schemHeadNI = (NodeInst)newNodes.get(mosHeadNI);
-			NodeInst schemTailNI = (NodeInst)newNodes.get(mosTailNI);
+			NodeInst schemHeadNI = newNodes.get(mosHeadNI);
+			NodeInst schemTailNI = newNodes.get(mosTailNI);
 			if (schemHeadNI == null || schemTailNI == null) continue;
 			PortInst schemHeadPI = convertPort(mosHeadNI, mosAI.getHeadPortInst().getPortProto(), schemHeadNI);
 			PortInst schemTailPI = convertPort(mosTailNI, mosAI.getTailPortInst().getPortProto(), schemTailNI);
@@ -1114,59 +1114,57 @@ public class ViewChanges
 		return null;
 	}
 
-	private static final int MAXADJUST = 5;
-
-	private static void makeArcsManhattan(Cell newCell)
-	{
-		// copy the list of nodes in the cell
-		List<NodeInst> nodesInCell = new ArrayList<NodeInst>();
-		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
-			nodesInCell.add(it.next());
-
-		// examine all nodes and adjust them
-		double [] x = new double[MAXADJUST];
-		double [] y = new double[MAXADJUST];
-		for(NodeInst ni : nodesInCell)
-		{
-			if (ni.isCellInstance()) continue;
-			PrimitiveNode.Function fun = ni.getFunction();
-			if (fun != PrimitiveNode.Function.PIN) continue;
-
-			// see if this pin can be adjusted so that all wires are manhattan
-			int count = 0;
-			for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
-			{
-				Connection con = aIt.next();
-				ArcInst ai = con.getArc();
-                int otherEnd = 1 - con.getEndIndex();
-//				Connection other = ai.getHead();
-//				if (ai.getHead() == con) other = ai.getTail();
-				if (con.getPortInst().getNodeInst() == ai.getPortInst(otherEnd).getNodeInst()) continue;
-				x[count] = ai.getLocation(otherEnd).getX();
-				y[count] = ai.getLocation(otherEnd).getY();
-				count++;
-				if (count >= MAXADJUST) break;
-			}
-			if (count == 0) continue;
-
-			// now adjust for all these points
-			double xp = ni.getAnchorCenterX();
-			double yp = ni.getAnchorCenterY();
-			double bestDist = Double.MAX_VALUE;
-			double bestX = 0, bestY = 0;
-			for(int i=0; i<count; i++) for(int j=0; j<count; j++)
-			{
-				double dist = Math.abs(xp - x[i]) + Math.abs(yp - y[j]);
-				if (dist > bestDist) continue;
-				bestDist = dist;
-				bestX = x[i];   bestY = y[j];
-			}
-
-			// if there was a better place, move the node
-			if (bestDist != Double.MAX_VALUE)
-				ni.move(bestX-xp, bestY-yp);
-		}
-	}
+//	private static final int MAXADJUST = 5;
+//
+//	private static void makeArcsManhattan(Cell newCell)
+//	{
+//		// copy the list of nodes in the cell
+//		List<NodeInst> nodesInCell = new ArrayList<NodeInst>();
+//		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+//			nodesInCell.add(it.next());
+//
+//		// examine all nodes and adjust them
+//		double [] x = new double[MAXADJUST];
+//		double [] y = new double[MAXADJUST];
+//		for(NodeInst ni : nodesInCell)
+//		{
+//			if (ni.isCellInstance()) continue;
+//			PrimitiveNode.Function fun = ni.getFunction();
+//			if (fun != PrimitiveNode.Function.PIN) continue;
+//
+//			// see if this pin can be adjusted so that all wires are manhattan
+//			int count = 0;
+//			for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
+//			{
+//				Connection con = aIt.next();
+//				ArcInst ai = con.getArc();
+//                int otherEnd = 1 - con.getEndIndex();
+//				if (con.getPortInst().getNodeInst() == ai.getPortInst(otherEnd).getNodeInst()) continue;
+//				x[count] = ai.getLocation(otherEnd).getX();
+//				y[count] = ai.getLocation(otherEnd).getY();
+//				count++;
+//				if (count >= MAXADJUST) break;
+//			}
+//			if (count == 0) continue;
+//
+//			// now adjust for all these points
+//			double xp = ni.getAnchorCenterX();
+//			double yp = ni.getAnchorCenterY();
+//			double bestDist = Double.MAX_VALUE;
+//			double bestX = 0, bestY = 0;
+//			for(int i=0; i<count; i++) for(int j=0; j<count; j++)
+//			{
+//				double dist = Math.abs(xp - x[i]) + Math.abs(yp - y[j]);
+//				if (dist > bestDist) continue;
+//				bestDist = dist;
+//				bestX = x[i];   bestY = y[j];
+//			}
+//
+//			// if there was a better place, move the node
+//			if (bestDist != Double.MAX_VALUE)
+//				ni.move(bestX-xp, bestY-yp);
+//		}
+//	}
 
 	/**
 	 * Method to figure out if a NodeInst is a MOS component
@@ -1331,11 +1329,10 @@ public class ViewChanges
             {
                 private Nodable no;
                 private PortProto pp;
-                private int index;
                 private Name portName;
-                private Conn(Nodable no, PortProto pp, int index, Name portName)
+                private Conn(Nodable no, PortProto pp, Name portName)
                 {
-                    this.no = no; this.pp = pp; this.index = index; this.portName = portName;
+                    this.no = no; this.pp = pp; this.portName = portName;
                 }
             }
 
@@ -1449,7 +1446,7 @@ public class ViewChanges
                                 for (int i=0; i<ppname.busWidth(); i++)
                                 {
                                     Name subname = ppname.subname(i);
-                                    Conn conn = new Conn(no, pp, i, subname);
+                                    Conn conn = new Conn(no, pp, subname);
                                     Network net = info.getNetlist().getNetwork(no, pp, i);
                                     List<Conn> list = connections.get(net);
                                     if (list == null)
@@ -1627,7 +1624,6 @@ public class ViewChanges
                  * for each arc in cell, find the ends in the new technology, and
                  * make a new arc to connect them in the new cell
                  */
-                int badArcs = 0;
                 for(Iterator<ArcInst> it = oldCell.getArcs(); it.hasNext(); )
                 {
                     ArcInst ai = it.next();
@@ -1635,8 +1631,8 @@ public class ViewChanges
                     NodeInst oldHeadNi = ai.getHeadPortInst().getNodeInst();
                     NodeInst oldTailNi = ai.getTailPortInst().getNodeInst();
 
-                    NodeInst newHeadNi = (NodeInst)convertedNodes.get(oldHeadNi);
-                    NodeInst newTailNi = (NodeInst)convertedNodes.get(oldTailNi);
+                    NodeInst newHeadNi = convertedNodes.get(oldHeadNi);
+                    NodeInst newTailNi = convertedNodes.get(oldTailNi);
                     if (newHeadNi == null || newTailNi == null) continue;
                     PortProto oldHeadPp = ai.getHeadPortInst().getPortProto();
                     PortProto oldTailPp = ai.getTailPortInst().getPortProto();
@@ -1763,14 +1759,14 @@ public class ViewChanges
                 {
                     // see if this node has equivalent arcs
                     PrimitiveNode pOldNp = (PrimitiveNode)oldNp;
-                    PrimitivePort pOldPp = (PrimitivePort)pOldNp.getPort(0);
+                    PrimitivePort pOldPp = pOldNp.getPort(0);
                     ArcProto [] oldConnections = pOldPp.getConnections();
 
                     for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
                     {
                         PrimitiveNode pNewNp = it.next();
                         if (pNewNp.getFunction() != type) continue;
-                        PrimitivePort pNewPp = (PrimitivePort)pNewNp.getPort(0);
+                        PrimitivePort pNewPp = pNewNp.getPort(0);
                         ArcProto [] newConnections = pNewPp.getConnections();
 
                         boolean oldMatches = true;

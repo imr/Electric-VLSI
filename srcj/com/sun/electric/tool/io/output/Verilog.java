@@ -25,37 +25,41 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
+import com.sun.electric.tool.io.input.verilog.VerilogData;
+import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.io.input.verilog.VerilogReader;
-import com.sun.electric.tool.io.input.verilog.VerilogData;
-import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Collection;
 
 /**
  * This is the Simulation Interface tool.
@@ -355,7 +359,7 @@ public class Verilog extends Topology
             // see if any globals besides power and ground to write
             ArrayList<Global> globalsToWrite = new ArrayList<Global>();
             for (int i=0; i<globalSize; i++) {
-                Global global = (Global)globals.get(i);
+                Global global = globals.get(i);
                 if (global == Global.power || global == Global.ground) continue;
                 globalsToWrite.add(global);
             }
@@ -365,7 +369,7 @@ public class Verilog extends Topology
                 printWriter.print("\nmodule glbl();\n");
                 for(int i=0; i<globalsToWrite.size(); i++)
                 {
-                    Global global = (Global)globalsToWrite.get(i);
+                    Global global = globalsToWrite.get(i);
                     if (Simulation.getVerilogUseTrireg())
                     {
                         printWriter.print("    trireg " + global.getName() + ";\n");
@@ -389,7 +393,7 @@ public class Verilog extends Topology
         int impInvCount = 0;
         for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
         {
-            ArcInst ai = (ArcInst)it.next();
+            ArcInst ai = it.next();
             for(int e=0; e<2; e++)
             {
                 if (!ai.isNegated(e)) continue;
@@ -423,7 +427,7 @@ public class Verilog extends Topology
         boolean first = true;
         for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
         {
-            CellAggregateSignal cas = (CellAggregateSignal)it.next();
+            CellAggregateSignal cas = it.next();
             if (cas.getExport() == null) continue;
             if (!first) sb.append(", ");
             sb.append(cas.getName());
@@ -436,7 +440,7 @@ public class Verilog extends Topology
         // look for "wire/trireg" overrides
         for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
         {
-            ArcInst ai = (ArcInst)it.next();
+            ArcInst ai = it.next();
             Variable var = ai.getVar(WIRE_TYPE_KEY);
             if (var == null) continue;
             String wireType = var.getObject().toString();
@@ -457,7 +461,7 @@ public class Verilog extends Topology
         first = true;
         for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
         {
-            CellAggregateSignal cas = (CellAggregateSignal)it.next();
+            CellAggregateSignal cas = it.next();
             Export pp = cas.getExport();
             if (pp == null) continue;
 
@@ -503,7 +507,7 @@ public class Verilog extends Topology
             first = true;
             for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
             {
-                CellAggregateSignal cas = (CellAggregateSignal)it.next();
+                CellAggregateSignal cas = it.next();
                 if (cas.getExport() != null) continue;
                 if (cas.isSupply()) continue;
                 if (cas.getLowIndex() <= cas.getHighIndex()) continue;
@@ -532,7 +536,7 @@ public class Verilog extends Topology
         // write "wire/trireg" declarations for internal busses
         for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
         {
-            CellAggregateSignal cas = (CellAggregateSignal)it.next();
+            CellAggregateSignal cas = it.next();
             if (cas.getExport() != null) continue;
             if (cas.isSupply()) continue;
             if (cas.getLowIndex() > cas.getHighIndex()) continue;
@@ -570,7 +574,7 @@ public class Verilog extends Topology
         // look at every node in this cell
         for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
         {
-            Nodable no = (Nodable)nIt.next();
+            Nodable no = nIt.next();
             NodeProto niProto = no.getProto();
 
             // not interested in passive nodes (ports electrically connected)
@@ -582,11 +586,11 @@ public class Verilog extends Topology
                 if (pIt.hasNext())
                 {
                     boolean allConnected = true;
-                    PortInst firstPi = (PortInst)pIt.next();
+                    PortInst firstPi = pIt.next();
                     Network firstNet = netList.getNetwork(firstPi);
                     for( ; pIt.hasNext(); )
                     {
-                        PortInst pi = (PortInst)pIt.next();
+                        PortInst pi = pIt.next();
                         Network thisNet = netList.getNetwork(pi);
                         if (thisNet != firstNet) { allConnected = false;   break; }
                     }
@@ -648,7 +652,7 @@ public class Verilog extends Topology
                     {
                         for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
                         {
-                            Connection con = (Connection)cIt.next();
+                            Connection con = cIt.next();
                             PortInst pi = con.getPortInst();
                             if (i == 0)
                             {
@@ -763,7 +767,7 @@ public class Verilog extends Topology
                     CellNetInfo subCni = getCellNetInfo(nodeName);
                     for(Iterator<CellAggregateSignal> sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
                     {
-                        CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+                        CellAggregateSignal cas = sIt.next();
 
                         // ignore networks that aren't exported
                         PortProto pp = cas.getExport();
@@ -803,7 +807,7 @@ public class Verilog extends Topology
                     {
                         for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
                         {
-                            Connection con = (Connection)cIt.next();
+                            Connection con = cIt.next();
                             PortInst pi = con.getPortInst();
                             if (i == 0)
                             {
@@ -823,7 +827,7 @@ public class Verilog extends Topology
                             if (i != 0 && con.isNegated())
                             {
                                 // this input is negated: write the implicit inverter
-                                Integer invIndex = (Integer)implicitInverters.get(con);
+                                Integer invIndex = implicitInverters.get(con);
                                 if (invIndex != null)
                                 {
                                     String invSigName = IMPLICITINVERTERSIGNAME + invIndex.intValue();
@@ -846,7 +850,7 @@ public class Verilog extends Topology
                     	boolean didGate = false;
                         for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
                         {
-                            PortInst pi = (PortInst)pIt.next();
+                            PortInst pi = pIt.next();
                             Network net = netList.getNetwork(pi);
                             if (dropBias && pi.getPortProto().getName().equals("b")) continue;
                             if (i == 0)
@@ -887,7 +891,7 @@ public class Verilog extends Topology
     {
         for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
         {
-            Connection con = (Connection)aIt.next();
+            Connection con = aIt.next();
             if (con.isNegated() &&
                 con.getPortInst().getPortProto().getName().equals("y"))
                     return negative;
@@ -1137,7 +1141,7 @@ public class Verilog extends Topology
         boolean first = true;
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
-            NodeInst ni = (NodeInst)it.next();
+            NodeInst ni = it.next();
             if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
             Variable var = ni.getVar(verilogkey);
             if (var == null) continue;
@@ -1402,7 +1406,7 @@ public class Verilog extends Topology
         }
 
         // make sure ports for module match ports for cell
-        Collection<VerilogData.VerilogPort> ports = main.getPorts();
+//        Collection<VerilogData.VerilogPort> ports = main.getPorts();
         // not sure how to do this right now
 
         // check for undefined instances, search libraries for them

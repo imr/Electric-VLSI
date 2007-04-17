@@ -357,9 +357,6 @@ public class Sue extends Input
 				// extract parameters
 				ParseParameters parP = new ParseParameters(keywords, 2);
 
-				// save the name string
-				String theName = parP.theName;
-
 				// ignore self-references
 				String keyword1 = keywords.get(1);
 				if (keyword1.equalsIgnoreCase(cellName))
@@ -469,7 +466,6 @@ public class Sue extends Input
 						rotation = curEquivs[i].rotation;
 						transpose = curEquivs[i].transpose;
                         AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 						Point2D offPt = new Point2D.Double(curEquivs[i].xOffset, curEquivs[i].yOffset);
 						trans.transform(offPt, offPt);
 						xOff = offPt.getX();   yOff = offPt.getY();
@@ -502,11 +498,6 @@ public class Sue extends Input
 					{
 						Cell np = ((Cell)proto).iconView();
 						if (np != null) proto = np;
-//						Rectangle2D bounds = ((Cell)proto).getBounds();
-//						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
-//						Point2D offPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-//						trans.transform(offPt, offPt);
-//						xOff = offPt.getX();   yOff = offPt.getY();
 					}
 				}
 
@@ -980,7 +971,7 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
+				ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
 				continue;
 			}
 
@@ -993,7 +984,7 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
+				ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
 				continue;
 			}
 
@@ -1470,7 +1461,7 @@ public class Sue extends Input
 					}
 
 					double wid = ap.getDefaultLambdaFullWidth();
-					ArcInst ai = ArcInst.makeInstance(ap, wid, pi, oPi);
+					ArcInst.makeInstance(ap, wid, pi, oPi);
 					wired = true;
 					break;
 				}

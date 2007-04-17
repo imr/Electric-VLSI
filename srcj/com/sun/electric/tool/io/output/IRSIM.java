@@ -33,7 +33,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -242,8 +241,7 @@ public class IRSIM extends Output
                 if ((rcValue < tech.getMinResistance()))
                     return null;
             }
-			else if (fun.isResistor() || fun.isCapacitor()) //fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.PRESIST ||
-//                    fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+			else if (fun.isResistor() || fun.isCapacitor())
 			{
                 PortInst end1 = ni.getPortInst(0);
                 PortInst end2 = ni.getPortInst(1);
@@ -264,11 +262,9 @@ public class IRSIM extends Output
                 net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents);
 
 				Variable.Key varKey = Schematics.SCHEM_CAPACITANCE;
-				TextDescriptor.Unit unit = TextDescriptor.Unit.CAPACITANCE;
-				if (fun.isResistor()) //fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.PRESIST)
+				if (fun.isResistor())
 				{
 					varKey = Schematics.SCHEM_RESISTANCE;
-					unit = TextDescriptor.Unit.RESISTANCE;
 				}
 				Variable valueVar = ni.getVar(varKey);
 				String extra = "";
@@ -284,7 +280,7 @@ public class IRSIM extends Output
                 rcValue = TextUtils.parsePostFixNumber(extra).doubleValue();
                 //rcValue = TextUtils.atof(extra);
 
-                if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
+                if (fun.isResistor())
                 {
                     type = 'r';
                 }

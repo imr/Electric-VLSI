@@ -713,7 +713,7 @@ public class ToolBar extends JToolBar
         JPopupMenu popup = new JPopupMenu();
         HashMap<Cell,Cell> listed = new HashMap<Cell,Cell>();
         for (int i=historyList.size()-1; i > -1; i--) {
-        	WindowFrame.CellHistory entry = (WindowFrame.CellHistory)historyList.get(i);
+        	WindowFrame.CellHistory entry = historyList.get(i);
             Cell cell = entry.getCell();
             // skip if already shown such a cell
 			if (cell == null) continue;

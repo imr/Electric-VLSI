@@ -233,7 +233,6 @@ class PixelDrawing
 	{
 		private boolean singleton;
 		private int instanceCount;
-        private boolean tooLarge;
 		private PixelDrawing offscreen;
 
 		ExpandedCellInfo()
@@ -274,7 +273,6 @@ class PixelDrawing
 	/** the number of bytes per row in offscreen maps */	private final int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the technology of the window */						private Technology curTech;
-    /** ERasters for layers of current technology. */       private ERaster[] curTechLayers;
 
 	// the patterned opaque bitmaps
     private static class PatternedOpaqueLayer {
@@ -366,7 +364,7 @@ class PixelDrawing
         
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
-		WritableRaster raster = ((BufferedImage)img).getRaster();
+		WritableRaster raster = img.getRaster();
 		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
@@ -1029,7 +1027,6 @@ class PixelDrawing
 		if (curTech == null) curTech = techWithLayers;
         if (curTech == null) return;
 
-        curTechLayers = new ERaster[curTech.getNumLayers()];
 		numLayerBitMaps = curTech.getNumTransparentLayers();
 		layerBitMaps = new byte[numLayerBitMaps][][];
 		compositeRows = new byte[numLayerBitMaps][];
@@ -1786,7 +1783,6 @@ class PixelDrawing
 					int destY = srcY + cornerY;
                     assert destY >= clipLY && destY <= clipHY;
 					if (destY < 0 || destY >= sz.height) continue;
-					int destBase = destY * sz.width;
 					byte [] srcRow = srcLayerBitMap[srcY];
 					byte [] destRow = destLayerBitMap[destY];
 					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
@@ -2235,7 +2231,7 @@ class PixelDrawing
 	{
 		h = h * 6.0;
 		int i = (int)h;
-		double f = h - (double)i;
+		double f = h - i;
 		double m = v * (1.0 - s);
 		double n = v * (1.0 - s * f);
 		double k = v * (1.0 - s * (1.0 - f));
@@ -2866,7 +2862,6 @@ class PixelDrawing
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
-		int fontStyle = Font.PLAIN;
 		String fontName = User.getDefaultFont();
 		boolean italic = false;
 		boolean bold = false;
@@ -3216,7 +3211,7 @@ class PixelDrawing
                 }
             }
 			if (underline) height++;
-			rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+			rasBounds = new Rectangle2D.Double(0, lm.getAscent()-lm.getLeading(), width, height);
 
 			anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
 			if (rotation == 1 || rotation == 3)
@@ -3349,7 +3344,7 @@ class PixelDrawing
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2.setColor(new Color(255,255,255));
-		g2.drawGlyphVector(gv, (float)-renderInfo.rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
+		g2.drawGlyphVector(gv, (float)-renderInfo.rasBounds.getX(), lm.getAscent()-lm.getLeading());
 		if (renderInfo.underline)
 		{
 			g2.drawLine(0, height-1, width-1, height-1);

@@ -144,9 +144,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         if (list == null) return;
         for (AbstractButton b : list) {
             if (b == source) continue;
-            String name2;
-            if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
-                name2 = source.getText();
+//            String name2;
+//            if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
+//                name2 = source.getText();
             //System.out.println("   - SubactionPerformed on Button "+name2+", state set to "+source.isSelected());
             // update state on other menus to match state on activated menu
             b.setSelected(source.isSelected());

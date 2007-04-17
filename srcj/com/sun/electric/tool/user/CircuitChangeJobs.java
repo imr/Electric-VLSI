@@ -692,16 +692,6 @@ public class CircuitChangeJobs
 					{
 						Connection con = cIt.next();
                         con.setNegated(!con.isNegated());
-//						if (!pi.getNodeInst().isCellInstance())
-//						{
-//							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-//							if (pp.isNegatable())
-//							{
-//								boolean newNegated = !con.isNegated();
-//								con.setNegated(newNegated);
-//								numSet++;
-//							}
-//						}
 					}
 				}
 				if (eobj instanceof ArcInst)
@@ -709,18 +699,7 @@ public class CircuitChangeJobs
 					ArcInst ai = (ArcInst)eobj;
 					for(int i=0; i<2; i++)
 					{
-						PortInst pi = ai.getPortInst(i);
                         ai.setNegated(i, !ai.isNegated((i)));
-//						if (!pi.getNodeInst().isCellInstance())
-//						{
-//							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-//							if (pp.isNegatable())
-//							{
-//								boolean newNegated = !ai.isNegated(i);
-//								ai.setNegated(i, newNegated);
-//								numSet++;
-//							}
-//						}
 					}
 				}
 			}
@@ -1232,7 +1211,7 @@ public class CircuitChangeJobs
 					// reconnect a piece of hair to a cell instance
 					PrimitiveNode pinNp = ai.getProto().findPinProto();
 					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-					ArcInst recon = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), otherPi, pin.getOnlyPortInst(),
+					ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), otherPi, pin.getOnlyPortInst(),
 						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 				}
 			}
@@ -2031,7 +2010,7 @@ public class CircuitChangeJobs
 
                 // go through all arcs on this portinst and see if any can be reconnected
                 while (arcs.size() > 1) {
-                    ArcInst ai1 = (ArcInst)arcs.remove(0);
+                    ArcInst ai1 = arcs.remove(0);
                     for (ArcInst ai2 : arcs) {
                         ReconnectedArc ra = reconnectArcs(pi, ai1, ai2, allowdiffs);
                         // if reconnection to be made, add to list

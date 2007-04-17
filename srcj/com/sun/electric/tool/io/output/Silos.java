@@ -28,9 +28,8 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -38,13 +37,12 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -92,7 +90,6 @@ public class Silos extends Topology
 	{
 		// parameters to the output-line-length limit and how to break long lines
 		setOutputWidth(MAXSTR, true);
-		setCommentChar('$');
 		setContinuationString("+");
 
 		// write header information
@@ -114,7 +111,7 @@ public class Silos extends Topology
 		// First look for any global sources
 		for(Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.isCellInstance()) continue;	// only real sources
 
 			PrimitiveNode.Function nodetype = ni.getFunction();
@@ -176,7 +173,7 @@ public class Silos extends Topology
 		// Read a behavior file if it is available
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell oCell = (Cell)it.next();
+			Cell oCell = it.next();
 			Variable var = oCell.getVar(SILOS_BEHAVIOR_FILE_KEY);
 			if (var != null)
 			{
@@ -212,7 +209,7 @@ public class Silos extends Topology
 		 */
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
-			Cell oCell = (Cell)it.next();
+			Cell oCell = it.next();
 			Variable var = oCell.getVar(SILOS_MODEL_KEY);
 			if (var != null && var.getObject() instanceof String[])
 			{
@@ -231,7 +228,6 @@ public class Silos extends Topology
 		if (cell != topCell)
 		{
 			writeWidthLimited("\n");
-			StringBuffer sb = new StringBuffer();
 			String name = cni.getParameterizedName();
 			if (name.length() > MAXNAME)
 			{
@@ -242,7 +238,7 @@ public class Silos extends Topology
 			writeWidthLimited(".MACRO " + convertName(name));
 			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
-				CellAggregateSignal cas = (CellAggregateSignal)it.next();
+				CellAggregateSignal cas = it.next();
 				if (cas.getExport() == null) continue;
 				if (cas.isSupply()) continue;
 				writeWidthLimited(" " + convertSubscripts(cas.getNameWithIndices()));
@@ -253,7 +249,7 @@ public class Silos extends Topology
 		// write the cell instances
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
-			Nodable no = (Nodable)nIt.next();
+			Nodable no = nIt.next();
 			if (no.isCellInstance())
 			{
 				String nodeName = parameterizedName(no, context);
@@ -261,7 +257,7 @@ public class Silos extends Topology
 				writeWidthLimited("(" + no.getName() + " " + convertName(nodeName));
 				for(Iterator<CellAggregateSignal> sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 				{
-					CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+					CellAggregateSignal cas = sIt.next();
 					if (cas.isSupply()) continue;
 
 					// ignore networks that aren't exported
@@ -296,7 +292,7 @@ public class Silos extends Topology
 		// write the primitives
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
-			Nodable no = (Nodable)nIt.next();
+			Nodable no = nIt.next();
 
 			// not interested in passive nodes (ports electrically connected)
 			if (!no.isCellInstance())
@@ -314,7 +310,7 @@ public class Silos extends Topology
 					// write the names of the port(s)
 					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
-						PortProto pp = (PortProto)pIt.next();
+						PortProto pp = pIt.next();
 						writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
 					}
 					writeWidthLimited("\n");
@@ -345,7 +341,7 @@ public class Silos extends Topology
 					PortProto outPP = null;
 					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
-						PortProto pp = (PortProto)pIt.next();
+						PortProto pp = pIt.next();
 						if (pp.getCharacteristic() == PortCharacteristic.OUT)
 						{
 							// find the name of the output port
@@ -358,7 +354,7 @@ public class Silos extends Topology
 							Connection con = null;
 							for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 							{
-								Connection c = (Connection)aIt.next();
+								Connection c = aIt.next();
 								if (c.getPortInst().getPortProto() == pp) { con = c;   break; }
 							}
 
@@ -378,7 +374,7 @@ public class Silos extends Topology
 					// write the rest of the ports only if they're connected
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						Connection con = (Connection)aIt.next();
+						Connection con = aIt.next();
 						PortProto pp = con.getPortInst().getPortProto(); 
 						if (pp == outPP) continue;
 						writeWidthLimited(getPortProtoName(cell == topCell, con, ni, pp, cell, netList, cni));
@@ -392,7 +388,7 @@ public class Silos extends Topology
 					// find a connected port for the node name
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						Connection con = (Connection)aIt.next();
+						Connection con = aIt.next();
 
 						// write port name as output
 						PortProto pp = con.getPortInst().getPortProto();
@@ -645,7 +641,7 @@ public class Silos extends Topology
 		{
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
-				Connection c = (Connection)it.next();
+				Connection c = it.next();
 				PortInst pi = c.getPortInst();
 				if (pi.getPortProto() != pp) continue;
 				con = c;
@@ -664,7 +660,6 @@ public class Silos extends Topology
 			net = netList.getNetwork(pi);
 		}
 		if (net != null)
-//		if (net != null && net.hasNames())
 		{
 			CellSignal cs = cni.getCellSignal(net);
 			StringBuffer infstr = new StringBuffer();
@@ -678,18 +673,18 @@ public class Silos extends Topology
 		return " .SKIP";
 	}
 
-	/**
-	 * Method to check if a port of an instance is connected to one of
-	 * the ports of the containing instance. If so, get rid of the '[]' format;
-	 * replace '[' with '__', ignore ']'.
-	 */
-	private String adjustPortName(Cell np, String portName)
-	{
-		if (portName.indexOf('[') < 0) return portName;
-		PortProto pp = np.findPortProto(portName);
-		if (pp != null) return convertSubscripts(portName);
-		return portName;
-	}
+//	/**
+//	 * Method to check if a port of an instance is connected to one of
+//	 * the ports of the containing instance. If so, get rid of the '[]' format;
+//	 * replace '[' with '__', ignore ']'.
+//	 */
+//	private String adjustPortName(Cell np, String portName)
+//	{
+//		if (portName.indexOf('[') < 0) return portName;
+//		PortProto pp = np.findPortProto(portName);
+//		if (pp != null) return convertSubscripts(portName);
+//		return portName;
+//	}
 
 	/**
 	 * Method returns a string containing the rise time, as stored in
@@ -765,7 +760,7 @@ public class Silos extends Topology
 		for(int i=0; i<7; i++)
 		{
 			if (!it.hasNext()) break;
-			PortProto pp = (PortProto)it.next();
+			PortProto pp = it.next();
 			portNames[i] = getPortProtoName(top, null, ni, pp, np, netList, cni);
 		}
 		if (portNames[PRE].equals(" .SKIP") && portNames[CLR].equals(" .SKIP"))

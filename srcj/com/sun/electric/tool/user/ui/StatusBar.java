@@ -278,7 +278,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             int widgetW = fieldHierCoords.getWidth();
             if (width > widgetW)
             {
-                int chars = (int)(hierCoords.length() * widgetW / width);
+                int chars = hierCoords.length() * widgetW / width;
                 hierCoords = hierCoords.substring(hierCoords.length() - chars, hierCoords.length());
             }
             fieldHierCoords.setText(hierCoords);
@@ -307,7 +307,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             {
                 if (h.isHighlightEOBJ())
                 {
-                    ElectricObject eObj = (ElectricObject)h.getElectricObject();
+                    ElectricObject eObj = h.getElectricObject();
                     if (eObj instanceof PortInst)
                     {
                         lastHighlight = h;
@@ -376,7 +376,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         ArcInst theArc;
         if (h.isHighlightEOBJ())
         {
-            ElectricObject eObj = (ElectricObject)h.getElectricObject();
+            ElectricObject eObj = h.getElectricObject();
             if (eObj instanceof PortInst)
             {
                 thePort = (PortInst)eObj;

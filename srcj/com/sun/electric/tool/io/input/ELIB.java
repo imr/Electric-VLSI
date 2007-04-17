@@ -1286,7 +1286,7 @@ public class ELIB extends LibraryFiles
 		double lambda = cellLambda[cellIndex] / scale;
 		int xoff = cellXOff[cellIndex];
 		int yoff = cellYOff[cellIndex];
-		boolean arcInfoError = false;
+//		boolean arcInfoError = false;
 		int startArc = firstArcIndex[cellIndex];
 		int endArc = firstArcIndex[cellIndex+1];
 		for(int i=startArc; i<endArc; i++)
@@ -1860,8 +1860,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// make new cell if needed
-		boolean newCell = false;
-		NodeInst fakeNodeInst = null;
+//		NodeInst fakeNodeInst = null;
 		if (c == null)
 		{
 			// create a cell that meets these specs
@@ -1900,7 +1899,6 @@ public class ELIB extends LibraryFiles
             // note that exports get created in getArcEnd. If it tries to connect to a missing export
             // on a dummy cell, it creates the export site.
 
-            newCell = true;
             System.out.println("...Creating dummy cell '"+dummyName+"' in " + elib +
                     ". Instances will be logged as Errors.");
             c.newVar(IO_TRUE_LIBRARY, elib.getName());

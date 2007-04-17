@@ -85,7 +85,7 @@ class VectorDrawing
 	/** the maximum cell size above which no greeking */	private float maxCellSize;
     
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
-	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
+	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
 	/** the color of text */								private Color textColor;
     
@@ -891,7 +891,6 @@ class VectorDrawing
 		throws AbortRenderingException
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
-		boolean isAllTiny = true;
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
 			NodeInst ni = vsc.ni;

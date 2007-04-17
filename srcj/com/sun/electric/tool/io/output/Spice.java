@@ -25,11 +25,16 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -43,30 +48,53 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceNetlistReader;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceSubckt;
+import com.sun.electric.tool.logicaleffort.LENetlister;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
-import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.awt.geom.AffineTransform;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This is the Simulation Interface tool.
@@ -1533,8 +1561,8 @@ public class Spice extends Topology
                         int arcPImodels = SegmentedNets.getNumPISegments(res.doubleValue(), layoutTechnology.getMaxSeriesResistance());
                         if (arcPImodels > 1) {
                             // have to break it up into smaller pieces
-                            double segCap = segmentedNets.getArcCap(ai)/((double)(arcPImodels+1));
-                            double segRes = res.doubleValue()/((double)arcPImodels);
+                            double segCap = segmentedNets.getArcCap(ai)/(arcPImodels+1);
+                            double segRes = res.doubleValue()/arcPImodels;
                             String segn0 = n0;
                             String segn1 = n0;
                             for (int i=0; i<arcPImodels; i++) {
@@ -1875,7 +1903,6 @@ public class Spice extends Topology
                 String [] names = paramName.split("\\.");
                 if (names.length > 1 && flatNetNames) {
                     // hierarchical name, down hierarchy
-                    Cell thisCell = info.getCell();
                     Netlist thisNetlist = info.getNetlist();
                     VarContext thisContext = context;
                     if (no != null) {
@@ -1888,7 +1915,6 @@ public class Spice extends Topology
                             Nodable subno = it.next();
                             if (subno.getName().equals(names[i])) {
                                 if (subno.getProto() instanceof Cell) {
-                                    thisCell = (Cell)subno.getProto();
                                     thisNetlist = thisNetlist.getNetlist(subno);
                                     thisContext = thisContext.push(subno);
                                 }
@@ -2276,7 +2302,6 @@ public class Spice extends Topology
             {
                 ArcInst ai = it.next();
                 Double res = segmentedNets.arcRes.get(ai);
-                Variable var = ai.getVar(ATTR_R);
 
                 resOnArcs.add(ai);
                 valsOnArcs.add(res);
@@ -3054,8 +3079,8 @@ public class Spice extends Topology
 		}
 	}
 
-    private void validateIncludeFile(String fileName, String subcktName) {
-    }
+//    private void validateIncludeFile(String fileName, String subcktName) {
+//    }
 
     /******************** SUPPORT ********************/
 

@@ -27,10 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -181,7 +180,6 @@ public class SmartSpiceOut extends Simulate
 				an.buildCommonTime(rowCount);
 				for(int i=0; i<signalCount; i++)
 					allSignals[i].buildValues(rowCount);
-				double [] timeValues = new double[rowCount];
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
@@ -221,7 +219,6 @@ public class SmartSpiceOut extends Simulate
 				an.buildCommonTime(rowCount);
 				for(int i=0; i<signalCount; i++)
 					allSignals[i].buildValues(rowCount);
-				double [] timeValues = new double[rowCount];
 
 				// read the data
 				for(int j=0; j<rowCount; j++)

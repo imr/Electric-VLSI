@@ -1198,7 +1198,6 @@ public class CircuitChanges
 		{
 			NodeInst subNi = it.next();
 			if (!subNi.isCellInstance()) continue;
-			Cell subCell = (Cell)subNi.getProto();
 
 			// ignore recursive references (showing icon in contents)
 			if (subNi.isIconOfParent()) continue;

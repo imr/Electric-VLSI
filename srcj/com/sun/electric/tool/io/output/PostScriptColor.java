@@ -234,7 +234,6 @@ public class PostScriptColor
 		for(int i=0; i<tech.getNumLayers(); i++)
 		{
 			Layer layer = tech.getLayer(i);
-			Layer.Function fun = layer.getFunction();
 			if (layer.isPseudoLayer()) continue;
 			layerSorts.add(layer);
 		}
@@ -1345,13 +1344,13 @@ public class PostScriptColor
 		}
 	}
 
-	private void printStatistics()
-	{
-		System.out.println("Plotting statistics:");
-		System.out.println("  " + numLayers + " layers defined or transparencies implied in layer map");
-		System.out.println("  " + totalCells + " cells");
-		System.out.println("  " + totalInstances + " instances used");
-		System.out.println("  " + totalBoxes + " boxes generated");
-		System.out.println("  " + totalPolys + " polygons generated");
-	}
+//	private void printStatistics()
+//	{
+//		System.out.println("Plotting statistics:");
+//		System.out.println("  " + numLayers + " layers defined or transparencies implied in layer map");
+//		System.out.println("  " + totalCells + " cells");
+//		System.out.println("  " + totalInstances + " instances used");
+//		System.out.println("  " + totalBoxes + " boxes generated");
+//		System.out.println("  " + totalPolys + " polygons generated");
+//	}
 }

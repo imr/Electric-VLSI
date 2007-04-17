@@ -27,13 +27,12 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
@@ -81,7 +80,6 @@ public class LEF extends Output
 
 		out.init(cell);
 		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out), true);
-//		HierarchyEnumerator.enumerateCell(cell, context, null, new Visitor(out));
 		out.term(cell);
 
 		if (out.closeTextOutputStream()) return;
@@ -249,7 +247,7 @@ public class LEF extends Output
 		AffineTransform trans = info.getTransformToRoot();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.isCellInstance()) continue;
 			if (info.isRootCell() && nodesSeen.contains(ni)) continue;
 			AffineTransform rot = ni.rotateOut(trans);
@@ -265,7 +263,7 @@ public class LEF extends Output
 		// write metal layers for all arcs
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			if (info.isRootCell() && arcsSeen.contains(ai)) continue;
 			Technology tech = ai.getProto().getTechnology();
 			Poly [] polys = tech.getShapeOfArc(ai);
@@ -285,7 +283,7 @@ public class LEF extends Output
 	{
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (ni.isCellInstance()) continue;
 			if (ni == ignore) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
@@ -301,7 +299,7 @@ public class LEF extends Output
 			boolean found = true;
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
-				PortInst pi = (PortInst)pIt.next();
+				PortInst pi = pIt.next();
 				Network pNet = netList.getNetwork(pi);
 				if (pNet != net) { found = false;   break; }
 			}
@@ -322,7 +320,7 @@ public class LEF extends Output
 		// write metal layers for all arcs
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
 			arcsSeen.add(ai);

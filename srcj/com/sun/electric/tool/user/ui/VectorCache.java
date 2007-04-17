@@ -88,7 +88,6 @@ public class VectorCache {
     /** True to clear fade images. */                       private boolean clearFadeImages;
     /** True to clear cache. */                             private boolean clearCache;
     
-	/** temporary objects (saves allocation) */				private final Point tempPt1 = new Point();
 	/** zero rectangle */									private final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -395,7 +394,6 @@ public class VectorCache {
             if (cell == null)
                 return exports != null;
             if (exports == null) return true;
-            Rectangle2D cellBounds = cell.getBounds();
             Iterator<VectorCellExport> cIt = exports.iterator();
             for(Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
                 Export e = it.next();
@@ -895,10 +893,7 @@ public class VectorCache {
 		// draw the node
 		if (ni.isCellInstance())
 		{
-			// cell instance
-			Cell subCell = (Cell)np;
-
-			// record a call to the instance
+			// cell instance: record a call to the instance
 			Point2D ctrShift = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			localTrans.transform(ctrShift, ctrShift);
 			VectorSubCell vsc = new VectorSubCell(ni, ctrShift);

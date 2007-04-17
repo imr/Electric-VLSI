@@ -178,7 +178,7 @@ public class KeyStrokePair {
         int prefixCode = (prefixStroke == null) ? 0 : prefixStroke.hashCode();
         int strokeCode = (stroke == null) ? 0 : stroke.hashCode();
         //System.out.println("Generated hash code: "+ (int)((prefixCode + 1) * strokeCode));
-        return (int)((prefixCode + 1) * strokeCode);
+        return (prefixCode + 1) * strokeCode;
     }
 
     private static KeyStrokePair getCachedKeyStrokePair(KeyStroke prefixStroke, KeyStroke stroke) {
@@ -191,7 +191,7 @@ public class KeyStrokePair {
         if (!cache.containsKey(k)) {
             cache.put(k, k);
         } else {
-            k = (KeyStrokePair)cache.get(k);
+            k = cache.get(k);
         }
         return k;
     }

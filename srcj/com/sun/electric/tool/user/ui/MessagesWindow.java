@@ -383,7 +383,6 @@ public class MessagesWindow
 			getContentPane().add(fontLabel, gbc);
 
 			// the font column
-			Toolkit toolkit = Toolkit.getDefaultToolkit();
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			String [] fontNames = ge.getAvailableFontFamilyNames();
 			JScrollPane fontNamePane = new JScrollPane();

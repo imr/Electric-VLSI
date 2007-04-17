@@ -95,7 +95,7 @@ public class StepSize
 		while (range <= 1.0 ) { range *= 10.0;   rangeScale--; }
 
 		// determine powers of ten in the step size
-		double d = Math.abs(h - l)/(double)n;
+		double d = Math.abs(h - l)/n;
 		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1;
 		int mp = 0;
 		while (d >= 10.0) { d /= 10.0;   mp++;   stepScale++; }
@@ -111,8 +111,8 @@ public class StepSize
 		hi = (hi/di) * di;
 		if (li < 0) li -= di;
 		if (hi > 0) hi += di;
-		low = (double)li * m;
-		high = (double)hi * m;
+		low = li * m;
+		high = hi * m;
 		separation = di * m;
 	}
 }

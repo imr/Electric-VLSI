@@ -72,7 +72,7 @@ public class OutlineListener
 			// node has no points: fake some
 			if (ni.getFunction() == PrimitiveNode.Function.NODE)
 			{
-				InitializePoints job = new InitializePoints(this, ni);
+				new InitializePoints(this, ni);
 				return;
 			}
 		}
@@ -270,7 +270,6 @@ public class OutlineListener
 
 	public void mouseWheelMoved(MouseWheelEvent evt)
 	{
-		int clicks = evt.getWheelRotation();
 	}
 
 	public void keyPressed(KeyEvent evt)
@@ -367,7 +366,7 @@ public class OutlineListener
 			x[i] = newPoints[i].getX();
 			y[i] = newPoints[i].getY();
 		}
-		SetPoints job = new SetPoints(this, outlineNode, x, y, newPoint);
+		new SetPoints(this, outlineNode, x, y, newPoint);
 	}
 
 	/**

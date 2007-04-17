@@ -784,7 +784,7 @@ class HighlightEOBJ extends Highlight2
                         GlyphVector gv = wnd.getGlyphs(constraints, font);
                         Rectangle2D glyphBounds = gv.getVisualBounds();
                         g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
-                            (int)(p.y + font.getSize()/2 + highOffY));
+                            p.y + font.getSize()/2 + highOffY);
                     }
                 }
                 Job.releaseExamineLock();
@@ -808,7 +808,6 @@ class HighlightEOBJ extends Highlight2
 		if (realEObj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)realEObj;
-			NodeProto np = ni.getProto();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
             int offX = highOffX;
@@ -1068,7 +1067,6 @@ class HighlightEOBJ extends Highlight2
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
                 if (highlightConnected && onlyHighlight) {
-                    long start = System.currentTimeMillis();
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
 					NodeInst originalNI = ni;
@@ -1259,7 +1257,7 @@ class HighlightEOBJ extends Highlight2
     {
         Point2D slop = wnd.deltaScreenToDatabase(Highlighter.EXACTSELECTDISTANCE*2, Highlighter.EXACTSELECTDISTANCE*2);
         double directHitDist = slop.getX();
-        Point2D start = wnd.screenToDatabase((int)x, (int)y);
+        Point2D start = wnd.screenToDatabase(x, y);
         Rectangle2D searchArea = new Rectangle2D.Double(start.getX(), start.getY(), 0, 0);
 
         ElectricObject eobj = this.eobj;
@@ -1567,7 +1565,7 @@ class HighlightText extends Highlight2
 
     boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter)
     {
-        Point2D start = wnd.screenToDatabase((int)x, (int)y);
+        Point2D start = wnd.screenToDatabase(x, y);
         Poly poly = eobj.computeTextPoly(wnd, varKey);
         if (poly != null)
             if (poly.isInside(start)) return true;

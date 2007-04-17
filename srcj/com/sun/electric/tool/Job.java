@@ -90,7 +90,7 @@ public abstract class Job implements Serializable {
     static final int PROTOCOL_VERSION = 15; // Oct 24
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
-    private static final String CLASS_NAME = Job.class.getName();
+//    private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
     
     

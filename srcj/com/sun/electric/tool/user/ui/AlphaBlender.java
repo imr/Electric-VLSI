@@ -360,16 +360,16 @@ class AlphaBlender {
         opaqueData[baseIndex] = color;
     }
     
-    private int normalizeRgbHighlight(int red, int green, int blue) {
-        return 0xFFFFFF;
-    }
-    
-    private int normalizeRgbClip(int red, int green, int blue) {
-        red = Math.max(0, Math.min(0xFF, red));
-        green = Math.max(0, Math.min(0xFF, red));
-        blue = Math.max(0, Math.min(0xFF, red));
-        return (red << 16) | (green << 8) | blue;
-    }
+//    private int normalizeRgbHighlight(int red, int green, int blue) {
+//        return 0xFFFFFF;
+//    }
+//    
+//    private int normalizeRgbClip(int red, int green, int blue) {
+//        red = Math.max(0, Math.min(0xFF, red));
+//        green = Math.max(0, Math.min(0xFF, red));
+//        blue = Math.max(0, Math.min(0xFF, red));
+//        return (red << 16) | (green << 8) | blue;
+//    }
     
     private int normalizeRgbDim(int red, int green, int blue) {
         int min, max;

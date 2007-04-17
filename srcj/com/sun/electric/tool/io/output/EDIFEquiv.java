@@ -65,7 +65,6 @@ public class EDIFEquiv {
 
     private HashMap<Object,NodeEquivalence> equivsByNodeProto;      // key: Electric hash (getElectricKey()), value: NodeEquivalence
     private HashMap<Object,NodeEquivalence> equivsByExternal;       // key: External hash (getExternalKey()), value: NodeEquivalence
-    private HashMap exportEquivs;           // key: External hash (getExternalKey()), value: ExportEquivalence
     private HashMap<String,VariableEquivalence> exportByVariable;       // key: External hash (electric varname), value: VariableEquivalence
     private HashMap<String,VariableEquivalence> exportFromVariable;     // key: External hash (external varname), value: VariableEquivalence
     private HashMap<String,FigureGroupEquivalence> exportByFigureGroup;    // key: External hash (electric figureGroupName), value: FigureGroupEquivalence
@@ -196,14 +195,11 @@ public class EDIFEquiv {
      */
     public Point2D translatePortConnection(Point2D connPoint, PortInst pi) {
         NodeInst ni = pi.getNodeInst();
-        NodeProto np = ni.getProto();
         NodeEquivalence equiv = getNodeEquivalence(ni);
         if (equiv == null) return connPoint;
         PortEquivalence pe = equiv.getPortEquivElec(pi.getPortProto().getName());
         if (pe == null) return connPoint;
         AffineTransform af2 = ni.getOrient().concatenate(Orientation.fromAngle(-equiv.rotation*10)).pureRotate();
-//        AffineTransform af2 = NodeInst.pureRotate(ni.getAngle()-(equiv.rotation*10),
-//                ni.isMirroredAboutYAxis(), ni.isMirroredAboutXAxis());
         return pe.translateElecToExt(connPoint, af2);
     }
 
@@ -290,7 +286,6 @@ public class EDIFEquiv {
     public EDIFEquiv() {
         equivsByNodeProto = new HashMap<Object,NodeEquivalence>();
         equivsByExternal = new HashMap<Object,NodeEquivalence>();
-        exportEquivs = new HashMap();
 		exportByVariable = new HashMap<String,VariableEquivalence>();
 		exportFromVariable = new HashMap<String,VariableEquivalence>();
 		exportByFigureGroup = new HashMap<String,FigureGroupEquivalence>();

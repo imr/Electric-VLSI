@@ -77,7 +77,7 @@ public class User extends Listener
 
     private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
-	private boolean undoRedo;
+//	private boolean undoRedo;
 
 	/**
 	 * The constructor sets up the User tool.

@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -106,7 +105,6 @@ public class ZoomAndPanListener
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
 			if (wnd == null) return;
-			Highlighter highlighter = wnd.getHighlighter();
 
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
@@ -119,8 +117,6 @@ public class ZoomAndPanListener
 				{
 					// use hand motion to zoom; cap to maximum of 20 pixels per tick
 					int deltaY = newY - lastY;
-//					if (deltaY >= 20) deltaY = 19; else
-//						if (deltaY <= -10) deltaY = -19;
 					double dY = deltaY / 20.0;
 					if (dY < 0) scale = scale - scale * dY;
 						else scale = scale * Math.exp(-dY)/*scale - scale * dY*/;
@@ -128,20 +124,6 @@ public class ZoomAndPanListener
                     wnd.getSavedFocusBrowser().updateCurrentFocus();
 					wnd.repaintContents(null, false);
 				}
-/*
-				// zooming the window scale
-				highlighter.clear();
-				Point2D start = wnd.screenToDatabase(startX, startY);
-				Point2D end = wnd.screenToDatabase(newX, newY);
-				double minSelX = Math.min(start.getX(), end.getX());
-				double maxSelX = Math.max(start.getX(), end.getX());
-				double minSelY = Math.min(start.getY(), end.getY());
-				double maxSelY = Math.max(start.getY(), end.getY());
-				highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), wnd.getCell());
-				highlighter.finished();
-				wnd.clearDoingAreaDrag();
-				wnd.repaint();
-*/
 			} else if (mode == ToolBar.CursorMode.PAN)
 			{
 				// panning the window location
@@ -162,8 +144,6 @@ public class ZoomAndPanListener
 		if (mode != ToolBar.CursorMode.ZOOM) return;
 		if (ClickZoomWireListener.isRightMouse(evt)) return;
 
-		int newX = evt.getX();
-		int newY = evt.getY();
  		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
@@ -174,19 +154,6 @@ public class ZoomAndPanListener
              double maxSelX = Math.max(start.getX(), end.getX());
              double minSelY = Math.min(start.getY(), end.getY());
              double maxSelY = Math.max(start.getY(), end.getY());
-/*
-             Highlighter highlighter = wnd.getHighlighter();
-
-			// zooming the window scale
-			highlighter.clear();
-			highlighter.finished();
-			Point2D start = wnd.screenToDatabase(startX, startY);
-			Point2D end = wnd.screenToDatabase(newX, newY);
-			double minSelX = Math.min(start.getX(), end.getX());
-			double maxSelX = Math.max(start.getX(), end.getX());
-			double minSelY = Math.min(start.getY(), end.getY());
-			double maxSelY = Math.max(start.getY(), end.getY());
-*/
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
 			{
 				wnd.setScale(wnd.getScale() * 0.5);
@@ -206,7 +173,6 @@ public class ZoomAndPanListener
                 if (bounds.getHeight() > 4 && bounds.getWidth() > 4) onePoint = false;
                 if (Math.abs(wnd.getStartDrag().getX()-wnd.getEndDrag().getX()) > 10 ||
                     Math.abs(wnd.getStartDrag().getY()-wnd.getEndDrag().getY()) > 10) onePoint = false;
-				//Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
 				if (!onePoint)
 				{
 					wnd.focusScreen(bounds);
@@ -264,8 +230,8 @@ public class ZoomAndPanListener
      * @param wf the WindowFrame
      * @param ticks the amount and direction of pan.
      */
-    public static void panXOrY(int direction, WindowFrame wf, int ticks) {
-
+    public static void panXOrY(int direction, WindowFrame wf, int ticks)
+    {
 	    wf.getContent().panXOrY(direction, panningAmounts, ticks);
     }
 
@@ -296,7 +262,6 @@ public class ZoomAndPanListener
 		wnd.setOffset(center);
         wnd.getSavedFocusBrowser().updateCurrentFocus();
 		wnd.repaintContents(null, false);
-
 	}
 
 }

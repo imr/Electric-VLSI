@@ -32,9 +32,9 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.EMenuBar;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -76,9 +76,8 @@ public class TopLevel extends JFrame
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The only status bar (if MDI). */					private StatusBar sb = null;
-	/** The WindowFrame associated with this (if SDI). */	private WindowFrame wf = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
-	/** The messagesWindow window. */								private static MessagesWindow messagesWindow;
+	/** The messagesWindow window. */						private static MessagesWindow messagesWindow;
     /** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
@@ -466,12 +465,12 @@ public class TopLevel extends JFrame
         }
 	}
 
-	/**
-	 * Method to set the WindowFrame associated with this top-level window.
-	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
-	 * @param wf the WindowFrame to associatd with this.
-	 */
-	public void setWindowFrame(WindowFrame wf) { this.wf = wf; }
+//	/**
+//	 * Method to set the WindowFrame associated with this top-level window.
+//	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
+//	 * @param wf the WindowFrame to associatd with this.
+//	 */
+//	public void setWindowFrame(WindowFrame wf) { this.wf = wf; }
     
     /**
      * Method called when done with this Frame.  Both the menuBar
@@ -503,7 +502,6 @@ public class TopLevel extends JFrame
         /* Note that this gets called from WindowFrame, and
             WindowFrame has a reference to EditWindow, so
             WindowFrame will call wnd.finished(). */
-        wf = null;
         // dispose of myself
         super.dispose();
     }

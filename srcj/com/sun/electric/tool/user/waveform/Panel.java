@@ -370,7 +370,7 @@ public class Panel extends JPanel
 		rightHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
-		DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 
 		// a separator at the top
 		sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -396,7 +396,6 @@ public class Panel extends JPanel
 		rightHalf.add(this, gbc);
 
 		// add to list of wave panels
-		int index = waveWindow.getNumPanels();
 		waveWindow.addPanel(this);
 
 		// put the left and right sides into the window
@@ -921,12 +920,12 @@ public class Panel extends JPanel
 			double winMaxY = analogHighValue;
 			if (winMaxY <= 0) winMaxY = smallestYValue;
 			double logWinMaxY = Math.log10(winMaxY);
-			double yValue = Math.pow(10, logWinMinY - ((double)(y - sz.height + 1)) * (logWinMaxY - logWinMinY) / (sz.height-1));
+			double yValue = Math.pow(10, logWinMinY - (y - sz.height + 1) * (logWinMaxY - logWinMinY) / (sz.height-1));
 			return yValue;
 		} else
 		{
 			// linear axes
-			double value = analogLowValue - ((double)(y - sz.height + 1)) * analogRange / (sz.height-1);
+			double value = analogLowValue - (y - sz.height + 1) * analogRange / (sz.height-1);
 			return value;
 		}
 	}
@@ -1097,7 +1096,6 @@ public class Panel extends JPanel
 					// does not fit inside: draw outside of arrows
 					int yPosText = highY + textHei*5;
 					int yPos = yPosText - textHei/2;
-					int xCtr = (highX+lowX)/2;
 					offscreenGraphics.drawString(xDiffString, highX + 12, yPosText);
 					offscreenGraphics.drawLine(lowX, yPos, lowX-10, yPos);
 					offscreenGraphics.drawLine(highX, yPos, highX+10, yPos);
@@ -1155,7 +1153,6 @@ public class Panel extends JPanel
 					{
 						// does not fit inside: draw outside of arrows
 						int xPos = highX + highXValueTextWid + 30;
-						int yCtr = (highY+lowY)/2;
 						offscreenGraphics.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
 						offscreenGraphics.drawLine(xPos, lowY, xPos, lowY-10);
 						offscreenGraphics.drawLine(xPos, highY, xPos, highY+10);
@@ -1462,7 +1459,6 @@ public class Panel extends JPanel
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
-					int busWidth = bussedSignals.size();
 					long curYValue = 0;
 					double curXValue = 0;
 					int lastX = vertAxisPos;
@@ -1798,7 +1794,7 @@ public class Panel extends JPanel
 
 		if (evt.getClickCount() == 2 && evt.getX() < vertAxisPos)
 		{
-			WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minXPosition, maxXPosition, waveWindow, this);
+			new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minXPosition, maxXPosition, waveWindow, this);
 			return;
 		}
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();

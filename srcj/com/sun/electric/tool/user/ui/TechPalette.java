@@ -114,7 +114,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         // initialize drag-and-drop from this palette
         dragSource = DragSource.getDefaultDragSource();
-		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
+		dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
     }
 
     /**
@@ -577,7 +577,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     // must read the Spice library from disk
                     URL fileURL = LibFile.getLibFile(currentSpiceLib + ".jelib");
-                    ReadSpiceLibrary job = new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
+                    new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
                 } else
                 {
                     ReadSpiceLibrary.loadSpiceCells(spiceLib, panel, cellMenu);
@@ -881,7 +881,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             int index = inPalette.indexOf(highlightedNode);
             if (index >= 0) {
                 // put the Image in the proper place
-                int x = (int)(index/menuY);
+                int x = index / menuY;
                 int y = index % menuY;
                 int imgX = x * (entrySize+1)+1;
                 int imgY = (menuY-y-1) * (entrySize+1)+1;
@@ -908,7 +908,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         //int index = inPalette.indexOf(User.getUserTool().getCurrentArcProto());
 
         if (index >= 0) {
-            int x = (int)(index/menuY);
+            int x = index / menuY;
             int y = index % menuY;
             int imgX = x * (entrySize+1)+1;
             int imgY = (menuY-y-1) * (entrySize+1)+1;

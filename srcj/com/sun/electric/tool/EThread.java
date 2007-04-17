@@ -67,7 +67,7 @@ class EThread extends Thread {
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
             database = ejob.jobType != Job.Type.EXAMINE ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
             ejob.changedFields = new ArrayList<Field>();
-            Throwable jobException = null;
+//            Throwable jobException = null;
             database.lock(!ejob.isExamine());
             ejob.oldSnapshot = database.backup();
             try {

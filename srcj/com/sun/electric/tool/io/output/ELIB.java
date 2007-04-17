@@ -261,7 +261,6 @@ public class ELIB extends Output
 //            assert cellInSameGroup.get(lastCellInGroup) == firstCellInGroup;
             cellInSameGroup.put(lastCellInGroup, firstCellInGroup);
         }
-        int cellsHere = nodeProtoIndex;
         
         // count and number the cells in other libraries
         for (LibId libId: sortedLibIds.values()) {
@@ -514,7 +513,6 @@ public class ELIB extends Output
 		// write cells if creating version-6-compatible output
 		if (compatibleWith6)
 		{
-			String [] cellNames = new String[cellCount];
 			for(String cellName : cellIndexMap.keySet())
 			{
 				writeString(cellName);
@@ -761,12 +759,12 @@ public class ELIB extends Output
         writeInt("revisiondate: ", (int)(cellBackup.revisionDate/1000));
             
         // write the nodeproto bounding box
-        Technology tech = cellBackup.d.tech;
         ERectangle bounds = snapshot.getCellBounds(cellId);
         writeGridCoord(cellBackup, "lowx: ", bounds.getGridMinX());
         writeGridCoord(cellBackup, "highx: ", bounds.getGridMaxX());
         writeGridCoord(cellBackup, "lowy: ", bounds.getGridMinY());
         writeGridCoord(cellBackup, "highy: ", bounds.getGridMaxY());
+//        Technology tech = cellBackup.d.tech;
 //        int lowX = (int)Math.round((bounds.getLambdaMinX() * tech.getScale()*2));
 //        int highX = (int)Math.round((bounds.getLambdaMaxX() * tech.getScale()*2));
 //        int lowY = (int)Math.round((bounds.getLambdaMinY() * tech.getScale()*2));
@@ -778,7 +776,6 @@ public class ELIB extends Output
     }
     
     private void writeNodeProto(CellBackup cellBackup) throws IOException {
-        CellId cellId = cellBackup.d.cellId;
         writeCellInfo(cellBackup);
         
         writeExports(cellBackup);
@@ -791,7 +788,7 @@ public class ELIB extends Output
     }
     
     void writeNodes(CellBackup cellBackup, int arcBase) throws IOException {
-		Technology tech = cellBackup.d.tech;
+//		Technology tech = cellBackup.d.tech;
         CellBackup.Memoization m = cellBackup.getMemoization();
         
         for (int nodeIndex = 0; nodeIndex < cellBackup.nodes.size(); nodeIndex++) {
@@ -1026,7 +1023,6 @@ public class ELIB extends Output
             throw new IOException("Variable.Key index too large");
         }
         writeBigInteger(nameSpace.size());
-        short keyIndex = 0;
         for(String str : nameSpace.keySet())
             writeString(str);
     }
@@ -1339,7 +1335,7 @@ public class ELIB extends Output
      * @param gridCoord coordinate in grid units.
      */
     private void writeGridCoord(CellBackup cellBackup, String keyword, double gridCoord) throws IOException {
-        int i = gridCoordToElib(cellBackup.d.tech, gridCoord);
+//        int i = gridCoordToElib(cellBackup.d.tech, gridCoord);
         writeInt(keyword, gridCoordToElib(cellBackup.d.tech, gridCoord));
     }
     

@@ -1132,7 +1132,7 @@ public class ClickZoomWireListener
 		if (wnd.isInPlaceEdit())
 		{
 			Point2D delta = new Point2D.Double(dX, dY);
-			AffineTransform trans = (AffineTransform)wnd.getInPlaceTransformIn();
+			AffineTransform trans = wnd.getInPlaceTransformIn();
 	        double m00 = trans.getScaleX();
 	        double m01 = trans.getShearX();
 	        double m10 = trans.getShearY();
@@ -1311,7 +1311,6 @@ public class ClickZoomWireListener
 
     /** Select object or Wire to object, depending upon popup menu used */
     public void actionPerformed(ActionEvent e) {
-        JMenuItem source = (JMenuItem)e.getSource();
     }
 
     // ------------------------------------ Preferences -----------------------------------

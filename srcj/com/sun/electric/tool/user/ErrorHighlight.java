@@ -91,7 +91,7 @@ class ErrorHighExport extends ErrorHighlight {
     public ErrorHighExport(VarContext con, Export p)
     {
         super(p.getParent(), con);
-        this.pp = (ExportId)p.getId();
+        this.pp = p.getId();
     }
 
     boolean isValid(EDatabase database) {return pp.inDatabase(database) != null;}

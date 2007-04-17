@@ -72,7 +72,7 @@ public class SweepSignal
 		{
 			for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 			{
-				Panel wp = (Panel)it.next();
+				Panel wp = it.next();
 				wp.repaintWithRulers();
 			}
 		}
@@ -87,7 +87,7 @@ public class SweepSignal
 		ww.setHighlightedSweep(sweepIndex);
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 		{
-			Panel wp = (Panel)it.next();
+			Panel wp = it.next();
 			wp.repaintWithRulers();
 		}
 	}

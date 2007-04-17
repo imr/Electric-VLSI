@@ -66,7 +66,7 @@ public class SpiceNetlistReader {
         return subckts.get(name.toLowerCase());
     }
 
-    private static final boolean DEBUG = true;
+//    private static final boolean DEBUG = true;
 
     // ============================== Parsing ==================================
 
@@ -573,22 +573,22 @@ public class SpiceNetlistReader {
         reader.writeFile("/tmp/output.spi");
     }
 
-    private static void testLineParserTests() {
-        SpiceNetlistReader reader = new SpiceNetlistReader();
-        reader = new SpiceNetlistReader();
-        reader.file = new File("/none");
-        reader.lineno = 1;
-        testLineParser(reader, ".measure tran vmin min v( data) from=0ns to=1.25ns  ");
-        testLineParser(reader, ".param poly_res_corner='1.0 * p' * 0.8 corner");
-        testLineParser(reader, ".param poly_res_corner   =    '1.0 * p' * 0.8 corner");
-        testLineParser(reader, ".param AVT0N = AGAUSS(0.0,  '0.01 / 0.1' , 1)");
-    }
-
-    private static void testLineParser(SpiceNetlistReader reader, String line) {
-        System.out.println("Parsing: "+line);
-        String [] tokens = reader.getTokens(line);
-        for (int i=0; i<tokens.length; i++) {
-            System.out.println(i+": "+tokens[i]);
-        }
-    }
+//    private static void testLineParserTests() {
+//        SpiceNetlistReader reader = new SpiceNetlistReader();
+//        reader = new SpiceNetlistReader();
+//        reader.file = new File("/none");
+//        reader.lineno = 1;
+//        testLineParser(reader, ".measure tran vmin min v( data) from=0ns to=1.25ns  ");
+//        testLineParser(reader, ".param poly_res_corner='1.0 * p' * 0.8 corner");
+//        testLineParser(reader, ".param poly_res_corner   =    '1.0 * p' * 0.8 corner");
+//        testLineParser(reader, ".param AVT0N = AGAUSS(0.0,  '0.01 / 0.1' , 1)");
+//    }
+//
+//    private static void testLineParser(SpiceNetlistReader reader, String line) {
+//        System.out.println("Parsing: "+line);
+//        String [] tokens = reader.getTokens(line);
+//        for (int i=0; i<tokens.length; i++) {
+//            System.out.println(i+": "+tokens[i]);
+//        }
+//    }
 }

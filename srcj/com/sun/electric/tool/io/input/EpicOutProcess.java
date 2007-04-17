@@ -116,7 +116,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         return sd;
     }
     
-    private static String VERSION_STRING = ";! output_format 5.3";
+//    private static String VERSION_STRING = ";! output_format 5.3";
     
 	private Stimuli readEpicFile()
 		throws IOException
@@ -211,13 +211,13 @@ public class EpicOutProcess extends Simulate implements Runnable
         int maxMemWanted = Simulation.getSpiceEpicMemorySize();
 
         // get location of jar file
-        String jarfile = "electric.jar";
+//        String jarfile = "electric.jar";
         URL electric = Launcher.class.getResource("Main.class");
         if (electric.getProtocol().equals("jar")) {
             String file = electric.getFile();
             file = file.replaceAll("file:", "");
             file = file.replaceAll("!.*", "");
-            jarfile = file;
+//            jarfile = file;
         }
 
 		String command = program;

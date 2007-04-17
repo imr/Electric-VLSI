@@ -108,7 +108,7 @@ public class ELIBConstants
 	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
 	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
 	/** set if cell is from a technology-library */					private static final int TECEDITCELL   =    040000000;
-	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
+//	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
 	public static final int CELL_BITS = WANTNEXPAND | NPLOCKED | NPILOCKED | INCELLLIBRARY | TECEDITCELL /* | MULTIPAGE*/;
 
 	/**

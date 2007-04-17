@@ -407,7 +407,7 @@ public class EditMenu {
     public static void keyBindingsCommand()
     {
         // edit key bindings for current menu
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        TopLevel top = TopLevel.getCurrentJFrame();
         EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
         dialog.setVisible(true);
     }
@@ -506,7 +506,7 @@ public class EditMenu {
      */
     public static void seeAllParametersCommand()
     {
-        ParameterVisibility job = new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
+        new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
     }
 
     /**
@@ -514,7 +514,7 @@ public class EditMenu {
      */
     public static void hideAllParametersCommand()
     {
-        ParameterVisibility job = new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
+        new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
     }
 
     /**
@@ -522,7 +522,7 @@ public class EditMenu {
      */
     public static void defaultParamVisibilityCommand()
     {
-        ParameterVisibility job = new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
+        new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
     }
 
     /**
@@ -619,7 +619,7 @@ public class EditMenu {
     {
         // get currently selected node(s)
         List<Geometric> highlighted = MenuCommands.getSelectedObjects(true, false);
-        UpdateAttributes job = new UpdateAttributes(highlighted, allLibraries, 0);
+        new UpdateAttributes(highlighted, allLibraries, 0);
     }
 
     private static class UpdateAttributes extends Job {
@@ -1341,7 +1341,7 @@ public class EditMenu {
         {
             Point2D insert2D = getInsertPoint(evt);
             EPoint insert = new EPoint(insert2D.getX(), insert2D.getY());
-            InsertJogPoint job = new InsertJogPoint(ai, insert, wnd.getHighlighter());
+            new InsertJogPoint(ai, insert, wnd.getHighlighter());
             WindowFrame.setListener(currentListener);
         }
 
@@ -1364,7 +1364,7 @@ public class EditMenu {
 
         private Point2D getInsertPoint(MouseEvent evt)
         {
-            Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+            Point2D mouseDB = wnd.screenToDatabase(evt.getX(), evt.getY());
             EditWindow.gridAlign(mouseDB);
             Point2D insert = DBMath.closestPointToSegment(ai.getHeadLocation(), ai.getTailLocation(), mouseDB);
             return insert;

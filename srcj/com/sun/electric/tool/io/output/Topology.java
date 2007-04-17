@@ -25,28 +25,32 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Simulation Interface tool.
@@ -1022,7 +1026,7 @@ public abstract class Topology extends Output
 		{
 			int ckSum = 0;
 			for(int i=0; i<uniqueCellName.length(); i++)
-				ckSum += (int)uniqueCellName.charAt(i);
+				ckSum += uniqueCellName.charAt(i);
 			ckSum = (ckSum % 9999);
 			uniqueCellName = uniqueCellName.substring(0, limit-10) + "-TRUNC"+ckSum;
 		}

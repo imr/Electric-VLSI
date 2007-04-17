@@ -80,7 +80,6 @@ import javax.swing.KeyStroke;
  */
 public class Clipboard
 {
-	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
 	/** The Clipboard Library. */						private static Library   clipLib = null;
 	/** The Clipboard Cell. */							private static Cell      clipCell;
 	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
@@ -146,7 +145,7 @@ public class Clipboard
 		}
 
 		// copy to Electric clipboard cell
-		new CopyObjects(wnd.getCell(), highlightedGeoms, highlightedText, User.getAlignmentToGrid(),
+		new CopyObjects(highlightedGeoms, highlightedText, User.getAlignmentToGrid(),
 			inPlace, inPlaceOrient);
 	}
 
@@ -387,18 +386,16 @@ public class Clipboard
 
 	private static class CopyObjects extends Job
 	{
-		private Cell cell;
         private List<Geometric> highlightedGeoms;
         private List<DisplayedText> highlightedText;
         private double alignment;
         private AffineTransform inPlace;
         private Orientation inPlaceOrient;
 
-		protected CopyObjects(Cell cell, List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText,
+		protected CopyObjects(List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText,
 			double alignment, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
             this.highlightedGeoms = highlightedGeoms;
             this.highlightedText = highlightedText;
             this.alignment = alignment;
@@ -451,7 +448,6 @@ public class Clipboard
 
 			// make sure deletion is allowed
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
-			List<Highlight2> deleteList = new ArrayList<Highlight2>();
 			for(Geometric geom : geomList)
 			{
 				if (geom instanceof NodeInst)
@@ -701,10 +697,6 @@ public class Clipboard
 		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
 			exportsToDelete.add(it.next());
         clipCell.killExports(exportsToDelete);
-//		for(Export pp : exportsToDelete)
-//		{
-//			pp.kill();
-//		}
 
 		// delete all nodes in the clipboard
 		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
@@ -716,12 +708,10 @@ public class Clipboard
 		}
 
         // Delete all variables
-        List<Variable> varsToDelete = new ArrayList<Variable>();
         for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
             clipCell.delVar(var.getKey());
-			//varsToDelete.add(var);
 		}
 	}
 
@@ -917,7 +907,7 @@ public class Clipboard
 			Variable var = eObj.getVar(varKey);
 			double xP = var.getTextDescriptor().getXOff();
 			double yP = var.getTextDescriptor().getYOff();
-			Variable newv = toCell.newVar(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));
+			toCell.newVar(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));
 			if (newTextList != null) newTextList.add(new DisplayedText(toCell, varKey));
 		}
         return lastCreatedNode;
@@ -944,7 +934,7 @@ public class Clipboard
                     	{
                     		Variable var = vIt.next();
                     		if (!var.isDisplay()) continue;
-							Highlight2 h = highlighter.addText(ni, cell, var.getKey());
+							highlighter.addText(ni, cell, var.getKey());
                     	}
 						continue;
 					}
@@ -1059,7 +1049,7 @@ public class Clipboard
 		{
 			Variable srcVar = it.next();
 			Variable.Key key = srcVar.getKey();
-			Variable destVar = destArc.newVar(key, srcVar.getObject(), srcVar.getTextDescriptor());
+			destArc.newVar(key, srcVar.getObject(), srcVar.getTextDescriptor());
 		}
 
 		// make sure the constraints and other userbits are the same
@@ -1083,7 +1073,6 @@ public class Clipboard
         // figure out lower-left corner and upper-rigth corner of this collection of objects
         for(DisplayedText dt : textList)
         {
-        	ElectricObject eObj = dt.getElectricObject();
             Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
             Rectangle2D bounds = poly.getBounds2D();
 
@@ -1350,7 +1339,7 @@ public class Clipboard
 				return;
 			}
 			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-			Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			Point2D mouseDB = wnd.screenToDatabase(evt.getX(), evt.getY());
 			Point2D delta = getDelta(mouseDB, ctrl);
 			showList(delta);
 
@@ -1366,7 +1355,7 @@ public class Clipboard
 		public void mouseMoved(MouseEvent evt)
 		{
 			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-			Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			Point2D mouseDB = wnd.screenToDatabase(evt.getX(), evt.getY());
 			Point2D delta = getDelta(mouseDB, ctrl);
 			lastMouseDB = mouseDB;
 			showList(delta);
@@ -1379,7 +1368,6 @@ public class Clipboard
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseWheelMoved(MouseWheelEvent e) {}
 		public void keyPressed(KeyEvent evt) {
-			boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 			int chr = evt.getKeyCode();
 			if (chr == KeyEvent.VK_ESCAPE) {
 				// abort on ESC

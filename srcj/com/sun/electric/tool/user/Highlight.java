@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
@@ -44,7 +43,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -658,7 +656,7 @@ public class Highlight
                         GlyphVector gv = wnd.getGlyphs(constraints, font);
                         Rectangle2D glyphBounds = gv.getVisualBounds();
                         g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
-                            (int)(p.y + font.getSize()/2 + highOffY));
+                            p.y + font.getSize()/2 + highOffY);
                     }
                 }
                 Job.releaseExamineLock();
@@ -680,7 +678,6 @@ public class Highlight
 		if (realEObj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)realEObj;
-			NodeProto np = ni.getProto();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
             int offX = highOffX;
@@ -879,7 +876,7 @@ public class Highlight
 					boolean wired = false;
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
-						Connection con = (Connection)cIt.next();
+						Connection con = cIt.next();
 						if (con.getPortInst().getPortProto() == pp) { wired = true;   break; }
 					}
 					if (wired)
@@ -931,12 +928,11 @@ public class Highlight
 						epp = ((Export)pp).getEquivalent();
 						if (epp == null) epp = pp;
 					}
-                    int busWidth = pp.getNameKey().busWidth();
 
                     HashSet<Geometric> markObj = new HashSet<Geometric>();
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
-                        ArcInst ai = (ArcInst)it.next();
+                        ArcInst ai = it.next();
                         if (!netlist.sameNetwork(no, epp, ai)) continue;
 
                         markObj.add(ai);
@@ -949,7 +945,7 @@ public class Highlight
                     g2.setStroke(dashedLine);
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
-                        ArcInst ai = (ArcInst)it.next();
+                        ArcInst ai = it.next();
                         if (!markObj.contains(ai)) continue;
                         Point c1 = wnd.databaseToScreen(ai.getHeadLocation());
                         Point c2 = wnd.databaseToScreen(ai.getTailLocation());
@@ -960,7 +956,7 @@ public class Highlight
                     g2.setStroke(solidLine);
                     for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                     {
-                        NodeInst oNi = (NodeInst)it.next();
+                        NodeInst oNi = it.next();
                         if (oNi == originalNI) continue;
                         if (!markObj.contains(oNi))
                         {
@@ -971,7 +967,7 @@ public class Highlight
                         		// could be connected by exports...check
                         		for(Iterator<PortProto> eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
                         		{
-                        			PortProto oPp = (PortProto)eIt.next();
+                        			PortProto oPp = eIt.next();
                         			if (netlist.sameNetwork(no, epp, oNi, oPp)) { connected = true;   break; }
                         		}
                         	}
@@ -985,7 +981,7 @@ public class Highlight
                         Point2D nodeCenter = oNi.getTrueCenter();
                         for(Iterator<Connection> pIt = oNi.getConnections(); pIt.hasNext(); )
                         {
-                            Connection con = (Connection)pIt.next();
+                            Connection con = pIt.next();
                             ArcInst ai = con.getArc();
                             if (!markObj.contains(ai)) continue;
                             Point2D arcEnd = con.getLocation();
@@ -1148,7 +1144,6 @@ public class Highlight
 	 */
 	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened, Point2D thickCenter)
 	{
-        Dimension screen = wnd.getScreenSize();
 		boolean onePoint = true;
 		if (points.length <= 0)
 			return;

@@ -41,8 +41,8 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 
@@ -107,31 +107,31 @@ public class Simulate extends Input
         Simulate is = null;
         if (type == FileType.ARCHSIMOUT)
         {
-            is = (Simulate)new ArchSimOut();
+            is = new ArchSimOut();
         } else if (type == FileType.HSPICEOUT)
         {
-            is = (Simulate)new HSpiceOut();
+            is = new HSpiceOut();
         } else if (type == FileType.PSPICEOUT)
         {
-            is = (Simulate)new PSpiceOut();
+            is = new PSpiceOut();
         } else if (type == FileType.RAWSPICEOUT)
         {
-            is = (Simulate)new RawSpiceOut();
+            is = new RawSpiceOut();
         } else if (type == FileType.RAWSSPICEOUT)
         {
-            is = (Simulate)new SmartSpiceOut();
+            is = new SmartSpiceOut();
         } else if (type == FileType.SPICEOUT)
         {
-            is = (Simulate)new SpiceOut();
+            is = new SpiceOut();
         } else if (type == FileType.EPIC)
         {
             if (Simulation.isSpiceEpicReaderProcess())
-                is = (Simulate)new EpicOutProcess();
+                is = new EpicOutProcess();
             else
-               is = (Simulate)new EpicOut();
+               is = new EpicOut();
         } else if (type == FileType.VERILOGOUT)
         {
-            is = (Simulate)new VerilogOut();
+            is = new VerilogOut();
         }
         return is;
     }

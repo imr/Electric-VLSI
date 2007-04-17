@@ -68,7 +68,7 @@ public class StreamClient extends Client {
     }
     
     class ServerEventDispatcher extends Thread {
-        private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
+//        private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
         private ServerEvent lastEvent = getQueueTail();
     
         private ServerEventDispatcher() {

@@ -887,7 +887,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			JPanel panel = (JPanel)table.getValueAt(row, col);
 
 			// so clicks are felt inside the panels
-			MouseEvent panelEvent = (MouseEvent)SwingUtilities.convertMouseEvent(table, e, panel);
+			MouseEvent panelEvent = SwingUtilities.convertMouseEvent(table, e, panel);
 			panel.dispatchEvent(panelEvent);
 
 			// This is necessary so that when a button is pressed and released
@@ -2259,7 +2259,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 			if (!alreadyPlotted) {
-				WaveSignal wsig = new WaveSignal(wp, sSig);
+				new WaveSignal(wp, sSig);
 			}
 			added = true;
 			wp.repaintContents();
@@ -2334,7 +2334,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (net != null)
 		{
 			Netlist netlist = net.getNetlist();
-			Network originalNet = net;
 			while (net.isExported() && (context != VarContext.globalContext))
 			{
 				// net is exported, find net in parent
@@ -2590,10 +2589,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		tree.clearCurrentlySelectedObjects();
 
 		// find the signal to show in the waveform window
-		long time1 = System.currentTimeMillis();
 		List<Signal> found = findSelectedSignals(which, loc.getContext());
-		long time2 = System.currentTimeMillis();
-		//System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
 
 		// show it in every panel
 		boolean foundSignal = false;
@@ -2611,8 +2607,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 		}
-		long time3 = System.currentTimeMillis();
-		//System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
 		if (foundSignal) repaint();
 
 		// show only one in the "Signals" tree
@@ -2713,7 +2707,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
-			boolean foundSig = false;
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
 				Analysis an = aIt.next();
@@ -2744,7 +2737,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (sSig != null)
 				{
 					found.add(sSig);
-					foundSig = true;
 				} else {
 					System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
 				}
@@ -2894,7 +2886,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							// found network
 							while (!upNodables.isEmpty())
 							{
-								Nodable no = (Nodable)upNodables.pop();
+								Nodable no = upNodables.pop();
 								net = HierarchyEnumerator.getNetworkInChild(net, no);
 								if (net == null) break;
 							}
@@ -2914,7 +2906,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 								// found network
 								while (!upNodables.isEmpty())
 								{
-									Nodable no = (Nodable)upNodables.pop();
+									Nodable no = upNodables.pop();
 									net = HierarchyEnumerator.getNetworkInChild(net, no);
 									if (net == null) break;
 								}
@@ -3009,7 +3001,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
-					int busWidth = bussedSignals.size();
 					for(Signal subSig : bussedSignals)
 					{
 						DigitalSignal subDS = (DigitalSignal)subSig;
@@ -3814,7 +3805,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			// add digital signal in new panel
 			Panel wp = makeNewPanel();
-			WaveSignal wsig = new WaveSignal(wp, sig);
+			new WaveSignal(wp, sig);
 			overall.validate();
 			wp.repaintContents();
 		}
@@ -3957,7 +3948,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				if (wp.getXAxisSignal() != null) timeInXAxis = false;
 			}
-			boolean repaint = false;
 			double range = wp.getMaxXAxis() - wp.getMinXAxis();
 			wp.setXAxisRange(wp.getMinXAxis() - range/2, wp.getMaxXAxis() + range/2);
 			if (wp.getMinXAxis() < 0 && timeInXAxis)
@@ -3974,7 +3964,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			if (!xAxisLocked && !wp.isSelected()) continue;
 
-			boolean repaint = false;
 			double range = wp.getMaxXAxis() - wp.getMinXAxis();
 			wp.setXAxisRange(wp.getMinXAxis() + range/4, wp.getMaxXAxis() - range/4);
 			wp.repaintWithRulers();
@@ -4400,7 +4389,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// add this signal in a new panel
 				panel = ww.makeNewPanel();
 				panel.fitToSignal(sSig);
-				WaveSignal wsig = new WaveSignal(panel, sSig);
+				new WaveSignal(panel, sSig);
 			}
 			ww.overall.validate();
 			panel.repaintContents();
@@ -4444,7 +4433,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			context = VarContext.globalContext;
 			while (!contextStack.isEmpty()) {
-				context = context.push((Nodable)contextStack.pop());
+				context = context.push(contextStack.pop());
 			}
 		}
 
@@ -4471,7 +4460,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			context = VarContext.globalContext;
 			while (!contextStack.isEmpty()) {
-				context = context.push((Nodable)contextStack.pop());
+				context = context.push(contextStack.pop());
 			}
 		}
 

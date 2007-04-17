@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -39,7 +38,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -104,7 +103,7 @@ public class L extends Output
 		// if there are any sub-cells that have not been written, write them
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (!ni.isCellInstance()) continue;
 			if (ni.isIconOfParent()) continue;
 			Cell np = (Cell)ni.getProto();
@@ -159,7 +158,7 @@ public class L extends Output
 		// write the components
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (getNodeType(ni) == TRUEPIN) continue;
 			NodeProto np = ni.getProto();
 			PrimitiveNode.Function fun = ni.getFunction();
@@ -183,8 +182,7 @@ public class L extends Output
 				{
 					// if pin is an export, don't write separate node statement
 					if (ni.hasExports()) continue;
-//					if (ni.getNumExports() > 0) continue;
-					PrimitivePort primPp = (PrimitivePort)npPrim.getPort(0);
+					PrimitivePort primPp = npPrim.getPort(0);
 					ArcProto ap = primPp.getConnections()[0];
 					type = "NODE " + getArcFunctionName(ap, "???");
 				}
@@ -199,7 +197,7 @@ public class L extends Output
 					boolean conMetal1 = false, conMetal2 = false, conPActive = false, conNActive = false, conPoly = false;
 					for(int j=0; j<npPrim.getNumPorts(); j++)
 					{
-						PrimitivePort primPp = (PrimitivePort)npPrim.getPort(j);
+						PrimitivePort primPp = npPrim.getPort(j);
 						ArcProto [] arcs = primPp.getConnections();
 						for(int k=0; k<arcs.length; k++)
 						{
@@ -278,12 +276,12 @@ public class L extends Output
 		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			int nature = getNodeType(ni);
 			if (nature == TRUEPIN) continue;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				if (arcsSeen.contains(ai)) continue;
 				printWriter.print("\tWIRE");
@@ -296,9 +294,8 @@ public class L extends Output
 
 				// write the starting node name (use port name if pin is an export)
 				if (ni.hasExports() && ni.getFunction() == PrimitiveNode.Function.PIN)
-//				if (ni.getNumExports() > 0 && ni.getFunction() == PrimitiveNode.Function.PIN)
 				{
-					Export e = (Export)ni.getExports().next();
+					Export e = ni.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
 				} else
 				{
@@ -319,8 +316,6 @@ public class L extends Output
 
 				// prepare to run along the wire to a terminating node
                 int thatEnd = 1 - con.getEndIndex();
-//				int thatEnd = 0;
-//				if (ai.getConnection(0) == con) thatEnd = 1;
 				String lastDir = "";
 				double segDist = -1;
 				int segCount = 0;
@@ -370,12 +365,11 @@ public class L extends Output
 					ArcInst oAi = null;
 					for(Iterator<Connection> oCIt = oNi.getConnections(); oCIt.hasNext(); )
 					{
-						Connection oCon = (Connection)oCIt.next();
+						Connection oCon = oCIt.next();
 						if (arcsSeen.contains(oCon.getArc())) continue;
 						oAi = oCon.getArc();
 						tot++;
                         ot = 1 - oCon.getEndIndex();
-//						if (oAi.getConnection(0) == oCon) ot = 1; else ot = 0;
 					}
 					if (tot != 1) break;
 					ai = oAi;
@@ -389,9 +383,8 @@ public class L extends Output
 
 				// write the terminating node name (use port name if pin is an export)
 				if (oNi.hasExports() && oNi.getFunction() == PrimitiveNode.Function.PIN)
-//				if (oNi.getNumExports() > 0 && oNi.getFunction() == PrimitiveNode.Function.PIN)
 				{
-					Export e = (Export)oNi.getExports().next();
+					Export e = oNi.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
 				} else
 				{
@@ -416,7 +409,7 @@ public class L extends Output
 		// write any unmentioned wires (shouldn't be any)
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			if (arcsSeen.contains(ai)) continue;
 			printWriter.println("# WIRE " + ai.describe(true) + " not described!!");
 		}

@@ -503,7 +503,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		if (nodeInfo instanceof ErrorLoggerTree.ErrorLoggerTreeNode)
 		{
             ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)nodeInfo;
-			ErrorLogger el = (ErrorLogger)node.getLogger();
+			ErrorLogger el = node.getLogger();
 			String s = el.getSystem();
             if (ErrorLoggerTree.currentLogger != null && node == ErrorLoggerTree.currentLogger.getUserObject())
                 s += " [Current]";
@@ -526,7 +526,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 	// *********************************** DRAG AND DROP ***********************************
 
 	/** Variables needed for DnD */
-	private DragSource dragSource = null;
 	private ExplorerTreeDropTarget dropTarget;
 	private Point dragOffset;
 	private BufferedImage dragImage;
@@ -815,7 +814,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 				// Remember where you are about to draw the new ghost image
 				lastDrawn = new Rectangle(e.getLocation().x - originalTree.dragOffset.x,
 					e.getLocation().y - originalTree.dragOffset.y,
-					(int)originalTree.dragImage.getWidth(), originalTree.dragImage.getHeight());
+					originalTree.dragImage.getWidth(), originalTree.dragImage.getHeight());
 
 				// Draw the ghost image
 				g2.drawImage(originalTree.dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);
@@ -942,7 +941,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		{
 			if (lastDrawn == null) return;
 			ExplorerTree tree = (ExplorerTree)dt.getComponent();
-			Graphics2D g2 = (Graphics2D)tree.getGraphics();
 			tree.paintImmediately(lastDrawn);
 			lastDrawn = null;
 		}
@@ -1121,7 +1119,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
             }
 			if (nodeInfo instanceof JobTree.JobTreeNode)
 			{
-				JobTree.JobTreeNode j = (JobTree.JobTreeNode)nodeInfo;
+				//JobTree.JobTreeNode j = (JobTree.JobTreeNode)nodeInfo;
 				//setToolTipText(j.getToolTip());
 				//System.out.println("set tool tip to "+j.getToolTip());
 			}
@@ -1191,7 +1189,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 
 	private class TreeHandler implements MouseListener, MouseMotionListener, TreeSelectionListener
 	{
-		private Cell originalCell;
 		private boolean draggingCell;
 		private MouseEvent currentMouseEvent;
 		private TreePath [] currentPaths;
@@ -1317,7 +1314,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					Cell cell = (Cell)nodeObj;
 					if (cell.getNewestVersion() == cell)
 					{
-						originalCell = cell;
 						originalPaths = new TreePath[currentPaths.length];
 						for(int i=0; i<currentPaths.length; i++)
 							originalPaths[i] = new TreePath(currentPaths[i].getPath());
@@ -1688,8 +1684,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			}
 			if (selectedObject instanceof ExplorerTreeModel.MultiPageCell)
 			{
-				ExplorerTreeModel.MultiPageCell mpc = (ExplorerTreeModel.MultiPageCell)selectedObject;
-				Cell cell = mpc.getCell();
 				JPopupMenu menu = new JPopupMenu("Cell");
 
 				JMenuItem menuItem = new JMenuItem("Edit");
@@ -2190,7 +2184,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
                 ww.setHighlightedSweep(-1);
         		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
         		{
-        			Panel wp = (Panel)it.next();
+        			Panel wp = it.next();
         			wp.repaintWithRulers();
         		}
 			}
@@ -2304,7 +2298,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
         		return;
         	}
         	int numPages = cell.getNumMultiPages();
-    		CellMenu.SetMultiPageJob job = new CellMenu.SetMultiPageJob(cell, numPages+1);
+    		new CellMenu.SetMultiPageJob(cell, numPages+1);
            	EditWindow wnd = EditWindow.needCurrent();
         	if (wnd != null) wnd.setMultiPageNumber(numPages);
         }
@@ -2320,7 +2314,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
         		System.out.println("Cannot delete the last page of a multi-page schematic");
         		return;
         	}
-         	CellMenu.DeleteMultiPageJob job = new CellMenu.DeleteMultiPageJob(cell, mpc.getPageNo());
+         	new CellMenu.DeleteMultiPageJob(cell, mpc.getPageNo());
         }
 
         private void searchAction()

@@ -75,11 +75,11 @@ public class ErrorLoggerTree {
     };
     
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        SwingUtilities.invokeLater(new UpdateNetwork((CellId)cell.getId(), errors));
+        SwingUtilities.invokeLater(new UpdateNetwork(cell.getId(), errors));
     }
 
     public static void updateDrcErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        SwingUtilities.invokeLater(new UpdateDrc((CellId)cell.getId(), errors));
+        SwingUtilities.invokeLater(new UpdateDrc(cell.getId(), errors));
     }
 
     // public methods called from GUI thread
@@ -291,25 +291,17 @@ public class ErrorLoggerTree {
     }
     
     /** Delete this logger */
-    private static void delete(ErrorLoggerTreeNode node) {
-        int index = indexOf(node);
-        if (index < 0) return;
-//        if (node.logger == networkErrorLogger || node.logger == drcErrorLogger) {
-//            // just clear errors
-//            for (int i = node.logger.getNumLogs() - 1; i >= 0; i--)
-//                node.logger.deleteLog(i);
-//            node.currentLogNumber = -1;
-//            updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
-//            return;
+//    private static void delete(ErrorLoggerTreeNode node) {
+//        int index = indexOf(node);
+//        if (index < 0) return;
+//        removeLogger(index);
+//        if (currentLogger != null && ((ErrorLoggerTreeNode)currentLogger.getUserObject()) == node) {
+//            if (errorTree.getChildCount() != 0)
+//                currentLogger = (DefaultMutableTreeNode)errorTree.getChildAt(0);
+//            else
+//                currentLogger = null;
 //        }
-        removeLogger(index);
-        if (currentLogger != null && ((ErrorLoggerTreeNode)currentLogger.getUserObject()) == node) {
-            if (errorTree.getChildCount() != 0)
-                currentLogger = (DefaultMutableTreeNode)errorTree.getChildAt(0);
-            else
-                currentLogger = null;
-        }
-    }
+//    }
     
     private static int indexOf(ErrorLoggerTreeNode tn) {
         for (int i = 0, numLoggers = errorTree.getChildCount(); i < numLoggers; i++)

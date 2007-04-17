@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -40,9 +39,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
@@ -95,19 +94,16 @@ public class GenerateVHDL
 		vhdlStrings = new ArrayList<String>();
 
 		// recursively generate the VHDL
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, new Visitor(cell));
-//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, new Visitor(cell));
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, new Visitor());
 		return vhdlStrings;
 	}
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
-		private Cell cell;
 		private static HashSet<Cell> seenCells;
 
-		private Visitor(Cell cell)
+		private Visitor()
 		{
-			this.cell = cell;
 			seenCells = new HashSet<Cell>();
 		}
 
@@ -212,7 +208,6 @@ public class GenerateVHDL
 			// new component: add to the list
 			componentList.add(pt);
 
-			StringBuffer infstr = new StringBuffer();
 			vhdlStrings.add("  component " + addString(pt, null) + " port(" +
 				addPortList(ni, ni.getProto(), nl /*ni.getParent().getUserNetlist()*/, special, null) + ");");
 			vhdlStrings.add("    end component;");
@@ -581,7 +576,6 @@ public class GenerateVHDL
 
 			// get the primitive function
 			PrimitiveNode.Function k = ni.getFunction();
-			ArcInst ai = null;
 			primName = null;
 			if (k == PrimitiveNode.Function.TRANMOS || k == PrimitiveNode.Function.TRA4NMOS)
 			{

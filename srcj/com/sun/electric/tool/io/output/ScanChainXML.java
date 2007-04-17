@@ -400,7 +400,7 @@ public class ScanChainXML {
                 System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
                 return;
             }
-            Nodable no = (Nodable)startNode.lastElement();
+            Nodable no = startNode.lastElement();
             System.out.println("*** Generating chains starting from jtag controller "+no.getParent().describe(false)+" : "+no.getName());
         }
         start(startNode);
@@ -863,7 +863,7 @@ public class ScanChainXML {
         // get top nodable
         if (startNode == null) return null;
         if (startNode.size() == 0) return null;
-        Nodable no = (Nodable)startNode.remove(0);
+        Nodable no = startNode.remove(0);
         if (startNode.isEmpty()) {
             // no is the jtagController, start following the chain
             Port startPort = getPort(no, startPortName);
@@ -1312,7 +1312,7 @@ public class ScanChainXML {
         if (inport == null) return null;
         ArrayList<Port> ports = new ArrayList<Port>();
 
-        Cell cell = (Cell)inport.no.getParent();
+        Cell cell = inport.no.getParent();
         Netlist netlist = cell.getNetlist(true);
         Network net = netlist.getNetwork(inport.no, inport.pp, inport.index);
 

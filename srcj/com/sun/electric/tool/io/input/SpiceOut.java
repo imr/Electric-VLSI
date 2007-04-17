@@ -27,10 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -43,8 +42,6 @@ import java.util.List;
  */
 public class SpiceOut extends Simulate
 {
-	private boolean eofReached;
-
 	SpiceOut() {}
 
 	/**
@@ -192,8 +189,8 @@ public class SpiceOut extends Simulate
 		an.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
-			List<Double> row = (List<Double>)allNumbers.get(i);
-			an.setCommonTime(i, ((Double)row.get(0)).doubleValue());
+			List<Double> row = allNumbers.get(i);
+			an.setCommonTime(i, row.get(0).doubleValue());
 		}
 		for(int j=0; j<mostSignals; j++)
 		{
@@ -202,8 +199,8 @@ public class SpiceOut extends Simulate
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
 			{
-				List<Double> row = (List<Double>)allNumbers.get(i);
-				as.setValue(i, ((Double)row.get(j+1)).doubleValue());
+				List<Double> row = allNumbers.get(i);
+				as.setValue(i, row.get(j+1).doubleValue());
 			}
 		}
 		return sd;

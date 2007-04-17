@@ -140,7 +140,7 @@ public class ActivityLogger {
         if (!logJobs) return;
         printDelimeter(true);
         String cellName = (cell == null) ? "none" : cell.libDescribe();
-        Exception e = new Exception("stack trace");
+        new Exception("stack trace");
         out.println("Job Started [Current Cell: "+cellName+"] "+jobName+", "+jobType);
         //System.out.println("Job Started [Current Cell: "+cellName+"] "+jobName+", "+jobType);
         logHighlights(savedHighlights, savedHighlightsOffset);
@@ -222,7 +222,7 @@ public class ActivityLogger {
     private static synchronized void printDelimeter(boolean printThreadInfo) {
         if (out == null) return;
         out.println("--------------- "+loggedCount+ " --------------");
-        Exception e = new Exception("stack trace");
+        new Exception("stack trace");
         //if (printThreadInfo) out.println("(Thread: "+Thread.currentThread()+", stack size: "+e.getStackTrace().length+")");
         if (logTimeStamps) {
             Date date = new Date(System.currentTimeMillis());

@@ -319,7 +319,6 @@ public class EpicOut extends Simulate
     private static String VERSION_STRING = ";! output_format 5.3";
     
 	private Stimuli readEpicFile(EpicReader reader)
-		throws IOException
 	{
         char separator = '.';
         EpicStimuli sd = reader.sd;

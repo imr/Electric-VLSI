@@ -88,7 +88,6 @@ public class CurveListener
 
 		// remember the listener that was there before
 		EventListener oldListener = WindowFrame.getListener();
-		Cursor oldCursor = TopLevel.getCurrentCursor();
 
 		System.out.println("Click to adjust curvature");
 		newListener = oldListener;
@@ -124,7 +123,7 @@ public class CurveListener
 			System.out.println("Select an arc before removing curvature");
 			return;
 		}
-		SetArcCurvature job = new SetArcCurvature((ArcInst)geom, 0);
+		new SetArcCurvature((ArcInst)geom, 0);
 	}
 
 	public void mousePressed(MouseEvent evt)
@@ -159,7 +158,7 @@ public class CurveListener
 		{
 			lambdaCurvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 		}
-		SetArcCurvature job = new SetArcCurvature(curveAI, DBMath.lambdaToGrid(lambdaCurvature));
+		new SetArcCurvature(curveAI, DBMath.lambdaToGrid(lambdaCurvature));
 	}
 
 	public void keyPressed(KeyEvent evt)

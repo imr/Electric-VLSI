@@ -791,7 +791,7 @@ public class Highlighter implements DatabaseChangeListener {
         clear();
 		for(Highlight2 obj : newHighlights)
 		{
-			highlightList.add((Highlight2)obj);
+			highlightList.add(obj);
 		}
         changed = true;
 	}
@@ -1237,10 +1237,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 findObject(Point2D pt, EditWindow wnd, boolean exclusively,
 		boolean another, boolean invert, boolean findPort, boolean findPoint, boolean findSpecial, boolean findText)
 	{
-		// initialize
-		double bestdist = Double.MAX_VALUE;
-		boolean looping = false;
-
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
         Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);

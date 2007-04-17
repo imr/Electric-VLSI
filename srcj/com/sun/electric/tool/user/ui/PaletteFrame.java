@@ -515,7 +515,7 @@ public class PaletteFrame implements MouseListener
 			{
 				if (np == Schematics.tech.resistorNode)
 				{
-					Variable var = newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
+					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
                     // Adding two extra variables: length and width
                     if (newNi.getFunction() == PrimitiveNode.Function.PRESIST)
                     {
@@ -526,7 +526,7 @@ public class PaletteFrame implements MouseListener
 						else
 							td = td.withRelSize(td.getSize().getSize() - 0.5);
 						td = td.withOff(1.5, 0);
-						var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
+						newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
 						td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
@@ -534,23 +534,23 @@ public class PaletteFrame implements MouseListener
 						else
 							td = td.withRelSize(td.getSize().getSize() - 0.7);
 						td = td.withOff(-1.5, 0);
-						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
+						newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
                     }
 				} else if (np == Schematics.tech.capacitorNode)
 				{
-					Variable var = newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");
+					newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");
 				} else if (np == Schematics.tech.inductorNode)
 				{
-					Variable var = newNi.newDisplayVar(Schematics.SCHEM_INDUCTANCE, "100");
+					newNi.newDisplayVar(Schematics.SCHEM_INDUCTANCE, "100");
 				} else if (np == Schematics.tech.diodeNode)
 				{
-					Variable var = newNi.newDisplayVar(Schematics.SCHEM_DIODE, "10");
+					newNi.newDisplayVar(Schematics.SCHEM_DIODE, "10");
 				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 				{
 					if (newNi.isFET())
 					{
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withOff(0.5, -1);
-						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
+						newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
 						td = TextDescriptor.getNodeTextDescriptor();
 						if (td.getSize().isAbsolute())
@@ -558,10 +558,10 @@ public class PaletteFrame implements MouseListener
 						else
 							td = td.withRelSize(td.getSize().getSize() - 0.5);
 						td = td.withOff(-0.5, -1);
-						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
+						newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
 					} else
 					{
-						Variable var = newNi.newDisplayVar(Schematics.ATTR_AREA, "10");
+						newNi.newDisplayVar(Schematics.ATTR_AREA, "10");
 					}
 				} else if (np == Artwork.tech.circleNode)
 				{

@@ -121,15 +121,8 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-            Library lib = cell.getLibrary();
 			idMapper = cell.rename(newName, newGroupCell);
             fieldVariableChanged("idMapper");
-//			if (newGroupCell != null)
-//			{
-//                Cell.CellGroup newGroup = lib.findNodeProto(newGroupCell).getCellGroup();
-//                CellId cellId = idMapper.get(cell.getId());
-//				lib.getDatabase().getCell(cellId).setCellGroup(newGroup);
-//			}
 			return true;
 		}
         
@@ -174,26 +167,17 @@ public class CellChangeJobs
 			ArrayList<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
 				cells.add(it.next());
-            Library lib = cellInGroup.getLibrary();
             String newGroupCell = null;
 			for(Cell cell : cells)
 			{
-                IdMapper idMapper;
 				if (allSameName)
 				{
-					idMapper = cell.rename(newName, newName);
+					cell.rename(newName, newName);
 				} else
 				{
                     if (newGroupCell == null)
                         newGroupCell = newName + cell.getName();
-					idMapper = cell.rename(newName+cell.getName(), newGroupCell);
-//                    cell = lib.getDatabase().getCell(idMapper.get(cell.getId()));
-//                    if (newGroupCell != null) {
-//                        Cell.CellGroup newGroup = lib.findNodeProto(newGroupCell).getCellGroup();
-//                        if (newGroup != null) cell.setCellGroup(newGroup);
-//                    } else {
-//                        newGroupCell = cell.getCellName().toString();
-//                    }
+					cell.rename(newName+cell.getName(), newGroupCell);
 				}
 			}
 			return true;
@@ -550,7 +534,7 @@ public class CellChangeJobs
 					if (cgn.main == null) continue;
 
 					PortInst firstPi = cgn.pin.getOnlyPortInst();
-					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
+//					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
 					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi);
 					if (ai == null) return false;
 					ai.setRigid(true);
@@ -767,7 +751,6 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			boolean foundInstance = false;
 			int cellsToExtract = 0;
 			for(NodeInst ni : nodes)
 				if (ni.isCellInstance()) cellsToExtract++;
@@ -781,7 +764,6 @@ public class CellChangeJobs
 			for(NodeInst ni : nodes)
 			{
 				if (!ni.isCellInstance()) continue;
-				foundInstance = true;
 				extractOneNode(ni, copyExports);
 				done++;
 				if ((done%10) == 0)
@@ -1078,10 +1060,7 @@ public class CellChangeJobs
                 {
                     // replace old icon(s) in duplicated cell
                     Cell replaceCell = newCells.get(ni.getProto());
-                    NodeInst newNi2 = ni.replace(replaceCell, true, true);
-
-//                  // replace name on old self-icon
-//                  newNi2.setName(null);
+                    ni.replace(replaceCell, true, true);
                 }
         	}
 			return true;

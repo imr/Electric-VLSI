@@ -29,22 +29,21 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.technology.ArcProto;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,7 +73,6 @@ public class Sim extends Output
 
 		out.init(cell, filePath, type);
 		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), true);
-//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out, cellJob.type));
 
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
@@ -175,7 +173,7 @@ public class Sim extends Output
 		// set every arcinst to a global node number (from inside or outside)
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Network net = netList.getNetwork(ai, 0);
 			if (netsSeen.contains(net)) continue;
 			netsSeen.add(net);
@@ -185,7 +183,7 @@ public class Sim extends Output
 			double darea = 0, dperim = 0, parea = 0, pperim = 0, marea = 0, mperim = 0;
 			for(Iterator<ArcInst> oIt = cell.getArcs(); oIt.hasNext(); )
 			{
-				ArcInst oAi = (ArcInst)oIt.next();
+				ArcInst oAi = oIt.next();
 				Network oNet = netList.getNetwork(oAi, 0);
 				if (oNet != net) continue;
 		
@@ -239,7 +237,7 @@ public class Sim extends Output
 			// Test each arc for attributes
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)it.next();
+				ArcInst ai = it.next();
 				Variable var = ai.getVar(COSMOS_ATTRIBUTE_KEY);
 				if (var != null)
 				{
@@ -253,7 +251,7 @@ public class Sim extends Output
 		// look at every nodeinst in the cell
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			PrimitiveNode.Function fun = ni.getFunction();
 
 			// if it is a transistor, write the information
@@ -341,7 +339,7 @@ public class Sim extends Output
 		}
 		if (globalNetNum == globalNetPhi2L) return "phi2l";
 
-		String name = (String)globalNetNames.get(new Integer(globalNetNum));
+		String name = globalNetNames.get(new Integer(globalNetNum));
 		if (name == null) name = Integer.toString(globalNetNum);
 		return(name);
 	}

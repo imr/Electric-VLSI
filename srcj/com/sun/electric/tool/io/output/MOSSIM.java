@@ -29,19 +29,16 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.io.output.Topology.CellSignal;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -94,9 +91,6 @@ public class MOSSIM extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
-		// initialize instance counter
-		int inst = 1;
-
 		if (cell == topCell)
 		{
 			// declare power and ground nodes if this is top cell
@@ -110,7 +104,7 @@ public class MOSSIM extends Topology
 			printWriter.print("c " + cell.getName());
 			for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 			{
-				CellSignal cs = (CellSignal)it.next();
+				CellSignal cs = it.next();
 				if (cs.isExported()) printWriter.print(" " + cs.getName());
 			}
 			printWriter.println(" ;");
@@ -121,7 +115,7 @@ public class MOSSIM extends Topology
 		HashMap<Network,String> strengthMap = new HashMap<Network,String>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = it.next();
 			Variable var = ai.getVar(MOSSIM_STRENGTH_KEY);
 			if (var == null) continue;
 			Network net = netList.getNetwork(ai, 0);
@@ -131,7 +125,7 @@ public class MOSSIM extends Topology
 		// mark all ports that are equivalent
 		for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
 		{
-			CellSignal cs = (CellSignal)it.next();
+			CellSignal cs = it.next();
 			if (cs.isPower())
 			{
 				if (!cs.getName().equalsIgnoreCase("vdd"))
@@ -159,7 +153,7 @@ public class MOSSIM extends Topology
 				}
 			} else
 			{
-				String strength = (String)strengthMap.get(cs.getNetwork());
+				String strength = strengthMap.get(cs.getNetwork());
 				if (strength == null) strength = "1";
 				printWriter.println("s " + strength + " " + cs.getName());
 			}
@@ -168,7 +162,7 @@ public class MOSSIM extends Topology
 		// now write the transistors
 		for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
 		{
-			Nodable no = (Nodable)nIt.next();
+			Nodable no = nIt.next();
 			if (no.isCellInstance())
 			{
 				// complex node: make instance call
@@ -179,7 +173,7 @@ public class MOSSIM extends Topology
 				CellNetInfo subCni = getCellNetInfo(nodeName);
 				for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
-					CellSignal subCs = (CellSignal)sIt.next();
+					CellSignal subCs = sIt.next();
 					if (!subCs.isExported()) continue;
 					PortProto pp = subCs.getExport();
 					Network net = netList.getNetwork(no, pp, subCs.getExportIndex());

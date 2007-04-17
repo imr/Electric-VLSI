@@ -57,7 +57,7 @@ class ClientJobManager extends JobManager {
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
     /** Count of started Jobs. */               private static int numStarted;
     private volatile boolean jobTreeChanged;
-    private static Job clientJob;
+//    private static Job clientJob;
     
     /** Creates a new instance of ClientJobManager */
     public ClientJobManager(String serverMachineName, int serverPort) {
@@ -267,13 +267,13 @@ class ClientJobManager extends JobManager {
         
         private synchronized void put(Client.ServerEvent o) {
             logger.logp(Level.FINEST, CLASS_NAME, "put", "ENTRY");
-            ArrayList<Client.ServerEvent> thisQ;
+//            ArrayList<Client.ServerEvent> thisQ;
             ArrayList<Client.ServerEvent> thatQ;
             if (getC) {
-                thisQ = queueT;
+//                thisQ = queueT;
                 thatQ = queueF;
             } else {
-                thisQ = queueF;
+//                thisQ = queueF;
                 thatQ = queueT;
             }
             boolean empty = numGet == numPut;
@@ -315,7 +315,7 @@ class ClientJobManager extends JobManager {
     
     private final FIFO clientFifo = new FIFO();
     
-    private static volatile int clientNumExamine = 0;
+//    private static volatile int clientNumExamine = 0;
     private static Snapshot clientSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
     
     private final ClientInvoke clientInvoke = new ClientInvoke();
@@ -423,7 +423,7 @@ class ClientJobManager extends JobManager {
                         
                         ejob.getJob().started = true;
                         startedJobs.add(ejob);
-                        clientJob = job;
+//                        clientJob = job;
                     } catch (IOException ee) {
                         System.out.println("Job " + this + " was not launched in CLIENT mode");
                         ee.printStackTrace(System.out);

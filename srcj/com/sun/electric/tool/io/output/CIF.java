@@ -66,7 +66,6 @@ public class CIF extends Geometry
 	/** num chars written */							private int crcNumChars;
 	/** MOSIS initial key */							private static final int[] crcRow =
 		{0x04C11DB7, 0x09823B6E, 0x130476DC, 0x2608EDB8, 0x4C11DB70, 0x9823B6E0, 0x34867077, 0x690CE0EE};
-	/** ASCII (and UNICODE) space value */				private byte space = 0x20;
 
 	// cif output data
 	/** cell number */									private int cellNumber = 100;
