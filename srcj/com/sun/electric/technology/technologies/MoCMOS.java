@@ -3006,7 +3006,7 @@ public class MoCMOS extends Technology
 		int j = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
 				!newRules.minNodeSize[j*2+1].equals(origRules.minNodeSize[j*2+1]))
 			{

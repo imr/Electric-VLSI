@@ -145,13 +145,12 @@ public class ViewControl extends EDialog
 
 		public boolean doIt() throws JobException
 		{
-			View newView = null;
 			if (isText)
 			{
-				newView = View.newTextInstance(viewName, viewAbbr);
+				View.newTextInstance(viewName, viewAbbr);
 			} else
 			{
-				newView = View.newInstance(viewName, viewAbbr);
+				View.newInstance(viewName, viewAbbr);
 			}
 			return true;
 		}
@@ -314,13 +313,13 @@ public class ViewControl extends EDialog
 		String viewName = name.getText();
 		String viewAbbr = abbreviation.getText();
 		boolean isText = textView.isSelected();
-		CreateView job = new CreateView(viewName, viewAbbr, isText, this);
+		new CreateView(viewName, viewAbbr, isText, this);
 	}//GEN-LAST:event_createActionPerformed
 
 	private void deleteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteActionPerformed
 	{//GEN-HEADEREND:event_deleteActionPerformed
 		if (currentView == null) return;
-		DeleteView job = new DeleteView(currentView, this);
+		new DeleteView(currentView, this);
 	}//GEN-LAST:event_deleteActionPerformed
 
 	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done

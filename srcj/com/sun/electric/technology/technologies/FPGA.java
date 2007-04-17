@@ -316,7 +316,7 @@ public class FPGA extends Technology
 	/** whether the technology has been read */				private static boolean        defined = false;
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
-	private static Poly[] NULLPOLYS = new Poly[0];
+//	private static Poly[] NULLPOLYS = new Poly[0];
 
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -407,7 +407,7 @@ public class FPGA extends Technology
 								if (fn.portList[j].con != i) continue;
 								for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 								{
-									Connection con = (Connection)it.next();
+									Connection con = it.next();
 									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
 									ArcInst ai = con.getArc();
                                     int otherEnd = 1 - con.getEndIndex();
@@ -558,7 +558,7 @@ public class FPGA extends Technology
 			NodeInst subni = ((Export)pp).getOriginalPort().getNodeInst();
 			for(Iterator<Connection> it = subni.getConnections(); it.hasNext(); )
 			{
-				Connection nextCon = (Connection)it.next();
+				Connection nextCon = it.next();
 				ArcInst oAi = nextCon.getArc();
 				int newEnd = 0;
 				if (oAi.getPortInst(0).getNodeInst() == subni) newEnd = 1;
@@ -596,7 +596,7 @@ public class FPGA extends Technology
 			{
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection nextCon = (Connection)it.next();
+					Connection nextCon = it.next();
 					ArcInst oAi = nextCon.getArc();
 					if (oAi == ai) continue;
 					Network oNet = nl.getNetwork(oAi, 0);
@@ -613,13 +613,13 @@ public class FPGA extends Technology
 					NodeInst oNi = (NodeInst)higher.getNodable();
 					for (Iterator<Export> it = ni.getExports(); it.hasNext(); )
 					{
-						Export opp = (Export)it.next();
+						Export opp = it.next();
 						Network oNet = nl.getNetwork(opp, 0);
 						if (oNet != net) continue;
 
 						for(Iterator<Connection> uIt = oNi.getConnections(); uIt.hasNext(); )
 						{
-							Connection nextCon = (Connection)uIt.next();
+							Connection nextCon = uIt.next();
 							ArcInst oAi = nextCon.getArc();
 							if (nextCon.getPortInst().getPortProto() != opp) continue;
                             int newEnd = 1 - nextCon.getEndIndex();
@@ -634,58 +634,14 @@ public class FPGA extends Technology
 		return false;
 	}
 
-	private boolean arcActive(ArcInst ai, VarContext curContext)
-	{
-		// see if there is a cache on the arc
-//		gettraversalpath(ai.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
-//		var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
-//		if (var != NOVARIABLE)
-//		{
-//			ptr = (UCHAR1 *)var.addr;
-//			cachedepth = ((INTBIG *)ptr)[0];   ptr += SIZEOFINTBIG;
-//			if (cachedepth == depth)
-//			{
-//				for(i=0; i<cachedepth; i++)
-//				{
-//					oni = ((NODEINST **)ptr)[0];   ptr += (sizeof (NODEINST *));
-//					if (oni != nilist[i]) break;
-//				}
-//				if (i >= cachedepth)
-//				{
-//					// cache applies to this arc: get active factor
-//					if (((INTSML *)ptr)[0] == 0) return false;
-//					return true;
-//				}
-//			}
-//		}
-
-		// compute arc activity
-		boolean value = false;
-		if (arcEndActive(ai, 0, curContext)) value = true; else
-			if (arcEndActive(ai, 1, curContext)) value = true;
-
-		// store the cache
-//		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + SIZEOFINTSML;
-//		if (size > arcBufSize)
-//		{
-//			if (arcBufSize > 0) efree((CHAR *)arcBuf);
-//			arcBufSize = 0;
-//			arcBuf = (UCHAR1 *)emalloc(size, tech.cluster);
-//			if (arcBuf == 0) return(value);
-//			arcBufSize = size;
-//		}
-//		ptr = arcBuf;
-//		((INTBIG *)ptr)[0] = depth;   ptr += SIZEOFINTBIG;
-//		for(i=0; i<depth; i++)
-//		{
-//			((NODEINST **)ptr)[0] = nilist[i];   ptr += (sizeof (NODEINST *));
-//		}
-//		((INTSML *)ptr)[0] = value ? 1 : 0;
-//		nextchangequiet();
-//		setvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY, (INTBIG)arcBuf,
-//			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
-		return value;
-	}
+//	private boolean arcActive(ArcInst ai, VarContext curContext)
+//	{
+//		// compute arc activity
+//		boolean value = false;
+//		if (arcEndActive(ai, 0, curContext)) value = true; else
+//			if (arcEndActive(ai, 1, curContext)) value = true;
+//		return value;
+//	}
 
 	/**
 	 * Method to reevaluate primitive node "ni" (which is associated with internal
@@ -2264,7 +2220,7 @@ public class FPGA extends Technology
 						String name = scanLT.getLeaf(pos+1);
 						for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 						{
-							NodeInst ni = (NodeInst)it.next();
+							NodeInst ni = it.next();
 							if (ni.getName().equalsIgnoreCase(name))
 							{
 								niFound = ni;

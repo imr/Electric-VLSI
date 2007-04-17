@@ -393,7 +393,6 @@ public class ManipulatePorts extends EDialog
 		}
 	}
 
-	private NodeInst ni;
 	private PortsTable portTable;
 	private int sortColumn;
 	private boolean sortAscending;
@@ -413,7 +412,6 @@ public class ManipulatePorts extends EDialog
 	private ManipulatePorts(Frame parent, NodeInst ni)
 	{
 		super(parent, true);
-		this.ni = ni;
 		initComponents();
 		getRootPane().setDefaultButton(done);
 

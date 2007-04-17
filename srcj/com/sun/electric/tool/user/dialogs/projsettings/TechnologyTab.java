@@ -141,7 +141,6 @@ public class TechnologyTab extends ProjSettingsPanel
 	public void term()
 	{
 		// MOCMOS
-		boolean changeInMoCMOS = false; // to determine if tech.setState() will be called
 		int currentNumMetals = techMetalLayers.getSelectedIndex() + 2;
 		int currentRules = MoCMOS.SCMOSRULES;
 		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else

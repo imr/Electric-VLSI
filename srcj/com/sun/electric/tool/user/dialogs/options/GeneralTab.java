@@ -102,7 +102,6 @@ public class GeneralTab extends PreferencePanel
 			User.setShowFileSelectionForNetlists(currBoolean);
 
         // Resetting dir path
-        Collection col = fileTypeMap.values();
         for (Map.Entry<Object,String> entry : fileTypeMap.entrySet())
         {
             Object obj = entry.getKey();
@@ -486,12 +485,12 @@ public class GeneralTab extends PreferencePanel
         currentPathLabel.setText(FileType.getGroupPath(workingDirComboBox.getSelectedItem()));
     }//GEN-LAST:event_workingDirComboBoxActionPerformed
 
-    private void newPath()
-    {
-         Object obj = workingDirComboBox.getSelectedItem();
-        // Storing string
-        fileTypeMap.put(obj, pathTextField.getText());
-    }
+//    private void newPath()
+//    {
+//         Object obj = workingDirComboBox.getSelectedItem();
+//        // Storing string
+//        fileTypeMap.put(obj, pathTextField.getText());
+//    }
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
         Object obj = workingDirComboBox.getSelectedItem();
         // Storing string

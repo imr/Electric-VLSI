@@ -79,7 +79,7 @@ public class LogicalEffortTab extends ProjSettingsPanel
         // tech-dependent settings
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
             if (!tech.isLayout()) continue;
 			leTechnology.addItem(tech.getTechName());
 		}

@@ -32,10 +32,14 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Client;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -44,36 +48,34 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
-import java.awt.font.GlyphVector;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.awt.Graphics;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
+import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.EventListener;
 import java.util.ArrayList;
+import java.util.EventListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
-import javax.swing.JEditorPane;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.JTextComponent;
 
 /**
  * Class to handle the Text "Properties" dialog.
@@ -454,7 +456,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			lowX = highX - (int)glyphBounds.getWidth();
 		}
 
-		EditInPlaceListener eip = new EditInPlaceListener(cti, curWnd, theFont, lowX, lowY);
+		new EditInPlaceListener(cti, curWnd, theFont, lowX, lowY);
 	}
 
 	/**
@@ -532,7 +534,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			oldListener = WindowFrame.getListener();
 			WindowFrame.setListener(this);
 
-			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+			TopLevel top = TopLevel.getCurrentJFrame();
 			mb = top.getTheMenuBar();
 			mb.setIgnoreTextEditKeys(true);
 		}
@@ -694,7 +696,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         theText = new javax.swing.JTextField();
         textPanel = new TextInfoPanel(false);
         attrPanel = new TextAttributesPanel(false);
-        buttonsPanel = new javax.swing.JPanel();
         multiLine = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -853,7 +854,6 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
             });
         } else {
             theText = new JTextField();
-            JTextField field = (JTextField)theText;
             if (currentText.matches(".*?\\n.*")) {
                 currentText = currentText.substring(0, currentText.indexOf('\n'));
             }
@@ -874,35 +874,35 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 //        theText.requestFocus();
     }
 
-    private String getDelimtedText(javax.swing.text.JTextComponent c) {
-        String currentText = c.getText();
-
-        // getText from JTextArea returns one line. I want the
-        // new line characters to be in there.
-        if (c instanceof JTextArea) {
-        	JTextArea area = (JTextArea)c;
-
-            StringBuffer text = new StringBuffer();
-            boolean first = true;
-            for (int i = 0; i < area.getLineCount(); i++) {
-                try {
-                    if (!first) {
-                        text.append("\n");
-                    }
-                    int startPos = area.getLineStartOffset(i);
-                    int endPos = area.getLineEndOffset(i);
-                    text.append(currentText.substring(startPos, endPos));
-                    System.out.println("Line "+i+" is: "+currentText.substring(startPos, endPos));
-                    first = false;
-                } catch (javax.swing.text.BadLocationException e) {
-                    ActivityLogger.logException(e);                    
-                }
-            }
-            currentText = text.toString();
-        }
-
-        return currentText;
-    }
+//    private String getDelimtedText(javax.swing.text.JTextComponent c) {
+//        String currentText = c.getText();
+//
+//        // getText from JTextArea returns one line. I want the
+//        // new line characters to be in there.
+//        if (c instanceof JTextArea) {
+//        	JTextArea area = (JTextArea)c;
+//
+//            StringBuffer text = new StringBuffer();
+//            boolean first = true;
+//            for (int i = 0; i < area.getLineCount(); i++) {
+//                try {
+//                    if (!first) {
+//                        text.append("\n");
+//                    }
+//                    int startPos = area.getLineStartOffset(i);
+//                    int endPos = area.getLineEndOffset(i);
+//                    text.append(currentText.substring(startPos, endPos));
+//                    System.out.println("Line "+i+" is: "+currentText.substring(startPos, endPos));
+//                    first = false;
+//                } catch (javax.swing.text.BadLocationException e) {
+//                    ActivityLogger.logException(e);                    
+//                }
+//            }
+//            currentText = text.toString();
+//        }
+//
+//        return currentText;
+//    }
 
     private void applyActionPerformed(ActionEvent evt) {
         if (cti.shownText == null) return;
@@ -967,7 +967,6 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
     private javax.swing.JLabel header;
     private javax.swing.JButton ok;
     private javax.swing.text.JTextComponent theText;
-    private javax.swing.JPanel buttonsPanel;
     private TextInfoPanel textPanel;
     private TextAttributesPanel attrPanel;
     private javax.swing.JCheckBox multiLine;

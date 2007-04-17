@@ -987,7 +987,7 @@ public class ErrorLogger implements Serializable
                     }
                     else if (attributes.getQName(i).startsWith("center"))
                     {
-                        String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
+//                        String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
                     }
                     else
                         new Error("Invalid attribute in XMLParser");

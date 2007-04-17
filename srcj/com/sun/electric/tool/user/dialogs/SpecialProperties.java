@@ -467,7 +467,6 @@ public class SpecialProperties
 			getContentPane().add(lab2, gbc);
 
 			combo = new JComboBox();
-			int selected = 0;
 			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
 			for(PortCharacteristic ch : characteristics)
 				combo.addItem(ch.getName());

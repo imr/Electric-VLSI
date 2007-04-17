@@ -686,7 +686,7 @@ public class Artwork extends Technology
 		Point2D [] points = new Point2D.Double[outPoints];
 		int out = 0;
 
-		double splineStep = 1.0 / (double)steps;
+		double splineStep = 1.0 / steps;
 		double x2 = getTracePointX(tracePoints, 0, cX)*2 - getTracePointX(tracePoints, 1, cX);
 		double y2 = getTracePointY(tracePoints, 0, cY)*2 - getTracePointY(tracePoints, 1, cY);
 		double x3 = getTracePointX(tracePoints, 0, cX);

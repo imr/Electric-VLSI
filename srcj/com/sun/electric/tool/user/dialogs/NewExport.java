@@ -281,7 +281,6 @@ public class NewExport extends EDialog
 		NodeInst ni = (NodeInst)eobj;
 		Cell parent = ni.getParent();
 
-		PortInst pi = null;
 		if (pp == null)
 		{
 			if (ni.getProto().getNumPorts() == 0)
@@ -293,7 +292,7 @@ public class NewExport extends EDialog
 		}
 
 		// make the export
-		MakeExport job = new MakeExport(parent, ni, pp, name, body, drawn, characteristics, referenceName);
+		new MakeExport(parent, ni, pp, name, body, drawn, characteristics, referenceName);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 

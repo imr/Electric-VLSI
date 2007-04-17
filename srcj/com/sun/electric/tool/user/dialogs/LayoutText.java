@@ -33,8 +33,8 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import java.awt.Color;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics2D;
@@ -416,7 +416,7 @@ public class LayoutText extends EDialog
         fontStyle = font.getStyle();
         
         if (underline) height++;
-        Rectangle2D rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+        Rectangle2D rasBounds = new Rectangle2D.Double(0, lm.getAscent()-lm.getLeading(), width, height);
         
 		// if the new image is larger than what is saved, must rebuild
 			// create a new text buffer
@@ -427,7 +427,7 @@ public class LayoutText extends EDialog
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2.setColor(new Color(255,255,255));
-		g2.drawGlyphVector(gv, (float)-rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
+		g2.drawGlyphVector(gv, (float)-rasBounds.getX(), lm.getAscent()-lm.getLeading());
 		if (underline)
 			g2.drawLine(0, height-1, width-1, height-1);
 

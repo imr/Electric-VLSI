@@ -77,11 +77,11 @@ public class NewNodesTab extends PreferencePanel
 		initialNewNodesPrimInfo = new HashMap<PrimitiveNode,PrimNodeInfo>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimitiveNode np = it.next();
 				PrimNodeInfo pni = new PrimNodeInfo();
 				SizeOffset so = np.getProtoSizeOffset();
 				pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
@@ -135,13 +135,13 @@ public class NewNodesTab extends PreferencePanel
 			nodePrimitive.removeAllItems();
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimitiveNode np = it.next();
 				nodePrimitive.addItem(np.getName());
 			}
 		}
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
+		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		newNodesDataChanging = true;
 		nodePrimitiveXSize.setText(TextUtils.formatDouble(pni.wid));
@@ -175,7 +175,7 @@ public class NewNodesTab extends PreferencePanel
 		if (tech == null) return;
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
+		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		pni.wid = TextUtils.atof(nodePrimitiveXSize.getText());
 		pni.hei = TextUtils.atof(nodePrimitiveYSize.getText());
@@ -189,11 +189,11 @@ public class NewNodesTab extends PreferencePanel
 	{
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
+				PrimitiveNode np = it.next();
+				PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
 				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
 				{
 					SizeOffset so = np.getProtoSizeOffset();

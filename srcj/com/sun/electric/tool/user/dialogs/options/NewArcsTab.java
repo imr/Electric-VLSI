@@ -84,11 +84,11 @@ public class NewArcsTab extends PreferencePanel
 		initialNewArcsPrimInfo = new HashMap<ArcProto,PrimArcInfo>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)it.next();
+				ArcProto ap = it.next();
 				PrimArcInfo pai = new PrimArcInfo();
 	
 				pai.initialRigid = pai.rigid = ap.isRigid();
@@ -167,21 +167,21 @@ public class NewArcsTab extends PreferencePanel
 			arcPin.removeAllItems();
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)it.next();
+				ArcProto ap = it.next();
 				arcProtoList.addItem(ap.getName());
 			}
 
 			// setup popup of possible pins
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimitiveNode np = it.next();
 				arcPin.addItem(np.getName());
 			}
 		}
 		
 		String primName = (String)arcProtoList.getSelectedItem();
 		ArcProto ap = tech.findArcProto(primName);
-		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
+		PrimArcInfo pai = initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
 		newArcsDataChanging = true;
@@ -223,7 +223,7 @@ public class NewArcsTab extends PreferencePanel
 		if (tech == null) return;
 		String primName = (String)arcProtoList.getSelectedItem();
 		ArcProto ap = tech.findArcProto(primName);
-		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
+		PrimArcInfo pai = initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
 		pai.rigid = arcRigid.isSelected();
@@ -235,7 +235,7 @@ public class NewArcsTab extends PreferencePanel
 		pai.wid = TextUtils.atof(arcWidth.getText());
 		pai.angleIncrement = TextUtils.atoi(arcAngle.getText());
 		pai.pin = tech.findNodeProto((String)arcPin.getSelectedItem());
-		PortProto pp = (PortProto)pai.pin.getPorts().next();
+		PortProto pp = pai.pin.getPorts().next();
 		if (!pp.connectsTo(ap))
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -253,11 +253,11 @@ public class NewArcsTab extends PreferencePanel
 	{
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)it.next();
-				PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
+				ArcProto ap = it.next();
+				PrimArcInfo pai = initialNewArcsPrimInfo.get(ap);
 				if (pai.rigid != pai.initialRigid)
 					ap.setRigid(pai.rigid);
 				if (pai.fixedAngle != pai.initialFixedAngle)

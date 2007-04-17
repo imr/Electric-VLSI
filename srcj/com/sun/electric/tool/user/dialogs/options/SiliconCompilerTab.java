@@ -61,7 +61,7 @@ public class SiliconCompilerTab extends PreferencePanel
 		// the arc information
 		for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			horizRoutingArc.addItem(ap.getName());
 			vertRoutingArc.addItem(ap.getName());
 			mainPowerArc.addItem(ap.getName());

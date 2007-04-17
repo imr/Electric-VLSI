@@ -555,14 +555,14 @@ public class nMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 			new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5)),
 		};
-		Technology.TechPoint [] box_11 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
-		};
+//		Technology.TechPoint [] box_11 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
+//		};
 		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(2)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(2)),

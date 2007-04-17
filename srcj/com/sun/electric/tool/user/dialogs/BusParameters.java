@@ -38,7 +38,6 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -77,7 +76,6 @@ public class BusParameters extends EDialog
 
 	public static void makeBusParameter()
 	{
-		Cell cell = WindowFrame.needCurCell();
 		EditWindow wnd = EditWindow.getCurrent();
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null)

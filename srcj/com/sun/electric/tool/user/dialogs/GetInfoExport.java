@@ -30,9 +30,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -332,8 +332,6 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        grab = new javax.swing.ButtonGroup();
-        sizes = new javax.swing.ButtonGroup();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         apply = new javax.swing.JButton();
@@ -403,7 +401,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
         leftSide.setLayout(new java.awt.GridBagLayout());
 
-        leftSide.setBorder(new javax.swing.border.EtchedBorder());
+        leftSide.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jLabel10.setText("Characteristics:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -511,8 +509,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         getContentPane().add(attributes, gridBagConstraints);
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void characteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_characteristicsActionPerformed
 	{//GEN-HEADEREND:event_characteristicsActionPerformed
@@ -590,14 +587,12 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     private javax.swing.JButton cancel;
     private javax.swing.JLabel centerLoc;
     private javax.swing.JComboBox characteristics;
-    private javax.swing.ButtonGroup grab;
     private javax.swing.JLabel header;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JPanel leftSide;
     private javax.swing.JButton ok;
     private javax.swing.JTextField refName;
-    private javax.swing.ButtonGroup sizes;
     private javax.swing.JTextField theText;
     // End of variables declaration//GEN-END:variables
 

@@ -320,7 +320,7 @@ public class NewCell extends EDialog
 			Job.getUserInterface().showErrorMessage("Must type a cell name", "Invalid cell name");
 			return;
 		}
-		String viewName = (String)((ViewTechOption)viewList.getSelectedValue()).view.getFullName();
+		String viewName = ((ViewTechOption)viewList.getSelectedValue()).view.getFullName();
 		View v = View.findView(viewName);
 		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
 		String libName = (String)library.getSelectedItem();
@@ -335,7 +335,7 @@ public class NewCell extends EDialog
 		// create the cell
 		Technology tech = null;
 		if (techComboBox.isEnabled()) tech = ((ViewTechOption)techComboBox.getSelectedItem()).tech;
-		CreateCell job = new CreateCell(lib, name, tech, makeWindow);
+		new CreateCell(lib, name, tech, makeWindow);
 
 		closeDialog(null);
 	}//GEN-LAST:event_ok

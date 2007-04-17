@@ -271,8 +271,6 @@ public class PromptAt extends EDialog
 		this.closed = false;
 	}
 
-	private void ok() { exit(true); }
-
 	protected void escapePressed() { closed = true;   exit(false); }
 
 	/**

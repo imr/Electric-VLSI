@@ -194,7 +194,7 @@ public class GDSTab extends ProjSettingsPanel
 			gdsLayerType.setText("");
 		} else
 		{
-			Integer gdsValue = (Integer)numbers.getFirstLayer();
+			Integer gdsValue = numbers.getFirstLayer();
 			int layerNum = gdsValue.intValue() & 0xFFFF;
 			int layerType = (gdsValue.intValue() >> 16) & 0xFFFF;
 			gdsLayerNumber.setText(Integer.toString(layerNum));

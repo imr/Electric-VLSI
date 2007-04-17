@@ -823,7 +823,7 @@ public class ArcProto implements Comparable<ArcProto>
 		Iterator<PrimitiveNode> it = tech.getNodes();
 		while (it.hasNext())
 		{
-			PrimitiveNode pn = (PrimitiveNode) it.next();
+			PrimitiveNode pn = it.next();
 			if (pn.isPin())
 			{
 				PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
@@ -1003,8 +1003,8 @@ public class ArcProto implements Comparable<ArcProto>
         long l2 = DBMath.lambdaToGrid(lambdaLength/2);
         // see how many polygons describe this arc
         Poly [] polys = new Poly[layers.length];
-        Point2D.Double headLocation = new Point2D.Double(lambdaLength/2, 0);
-        Point2D.Double tailLocation = new Point2D.Double(-lambdaLength/2, 0);
+//        Point2D.Double headLocation = new Point2D.Double(lambdaLength/2, 0);
+//        Point2D.Double tailLocation = new Point2D.Double(-lambdaLength/2, 0);
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer primLayer = layers[i];
             long gridWidth = getDefaultGridFullWidth() - primLayer.getGridOffset();

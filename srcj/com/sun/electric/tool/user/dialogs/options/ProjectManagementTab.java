@@ -109,7 +109,7 @@ public class ProjectManagementTab extends PreferencePanel
 			userModel.clear();
 			for(Iterator<String> it = Users.getUsers(); it.hasNext(); )
 			{
-				String user = (String)it.next();
+				String user = it.next();
 				userModel.addElement(user);
 			}
 			userList.setSelectedIndex(0);
@@ -543,7 +543,7 @@ public class ProjectManagementTab extends PreferencePanel
 		userModel.clear();
 		for(Iterator<String> it = Users.getUsers(); it.hasNext(); )
 		{
-			String userName = (String)it.next();
+			String userName = it.next();
 			userModel.addElement(userName);
 		}
 	}

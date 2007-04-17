@@ -555,7 +555,7 @@ public class Xml {
                     patternedOnPrinter = false;
                     Arrays.fill(pattern, 0);
                     curPatternIndex = 0;
-                    EGraphics.Outline outline = null;
+//                    EGraphics.Outline outline = null;
                     break;
                 case transparentColor:
                     curTransparent = Integer.parseInt(a("transparent"));

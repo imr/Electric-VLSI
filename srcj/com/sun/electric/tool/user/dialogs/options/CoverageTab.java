@@ -85,13 +85,13 @@ public class CoverageTab extends PreferencePanel
 
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			Technology tech = (Technology)tIt.next();
+			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
 	        double val = LayerCoverageTool.getWidth(tech);
 
 			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 	            val = layer.getAreaCoverage();
 	            layerAreaMap.put(layer, new GenMath.MutableDouble(val));
 			}
@@ -119,7 +119,7 @@ public class CoverageTab extends PreferencePanel
 		layerListModel.clear();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			GenMath.MutableDouble val = layerAreaMap.get(layer);
 			if (val == null) continue;
             layerListModel.addElement(getLineString(layer, val.doubleValue()));
@@ -244,10 +244,10 @@ public class CoverageTab extends PreferencePanel
 
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			tech = (Technology)tIt.next();
+			tech = tIt.next();
 	        for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 	            Object obj = layerAreaMap.get(layer);
 	            if (obj == null) continue;  // it should not happen though
 	            GenMath.MutableDouble value = (GenMath.MutableDouble)obj;

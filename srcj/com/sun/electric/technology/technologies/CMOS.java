@@ -438,14 +438,14 @@ public class CMOS extends Technology
 			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromBottom(4)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4)),
 		};
-		Technology.TechPoint [] box_8 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_9 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
-		};
+//		Technology.TechPoint [] box_8 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
+//			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_9 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
+//		};
 		Technology.TechPoint [] box_10 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
@@ -454,14 +454,14 @@ public class CMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(3)),
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(3)),
 		};
-		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
-		};
+//		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
+//		};
 		Technology.TechPoint [] box_14 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),

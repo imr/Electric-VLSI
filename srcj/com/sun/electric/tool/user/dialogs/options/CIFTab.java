@@ -51,11 +51,6 @@ public class CIFTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "CIF"; }
 
-	private JList cifLayersList;
-	private DefaultListModel cifLayersModel;
-	private boolean changingCIF = false;
-	private HashMap<Layer,String> cifLayerInfo;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CIF tab.

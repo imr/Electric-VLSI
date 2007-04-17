@@ -6,10 +6,6 @@
     </Component>
     <Component class="javax.swing.ButtonGroup" name="printingPlotOrPrint">
     </Component>
-    <Component class="javax.swing.ButtonGroup" name="printingHPGL">
-    </Component>
-    <Component class="javax.swing.ButtonGroup" name="printingHPGLScale">
-    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="title" type="java.lang.String" value="IO Options"/>

@@ -771,26 +771,26 @@ public class MoCMOSOld extends Technology
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
-		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
-			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4)),
-		};
+//		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
+//			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4)),
+//		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(6)),
 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(6)),
 		};
-		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2)),
-		};
+//		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_5 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2)),
+//		};
 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(4)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(4)),

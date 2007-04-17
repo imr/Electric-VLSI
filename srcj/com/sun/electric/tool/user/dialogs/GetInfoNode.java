@@ -770,7 +770,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		private String initialName, currentName;
 		private String initialTextField, currentTextField;
 		private String initialPopupEntry, currentPopupEntry;
-		private boolean bigger;
 		private boolean scalableTrans;
 		private boolean swapXY;
 
@@ -808,7 +807,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			this.initialName = initialName;                                   this.currentName = currentName;
 			this.initialTextField = initialTextField;                         this.currentTextField = currentTextField;
 			this.initialPopupEntry = initialPopupEntry;                       this.currentPopupEntry = currentPopupEntry;
-			this.bigger = bigger;
 			this.scalableTrans = scalableTrans;
 			this.swapXY = swapXY;
 			startJob();

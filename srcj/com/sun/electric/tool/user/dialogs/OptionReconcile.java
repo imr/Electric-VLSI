@@ -111,7 +111,6 @@ public class OptionReconcile extends EDialog
 		optionBox.add(new JSeparator(), gbc);
 
 		int rowNumber = 2;
-        Map<Setting,Object> settingsThatChanged_ = new HashMap<Setting,Object>();
 		for (Map.Entry<Setting,Object> e: settingsThatChanged.entrySet())
 		{
             Setting setting = e.getKey();
@@ -380,18 +379,18 @@ public class OptionReconcile extends EDialog
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
-    private void updateButtonState() {
-        boolean ignoreAllLibOptionsEnabled = false;
-        boolean useAllLibOptionsEnabled = false;
-        for (AbstractButton b : currentSettings) {
-            // if current setting selected, allow user to push "use all lib settings" button
-            if (b.isSelected()) useAllLibOptionsEnabled = true;
-            // if library setting selected, allow user to push "ignore all lib settings" button
-            if (!b.isSelected()) ignoreAllLibOptionsEnabled = true;
-        }
-        useLibraryOptions.setEnabled(useAllLibOptionsEnabled);
-        ignoreLibraryOptions.setEnabled(ignoreAllLibOptionsEnabled);
-    }
+//    private void updateButtonState() {
+//        boolean ignoreAllLibOptionsEnabled = false;
+//        boolean useAllLibOptionsEnabled = false;
+//        for (AbstractButton b : currentSettings) {
+//            // if current setting selected, allow user to push "use all lib settings" button
+//            if (b.isSelected()) useAllLibOptionsEnabled = true;
+//            // if library setting selected, allow user to push "ignore all lib settings" button
+//            if (!b.isSelected()) ignoreAllLibOptionsEnabled = true;
+//        }
+//        useLibraryOptions.setEnabled(useAllLibOptionsEnabled);
+//        ignoreLibraryOptions.setEnabled(ignoreAllLibOptionsEnabled);
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ignoreLibraryOptions;

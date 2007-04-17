@@ -66,7 +66,6 @@ public class ChangeText extends EDialog
 	private static boolean lastCellsSelected = false;
 
 	private ChangeParameters cp;
-	private Cell cell;
     private EditWindow wnd;
 
     private static class ChangeParameters implements Serializable
@@ -151,7 +150,6 @@ public class ChangeText extends EDialog
 		changeInstanceText.setSelected(lastInstancesSelected);
 		changeCellText.setSelected(lastCellsSelected);
 
-		cell = WindowFrame.getCurrentCell();
         wnd = EditWindow.getCurrent();
 		for(View view : View.getOrderedViews())
 		{
@@ -906,7 +904,7 @@ public class ChangeText extends EDialog
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 		gatherTextChoices();
-		ChangeTextSizes job = new ChangeTextSizes(cell, cp);
+		new ChangeTextSizes(cell, cp);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 

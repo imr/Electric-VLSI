@@ -68,7 +68,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private boolean initialEasyToSelect;
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
 	private int initialExtension, initialDirectional, initialNegated;
-	private String initialColor;
 	private EditWindow wnd;
 	private AttributesTable attributesTable;
 	private List<AttributesTable.AttValPair> allAttributes;
@@ -191,7 +190,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		Highlighter.addHighlightListener(this);
 
 		bigger = prefs.getBoolean("GetInfoArc-bigger", false);
-		int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
 
 		// start small
 		if (!bigger)
@@ -1126,7 +1124,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			initialWidth = currentWidth;
 		}
 
-		ChangeArc job = new ChangeArc(shownArc, newName, newEasyToSelect, newRigid, newFixedAngle,
+		new ChangeArc(shownArc, newName, newEasyToSelect, newRigid, newFixedAngle,
 			newSlidable, newDirectional, newExtended, newNegated, newDWidth);
         attributesTable.applyChanges();
 	}//GEN-LAST:event_applyActionPerformed

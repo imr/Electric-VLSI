@@ -329,12 +329,8 @@ public class Generic extends Technology
 		int tot = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
-			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)ait.next();
-				tot++;
-			}
+			Technology tech = it.next();
+			tot += tech.getNumArcs();
 		}
 
 		// make an array for each arc
@@ -344,10 +340,10 @@ public class Generic extends Technology
 		tot = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
 			{
-				ArcProto ap = (ArcProto)ait.next();
+				ArcProto ap = ait.next();
 				upconn[tot++] = ap;
 			}
 		}

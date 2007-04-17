@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
@@ -56,9 +55,6 @@ public class CellProperties extends EDialog
 	private JList cellList;
 	private DefaultListModel cellListModel;
 	private HashMap<Cell,PerCellValues> origValues;
-	private boolean initialCheckDatesDuringCreation;
-	private boolean initialAutoTechnologySwitch;
-	private boolean initialPlaceCellCenter;
 	private boolean changing = false;
 
 	private static class PerCellValues
@@ -1206,7 +1202,7 @@ public class CellProperties extends EDialog
 			textCellSizeFactory.add(new Integer(pcv.textCellSize.getIntFactoryValue()));
 		}
 
-		SetCellOptions job = new SetCellOptions(
+		new SetCellOptions(
 			cells,
 			disAllMod, disAllModFactory,
 			disInstMod, disInstModFactory,

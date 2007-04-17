@@ -481,7 +481,7 @@ public class Change extends EDialog implements HighlightListener
 
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 
-		ChangeObject job = new ChangeObject(
+		new ChangeObject(
 			geomsToChange, highs,
 			getLibSelected(),
 			np, ap,

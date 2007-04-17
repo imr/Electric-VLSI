@@ -23,6 +23,31 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Setting;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
+import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
+import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
+import com.sun.electric.tool.user.dialogs.projsettings.GateLayGenTab;
+import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
+import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
+import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
+import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
+import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
+import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
+import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
+import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
+import com.sun.electric.tool.user.help.ManualViewer;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
+import com.sun.electric.tool.user.ui.TopLevel;
+
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -49,31 +74,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Setting;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
-import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
-import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
-import com.sun.electric.tool.user.dialogs.projsettings.GateLayGenTab;
-import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
-import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
-import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
-import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
-import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
-import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
-import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
-import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
-import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.ui.TopLevel;
-
 /**
  * Class to handle the "ProjectSettings Frame" dialog.
  */
@@ -90,7 +90,6 @@ public class ProjectSettingsFrame extends EDialog
 //    List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
-	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
 
 	/**
 	 * This method implements the command to show the Project Settings dialog.
@@ -533,10 +532,7 @@ public class ProjectSettingsFrame extends EDialog
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
 			currentTabName = (String)node.getUserObject();
 			dialog.optionTree.expandPath(currentPath);
-			if (currentTabName.endsWith(" "))
-			{
-				currentSectionName = currentTabName;
-			} else
+			if (!currentTabName.endsWith(" "))
 			{
 				dialog.loadOptionPanel();
 			}
@@ -560,11 +556,7 @@ public class ProjectSettingsFrame extends EDialog
 				{
 					DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
 					TreePath descentPath = topPath.pathByAddingChild(child);
-					if (descentPath.getLastPathComponent().equals(tp.getLastPathComponent()))
-					{
-						DefaultMutableTreeNode subNode = (DefaultMutableTreeNode)descentPath.getLastPathComponent();
-						currentSectionName = (String)subNode.getUserObject();
-					} else
+					if (!descentPath.getLastPathComponent().equals(tp.getLastPathComponent()))
 					{
 						dialog.optionTree.collapsePath(descentPath);
 					}

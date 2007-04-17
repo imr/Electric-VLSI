@@ -122,7 +122,7 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(st);
 		generalSet.add(new DefaultMutableTreeNode(st.getName()));
 
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        TopLevel top = TopLevel.getCurrentJFrame();
         if ((top != null) && (top.getEMenuBar() != null)) {
             EditKeyBindings keys = new EditKeyBindings(top.getEMenuBar(), parent, modal);
             optionPanes.add(keys);
@@ -480,7 +480,7 @@ public class PreferencesFrame extends EDialog
 	private void importActionPerformed()
 	{
 		Job.getUserInterface().importPrefs();
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        TopLevel top = TopLevel.getCurrentJFrame();
         top.getEMenuBar().restoreSavedBindings(false); // trying to cache again
 
 		// recache all layers and their graphics

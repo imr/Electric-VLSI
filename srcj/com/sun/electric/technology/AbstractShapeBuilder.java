@@ -38,7 +38,7 @@ import java.awt.geom.Point2D;
  */
 public abstract class AbstractShapeBuilder {
     protected Layer.Function.Set onlyTheseLayers;
-    private long onlyTheseLayersMask = -1L;
+//    private long onlyTheseLayersMask = -1L;
     protected boolean reasonable;
     protected boolean electrical;
     
@@ -54,7 +54,7 @@ public abstract class AbstractShapeBuilder {
     public Layer.Function.Set getOnlyTheseLayers() { return onlyTheseLayers; }
     public void setOnlyTheseLayers(Layer.Function.Set onlyTheseLayers) {
         this.onlyTheseLayers = onlyTheseLayers;
-        onlyTheseLayersMask = onlyTheseLayers != null ? onlyTheseLayers.bits : 0;
+//        onlyTheseLayersMask = onlyTheseLayers != null ? onlyTheseLayers.bits : 0;
     }
     public void setReasonable(boolean b) { reasonable = b; }
     public void setElectrical(boolean b) { electrical = b; }
@@ -81,7 +81,7 @@ public abstract class AbstractShapeBuilder {
 	 * @param style the style of the Poly.
 	 */
     public void makeGridPoly(ImmutableArcInst a, long gridWidth, Poly.Type style, Layer layer) {
-        long[] result;
+//        long[] result;
         if (a.protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = a.getRadius();

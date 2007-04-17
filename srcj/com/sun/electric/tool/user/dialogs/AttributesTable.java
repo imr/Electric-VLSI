@@ -410,7 +410,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                         "Invalid Action", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            VarEntry ve = (VarEntry)vars.remove(row);
+            VarEntry ve = vars.remove(row);
             varsToDelete.add(ve);
             fireTableDataChanged();
         }
@@ -592,14 +592,12 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private JPopupMenu popup;
     private Point popupLocation;
     private ElectricObject owner;
-    private boolean showAttrOnly;
 
     /**
      * Create a new Attributes Table
      */
     public AttributesTable(ElectricObject owner, boolean showCode, boolean showDispPos, boolean showUnits) {
         setElectricObject(owner);
-        showAttrOnly = Job.getDebug();
 
         setGridColor(getBackground());          // hides cell grids
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -757,7 +755,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 	 * Method to handle the "Cancel" button in attributes.
 	 */
     public void cancelChanges() {
-        VariableTableModel model = (VariableTableModel)getModel();
         // clean up if a cell is currently being edited
         if (isEditing()) {
             int row = getEditingRow();

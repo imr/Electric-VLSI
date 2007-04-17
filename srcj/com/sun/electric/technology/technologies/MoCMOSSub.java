@@ -1165,14 +1165,14 @@ public class MoCMOSSub extends Technology
 			new Technology.TechPoint(EdgeH.fromCenter(-2), EdgeV.fromCenter(-2)),
 			new Technology.TechPoint(EdgeH.fromCenter(2), EdgeV.fromCenter(2)),
 		};
-		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.makeCenter()),
-		};
-		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6)),
-		};
+//		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
+//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.makeCenter()),
+//		};
+//		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.makeCenter()),
+//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6)),
+//		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3.5), EdgeV.fromBottom(9)),
 			new Technology.TechPoint(EdgeH.fromRight(3.5), EdgeV.fromTop(9)),

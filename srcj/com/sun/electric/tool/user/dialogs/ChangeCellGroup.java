@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +45,6 @@ public class ChangeCellGroup extends EDialog {
     private static final String selectedRadioButton = "ChangeCellGroup-WhichMoveType";
 
     private List<Cell> cellsToRegroup;              // cells to regroup
-    private Library initialLibrary;                 // initial destination library
     private List<Cell.CellGroup> cellGroups;        // list of cell groups
 
     /** Creates new form ChangeCellGroup */
@@ -54,7 +52,6 @@ public class ChangeCellGroup extends EDialog {
         super(parent, modal);
         setTitle("Change Cell Group");
         this.cellsToRegroup = cellsToRegroup;
-        this.initialLibrary = initialLibrary;
         cellGroups = new ArrayList<Cell.CellGroup>();
 
         initComponents();
@@ -274,7 +271,7 @@ public class ChangeCellGroup extends EDialog {
         }
 
         if (doIt) {
-            ChangeCellGroupJob job = new ChangeCellGroupJob(cellsToRegroup, newGroupCell);
+            new ChangeCellGroupJob(cellsToRegroup, newGroupCell);
         }
 
         closeDialog(null);

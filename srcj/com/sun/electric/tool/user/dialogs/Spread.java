@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.SizeOffset;
@@ -33,7 +32,6 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 
 /**
@@ -45,8 +43,7 @@ public class Spread extends EDialog
 
 	public static void showSpreadDialog()
 	{
-        Cell cell = WindowFrame.needCurCell();
-        EditWindow wnd = EditWindow.getCurrent();
+        EditWindow wnd = EditWindow.needCurrent();
 		NodeInst ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 
@@ -206,7 +203,7 @@ public class Spread extends EDialog
 		if (spreadRight.isSelected()) direction = 'r';
 		double amount = TextUtils.atof(spreadAmount.getText());
 		if (ni == null) return;
-		SpreadJob job = new SpreadJob(ni, direction, amount);
+		new SpreadJob(ni, direction, amount);
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 

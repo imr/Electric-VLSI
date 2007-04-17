@@ -619,13 +619,13 @@ public class Technology implements Comparable<Technology>
 	/** Logical effort diff alpha preference. */			private Setting cacheDiffAlpha;
 //	/** Logical effort keeper ratio preference. */			private final Setting cacheKeeperRatio;
 
-	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
-	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
-	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
+//	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
+//	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
+//	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
+//	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
 	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
 	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
 	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
-	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
 
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
@@ -3018,14 +3018,13 @@ public class Technology implements Comparable<Technology>
                 "Logical Effort tab", techShortName + " " + what, factory);
     }
 
-    private Setting makeLESetting(String what, int factory) {
-        String techShortName = getTechShortName();
-        if (techShortName == null) techShortName = getTechName();
-        return Setting.makeIntSetting(what + "IN" + getTechName(), prefs,
-                getLESettingsNode(), what,
-                "Logical Effort tab", techShortName + " " + what, factory);
-        
-    }
+//    private Setting makeLESetting(String what, int factory) {
+//        String techShortName = getTechShortName();
+//        if (techShortName == null) techShortName = getTechName();
+//        return Setting.makeIntSetting(what + "IN" + getTechName(), prefs,
+//                getLESettingsNode(), what,
+//                "Logical Effort tab", techShortName + " " + what, factory);
+//    }
 
     // ************************ tech specific?  - start *****************************
 //    /**
@@ -4291,7 +4290,7 @@ public class Technology implements Comparable<Technology>
                                              ProjSettingsNode xmlNode, String xmlName,
                                              String factory)
 		{
-            return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, (String)factory);
+            return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, factory);
 		}
 	}
 

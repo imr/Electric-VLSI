@@ -560,7 +560,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         Double relSize = null;
         if (newSize.isAbsolute()) absSize = new Integer((int)newSize.getSize()); else
         	relSize = new Double(newSize.getSize());
-        ChangeText job = new ChangeText(
+        new ChangeText(
                 owner,
 				unTransformNi,
                 varKey,

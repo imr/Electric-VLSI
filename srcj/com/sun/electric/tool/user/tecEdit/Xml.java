@@ -207,9 +207,9 @@ public class Xml {
         bcpel("patternedOnDisplay", desc.isPatternedOnDisplay());
         bcpel("patternedOnPrinter", desc.isPatternedOnDisplay());
 
-        boolean hasPattern = false;
         int [] pattern = li.desc.getPattern();
-        for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
+//      boolean hasPattern = false;
+//		for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
         if (true/*hasPattern*/) {
             for(int j=0; j<16; j++) {
                 String p = "";

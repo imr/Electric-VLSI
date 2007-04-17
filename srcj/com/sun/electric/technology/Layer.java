@@ -309,7 +309,7 @@ public class Layer
 		 */
 		public static Function getMetal(int level)
 		{
-			Function func = (Function)metalLayers.get(new Integer(level));
+			Function func = metalLayers.get(new Integer(level));
 			return func;
 		}
 
@@ -320,7 +320,7 @@ public class Layer
 		 */
 		public static Function getContact(int level)
 		{
-			Function func = (Function)contactLayers.get(new Integer(level));
+			Function func = contactLayers.get(new Integer(level));
 			return func;
 		}
 
@@ -331,7 +331,7 @@ public class Layer
 		 */
 		public static Function getPoly(int level)
 		{
-			Function func = (Function)polyLayers.get(new Integer(level));
+			Function func = polyLayers.get(new Integer(level));
 			return func;
 		}
 
@@ -512,7 +512,7 @@ public class Layer
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
-	private static HashMap<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
+//	private static HashMap<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
     private static final HashMap<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
 
     // 3D options
@@ -739,10 +739,10 @@ public class Layer
 		Pref.delayPrefFlushing();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
-			Technology tech = (Technology)it.next();
+			Technology tech = it.next();
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
-				Layer layer = (Layer)lIt.next();
+				Layer layer = lIt.next();
 				Pref visPref = layer.getBooleanPref("Visibility", layerVisibilityPrefs, layer.visible);
 				boolean savedVis = visPref.getBoolean();
 				if (savedVis != layer.visible)
@@ -803,7 +803,7 @@ public class Layer
 	 */
     public Pref getBooleanPref(String what, HashMap<Layer,Pref> map, boolean factory)
 	{
-		Pref pref = (Pref)map.get(this);
+		Pref pref = map.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
@@ -821,7 +821,7 @@ public class Layer
 	 */
 	public Pref getDoublePref(String what, HashMap<Layer,Pref> map, double factory)
 	{
-		Pref pref = (Pref)map.get(this);
+		Pref pref = map.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
@@ -839,7 +839,7 @@ public class Layer
 	 */
 	public Pref getIntegerPref(String what, HashMap<Layer,Pref> map, int factory)
 	{
-		Pref pref = (Pref)map.get(this);
+		Pref pref = map.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);

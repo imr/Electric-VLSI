@@ -36,10 +36,6 @@ import javax.swing.JPanel;
  */
 public class DXFTab extends PreferencePanel
 {
-	private Layer artworkLayer;
-	private String initialNames;
-	private TextUtils.UnitScale [] scales;
-
 	/** Creates new form DXFTab */
 	public DXFTab(Frame parent, boolean modal)
 	{

@@ -920,7 +920,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
 		assert primPorts == null : this + " addPrimitivePorts twice";
-		primPorts = (PrimitivePort[])ports.clone();
+		primPorts = ports.clone();
 //		Arrays.sort(primPorts);
 		for (int i = 0; i < primPorts.length; i++)
 		{
@@ -1413,7 +1413,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		if (function != PrimitiveNode.Function.NODE) return false;
 	    // only one layer
 	    if (layers.length != 1) return false;
-	    Layer layer = (Layer)layers[0].getLayer();
+	    Layer layer = layers[0].getLayer();
 	    return (layer.getFunction().isWell());
 	}
     /**
@@ -1426,7 +1426,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		if (function != PrimitiveNode.Function.NODE) return false;
 	    // only one layer
 	    if (layers.length != 1) return false;
-	    Layer layer = (Layer)layers[0].getLayer();
+	    Layer layer = layers[0].getLayer();
 	    return (layer.getFunction().isSubstrate());
 	}
 

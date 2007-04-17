@@ -146,7 +146,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		searchText.getDocument().addDocumentListener(new SelecdtObjectDocumentListener(this));
 
 		// special case for this dialog: allow Electric quick-keys to pass-through
-        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        TopLevel top = TopLevel.getCurrentJFrame();
         if (top != null && top.getTheMenuBar() != null)
         {
         	KeyBindingManager.KeyMaps km = top.getEMenuBar().getKeyMaps();

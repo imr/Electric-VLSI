@@ -51,7 +51,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	private EdgeV bottom;
 	private EdgeH right;
 	private EdgeV top;
-	private Technology tech;
+//	private Technology tech;
 	private PortCharacteristic characteristic;
 	private int angle;
 	private int angleRange;
@@ -76,7 +76,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 		this.portTopology = portTopology;
 
 		// initialize this object
-		this.tech = tech;
+//		this.tech = tech;
 		this.portArcs = portArcs;
 		this.left = left;
 		this.bottom = bottom;
@@ -390,7 +390,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 			numColors++;
 		}
 		if (numColors == 0) return null;
-		return new Color((int)(r/numColors), (int)(g/numColors), (int)(b/numColors));
+		return new Color(r/numColors, g/numColors, b/numColors);
 	}
 
     /**
