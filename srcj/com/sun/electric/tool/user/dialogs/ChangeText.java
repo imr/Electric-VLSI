@@ -304,7 +304,7 @@ public class ChangeText extends EDialog
 		if (cp.changeSelectedObjects)
 		{
 			// make sure text adjustment is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return;
 
             EditWindow wnd = EditWindow.getCurrent();
             if (wnd != null)
@@ -349,7 +349,7 @@ public class ChangeText extends EDialog
 		// make sure text adjustment is allowed
 		if (change)
 		{
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return;
 		}
 
 		// text on nodes

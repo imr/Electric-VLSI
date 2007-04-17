@@ -397,7 +397,7 @@ public class Array extends EDialog
 		// disallow arraying if lock is on
 		for(NodeInst ni : nodeList)
 		{
-			if (CircuitChangeJobs.cantEdit(cell, ni, true, false) != 0) return;
+			if (CircuitChangeJobs.cantEdit(cell, ni, true, false, false) != 0) return;
 		}
 
 		// create the array

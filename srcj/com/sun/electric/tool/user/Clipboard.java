@@ -447,12 +447,12 @@ public class Clipboard
 			clear();
 
 			// make sure deletion is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return false;
 			for(Geometric geom : geomList)
 			{
 				if (geom instanceof NodeInst)
 				{
-					int errorCode = CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true, true);
+					int errorCode = CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true, false, true);
 					if (errorCode < 0) return false;
 					if (errorCode > 0) continue;
 				}
@@ -534,7 +534,7 @@ public class Clipboard
 		public boolean doIt() throws JobException
 		{
 			// make sure pasting is allowed
-			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true, false, true) != 0) return false;
 
 			newArc = pasteArcToArc(dst, src);
 			if (newArc == null) System.out.println("Nothing was pasted"); else
@@ -576,7 +576,7 @@ public class Clipboard
 		public boolean doIt() throws JobException
 		{
 			// make sure pasting is allowed
-			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(dst.getParent(), null, true, false, true) != 0) return false;
 
 			newNode = pasteNodeToNode(dst, src);
 			if (newNode == null) System.out.println("Nothing was pasted"); else
@@ -635,7 +635,7 @@ public class Clipboard
 		public boolean doIt() throws JobException
 		{
 			// make sure pasting is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// paste them into the current cell
 			newGeomList = new ArrayList<Geometric>();

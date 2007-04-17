@@ -463,7 +463,7 @@ public class CircuitChanges
 		// make sure the cell is editable
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-		if (CircuitChangeJobs.cantEdit(cell, null, true, false) != 0) return;
+		if (CircuitChangeJobs.cantEdit(cell, null, true, false, false) != 0) return;
 
 		// make a set of selected nodes
         Highlighter highlighter = wnd.getHighlighter();

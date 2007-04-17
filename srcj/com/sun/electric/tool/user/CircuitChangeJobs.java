@@ -119,7 +119,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// disallow rotating if lock is on
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// figure out which nodes get rotated/mirrored
 			HashSet<Geometric> markObj = new HashSet<Geometric>();
@@ -130,7 +130,7 @@ public class CircuitChangeJobs
 			{
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
-				if (cantEdit(cell, ni, true, true) != 0)
+				if (cantEdit(cell, ni, true, false, true) != 0)
 				{
 					return false;
 				}
@@ -471,7 +471,7 @@ public class CircuitChangeJobs
 			for(int i=0; i<nis.length; i++)
 			{
 				NodeInst ni = nis[i];
-				int res = cantEdit(ni.getParent(), ni, true, true);
+				int res = cantEdit(ni.getParent(), ni, true, false, true);
 				if (res < 0) return false;
 				if (res > 0)
 				{
@@ -547,7 +547,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure changing arcs is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return false;
 
 			int numSet = 0, numUnset = 0;
 			for(ElectricObject eobj : objList)
@@ -680,7 +680,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure negation is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			numSet = 0;
 			for(ElectricObject eobj : highlighted)
@@ -736,7 +736,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure ripping arcs is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			for(ArcInst ai : list)
 			{
@@ -901,7 +901,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure deletion is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// delete the text
 			for(DisplayedText dt : highlightedText)
@@ -925,7 +925,7 @@ public class CircuitChangeJobs
 				{
 					// deleting the name of an export
 					Export pp = (Export)eobj;
-					int errCode = cantEdit(cell, pp.getOriginalPort().getNodeInst(), true, true);
+					int errCode = cantEdit(cell, pp.getOriginalPort().getNodeInst(), true, true, true);
 					if (errCode < 0) return false;
 					if (errCode > 0) continue;
 					pp.kill();
@@ -977,7 +977,7 @@ public class CircuitChangeJobs
             }
 
 			// disallow erasing if lock is on
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			if (bounds == null)
 			{
@@ -1081,7 +1081,7 @@ public class CircuitChangeJobs
 				if (cX >= hX || cX <= lX || cY >= hY || cY <= lY) continue;
 
 				// if it cannot be modified, stop
-				int errorCode = cantEdit(cell, ni, true, true);
+				int errorCode = cantEdit(cell, ni, true, false, true);
 				if (errorCode < 0) return false;
 				if (errorCode > 0) continue;
 				nodesToDelete.add(ni);
@@ -1145,7 +1145,7 @@ public class CircuitChangeJobs
 		// make sets of all of the arcs and nodes explicitly selected for deletion
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-		if (cantEdit(cell, null, true, true) != 0) return;
+		if (cantEdit(cell, null, true, false, true) != 0) return;
 		for(Geometric geom : list)
 		{
 			if (geom instanceof ArcInst)
@@ -1155,7 +1155,7 @@ public class CircuitChangeJobs
 			} else if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
-				if (cantEdit(cell, ni, true, true) != 0) continue;
+				if (cantEdit(cell, ni, true, false, true) != 0) continue;
 				nodesToDelete.add(ni);
 			}
 		}
@@ -1349,7 +1349,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure moving the node is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// do the queued operations
 			for(NodeInst ni : pinsToRemove)
@@ -1476,7 +1476,7 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// make sure shortening is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			int l = 0;
 			double [] dX = new double[2];
@@ -1531,7 +1531,7 @@ public class CircuitChangeJobs
 			if (highlightedObjs.size() + highlightedText.size() == 0) return false;
 
 			// make sure moving is allowed
-			if (cantEdit(cell, null, true, true) != 0) return false;
+			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// special case if moving only one node
 			if (highlightedObjs.size() == 1 && highlightedText.size() == 0)
@@ -1547,7 +1547,7 @@ public class CircuitChangeJobs
 	                }
 	
 					// make sure moving the node is allowed
-					if (cantEdit(cell, ni, true, true) != 0) return false;
+					if (cantEdit(cell, ni, true, false, true) != 0) return false;
 	
 					ni.move(dX, dY);
 	                if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
@@ -1681,6 +1681,33 @@ public class CircuitChangeJobs
 				return true;
 			}
 
+			// ignore arc motion if the nodes are locked
+			for(int i=0; i<highlightedObjs.size(); i++)
+			{
+				ElectricObject eobj = highlightedObjs.get(i);
+				if (eobj instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)eobj;
+					int errorCode = cantEdit(cell, ai.getHeadPortInst().getNodeInst(), true, false, true);
+					if (errorCode < 0) return false;
+					if (errorCode > 0)
+					{
+						highlightedObjs.remove(i);
+						i--;
+						continue;
+					}
+
+					errorCode = cantEdit(cell, ai.getTailPortInst().getNodeInst(), true, false, true);
+					if (errorCode < 0) return false;
+					if (errorCode > 0)
+					{
+						highlightedObjs.remove(i);
+						i--;
+						continue;
+					}
+				}
+			}
+			
 			// make flag to track the nodes that move
 			HashSet<NodeInst> flag = new HashSet<NodeInst>();
 
@@ -1725,7 +1752,7 @@ public class CircuitChangeJobs
 				if (!flag.contains(ni)) continue;
 
 				// make sure moving the node is allowed
-				int errorCode = cantEdit(cell, ni, true, true);
+				int errorCode = cantEdit(cell, ni, true, false, true);
 				if (errorCode < 0) return false;
 				if (errorCode > 0)
 				{
@@ -1875,7 +1902,7 @@ public class CircuitChangeJobs
 				// disallow moving if lock is on
 				if (cell != null)
 				{
-					int errorCode = cantEdit(cell, null, true, true);
+					int errorCode = cantEdit(cell, null, true, true, true);
 					if (errorCode < 0) return;
 					if (errorCode > 0) continue;
 				}
@@ -1988,7 +2015,7 @@ public class CircuitChangeJobs
 		{
 			// disallow erasing if lock is on
 			Cell cell = ni.getParent();
-			if (checkPermission && cantEdit(cell, ni, true, true) != 0) return null;
+			if (checkPermission && cantEdit(cell, ni, true, false, true) != 0) return null;
 
             Reconnect recon = new Reconnect();
             recon.ni = ni;
@@ -2162,7 +2189,7 @@ public class CircuitChangeJobs
 	public static void spreadCircuitry(Cell cell, NodeInst ni, char direction, double amount, double lX, double hX, double lY, double hY)
 	{
 		// disallow spreading if lock is on
-		if (cantEdit(cell, null, true, true) != 0) return;
+		if (cantEdit(cell, null, true, false, true) != 0) return;
 
 		// initialize a collection of Geometrics that have been seen
 		HashSet<Geometric> geomSeen = new HashSet<Geometric>();
@@ -2972,8 +2999,11 @@ public class CircuitChangeJobs
 	 * Throws an exception if not.
 	 * @param cell the Cell in which the NodeInst resides.
 	 * @param item the NodeInst (may be null).
+	 * @param giveError true to print an error message if the modification is disallowed.
+	 * @param allowInstanceChange true to allow a change to an instance when instances are locked
+	 * (this allows exports to be created and deleted).
 	 */
-	public static void testEditable(Cell cell, NodeInst item, boolean giveError)
+	public static void testEditable(Cell cell, NodeInst item, boolean giveError, boolean allowInstanceChange)
 		throws CantEditException
 	{
 		// if an instance is specified, check it
@@ -3004,7 +3034,7 @@ public class CircuitChangeJobs
 			{
 				// see if this type of cell is locked
 				complexNode = true;
-				if (cell.isInstancesLocked())
+				if (!allowInstanceChange && cell.isInstancesLocked())
 				{
 					CantEditException e = new CantEditException();
 					e.lockedInstances = cell;
@@ -3040,12 +3070,14 @@ public class CircuitChangeJobs
 	 * @param cell the Cell in which the NodeInst resides.
 	 * @param item the NodeInst (may be null).
 	 * @param giveError true to print an error message if the modification is disallowed.
+	 * @param allowInstanceChange true to allow a change to an instance when instances are locked
+	 * (this allows exports to be created and deleted).
 	 * @param insideJob true if this is being run inside of a job.
 	 * @return positive if the edit CANNOT be done.
 	 * Return negative if the edit CANNOT be done and the overall operation should be cancelled.
 	 * Return zero if the operation CAN be done.
 	 */
-	public static int cantEdit(Cell cell, NodeInst item, boolean giveError, boolean insideJob)
+	public static int cantEdit(Cell cell, NodeInst item, boolean giveError, boolean allowInstanceChange, boolean insideJob)
 	{
 		String [] options = {"Yes", "No", "Always", "Cancel"};
 		// if an instance is specified, check it
@@ -3090,7 +3122,7 @@ public class CircuitChangeJobs
 			{
 				// see if this type of cell is locked
 				complexNode = true;
-				if (cell.isInstancesLocked())
+				if (!allowInstanceChange && cell.isInstancesLocked())
 				{
 					if (!giveError) return 1;
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),

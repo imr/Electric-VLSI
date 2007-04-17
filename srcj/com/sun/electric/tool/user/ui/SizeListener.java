@@ -300,7 +300,7 @@ public class SizeListener
 		public boolean doIt() throws JobException
 		{
 			// make sure moving the node is allowed
-			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return false;
 
 			boolean didSomething = false;
 			for(Geometric geom : highlighted)
@@ -638,7 +638,7 @@ public class SizeListener
 		public boolean doIt() throws JobException
 		{
 			// make sure scaling the node is allowed
-			if (CircuitChangeJobs.cantEdit(stretchNode.getParent(), null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(stretchNode.getParent(), null, true, false, true) != 0) return false;
 
 			Point2D [] points = stretchNode.getTrace();
 			if (points != null)
@@ -679,7 +679,7 @@ public class SizeListener
 		public boolean doIt() throws JobException
 		{
 			// make sure scaling the arc is allowed
-			if (CircuitChangeJobs.cantEdit(stretchArc.getParent(), null, true, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(stretchArc.getParent(), null, true, false, true) != 0) return false;
 
 			stretchArc.setLambdaBaseWidth(newLambdaBaseWidth);
 			return true;
