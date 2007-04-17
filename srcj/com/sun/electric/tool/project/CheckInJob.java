@@ -74,7 +74,7 @@ public class CheckInJob extends Job
 		// check the cells for validity
 		for(Cell aCell : cellsMarked.keySet())
 		{
-			MutableInteger mi = (MutableInteger)cellsMarked.get(aCell);
+			MutableInteger mi = cellsMarked.get(aCell);
 			if (mi.intValue() == 0) continue;
 	
 			// find this in the project file
@@ -128,7 +128,7 @@ public class CheckInJob extends Job
 		String cellNames = "";
 		for(Cell cell : cellsMarked.keySet())
 		{
-			MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
+			MutableInteger mi = cellsMarked.get(cell);
 			if (mi.intValue() == 0) continue;
 			if (cellNames.length() > 0) cellNames += ", ";
 			cellNames += cell.describe(false);
@@ -137,7 +137,7 @@ public class CheckInJob extends Job
 		String error = null;
 		for(Cell cell : cellsMarked.keySet())
 		{
-			MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
+			MutableInteger mi = cellsMarked.get(cell);
 			if (mi.intValue() == 0) continue;
 
 			// find this in the project file
@@ -201,11 +201,11 @@ public class CheckInJob extends Job
 				cellsMarked2.put(oCell, new MutableInteger(0));
 			}
 		}
-		MutableInteger mi = (MutableInteger)cellsMarked1.get(cell);
+		MutableInteger mi = cellsMarked1.get(cell);
 		mi.setValue(1);
 
 		// look for cells above this one that must also be checked in
-		mi = (MutableInteger)cellsMarked2.get(cell);
+		mi = cellsMarked2.get(cell);
 		mi.setValue(1);
 		boolean propagated = true;
 		while (propagated)
@@ -217,7 +217,7 @@ public class CheckInJob extends Job
 				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked2.get(oCell);
+					mi = cellsMarked2.get(oCell);
 					if (mi.intValue() == 1)
 					{
 						propagated = true;
@@ -225,14 +225,14 @@ public class CheckInJob extends Job
 						for(Iterator<NodeInst> nIt = oCell.getInstancesOf(); nIt.hasNext(); )
 						{
 							NodeInst ni = nIt.next();
-							mi = (MutableInteger)cellsMarked2.get(ni.getParent());
+							mi = cellsMarked2.get(ni.getParent());
 							if (mi.intValue() == 0) mi.setValue(1);
 						}
 					}
 				}
 			}
 		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
+		mi = cellsMarked2.get(cell);
 		mi.setValue(0);
 		int total = 0;
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -241,13 +241,13 @@ public class CheckInJob extends Job
 			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
+				mi = cellsMarked2.get(oCell);
 				if (mi.intValue() == 0) continue;
 				String owner = Project.getCellOwner(oCell);
 				if (owner.length() == 0) continue;
 				if (owner.equals(Project.getCurrentUserName()))
 				{
-					mi = (MutableInteger)cellsMarked1.get(oCell);
+					mi = cellsMarked1.get(oCell);
 					mi.setValue(1);
 					total++;
 				}
@@ -261,11 +261,11 @@ public class CheckInJob extends Job
 			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
+				mi = cellsMarked2.get(oCell);
 				mi.setValue(0);
 			}
 		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
+		mi = cellsMarked2.get(cell);
 		mi.setValue(1);
 		propagated = true;
 		while (propagated)
@@ -277,7 +277,7 @@ public class CheckInJob extends Job
 				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked2.get(oCell);
+					mi = cellsMarked2.get(oCell);
 					if (mi.intValue() == 1)
 					{
 						propagated = true;
@@ -286,14 +286,14 @@ public class CheckInJob extends Job
 						{
 							NodeInst ni = nIt.next();
 							if (!ni.isCellInstance()) continue;
-							mi = (MutableInteger)cellsMarked2.get(ni.getProto());
+							mi = cellsMarked2.get(ni.getProto());
 							if (mi.intValue() == 0) mi.setValue(1);
 						}
 					}
 				}
 			}
 		}
-		mi = (MutableInteger)cellsMarked2.get(cell);
+		mi = cellsMarked2.get(cell);
 		mi.setValue(0);
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -301,13 +301,13 @@ public class CheckInJob extends Job
 			for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = cIt.next();
-				mi = (MutableInteger)cellsMarked2.get(oCell);
+				mi = cellsMarked2.get(oCell);
 				if (mi.intValue() == 0) continue;
 				String owner = Project.getCellOwner(oCell);
 				if (owner.length() == 0) continue;
 				if (owner.equals(Project.getCurrentUserName()))
 				{
-					mi = (MutableInteger)cellsMarked1.get(oCell);
+					mi = cellsMarked1.get(oCell);
 					mi.setValue(1);
 					total++;
 				}
@@ -325,7 +325,7 @@ public class CheckInJob extends Job
 				for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 				{
 					Cell oCell = cIt.next();
-					mi = (MutableInteger)cellsMarked1.get(oCell);
+					mi = cellsMarked1.get(oCell);
 					if (oCell == cell || mi.intValue() == 0) continue;
 					if (total > 0) infstr.append(", ");
 					infstr.append(oCell.describe(true));

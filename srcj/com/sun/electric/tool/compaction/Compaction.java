@@ -85,9 +85,7 @@ public class Compaction extends Tool
 	/**
 	 * Method to initialize the Compaction tool.
 	 */
-	public void init()
-	{
-	}
+	public void init() {}
 
     /**
      * Method to retrieve the singleton associated with the Compaction tool.
@@ -241,10 +239,8 @@ if (--limitLoops <= 0) change = false;
 
 		private static class Line
 		{
-			private int      index;
 			private double   val;
 			private double   low, high;
-			private double   top, bottom;
 			private GeomObj  firstObject;
 			private Line     nextLine;
 			private Line     prevLine;
@@ -253,7 +249,6 @@ if (--limitLoops <= 0) change = false;
 		/** protection frame max size for technology */			private double  maxBoundary;
 		/** lowest edge of current line */						private double  lowBound;
 		/** counter for unique network numbers */				private int     flatIndex;
-		/** used for numbering lines (debugging only) */		private int     lineIndex = 0;
 		/** current axis of compaction */						private Axis    curAxis;
 		/** cell being compacted */								private Cell    cell;
 
@@ -354,7 +349,25 @@ if (--limitLoops <= 0) change = false;
 			return change;
 		}
 
-        
+//		private boolean lineupFirstRow(Line line, Line lineStretch, double lowestBound)
+//		{
+//			boolean change = false;
+//			double i = line.low - lowestBound;
+//			if (i > DBMath.getEpsilon())
+//			{
+//				// initialize arcs: disable stretching line from sliding; make moving line rigid
+//				HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
+//				setupTemporaryRigidity(line, lineStretch);
+//
+//				if (curAxis == Axis.HORIZONTAL) change = moveLine(line, i, 0, change); else
+//					change = moveLine(line, 0, i, change);
+//
+//				// restore slidability on stretching lines
+//				restoreSlidability(clearedArcs);
+//			}
+//			return change;
+//		}
+
 		private boolean compactLine(Line line, Line lineStretch, boolean change, Cell cell)
 		{
 //            System.out.println("Compacting line:");
@@ -453,7 +466,6 @@ if (--limitLoops <= 0) change = false;
 		private double minSeparate(GeomObj object, Layer nLayer, PolyList nPolys, Line line, Cell cell)
 		{
 			Poly nPoly = nPolys.poly;
-			double nminsize = nPoly.getMinSize();
 			Technology tech = nPolys.tech;
 			int nIndex = nPolys.networkNum;
 
@@ -628,25 +640,6 @@ if (--limitLoops <= 0) change = false;
 			return false;
 		}
 
-		private boolean lineupFirstRow(Line line, Line lineStretch, double lowestBound)
-		{
-			boolean change = false;
-			double i = line.low - lowestBound;
-			if (i > DBMath.getEpsilon())
-			{
-				// initialize arcs: disable stretching line from sliding; make moving line rigid
-				HashSet<ArcInst> clearedArcs = ensureSlidability(lineStretch);
-				setupTemporaryRigidity(line, lineStretch);
-
-				if (curAxis == Axis.HORIZONTAL) change = moveLine(line, i, 0, change); else
-					change = moveLine(line, 0, i, change);
-
-				// restore slidability on stretching lines
-				restoreSlidability(clearedArcs);
-			}
-			return change;
-		}
-
 		/**
 		 * moves a object of instances distance (movex, movey), and returns a true if
 		 * there is actually a move
@@ -814,14 +807,10 @@ if (--limitLoops <= 0) change = false;
 			{
 				line.low = lx;
 				line.high = hx;
-				line.top = hy;
-				line.bottom = ly;
 			} else
 			{
 				line.low = ly;
 				line.high = hy;
-				line.top = hx;
-				line.bottom = lx;
 			}
 		}
 
@@ -842,19 +831,14 @@ if (--limitLoops <= 0) change = false;
 				double ave = 0, totalLen = 0;
 				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
-					double len = 0, ctr = 0;
+					double ctr = 0;
 					if (curAxis == Axis.HORIZONTAL)
 					{
-						len = curObject.highy - curObject.lowy;
 						ctr = (curObject.lowx+curObject.highx) / 2;
 					} else
 					{
-						len = curObject.highx - curObject.lowx;
 						ctr = (curObject.lowy+curObject.highy) / 2;
 					}
-
-//					ctr *= len;
-//					totalLen += len;
 					totalLen++;
 					ave += ctr;
 				}
@@ -906,7 +890,6 @@ if (--limitLoops <= 0) change = false;
 		private Line makeObjectLine(Line line, List<GeomObj> objectList)
 		{
 			Line newLine = new Line();
-			newLine.index = lineIndex++;
 			newLine.nextLine = line;
 			newLine.prevLine = null;
 			newLine.firstObject = null;
@@ -1044,7 +1027,6 @@ if (--limitLoops <= 0) change = false;
 				Cell subCell = (Cell)ni.getProto();
 
 				// compute transformation matrix from subnode to this space
-				AffineTransform t1 = ni.rotateOut(newTrans);
 				AffineTransform trans = ni.translateOut(newTrans);
 
 				/*

@@ -293,10 +293,8 @@ public class Info
 					str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
 					break;
 			}
-			Variable var = table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);
-//			if (var != null)
-//				var.setDisplay(true);
-			var = table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));
+			table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);
+			table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));
 		}
 	}
 
@@ -356,7 +354,7 @@ public class Info
 		dependentLibs.add(lib);
 		Library [] theLibs = new Library[dependentLibs.size()];
 		for(int i=0; i<dependentLibs.size(); i++)
-			theLibs[i] = (Library)dependentLibs.get(i);
+			theLibs[i] = dependentLibs.get(i);
 		return theLibs;
 	}
 
@@ -369,7 +367,6 @@ public class Info
 	static Cell [] findCellSequence(Library [] dependentlibs, String match, Variable.Key seqKey)
 	{
 		// look backwards through libraries for the appropriate cells
-		int total = 0;
 		List<Cell> npList = new ArrayList<Cell>();
 		for(int i=dependentlibs.length-1; i>=0; i--)
 		{
@@ -416,7 +413,7 @@ public class Info
 			Cell foundCell = null;
 			for(int l = 0; l < npList.size(); l++)
 			{
-				Cell np = (Cell)npList.get(l);
+				Cell np = npList.get(l);
 				if (np.getName().substring(match.length()).equals(sequenceNames[i])) { foundCell = np;   break; }
 			}
 			if (foundCell != null)
@@ -429,7 +426,7 @@ public class Info
 			sequence.add(c);
 		Cell [] theCells = new Cell[sequence.size()];
 		for(int i=0; i<sequence.size(); i++)
-			theCells[i] = (Cell)sequence.get(i);
+			theCells[i] = sequence.get(i);
 		return theCells;
 	}
 

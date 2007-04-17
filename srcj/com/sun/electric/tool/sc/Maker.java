@@ -1227,7 +1227,7 @@ public class Maker
 			PrimitiveNode via = it.next();
 			PrimitiveNode.Function fun = via.getFunction();
 			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) continue;
-			PrimitivePort pp = (PrimitivePort)via.getPort(0);
+			PrimitivePort pp = via.getPort(0);
 			if (!pp.connectsTo(layer1Arc)) continue;
 			if (!pp.connectsTo(layer2Arc)) continue;
 			viaProto = via;

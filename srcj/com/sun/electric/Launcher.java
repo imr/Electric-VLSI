@@ -100,18 +100,15 @@ public final class Launcher
 		}
 
         // get location of jar file
-        String jarfile = "electric.jar";
         URL electric = Launcher.class.getResource("Main.class");
         if (electric.getProtocol().equals("jar")) {
             String file = electric.getFile();
             file = file.replaceAll("file:", "");
             file = file.replaceAll("!.*", "");
-            jarfile = file;
         }
 
 		String command = program;
 		command += " -cp " + System.getProperty("java.class.path",".");
-//		command += " -mx" + maxMemWanted + "m -jar " + jarfile;
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions

@@ -374,8 +374,8 @@ public class JELIB extends LibraryFiles
 //				if (pieces.size() > 5)
 				if (revision == 1)
 				{
-					long cDate = Long.parseLong(pieces.get(5));
-					long rDate = Long.parseLong(pieces.get(6));
+					Long.parseLong(pieces.get(5));		// ignore cdate
+					Long.parseLong(pieces.get(6));		// ignore rdate
 				}
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
 				curExternalCellName = curExternalLibName + ":" + unQuote(revision, pieces.get(0));
@@ -586,7 +586,6 @@ public class JELIB extends LibraryFiles
 				// group information
 				List<String> pieces = parseLine(line);
 				Cell[] groupLine = new Cell[pieces.size()];
-				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
 					String cellName = unQuote(revision, pieces.get(i));
@@ -943,7 +942,6 @@ public class JELIB extends LibraryFiles
 			// parse state information in stateInfo field
             TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
             int flags = 0, techBits = 0;
-            boolean expanded = false;
             // parse state information in jelibUserBits
 			parseStateInfo:
             for(int i=0; i<stateInfo.length(); i++) {
@@ -1564,7 +1562,7 @@ public class JELIB extends LibraryFiles
             Variable d = Variable.newInstance(varKey, obj, td);
             variablesBuf.add(d);
 		}
-        return (Variable[])variablesBuf.toArray(Variable.NULL_ARRAY);
+        return variablesBuf.toArray(Variable.NULL_ARRAY);
 	}
 
 	/**
@@ -2017,7 +2015,7 @@ public class JELIB extends LibraryFiles
     
 	PrimitiveNode findPrimitiveNode(Technology tech, String name)
 	{
-		PrimitiveNode pn = (PrimitiveNode)tech.findNodeProto(name);
+		PrimitiveNode pn = tech.findNodeProto(name);
 		if (pn != null) return pn;
 		return tech.convertOldNodeName(name);
 	}

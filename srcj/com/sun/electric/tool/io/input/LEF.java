@@ -92,7 +92,7 @@ public class LEF extends LEFDEF
 
 		try
 		{
-			boolean ret = readFile(lib);
+			readFile(lib);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading LEF libraries");
@@ -220,7 +220,7 @@ public class LEF extends LEFDEF
 		{
 			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimitiveNode np = it.next();
 				if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 				PortProto pp = np.getPort(0);
 				if (pp.connectsTo(vd.lay1) && pp.connectsTo(vd.lay2))
@@ -298,7 +298,7 @@ public class LEF extends LEFDEF
 				NodeInst ccNi = null;
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
-					NodeInst ni = (NodeInst)it.next();
+					NodeInst ni = it.next();
 					if (ni.getProto() == Generic.tech.cellCenterNode) { ccNi = ni;   break; }
 				}
 				if (ccNi == null)
@@ -330,7 +330,7 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading SIZE X");
 					return true;
 				}
-				double sX = convertLEFString(key);
+				convertLEFString(key);		// ignore SX
 
 				key = getAKeyword();
 				if (key == null)
@@ -350,7 +350,7 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading SIZE Y");
 					return true;
 				}
-				double sY = convertLEFString(key);
+				convertLEFString(key);		// ignore SY
 				if (ignoreToSemicolon("SIZE")) return true;
 				continue;
 			}

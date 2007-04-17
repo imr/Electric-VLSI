@@ -139,7 +139,7 @@ public class GDSMap extends EDialog
 			System.out.println("Error reading " + fileName);
 			return;
 		}
-		GDSMap mapDialog = new GDSMap(TopLevel.getCurrentJFrame(), allNames, drawingEntries, pinEntries);
+		new GDSMap(TopLevel.getCurrentJFrame(), allNames, drawingEntries, pinEntries);
 	}
 
 	/** Creates new form Layer Map Association */
@@ -260,7 +260,7 @@ public class GDSMap extends EDialog
 		// set the associations
 		for(MapLine ml : drawingEntries)
 		{
-			String layerName = (String)getSavedAssoc(ml.name);
+			String layerName = getSavedAssoc(ml.name);
 			if (layerName.length() == 0) continue;
 			Layer layer = tech.findLayer(layerName);
 			if (layer == null) continue;

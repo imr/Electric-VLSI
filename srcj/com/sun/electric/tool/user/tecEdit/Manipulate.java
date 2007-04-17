@@ -335,7 +335,7 @@ public class Manipulate
 		}
 
 		// create the cell
-		MakeOneCellJob job = new MakeOneCellJob(lib, cellName, type);
+		new MakeOneCellJob(lib, cellName, type);
 	}
 
 	/**
@@ -483,7 +483,7 @@ public class Manipulate
 	 */
 	public static void editLibraryDependencies()
 	{
-		EditDependentLibraries dialog = new EditDependentLibraries();
+		new EditDependentLibraries();
 	}
 
 	/**
@@ -502,8 +502,6 @@ public class Manipulate
 			initComponents();
 			setVisible(true);
 		}
-
-		private void ok() { exit(true); }
 
 		protected void escapePressed() { exit(false); }
 
@@ -1195,7 +1193,7 @@ public class Manipulate
 				// done
 				for(int i=0; i<colors.length; i++)
 					colors[i] = (Color)fields[i][0].getFinal();
-				SetTransparentColorJob job = new SetTransparentColorJob(ni, GeneralInfo.makeTransparentColorsLine(colors));
+				new SetTransparentColorJob(ni, GeneralInfo.makeTransparentColorsLine(colors));
 
 				// redraw the demo layer in this cell
 				new RedoLayerGraphicsJob(ni.getParent());
@@ -1606,7 +1604,7 @@ public class Manipulate
 		if (choice == null) return;
 
 		// save the results
-		ModifyLayerJob job = new ModifyLayerJob(ni, choice, layerCells);
+		new ModifyLayerJob(ni, choice, layerCells);
 	}
 
 	/**
@@ -1636,7 +1634,7 @@ public class Manipulate
 					System.out.println("Can only set minimum size in node descriptions");
 					return true;
 				}
-				Variable var = ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
+				ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
 				return true;
 			}
 
@@ -1695,7 +1693,7 @@ public class Manipulate
 		PromptAt.Field [] fields = new PromptAt.Field[allArcs.size()+2];
 		for(int i=0; i<allArcs.size(); i++)
 		{
-			Cell cell = (Cell)allArcs.get(i);
+			Cell cell = allArcs.get(i);
 			boolean doesConnect = connectSet.contains(cell);
 			fields[i] = new PromptAt.Field(cell.getName().substring(4),
 				new String [] {"Allowed", "Disallowed"}, (doesConnect ? "Allowed" : "Disallowed"));
@@ -1717,7 +1715,7 @@ public class Manipulate
 		{
 			fieldValues[i] = (String)fields[i].getFinal();
 		}
-		ModifyPortJob job = new ModifyPortJob(ni, allArcs, fieldValues);
+		new ModifyPortJob(ni, allArcs, fieldValues);
 	}
 
 	/**
@@ -1751,7 +1749,7 @@ public class Manipulate
 			for(int i=0; i<allArcs.size(); i++)
 			{
 				String answer = fieldValues[i];
-				if (answer.equals("Allowed")) newConnects[k++] = (Cell)allArcs.get(i);
+				if (answer.equals("Allowed")) newConnects[k++] = allArcs.get(i);
 			}
 			ni.newVar(Info.CONNECTION_KEY, newConnects);
 
@@ -1770,7 +1768,7 @@ public class Manipulate
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
 		{
-			ArcProto.Function fun = (ArcProto.Function)funs.get(i);
+			ArcProto.Function fun = funs.get(i);
 			functionNames[i] = fun.toString();
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Arc Function", "New function for this arc:", initialFuncName, functionNames);
@@ -1829,7 +1827,7 @@ public class Manipulate
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
 		{
-			PrimitiveNode.Function fun = (PrimitiveNode.Function)funs.get(i);
+			PrimitiveNode.Function fun = funs.get(i);
 			functionNames[i] = fun.toString();
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Node Function", "New function for this node:", initialFuncName, functionNames);
@@ -2136,8 +2134,6 @@ public class Manipulate
 		{
 			super(null, true);
 		}
-	
-		private void ok() { exit(true); }
 
 		protected void escapePressed() { exit(false); }
 

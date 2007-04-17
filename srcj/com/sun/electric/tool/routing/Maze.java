@@ -1579,7 +1579,6 @@ public class Maze
 						if (netID == notThisNetID) continue;
 					}
 
-					Layer layer = poly.getLayer();
 					poly.transform(trans);
 					drawPoly(poly, region, ALLLAYERS);
 				}
@@ -2090,7 +2089,7 @@ public class Maze
 				List<PortInst> portInstList = findPort(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
-					PortInst pi = (PortInst)portInstList.get(0);
+					PortInst pi = portInstList.get(0);
 					Poly portPoly = pi.getPoly();
 					Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
 					if (closest.getX() != oFX || closest.getY() != oFY)
@@ -2116,7 +2115,7 @@ public class Maze
 				List<PortInst> portInstList = findPort(parent, fX, fY, ap, net, true);
 				if (portInstList.size() > 0)
 				{
-					PortInst pi = (PortInst)portInstList.get(0);
+					PortInst pi = portInstList.get(0);
 					Poly portPoly = pi.getPoly();
 					Point2D closest = portPoly.closestPoint(new Point2D.Double(fX, fY));
 					if (closest.getX() != oFX || closest.getY() != oFY)
@@ -2185,8 +2184,8 @@ public class Maze
 			if (fromPortInstList.size() > 0 && toPortInstList.size() > 0)
 			{
 				// now make the connection (simple wire to wire for now)
-				PortInst fPi = (PortInst)fromPortInstList.get(0);
-				PortInst tPi = (PortInst)toPortInstList.get(0);
+				PortInst fPi = fromPortInstList.get(0);
+				PortInst tPi = toPortInstList.get(0);
 				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), fPi, tPi, new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 				if (ai == null)
 				{
@@ -2314,63 +2313,63 @@ public class Maze
 		return portInstList;
 	}
 
-	/**
-	 * Debugging code to show the maze.
-	 */
-	private void dumpLayer(String message, SRREGION region, int layers)
-	{
-		// scan for the first layer
-		SRLAYER layer = null;
-		for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
-		{
-			if ((mask & layers) == 0) continue;
-			layer = region.layers[index];
-			if (layer != null) break;
-		}
-		int hei = layer.hei;
-		int wid = layer.wid;
-		System.out.println("====================== " + message + " ======================");
-		if (wid >= 100)
-		{
-			System.out.print("   ");
-			for (int x = 0; x < wid; x++) System.out.print((x / 100));
-			System.out.println();
-		}
-		System.out.print("   ");
-		for (int x = 0; x < wid; x++) System.out.print((x / 10 % 10));
-		System.out.println();
-		System.out.print("   ");
-		for (int x = 0; x < wid; x++) System.out.print((x % 10));
-		System.out.println();
-		for (int y = hei-1; y >= 0; y--)
-		{
-			String row = "" + y;
-			while (row.length() < 3) row = " " + row;
-			System.out.print(row);
-			for (int x = 0; x < wid; x++)
-			{
-				char gpt = ' ';
-				for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
-				{
-					if ((mask & layers) == 0) continue;
-					layer = region.layers[index];
-					if (layer == null) continue;
-					if ((layer.grids[x][y] & SR_GSET) != 0)
-					{
-						if ((layer.grids[x][y] & SR_GPORT) != 0) gpt = 'P'; else
-							gpt = '.';
-					} else
-					{
-						if ((layer.grids[x][y] & SR_GWAVE) != 0) gpt = 'W'; else
-							if (layer.grids[x][y] != 0)
-								gpt = (char)('A' + (layer.grids[x][y] & SR_GMASK) - SR_GSTART);
-					}
-				}
-				System.out.print(gpt);
-			}
-			System.out.println("");
-		}
-		System.out.println("");
-	}
+//	/**
+//	 * Debugging code to show the maze.
+//	 */
+//	private void dumpLayer(String message, SRREGION region, int layers)
+//	{
+//		// scan for the first layer
+//		SRLAYER layer = null;
+//		for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
+//		{
+//			if ((mask & layers) == 0) continue;
+//			layer = region.layers[index];
+//			if (layer != null) break;
+//		}
+//		int hei = layer.hei;
+//		int wid = layer.wid;
+//		System.out.println("====================== " + message + " ======================");
+//		if (wid >= 100)
+//		{
+//			System.out.print("   ");
+//			for (int x = 0; x < wid; x++) System.out.print((x / 100));
+//			System.out.println();
+//		}
+//		System.out.print("   ");
+//		for (int x = 0; x < wid; x++) System.out.print((x / 10 % 10));
+//		System.out.println();
+//		System.out.print("   ");
+//		for (int x = 0; x < wid; x++) System.out.print((x % 10));
+//		System.out.println();
+//		for (int y = hei-1; y >= 0; y--)
+//		{
+//			String row = "" + y;
+//			while (row.length() < 3) row = " " + row;
+//			System.out.print(row);
+//			for (int x = 0; x < wid; x++)
+//			{
+//				char gpt = ' ';
+//				for (int index = 0, mask = 1; index < SRMAXLAYERS; index++, mask = mask<<1)
+//				{
+//					if ((mask & layers) == 0) continue;
+//					layer = region.layers[index];
+//					if (layer == null) continue;
+//					if ((layer.grids[x][y] & SR_GSET) != 0)
+//					{
+//						if ((layer.grids[x][y] & SR_GPORT) != 0) gpt = 'P'; else
+//							gpt = '.';
+//					} else
+//					{
+//						if ((layer.grids[x][y] & SR_GWAVE) != 0) gpt = 'W'; else
+//							if (layer.grids[x][y] != 0)
+//								gpt = (char)('A' + (layer.grids[x][y] & SR_GMASK) - SR_GSTART);
+//					}
+//				}
+//				System.out.print(gpt);
+//			}
+//			System.out.println("");
+//		}
+//		System.out.println("");
+//	}
 
 }

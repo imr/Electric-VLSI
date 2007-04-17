@@ -73,7 +73,7 @@ public class LEFDEF extends Input
 			// find the pure layer node with this function
 			for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 			{
-				Layer lay = (Layer)it.next();
+				Layer lay = it.next();
 				if (lay.getFunction() == layerFun)
 				{
 					return lay.getPureLayerNode();
@@ -122,7 +122,7 @@ public class LEFDEF extends Input
 				// find the arcprotos that embody these layers
 				for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 				{
-					ArcProto apTry = (ArcProto)it.next();
+					ArcProto apTry = it.next();
 					if (apTry.getFunction() == aFunc1) viaArc1 = apTry;
 					if (apTry.getFunction() == aFunc2) viaArc2 = apTry;
 				}
@@ -131,7 +131,7 @@ public class LEFDEF extends Input
 				// find the via that connects these two arcs
 				for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 				{
-					PrimitiveNode np = (PrimitiveNode)it.next();
+					PrimitiveNode np = it.next();
 					// must have just one port
 					if (np.getNumPorts() != 1) continue;
 
@@ -215,7 +215,7 @@ public class LEFDEF extends Input
 				// find the arc with this function
 				for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 				{
-					ArcProto ap = (ArcProto)it.next();
+					ArcProto ap = it.next();
 					if (ap.getFunction() == arcFun)
 					{
 						arc = ap;

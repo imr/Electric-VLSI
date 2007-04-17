@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.Date;
 
 /**
@@ -153,7 +154,7 @@ public class IOTool extends Tool
 			// find the necessary method on the Dais class
 			try
 			{
-				daisInputMethod = daisClass.getMethod("readDaisFile", new Class[] {Library.class});
+				daisInputMethod = daisClass.getMethod("readDaisFile", new Class[] {URL.class, Library.class, boolean.class});
 			} catch (NoSuchMethodException e)
 			{
 				daisClass = null;
@@ -170,12 +171,12 @@ public class IOTool extends Tool
 	 * Method to invoke the Dais input module via reflection.
 	 * @param lib the Library to read.
 	 */
-	public static void readDais(Library lib)
+	public static void readDais(URL url, Library lib, boolean newLib)
 	{
 		if (!hasDais()) return;
 		try
 		{
-			daisInputMethod.invoke(daisClass, new Object[] {lib});
+			daisInputMethod.invoke(daisClass, new Object[] {url, lib, newLib});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");

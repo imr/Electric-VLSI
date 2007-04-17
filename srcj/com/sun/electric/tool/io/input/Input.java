@@ -108,7 +108,6 @@ public class Input
 		}
 
 		// get the name of the imported library
-		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
 		newLibraryCreated = false;
 
 		// import to current library
@@ -136,7 +135,7 @@ public class Input
 
 			if (type == FileType.DAIS)
 			{
-				IOTool.readDais(lib);
+				IOTool.readDais(fileURL, lib, isNewLibraryCreated());
 			} else
 			{
 				Input in;

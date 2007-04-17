@@ -128,15 +128,15 @@ public class EDIF extends Input
 	// Edif geometry types ...
 	private static class GeometryType {}
 	private static final GeometryType GUNKNOWN   = new GeometryType();
-	private static final GeometryType GRECTANGLE = new GeometryType();
-	private static final GeometryType GPOLYGON   = new GeometryType();
-	private static final GeometryType GSHAPE     = new GeometryType();
-	private static final GeometryType GOPENSHAPE = new GeometryType();
-	private static final GeometryType GTEXT      = new GeometryType();
-	private static final GeometryType GPATH      = new GeometryType();
+//	private static final GeometryType GRECTANGLE = new GeometryType();
+//	private static final GeometryType GPOLYGON   = new GeometryType();
+//	private static final GeometryType GSHAPE     = new GeometryType();
+//	private static final GeometryType GOPENSHAPE = new GeometryType();
+//	private static final GeometryType GTEXT      = new GeometryType();
+//	private static final GeometryType GPATH      = new GeometryType();
 	private static final GeometryType GINSTANCE  = new GeometryType();
-	private static final GeometryType GCIRCLE    = new GeometryType();
-	private static final GeometryType GARC       = new GeometryType();
+//	private static final GeometryType GCIRCLE    = new GeometryType();
+//	private static final GeometryType GARC       = new GeometryType();
 	private static final GeometryType GPIN       = new GeometryType();
 	private static final GeometryType GNET       = new GeometryType();
 	private static final GeometryType GBUS       = new GeometryType();

@@ -197,7 +197,7 @@ public class Eval
 			n.nPot = e.eval;
 
 			// Add the new value to the history list (if they differ)
-			if ((n.nFlags & Sim.INPUT) == 0 && ((short)n.curr.val != n.nPot))
+			if ((n.nFlags & Sim.INPUT) == 0 && (n.curr.val != n.nPot))
 				theSim.addHist(n, n.nPot, false, e.nTime, e.delay, e.rTime);
 
 			if (n.awPending != null && n.awPot == n.nPot)
@@ -221,14 +221,14 @@ public class Eval
 					t.drain.nFlags |= Sim.VISITED;
 			}
 			freeFromNode(e, n);    // remove to avoid punting this event
-			e = (Event)e.fLink;
+			e = e.fLink;
 		}
 		while(e != null);
 
 		// run thorugh event list again, marking src/drn of input nodes
 		if ((allFlags & Sim.INPUT) != 0)
 		{
-			for(e = evList; e != null; e = (Event)e.fLink)
+			for(e = evList; e != null; e = e.fLink)
 			{
 				Sim.Node n = e.eNode;
 
@@ -288,7 +288,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 			// see if we want to halt if this node changes value
 			brkFlag |= n.nFlags;
 
-			event = (Event)event.fLink;
+			event = event.fLink;
 		}
 		while(event != null);
 
@@ -468,7 +468,7 @@ if (DEBUG)
 	do
 	{
 		System.out.print(" time="+xx.nTime);
-		xx = (Event)xx.fLink;
+		xx = xx.fLink;
 	}
 	while(xx != null);
 	System.out.println();
@@ -521,9 +521,9 @@ if (DEBUG)
 		Event marker = getEVArray(eTime);
 
 		// Check whether we need to insert-sort in the list
-		if ((marker.bLink != marker) && (((Event)marker.bLink).nTime > eTime))
+		if ((marker.bLink != marker) && ((marker.bLink).nTime > eTime))
 		{
-			do { marker = (Event)marker.fLink; } while (marker.nTime <= eTime);
+			do { marker = marker.fLink; } while (marker.nTime <= eTime);
 		}
 
 		// insert event right before event pointed to by marker
@@ -615,16 +615,16 @@ if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueInp
 		Event next = null;
 		for(Event ev = evList; ev != null; ev = next)
 		{
-			next = (Event)ev.fLink;
+			next = ev.fLink;
 
 			nPending++;
 			long eTime = ev.nTime;
 if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEvents");
 			Event target = getEVArray(eTime);
 
-			if ((target.bLink != target) && (((Event)target.bLink).nTime > eTime))
+			if ((target.bLink != target) && ((target.bLink).nTime > eTime))
 			{
-				do { target = (Event)target.fLink; } while(target.nTime <= eTime);
+				do { target = target.fLink; } while(target.nTime <= eTime);
 			}
 
 			ev.fLink = target;
@@ -662,9 +662,7 @@ if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEve
 			Event hdr = evArray[i];
 			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = evhdr.fLink)
 			{
-				if (!(evhdr instanceof Event)) continue;
-				Event ev = (Event)evhdr;
-				if (DEBUG) System.out.println("   Event at time " + Sim.deltaToNS(ev.nTime) + " caused by node " + ev.cause.nName);
+				if (DEBUG) System.out.println("   Event at time " + Sim.deltaToNS(evhdr.nTime) + " caused by node " + evhdr.cause.nName);
 			}
 		}
 	}
@@ -687,8 +685,7 @@ if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEve
 			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = next)
 			{
 				next = evhdr.fLink;
-				if (!(evhdr instanceof Event)) continue;
-				Event ev = (Event)evhdr;
+				Event ev = evhdr;
 
 				ev.bLink.fLink = ev.fLink;	// remove event
 				ev.fLink.bLink = ev.bLink;
@@ -724,16 +721,16 @@ if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEve
 		Event next = null;
 		for(Event ev = tmpList; ev != null; ev = next)
 		{
-			next = (Event)ev.fLink;
+			next = ev.fLink;
 
 			ev.nTime -= ev.delay;
 			ev.type = Sim.PENDING;
 			long eTime = ev.nTime;
 			Event target = getEVArray(eTime);
 
-			if ((target.bLink != target) && (((Event)target.bLink).nTime > eTime))
+			if ((target.bLink != target) && (target.bLink.nTime > eTime))
 			{
-				do { target = (Event)target.fLink; } while(target.nTime <= eTime);
+				do { target = target.fLink; } while(target.nTime <= eTime);
 			}
 
 			ev.fLink = target;

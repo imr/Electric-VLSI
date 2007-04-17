@@ -222,7 +222,6 @@ public class Analyzer extends Engine
             System.out.println("IRSIM, version " + simVersion);
             
             // now initialize the simulator
-            Sim sim = analyzer.theSim;
             analyzer.initRSim();
             
             // Load network
@@ -435,7 +434,6 @@ public class Analyzer extends Engine
 			return;
 		}
 		Signal sig = signals.get(0);
-		String highsigname = sig.getFullName();
 		sig.clearControlPoints();
 
 		SimVector lastSV = null;
@@ -722,7 +720,6 @@ public class Analyzer extends Engine
 				{
 					// find this vector name in the list of vectors
 					DigitalSignal busSig = null;
-					Stimuli sd = ww.getSimData();
 					for(Signal aSig : analysis.getBussedSignals())
 					{
 						DigitalSignal sig = (DigitalSignal)aSig;
@@ -2009,7 +2006,7 @@ public class Analyzer extends Engine
 			return;
 		}
 
-		int comp = 0, nBits = 1;
+		int comp = 0;
 		String name = null;
 		Sim.Node [] nodes = null;
 		if (sig.getBussedSignals() == null)
@@ -2031,7 +2028,6 @@ public class Analyzer extends Engine
 			}
 			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
 			name = sig.getSignalName();
-			nBits = sigsOnBus.size();
 			nodes = nodeList;
 		}
 		if (comp != 0)
@@ -2113,7 +2109,7 @@ public class Analyzer extends Engine
 		{
 			String name = p.node.nName;
 			StringBuffer sb = new StringBuffer();
-			sb.append((char)p.val);
+			sb.append(p.val);
 			Sim.Node [] nodes = new Sim.Node[1];
 			nodes[0] = p.node;
 			int comp = compareVector(nodes, name, 1, null, sb.toString());
@@ -2160,7 +2156,6 @@ public class Analyzer extends Engine
 		{
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & which) == 0) continue;
-			int i;
 			List<Signal> sigsOnBus = sig.getBussedSignals();
 			boolean found = false;
 			for(Signal bSig : sigsOnBus)

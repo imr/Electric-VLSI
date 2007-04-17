@@ -342,7 +342,7 @@ public class Routing extends Listener
 			Point2D [] points = new Point2D[count];
 			for(int i=0; i<count; i++)
 			{
-				Connection con = (Connection)netEnds.get(i);
+				Connection con = netEnds.get(i);
 				PortInst pi = con.getPortInst();
 				Poly poly = pi.getPoly();
 				points[i] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
@@ -373,8 +373,8 @@ public class Routing extends Listener
 				if (found) break;
 
 				covered[besti] = covered[bestj] = 1;
-				PortInst head = ((Connection)netEnds.get(besti)).getPortInst();
-				PortInst tail = ((Connection)netEnds.get(bestj)).getPortInst();
+				PortInst head = netEnds.get(besti).getPortInst();
+				PortInst tail = netEnds.get(bestj).getPortInst();
 				ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, wid, head, tail);
 				if (ai == null)
 				{
@@ -808,7 +808,6 @@ public class Routing extends Listener
 						NodeInst ni = pi.getNodeInst();
 						List<NodeMatch> possibleNodes = nodeMap.get(ni);
 						if (possibleNodes == null) continue;
-						int index = 0;
 						if (possibleNodes.size() > 1)
 						{
 							PortProto p = pi.getPortProto();
@@ -841,7 +840,6 @@ public class Routing extends Listener
 						} else
 						{
 							PortProto p = pi.getPortProto();
-							int portWidth = p.getNameKey().busWidth();
 
 							int nodeIndex = 0;
 							int portIndex = b;

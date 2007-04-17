@@ -710,7 +710,7 @@ public class ToolMenu {
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
-                NodeInst ni = (NodeInst)map.get(schNet);
+                NodeInst ni = map.get(schNet);
                 ni.updateVar(LENetlister.ATTR_L, new Double(length));
                 wiresUpdated++;
                 System.out.println("Updated wire model "+ni.getName()+" on layout network "+proxy.toString()+" to: "+length+" lambda");
@@ -949,7 +949,7 @@ public class ToolMenu {
                             Connection con = cIt.next();
                             ArcInst ai = con.getArc();
                             Network oNet = netlist.getNetwork(ai, 0);
-                            HashSet<Object> ports = (HashSet<Object>)portNets.get(oNet);
+                            HashSet<Object> ports = portNets.get(oNet);
                             if (ports == null) {
                                 ports = new HashSet<Object>();
                                 portNets.put(oNet, ports);
@@ -967,7 +967,7 @@ public class ToolMenu {
                         for(int i=0; i<width; i++)
                         {
                             Network oNet = netlist.getNetwork(no, pp, i);
-                            HashSet<Object> ports = (HashSet<Object>)portNets.get(oNet);
+                            HashSet<Object> ports = portNets.get(oNet);
                             if (ports == null) {
                                 ports = new HashSet<Object>();
                                 portNets.put(oNet, ports);
@@ -979,7 +979,7 @@ public class ToolMenu {
 
                 // if there is only 1 net connected, the node is unimportant
                 if (portNets.size() <= 1) continue;
-                HashSet<Object> ports = (HashSet<Object>)portNets.get(net);
+                HashSet<Object> ports = portNets.get(net);
                 if (ports == null) continue;
 
                 if (total == 0) System.out.println("  Connects to:");
@@ -1731,7 +1731,7 @@ public class ToolMenu {
 					if (vhdlCell == null) return null;
 				}
 				String [] array = new String[vhdlStrings.size()];
-				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
+				for(int i=0; i<vhdlStrings.size(); i++) array[i] = vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				textCellsToRedraw.add(vhdlCell);
 				System.out.println(" Done, created " + vhdlCell);
@@ -1758,7 +1758,7 @@ public class ToolMenu {
 					if (netlistCell == null) return null;
 				}
 				String [] array = new String[netlistStrings.size()];
-				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);

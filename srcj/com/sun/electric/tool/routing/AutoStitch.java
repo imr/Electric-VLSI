@@ -111,7 +111,7 @@ public class AutoStitch
 			limitBound = wnd.getHighlightedArea();
 			for(Geometric geom : highs)
 			{
-				ElectricObject eObj = (ElectricObject)geom;
+				ElectricObject eObj = geom;
 				if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
 				if (eObj instanceof NodeInst)
 				{
@@ -1027,7 +1027,6 @@ public class AutoStitch
 		if (net1 == net2) return;
 
 		// look at all polygons on the first arcinst
-		boolean usePortPoly = false;
 		Poly [] polys1 = ai1.getProto().getTechnology().getShapeOfArc(ai1);
 		int tot1 = polys1.length;
 		Poly [] polys2 = ai2.getProto().getTechnology().getShapeOfArc(ai1);

@@ -329,7 +329,7 @@ public final class Main
     private static boolean hasCommandLineOption(List<String> argsList, String option) 
     {
         for (int i=0; i<argsList.size(); i++) {
-            if (((String)argsList.get(i)).equals(option)) {
+            if (argsList.get(i).equals(option)) {
                 argsList.remove(i);
                 return true;
             }
@@ -343,14 +343,14 @@ public final class Main
     private static String getCommandLineOption(List<String> argsList, String option)
     {
         for (int i=0; i<argsList.size()-1; i++) {
-            if (((String)argsList.get(i)).equals(option)) {
+            if (argsList.get(i).equals(option)) {
                 argsList.remove(i); // note that this shifts objects in arraylist
                 // check if next string valid (i.e. no dash)
-                if (((String)argsList.get(i)).startsWith("-")) {
+                if (argsList.get(i).startsWith("-")) {
                     System.out.println("Bad command line option: "+ option +" "+ argsList.get(i+1));
                     return null;
                 }
-                return (String)argsList.remove(i);
+                return argsList.remove(i);
             }
         }
         return null;
@@ -363,7 +363,7 @@ public final class Main
     {
         List<URL> fileURLs = new ArrayList<URL>();
         for (int i=0; i<argsList.size(); i++) {
-            String arg = (String)argsList.get(i);
+            String arg = argsList.get(i);
             if (arg.startsWith("-")) {
                 System.out.println("Command line option "+arg+" not understood, ignoring.");
                 continue;

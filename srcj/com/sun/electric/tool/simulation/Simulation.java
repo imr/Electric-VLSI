@@ -96,7 +96,7 @@ public class Simulation extends Tool
 	private static Method irsimSimulateMethod;
 
 	private static boolean fleetChecked = false;
-	private static Class fleetClass = null;
+	private static Class<?> fleetClass = null;
 	private static EMenu fleetSimMenu= null;
 	/**
 	 * The constructor sets up the Simulation tool.
@@ -230,7 +230,7 @@ public class Simulation extends Tool
 					if (vhdlCell == null) return false;
 				}
 				String [] array = new String[vhdlStrings.size()];
-				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
+				for(int i=0; i<vhdlStrings.size(); i++) array[i] = vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				textCellsToRedraw.add(vhdlCell);
 				System.out.println(" Done, created " + vhdlCell);
@@ -262,7 +262,7 @@ public class Simulation extends Tool
 					if (netlistCell == null) return false;
 				}
 				String [] array = new String[netlistStrings.size()];
-				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);
@@ -542,7 +542,7 @@ public class Simulation extends Tool
 
 		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
-		SetSpiceModel job = new SetSpiceModel(ni);
+		new SetSpiceModel(ni);
 	}
 
 	/**
@@ -583,7 +583,7 @@ public class Simulation extends Tool
 			System.out.println("Must select arcs before setting their type");
 			return;
 		}
-		SetWireType job = new SetWireType(list, type);
+		new SetWireType(list, type);
 	}
 
 	/**
@@ -639,7 +639,7 @@ public class Simulation extends Tool
 
 		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
-		SetTransistorStrength job = new SetTransistorStrength(ni, weak);
+		new SetTransistorStrength(ni, weak);
 	}
 
 	/**
@@ -702,7 +702,6 @@ public class Simulation extends Tool
 		if (sd.getCell() != null)
 		{
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
-			boolean isAnalog = sd.isAnalog();
 			boolean showedSomething = false;
 			boolean wantUnlockedTime = false;
 			Analysis.AnalysisType onlyType = null;
@@ -824,7 +823,7 @@ public class Simulation extends Tool
 		List<Signal> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
-			Signal sSig = (Signal)signals.get(i);
+			Signal sSig = signals.get(i);
 			int thisBracketPos = sSig.getSignalName().indexOf('[');
 			if (thisBracketPos < 0) continue;
 			String prefix = sSig.getSignalName().substring(0, thisBracketPos);
@@ -833,7 +832,7 @@ public class Simulation extends Tool
 			int j = i+1;
 			for( ; j<signals.size(); j++)
 			{
-				Signal nextSig = (Signal)signals.get(j);
+				Signal nextSig = signals.get(j);
 
 				// other signal must have the same root
 				int nextBracketPos = nextSig.getSignalName().indexOf('[');
@@ -860,7 +859,7 @@ public class Simulation extends Tool
 			busSig.buildBussedSignalList();
 			for(int k=i; k<j; k++)
 			{
-				Signal subSig = (Signal)signals.get(k);
+				Signal subSig = signals.get(k);
 				busSig.addToBussedSignalList(subSig);
 			}
 			i = j - 1;

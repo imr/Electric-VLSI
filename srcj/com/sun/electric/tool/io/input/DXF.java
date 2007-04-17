@@ -69,8 +69,8 @@ public class DXF extends Input
 		private Cell       parent;
 		private double     x, y;
 		private int        rot;
-		private int        xRep, yRep;
-		private double     xSpa, ySpa;
+//		private int        xRep, yRep;
+//		private double     xSpa, ySpa;
 		private double     xSca, ySca;
 		private ForwardRef nextForwardRef;
 	}
@@ -699,7 +699,7 @@ public class DXF extends Input
 		if (ni == null) return true;
 		if (sAngle > eAngle) eAngle += 360.0;
 		double startOffset = sAngle;
-		startOffset -= (double)iAngle / 10.0;
+		startOffset -= iAngle / 10.0;
 		ni.setArcDegrees(startOffset * Math.PI / 1800.0, (eAngle-sAngle) * Math.PI / 180.0);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readArcs++;
@@ -812,8 +812,6 @@ public class DXF extends Input
 				fr.parent = curCell;
 				fr.x = x;		fr.y = y;
 				fr.rot = rot;
-				fr.xRep = xRep;	fr.yRep = yRep;
-				fr.xSpa = xSpa;	fr.ySpa = ySpa;
 				fr.xSca = xSca;	fr.ySca = ySca;
 				fr.nextForwardRef = firstForwardRef;
 				firstForwardRef = fr;
@@ -1063,7 +1061,7 @@ public class DXF extends Input
 						if (ni == null) return true;
 						if (sA > eA) eA += 3600.0;
 						double startOffset = sA;
-						startOffset -= (double)iAngle;
+						startOffset -= iAngle;
 						ni.setArcDegrees(startOffset * Math.PI / 1800.0, (eA-sA) * Math.PI / 1800.0);
 						ni.newVar(DXF_LAYER_KEY, layer.layerName);
 						continue;
@@ -1376,7 +1374,7 @@ public class DXF extends Input
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
 				if (var != null)
 				{
-					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
+					nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
 				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
@@ -1444,7 +1442,7 @@ public class DXF extends Input
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
 				if (var != null)
 				{
-					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
+					nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
 				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{

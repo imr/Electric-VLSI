@@ -1038,7 +1038,7 @@ public class GetNetlist
 			{
 				if (!(cl.portB != null && cl.portB.extNode != null))
 				{
-					ExtNode common = extractAddNode(portA.extNode, cl.nodeB, cl.portB);
+					extractAddNode(portA.extNode, cl.nodeB, cl.portB);
 					if ((cl.nodeB.flags & Place.BITS_EXTRACT) == 0)
 					{
 						cl.nodeB.flags |= Place.BITS_EXTRACT;
@@ -1050,7 +1050,7 @@ public class GetNetlist
 			{
 				if (cl.portB != null && cl.portB.extNode != null)
 				{
-					ExtNode common = extractAddNode(cl.portB.extNode, nodeA, portA);
+					extractAddNode(cl.portB.extNode, nodeA, portA);
 				} else
 				{
 					ExtNode common = extractAddNode(null, nodeA, portA);

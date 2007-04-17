@@ -99,7 +99,6 @@ public class RouteElementArc extends RouteElement {
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
     	if (stayInside != null)
     	{
-    		double length = headEP.distance(tailEP);
         	Technology.ArcLayer al = ap.getArcLayer(0);
         	Layer layer = al.getLayer();
         	double offset = al.getLambdaOffset();

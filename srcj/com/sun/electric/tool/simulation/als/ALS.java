@@ -258,14 +258,12 @@ public class ALS extends Engine
 	static class UserProc
 	{
 		protected ALS    als;
-		private   String name;
 
 		private static HashMap<String,UserProc> funcMap = new HashMap<String,UserProc>();
 
 		void nameMe(ALS als, String name)
 		{
 			this.als = als;
-			this.name = name;
 			funcMap.put(name.toUpperCase(), this);
 		}
 
@@ -478,7 +476,6 @@ public class ALS extends Engine
 				"No Signals Selected");
 			return;
 		}
-		String [] parameters = new String[1];
 		for(Signal sig : signals)
 		{
 			String sigName = sig.getFullName();
@@ -836,7 +833,6 @@ public class ALS extends Engine
 				"No Signals Selected");
 			return;
 		}
-		String [] parameters = new String[1];
 		for(Signal sig : signals)
 		{
 			String sigName = sig.getFullName();

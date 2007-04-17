@@ -323,7 +323,6 @@ public class EpicOut extends Simulate
 	{
         char separator = '.';
         EpicStimuli sd = reader.sd;
-        Analysis an = reader.an;
         sd.setSeparatorChar(separator);
         for (int i = 0; i < reader.signals.size(); i++)
         {
@@ -369,9 +368,7 @@ public class EpicOut extends Simulate
         int maxT = 0;
         HashMap<String,String> contextNames;
 //        Progress progress;
-        
-        private static String VERSION_STRING = ";! output_format 5.3";
-            
+
         EpicReader(URL fileURL)
         {
             sd = new EpicStimuli();

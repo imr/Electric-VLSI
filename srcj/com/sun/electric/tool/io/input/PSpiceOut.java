@@ -124,7 +124,7 @@ public class PSpiceOut extends Simulate
 					if (i != 0)
 					{
 						signals[i-1] = new AnalogSignal(an);
-						signals[i-1].setSignalName((String)signalNames.get(i));
+						signals[i-1].setSignalName(signalNames.get(i));
 					}
 					values[i] = new ArrayList<Double>();
 				}
@@ -175,7 +175,7 @@ public class PSpiceOut extends Simulate
 		an.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
-			an.setCommonTime(i, ((Double)values[0].get(i)).doubleValue());
+			an.setCommonTime(i, values[0].get(i).doubleValue());
 		}
 		for(int j=1; j<numSignals; j++)
 		{
@@ -183,7 +183,7 @@ public class PSpiceOut extends Simulate
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
 			{
-				as.setValue(i, ((Double)values[j].get(i)).doubleValue());
+				as.setValue(i, values[j].get(i).doubleValue());
 			}
 		}
 		return sd;

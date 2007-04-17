@@ -78,7 +78,6 @@ public class Sim
 
 		while (als.linkFront != null)
 		{
-			ALS.Link link = als.linkFront;
 			if (als.linkFront.down != null)
 			{
 				als.linkFront.down.right = als.linkFront.right;

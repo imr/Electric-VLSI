@@ -83,7 +83,7 @@ public class TechToLib
 		}
 		String [] techChoices = new String[techs.size()];
 		for(int i=0; i<techs.size(); i++)
-			techChoices[i] = ((Technology)techs.get(i)).getTechName();
+			techChoices[i] = techs.get(i).getTechName();
 		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Technology to Edit",
 			"Choose a technology to edit", JOptionPane.QUESTION_MESSAGE, null, techChoices, Technology.getCurrent().getTechName());
 		if (chosen == null) return;
@@ -320,7 +320,7 @@ public class TechToLib
 
 				// get graphics for this layer
 				Manipulate.setPatch(ni, arcDesc);
-				Cell layerCell = (Cell)layerCells.get(arcLayer);
+				Cell layerCell = layerCells.get(arcLayer);
 				if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 			}
@@ -468,7 +468,7 @@ public class TechToLib
 
 					// get graphics for this layer
 					Manipulate.setPatch(ni, desc);
-					Cell layerCell = (Cell)layerCells.get(nodeLayer);
+					Cell layerCell = layerCells.get(nodeLayer);
 					if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 					ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 
@@ -478,8 +478,7 @@ public class TechToLib
 					{
 						if (nodeLayers[i].getRepresentation() == Technology.NodeLayer.MINBOX)
 						{
-							Variable var = ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
-//							if (var != null) var.setDisplay(true);
+							ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
 						}
 					}
 				}
@@ -523,7 +522,7 @@ public class TechToLib
 					if (pNi == null) return null;
 					portNodes.put(pp, pNi);
 					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
-					Variable var = pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
+					pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
 
 					// on the first sample, also show angle and connection
 					if (e != 0) continue;
@@ -539,7 +538,7 @@ public class TechToLib
 					for(int i=0; i<connects.length; i++)
 					{
 						if (connects[i].getTechnology() != tech) continue;
-						Cell cell = (Cell)arcCells.get(connects[i]);
+						Cell cell = arcCells.get(connects[i]);
 						if (cell != null) validConns.add(cell);
                         for (int k = 0; k < aList.length; k++) {
                             if (aList[k].name.equals(connects[i].getName())) {
@@ -551,8 +550,8 @@ public class TechToLib
 					{
 						CellId [] aplist = new CellId[validConns.size()];
 						for(int i=0; i<validConns.size(); i++) {
-                            Cell cell = (Cell)validConns.get(i);
-							aplist[i] = (CellId)cell.getId();
+                            Cell cell = validConns.get(i);
+							aplist[i] = cell.getId();
                         }
 						pNi.newVar(Info.CONNECTION_KEY, aplist);
 					}
@@ -563,7 +562,7 @@ public class TechToLib
 						PrimitivePort opp = (PrimitivePort)oPIt.next();
 						if (opp == pp) break;
 						if (opp.getTopology() != pp.getTopology()) continue;
-						NodeInst nni = (NodeInst)portNodes.get(opp);
+						NodeInst nni = portNodes.get(opp);
 						if (nni == null) continue;
 						PortInst head = nni.getOnlyPortInst();
 						PortInst tail = pNi.getOnlyPortInst();

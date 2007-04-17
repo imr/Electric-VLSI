@@ -303,7 +303,7 @@ public class SeaOfGates
 
 		// user-interface initialization
         long startTime = System.currentTimeMillis();
-        Job.getUserInterface().startProgressDialog("Routing", null);
+        Job.getUserInterface().startProgressDialog("Routing " + arcsToRoute.size() + " nets", null);
 		Job.getUserInterface().setProgressNote("Building blockage information...");
 
 		// get all blockage information into R-Trees
@@ -323,6 +323,7 @@ public class SeaOfGates
 
 		// route the networks
 		int numFailedRoutes = 0;
+		int numRoutedSegments = 0, numSegments = 0;
 		firstFailure = true;
 		totalWireLength = 0;
 		int numToRoute = arcsToRoute.size();
@@ -379,6 +380,7 @@ public class SeaOfGates
 			{
 				PortInst fromPi = orderedPorts.get(i);
 				PortInst toPi = orderedPorts.get(i+1);
+				numSegments++;
 				if (inValidPort(fromPi) || inValidPort(toPi))
 				{
 					allRouted = false;
@@ -386,7 +388,8 @@ public class SeaOfGates
 				}
 
 				segRouted[i] = findPath(netID, fromPi, toPi, minWidth);
-				if (!segRouted[i]) allRouted = false;
+				if (segRouted[i]) numRoutedSegments++; else
+					allRouted = false;
 			}
 			if (allRouted)
 			{
@@ -423,8 +426,9 @@ public class SeaOfGates
 		// clean up at end
 		long stopTime = System.currentTimeMillis();
         Job.getUserInterface().stopProgressDialog();
-        System.out.println("Total length of routed wires is " + totalWireLength +
-        	"  Routing took " + TextUtils.getElapsedTime(stopTime-startTime));
+        System.out.println("Routed " + numRoutedSegments + " out of " + numSegments +
+        	" segments; total length of routed wires is " + totalWireLength +
+        	"; took " + TextUtils.getElapsedTime(stopTime-startTime));
 		if (numFailedRoutes > 0)
 			System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
 	}
@@ -487,7 +491,6 @@ public class SeaOfGates
 
 					// see if the node is asymmetric and should exist in rotated states
 					boolean square = true, offCenter = false;
-					SizeOffset so = np.getProtoSizeOffset();
 					NodeInst dummyNi = NodeInst.makeDummyInstance(np);
 					Poly [] conPolys = tech.getShapeOfNode(dummyNi);
 					for(int p=0; p<conPolys.length; p++)
@@ -958,14 +961,14 @@ public class SeaOfGates
 					// first line is vertical: run a horizontal bit
 					NodeInst ni = makeNodeInst(np, new EPoint(v1.getX(), toPoly.getCenterY()),
 						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
-					ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
+					makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
 					lastPort = ni.getOnlyPortInst();
 				} else if (v1.getY() == v2.getY())
 				{
 					// first line is horizontal: run a vertical bit
 					NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.getY()),
 						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
-					ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
+					makeArcInst(type, width, ni.getOnlyPortInst(), toPi, netID);
 					lastPort = ni.getOnlyPortInst();
 				}
 			}
@@ -993,7 +996,7 @@ public class SeaOfGates
 				NodeInst ni = makeNodeInst(np, new EPoint(sv.getX(), sv.getY()), wid, hei, orient, cell, netID);
 				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
-				ArcInst ai = makeArcInst(type, width, lastPort, ni.getOnlyPortInst(), netID);
+				makeArcInst(type, width, lastPort, ni.getOnlyPortInst(), netID);
 				lastPort = ni.getOnlyPortInst();
 				madeContacts = true;
 				sv = svNext;
@@ -1022,7 +1025,7 @@ public class SeaOfGates
 							PrimitiveNode pNp = metalArcs[fromZ].findPinProto();
 							NodeInst ni = makeNodeInst(pNp, new EPoint(v1.getX(), fromPoly.getCenterY()),
 								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
-							ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
+							makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
 							pi = ni.getOnlyPortInst();
 						} else if (v1.getY() == v2.getY())
 						{
@@ -1030,7 +1033,7 @@ public class SeaOfGates
 							PrimitiveNode pNp = metalArcs[fromZ].findPinProto();
 							NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.getY()),
 								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, netID);
-							ArcInst ai = makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
+							makeArcInst(type, width, ni.getOnlyPortInst(), fromPi, netID);
 							pi = ni.getOnlyPortInst();
 						}
 					}
@@ -1045,7 +1048,7 @@ public class SeaOfGates
 			{
 				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
-				ArcInst ai = makeArcInst(type, width, lastPort, pi, netID);
+				makeArcInst(type, width, lastPort, pi, netID);
 			}
 			lastPort = pi;
 		}
@@ -1925,75 +1928,75 @@ public class SeaOfGates
 		row.put(x, sv);
 	}
 
-	/**
-	 * Debugging method to dump an R-Tree plane.
-	 * @param z the metal layer to dump.
-	 */
-	private void dumpPlane(int z)
-	{
-		System.out.println("************************* METAL " + (z+1) + " *************************");
-		Map<Integer,Map<Integer,SearchVertex>> plane = searchVertexPlanes[z];
-		if (plane == null) return;
-		List<Integer> yValues = new ArrayList<Integer>();
-		for(Iterator<Integer> it = plane.keySet().iterator(); it.hasNext(); )
-			yValues.add(it.next());
-		Collections.sort(yValues);
-		int lowY = yValues.get(0).intValue();
-		int highY = yValues.get(yValues.size()-1).intValue();
-		int lowX = 1, highX = 0;
-		for(Integer y : yValues)
-		{
-			Map<Integer,SearchVertex> row = plane.get(y);
-			for(Iterator<Integer> it = row.keySet().iterator(); it.hasNext(); )
-			{
-				Integer x = it.next();
-				int xv = x.intValue();
-				if (lowX > highX) lowX = highX = xv; else
-				{
-					if (xv < lowX) lowX = xv;
-					if (xv > highX) highX = xv;
-				}
-			}
-		}
-		String lowXStr = " " + lowX;
-		String highXStr = " " + highX;
-		int numXDigits = Math.max(lowXStr.length(), highXStr.length());
-		String lowYStr = " " + lowY;
-		String highYStr = " " + highY;
-		int numYDigits = Math.max(lowYStr.length(), highYStr.length());
-
-		String space = "   ";
-		while (space.length() < numYDigits+3) space += " ";
-		System.out.print(space);
-		for(int x=lowX; x<=highX; x++)
-		{
-			String xCoord = " " + x;
-			while (xCoord.length() < numXDigits) xCoord = " " + xCoord;
-			System.out.print(xCoord);
-		}
-		System.out.println();
-
-		for(int y=highY; y>=lowY; y--)
-		{
-			String yCoord = " " + y;
-			while (yCoord.length() < numYDigits) yCoord = " " + yCoord;
-			System.out.print("Row"+yCoord);
-			Map<Integer,SearchVertex> row = plane.get(y);
-			if (row != null)
-			{
-				for(int x=lowX; x<=highX; x++)
-				{
-					SearchVertex sv = row.get(x);
-					String xCoord;
-					if (sv == null) xCoord = " X"; else
-						xCoord = " " + sv.cost;
-					while (xCoord.length() < numXDigits) xCoord = " " + xCoord;
-					System.out.print(xCoord);
-				}
-			}
-			System.out.println();
-		}
-	}
+//	/**
+//	 * Debugging method to dump an R-Tree plane.
+//	 * @param z the metal layer to dump.
+//	 */
+//	private void dumpPlane(int z)
+//	{
+//		System.out.println("************************* METAL " + (z+1) + " *************************");
+//		Map<Integer,Map<Integer,SearchVertex>> plane = searchVertexPlanes[z];
+//		if (plane == null) return;
+//		List<Integer> yValues = new ArrayList<Integer>();
+//		for(Iterator<Integer> it = plane.keySet().iterator(); it.hasNext(); )
+//			yValues.add(it.next());
+//		Collections.sort(yValues);
+//		int lowY = yValues.get(0).intValue();
+//		int highY = yValues.get(yValues.size()-1).intValue();
+//		int lowX = 1, highX = 0;
+//		for(Integer y : yValues)
+//		{
+//			Map<Integer,SearchVertex> row = plane.get(y);
+//			for(Iterator<Integer> it = row.keySet().iterator(); it.hasNext(); )
+//			{
+//				Integer x = it.next();
+//				int xv = x.intValue();
+//				if (lowX > highX) lowX = highX = xv; else
+//				{
+//					if (xv < lowX) lowX = xv;
+//					if (xv > highX) highX = xv;
+//				}
+//			}
+//		}
+//		String lowXStr = " " + lowX;
+//		String highXStr = " " + highX;
+//		int numXDigits = Math.max(lowXStr.length(), highXStr.length());
+//		String lowYStr = " " + lowY;
+//		String highYStr = " " + highY;
+//		int numYDigits = Math.max(lowYStr.length(), highYStr.length());
+//
+//		String space = "   ";
+//		while (space.length() < numYDigits+3) space += " ";
+//		System.out.print(space);
+//		for(int x=lowX; x<=highX; x++)
+//		{
+//			String xCoord = " " + x;
+//			while (xCoord.length() < numXDigits) xCoord = " " + xCoord;
+//			System.out.print(xCoord);
+//		}
+//		System.out.println();
+//
+//		for(int y=highY; y>=lowY; y--)
+//		{
+//			String yCoord = " " + y;
+//			while (yCoord.length() < numYDigits) yCoord = " " + yCoord;
+//			System.out.print("Row"+yCoord);
+//			Map<Integer,SearchVertex> row = plane.get(y);
+//			if (row != null)
+//			{
+//				for(int x=lowX; x<=highX; x++)
+//				{
+//					SearchVertex sv = row.get(x);
+//					String xCoord;
+//					if (sv == null) xCoord = " X"; else
+//						xCoord = " " + sv.cost;
+//					while (xCoord.length() < numXDigits) xCoord = " " + xCoord;
+//					System.out.print(xCoord);
+//				}
+//			}
+//			System.out.println();
+//		}
+//	}
 
 	private void showSearchVertices(Map<Integer,Map<Integer,SearchVertex>> [] planes, boolean horiz)
 	{

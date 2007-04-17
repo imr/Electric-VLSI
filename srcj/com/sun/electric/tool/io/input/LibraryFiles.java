@@ -1215,7 +1215,7 @@ public abstract class LibraryFiles extends Input
 	 */
 	private int fixTextDescriptorFont(int descriptor1)
 	{
-		int fontNumber = (int)((descriptor1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH);
+		int fontNumber = (descriptor1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
         if (fontNumber == 0) return descriptor1;
         descriptor1 &= ~ELIBConstants.VTFACE;
 		if (fontNames != null && fontNumber <= fontNames.length)

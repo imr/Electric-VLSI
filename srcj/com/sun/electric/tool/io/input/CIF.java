@@ -80,7 +80,7 @@ public class CIF extends Input
 	private static final int NONAME     = 119;
 
 	// enumerated types for cif 2.0 parser
-	private static final int SEMANTICERROR = 0;
+//	private static final int SEMANTICERROR = 0;
 	private static final int SYNTAXERROR   = 1;
 	private static final int WIRECOM       = 2;
 	private static final int BOXCOM        = 3;
@@ -113,7 +113,7 @@ public class CIF extends Input
 	private static final int FATALSEMANTIC = 2;
 	private static final int FATALOUTPUT   = 3;
 	private static final int ADVISORY      = 4;
-	private static final int OTHER         = 5;			/* OTHER must be last */
+//	private static final int OTHER         = 5;			/* OTHER must be last */
 
 	private static final int TIDENT     = 0;
 	private static final int TROTATE    = 1;
@@ -123,11 +123,11 @@ public class CIF extends Input
 	// values for BackCIFList->identity
 	private static final int CSTART =   0;
 	private static final int CEND =     1;
-	private static final int CWIRE =    2;
-	private static final int CFLASH =   3;
+//	private static final int CWIRE =    2;
+//	private static final int CFLASH =   3;
 	private static final int CBOX =     4;
 	private static final int CPOLY =    5;
-	private static final int CCOMMAND = 6;
+//	private static final int CCOMMAND = 6;
 	private static final int CGNAME =   7;
 	private static final int CLABEL =   8;
 	private static final int CCALL =    9;
@@ -581,8 +581,6 @@ public class CIF extends Input
 			if (cp.y[i] < ly) ly = cp.y[i];
 			if (cp.y[i] > hy) hy = cp.y[i];
 		}
-		double cmCX = (lx + hx) / 2;
-		double cmCY = (ly + hy) / 2;
 
 		// convert from centimicrons
 		double lowX = convertFromCentimicrons(lx);
@@ -701,7 +699,7 @@ public class CIF extends Input
 		initParser();
 		initInterpreter();
 		inFromFile();
-		int comcount = parseFile();		// read in the cif
+		parseFile();		// read in the cif
 		doneParser();
 
 		if (numFatalErrors > 0) return true;
@@ -714,7 +712,7 @@ public class CIF extends Input
 			}
 		}
 
-		Rectangle box = getInterpreterBounds();
+		getInterpreterBounds();
 
 		// construct a list: first step in the conversion
 		createList();
@@ -1420,7 +1418,7 @@ public class CIF extends Input
 						command = DEFSTART;
 						symbolNumber = getNumber(); if (errorFound) return reportError();
 						skipSeparators(); multiplier = divisor = 1;
-						if (TextUtils.isDigit((char)peekNextCharacter()))
+						if (TextUtils.isDigit(peekNextCharacter()))
 						{
 							multiplier = getNumber(); if (errorFound) return reportError();
 							divisor = getNumber(); if (errorFound) return reportError();
@@ -2170,7 +2168,7 @@ public class CIF extends Input
 
 		FrontPath bbpath = new FrontPath();		// get a new path for bb use
 		copyPath(tPath, bbpath);
-		Rectangle box = boundsWire(width, bbpath);
+		boundsWire(width, bbpath);
 		obj.points = new Point[length];
 		for (int i = 0; i < length; i++) obj.points[i] = removePoint(tPath);
 
@@ -2207,7 +2205,7 @@ public class CIF extends Input
 		{
 			if (atEndOfFile()) break;
 			if (peekNextCharacter() == ';') break;
-			user.append((char)getNextCharacter());
+			user.append(getNextCharacter());
 		}
 		return user.toString();
 	}
@@ -2249,7 +2247,7 @@ public class CIF extends Input
 		int ans = 0;
 		skipSpaces();
 
-		while (ans < BIGSIGNED && TextUtils.isDigit((char)peekNextCharacter()))
+		while (ans < BIGSIGNED && TextUtils.isDigit(peekNextCharacter()))
 		{
 			ans *= 10; ans += getNextCharacter() - '0';
 			somedigit = true;
@@ -2260,7 +2258,7 @@ public class CIF extends Input
 			logIt(NOUNSIGNED);
 			return 0;
 		}
-		if (TextUtils.isDigit((char)peekNextCharacter()))
+		if (TextUtils.isDigit(peekNextCharacter()))
 		{
 			logIt(NUMTOOBIG);
 			return 0XFFFFFFFF;
@@ -2588,14 +2586,14 @@ public class CIF extends Input
 				ans.y = (matrixStackTop.a22 < 0) ? -foo.y : foo.y;
 				return ans;
 			case TROTATE:
-				ans.x = (int)(((float) foo.x)*matrixStackTop.a11+((float) foo.y)*matrixStackTop.a21);
-				ans.y = (int)(((float) foo.x)*matrixStackTop.a12+((float) foo.y)*matrixStackTop.a22);
+				ans.x = (int)(foo.x*matrixStackTop.a11 + foo.y*matrixStackTop.a21);
+				ans.y = (int)(foo.x*matrixStackTop.a12 + foo.y*matrixStackTop.a22);
 				return ans;
 			default:
-				ans.x = (int)(matrixStackTop.a31 + ((float) foo.x)*matrixStackTop.a11+
-					((float) foo.y)*matrixStackTop.a21);
-				ans.y = (int)(matrixStackTop.a32 + ((float) foo.x)*matrixStackTop.a12+
-					((float) foo.y)*matrixStackTop.a22);
+				ans.x = (int)(matrixStackTop.a31 + foo.x*matrixStackTop.a11+
+					foo.y*matrixStackTop.a21);
+				ans.y = (int)(matrixStackTop.a32 + foo.x*matrixStackTop.a12+
+					foo.y*matrixStackTop.a22);
 		}
 		return ans;
 	}
@@ -2717,14 +2715,14 @@ public class CIF extends Input
 		if (peekNextCharacter() == '-') { sign = true;   getNextCharacter(); }
 
 		boolean someDigit = false;
-		while (ans < BIGSIGNED && TextUtils.isDigit((char)peekNextCharacter()))
+		while (ans < BIGSIGNED && TextUtils.isDigit(peekNextCharacter()))
 		{
 			ans *= 10; ans += getNextCharacter() - '0';
 			someDigit = true;
 		}
 
 		if (!someDigit) { logIt(NOSIGNED);   return 0; }
-		if (TextUtils.isDigit((char)peekNextCharacter()))
+		if (TextUtils.isDigit(peekNextCharacter()))
 		{
 			logIt(NUMTOOBIG);
 			return sign ? -0X7FFFFFFF : 0X7FFFFFFF;

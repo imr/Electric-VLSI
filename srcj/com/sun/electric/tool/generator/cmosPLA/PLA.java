@@ -170,8 +170,7 @@ public class PLA
 		public boolean doIt() throws JobException
 		{
 			URL fileURL = LibFile.getLibFile(libName + ".jelib");
-    		Library lib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
-//            Undo.noUndoAllowed();
+    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
 			return true;
 		}
 	}
@@ -347,8 +346,6 @@ public class PLA
 			initComponents();
 			setVisible(true);
 		}
-
-		private void ok() { exit(true); }
 
 		protected void escapePressed() { exit(false); }
 
@@ -768,9 +765,7 @@ public class PLA
 		PortProto fromPortProto, NodeInst toNodeInst, PortProto toPortProto, Cell cell)
 	{
 		PortInst fromPi = fromNodeInst.findPortInstFromProto(fromPortProto);
-		Poly fromPoly = fromPi.getPoly();
 		PortInst toPi = toNodeInst.findPortInstFromProto(toPortProto);
-		Poly toPoly = toPi.getPoly();
 		if (typ == null)
 		{
 			System.out.println("Attempting to wire with unknown arc layer");

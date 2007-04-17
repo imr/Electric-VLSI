@@ -74,7 +74,6 @@ public class Project extends Listener
 	        static final String PROJECTFILE = "project.proj";
 
 	/** the Project tool. */					private static Project tool = new Project();
-	/** the users */							private static HashMap<String,String> usersMap;
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
 	/** check modules */						private static List<FCheck>    fCheckList = new ArrayList<FCheck>();
 	/** nonzero if the system is active */		        static boolean pmActive;
@@ -373,8 +372,8 @@ public class Project extends Listener
 					if (errorMsg.length() > 0) errorMsg += ", ";
 					errorMsg += cell.describe(true);
 				}
-				String [] options = {"Yes", "No", "Always"};
                 int ret = 1;
+                // String [] options = {"Yes", "No", "Always"};
 				//int ret = Job.getUserInterface().askForChoice("Cannot change unchecked-out cells: " + errorMsg +
 				//	".  Do you want to check them out?", "Change Blocked by Checked-in Cells", options, "No");
 				if (ret == 0) undoChange = false;
@@ -539,7 +538,6 @@ public class Project extends Listener
 		ProjectLibrary pl = pc.getProjectLibrary();
 		String libName = pl.getProjectDirectory() + File.separator + pc.getCellName() + File.separator + pc.getVersion() + "-" +
 			pc.getView().getFullName() + "." + pc.getLibExtension();
-		URL libURL = TextUtils.makeURLToFile(libName);
 
 		// read the library
 		Cell newCell = null;
@@ -840,7 +838,6 @@ public class Project extends Listener
 	{
 		boolean alter = getRepositoryLocation().length() > 0;
 		cacheRepositoryLocation.setString(r);
-		usersMap = null;
 		if (alter) projectDB.clearDatabase();
 	}
 

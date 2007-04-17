@@ -117,7 +117,7 @@ public class GeneralInfo extends Info
 
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			int opt = Manipulate.getOptionOnNode(ni);
 			String str = getValueOnNode(ni);
 			switch (opt)

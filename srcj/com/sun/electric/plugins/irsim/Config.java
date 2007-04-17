@@ -88,10 +88,6 @@ public class Config
 	/** width of source/drain diffusion */			private double DIFFEXT    = 0;
 
 	/* the following are computed from above */
-	/** xtor diff-width capacitance -- perimeter */	private double CTDW;
-													private double CPTDW;
-	/** xtor diff-extension cap. -- perimeter */	private double CTDE;
-													private double CPTDE;
 	/** xtor gate capacitance -- area */			public  double CTGA;
 
 	private List<Sim.Resists> [][]  resHTab;
@@ -194,11 +190,12 @@ public class Config
 		lambdaSquared = lambda * lambda;
 		lambdaCM = (long)(lambda * CM_M);
 		CTGA = ((configFlags & SUBPAREA) != 0 ? (CGA - CPA) : CGA) / (CM_M * CM_M);
+		double CTDW = 0;	// xtor diff-width capacitance -- perimeter
+		double CPTDW = 0;
+		double CTDE = 0;	// xtor diff-extension cap. -- perimeter
+		double CPTDE = 0;
 		switch(configFlags & (DIFFEXTF | DIFFPERIM))
 		{
-			case 0:
-				CTDE = CTDW = 0.0; CPTDE = CPTDW = 0.0;
-				break;
 			case DIFFPERIM:
 				configFlags |= TDIFFCAP;
 				CTDE = CPTDE = 0.0;

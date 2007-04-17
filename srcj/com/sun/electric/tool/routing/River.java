@@ -105,9 +105,9 @@ public class River
 	private static final int ROUTEINX     = 1;
 	private static final int ROUTEINY     = 2;
 	private static final int ILLEGALROUTE = -1;
-	/** bottom to top  -- side 1 to side 3 */			private static final int BOTTOP   = 1;
-	/** side   to top  -- side 2 or side 4 to side 3 */	private static final int FROMSIDE = 2;
-	/** bottom to side -- side 1 to side 3 or side 2 */	private static final int TOSIDE   = 3;
+//	/** bottom to top  -- side 1 to side 3 */			private static final int BOTTOP   = 1;
+//	/** side   to top  -- side 2 or side 4 to side 3 */	private static final int FROMSIDE = 2;
+//	/** bottom to side -- side 1 to side 3 or side 2 */	private static final int TOSIDE   = 3;
 
 	/** list of RDESC objects */						private List<RDESC> rightP, leftP;
 	/** the initial coordinate of the route */			private double      fromLine;
@@ -129,27 +129,24 @@ public class River
 	{
 		private double t11, t12;
 		private double t21, t22;
-		private double tx, ty;
 
-		TRANSFORM(double t11, double t12, double t21, double t22, double tx, double ty)
+		TRANSFORM(double t11, double t12, double t21, double t22)
 		{
 			this.t11 = t11;
 			this.t12 = t12;
 			this.t21 = t21;
 			this.t22 = t22;
-			this.tx = tx;
-			this.ty = ty;
 		}
 	};
-	/** X increasing, y2>y1 */							private static final TRANSFORM xfNoRot        = new TRANSFORM( 1,  0,  0,  1, 0, 0);
-	/** Y decreasing, x2>x1 */							private static final TRANSFORM xfRot90        = new TRANSFORM( 0,  1, -1,  0, 0, 0);
-	/** X decreasing, y2<y1 */							private static final TRANSFORM xfRot180       = new TRANSFORM(-1,  0,  0, -1, 0, 0);
-	/** Y increasing, x2<x1 or rot -90 */				private static final TRANSFORM xfRot270       = new TRANSFORM( 0, -1,  1,  0, 0, 0);
-	/** X decreasing, y2>y1 mirror X, around Y axis */	private static final TRANSFORM xfMirrorX      = new TRANSFORM(-1,  0,  0,  1, 0, 0);
-	/** Y increasing, x2>x1 rot90 and mirror X */		private static final TRANSFORM xfRot90MirrorX = new TRANSFORM( 0,  1,  1,  0, 0, 0);
-	/** X increasing, y2<y1 mirror Y, around X axis */	private static final TRANSFORM xfMirrorY      = new TRANSFORM( 1,  0,  0, -1, 0, 0);
-	/** Y decreasing, x2<x1 mirror X, rot90 */			private static final TRANSFORM xfMirrorXRot90 = new TRANSFORM( 0, -1, -1,  0, 0, 0);
-	/** tx,ty */										private static final TRANSFORM xfInverse      = new TRANSFORM( 1,  0,  0,  1, 0, 0);
+	/** X increasing, y2>y1 */							private static final TRANSFORM xfNoRot        = new TRANSFORM( 1,  0,  0,  1);
+	/** Y decreasing, x2>x1 */							private static final TRANSFORM xfRot90        = new TRANSFORM( 0,  1, -1,  0);
+	/** X decreasing, y2<y1 */							private static final TRANSFORM xfRot180       = new TRANSFORM(-1,  0,  0, -1);
+	/** Y increasing, x2<x1 or rot -90 */				private static final TRANSFORM xfRot270       = new TRANSFORM( 0, -1,  1,  0);
+	/** X decreasing, y2>y1 mirror X, around Y axis */	private static final TRANSFORM xfMirrorX      = new TRANSFORM(-1,  0,  0,  1);
+	/** Y increasing, x2>x1 rot90 and mirror X */		private static final TRANSFORM xfRot90MirrorX = new TRANSFORM( 0,  1,  1,  0);
+	/** X increasing, y2<y1 mirror Y, around X axis */	private static final TRANSFORM xfMirrorY      = new TRANSFORM( 1,  0,  0, -1);
+	/** Y decreasing, x2<x1 mirror X, rot90 */			private static final TRANSFORM xfMirrorXRot90 = new TRANSFORM( 0, -1, -1,  0);
+	/** tx,ty */										private static final TRANSFORM xfInverse      = new TRANSFORM( 1,  0,  0,  1);
 
 	/**
 	 * Class for points in the river routing.
@@ -270,7 +267,7 @@ public class River
 		UserInterface ui = Job.getUserInterface();
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
-		RiverRouteJob job = new RiverRouteJob(curCell);
+		new RiverRouteJob(curCell);
 	}
 
 	private static class RiverRouteJob extends Job
@@ -426,7 +423,7 @@ public class River
 		int total = 0;
 		for(ArcProto ap : arcProtoUsage.keySet())
 		{
-			GenMath.MutableInteger mi = (GenMath.MutableInteger)arcProtoUsage.get(ap);
+			GenMath.MutableInteger mi = arcProtoUsage.get(ap);
 			if (mi == null) continue;
 			total += mi.intValue();
 			if (mi.intValue() > mostUses)
@@ -741,8 +738,8 @@ public class River
 		for(int i=0; i<total/2; i++)
 		{
 			int otherI = total - i - 1;
-			RDESC early = (RDESC)p.get(i);
-			RDESC late = (RDESC)p.get(otherI);
+			RDESC early = p.get(i);
+			RDESC late = p.get(otherI);
 			p.set(i, late);
 			p.set(otherI, early);
 		}
@@ -863,7 +860,7 @@ public class River
 			return false;
 		}
 
-		RDESC listLast = (RDESC)rdescList.get(numRDesc-1);
+		RDESC listLast = rdescList.get(numRDesc-1);
 		if (listLast.from == null || listLast.to == null)
 		{
 			System.out.println("River router: Not the same number of points");
@@ -871,7 +868,7 @@ public class River
 		}
 
 		// decide route orientation
-		RDESC listP = (RDESC)rdescList.get(0);
+		RDESC listP = rdescList.get(0);
 		TRANSFORM tMatrix = null;
 		double val1 = 0, val2 = 0;
 		if (routDirection == ROUTEINX)
@@ -915,8 +912,8 @@ public class River
 		// check ordering of coordinates
 		for(int i=0; i<numRDesc-1; i++)
 		{
-			RDESC lList = (RDESC)rdescList.get(i);
-			RDESC lListNext = (RDESC)rdescList.get(i+1);
+			RDESC lList = rdescList.get(i);
+			RDESC lListNext = rdescList.get(i+1);
 
 			// make sure there are no crossings
 			if (routDirection == ROUTEINY)
@@ -983,7 +980,6 @@ public class River
 		// matrix to take route back to original coordinate system
 		xfInverse.t11 = tMatrix.t11;       xfInverse.t12 = tMatrix.t21;
 		xfInverse.t21 = tMatrix.t12;       xfInverse.t22 = tMatrix.t22;
-		xfInverse.tx = listP.from.first;   xfInverse.ty = listP.from.second;
 		fromLine = val1;   toLine = val2;
 		return true;
 	}
@@ -1126,7 +1122,7 @@ public class River
 		{
 			ArcProto ap = possibleArcs[i];
 			if (ap.getTechnology() == Generic.tech) continue;
-			GenMath.MutableInteger mi = (GenMath.MutableInteger)arcProtoUsage.get(ap);
+			GenMath.MutableInteger mi = arcProtoUsage.get(ap);
 			if (mi == null)
 			{
 				mi = new GenMath.MutableInteger(0);
@@ -1409,7 +1405,7 @@ public class River
 			PortProto rpPort = thePort(defPort, rd, rp);
 			PortInst rpPi = rpNodeInst.findPortInstFromProto(rpPort);
 
-			ArcInst ai = ArcInst.makeInstance(path.pathType, path.width, prevPi, rpPi);
+			ArcInst.makeInstance(path.pathType, path.width, prevPi, rpPi);
 			prev = rp;   prevPi = rpPi;
 		}
 	}

@@ -464,7 +464,7 @@ public class Place
 		{
 			for (int i=0; i<connectList.size(); )
 			{
-				ClConnect connect = (ClConnect)connectList.get(i);
+				ClConnect connect = connectList.get(i);
 	
 				// if either placed, continue
 				if ((connect.node[0].bits & BITS_PLACED) != 0 ||
@@ -549,10 +549,10 @@ public class Place
 	private ClConnect bestPair(List<ClConnect> connectList, int index)
 	{
 		List<Temp> sList = new ArrayList<Temp>();
-		ClConnect connect = (ClConnect)connectList.get(index);
+		ClConnect connect = connectList.get(index);
 		for(int oIndex=index; oIndex<connectList.size(); oIndex++)
 		{
-			ClConnect nConnect = (ClConnect)connectList.get(oIndex);
+			ClConnect nConnect = connectList.get(oIndex);
 			if (nConnect.count < connect.count) break;
 			if ((nConnect.node[0].bits & BITS_PLACED) != 0 ||
 				(nConnect.node[1].bits & BITS_PLACED) != 0) continue;
@@ -732,7 +732,7 @@ public class Place
 		}
 
 		// set trunks lengths
-		double pos = costClusterTree2(cTree, trunks, 0);
+		costClusterTree2(cTree, trunks, 0);
 
 		// calculate cost
 		int cost = 0;
@@ -851,7 +851,7 @@ public class Place
 		}
 
 		// get the last entry in the list
-		RowList row = (RowList)theRows.get(theRows.size() - 1);
+		RowList row = theRows.get(theRows.size() - 1);
 		double oldCondition = place.sizeRows - row.rowSize;
 		double newCondition = place.sizeRows - (row.rowSize + cluster.node.size);
 		if ((row.rowNum + 1) < place.numRows &&
@@ -1086,12 +1086,12 @@ public class Place
 
 		// check all rows
 		int chanPos = 0;
-		Channel nChan = (Channel)channels.get(chanPos);
+		Channel nChan = channels.get(chanPos);
 		boolean above = true;
 		int dis = 0;
 		int rowNum = 0;
 		int maxRowSize = cell.placement.sizeRows + (cell.placement.avgSize >>1);
-		RowList rows = (RowList)theRows.get(0);
+		RowList rows = theRows.get(0);
 		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
 			// check for room in current row
@@ -1107,7 +1107,7 @@ public class Place
 						if (above ^= true)
 						{
 							chanPos++;
-							nChan = (Channel)channels.get(chanPos);
+							nChan = channels.get(chanPos);
 						}
 					}
 				}
@@ -1123,7 +1123,7 @@ public class Place
 						if (above ^= true)
 						{
 							chanPos++;
-							nChan = (Channel)channels.get(chanPos);
+							nChan = channels.get(chanPos);
 						}
 					}
 				}
@@ -1177,7 +1177,7 @@ public class Place
 		}
 
 		// calculate vertical cost
-		for (NBTrunk nTrunk = ((Channel)channels.get(0)).trunks; nTrunk != null; nTrunk = nTrunk.next)
+		for (NBTrunk nTrunk = (channels.get(0)).trunks; nTrunk != null; nTrunk = nTrunk.next)
 		{
 			NBTrunk fTrunk = null;
 			int fCount = 0, count = 0;
@@ -1326,7 +1326,7 @@ public class Place
 		}
 
 		// check if row change
-		RowList rows = (RowList)theRows.get(0);
+		RowList rows = theRows.get(0);
 		for (RowList row : theRows)
 		{
 			if (row.start == oldPlace)
@@ -1356,7 +1356,7 @@ public class Place
 	{
 		int maxRowSize = place.sizeRows + (place.avgSize >> 1);
 		int rowPos = 0;
-		RowList rows = (RowList)theRows.get(rowPos);
+		RowList rows = theRows.get(rowPos);
 		rows.rowSize = 0;
 		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
@@ -1364,7 +1364,7 @@ public class Place
 				(rows.rowSize + nPlace.cell.size) > maxRowSize)
 			{
 				rowPos++;
-				rows = (RowList)theRows.get(rowPos);
+				rows = theRows.get(rowPos);
 				rows.rowSize = 0;
 				if ((rows.rowNum % 2) != 0)
 				{

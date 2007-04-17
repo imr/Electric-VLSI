@@ -177,7 +177,7 @@ public abstract class InteractiveRouter extends Router {
         // they will correctly show up if this job is undone.
         wnd.finishedHighlighting();
         wnd.getHighlighter().setHighlightList(startRouteHighlights);
-        MakeVerticalRouteJob job = new MakeVerticalRouteJob(this, route, startPort.getNodeInst().getParent(), true);
+        new MakeVerticalRouteJob(this, route, startPort.getNodeInst().getParent(), true);
         started = false;
         return true;
     }
@@ -425,7 +425,7 @@ public abstract class InteractiveRouter extends Router {
         if (routeObj instanceof ArcInst) {
             ArcInst ai = (ArcInst)routeObj;
             PrimitiveNode pn = ai.getProto().findOverridablePinProto();
-            return (PortProto)pn.getPort(0);
+            return pn.getPort(0);
         }
         if (routeObj instanceof PortInst) {
             PortInst pi = (PortInst)routeObj;

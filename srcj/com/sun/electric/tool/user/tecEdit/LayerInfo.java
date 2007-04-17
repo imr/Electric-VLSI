@@ -176,28 +176,28 @@ public class LayerInfo extends Info
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -14), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Clear Pattern");
+			ni.newDisplayVar(Artwork.ART_MESSAGE, "Clear Pattern");
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCLEAR));
 		}
 		if (patInvertNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -16), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Invert Pattern");
+			ni.newDisplayVar(Artwork.ART_MESSAGE, "Invert Pattern");
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATINVERT));
 		}
 		if (patCopyNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -18), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Copy Pattern");
+			ni.newDisplayVar(Artwork.ART_MESSAGE, "Copy Pattern");
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCOPY));
 		}
 		if (patPasteNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -20), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Paste Pattern");
+			ni.newDisplayVar(Artwork.ART_MESSAGE, "Paste Pattern");
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATPASTE));
 		}
 
@@ -301,7 +301,7 @@ public class LayerInfo extends Info
 					int g = TextUtils.atoi(st.nextToken());
 					int b = TextUtils.atoi(st.nextToken());
 					double o = TextUtils.atof(st.nextToken());
-					boolean f = st.nextToken().equalsIgnoreCase("on");
+					st.nextToken().equalsIgnoreCase("on");		// ignore last field: "foreground"
 					li.desc.setColor(new Color(r, g, b));
 					li.desc.setOpacity(o);
 					break;

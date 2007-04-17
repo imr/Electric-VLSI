@@ -1576,7 +1576,7 @@ public class ReadableDump extends LibraryFiles
                     if (var == null || var.getKey() != NodeInst.NODE_NAME) continue;
                     Object value = var.getObject();
                     if (!(value instanceof String)) continue;
-                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)value, var.isDisplay());
+                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName(value, var.isDisplay());
                     nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = var.getTextDescriptor();
                     vars[i] = null;
                 }
@@ -1591,7 +1591,7 @@ public class ReadableDump extends LibraryFiles
                     if (var == null || var.getKey() != ArcInst.ARC_NAME) continue;
                     Object value = var.getObject();
                     if (!(value instanceof String)) continue;
-                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)value, var.isDisplay());
+                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName(value, var.isDisplay());
                     arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = var.getTextDescriptor();
                     vars[i] = null;
                 }
@@ -1859,7 +1859,7 @@ public class ReadableDump extends LibraryFiles
 						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
 						return null;
 					}
-					return (PrimitiveNode)np;
+					return np;
 				}
 			case ELIBConstants.VPORTPROTO:
 				int ppIndex = TextUtils.atoi(name);

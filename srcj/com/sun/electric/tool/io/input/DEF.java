@@ -107,7 +107,7 @@ public class DEF extends LEFDEF
 		// read the file
 		try
 		{
-			boolean ret = readFile(lib);
+			readFile(lib);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading DEF libraries");
@@ -338,7 +338,7 @@ public class DEF extends LEFDEF
 		// now look in other libraries
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			if (lib.isHidden()) continue;
 			if (lib == curlib) continue;
 			cell = lib.findNodeProto(name);
@@ -363,7 +363,7 @@ public class DEF extends LEFDEF
 		// now look in other libraries
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library lib = (Library)it.next();
+			Library lib = it.next();
 			if (lib.isHidden()) continue;
 			if (lib == curlib) continue;
 			cell = lib.findNodeProto(name);
@@ -463,7 +463,6 @@ public class DEF extends LEFDEF
 	{
 		if (PortHT.containsKey(x+y)) {
 			List<NodeInst> pl = PortHT.get(x+y);
-			Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
 			Point2D pt = new Point2D.Double(x, y);
 			for (int i=0; i < pl.size(); i++)
 			{
@@ -471,7 +470,7 @@ public class DEF extends LEFDEF
 				if (ni == noti) continue;
 				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 				{
-					PortInst pi = (PortInst)it.next();
+					PortInst pi = it.next();
 					if (!pi.getPortProto().connectsTo(ap)) continue;
 					Poly poly = pi.getPoly();
 					if (poly.isInside(pt)) return pi;
@@ -664,7 +663,7 @@ public class DEF extends LEFDEF
 			ArcProto apTry = null;
 			for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
 			{
-				apTry = (ArcProto)it.next();
+				apTry = it.next();
 				if (apTry.getName().equals("wire")) break;
 			}
 			if (apTry == null)
@@ -674,7 +673,7 @@ public class DEF extends LEFDEF
 			}
 			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
 			{
-				PrimitiveNode loc_np = (PrimitiveNode)it.next();
+				PrimitiveNode loc_np = it.next();
 				// must have just one port
 				if (loc_np.getNumPorts() != 1) continue;
 
@@ -805,7 +804,7 @@ public class DEF extends LEFDEF
 					{
 						String tmps = prX.getPureValue(0);
 						int tmp = Integer.parseInt(tmps);
-						width = (double)tmp;
+						width = tmp;
 					} else
 					{
 						width = sX;  //no PR boundary, use cell boundary
@@ -816,7 +815,7 @@ public class DEF extends LEFDEF
 					{
 						String tmps = prY.getPureValue(0);
 						int tmp = Integer.parseInt(tmps);
-						height = (double)tmp;
+						height = tmp;
 					} else
 					{
 						height = sY; //no PR boundary, use cell boundary
@@ -898,7 +897,7 @@ public class DEF extends LEFDEF
 
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			ni = (NodeInst)it.next();
+			ni = it.next();
 			pp = ni.getProto().findPortProto(portName);
 			if (pp == null) continue;
 			pi = ni.findPortInstFromProto(pp);
@@ -930,11 +929,11 @@ public class DEF extends LEFDEF
 		for (Enumeration enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
 		{
 			String netName = (String)enSpec.nextElement();
-			PortInst specPi = (PortInst)specialNetsHT.get(netName);
+			PortInst specPi = specialNetsHT.get(netName);
 			PortInst normalPi = null;
 			if (normalNetsHT.containsKey(netName))
 			{
-				normalPi = (PortInst)(normalNetsHT.get(netName));
+				normalPi = (normalNetsHT.get(netName));
 				if (normalPi != null)
 				{
 					// create a logical net between these two points
@@ -1123,7 +1122,7 @@ public class DEF extends LEFDEF
 						else connectAllComponents = false;
 					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					{
-						NodeInst ni = (NodeInst)it.next();
+						NodeInst ni = it.next();
 						if (connectAllComponents || ni.getName().equalsIgnoreCase(key)) { found = ni;   break; }
 					}
 					if (found == null)

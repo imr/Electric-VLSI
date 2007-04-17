@@ -149,6 +149,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.VERILOG); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
                     importLibraryCommand(FileType.DAIS); }} : null,
+                IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD) to current library...") { public void run() {
+                	importToCurrentCellCommand(FileType.DAIS); }} : null,
                 SEPARATOR,
                 new EMenuItem("ELI_B...") {	public void run() {
                     importLibraryCommand(FileType.ELIB); }},

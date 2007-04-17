@@ -190,7 +190,7 @@ public class CheckOutJob extends Job
 						cellsMarked.put(cell, new MutableInteger(0));
 					}
 				}
-				MutableInteger miNewVers = (MutableInteger)cellsMarked.get(newVers);
+				MutableInteger miNewVers = cellsMarked.get(newVers);
 				miNewVers.setValue(1);
 				boolean propagated = true;
 				while (propagated)
@@ -202,7 +202,7 @@ public class CheckOutJob extends Job
 						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+							MutableInteger val = cellsMarked.get(cell);
 							if (val.intValue() == 1)
 							{
 								propagated = true;
@@ -210,7 +210,7 @@ public class CheckOutJob extends Job
 								for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
 								{
 									NodeInst ni = nIt.next();
-									MutableInteger pVal = (MutableInteger)cellsMarked.get(ni.getParent());
+									MutableInteger pVal = cellsMarked.get(ni.getParent());
 									if (pVal.intValue() == 0) pVal.setValue(1);
 								}
 							}
@@ -225,7 +225,7 @@ public class CheckOutJob extends Job
 					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+						MutableInteger val = cellsMarked.get(cell);
 						if (val.intValue() == 0) continue;
 						if (Project.getCellStatus(cell) == Project.CHECKEDOUTTOOTHERS)
 						{
@@ -244,7 +244,7 @@ public class CheckOutJob extends Job
 						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+							MutableInteger val = cellsMarked.get(cell);
 							if (val.intValue() != 3) continue;
 							System.out.println("    " + cell + " is checked out to " + Project.getCellOwner(cell));
 						}
@@ -258,7 +258,7 @@ public class CheckOutJob extends Job
 					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+						MutableInteger val = cellsMarked.get(cell);
 						val.setValue(0);
 					}
 				}
@@ -273,7 +273,7 @@ public class CheckOutJob extends Job
 						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+							MutableInteger val = cellsMarked.get(cell);
 							if (val.intValue() == 1)
 							{
 								propagated = true;
@@ -282,7 +282,7 @@ public class CheckOutJob extends Job
 								{
 									NodeInst ni = nIt.next();
 									if (!ni.isCellInstance()) continue;
-									MutableInteger subVal = (MutableInteger)cellsMarked.get(ni.getProto());
+									MutableInteger subVal = cellsMarked.get(ni.getProto());
 									if (subVal.intValue() == 0) subVal.setValue(1);
 								}
 							}
@@ -297,7 +297,7 @@ public class CheckOutJob extends Job
 					for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+						MutableInteger val = cellsMarked.get(cell);
 						if (val.intValue() == 0) continue;
 						String owner = Project.getCellOwner(cell);
 						if (owner.length() == 0) continue;
@@ -318,7 +318,7 @@ public class CheckOutJob extends Job
 						for(Iterator<Cell> cIt = oLib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
-							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
+							MutableInteger val = cellsMarked.get(cell);
 							if (val.intValue() != 3) continue;
 							String owner = Project.getCellOwner(cell);
 							System.out.println("    " + cell + " is checked out to " + owner);

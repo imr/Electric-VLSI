@@ -89,7 +89,7 @@ public class TimedSignal extends Signal
 	{
 		if (time == null)
 		{
-			double [] sct = (double [])an.getCommonTimeArray(sweep);
+			double [] sct = an.getCommonTimeArray(sweep);
 			return sct[index];
 		}
 		return time[index];

@@ -100,7 +100,6 @@ public class ELIB extends LibraryFiles
 	/** the number of tools in older files */								private int toolBCount;
 	/** list of all tools in the library */									private Tool [] toolList;
 	/** list of all tool-related errors in the library */					private String [] toolError;
-	/** true if tools are out of order in the library */					private boolean toolBitsMessed;
 
 	// the technology information
 	/** the number of technologies in the file */							private int techCount;
@@ -118,11 +117,9 @@ public class ELIB extends LibraryFiles
 	/** the number of primitive PortProtos in the file */					private int primPortProtoCount;
 	/** list of all Primitive PortProtos in the library */					private PrimitivePort [] primPortProtoList;
 	/** list of all Primitive-PortProto-related errors in the library */	private String [] primPortProtoError;
-	/** the most popular layout technology */								private Technology layoutTech;
 
 	// the cell information
 	/** the number of Cells in the file */									private int cellCount;
-	/** the index of the current Cell */									private int curCell;
 	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
 	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
 	/** index of first NodeInst in each cell of the library */				private int [] firstNodeIndex;
@@ -218,7 +215,6 @@ public class ELIB extends LibraryFiles
 		// initialize
 		clippedIntegers = 0;
 		byteCount = 0;
-		layoutTech = null;
 
 		// read the magic number and determine whether bytes are swapped
 		if (readHeader())
@@ -246,7 +242,7 @@ public class ELIB extends LibraryFiles
 		{
 			cellCount = nodeProtoCount;
 		}
-		curCell = readBigInteger();
+		readBigInteger();		// ignore current cell
 
 		// get the Electric version (version 8 and later)
 		String versionString;
@@ -631,21 +627,15 @@ public class ELIB extends LibraryFiles
 		}
 
 		// setup pointers for tools
-		toolBitsMessed = false;
 		for(int i=0; i<toolCount; i++)
 		{
 			String name = readString();
 			toolError[i] = null;
 			Tool t = Tool.findTool(name);
-			int toolIndex = -1;
 			if (t == null)
 			{
 				toolError[i] = name;
-			} else
-			{
-				toolIndex = t.getIndex();
 			}
-			if (i != toolIndex) toolBitsMessed = true;
 			toolList[i] = t;
 		}
 		if (magic <= ELIBConstants.MAGIC3 && magic >= ELIBConstants.MAGIC6)
@@ -681,7 +671,6 @@ public class ELIB extends LibraryFiles
 			// for Electric version 4 or earlier, scale lambda by 20
 			if (scaleLambdaBy20) lambda *= 20;
 
-			int index = tech.getIndex();
             techScale.put(tech, Double.valueOf(lambda));
 			if (topLevelLibrary)
 			{
@@ -914,12 +903,6 @@ public class ELIB extends LibraryFiles
 		firstNodeIndex[nodeProtoCount] = nodeIndex;
 		firstArcIndex[nodeProtoCount] = arcIndex;
 
-//		if (curCell >= 0 && curCell < nodeProtoCount)
-//		{
-//			NodeProto currentCell = convertNodeProto(curCell);
-//			Job.getUserInterface().setCurrentCell(lib, (Cell)currentCell);
-//		}
-
         // warn if any dummy cells were read in
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell c = it.next();
@@ -1018,7 +1001,6 @@ public class ELIB extends LibraryFiles
 //		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
 
 		double lambda = cellLambda[cellIndex];
-		NodeInst [] oldNodes = null;
 
 		// if scaling, actually construct the cell
 		if (scaledCellName != null)
@@ -1031,14 +1013,6 @@ public class ELIB extends LibraryFiles
             scaledCells.add(cell);
 
 			lambda /= scale;
-//			oldNodes = new NodeInst[endNode - startNode];
-//			int j = 0;
-//			for(int i=startNode; i<endNode; i++)
-//			{
-//				oldNodes[j] = nodeInstList.theNode[i];
-//				nodeInstList.theNode[i] = NodeInst.lowLevelAllocate();
-//				j++;
-//			}
 		} else scale = 1;
 
 		// finish initializing the NodeInsts in the cell: start with the cell-center
@@ -1342,7 +1316,7 @@ public class ELIB extends LibraryFiles
 //				headPort = convertPortProto(headPortIntValue);
 //			}
             if (headPort != null) {
-                headname = ((PortProto)headPort).getName();
+                headname = headPort.getName();
             } else {
                 if (headPortIntValue >= 0 && headPortIntValue < exportNameList.length)
                     headname = exportNameList[headPortIntValue];
@@ -1368,7 +1342,7 @@ public class ELIB extends LibraryFiles
 //                    tailname = exportNameList[tailPortIntValue];
 //			}
             if (tailPort != null) {
-                tailname = ((PortProto)tailPort).getName();
+                tailname = tailPort.getName();
             } else {
                 if (tailPortIntValue >= 0 && tailPortIntValue < exportNameList.length)
                     tailname = exportNameList[tailPortIntValue];
@@ -1645,17 +1619,11 @@ public class ELIB extends LibraryFiles
         nodeProtoList[cellIndex] = cell;
         assert cell.getCellName() != null;
 
-		// ignore the cell bounding box
-		int lowX = readBigInteger();
-		int highX = readBigInteger();
-		int lowY = readBigInteger();
-		int highY = readBigInteger();
-
 		// ignore the linked list pointers (versions 5 or older)
 		if (magic >= ELIBConstants.MAGIC5)
 		{
-			int prevIndex = readBigInteger();
-			int nextIndex = readBigInteger();
+			readBigInteger();		// ignore "prev index"
+			readBigInteger();		// ignore "next index"
 		}
 
 		// read the exports on this nodeproto
@@ -1746,7 +1714,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read tool information
-		int dirty = readBigInteger();
+		readBigInteger();		// ignore "dirty"
 		
 		// read the "user bits"
 		int userBits = 0;
@@ -1787,10 +1755,8 @@ public class ELIB extends LibraryFiles
 		{
 			// version 12 or later
 			theProtoName = convertCellName(readString());
-			int k = readBigInteger();
-//			cell->nextcellgrp = nodeProtoList[k];
-			k = readBigInteger();
-//			cell->nextcont = nodeProtoList[k];
+			readBigInteger();
+			readBigInteger();
 		}
 		View v = getView(readBigInteger());
 		if (v == null) v = View.UNKNOWN;
@@ -1964,8 +1930,6 @@ public class ELIB extends LibraryFiles
 		throws IOException
 	{
 		// read the nodeproto index
-		Cell parent = nodeProtoList[cellIndex];
-//		NodeInst ni = nodeInstList.theNode[nodeIndex];
 		int protoIndex = readBigInteger();
 		NodeProto np = convertNodeProto(protoIndex);
 		if (np == null) return true;
@@ -2072,7 +2036,7 @@ public class ELIB extends LibraryFiles
             if (var == null || var.getKey() != NodeInst.NODE_NAME) continue;
             Object value = var.getObject();
             if (!(value instanceof String)) continue;
-            nodeInstList.name[nodeIndex] = convertGeomName((String)value, var.isDisplay());
+            nodeInstList.name[nodeIndex] = convertGeomName(value, var.isDisplay());
             nodeInstList.nameTextDescriptor[nodeIndex] = var.getTextDescriptor();
             vars[j] = null;
         }
@@ -2155,7 +2119,7 @@ public class ELIB extends LibraryFiles
             if (var == null || var.getKey() != ArcInst.ARC_NAME) continue;
             Object value = var.getObject();
             if (!(value instanceof String)) continue;
-            arcNameList[arcIndex] = convertGeomName((String)value, var.isDisplay());
+            arcNameList[arcIndex] = convertGeomName(value, var.isDisplay());
             arcNameDescriptorList[arcIndex] = var.getTextDescriptor();
             vars[i] = null;
         }
@@ -2292,8 +2256,8 @@ public class ELIB extends LibraryFiles
 				{
 					for(int j=0; j<len; j += 2)
 					{
-						int type = readBigInteger();
-						int addr = readBigInteger();
+						readBigInteger();		// ignore type
+						readBigInteger();		// ignore address
 						if (newAddrArray != null) newAddrArray[j] = null;
 					}
 				} else

@@ -60,7 +60,7 @@ public class Example
 		HashMap<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 
 			// ignore special nodes with function information
 			int funct = Manipulate.getOptionOnNode(ni);
@@ -73,7 +73,7 @@ public class Example
 		Example neList = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (nodeExamples.get(ni) != null) continue;
 
 			// get a new cluster of nodes

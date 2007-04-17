@@ -401,7 +401,7 @@ public class Tool implements Comparable
 	 */
 	public void setVarInJob(ElectricObject obj, Variable.Key key, Object newVal)
 	{
-		SetVarJob job = new SetVarJob(this, obj, key, newVal);
+		new SetVarJob(this, obj, key, newVal);
 	}
 
 	/**

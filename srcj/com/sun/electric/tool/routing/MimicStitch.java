@@ -124,7 +124,7 @@ public class MimicStitch
 		private ArcInst   ai;
 		private NodeInst  ni1, ni2;
 		private PortProto pp1, pp2;
-		private Point2D   pt1, pt2;
+//		private Point2D   pt1, pt2;
 	};
 
 	/**
@@ -166,8 +166,6 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs > 1 && lastActivity.numCreatedNodes > 0)
 		{
 			// find the ends of arcs that do not attach to the intermediate pins
-			ArcProto proto = lastActivity.createdArcs[0].getProto();
-			Cell parent = lastActivity.createdArcs[0].getParent();
 			HashSet<NodeInst> gotOne = new HashSet<NodeInst>();
 			HashSet<NodeInst> gotMany = new HashSet<NodeInst>();
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
@@ -555,7 +553,7 @@ public class MimicStitch
 						PortProto pp = pi.getPortProto();
 
 						// if this port is not cached, it cannot connect, so ignore it
-						Poly poly = (Poly)cachedPortPoly.get(pi);
+						Poly poly = cachedPortPoly.get(pi);
 						if (poly == null) continue;
 						double x0 = poly.getCenterX();
 						double y0 = poly.getCenterY();
@@ -584,7 +582,7 @@ public class MimicStitch
 							if (ni == oNi && pp == oPp) continue;
 
 							// if this port is not cached, it cannot connect, so ignore it
-							Poly thisPoly = (Poly)cachedPortPoly.get(oPi);
+							Poly thisPoly = cachedPortPoly.get(oPi);
 							if (thisPoly == null) continue;
 
 							// don't replicate what is already done
@@ -607,14 +605,12 @@ public class MimicStitch
 							int desiredAngle = -1;
 							if (x0 != wantX1 || y0 != wantY1)
 								desiredAngle = DBMath.figureAngle(xy0, want1);
-							PortInst piNet0 = null;
 							for(Iterator<Connection> pII = ni.getConnections(); pII.hasNext(); )
 							{
 								Connection con = pII.next();
 								PortInst aPi = con.getPortInst();
 								if (aPi.getPortProto() != pp) continue;
 								ArcInst oAi = con.getArc();
-								piNet0 = aPi;
 								if (desiredAngle < 0)
 								{
 									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
@@ -643,14 +639,12 @@ public class MimicStitch
 							desiredAngle = -1;
 							if (x0 != wantX1 || y0 != wantY1)
 								desiredAngle = DBMath.figureAngle(want1, xy0);
-							PortInst piNet1 = null;
 							for(Iterator<Connection> pII = oNi.getConnections(); pII.hasNext(); )
 							{
 								Connection con = pII.next();
 								PortInst aPi = con.getPortInst();
 								if (aPi.getPortProto() != oPp) continue;
 								ArcInst oAi = con.getArc();
-								piNet1 = aPi;
 								if (desiredAngle < 0)
 								{
 									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
@@ -732,8 +726,8 @@ public class MimicStitch
 								found = new PossibleArc();
 								possibleArcs.add(found);
 							}
-							found.ni1 = ni;      found.pp1 = pp;    found.pt1 = xy0;
-							found.ni2 = oNi;     found.pp2 = oPp;   found.pt2 = want1;
+							found.ni1 = ni;      found.pp1 = pp;
+							found.ni2 = oNi;     found.pp2 = oPp;
 							found.situation = situation;
 						}
 					}
@@ -858,7 +852,7 @@ public class MimicStitch
         Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
 		for (Route route : allRoutes)
 		{
-			RouteElement re = (RouteElement)route.get(0);
+			RouteElement re = route.get(0);
 			Cell c = re.getCell();
 			PortInst showThis = Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
 			if (showThis != null) portsToHighlight.add(showThis);

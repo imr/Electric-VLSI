@@ -107,7 +107,7 @@ public class Connectivity
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
 	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
-	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1, tempLayer2;
+	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1;
 	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
 	/** associates arc prototypes with layers */				private HashMap<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private HashMap<Cell,Cell> convertedCells;
@@ -244,7 +244,7 @@ public class Connectivity
 
 		// find important layers
 		polyLayer = null;
-		tempLayer1 = tempLayer2 = null;
+		tempLayer1 = null;
 		pActiveLayer = nActiveLayer = null;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
@@ -252,7 +252,6 @@ public class Connectivity
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
 			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
-			if (fun == Layer.Function.METAL1 && layer.isPseudoLayer()) tempLayer2 = layer;
 			if (unifyActive)
 			{
 				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
@@ -540,7 +539,6 @@ public class Connectivity
 			}
 
 			// see if the size is at an odd coordinate (and may suffer rounding problems)
-			EPoint ctr = ni.getAnchorCenter();
 			boolean growABit = false;
 			if (((int)(ni.getXSize() * DBMath.GRID) % 2) != 0 ||
 				((int)(ni.getYSize() * DBMath.GRID) % 2) != 0) growABit = true;
@@ -609,7 +607,7 @@ public class Connectivity
 			Point2D tailLocation = new Point2D.Double(0, 0);
 			prevTrans.transform(ai.getHeadLocation(), headLocation);
 			prevTrans.transform(ai.getTailLocation(), tailLocation);
-			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
+			ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
 				headLocation, tailLocation, ai.getName());
 		}
 	}
@@ -644,14 +642,6 @@ public class Connectivity
 	}
 
 	/********************************************** WIRE EXTRACTION **********************************************/
-
-	private static class TouchingNode
-	{
-		NodeInst ni;
-		PortInst pi;
-		double width;
-		Point2D endPt;
-	}
 
 	/**
 	 * Method to extract wires from the merge.
@@ -1059,7 +1049,6 @@ public class Connectivity
 			NodeInst ni = (NodeInst)geom;
 			if (ni.isCellInstance())
 			{
-				Cell subCell = (Cell)ni.getProto();
 				boolean found = false;
 				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
@@ -1855,7 +1844,7 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
 					if (polyBounds1.getMinY() <= polyBounds2.getMaxY() && polyBounds1.getMaxY() >= polyBounds2.getMinY())
@@ -1869,7 +1858,7 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
 
@@ -1889,11 +1878,11 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, containsIt, arcLayerWidth, headExtend, tailExtend);
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 
 						headExtend.setValue(true);   tailExtend.setValue(true);
 						originalMerge.arcPolyFits(layer, pt2, containsIt, arcLayerWidth, headExtend, tailExtend);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					}
 				}
 			}
@@ -2021,7 +2010,7 @@ public class Connectivity
 			double wid = polyBounds.getWidth();
 			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, fullWid,
+			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, fullWid,
 				!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 			return;
 		}
@@ -2061,7 +2050,7 @@ public class Connectivity
 			double wid = polyBounds.getHeight();
 			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
+			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
 				fullWid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 		}
 	}
@@ -2073,7 +2062,6 @@ public class Connectivity
 		Point2D tail = ai.getTailLocation();
 		int ang = GenMath.figureAngle(tail, head);
 		int angPlus = (ang + 900) % 3600;
-		int angMinus = (ang + 2700) % 3600;
 		double width = ai.getLambdaBaseWidth() / 2;
 
 		// see if the head end touches
@@ -2246,13 +2234,6 @@ public class Connectivity
 					if (length < DBMath.getEpsilon()) continue;
 					Poly clPoly = Poly.makeEndPointPoly(length, cl.width, cl.angle,
 						cl.start, 0, cl.end, 0, Poly.Type.FILLED);
-
-//merge.deleteLayer(tempLayer2);
-//merge.addLayer(tempLayer1, tempLayer2);
-//double areaLeftBefore = merge.getAreaOfLayer(tempLayer2);
-//merge.subtract(tempLayer2, clPoly);
-//double areaLeftAfter = merge.getAreaOfLayer(tempLayer2);
-//System.out.println("SO......Removing "+cl.toString()+" reduces area from "+areaLeftBefore+" to "+areaLeftAfter);
 
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
@@ -2481,14 +2462,13 @@ public class Connectivity
 					corners[1] = new Point2D.Double(minX, maxY);
 					corners[2] = new Point2D.Double(maxX, maxY);
 					corners[3] = new Point2D.Double(maxX, minY);
-					boolean lastCorner = false, thisCorner = false, oLastCorner = false, oThisCorner = false;
 					Point2D aCorner = null;
 					for(int k=0; k<4; k++)
 					{
-						if (lastPtCL.equals(corners[k])) { aCorner = lastPtCL;   lastCorner = true; }
-						if (thisPtCL.equals(corners[k])) { aCorner = thisPtCL;   thisCorner = true; }
-						if (oLastPtCL.equals(corners[k])) { aCorner = oLastPtCL;   oLastCorner = true; }
-						if (oThisPtCL.equals(corners[k])) { aCorner = oThisPtCL;   oThisCorner = true; }
+						if (lastPtCL.equals(corners[k])) aCorner = lastPtCL;
+						if (thisPtCL.equals(corners[k])) aCorner = thisPtCL;
+						if (oLastPtCL.equals(corners[k])) aCorner = oLastPtCL;
+						if (oThisPtCL.equals(corners[k])) aCorner = oThisPtCL;
 					}
 
 					// determine distance from the extreme corner
@@ -2712,105 +2692,105 @@ public class Connectivity
 		}
 	}
 
-	/**
-	 * Method to determine whether two Centerline objects are colinear.
-	 * @param cl the first Centerline object.
-	 * @param oCl the second Centerline object.
-	 * @return true if they are colinear.  Also modifies the first one (c1) to contain the overall line.
-	 */
-	private boolean isColinear(Centerline cl, Centerline oCl)
-	{
-		// get information about the other line
-		double fx = cl.start.getX();
-		double fy = cl.start.getY();
-		double tx = cl.end.getX();
-		double ty = cl.end.getY();
-		double oFx = oCl.start.getX();
-		double oFy = oCl.start.getY();
-		double oTx = oCl.end.getX();
-		double oTy = oCl.end.getY();
-		if (oFx == oTx && oFy == oTy) return false;
-
-		// see if they are colinear
-		double lowX = Math.min(fx, tx);
-		double highX = Math.max(fx, tx);
-		double lowY = Math.min(fy, ty);
-		double highY = Math.max(fy, ty);
-		if (fx == tx)
-		{
-			// vertical line
-			double oLow = Math.min(oFy, oTy);
-			double oHigh = Math.max(oFy, oTy);
-			if (oFx != fx || oTx != fx) return false;
-			if (lowY > oHigh || highY < oLow) return false;
-			cl.setStart(tx, Math.min(lowY, oLow));
-			cl.setEnd(tx, Math.max(highY, oHigh));
-			return true;
-		}
-		if (fy == ty)
-		{
-			// horizontal line
-			double oLow = Math.min(oFx, oTx);
-			double oHigh = Math.max(oFx, oTx);
-			if (oFy != fy || oTy != fy) return false;
-			if (lowX > oHigh || highX < oLow) return false;
-			cl.setStart(Math.min(lowX, oLow), ty);
-			cl.setEnd(Math.max(highX, oHigh), ty);
-			return true;
-		}
-
-		// general case
-		int ang = GenMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
-		int oAng = GenMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
-		if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
-		if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
-		if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
-		double oLow = Math.min(oFy, oTy);
-		double oHigh = Math.max(oFy, oTy);
-		if (lowY >= oHigh || highY <= oLow) return false;
-		oLow = Math.min(oFx, oTx);
-		oHigh = Math.max(oFx, oTx);
-		if (lowX >= oHigh || highX <= oLow) return false;
-
-		// find the extreme points
-		Point2D [] points = new Point2D[4];
-		points[0] = cl.start;
-		points[1] = cl.end;
-		points[2] = oCl.start;
-		points[3] = oCl.end;
-		double bestDist = 0;
-		int bestEnd = -1;
-		for(int i=1; i<3; i++)
-		{
-			double dist = points[0].distance(points[i]);
-			if (dist > bestDist)
-			{
-				bestDist = dist;
-				bestEnd = i;
-			}
-		}
-		if (bestEnd < 0) return false;
-		bestDist = 0;
-		int bestOtherEnd = -1;
-		for(int i=0; i<4; i++)
-		{
-			if (i == bestEnd) continue;
-			double dist = points[bestEnd].distance(points[i]);
-			if (dist > bestDist)
-			{
-				bestDist = dist;
-				bestOtherEnd = i;
-			}
-		}
-		double newEndAX = points[bestEnd].getX();
-		double newEndAY = points[bestEnd].getY();
-		double newEndBX = points[bestOtherEnd].getX();
-		double newEndBY = points[bestOtherEnd].getY();
-
-		cl.setStart(newEndAX, newEndAY);
-		cl.setEnd(newEndBX, newEndBY);
-		return true;
-	}
+//	/**
+//	 * Method to determine whether two Centerline objects are colinear.
+//	 * @param cl the first Centerline object.
+//	 * @param oCl the second Centerline object.
+//	 * @return true if they are colinear.  Also modifies the first one (c1) to contain the overall line.
+//	 */
+//	private boolean isColinear(Centerline cl, Centerline oCl)
+//	{
+//		// get information about the other line
+//		double fx = cl.start.getX();
+//		double fy = cl.start.getY();
+//		double tx = cl.end.getX();
+//		double ty = cl.end.getY();
+//		double oFx = oCl.start.getX();
+//		double oFy = oCl.start.getY();
+//		double oTx = oCl.end.getX();
+//		double oTy = oCl.end.getY();
+//		if (oFx == oTx && oFy == oTy) return false;
+//
+//		// see if they are colinear
+//		double lowX = Math.min(fx, tx);
+//		double highX = Math.max(fx, tx);
+//		double lowY = Math.min(fy, ty);
+//		double highY = Math.max(fy, ty);
+//		if (fx == tx)
+//		{
+//			// vertical line
+//			double oLow = Math.min(oFy, oTy);
+//			double oHigh = Math.max(oFy, oTy);
+//			if (oFx != fx || oTx != fx) return false;
+//			if (lowY > oHigh || highY < oLow) return false;
+//			cl.setStart(tx, Math.min(lowY, oLow));
+//			cl.setEnd(tx, Math.max(highY, oHigh));
+//			return true;
+//		}
+//		if (fy == ty)
+//		{
+//			// horizontal line
+//			double oLow = Math.min(oFx, oTx);
+//			double oHigh = Math.max(oFx, oTx);
+//			if (oFy != fy || oTy != fy) return false;
+//			if (lowX > oHigh || highX < oLow) return false;
+//			cl.setStart(Math.min(lowX, oLow), ty);
+//			cl.setEnd(Math.max(highX, oHigh), ty);
+//			return true;
+//		}
+//
+//		// general case
+//		int ang = GenMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
+//		int oAng = GenMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
+//		if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
+//		if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
+//		if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
+//		double oLow = Math.min(oFy, oTy);
+//		double oHigh = Math.max(oFy, oTy);
+//		if (lowY >= oHigh || highY <= oLow) return false;
+//		oLow = Math.min(oFx, oTx);
+//		oHigh = Math.max(oFx, oTx);
+//		if (lowX >= oHigh || highX <= oLow) return false;
+//
+//		// find the extreme points
+//		Point2D [] points = new Point2D[4];
+//		points[0] = cl.start;
+//		points[1] = cl.end;
+//		points[2] = oCl.start;
+//		points[3] = oCl.end;
+//		double bestDist = 0;
+//		int bestEnd = -1;
+//		for(int i=1; i<3; i++)
+//		{
+//			double dist = points[0].distance(points[i]);
+//			if (dist > bestDist)
+//			{
+//				bestDist = dist;
+//				bestEnd = i;
+//			}
+//		}
+//		if (bestEnd < 0) return false;
+//		bestDist = 0;
+//		int bestOtherEnd = -1;
+//		for(int i=0; i<4; i++)
+//		{
+//			if (i == bestEnd) continue;
+//			double dist = points[bestEnd].distance(points[i]);
+//			if (dist > bestDist)
+//			{
+//				bestDist = dist;
+//				bestOtherEnd = i;
+//			}
+//		}
+//		double newEndAX = points[bestEnd].getX();
+//		double newEndAY = points[bestEnd].getY();
+//		double newEndBX = points[bestOtherEnd].getX();
+//		double newEndBY = points[bestOtherEnd].getY();
+//
+//		cl.setStart(newEndAX, newEndAY);
+//		cl.setEnd(newEndBX, newEndBY);
+//		return true;
+//	}
 
 	/**
 	 * Method to scan the geometric information and convert it all to pure layer nodes in the new cell.
@@ -2862,7 +2842,7 @@ public class Connectivity
 					double centerX = aggregateBounds.getCenterX() / SCALEFACTOR;
 					double centerY = aggregateBounds.getCenterY() / SCALEFACTOR;
 					Point2D center = new Point2D.Double(centerX, centerY);
-					NodeInst ni = createNode(pNp, center, aggregateBounds.getWidth() / SCALEFACTOR,
+					createNode(pNp, center, aggregateBounds.getWidth() / SCALEFACTOR,
 						aggregateBounds.getHeight() / SCALEFACTOR, null, newCell);
 					for(Rectangle2D polyBounds : aggregatedList)
 						rectangleList.remove(polyBounds);
@@ -2897,7 +2877,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double((polyBounds.getMaxX()-height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
 								NodeInst ni1 = createNode(np, end1, height, height, null, newCell);
 								NodeInst ni2 = createNode(np, end2, height, height, null, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getLambdaWidthOffset(),
+								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							} else
 							{
@@ -2906,7 +2886,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
 								NodeInst ni1 = createNode(np, end1, width, width, null, newCell);
 								NodeInst ni2 = createNode(np, end2, width, width, null, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getLambdaWidthOffset(),
+								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							}
 							continue;

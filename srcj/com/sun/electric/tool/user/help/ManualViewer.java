@@ -491,7 +491,7 @@ public class ManualViewer extends EDialog
 		JMenuBar helpMenuBar = new JMenuBar();
 
 		// convert menuBar to tree
-		TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+		TopLevel top = TopLevel.getCurrentJFrame();
 		EMenuBar menuBar = top.getEMenuBar();
 		for (EMenuItem menu: menuBar.getItems())
 		{
@@ -633,7 +633,7 @@ public class ManualViewer extends EDialog
 		}
 		if (menuMapCheck != null)
 		{
-			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+			TopLevel top = TopLevel.getCurrentJFrame();
 			EMenuBar menuBar = top.getEMenuBar();
 			for (EMenuItem menu: menuBar.getItems())
 			{

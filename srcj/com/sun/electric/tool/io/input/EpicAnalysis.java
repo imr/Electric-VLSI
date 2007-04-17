@@ -528,7 +528,7 @@ public class EpicAnalysis extends Analysis {
      * It partially implements TreeNode (without getParent).
      */
     public static class EpicTreeNode implements TreeNode {
-        private final int chronIndex;
+//        private final int chronIndex;
         private final String name;
         private final Context context;
         private final int nodeOffset;
@@ -538,7 +538,7 @@ public class EpicAnalysis extends Analysis {
          * Private constructor.
          */
         private EpicTreeNode(int chronIndex, String name, Context context, int nodeOffset) {
-            this.chronIndex = chronIndex;
+//            this.chronIndex = chronIndex;
             this.name = name;
             this.context = context;
             this.nodeOffset = nodeOffset;

@@ -2379,11 +2379,11 @@ public class Route
 
 		// get correct row
 		int rowIndex = 0;
-		Place.RowList row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+		Place.RowList row = cell.placement.theRows.get(rowIndex);
 		for (int num = 1; num < chan.number && row != null; num++)
 		{
 			rowIndex++;
-			row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+			row = cell.placement.theRows.get(rowIndex);
 		}
 		if (row == null) return;
 
@@ -2529,11 +2529,11 @@ public class Route
 
 		// get correct row (above)
 		int rowIndex = 0;
-		Place.RowList row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+		Place.RowList row = cell.placement.theRows.get(rowIndex);
 		for (int num = 0; num < chan.number && row != null; num++)
 		{
 			rowIndex++;
-			row = (Place.RowList)cell.placement.theRows.get(rowIndex);
+			row = cell.placement.theRows.get(rowIndex);
 		}
 		if (row == null) return;
 
