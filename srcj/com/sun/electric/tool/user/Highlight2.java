@@ -1584,7 +1584,7 @@ class HighlightText extends Highlight2
     public String describe()
     {
         String description = "Text: unknown";
-        if (varKey != null)
+        if (varKey != null && eobj != null)
         {
         	if (varKey == NodeInst.NODE_NAME)
         	{
