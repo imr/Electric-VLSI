@@ -34,6 +34,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -44,6 +45,8 @@ import java.util.Arrays;
 public class EGraphics extends Observable
         implements Cloneable
 {
+	private static Map<String,Outline> outlineNames = new HashMap<String,Outline>();
+
 	/**
 	 * Class to define the type of outline around a stipple pattern.
 	 */
@@ -79,9 +82,6 @@ public class EGraphics extends Observable
 		PAT_DO1_T2("Dotted-Close-Thicker", 0x1F, 8, 5),
 		/** Draw stipple pattern with far dotted thicker outline. */
 		PAT_DO2_T2("Dotted-Far-Thicker", 0x7F, 9, 5);
-        
-//		private static final int SAMPLEWID = 60;
-//		private static final int SAMPLEHEI = 11;
 
 		private String name;
 		private int pattern, len;
@@ -91,6 +91,7 @@ public class EGraphics extends Observable
 		private Outline(String name, int pattern, int len, int thickness)
 		{
 			this.name = name;
+			outlineNames.put(name, this);
 			this.pattern = pattern;
 			this.len = len;
 			this.thickness = thickness;
@@ -118,7 +119,8 @@ public class EGraphics extends Observable
 
 		public static Outline findOutline(String name)
 		{
-            return valueOf(name);
+			// return valueOf(name);
+			return outlineNames.get(name);
 		}
 
 		public static List<Outline> getOutlines() { return Arrays.asList(Outline.class.getEnumConstants()); }
