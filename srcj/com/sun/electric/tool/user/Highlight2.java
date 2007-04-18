@@ -1327,6 +1327,15 @@ class HighlightText extends Highlight2
         super(c);  
         this.eobj = e;
         this.varKey = key;
+        Class cls = null;
+        if (key == NodeInst.NODE_NAME || key == NodeInst.NODE_PROTO)
+            cls = NodeInst.class;
+        else if (key == ArcInst.ARC_NAME)
+            cls = ArcInst.class;
+        else if (key == Export.EXPORT_NAME)
+            cls = Export.class;
+        if (cls != null && !cls.isInstance(e))
+            throw new IllegalArgumentException(key + " in " + e);
     }
 
     void internalDescribe(StringBuffer desc)
