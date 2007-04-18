@@ -48,23 +48,23 @@ public class AssuraDrcErrors {
         private final int number;
         private final String desc;
         private final List<DrcError> errors;         // list of DrcErrors
-        private int realErrorCount;
-        private int flatErrorCount;
+//        private int realErrorCount;
+//        private int flatErrorCount;
         private DrcRuleViolation(int number, String desc) {
             this.number = number;
             this.desc = desc;
             errors = new ArrayList<DrcError>();
         }
-        private void addError(DrcError error) {
-            errors.add(error);
-        }
+//        private void addError(DrcError error) {
+//            errors.add(error);
+//        }
         public Iterator<DrcError> getErrors() {
             ArrayList<DrcError> copy = new ArrayList<DrcError>(errors);
             return copy.iterator();
         }
         private void setErrorCounts(int real, int flat) {
-            realErrorCount = real;
-            flatErrorCount = flat;
+//            realErrorCount = real;
+//            flatErrorCount = flat;
         }
     }
 
@@ -95,7 +95,6 @@ public class AssuraDrcErrors {
 
         String line;
         DrcRuleViolation rule = null;
-        DrcError error = null;
         Cell cell = null;
         ErrorLogger logger = ErrorLogger.newInstance("Assura "+type+" Errors");
         int count = 0;
@@ -148,7 +147,7 @@ public class AssuraDrcErrors {
                         double x2 = Double.parseDouble(strings[last-1]) / scale * 1000;
                         double y2 = Double.parseDouble(strings[last]) / scale * 1000;
                         Rectangle2D rect = new Rectangle2D.Double(x1, y1, x2-x1, y2-y1);
-                        error = new DrcError(cell, rect);
+                        new DrcError(cell, rect);
                         List<EPoint> ptList = new ArrayList<EPoint>();
                         ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x2, y1));
                         ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x1, y2));

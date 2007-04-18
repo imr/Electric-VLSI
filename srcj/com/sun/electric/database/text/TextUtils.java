@@ -1036,11 +1036,6 @@ public class TextUtils
      * @throws NumberFormatException if the String is not a parsable Number.
      */
     private static Number parseNumber(String s) throws NumberFormatException {
-        // try to do the conversion
-        if (s.equals("1")) {
-            Number nn = new Integer(1);
-        }
-
         Number n = null;
         try {
             n = new Integer(s);
@@ -1136,8 +1131,8 @@ public class TextUtils
 		File file = new File(fileName);
 		try
 		{
-//			return file.toURI().toURL();
-			return file.toURL(); // deprecated in Java 1.6
+			return file.toURI().toURL();
+//			return file.toURL(); // deprecated in Java 1.6
 		} catch (java.net.MalformedURLException e)
 		{
 			System.out.println("Cannot find file " + fileName);

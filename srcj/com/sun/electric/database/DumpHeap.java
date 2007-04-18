@@ -80,7 +80,7 @@ public class DumpHeap {
     }
 
     private ClassDescriptor classDescriptorOf(Class cls) {
-        ClassDescriptor cd = (ClassDescriptor)classes.get(cls);
+        ClassDescriptor cd = classes.get(cls);
         if (cd == null) {
             cd = new ClassDescriptor(cls);
             classes.put(cls, cd);
@@ -179,22 +179,22 @@ public class DumpHeap {
         }
     }
     
-    private void reflectClass(Class cls)
-        throws SecurityException, IllegalAccessException
-    {
-       
-        Field[] fields = cls.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field f = fields[i];
-            int fm = f.getModifiers();
-            if (!Modifier.isStatic(fm)) continue;
-            Class tf = f.getType();
-            if (tf.isPrimitive()) continue;
-            f.setAccessible(true);
-            Object value = f.get(null);
-            handler(value);
-       }
-    }
+//    private void reflectClass(Class cls)
+//        throws SecurityException, IllegalAccessException
+//    {
+//       
+//        Field[] fields = cls.getDeclaredFields();
+//        for (int i = 0; i < fields.length; i++) {
+//            Field f = fields[i];
+//            int fm = f.getModifiers();
+//            if (!Modifier.isStatic(fm)) continue;
+//            Class tf = f.getType();
+//            if (tf.isPrimitive()) continue;
+//            f.setAccessible(true);
+//            Object value = f.get(null);
+//            handler(value);
+//       }
+//    }
     
     private void sweeps(int maxSweep)
         throws SecurityException, IllegalAccessException
@@ -306,7 +306,7 @@ public class DumpHeap {
         private final Class cls;
         private final Field[] fields;
         private final Field[] staticFields;
-        private int numObjects;
+//        private int numObjects;
         
         private ClassDescriptor(Class cls) {
             this.cls = cls;
@@ -336,8 +336,8 @@ public class DumpHeap {
                     fieldList.add(f);
             }
             Field[] NULL_FIELD_ARRAY = {};
-            this.fields = (Field[])fieldList.toArray(NULL_FIELD_ARRAY);
-            this.staticFields = (Field[])staticFieldList.toArray(NULL_FIELD_ARRAY);
+            this.fields = fieldList.toArray(NULL_FIELD_ARRAY);
+            this.staticFields = staticFieldList.toArray(NULL_FIELD_ARRAY);
         }
    }
  

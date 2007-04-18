@@ -241,7 +241,7 @@ class NetCell
 		}
 		for (int i = 0; i < numPorts; i++) {
 			int portOffset = i;
-			Export export = (Export)cell.getPort(i);
+			Export export = cell.getPort(i);
 			int orig = getPortInstOffset(export.getOriginalPort());
 			headConn[portOffset] = headConn[orig];
 			headConn[orig] = portOffset;
@@ -260,29 +260,29 @@ class NetCell
 		//showConnections();
 	}
 
-	private void showConnections() {
-		int numNodes = cell.getNumNodes();
-		for (int i = 0; i < numNodes; i++) {
-			NodeInst ni = cell.getNode(i);
-			int numPortInsts = ni.getProto().getNumPorts();
-			for (int j = 0; j < numPortInsts; j++) {
-				PortInst pi = ni.getPortInst(j);
-				System.out.println("Connections of " + pi);
-				int piOffset = getPortInstOffset(pi);
-				for (int k = piOffset; headConn[k] != piOffset; ) {
-					k = headConn[k];
-					if (k >= arcsOffset)
-						System.out.println("\thead_arc\t" + cell.getArc(k - arcsOffset).describe(true));
-					else
-						System.out.println("\tport\t" + cell.getPort(k));
-				}
-				for (int k = piOffset; tailConn[k] != piOffset; ) {
-					k = tailConn[k];
-					System.out.println("\ttail_arc\t" + cell.getArc(k - arcsOffset).describe(true));
-				}
-			}
-		}
-	}
+//	private void showConnections() {
+//		int numNodes = cell.getNumNodes();
+//		for (int i = 0; i < numNodes; i++) {
+//			NodeInst ni = cell.getNode(i);
+//			int numPortInsts = ni.getProto().getNumPorts();
+//			for (int j = 0; j < numPortInsts; j++) {
+//				PortInst pi = ni.getPortInst(j);
+//				System.out.println("Connections of " + pi);
+//				int piOffset = getPortInstOffset(pi);
+//				for (int k = piOffset; headConn[k] != piOffset; ) {
+//					k = headConn[k];
+//					if (k >= arcsOffset)
+//						System.out.println("\thead_arc\t" + cell.getArc(k - arcsOffset).describe(true));
+//					else
+//						System.out.println("\tport\t" + cell.getPort(k));
+//				}
+//				for (int k = piOffset; tailConn[k] != piOffset; ) {
+//					k = tailConn[k];
+//					System.out.println("\ttail_arc\t" + cell.getArc(k - arcsOffset).describe(true));
+//				}
+//			}
+//		}
+//	}
 
     private ArrayList<PortInst> stack;
     
@@ -357,7 +357,7 @@ class NetCell
 		for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
 			if (drawns[i] >= 0) continue;
 			drawns[i] = numDrawns;
-			Export export = (Export)cell.getPort(i);
+			Export export = cell.getPort(i);
 			addToDrawn(export.getOriginalPort());
 			numDrawns++;
 		}
@@ -528,7 +528,7 @@ class NetCell
 		Network[] netNameToNet = new Network[netNames.size()];
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
-			Export e = (Export)cell.getPort(i);
+			Export e = cell.getPort(i);
 			setNetName(netNameToNet, drawns[i], e.getNameKey(), true);
 		}
 		int numArcs = cell.getNumArcs();
@@ -593,9 +593,9 @@ class NetCell
             // because this should be an infrequent event that the user will fix, let's
             // put all the work here
             for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
-                Export e = (Export)cell.getPort(i);
+                Export e = cell.getPort(i);
                 if (e.getName().equals(name.toString()))
-                    networkManager.pushHighlight((Export)cell.getPort(i));
+                    networkManager.pushHighlight(cell.getPort(i));
             }
             for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
@@ -639,37 +639,37 @@ class NetCell
 	int getNumEquivPorts() { return equivPorts.length; }
 	int getEquivPorts(int portIndex) { return equivPorts[portIndex]; }
 
-	/**
-	 * Show map of equivalent ports newEquivPort.
-	 */
-	private void showEquivPorts()
-	{
-		System.out.println("Equivalent ports of "+cell);
-		String s = "\t";
-		Export[] ports = new Export[cell.getNumPorts()];
-		int i = 0;
-		for (Iterator<Export> it = cell.getExports(); it.hasNext(); i++)
-			ports[i] = it.next();
-		for (i = 0; i < equivPorts.length; i++)
-		{
-			Export pi = ports[i];
-			if (equivPorts[i] != i) continue;
-			boolean found = false;
-			for (int j = i+1; j < equivPorts.length; j++)
-			{
-				if (equivPorts[i] != equivPorts[j]) continue;
-				Export pj = ports[j];
-				if (!found) s = s+" ( "+pi.getName();
-				found = true;
-				s = s+" "+pj.getName();
-			}
-			if (found)
-				s = s+")";
-			else
-				s = s+" "+pi.getName();
-		}
-		System.out.println(s);
-	}
+//	/**
+//	 * Show map of equivalent ports newEquivPort.
+//	 */
+//	private void showEquivPorts()
+//	{
+//		System.out.println("Equivalent ports of "+cell);
+//		String s = "\t";
+//		Export[] ports = new Export[cell.getNumPorts()];
+//		int i = 0;
+//		for (Iterator<Export> it = cell.getExports(); it.hasNext(); i++)
+//			ports[i] = it.next();
+//		for (i = 0; i < equivPorts.length; i++)
+//		{
+//			Export pi = ports[i];
+//			if (equivPorts[i] != i) continue;
+//			boolean found = false;
+//			for (int j = i+1; j < equivPorts.length; j++)
+//			{
+//				if (equivPorts[i] != equivPorts[j]) continue;
+//				Export pj = ports[j];
+//				if (!found) s = s+" ( "+pi.getName();
+//				found = true;
+//				s = s+" "+pj.getName();
+//			}
+//			if (found)
+//				s = s+")";
+//			else
+//				s = s+" "+pi.getName();
+//		}
+//		System.out.println(s);
+//	}
 
 	void redoNetworks()
 	{

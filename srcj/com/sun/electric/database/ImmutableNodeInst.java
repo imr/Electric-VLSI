@@ -109,10 +109,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
  	private static final int FLAG_BITS = HARDSELECTN | NVISIBLEINSIDE | NILOCKED;
 
-    private static final int HARD_SELECT_MASK = 0x01;
-    private static final int VIS_INSIDE_MASK  = 0x02;
-    private static final int LOCKED_MASK      = 0x04;
-    private static final int DATABASE_FLAGS   = 0x07;
+//    private static final int HARD_SELECT_MASK = 0x01;
+//    private static final int VIS_INSIDE_MASK  = 0x02;
+//    private static final int LOCKED_MASK      = 0x04;
+//    private static final int DATABASE_FLAGS   = 0x07;
     
 	/**
 	 * Method to set an ImmutableNodeInst to be hard-to-select.
@@ -489,7 +489,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
                     newPorts = ImmutablePortInst.NULL_ARRAY;
                 }
             } else {
-                newPorts = (ImmutablePortInst[])ports.clone();
+                newPorts = ports.clone();
                 newPorts[portChronIndex] = portInst;
             }
         } else {

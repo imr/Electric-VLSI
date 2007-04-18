@@ -311,12 +311,10 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		if (c!=null) {
             // record defining schematic cell if it is sizable
             if (LEInst.getType(iconInst, context) == LEInst.Type.LEGATE) {
-                Variable var = c.newVar(LEInst.ATTR_LEGATE, c.libDescribe());
-//                var.setDisplay(false);
+                c.newVar(LEInst.ATTR_LEGATE, c.libDescribe());
             }
             if (LEInst.getType(iconInst, context) == LEInst.Type.LEKEEPER) {
-                Variable var = c.newVar(LEInst.ATTR_LEKEEPER, c.libDescribe());
-//                var.setDisplay(false);
+                c.newVar(LEInst.ATTR_LEKEEPER, c.libDescribe());
             }
 
 			System.out.println("Use: "+pNm+" X="+x+" for instance: "+

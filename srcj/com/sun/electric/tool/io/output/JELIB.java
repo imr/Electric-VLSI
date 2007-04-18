@@ -80,7 +80,7 @@ public class JELIB extends Output {
     private static boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.05g")) >= 0;
     private boolean oldRevision;
 //    Snapshot snapshot;
-    private Map<LibId,URL> libFiles;
+//    private Map<LibId,URL> libFiles;
     
     JELIB() {
     }
@@ -93,15 +93,10 @@ public class JELIB extends Output {
      * @return true on error.
      */
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles, boolean oldRevision) {
-        try {
-            this.oldRevision = oldRevision;
-            this.libFiles = libFiles;
-            writeTheLibrary(snapshot, libId);
-            return false;
-        } catch (IOException e) {
-            System.out.println("End of file reached while writing " + filePath);
-            return true;
-        }
+        this.oldRevision = oldRevision;
+//      this.libFiles = libFiles;
+        writeTheLibrary(snapshot, libId);
+        return false;
     }
     
     /**
@@ -109,7 +104,7 @@ public class JELIB extends Output {
      * @param lib the Library to write.
      */
     private void writeTheLibrary(Snapshot snapshot, LibId libId)
-    throws IOException {
+    {
         // gather all referenced objects
 //        this.snapshot = snapshot;
         LibraryBackup libBackup = snapshot.getLib(libId);

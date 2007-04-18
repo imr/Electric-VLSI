@@ -241,7 +241,7 @@ public class GenMath
 	{
 		for (Map.Entry<T,MutableInteger> e : otherBag.entrySet())
 		{
-			MutableInteger count = (MutableInteger)e.getValue();
+			MutableInteger count = e.getValue();
 			addToBag(bag, e.getKey(), count.intValue());
 		}
 	}
@@ -1551,7 +1551,7 @@ public class GenMath
 
     
     public static double rint(double x) {
-        double twoToThe52 = (double)(1L << 52); // 2^52
+        double twoToThe52 = (1L << 52); // 2^52
         if (x >= 0) {
             if (x < twoToThe52)
                 return (twoToThe52 + x) - twoToThe52;
@@ -1891,7 +1891,7 @@ public class GenMath
      * @return true if specified long value is considered "small int".
      */
     public static boolean isSmallInt(long v) {
-        return ((v - MIN_SMALL_COORD) & (long)Integer.MIN_VALUE) == 0;
+        return ((v - MIN_SMALL_COORD) & Integer.MIN_VALUE) == 0;
     }
     
     /**

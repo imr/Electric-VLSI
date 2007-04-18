@@ -79,8 +79,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         super(new BorderLayout());
         
         result = res;
-        mismatches = (Mismatch[])result.getSizeMismatches()
-                                     .toArray(new Mismatch[0]);
+        mismatches = result.getSizeMismatches().toArray(new Mismatch[0]);
         int size = Math.min(mismatches.length, MAXROWS);
         if (size == 0) return;
         parts = new PartReport[size][2];

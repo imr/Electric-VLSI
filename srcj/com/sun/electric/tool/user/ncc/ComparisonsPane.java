@@ -151,8 +151,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     
     /** Set the current set of mismatches to the provided one */
     public void setMismatches(List<NccGuiInfo> misms) {
-        mismatches = 
-            (NccGuiInfo[])misms.toArray(new NccGuiInfo[0]);
+        mismatches = misms.toArray(new NccGuiInfo[0]);
         // allocate arrays of for tables
         mismEqRecs = new EquivRecReport[mismatches.length][];
         mismNetObjs = new ArrayList[mismatches.length][][];
@@ -349,7 +348,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         int divPos = getDividerLocation();        
         if (curExlusiveNodes.size() > 0) {  // if an exclusive node is selected
             // get the first node (it is selected for the longest time)
-            TreeNode exNode = (TreeNode)curExlusiveNodes.firstElement();
+            TreeNode exNode = curExlusiveNodes.firstElement();
             int exType = exNode.type;
             switch (exType) {
                 case TreeNode.COMP_TITLE: 
@@ -611,7 +610,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         int recNdx = index/100000;
         int cellNdx = (index/10000)%10;
         int line = index%10000;
-        TreeNode eqRecNode = (TreeNode)curEqRecNodesToDisplay.elementAt(recNdx);
+        TreeNode eqRecNode = curEqRecNodesToDisplay.elementAt(recNdx);
 
         // in case of hashcode partitions, get NetObject from Circuits
         NetObjReport partOrWire = null;

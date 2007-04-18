@@ -333,7 +333,7 @@ public class Quick
         for (Map.Entry<Cell,CheckProto> e : checkProtos.entrySet())
 		{
 			Cell libCell = e.getKey();
-			CheckProto subCP = (CheckProto)e.getValue();
+			CheckProto subCP = e.getValue();
 			if (subCP.hierInstanceCount > 0)
 			{
 				// allocate net number lists for every net in the cell
@@ -2613,7 +2613,7 @@ public class Quick
 //			for (int i = 0; i < list.size(); i++)
 			{
 //                PolyBase listObj = list.get(i);
-				double area = ((PolyBase)listObj).getArea();
+				double area = listObj.getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
                 PolyBase simplePn = listObj;
                 i++;

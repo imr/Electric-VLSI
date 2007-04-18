@@ -38,9 +38,9 @@ import java.awt.geom.Rectangle2D;
  * testing DRC correctness of my gate libraries.  I will draw a ring
  * around every gate and then run DRC. */
 public class DrcRing {
-  private static void error(boolean pred, String msg) {
-    LayoutLib.error(pred, msg);
-  }
+//  private static void error(boolean pred, String msg) {
+//    LayoutLib.error(pred, msg);
+//  }
 
   /** Draw a rectangular ring from arc.  The space inside the ring has
    * width w and height h.  Position the ring so that the bottom left

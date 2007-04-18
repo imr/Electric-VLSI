@@ -98,7 +98,7 @@ public class NetworkManager {
 
             for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
             {
-                Cell cell = (Cell)cit.next();
+                Cell cell = cit.next();
                 ncell++;
                 cell.getNetlist(false);
             }

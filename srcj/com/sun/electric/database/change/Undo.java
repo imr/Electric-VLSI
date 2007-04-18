@@ -303,13 +303,13 @@ public class Undo
 		System.out.println("----------  Done batches (" + doneList.size() + ") ----------:");
 		for(int i=0; i<doneList.size(); i++)
 		{
-			ChangeBatch batch = (ChangeBatch)doneList.get(i);
+			ChangeBatch batch = doneList.get(i);
 			batch.describe("Done");
 		}
 		System.out.println("----------  Undone batches (" + undoneList.size() + ") ----------:");
 		for(int i=0; i<undoneList.size(); i++)
 		{
-			ChangeBatch batch = (ChangeBatch)undoneList.get(i);
+			ChangeBatch batch = undoneList.get(i);
 			batch.describe("Undone");
 		}
 	}

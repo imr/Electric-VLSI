@@ -52,7 +52,7 @@ public class KeeperHigh {
 		// extract size information
 		double szMc = -1, szPmos = -1, szK = -1, szI = -1;
 		while (nodes.hasNext()) {
-			NodeInst ni = (NodeInst) nodes.next();
+			NodeInst ni = nodes.next();
 			String nm = ni.getProto().getName();
 			if (nm.equals("pms1K{ic}")) {
 				szPmos = StdCellParams.getSize(ni, context);
@@ -68,7 +68,7 @@ public class KeeperHigh {
 					System.out.println("Unrecognized net: ");
 					Iterator<String> it = net.getNames();
 					while (it.hasNext()) {
-						System.out.println((String) it.next());
+						System.out.println(it.next());
 					}
 					error(true, "unrecognized net");
 				}

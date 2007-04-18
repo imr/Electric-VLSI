@@ -210,7 +210,7 @@ public class Log {
             File aFile = new File(useDir, args.toString().trim());
             File aFileBackup = new File(useDir, args.toString().trim()+"___version"+version);
             String aFilePath = aFile.getPath();
-            String aFileBackupPath = aFileBackup.getPath();
+//            String aFileBackupPath = aFileBackup.getPath();
             if (!aFile.exists()) {
                 System.out.println("Error: File does not exist: "+aFile.getPath());
                 return false;

@@ -53,8 +53,7 @@ abstract class ExportConflictTable extends ExportTable {
     protected static class NetworkTable extends ExportConflictTable {
         public NetworkTable(NccGuiInfo res) {
             super(res);
-            conflicts = (ExportConflict.NetworkConflict[])result
-                  .getNetworkExportConflicts().toArray(new ExportConflict.NetworkConflict[0]);
+            conflicts = result.getNetworkExportConflicts().toArray(new ExportConflict.NetworkConflict[0]);
             height = Math.min(conflicts.length, MAXROWS);
             setup();
             setModel(new ExportConflictTableModel.NetworkTableModel(this));
@@ -68,8 +67,7 @@ abstract class ExportConflictTable extends ExportTable {
     protected static class CharacteristicsTable extends ExportConflictTable {
         public CharacteristicsTable(NccGuiInfo res) {
             super(res);
-            conflicts = (ExportConflict.CharactConflict[])result
-                .getCharactExportConflicts().toArray(new ExportConflict.CharactConflict[0]);
+            conflicts = result.getCharactExportConflicts().toArray(new ExportConflict.CharactConflict[0]);
             height = Math.min(conflicts.length, MAXROWS);
             setup();
             setModel(new ExportConflictTableModel.CharacteristicsTableModel(this));

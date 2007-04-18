@@ -307,8 +307,8 @@ public class ParasiticTool extends Tool {
     private static class ParasiticValue
     {
         private ParasiticBucket[] elements = new ParasiticBucket[2];
-        /** True if faces are perpendicular */ private boolean angle;
-        private double distance = -1;
+//        /** True if faces are perpendicular */ private boolean angle;
+//        private double distance = -1;
 
         /**
          * Overwrite Object.toString()
@@ -354,8 +354,8 @@ public class ParasiticTool extends Tool {
                 // Two elements
                 ParasiticValue newValue1 = new ParasiticValue();
                 ParasiticValue newValue2 = new ParasiticValue();
-                newValue1.distance = newValue2.distance = Math.hypot(pdx, pdy);
-                newValue1.angle = newValue2.angle = true;
+//                newValue1.distance = newValue2.distance = Math.hypot(pdx, pdy);
+//                newValue1.angle = newValue2.angle = true;
 
                 // Poly1:X v/s Poly2:Y
                 length1 = p1.getBox().getWidth();
@@ -381,18 +381,18 @@ public class ParasiticTool extends Tool {
                 if (pdx == 0 || pdy == 0)
                     System.out.println("How do I treat this?");
                 ParasiticValue newValue = new ParasiticValue();
-                newValue.angle = false;
+//                newValue.angle = false;
                 if (pdx > pdy)
                 {
                     dir = PolyBase.X;
-                    newValue.distance = pdx;
+//                    newValue.distance = pdx;
                     length1 = p1.getBox().getWidth();
                     length2 = p2.getBox().getWidth();
                 }
                 else
                 {
                     dir = PolyBase.Y;
-                    newValue.distance = pdy;
+//                    newValue.distance = pdy;
                     length1 = p1.getBox().getHeight();
                     length2 = p2.getBox().getHeight();
                 }

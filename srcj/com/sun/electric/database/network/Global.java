@@ -130,7 +130,7 @@ public class Global
 			elems = new Global[numElem];
 			indexOf = new int[maxElem + 1];
 			Arrays.fill(indexOf, -1);
-			List elemList = new ArrayList(numElem);
+//			List elemList = new ArrayList(numElem);
 
 			int local = 0;
 			for (int i = 0; i < elemMap.length; i++) {
@@ -254,7 +254,7 @@ public class Global
 		public Global.Set remove(Iterator<Global> gs) {
 			Buf buf = new Buf(this);
 			for (;gs.hasNext(); ) {
-				Global g = (Global)gs.next();
+				Global g = gs.next();
 				if (g.index < buf.buf.length)
 					buf.buf[g.index] = null;
 			}
@@ -294,7 +294,7 @@ public class Global
 		 * @param set set of globals.
 		 */
 		Buf(Global.Set set) {
-			buf = (PortCharacteristic[])set.elemMap.clone();
+			buf = set.elemMap.clone();
 		}
 
 		/**

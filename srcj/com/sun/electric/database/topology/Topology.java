@@ -185,7 +185,7 @@ public class Topology {
         
 		assert ai.isLinked();
 		int arcIndex = ai.getArcIndex();
-		ArcInst removedAi = (ArcInst) arcs.remove(arcIndex);
+		ArcInst removedAi = arcs.remove(arcIndex);
 		assert removedAi == ai;
 		for (int i = arcIndex; i < arcs.size(); i++)
 		{

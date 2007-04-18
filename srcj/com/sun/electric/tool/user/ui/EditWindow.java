@@ -706,7 +706,6 @@ public class EditWindow extends JPanel
 		private ExplorerTree originalTree;
 
 		NodeProtoDataFlavor(Cell cell, Cell.CellGroup group, ExplorerTree originalTree)
-			throws ClassNotFoundException
 		{
 			super(NodeProto.class, "electric/instance");
 			this.cell = cell;
@@ -742,13 +741,7 @@ public class EditWindow extends JPanel
 			{
 				group = (Cell.CellGroup)obj;
 			}
-			try
-			{
-				df = new NodeProtoDataFlavor(cell, group, tree);
-			} catch (ClassNotFoundException e)
-			{
-				System.out.println("ERROR: Cannot make Electric DataFlavor");
-			}
+			df = new NodeProtoDataFlavor(cell, group, tree);
 		}
 
 		public boolean isValid() { return group != null; }

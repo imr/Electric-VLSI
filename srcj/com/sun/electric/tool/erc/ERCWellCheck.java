@@ -737,7 +737,7 @@ public class ERCWellCheck
 			return ERCNSelect;
 		if (fun == Layer.Function.SUBSTRATE)
 		{
-            int extra = layer.getFunctionExtras();
+//            int extra = layer.getFunctionExtras();
 //			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;
 			return ERCNSelect;
 		}

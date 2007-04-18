@@ -42,7 +42,7 @@ public class ImmutableExport extends ImmutableElectricObject {
     
 	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
 	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
-	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
+//	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
 

@@ -119,7 +119,7 @@ public final class CellId implements NodeProtoId, Serializable {
         this.cellIndex = cellIndex;
     }
     
-    private Object writeReplace() throws ObjectStreamException { return new CellIdKey(this); }
+    private Object writeReplace() { return new CellIdKey(this); }
     private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("CellId"); }
     
     private static class CellIdKey extends EObjectInputStream.Key {

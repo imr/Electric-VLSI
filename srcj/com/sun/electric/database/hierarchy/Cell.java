@@ -294,7 +294,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
 			// not set: see if it is obvious
             ArrayList<CellName> cellNames = new ArrayList<CellName>();
-            String bestName = null;
+//            String bestName = null;
             Cell mainSchematic = null;
 			for (Cell cell: cells) {
 				if (cell.isSchematic() && mainSchematic == null)
@@ -2184,7 +2184,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void removeNodeName(NodeInst ni)
 	{
 		int nodeIndex = ni.getNodeIndex();
-		NodeInst removedNi = (NodeInst) nodes.remove(nodeIndex);
+		NodeInst removedNi = nodes.remove(nodeIndex);
 		assert removedNi == ni;
 		for (int i = nodeIndex; i < nodes.size(); i++)
 		{
@@ -4213,16 +4213,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (eObj instanceof NodeInst)
 		{
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
-				if ((ElectricObject)it.next() == eObj) return true;
+				if (it.next() == eObj) return true;
 		} else if (eObj instanceof ArcInst)
 		{
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
-				if ((ElectricObject)it.next() == eObj) return true;
+				if (it.next() == eObj) return true;
 		} else if (eObj instanceof PortInst)
 		{
 			NodeInst ni = ((PortInst)eObj).getNodeInst();
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
-				if ((ElectricObject)it.next() == ni) return true;
+				if (it.next() == ni) return true;
 		}
 		return false;
 	}

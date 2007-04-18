@@ -91,7 +91,7 @@ public class Netlist
         this.shortResistors = shortResistors;
 //        this.subNetlists = subNetlists;
 		expectedModCount = netCell.modCount;
-		netMap = (int[])other.netMap.clone();
+		netMap = other.netMap.clone();
 		nm_net = new int[netMap.length];
 	}
 

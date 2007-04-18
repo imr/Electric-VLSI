@@ -257,7 +257,7 @@ public class PolyMerge
 		Area sourceArea = (Area)layers.get(source);
 		if (sourceArea == null) layers.remove(dest); else
 		{
-			layers.put(dest, (Area)sourceArea.clone());
+			layers.put(dest, sourceArea.clone());
 			if (amount == 0) return;
 			List<PolyBase> orig = getAreaPoints(sourceArea, source, true);
 			Point2D [] subtractPoints = new Point2D[4];

@@ -132,7 +132,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 //		headEnd = new HeadConnection(this);
 	}
 
-    private Object writeReplace() throws ObjectStreamException { return new ArcInstKey(this); }
+    private Object writeReplace() { return new ArcInstKey(this); }
+
     private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ArcInst"); }
     
     private static class ArcInstKey extends EObjectInputStream.Key {
@@ -356,7 +357,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
        
-        CellId parentId = (CellId)parent.getId();
+        CellId parentId = parent.getId();
         // search for spare arcId
         int arcId;
         do {
@@ -1642,19 +1643,19 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 //	 */
 //	public void copyStateBits(ArcInst ai) { checkChanging(); this.userBits = ai.userBits; Undo.otherChange(this); }
 
-	/**
-	 * Method to set default constraint information on this ArcInst.
-	 */
-	private void setDefaultConstraints(ArcProto protoType)
-	{
-        setRigid(protoType.isRigid());
-        setFixedAngle(protoType.isFixedAngle());
-        setSlidable(protoType.isSlidable());
-        setHeadExtended(protoType.isExtended());
-        setTailExtended(protoType.isExtended());
-        setHeadArrowed(protoType.isDirectional());
-        setBodyArrowed(protoType.isDirectional());
-	}
+//	/**
+//	 * Method to set default constraint information on this ArcInst.
+//	 */
+//	private void setDefaultConstraints(ArcProto protoType)
+//	{
+//        setRigid(protoType.isRigid());
+//        setFixedAngle(protoType.isFixedAngle());
+//        setSlidable(protoType.isSlidable());
+//        setHeadExtended(protoType.isExtended());
+//        setTailExtended(protoType.isExtended());
+//        setHeadArrowed(protoType.isDirectional());
+//        setBodyArrowed(protoType.isDirectional());
+//	}
 
 	/**
 	 * Method to set this ArcInst to be hard-to-select.

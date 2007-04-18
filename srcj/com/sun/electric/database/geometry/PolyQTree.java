@@ -98,7 +98,7 @@ public class PolyQTree extends GeometryHandler
 			Set<PolyNode> toAdd  = new HashSet<PolyNode>();
 			for (Iterator<PolyNode> it = objSet.iterator(); it.hasNext();)
 			{
-				PolyNode node = (PolyNode)it.next();
+				PolyNode node = it.next();
 				//if (!modified || (modified && !node.isOriginal()))
 				{
 //					boolean old = (!(node.isOriginal() || !simple));
@@ -141,7 +141,7 @@ public class PolyQTree extends GeometryHandler
 			// Add removed elements. They overlap with new element.
 			for (Iterator<PolyNode> it = removedElems.iterator(); it.hasNext(); )
 			{
-				PolyNode node = (PolyNode)it.next();
+				PolyNode node = it.next();
 				obj.add(node);
 			}
 			// Recalculate the new bounding box because it might have extended
@@ -279,7 +279,7 @@ public class PolyQTree extends GeometryHandler
 	            pi.next();
 			}
 			Point2D [] points = new Point2D[pointList.size()];
-			return ((Point2D [])(pointList.toArray(points)));
+			return pointList.toArray(points);
 		}
 
 		public double getPerimeter()
@@ -514,8 +514,8 @@ public class PolyQTree extends GeometryHandler
                                 Iterator<GeneralPath> it = polyList.iterator();
                                 while (it.hasNext())
                                 {
-                                    GeneralPath pn = (GeneralPath)it.next();
-                                    if (pn.contains((Point2D)pointList.get(0)))
+                                    GeneralPath pn = it.next();
+                                    if (pn.contains(pointList.get(0)))
                                     {
                                         pn.append(simplepath.getPathIterator(null), true);
                                         simplepath = null;
@@ -545,7 +545,7 @@ public class PolyQTree extends GeometryHandler
             }
             for (Iterator<GeneralPath> it = polyList.iterator(); it.hasNext();)
             {
-                GeneralPath pn = (GeneralPath)it.next();
+                GeneralPath pn = it.next();
                 PolyNode node = new PolyNode(pn);
                 set.add(node);
             }
@@ -633,7 +633,7 @@ public class PolyQTree extends GeometryHandler
 				// Not sure how efficient this is
 				for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 				{
-					PolyNode node = (PolyNode)it.next();
+					PolyNode node = it.next();
 					if (!modified || (modified && !node.isOriginal()))
 					{
 						//if (node.isOriginal() || !simple)
@@ -684,26 +684,26 @@ public class PolyQTree extends GeometryHandler
 			return (nodes == null || nodes.isEmpty());
 		}
 
-		/**
-		 * Original Rectangle2D:intersects doesn't detect when two elements are touching
-		 */
-		private static boolean intersects(Rectangle2D a, Rectangle2D b)
-		{
-			double x = b.getX();
-			double y = b.getY();
-			double w = b.getWidth();
-			double h = b.getHeight();
-
-			if (a.isEmpty() || w <= 0 || h <= 0) {
-	            return false;
-			}
-			double x0 = a.getX();
-			double y0 = a.getY();
-			return ((x + w) >= x0 &&
-				(y + h) >= y0 &&
-				x <= (x0 + a.getWidth()) &&
-				y <= (y0 + a.getHeight()));
-		}
+//		/**
+//		 * Original Rectangle2D:intersects doesn't detect when two elements are touching
+//		 */
+//		private static boolean intersects(Rectangle2D a, Rectangle2D b)
+//		{
+//			double x = b.getX();
+//			double y = b.getY();
+//			double w = b.getWidth();
+//			double h = b.getHeight();
+//
+//			if (a.isEmpty() || w <= 0 || h <= 0) {
+//	            return false;
+//			}
+//			double x0 = a.getX();
+//			double y0 = a.getY();
+//			return ((x + w) >= x0 &&
+//				(y + h) >= y0 &&
+//				x <= (x0 + a.getWidth()) &&
+//				y <= (y0 + a.getHeight()));
+//		}
 
 		/**
 		 * Removes from tree all objects overlapping with obj. Returns the overlapping region.
@@ -747,7 +747,7 @@ public class PolyQTree extends GeometryHandler
 
 				for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 				{
-					PolyNode node = (PolyNode)it.next();
+					PolyNode node = it.next();
 
 					if (node.equals((Object)obj))
 					{
@@ -868,7 +868,7 @@ public class PolyQTree extends GeometryHandler
 
 					for (Iterator<PolyNode> it = nodes.iterator(); it.hasNext();)
 					{
-						PolyNode node = (PolyNode)it.next();
+						PolyNode node = it.next();
 
 						children[i].insert(bb, node, node.getBounds2D(), removedElems);
 					}

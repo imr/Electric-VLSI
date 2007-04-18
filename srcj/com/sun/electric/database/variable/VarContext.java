@@ -144,7 +144,7 @@ public class VarContext implements Serializable
         this.cache = caching ? new ValueCache() : null;
     }
 
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return prev != this ? this : globalContext;
     }
 
@@ -206,25 +206,25 @@ public class VarContext implements Serializable
         return lookupVarEval("ATTR_"+varNm);
     }
 
-    private void printValueCheckValue(Object value, Object checkValue) {
-        System.out.println("fast eval mismatch");
-        System.out.println("  fast value: "+value.toString());
-        System.out.println("  slow value: "+checkValue.toString());
-    }
+//    private void printValueCheckValue(Object value, Object checkValue) {
+//        System.out.println("fast eval mismatch");
+//        System.out.println("  fast value: "+value.toString());
+//        System.out.println("  slow value: "+checkValue.toString());
+//    }
 
-    private void checkFastValue(Object value, Variable var, Object info) throws EvalException {
-        if (value==FAST_EVAL_FAILED) return;
-        Object checkValue = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
-        if (value==null) {
-            LayoutLib.error(value!=checkValue, "fast eval null mismatch");
-        } else {
-            if (!value.equals(checkValue)) {
-                System.out.println("fast eval mismatch");
-                printValueCheckValue(value, checkValue);
-                LayoutLib.error(true, "fast eval mismatch");
-            }
-        }
-    }
+//    private void checkFastValue(Object value, Variable var, Object info) throws EvalException {
+//        if (value==FAST_EVAL_FAILED) return;
+//        Object checkValue = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
+//        if (value==null) {
+//            LayoutLib.error(value!=checkValue, "fast eval null mismatch");
+//        } else {
+//            if (!value.equals(checkValue)) {
+//                System.out.println("fast eval mismatch");
+//                printValueCheckValue(value, checkValue);
+//                LayoutLib.error(true, "fast eval mismatch");
+//            }
+//        }
+//    }
 
     // ----------------------------- public methods ---------------------------
     /**
@@ -351,7 +351,7 @@ public class VarContext implements Serializable
         acontext = VarContext.globalContext;
         int size = nodes.size();
         for (int i=0; i<size; i++) {
-            Nodable no = (Nodable)nodes.pop();
+            Nodable no = nodes.pop();
             acontext = acontext.push(no);
         }
         return acontext;

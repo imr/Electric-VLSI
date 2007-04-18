@@ -193,16 +193,16 @@ public class Snapshot {
         cellBounds[cellIndex] = r;
     }
     
-    private void checkUsedLibs(BitSet usedLibs) {
-        if (usedLibs.isEmpty()) return;
-        int usedLibsLength = usedLibs.length();
-        if (usedLibsLength > libBackups.size())
-            throw new IllegalArgumentException("usedLibsLength");
-        for (int libIndex = 0; libIndex < usedLibsLength; libIndex++) {
-            if (usedLibs.get(libIndex) && libBackups.get(libIndex) == null)
-                throw new IllegalArgumentException("usedLibs");
-        }
-    }
+//    private void checkUsedLibs(BitSet usedLibs) {
+//        if (usedLibs.isEmpty()) return;
+//        int usedLibsLength = usedLibs.length();
+//        if (usedLibsLength > libBackups.size())
+//            throw new IllegalArgumentException("usedLibsLength");
+//        for (int libIndex = 0; libIndex < usedLibsLength; libIndex++) {
+//            if (usedLibs.get(libIndex) && libBackups.get(libIndex) == null)
+//                throw new IllegalArgumentException("usedLibs");
+//        }
+//    }
     
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
         if (newArray == null) return oldList;
@@ -216,21 +216,21 @@ public class Snapshot {
         return new ImmutableArrayList<T>(newArray, 0, l);
     }
     
-    private static int[] copyArray(int[] newArray, int[] oldArray) {
-        if (newArray == null) return oldArray;
-        int l;
-        for (l = newArray.length; l > 0 && newArray[l - 1] < 0; l--);
-        if (l == oldArray.length) {
-            int i = 0;
-            while (i < oldArray.length && newArray[i] == oldArray[i]) i++;
-            if (i == l) return oldArray;
-        }
-        int[] copyArray = new int[l];
-        System.arraycopy(newArray, 0, copyArray, 0, l);
-        if (l > 0 && copyArray[l - 1] < 0)
-            throw new ConcurrentModificationException();
-        return copyArray;
-    }
+//    private static int[] copyArray(int[] newArray, int[] oldArray) {
+//        if (newArray == null) return oldArray;
+//        int l;
+//        for (l = newArray.length; l > 0 && newArray[l - 1] < 0; l--);
+//        if (l == oldArray.length) {
+//            int i = 0;
+//            while (i < oldArray.length && newArray[i] == oldArray[i]) i++;
+//            if (i == l) return oldArray;
+//        }
+//        int[] copyArray = new int[l];
+//        System.arraycopy(newArray, 0, copyArray, 0, l);
+//        if (l > 0 && copyArray[l - 1] < 0)
+//            throw new ConcurrentModificationException();
+//        return copyArray;
+//    }
     
 	/**
 	 * Returns Snapshot which differs from this Snapshot by renamed Ids.

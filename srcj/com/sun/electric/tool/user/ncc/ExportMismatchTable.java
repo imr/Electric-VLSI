@@ -57,7 +57,7 @@ class ExportMismatchTable extends ExportTable {
         int row = 0;
         
         for (Iterator<ExportMismatch> it = result.getExportMismatches().iterator(); it.hasNext() && row<height;) {
-            ExportMismatch em = (ExportMismatch)it.next();
+            ExportMismatch em = it.next();
             if (topoOK && em.isValidOnlyWhenTopologyMismatch()) continue;
             mismatches[row] = em;
             row++;
@@ -115,7 +115,7 @@ class MismatchTableModel extends ExportTableModel {
                     List<PortReport> ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
                     // each Port has a list of Exports which are printed as hyperlinked list
                     for (Iterator<PortReport> it=ports.iterator(); it.hasNext();) {
-                        appendNameOf((PortReport)it.next(), html, lineNdx, false, null);
+                        appendNameOf(it.next(), html, lineNdx, false, null);
                         if (it.hasNext()) html.append("<br>" + LSEP);
                         lineNdx++;
                         cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
@@ -250,7 +250,7 @@ class MismatchTableModel extends ExportTableModel {
             Iterator<PortReport> it;
             // go to the necessary line
             for (it=ports.iterator(), i=0; it.hasNext()&&i<line; i++,it.next());
-            PortReport port = (PortReport)it.next();
+            PortReport port = it.next();
             HighlightTools.highlightPortExports(highlighter, cell, port);
         } else if (em instanceof ExportMismatch.NameMismatch) {
             PortReport port;

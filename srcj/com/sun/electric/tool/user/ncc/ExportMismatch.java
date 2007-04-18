@@ -154,7 +154,7 @@ public abstract class ExportMismatch implements Serializable {
 
         /** Lists of mismatched exports in each Cells.
          * The stored objects are Ports on which mismatched Exports are */
-        private final List<PortReport> ports[] = new ArrayList[2];
+        private final List<PortReport> ports[] = new List[2];
         
         public MultiMatch() {
         	ports[0] = new ArrayList<PortReport>();

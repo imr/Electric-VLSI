@@ -67,7 +67,7 @@ import java.util.Set;
  */
 public class Layout extends Constraints
 {
-	private static final Layout layoutConstraint = new Layout();
+//	private static final Layout layoutConstraint = new Layout();
 
 	static final boolean DEBUG = false;
 
@@ -169,7 +169,7 @@ public class Layout extends Constraints
         cellInfos.clear();
         tempRigid.clear();
         librariesWritten.clear();
-        Snapshot newSnapshot = EDatabase.serverDatabase().backup();
+        EDatabase.serverDatabase().backup();
         goodDRCCells = null;
         oldSnapshot = null;
 	}
@@ -314,7 +314,7 @@ public class Layout extends Constraints
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = cIt.next();
-                newCellInfo(cell, oldSnapshot.getCell((CellId)cell.getId()));
+                newCellInfo(cell, oldSnapshot.getCell(cell.getId()));
 			}
 		}
     }

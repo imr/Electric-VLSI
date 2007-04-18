@@ -180,7 +180,7 @@ public class PolySweepMerge extends GeometryHandler
                 Rectangle2D rect = area.getBounds2D();
                 double areaMinX = rect.getMinX();
                 double areaMaxX = rect.getMaxX();
-                boolean done = false;
+//                boolean done = false;
                 list.clear();
                 
                 // Search for all elements that might overlap
@@ -189,7 +189,7 @@ public class PolySweepMerge extends GeometryHandler
                     Rectangle2D thisRect = thisArea.getBounds2D();
                     if (areaMaxX < thisRect.getMinX())
                     {
-                        done = true;
+//                        done = true;
                         break;
                     }
                     // They could collide

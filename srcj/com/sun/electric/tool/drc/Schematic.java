@@ -39,19 +39,23 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class to do schematic design-rule checking.
@@ -155,14 +159,14 @@ public class Schematic
         {
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
             {
-                NodeInst ni = (NodeInst)it.next();
+                NodeInst ni = it.next();
                 if (!ni.isCellInstance() &&
                     ni.getProto().getTechnology() == Generic.tech) continue;
                 schematicDoCheck(netlist, ni);
             }
             for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
             {
-                ArcInst ai = (ArcInst)it.next();
+                ArcInst ai = it.next();
                 schematicDoCheck(netlist, ai);
             }
         }
@@ -225,7 +229,7 @@ public class Schematic
 					boolean found = false;
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
-						Connection con = (Connection)it.next();
+						Connection con = it.next();
 						if (con.getArc().getProto() == Schematics.tech.bus_arc) { found = true;   break; }
 					}
 					if (!found)
@@ -239,7 +243,7 @@ public class Schematic
 				int i = 0;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
-					Connection con = (Connection)it.next();
+					Connection con = it.next();
 					if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
 				}
 				if (i > 1)
@@ -248,7 +252,7 @@ public class Schematic
 					geomList.add(geom);
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
-						Connection con = (Connection)it.next();
+						Connection con = it.next();
 						if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
 							geomList.add(con.getArc());
 					}
@@ -268,7 +272,7 @@ public class Schematic
 					boolean found = false;
 					for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 					{
-						Variable var = (Variable)it.next();
+						Variable var = it.next();
 						if (var.isDisplay()) { found = true;   break; }
 					}
 					if (!found)
@@ -307,7 +311,7 @@ public class Schematic
 				// ensure that this node matches the parameter list
 				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
 				{
-					Variable var = (Variable)it.next();
+					Variable var = it.next();
                     if (!ni.isParam(var.getKey())) continue;
 
                     Variable foundVar = contentsCell.getParameter(var.getKey());
@@ -457,63 +461,63 @@ public class Schematic
 		// checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
 	}
 
-	/**
-	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
-	 */
-	private static void checkObjectVicinity(Netlist netlist, Geometric topGeom, Geometric geom, AffineTransform trans)
-	{
-		if (geom instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)geom;
-			NodeProto np = ni.getProto();
-			AffineTransform localTrans = ni.rotateOut();
-			localTrans.preConcatenate(trans);
-			if (ni.isCellInstance())
-			{
-				if (ni.isExpanded())
-				{
-					// expand the instance
-					AffineTransform subRot = ni.translateOut();
-					subRot.preConcatenate(localTrans);
-					Cell subCell = (Cell)np;
-					for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
-					{
-						NodeInst subNi = (NodeInst)it.next();
-						checkObjectVicinity(netlist, topGeom, subNi, subRot); 
-					}
-					for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
-					{
-						ArcInst subAi = (ArcInst)it.next();
-						checkObjectVicinity(netlist, topGeom, subAi, subRot); 
-					}
-				}
-			} else
-			{
-				// primitive
-				Technology tech = np.getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni);
-				int total = polyList.length;
-				for(int i=0; i<total; i++)
-				{
-					Poly poly = polyList[i];
-					poly.transform(localTrans);
-					checkPolygonVicinity(netlist, topGeom, poly);
-				}
-			}
-		} else
-		{
-			ArcInst ai = (ArcInst)geom;
-			Technology tech = ai.getProto().getTechnology();
-			Poly [] polyList = tech.getShapeOfArc(ai);
-			int total = polyList.length;
-			for(int i=0; i<total; i++)
-			{
-				Poly poly = polyList[i];
-				poly.transform(trans);
-				checkPolygonVicinity(netlist, topGeom, poly);
-			}
-		}
-	}
+//	/**
+//	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
+//	 */
+//	private static void checkObjectVicinity(Netlist netlist, Geometric topGeom, Geometric geom, AffineTransform trans)
+//	{
+//		if (geom instanceof NodeInst)
+//		{
+//			NodeInst ni = (NodeInst)geom;
+//			NodeProto np = ni.getProto();
+//			AffineTransform localTrans = ni.rotateOut();
+//			localTrans.preConcatenate(trans);
+//			if (ni.isCellInstance())
+//			{
+//				if (ni.isExpanded())
+//				{
+//					// expand the instance
+//					AffineTransform subRot = ni.translateOut();
+//					subRot.preConcatenate(localTrans);
+//					Cell subCell = (Cell)np;
+//					for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
+//					{
+//						NodeInst subNi = it.next();
+//						checkObjectVicinity(netlist, topGeom, subNi, subRot); 
+//					}
+//					for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
+//					{
+//						ArcInst subAi = it.next();
+//						checkObjectVicinity(netlist, topGeom, subAi, subRot); 
+//					}
+//				}
+//			} else
+//			{
+//				// primitive
+//				Technology tech = np.getTechnology();
+//				Poly [] polyList = tech.getShapeOfNode(ni);
+//				int total = polyList.length;
+//				for(int i=0; i<total; i++)
+//				{
+//					Poly poly = polyList[i];
+//					poly.transform(localTrans);
+//					checkPolygonVicinity(netlist, topGeom, poly);
+//				}
+//			}
+//		} else
+//		{
+//			ArcInst ai = (ArcInst)geom;
+//			Technology tech = ai.getProto().getTechnology();
+//			Poly [] polyList = tech.getShapeOfArc(ai);
+//			int total = polyList.length;
+//			for(int i=0; i<total; i++)
+//			{
+//				Poly poly = polyList[i];
+//				poly.transform(trans);
+//				checkPolygonVicinity(netlist, topGeom, poly);
+//			}
+//		}
+//	}
 
 	/**
 	 * Method to check whether polygon "poly" from object "geom" has a DRC violation
@@ -551,10 +555,10 @@ public class Schematic
 					boolean found = false;
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
-						Connection con = (Connection)it.next();
+						Connection con = it.next();
 						for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
 						{
-							Connection oCon = (Connection)oIt.next();
+							Connection oCon = oIt.next();
 							if (netlist.sameNetwork(con.getArc(), oCon.getArc()))
 							{
 								found = true;
@@ -570,7 +574,7 @@ public class Schematic
 					boolean found = false;
 					for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
 					{
-						Connection oCon = (Connection)oIt.next();
+						Connection oCon = oIt.next();
 						if (netlist.sameNetwork(ai, oCon.getArc()))
 						{
 							found = true;
@@ -595,7 +599,7 @@ public class Schematic
 					boolean found = false;
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
-						Connection con = (Connection)it.next();
+						Connection con = it.next();
 						if (netlist.sameNetwork(oAi, con.getArc()))
 						{
 							found = true;
@@ -683,13 +687,13 @@ public class Schematic
 				Cell subCell = (Cell)np;
 				for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
 				{
-					NodeInst subNi = (NodeInst)it.next();
+					NodeInst subNi = it.next();
 					if (checkPoly(geom, poly, oTopGeom, subNi, subRot, canCross))
 						return true;
 				}
 				for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
 				{
-					ArcInst subAi = (ArcInst)it.next();
+					ArcInst subAi = it.next();
 					if (checkPoly(geom, poly, oTopGeom, subAi, subRot, canCross))
 						return true;
 				}

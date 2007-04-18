@@ -52,8 +52,8 @@ public class Setting {
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
     private static final ArrayList<Object> values = new ArrayList<Object>();
     
-    private final ProjSettingsNode xmlNode;
-    private final String xmlName;
+//    private final ProjSettingsNode xmlNode;
+//    private final String xmlName;
     private final String xmlPath;
 	private final Object factoryObj;
     private final Preferences prefs;
@@ -69,10 +69,10 @@ public class Setting {
         EDatabase.theDatabase.checkChanging();
         if (xmlNode == null)
             throw new NullPointerException();
-        this.xmlNode = xmlNode;
+//        this.xmlNode = xmlNode;
         if (xmlName == null)
             xmlName = prefName;
-        this.xmlName = xmlName;
+//        this.xmlName = xmlName;
         xmlPath = xmlNode.getPath() + xmlName;
         assert !allSettingsByXmlPath.containsKey(xmlPath);
         
@@ -372,7 +372,7 @@ public class Setting {
     public static Setting makeStringSetting(String name, Pref.Group group,
                                          ProjSettingsNode xmlNode, String xmlName,
                                          String location, String description, String factory) {
-        return new Setting(name, group, xmlNode, xmlName, location, description, (String)factory);
+        return new Setting(name, group, xmlNode, xmlName, location, description, factory);
     }
     
 	/**
@@ -419,19 +419,19 @@ public class Setting {
         }
     };
     
-    /**
-     * Comparator class for sorting Preferences by their name.
-     */
-    private static final Comparator<Setting> SettingsByName = new Comparator<Setting>() {
-        /**
-         * Method to sort Setting by their prefName.
-         */
-        public int compare(Setting setting1, Setting setting2) {
-            String s1 = setting1.getPrefName();
-            String s2 = setting2.getPrefName();
-            return s1.compareToIgnoreCase(s2);
-        }
-    };
+//    /**
+//     * Comparator class for sorting Preferences by their name.
+//     */
+//    private static final Comparator<Setting> SettingsByName = new Comparator<Setting>() {
+//        /**
+//         * Method to sort Setting by their prefName.
+//         */
+//        public int compare(Setting setting1, Setting setting2) {
+//            String s1 = setting1.getPrefName();
+//            String s2 = setting2.getPrefName();
+//            return s1.compareToIgnoreCase(s2);
+//        }
+//    };
 
 	/**
 	 * Method to adjust project that were saved with a library.

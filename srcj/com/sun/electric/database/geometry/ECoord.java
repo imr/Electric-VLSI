@@ -76,7 +76,7 @@ class ECoord implements Serializable {
         isSmall = GenMath.isSmallInt(gridValue);
     }
     
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return fromGrid(gridValue);
     }
     

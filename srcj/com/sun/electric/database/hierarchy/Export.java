@@ -179,7 +179,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
         boolean bodyOnly = false;
-        int userBits;
+//        int userBits;
 		if (originalProto instanceof Export) {
             Export e = (Export)originalProto;
             alwaysDrawn = e.isAlwaysDrawn();
@@ -360,7 +360,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         Cell iconCell = cell.iconView();
         if ((iconCell != null) && (iconCell != cell)) {
             for (Iterator<Export> it = iconCell.getExports(); it.hasNext(); ) {
-                Export pp = (Export)it.next();
+                Export pp = it.next();
                 if (pp.getName().equals(oldName.toString())) {
                     pp.rename(newName);
                     break;
@@ -381,7 +381,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		checkChanging();
 
 		NodeInst newno = newPi.getNodeInst();
-		PortProto newsubpt = (PortProto)newPi.getPortProto();
+		PortProto newsubpt = newPi.getPortProto();
 
 		// error checks
 		if (newno.getParent() != parent) return true;
@@ -672,7 +672,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		Rectangle2D nodeBounds = ni.getBounds();
 		for(Iterator<Connection> it = originalPort.getConnections(); it.hasNext(); )
 		{
-			Connection con = (Connection)it.next();
+			Connection con = it.next();
 			ArcInst ai = con.getArc();
 			Rectangle2D arcBounds = ai.getBounds();
 			dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
@@ -1052,13 +1052,13 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		// check every instance of this node
 		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 
 			// make sure all arcs on this port can connect
             PortInst pi = ni.findPortInstFromProto(this);
 			for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
 			{
-				Connection con = (Connection)cIt.next();
+				Connection con = cIt.next();
 //			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 //			{
 //				Connection con = (Connection)cIt.next();
@@ -1074,7 +1074,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			// make sure all further exports are still valid
 			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 			{
-				Export oPP = (Export)eIt.next();
+				Export oPP = eIt.next();
 				if (oPP.getOriginalPort().getPortProto() != this) continue;
 				if (oPP.doesntConnect(newPP)) return true;
 			}

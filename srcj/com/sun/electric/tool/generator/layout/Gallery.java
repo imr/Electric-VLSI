@@ -53,7 +53,7 @@ public class Gallery {
 		Iterator<Cell> it = lib.getCells();
 		View layView = View.findView("layout");
 		while (it.hasNext()) {
-			Cell c = (Cell) it.next();
+			Cell c = it.next();
 			if (c.getName().equals("gallery")) continue;
 			if (c.getName().startsWith("drcRing")) continue;
 			if (c.getView()==layView)  cells.add(c);
@@ -102,7 +102,7 @@ public class Gallery {
 		double highestAboveCenter = Double.MIN_VALUE;
 		double lowestBelowCenter = Double.MIN_VALUE;
 		while (it.hasNext()) {
-			NodeInst ni = (NodeInst) it.next();
+			NodeInst ni = it.next();
 			// always add at least 1 part to each row
 			if (x!=0 && x+width(ni)>PAGE_WIDTH) {it.previous();  break;}
 			row.add(ni);

@@ -76,7 +76,7 @@ public abstract class TrackRouter {
 		for (Iterator<ArcInst> it = LayoutLib.getArcInstsOnPortInst(prevPort);
 			it.hasNext();
 			) {
-			ArcInst ai = (ArcInst) it.next();
+			ArcInst ai = it.next();
 			PortInst end0 = ai.getHeadPortInst();
 			PortInst end1 = ai.getTailPortInst();
 			if (end0 == nextPort || end1 == nextPort)
@@ -102,10 +102,10 @@ public abstract class TrackRouter {
 	void insertVia(ViaStack via) {
 		if (vias.size()==0) {vias.add(via);  return;}
 		double myXY = getXY(via);
-		while (lastPos>0 && getXY((ViaStack)vias.get(lastPos-1))>myXY)
+		while (lastPos>0 && getXY(vias.get(lastPos-1))>myXY)
 			lastPos--;
 		while (lastPos < vias.size() 
-		       && getXY((ViaStack) vias.get(lastPos)) < myXY)  lastPos++;
+		       && getXY( vias.get(lastPos)) < myXY)  lastPos++;
 		vias.add(lastPos, via);
 		ViaStack prev = lastPos==0 ? null : (ViaStack)vias.get(lastPos-1);
 		ViaStack next =	lastPos==vias.size()-1
@@ -126,7 +126,7 @@ public abstract class TrackRouter {
 
 		// search backwards
 		for (int i = lastPos; i >= 0; i--) {
-			ViaStack v = (ViaStack) vias.get(i);
+			ViaStack v = vias.get(i);
 			double dist = Math.abs(getXY(v) - position);
 			if (dist > closestDist)  break;
 			if (dist > CLOSE_VIA_DIST)  continue;
@@ -140,7 +140,7 @@ public abstract class TrackRouter {
 		}
 		// search forwards
 		for (int i = lastPos + 1; i < vias.size(); i++) {
-			ViaStack v = (ViaStack) vias.get(i);
+			ViaStack v = vias.get(i);
 			double dist = Math.abs(getXY(v) - position);
 			if (dist > closestDist)  break;
 			if (dist > CLOSE_VIA_DIST)  continue;
@@ -154,7 +154,7 @@ public abstract class TrackRouter {
 		}
 		if (closestDist == Double.MAX_VALUE)  return null;
 		lastPos = closest;
-		return (ViaStack) vias.get(closest);
+		return vias.get(closest);
 	}
 
 	//------------------------------- public methods  ----------------------------
@@ -182,7 +182,7 @@ public abstract class TrackRouter {
 	public void connect(ArrayList<NodeInst> nodeInsts, String portNm) {
 		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (int i=0; i<nodeInsts.size(); i++) {
-			PortInst p = ((NodeInst) nodeInsts.get(i)).findPortInst(portNm);
+			PortInst p = nodeInsts.get(i).findPortInst(portNm);
 			if (p!=null)  ports.add(p);
 		}
 		connect(ports);
@@ -195,7 +195,7 @@ public abstract class TrackRouter {
 	}
 
 	public void connect(ArrayList<PortInst> ports) {
-		for (int i=0; i<ports.size(); i++)  connect((PortInst)ports.get(i));
+		for (int i=0; i<ports.size(); i++)  connect(ports.get(i));
 	}
 
 	public void connect(PortInst[] ports) {

@@ -408,7 +408,7 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
             wires.add(eclass);
             if (!isHashChecked) {
                 String reasons[] = 
-                    (String[])mismEqRecs[i].getReasons().toArray(new String[0]);
+                    mismEqRecs[i].getReasons().toArray(new String[0]);
                 int j = 0;
                 if (reasons.length == 0) {
                     eclass.add(new DefaultMutableTreeNode(

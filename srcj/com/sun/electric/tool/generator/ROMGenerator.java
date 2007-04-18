@@ -116,7 +116,7 @@ public class ROMGenerator
 	{
 		// build the ROM (in a separate Job thread)
 //		new DoROM(destLib, romFile);
-        Cell topLevel = makeAROM(destLib, romFile, "ROMCELL");
+        makeAROM(destLib, romFile, "ROMCELL");
 	}
 
 	/**
@@ -190,10 +190,10 @@ public class ROMGenerator
 		romplane(destLib, lambda, romarray, rp);
 
 		int bits =
-			(new Double(Math.ceil(Math.log(globalbits)/Math.log((double)2.0)))).intValue();
-		int words = (int) (Math.pow(2.0, (double) bits));
+			(new Double(Math.ceil(Math.log(globalbits)/Math.log(2.0)))).intValue();
+		int words = (int) (Math.pow(2.0, bits));
 		int foldbits =
-			(new Double(Math.ceil(Math.log(folds)/Math.log((double) 2.0)))).intValue();
+			(new Double(Math.ceil(Math.log(folds)/Math.log(2.0)))).intValue();
 
 		boolean top = true;
 		boolean bot = false;
@@ -208,7 +208,7 @@ public class ROMGenerator
 		ArcProto m2arc = tech.findArcProto("Metal-2");
 
 		////////////// decoderpmos	
-		Cell decp = (Cell)destLib.findNodeProto(dpr+"{lay}");
+		Cell decp = destLib.findNodeProto(dpr+"{lay}");
 		Rectangle2D decpBounds = decp.getBounds();
 		PortProto[] decpin = new PortProto[words];
 		PortProto[] decpout = new PortProto[words];
@@ -227,7 +227,7 @@ public class ROMGenerator
 		}
 
 		////////////// decodernmos	
-		Cell decn = (Cell)destLib.findNodeProto(dnr+"{lay}");
+		Cell decn = destLib.findNodeProto(dnr+"{lay}");
 		Rectangle2D decnBounds = decn.getBounds();
 	 	PortProto[] decnout = new PortProto[words];
 	 	PortProto[] decnin = new PortProto[words];
@@ -245,7 +245,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// romplane
-		Cell romp = (Cell)destLib.findNodeProto(rp+"{lay}");
+		Cell romp = destLib.findNodeProto(rp+"{lay}");
 		Rectangle2D rompBounds = romp.getBounds();
 		PortProto[] rompin = new PortProto[globalbits];
 		PortProto[] rompout = new PortProto[romarray.length];
@@ -266,7 +266,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// inverterplane
-		Cell invp = (Cell)destLib.findNodeProto(ip+"{lay}");
+		Cell invp = destLib.findNodeProto(ip+"{lay}");
 		Rectangle2D invpBounds = invp.getBounds();
 		PortProto[] invin = new PortProto[romarray.length];
 		PortProto[] invout = new PortProto[romarray.length];
@@ -291,7 +291,7 @@ public class ROMGenerator
 		}
 	
 		////////////////////// ininverterplane top
-		Cell ininvtp = (Cell)destLib.findNodeProto(invt+"{lay}");
+		Cell ininvtp = destLib.findNodeProto(invt+"{lay}");
 		Rectangle2D ininvtpBounds = ininvtp.getBounds();
 		PortProto[] ivttop  = new PortProto[bits];
 		PortProto[] ivtbot = new PortProto[bits];
@@ -541,7 +541,7 @@ public class ROMGenerator
 			muxplane(destLib, lambda, folds, romarray.length, mp);
 	
 			////////////// decodernmosmux
-			Cell decpmux = (Cell)destLib.findNodeProto(dpm+"{lay}");
+			Cell decpmux = destLib.findNodeProto(dpm+"{lay}");
 			Rectangle2D decpmuxBounds = decpmux.getBounds();
 		 	PortProto[] decpmuxin = new PortProto[folds];
 		 	PortProto[] decpmuxout = new PortProto[folds];
@@ -561,7 +561,7 @@ public class ROMGenerator
 			}
 	
 			////////////// decoderpmosmux
-			Cell decnmux = (Cell)destLib.findNodeProto(dnm+"{lay}");
+			Cell decnmux = destLib.findNodeProto(dnm+"{lay}");
 			Rectangle2D decnmuxBounds = decnmux.getBounds();
 		 	PortProto[] decnmuxout = new PortProto[folds];
 		 	PortProto[] decnmuxin = new PortProto[folds];
@@ -578,7 +578,7 @@ public class ROMGenerator
 			}
 			
 			////////////////////// muxplane
-			Cell muxp = (Cell)destLib.findNodeProto(mp+"{lay}");
+			Cell muxp = destLib.findNodeProto(mp+"{lay}");
 			Rectangle2D muxpBounds = muxp.getBounds();
 			PortProto[] muxin = new PortProto[romarray.length];
 			PortProto[] muxout = new PortProto[romarray.length/folds];
@@ -597,7 +597,7 @@ public class ROMGenerator
 			}
 	
 			////////////////////// ininverterplane bottom
-			Cell ininvbp = (Cell)destLib.findNodeProto(invb+"{lay}");
+			Cell ininvbp = destLib.findNodeProto(invb+"{lay}");
 			Rectangle2D ininvbpBounds = ininvbp.getBounds();
 			PortProto[] ivbtop  = new PortProto[foldbits];
 			PortProto[] ivbbot = new PortProto[foldbits];
@@ -862,7 +862,7 @@ public class ROMGenerator
 	 */
 	private static void romplane(Library destLib, double lambda, int romarray[][], String rp)
 	{
-		int i, m, o;
+		int i, m;
 		double x, y;
 		NodeInst ap1, ap2, ap3, ap4, gnd1, gnd2, intgnd;
 		PortProto apport1, apport2, apport3, apport4, gndport1, gndport2,
@@ -889,16 +889,12 @@ public class ROMGenerator
 		NodeInst gndpex[] = new NodeInst[1];
 		NodeInst gndm1ex[] = new NodeInst[1];
 		NodeInst gnd1pin = null;
-		NodeInst vdd1pin = null;
 		NodeInst vdd2pin = null;
 	
 		PortProto[] nwellcports = new PortProto[(wordlines+2)/2];
 		PortProto[][] minports = new PortProto[wordlines+2][inputs+2];
 		PortProto[][] gndports = new PortProto[wordlines/2][inputs+2];
 		PortProto[] gnd_2ports = new PortProto[wordlines/2];
-		PortProto[][] diffports = new PortProto[wordlines/2][inputs+2];
-		PortProto[] m1polyports = new PortProto[inputs+2];
-		PortProto[] m1m2ports = new PortProto[inputs+2];
 		PortProto[] m1m2_2ports = new PortProto[wordlines+2];
 		PortProto[] m1m2_3ports = new PortProto[wordlines+2];
 		PortProto[] m1m2_4ports = new PortProto[wordlines+2];
@@ -907,7 +903,6 @@ public class ROMGenerator
 		PortProto gndpexport[] = new PortProto[1];
 		PortProto gndm1export[] = new PortProto[1];
 		PortProto gnd1port = null;
-		PortProto vdd1port = null;
 		PortProto vdd2port = null;
 	
 		// get pointers to primitives
@@ -935,9 +930,7 @@ public class ROMGenerator
 		double[] ppinbox = {-ppin.getDefWidth()/2,
 						 ppin.getDefWidth()/2,
 						 -ppin.getDefHeight()/2,
-						 ppin.getDefHeight()/2};
-		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
+						 ppin.getDefHeight()/2};	
 		
 		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
 		PortProto m1pinport = m1pin.getPort(0);
@@ -962,25 +955,10 @@ public class ROMGenerator
 			 diffpin.getDefHeight()/2+lambda/2};
 					
 		NodeProto nwnode = tech.findNodeProto("N-Well-Node");
-		double[] nwnodebox =
-			{-nwnode.getDefWidth()/2-lambda/2,
-			 nwnode.getDefWidth()/2+lambda/2,
-			 -nwnode.getDefHeight()/2-lambda/2,
-			 nwnode.getDefHeight()/2+lambda/2};
 		
 		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 					
 		NodeProto psnode = tech.findNodeProto("P-Select-Node");
-		double[] psnodebox =
-			{-psnode.getDefWidth()/2-lambda/2,
-			 psnode.getDefWidth()/2+lambda/2,
-			 -psnode.getDefHeight()/2-lambda/2,
-			 psnode.getDefHeight()/2+lambda/2};	   
 		
 		NodeProto mnac = tech.findNodeProto("Metal-1-N-Active-Con");
 		PortProto mnacport = mnac.getPort(0);
@@ -1011,10 +989,6 @@ public class ROMGenerator
 		double[] m1m2cbox = {-mx*lambda/2, mx*lambda/2, -mx*lambda/2, mx*lambda/2}; 
 		
 		NodeProto nsnode = tech.findNodeProto("N-Select-Node");
-		double nselectx = 8; 
-		double nselecty = 8;
-		double[] nsnodebox =
-			{-nselectx*lambda/2, nselectx*lambda/2, -nselecty*lambda/2, nselecty*lambda/2};
 	
 		ArcProto parc = tech.findArcProto("Polysilicon-1");
 		ArcProto m1arc = tech.findArcProto("Metal-1");
@@ -1025,16 +999,16 @@ public class ROMGenerator
 		// create a cell called "romplane{lay}" in the destination library
 		Cell romplane = Cell.newInstance(destLib, rp+"{lay}");
 	
-		NodeInst pwellnode = makeCStyleNodeInst(pwnode,-4*lambda,(8*lambda*(inputs+2)),
+		makeCStyleNodeInst(pwnode,-4*lambda,(8*lambda*(inputs+2)),
 										-4*lambda,3*8*lambda*(wordlines)/2,0,0,romplane);
 		
 		double ptranssize = 20;	
 		
-		NodeInst pselectnode = makeCStyleNodeInst(psnode,-28*lambda,(ptranssize-28)*lambda,4*lambda,
+		makeCStyleNodeInst(psnode,-28*lambda,(ptranssize-28)*lambda,4*lambda,
 								 (4+3*8*wordlines/2)*lambda,0,0,romplane);
-		NodeInst nselectnode = makeCStyleNodeInst(nsnode,0*lambda,(8*lambda*inputs),4*lambda,
+		makeCStyleNodeInst(nsnode,0*lambda,(8*lambda*inputs),4*lambda,
 								 (4+3*8*wordlines/2)*lambda,0,0,romplane);
-		NodeInst nwellnode = makeCStyleNodeInst(nwnode,-38*lambda,(ptranssize-38)*lambda,20*lambda,
+		makeCStyleNodeInst(nwnode,-38*lambda,(ptranssize-38)*lambda,20*lambda,
 								 (4+3*8*wordlines/2)*lambda,0,0,romplane);
 	
 		// Create instances of objects on rom plane
@@ -1540,33 +1514,26 @@ public class ROMGenerator
 	private static void decodernmos(Library destLib, double lambda, int bits, String cellname, boolean top)
 	{
 		int[][] romplane = generateplane(bits);
-		int i, m, o;
+		int i, m;
 		double x, y;
-		NodeInst ap1, ap2, ap3, gnd1, gnd2, vdd1, vdd2;
-		PortProto apport1, apport2, apport3, gndport1, gndport2,
-							vddport1, vddport2;
-		double[] appos1, appos2, appos3, gndpos1, gndpos2, vddpos1, vddpos2;
+		NodeInst ap1, ap2, ap3, vdd1, vdd2;
+		PortProto apport1, apport2, apport3, vddport1, vddport2;
+		double[] appos1, appos2, appos3, vddpos1, vddpos2;
 	
 		int inputs = romplane[0].length;
 		int wordlines = romplane.length;
 		
 		NodeInst[][] ortrans = new NodeInst[wordlines+3][inputs+2];
 		NodeInst[][] minpins = new NodeInst[wordlines+2][inputs+2];
-		NodeInst[][] diffpins = new NodeInst[wordlines+2][inputs+2];
-		NodeInst[][] gndpins = new NodeInst[wordlines/2][inputs+2];
 		NodeInst[][] vddpins = new NodeInst[wordlines][inputs/2];
 		NodeInst[] pwrpins = new NodeInst[inputs/2];
 		NodeInst[][] m1m2pins = new NodeInst[wordlines+2][inputs+2];
-		NodeInst[] pwcpins = new NodeInst[wordlines+2];
 		
 		
 		PortProto[][] minports = new PortProto[wordlines+2][inputs+2];
-		PortProto[][] gndports = new PortProto[wordlines/2][inputs+2];
 		PortProto[][] vddports = new PortProto[wordlines][inputs/2];
 		PortProto[] pwrports = new PortProto[inputs/2];
-		PortProto[][] diffports = new PortProto[wordlines/2][inputs+2];
 		PortProto[][] m1m2ports = new PortProto[wordlines+2][inputs+2];
-		PortProto[] pwcports = new PortProto[wordlines+2];
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
@@ -1578,26 +1545,14 @@ public class ROMGenerator
 	 					 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
 						 nmos.getDefHeight()/2};
-			
-		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
-		double[] pmosbox = {-pmos.getDefWidth()/2-lambda/2,
-						 pmos.getDefWidth()/2+lambda/2,
-						 -pmos.getDefHeight()/2,
-						 pmos.getDefHeight()/2};
-	
+
 		NodeProto ppin = tech.findNodeProto("Polysilicon-1-Pin");
 		PortProto ppinport = ppin.getPort(0);
 		double[] ppinbox = {-ppin.getDefWidth()/2,
 						 ppin.getDefWidth()/2,
 						 -ppin.getDefHeight()/2,
 						 ppin.getDefHeight()/2};
-		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
-		
+
 		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
 		PortProto m1pinport = m1pin.getPort(0);
 		double[] m1pinbox = {-m1pin.getDefWidth()/2-lambda/2,
@@ -1613,18 +1568,7 @@ public class ROMGenerator
 						 m1pin.getDefHeight()/2+lambda/2};
 		
 	
-		NodeProto nwnode = tech.findNodeProto("N-Well-Node");
-		double[] nwnodebox =
-			{-nwnode.getDefWidth()/2-lambda/2,
-			 nwnode.getDefWidth()/2+lambda/2,
-			 -nwnode.getDefHeight()/2-lambda/2,
-			 nwnode.getDefHeight()/2+lambda/2};
 		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 		
 		double mx = 5;
 		NodeProto mpc = tech.findNodeProto("Metal-1-Polysilicon-1-Con");
@@ -1634,14 +1578,6 @@ public class ROMGenerator
 		NodeProto m1m2c = tech.findNodeProto("Metal-1-Metal-2-Con");
 		PortProto m1m2cport = m1m2c.getPort(0);
 		double[] m1m2cbox = {-5*lambda/2, 5*lambda/2, -5*lambda/2, 5*lambda/2}; 
-	
-		NodeProto diffpin = tech.findNodeProto("Active-Pin");
-		PortProto diffpinport = diffpin.getPort(0);
-		double[] diffpinbox =
-			{-diffpin.getDefWidth()/2-lambda/2,
-			 diffpin.getDefWidth()/2+lambda/2,
-			 -diffpin.getDefHeight()/2-lambda/2,
-			 diffpin.getDefHeight()/2+lambda/2};
 		
 		NodeProto mnac = tech.findNodeProto("Metal-1-N-Active-Con");
 		PortProto mnacport = mnac.getPort(0);
@@ -1649,40 +1585,18 @@ public class ROMGenerator
 		double[] mnacbox = {-aaa*lambda/2, aaa*lambda/2, -aaa*lambda/2, aaa*lambda/2};
 		// centers around 6 goes up by multiples of 2
 	
-		NodeProto mpac = tech.findNodeProto("Metal-1-P-Active-Con");
-		PortProto mpacport = mpac.getPort(0);
-		double[] mpacbox = {-aaa*lambda/2, aaa*lambda/2, -aaa*lambda/2, aaa*lambda/2};
-		// centers around 6 goes up by multiples of 2
-	
-		NodeProto mpwc = tech.findNodeProto("Metal-1-P-Well-Con");
-		PortProto mpwcport = mpwc.getPort(0);
-		double[] mpwcbox = {-17*lambda/2, 17*lambda/2, -17*lambda/2, 17*lambda/2};
-	
-		NodeProto mnwc = tech.findNodeProto("Metal-1-N-Well-Con");
-		PortProto mnwcport = mnwc.getPort(0);
-		double[] mnwcbox = {-17*lambda/2, 17*lambda/2, -17*lambda/2, 17*lambda/2};
-	
 		ArcProto parc = tech.findArcProto("Polysilicon-1");
 		ArcProto m1arc = tech.findArcProto("Metal-1");
 		ArcProto m2arc = tech.findArcProto("Metal-2");
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
-		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
 		// create a cell called cellname+"{lay}" in the destination library
 		Cell decn = Cell.newInstance(destLib, cellname+"{lay}");
 
 		NodeProto nsnode = tech.findNodeProto("N-Select-Node");
-		int nselectx = 8; 
-		int nselecty = 8;
-		double[] nsnodebox =
-			{-nselectx*lambda/2, nselectx*lambda/2, -nselecty*lambda/2, nselecty*lambda/2};
 	
-		NodeInst pwellnode =
-			makeCStyleNodeInst(pwnode,0,(8*lambda*(2*bits+1)),
-										0,8*lambda*(wordlines+1),0,0,decn);
-		NodeInst nselectnode =
-			makeCStyleNodeInst(nsnode,0,(8*lambda*(2*bits+1)),
-										0,8*lambda*(wordlines+1),0,0,decn);
+		makeCStyleNodeInst(pwnode,0,(8*lambda*(2*bits+1)), 0,8*lambda*(wordlines+1),0,0,decn);
+		makeCStyleNodeInst(nsnode,0,(8*lambda*(2*bits+1)), 0,8*lambda*(wordlines+1),0,0,decn);
 		
 		// Create instances of objects on decoder nmos plane
 		x = 0;
@@ -2013,7 +1927,7 @@ public class ROMGenerator
 	private static void decoderpmos(Library destLib, double lambda, int bits, String cellname, boolean top)
 	{
 		int[][] romplane = generateplane(bits);
-		int i, m, o;
+		int i, m;
 		double x, y;
 		NodeInst ap1, ap2, ap3, apx, apy;
 		PortProto apport1, apport2, apport3, apportx, apporty;
@@ -2026,7 +1940,6 @@ public class ROMGenerator
 		NodeInst[] m1m2pins = new NodeInst[wordlines+2];
 		NodeInst[] m2pins = new NodeInst[wordlines+2];
 		NodeInst vddpin = null;
-		NodeInst vddipin = null;
 		NodeInst vddbpin = null;
 		NodeInst vddcpin = null;
 	
@@ -2034,21 +1947,10 @@ public class ROMGenerator
 		PortProto[] m1m2ports = new PortProto[wordlines+2];
 		PortProto[] m2ports = new PortProto[wordlines+2];
 		PortProto vddport = null;
-		PortProto vddiport = null;
 		PortProto vddbport = null;
 		PortProto vddcport = null;
 	
-		// get pointers to primitives
-		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
-		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
-						 nmos.getDefWidth()/2+lambda/2,
-						 -nmos.getDefHeight()/2,
-						 nmos.getDefHeight()/2};
-					
+		// get pointers to primitives					
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
 		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
 		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
@@ -2065,8 +1967,6 @@ public class ROMGenerator
 						 ppin.getDefWidth()/2,
 						 -ppin.getDefHeight()/2,
 						 ppin.getDefHeight()/2};
-		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
 		
 		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
 		PortProto m1pinport = m1pin.getPort(0);
@@ -2087,22 +1987,9 @@ public class ROMGenerator
 		PortProto mpcport = mpc.getPort(0);
 		double[] mpcbox = {-mx*lambda/2, mx*lambda/2, -mx*lambda/2, mx*lambda/2}; 
 		
-		NodeProto diffpin = tech.findNodeProto("Active-Pin");
-		PortProto diffpinport = diffpin.getPort(0);
-		double[] diffpinbox =
-			{-diffpin.getDefWidth()/2-lambda/2,
-			 diffpin.getDefWidth()/2+lambda/2,
-			 -diffpin.getDefHeight()/2-lambda/2,
-			 diffpin.getDefHeight()/2+lambda/2};
-		
 		NodeProto m1m2c = tech.findNodeProto("Metal-1-Metal-2-Con");
 		PortProto m1m2cport = m1m2c.getPort(0);
 		double[] m1m2cbox = {-5*lambda/2, 5*lambda/2, -5*lambda/2, 5*lambda/2}; 
-	
-		NodeProto mnac = tech.findNodeProto("Metal-1-N-Active-Con");
-		PortProto mnacport = mnac.getPort(0);
-		double[] mnacbox = {-17*lambda/2, 17*lambda/2, -17*lambda/2, 17*lambda/2};
-		// centers around 6 goes up by multiples of 2
 	
 		NodeProto mpac = tech.findNodeProto("Metal-1-P-Active-Con");
 		PortProto mpacport = mpac.getPort(0);
@@ -2113,43 +2000,21 @@ public class ROMGenerator
 		PortProto mnwcport = mnwc.getPort(0);
 		double[] mnwcbox = {-17*lambda/2, 17*lambda/2, -17*lambda/2, 17*lambda/2};
 	
-		NodeProto mpwc = tech.findNodeProto("Metal-1-P-Well-Con");
-		PortProto mpwcport = mpwc.getPort(0);
-		double[] mpwcbox = {-2*lambda, 2*lambda, -2*lambda, 2*lambda};
-	
 		ArcProto parc = tech.findArcProto("Polysilicon-1");
 		ArcProto m1arc = tech.findArcProto("Metal-1");
 		ArcProto m2arc = tech.findArcProto("Metal-2");
-		ArcProto ndiffarc = tech.findArcProto("N-Active");
 		ArcProto pdiffarc = tech.findArcProto("P-Active");
 	
 		NodeProto nwnode = tech.findNodeProto("N-Well-Node");
-		double[] nwnodebox =
-			{-nwnode.getDefWidth()/2-lambda/2,
-			 nwnode.getDefWidth()/2+lambda/2,
-			 -nwnode.getDefHeight()/2-lambda/2,
-			 nwnode.getDefHeight()/2+lambda/2};
-		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 	
 		// create a cell called cellname+"{lay}" in the destination library
 		Cell decp = Cell.newInstance(destLib, cellname+"{lay}");
 		
 		NodeProto psnode = tech.findNodeProto("P-Select-Node");
-		int pselectx = 8; 
-		int pselecty = 8;
-		double[] psnodebox =
-			{-pselectx*lambda/2, pselectx*lambda/2, -pselecty*lambda/2, pselecty*lambda/2};
 	
-		NodeInst nwellnode =
-			makeCStyleNodeInst(nwnode,0,(8*lambda*(2*bits)),
+		makeCStyleNodeInst(nwnode,0,(8*lambda*(2*bits)),
 										0,8*lambda*(wordlines+1),0,0,decp);
-		NodeInst pselectnode =
-			makeCStyleNodeInst(psnode,0,(8*lambda*(2*bits)),
+		makeCStyleNodeInst(psnode,0,(8*lambda*(2*bits)),
 										0,8*lambda*(wordlines+1),0,0,decp);
 	
 		// Create instances of objects on decoder pmos plane
@@ -2517,7 +2382,7 @@ public class ROMGenerator
 		int selects = folds;
 		int outputbits = romoutputs;
 	
-		int i, m, o;
+		int i, m;
 		double x, y;
 		NodeInst ap1, ap2, ap3, apx, apy;
 		PortProto apport1, apport2, apport3, apportx, apporty;
@@ -2527,14 +2392,10 @@ public class ROMGenerator
 		NodeInst[][] minpins = new NodeInst[outputbits+2][selects+2];
 		NodeInst[] m1m2pins2 = new NodeInst[outputbits+2];
 		NodeInst[] m1m2pins = new NodeInst[selects+2];
-		NodeInst[] m2pins = new NodeInst[outputbits+2];
 		NodeInst[] m1polypins = new NodeInst[outputbits+2];
 	
 		PortProto[][] minports = new PortProto[outputbits+2][selects+2];
 		PortProto[] m1m2ports2 = new PortProto[outputbits+2];
-		PortProto[] m1m2ports = new PortProto[selects+2];
-		PortProto[] m2ports = new PortProto[outputbits+2];
-		PortProto[] m1polyports = new PortProto[outputbits+2];
 		
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
@@ -2546,16 +2407,6 @@ public class ROMGenerator
 						 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
 						 nmos.getDefHeight()/2};
-					
-		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
-		double[] pmosbox = {-nmos.getDefWidth()/2-lambda/2,
-						 nmos.getDefWidth()/2+lambda/2,
-						 -nmos.getDefHeight()/2,
-						 nmos.getDefHeight()/2};
 	
 		NodeProto ppin = tech.findNodeProto("Polysilicon-1-Pin");
 		PortProto ppinport = ppin.getPort(0);
@@ -2564,29 +2415,12 @@ public class ROMGenerator
 						 -ppin.getDefHeight()/2,
 						 ppin.getDefHeight()/2};
 		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
-		
 		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
 		PortProto m1pinport = m1pin.getPort(0);
 		double[] m1pinbox = {-m1pin.getDefWidth()/2-lambda/2,
 						  m1pin.getDefWidth()/2+lambda/2,
 						  -m1pin.getDefHeight()/2-lambda/2,
 						  m1pin.getDefHeight()/2+lambda/2};
-		
-		NodeProto m2pin = tech.findNodeProto("Metal-2-Pin");
-		PortProto m2pinport = m2pin.getPort(0);
-		double[] m2pinbox = {-m1pin.getDefWidth()/2-lambda/2,
-						  m1pin.getDefWidth()/2+lambda/2,
-						  -m1pin.getDefHeight()/2-lambda/2,
-						  m1pin.getDefHeight()/2+lambda/2};
-	
-		NodeProto diffpin = tech.findNodeProto("Active-Pin");
-		PortProto diffpinport = diffpin.getPort(0);
-		double[] diffpinbox =
-			{-diffpin.getDefWidth()/2-lambda/2,
-			 diffpin.getDefWidth()/2+lambda/2,
-			 -diffpin.getDefHeight()/2-lambda/2,
-			 diffpin.getDefHeight()/2+lambda/2};
 		
 		NodeProto m1m2c = tech.findNodeProto("Metal-1-Metal-2-Con");
 		PortProto m1m2cport = m1m2c.getPort(0);
@@ -2596,12 +2430,6 @@ public class ROMGenerator
 		PortProto mnacport = mnac.getPort(0);
 		double mult = 17;
 		double[] mnacbox = {-1*mult*lambda/2, mult*lambda/2, -1*mult*lambda/2, mult*lambda/2};
-		
-		NodeProto mpac = tech.findNodeProto("Metal-1-N-Active-Con");
-		
-		NodeProto mpwc = tech.findNodeProto("Metal-1-P-Well-Con");
-		PortProto mpwcport = mpwc.getPort(0);
-		double[] mpwcbox = {-2*lambda, 2*lambda, -2*lambda, 2*lambda};
 	
 		NodeProto mpc = tech.findNodeProto("Metal-1-Polysilicon-1-Con");
 		PortProto mpcport = mpc.getPort(0);
@@ -2614,17 +2442,11 @@ public class ROMGenerator
 		ArcProto ndiffarc = tech.findArcProto("N-Active");
 	
 		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 
 		// create a cell called "muxplane{lay}" in the destination library
 		Cell muxplane = Cell.newInstance(destLib, mp+"{lay}");
 	
-		NodeInst pwellnode =
-			makeCStyleNodeInst(pwnode,-8*lambda,lambda*8*(folds+1),
+		makeCStyleNodeInst(pwnode,-8*lambda,lambda*8*(folds+1),
 										-8*lambda,8*lambda*3*romoutputs/2,0,0,muxplane);
 	
 		// Create instances of objects in mux plane
@@ -2838,13 +2660,11 @@ public class ROMGenerator
 	 */
 	private static void inverterplane(Library destLib, double lambda, int outs, int folds, String ip)
 	{		
-		int i, m, o;
+		int i;
 		double x, y;
-		NodeInst ap1, ap2, ap3, gnd1, gnd2, vdd1, vdd2;
-		PortProto apport1, apport2, apport3, trans1port, trans2port,
-						   gndport1, gndport2, vddport1, vddport2;
-		double[] appos1, appos2, appos3, trans1pos, trans2pos, gndpos1, gndpos2,
-				  vddpos1, vddpos2;
+		NodeInst ap1, ap2, ap3;
+		PortProto apport1, apport2, apport3, gndport1, vddport1;
+		double[] appos1, appos2, appos3, gndpos1, vddpos1;
 	
 		NodeInst[] ntrans = new NodeInst[outs/folds];
 		NodeInst[] ptrans = new NodeInst[outs/folds];
@@ -2854,7 +2674,6 @@ public class ROMGenerator
 		NodeInst[] nmospins = new NodeInst[outs/folds];
 		NodeInst[] pmospins = new NodeInst[outs/folds];
 		NodeInst[] gndpins = new NodeInst[outs/2];
-		NodeInst[] pwellpins = new NodeInst[outs/2];
 		NodeInst[] vddpins = new NodeInst[outs/2];
 		NodeInst[] midvddpins = new NodeInst[outs/2];
 		NodeInst[] gndpins2 = new NodeInst[outs/folds];
@@ -2865,14 +2684,11 @@ public class ROMGenerator
 		NodeInst nwellc = null;
 		NodeInst nwellm = null;
 		
-		PortProto[] ntransports = new PortProto[outs/folds];
-		PortProto[] ptransports = new PortProto[outs/folds];
 		PortProto[] inports = new PortProto[outs/folds];
 		PortProto[] polyports = new PortProto[outs/folds];
 		PortProto[] intpports = new PortProto[outs/folds];
 		PortProto[] nmosports = new PortProto[outs/folds];
 		PortProto[] pmosports = new PortProto[outs/folds];
-		PortProto[] pwellports = new PortProto[outs/2];
 		PortProto[] gndports = new PortProto[outs/2];
 		PortProto[] vddports = new PortProto[outs/2];
 		PortProto[] midvddports = new PortProto[outs/2];
@@ -2896,7 +2712,6 @@ public class ROMGenerator
 						 nmos.getDefHeight()/2};
 					
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
 		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
 		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
 		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
@@ -2911,48 +2726,14 @@ public class ROMGenerator
 						 ppin.getDefWidth()/2,
 						 -ppin.getDefHeight()/2,
 						 ppin.getDefHeight()/2};
-		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
-		
-		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
-		PortProto m1pinport = m1pin.getPort(0);
-		double[] m1pinbox = {-m1pin.getDefWidth()/2-lambda/2,
-						  m1pin.getDefWidth()/2+lambda/2,
-						  -m1pin.getDefHeight()/2-lambda/2,
-						  m1pin.getDefHeight()/2+lambda/2};
-		
-		NodeProto m2pin = tech.findNodeProto("Metal-2-Pin");
-		PortProto m2pinport = m2pin.getPort(0);
-		double[] m2pinbox = {-m1pin.getDefWidth()/2-lambda/2,
-						  m1pin.getDefWidth()/2+lambda/2,
-						  -m1pin.getDefHeight()/2-lambda/2,
-						  m1pin.getDefHeight()/2+lambda/2};
 	
 		NodeProto nwnode = tech.findNodeProto("N-Well-Node");
-		double[] nwnodebox =
-			{-nwnode.getDefWidth()/2-lambda/2,
-			 nwnode.getDefWidth()/2+lambda/2,
-			 -nwnode.getDefHeight()/2-lambda/2,
-			 nwnode.getDefHeight()/2+lambda/2};
 		
 		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 		
 		NodeProto m1m2c = tech.findNodeProto("Metal-1-Metal-2-Con");
 		PortProto m1m2cport = m1m2c.getPort(0);
 		double[] m1m2cbox = {-5*lambda/2, 5*lambda/2, -5*lambda/2, 5*lambda/2}; 
-	
-		NodeProto diffpin = tech.findNodeProto("Active-Pin");
-		PortProto diffpinport = diffpin.getPort(0);
-		double[] diffpinbox = 
-			{-diffpin.getDefWidth()/2-lambda/2,
-			 diffpin.getDefWidth()/2+lambda/2,
-			 -diffpin.getDefHeight()/2-lambda/2,
-			 diffpin.getDefHeight()/2+lambda/2};
 	
 		NodeProto mnac = tech.findNodeProto("Metal-1-N-Active-Con");
 		PortProto mnacport = mnac.getPort(0);
@@ -2986,12 +2767,10 @@ public class ROMGenerator
 		// create a cell called "inverterplane{lay}" in the destination library
 		Cell invp = Cell.newInstance(destLib, ip+"{lay}");
 	
-		NodeInst pwellnode =
-			makeCStyleNodeInst(pwnode,-32*lambda,(3*lambda*8*outs/2)+8*lambda,
+		makeCStyleNodeInst(pwnode,-32*lambda,(3*lambda*8*outs/2)+8*lambda,
 										-18*lambda,16*lambda,0,0,invp);
 	
-		NodeInst nwellnode =
-			makeCStyleNodeInst(nwnode,-32*lambda,(3*lambda*8*outs/2)+8*lambda,
+		makeCStyleNodeInst(nwnode,-32*lambda,(3*lambda*8*outs/2)+8*lambda,
 										-34*lambda,-18*lambda,0,0,invp);
 	
 		// Create instances of objects on inverter plane
@@ -3487,13 +3266,11 @@ public class ROMGenerator
 	private static void ininverterplane(Library destLib, double lambda, int outs, String layoutname, boolean top,
 						   int lengthbits)
 	{	
-		int i, m, o;
+		int i;
 		double x, y;
-		NodeInst ap1, ap2, ap3, gnd1, gnd2, vdd1, vdd2;
-		PortProto apport1, apport2, apport3, trans1port, trans2port,
-						   gndport1, gndport2, vddport1, vddport2;
-		double[] appos1, appos2, appos3, trans1pos, trans2pos, gndpos1, gndpos2,
-				  vddpos1, vddpos2;
+		NodeInst ap1, ap2, ap3;
+		PortProto apport1, apport2, apport3, gndport1, vddport1;
+		double[] appos1, appos2, appos3, gndpos1, vddpos1;
 	
 		NodeInst[] ntrans = new NodeInst[outs];
 		NodeInst[] ptrans = new NodeInst[outs];
@@ -3516,8 +3293,6 @@ public class ROMGenerator
 		NodeInst gndc = null;
 		NodeInst pwellc = null;
 	
-		PortProto[] ntransports = new PortProto[outs];
-		PortProto[] ptransports = new PortProto[outs];
 		PortProto[] inports = new PortProto[outs];
 		PortProto[] outports = new PortProto[outs];
 		PortProto[] inports2 = new PortProto[outs];
@@ -3565,14 +3340,7 @@ public class ROMGenerator
 						 -ppin.getDefHeight()/2,
 						 ppin.getDefHeight()/2};
 		
-		NodeProto napin = tech.findNodeProto("N-Active-Pin");
-		
 		NodeProto m1pin = tech.findNodeProto("Metal-1-Pin");
-		PortProto m1pinport = m1pin.getPort(0);
-		double[] m1pinbox = {-m1pin.getDefWidth()/2-lambda/2,
-						  m1pin.getDefWidth()/2+lambda/2,
-						  -m1pin.getDefHeight()/2-lambda/2,
-						  m1pin.getDefHeight()/2+lambda/2};
 		
 		NodeProto m2pin = tech.findNodeProto("Metal-2-Pin");
 		PortProto m2pinport = m2pin.getPort(0);
@@ -3582,30 +3350,12 @@ public class ROMGenerator
 						  m1pin.getDefHeight()/2+lambda/2};
 		
 		NodeProto nwnode = tech.findNodeProto("N-Well-Node");
-		double[] nwnodebox =
-			{-nwnode.getDefWidth()/2-lambda/2,
-			 nwnode.getDefWidth()/2+lambda/2,
-			 -nwnode.getDefHeight()/2-lambda/2,
-			 nwnode.getDefHeight()/2+lambda/2};
 		
 		NodeProto pwnode = tech.findNodeProto("P-Well-Node");
-		double[] pwnodebox =
-			{-pwnode.getDefWidth()/2-lambda/2,
-			 pwnode.getDefWidth()/2+lambda/2,
-			 -pwnode.getDefHeight()/2-lambda/2,
-			 pwnode.getDefHeight()/2+lambda/2};
 	
 		NodeProto m1m2c = tech.findNodeProto("Metal-1-Metal-2-Con");
 		PortProto m1m2cport = m1m2c.getPort(0);
 		double[] m1m2cbox = {-5*lambda/2, 5*lambda/2, -5*lambda/2, 5*lambda/2}; 
-	
-		NodeProto diffpin = tech.findNodeProto("Active-Pin");
-		PortProto diffpinport = diffpin.getPort(0);
-		double[] diffpinbox =
-			{-diffpin.getDefWidth()/2-lambda/2,
-			 diffpin.getDefWidth()/2+lambda/2,
-			 -diffpin.getDefHeight()/2-lambda/2,
-			 diffpin.getDefHeight()/2+lambda/2};
 		
 		NodeProto mnac = tech.findNodeProto("Metal-1-N-Active-Con");
 		PortProto mnacport = mnac.getPort(0);
@@ -3645,10 +3395,8 @@ public class ROMGenerator
 lowX += 7*lambda;
 		double highX = (4*lambda*8*lengthbits)+24*lambda;
 highX -= 64*lambda;
-		NodeInst pwellnode =
-			makeCStyleNodeInst(pwnode, lowX,highX, -18*lambda,10*lambda, 0,0,ininvp);
-		NodeInst nwellnode =
-			makeCStyleNodeInst(nwnode, lowX,highX, -36*lambda,-18*lambda, 0,0,ininvp);
+		makeCStyleNodeInst(pwnode, lowX,highX, -18*lambda,10*lambda, 0,0,ininvp);
+		makeCStyleNodeInst(nwnode, lowX,highX, -36*lambda,-18*lambda, 0,0,ininvp);
 
 		// Create instances of objects on input inverter plane
 		x = 0;
@@ -4172,7 +3920,7 @@ highX -= 64*lambda;
 	 */
 	private static int[][] generateplane(int bits)
 	{
-		int lines = (int) (Math.pow(2.0, (double) bits));
+		int lines = (int) (Math.pow(2.0, bits));
 		char[][] wordlines = new char[lines][bits];
 		for (int i = 0; i<lines; i++)
 		{
@@ -4281,7 +4029,7 @@ highX -= 64*lambda;
 	{
 		PortInst head = hNI.findPortInstFromProto(hPP);
 		PortInst tail = tNI.findPortInstFromProto(tPP);
-		ArcInst ai = ArcInst.makeInstance(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
+		ArcInst.makeInstance(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
 	}
 
 	/**

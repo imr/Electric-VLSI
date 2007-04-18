@@ -234,7 +234,7 @@ public class NetworkTool extends Tool
 
         for(Iterator<Connection> aIt = pi.getConnections(); aIt.hasNext(); )
         {
-            Connection con = (Connection)aIt.next();
+            Connection con = aIt.next();
             ArcInst ai = con.getArc();
             int wid = netlist.getBusWidth(ai);
             for(int i=0; i<wid; i++)
@@ -312,7 +312,7 @@ public class NetworkTool extends Tool
             NodeInst ni = (NodeInst)geom;
             for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
             {
-                PortInst pi = (PortInst)pIt.next();
+                PortInst pi = pIt.next();
                 nets = getNetworksOnPort(pi, netlist, nets);
                 //nets.add(netlist.getNetwork(ni, pi.getPortProto(), 0));
                 //nets.add(netlist.getNetwork(pi));

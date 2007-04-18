@@ -751,7 +751,7 @@ public class ScanChainXML {
         }
 
         private void setInExPort(ExPort port) { this.inExport = port; }
-        private ExPort getInExPort() { return inExport; }
+//        private ExPort getInExPort() { return inExport; }
         private void setOutExPort(ExPort port) { this.outExport = port; }
         private ExPort getOutExPort() { return outExport; }
 
@@ -974,12 +974,11 @@ public class ScanChainXML {
         return null;
     }
 
-    private DataNet getScanDataNet(Nodable no, DataNet definition) {
-        if (definition == null) return null;
-        String name = getNetName(no, definition.net);
-        return new DataNet(name, definition.options);
-
-    }
+//    private DataNet getScanDataNet(Nodable no, DataNet definition) {
+//        if (definition == null) return null;
+//        String name = getNetName(no, definition.net);
+//        return new DataNet(name, definition.options);
+//    }
 
     // get the network name connect to port 'portName' on 'no'.  Returns null if none found.
     private String getNetName(Nodable no, String portName) {
@@ -1221,10 +1220,10 @@ public class ScanChainXML {
         }
     }
 
-    private boolean isMergable(SubChainInst inst) {
-        if (!inst.getName().matches(".*?@.*")) return false;
-        return true;
-    }
+//    private boolean isMergable(SubChainInst inst) {
+//        if (!inst.getName().matches(".*?@.*")) return false;
+//        return true;
+//    }
     private boolean isFlattenable(SubChainInst inst) {
         if (!inst.getName().matches(".*?@.*")) return false;
         return true;

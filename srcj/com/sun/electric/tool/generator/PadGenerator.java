@@ -127,7 +127,7 @@ public class PadGenerator
 		public void terminateOK()
 		{
 			UserInterface ui = Job.getUserInterface();
-			EditWindow_ wnd = ui.displayCell(frameCell);
+			ui.displayCell(frameCell);
 		}
 	}
 
@@ -217,7 +217,6 @@ public class PadGenerator
 			FileReader readFile = new FileReader(inputFile);
 			BufferedReader readLine = new BufferedReader(readFile);
 
-			NodeInst lastni = null;
 			lineRead = readLine.readLine();
 			while (lineRead != null)
 			{
@@ -705,7 +704,7 @@ public class PadGenerator
 			}
 
 			// get array alignment for this cell
-			ArrayAlign aa = (ArrayAlign) alignments.get(pad.cellname);
+			ArrayAlign aa = alignments.get(pad.cellname);
 			if (aa == null) {
 				err("No port alignment for cell " + pad.cellname);
 				continue;
@@ -716,7 +715,7 @@ public class PadGenerator
 			if (lastni != null)
 			{
 				// get info on last nodeinst created
-				ArrayAlign lastaa = (ArrayAlign) alignments.get(lastpadname);
+				ArrayAlign lastaa = alignments.get(lastpadname);
 
 				// get previous node's outport - use it to place this nodeinst
 				PortProto pp = (lastni.getProto()).findPortProto(lastaa.outport);
@@ -783,7 +782,7 @@ public class PadGenerator
 			// get export for this cell, if any
 			if (pad.exportsname != null)
 			{
-				PadExports pe = (PadExports) exports.get(pad.cellname);
+				PadExports pe = exports.get(pad.cellname);
 				if (pe != null)
 				{
 					// pad export
@@ -857,7 +856,7 @@ public class PadGenerator
 			if (view != null) {
 				corenameview = corename + "{" + view.getAbbreviation() + "}";
 			}
-			Cell corenp = (Cell) destLib.findNodeProto(corenameview);
+			Cell corenp = destLib.findNodeProto(corenameview);
 			if (corenp == null) {
 				System.out.println("Line " + lineno + ": cannot find core cell " + corenameview);
 			} else {
@@ -866,7 +865,6 @@ public class PadGenerator
 				Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 				DBMath.gridAlign(center, alignment);
 
-				SizeOffset so = corenp.getProtoSizeOffset();
 				NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
 
 				Map<Export,PortInst> trueBusEnd = new HashMap<Export,PortInst>();
@@ -1082,7 +1080,7 @@ public class PadGenerator
 			DBMath.gridAlign(iconPos, alignment);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);
+			NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);
 		}
 		return framecell;
 	}

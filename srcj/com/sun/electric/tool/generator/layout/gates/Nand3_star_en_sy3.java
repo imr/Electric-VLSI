@@ -40,7 +40,7 @@ class Nand3_star_en_sy3 {
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
 	private static final double nmosTop = -9.0;
 	private static final double pmosBot = 9.0;
-	private static final double wellOverhangDiff = 6;
+//	private static final double wellOverhangDiff = 6;
 	private static final double incY = -4.0;
 	private static final double inbY = 4.0;
 	private static final double outHiY = 11.0;

@@ -275,14 +275,13 @@ public abstract class ElectricObject implements Serializable
 					poly = pp.getNamePoly();
 				} else
 				{
-					PortInst pi = pp.getOriginalPort();
+//					PortInst pi = pp.getOriginalPort();
 					Rectangle2D bounds = pp.getNamePoly().getBounds2D();
-					TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
+//					TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
 					Poly [] polys = pp.getPolyList(pp.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
 					if (polys.length > 0)
 					{
 						poly = polys[0];
-//						poly.transform(pi.getNodeInst().rotateOut());
 					}
 				}
 			} else if (this instanceof PortInst)
@@ -385,8 +384,6 @@ public abstract class ElectricObject implements Serializable
 		{
 			Variable var = vIt.next();
 			if (!var.isDisplay()) continue;
-			TextDescriptor td = var.getTextDescriptor();
-//			if (td.getSize().isAbsolute()) continue;
 			Poly poly = computeTextPoly(wnd, var.getKey());
 			if (poly == null) continue;
 			Rectangle2D polyBound = poly.getBounds2D();

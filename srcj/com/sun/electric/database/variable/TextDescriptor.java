@@ -71,7 +71,7 @@ public class TextDescriptor extends AbstractTextDescriptor
         this.code = descriptor.getCode();
 	}
     
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return getUniqueTextDescriptor(this);
     }
     
@@ -83,13 +83,13 @@ public class TextDescriptor extends AbstractTextDescriptor
   
     private static TextDescriptor getUniqueTextDescriptor(AbstractTextDescriptor td)
     {
-        TextDescriptor cacheTd = (TextDescriptor)allDescriptors.get(td);
+        TextDescriptor cacheTd = allDescriptors.get(td);
         if (cacheTd != null) return cacheTd;
         TextDescriptor itd = new TextDescriptor(td);
         if (!itd.equals(td))
         {
             // is canonized text descriptor already here ?
-            cacheTd = (TextDescriptor)allDescriptors.get(itd);
+            cacheTd = allDescriptors.get(itd);
             if (cacheTd != null) return cacheTd;
         }
         allDescriptors.put(itd, itd);

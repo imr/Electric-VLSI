@@ -111,11 +111,11 @@ public class Pref
 	private   final Preferences prefs;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
-    private   boolean changed = false;
+//    private   boolean changed = false;
 
 	private static final List<Pref> allPrefs = new ArrayList<Pref>();
 	private static boolean doFlushing = true;
-    private static PrefChangeBatch changes = null;
+//    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
 
     /**
@@ -623,7 +623,7 @@ public class Pref
 		if (v != cachedBool)
 		{
 			cachedObj = new Integer(v ? 1 : 0);
-            changed = true;
+//            changed = true;
             if (prefs != null)
 			{
 				prefs.putBoolean(name, v);
@@ -643,7 +643,7 @@ public class Pref
 		if (v != cachedInt)
 		{
 			cachedObj = new Integer(v);
-            changed = true;
+//            changed = true;
 			if (prefs != null)
 			{
 				prefs.putInt(name, v);
@@ -663,7 +663,7 @@ public class Pref
 		if (v != cachedLong)
 		{
 			cachedObj = new Long(v);
-            changed = true;
+//            changed = true;
 			if (prefs != null)
 			{
 				prefs.putLong(name, v);
@@ -686,7 +686,7 @@ public class Pref
 		if (v != cachedDouble)
 		{
 			cachedObj = new Double(v);
-            this.changed = true;
+//            this.changed = true;
 			if (prefs != null)
 			{
 				prefs.putDouble(name, v);
@@ -708,7 +708,7 @@ public class Pref
 		if (!str.equals(cachedString))
 		{
 			cachedObj = new String(str);
-            changed = true;
+//            changed = true;
             if (prefs != null)
 			{
 				prefs.put(name, str);

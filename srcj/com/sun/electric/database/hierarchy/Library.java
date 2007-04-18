@@ -705,8 +705,8 @@ public class Library extends ElectricObject implements Comparable<Library>
         Cell newestVersion = null;
 		for(Map.Entry<CellName,Cell> e : cells.entrySet())
 		{
-			CellName cn = (CellName)e.getKey();
-			Cell cell = (Cell)e.getValue();
+			CellName cn = e.getKey();
+			Cell cell = e.getValue();
             assert cell.isLinked() && cell.getDatabase() == database;
 			assert cell.getCellName() == cn;
 			assert cell.getLibrary() == this;

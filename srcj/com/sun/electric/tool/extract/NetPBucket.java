@@ -124,7 +124,7 @@ public class NetPBucket implements ExtractedPBucket
             double value = 0;
             for (PolyBase poly : c)
             {
-                Rectangle2D rect = ((PolyBase)poly).getBounds2D();
+                Rectangle2D rect = poly.getBounds2D();
                 double w = rect.getWidth();
                 double h = rect.getHeight();
                 if (DBMath.areEquals(w, h))

@@ -58,7 +58,7 @@ public class HighlightTools {
             boolean found = false;
             EditWindow wnd = null;
             for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-                WindowFrame wf = (WindowFrame)it.next();
+                WindowFrame wf = it.next();
                 WindowContent content = wf.getContent();
                 if (!(content instanceof EditWindow)) continue;
                 wnd = (EditWindow)content;
@@ -117,16 +117,16 @@ public class HighlightTools {
         }
         
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
-            Network net = (Network)it.next();
+            Network net = it.next();
             if (! net.hasName(name)) continue;
             highlighter.addNetwork(net, cell);
-            for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
-                Export exp = (Export)it2.next();
-                // All the following appear to have no affect
+            // All the following appear to have no affect
+            //for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
+                //Export exp = it2.next();
                 //highlighter.addText(exp, cell, null);
                 //highlighter.addElectricObject(exp, cell);
                 //highlighter.addObject(exp, cell);
-            }
+            //}
         }
     }
 
@@ -138,7 +138,7 @@ public class HighlightTools {
             return;
         }
         for(Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable nod = (Nodable)it.next();
+            Nodable nod = it.next();
             if (name.equals(nod.getName()))
                 highlighter.addElectricObject(nod.getNodeInst(), cell);
         }
@@ -155,11 +155,11 @@ public class HighlightTools {
             return;
         }
         for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
-            Network net = (Network)it.next();
+            Network net = it.next();
             if (net.hasName(name)) {
                 highlighter.addNetwork(net, cell);
                 for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
-                    Export exp = (Export)it2.next();
+                    Export exp = it2.next();
                     highlighter.addText(exp, cell, null);
                 }
             }

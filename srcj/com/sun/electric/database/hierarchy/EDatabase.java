@@ -659,8 +659,8 @@ public class EDatabase {
         
         TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         for (Map.Entry<String,Library> e : libraries.entrySet()) {
-            String libName = (String)e.getKey();
-            Library lib = (Library)e.getValue();
+            String libName = e.getKey();
+            Library lib = e.getValue();
             assert libName == lib.getName();
             assert linkedLibs.get(lib.getId().libIndex) == lib;
             

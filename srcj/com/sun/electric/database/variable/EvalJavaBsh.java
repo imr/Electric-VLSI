@@ -131,7 +131,7 @@ public class EvalJavaBsh
      * See what the current context of eval is.
      * @return a VarContext.
      */
-    public synchronized VarContext getCurrentContext() { return (VarContext)contextStack.peek(); }
+    public synchronized VarContext getCurrentContext() { return contextStack.peek(); }
 
     /**
      * See what the current info of eval is.
@@ -229,7 +229,7 @@ public class EvalJavaBsh
 	 * @throws VarContext.EvalException
 	 */
     public synchronized Object P(String name) throws VarContext.EvalException {
-        VarContext context = (VarContext)contextStack.peek();
+        VarContext context = contextStack.peek();
         Object val = context.lookupVarEval(name);
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         return val;

@@ -308,9 +308,9 @@ public class SCLibraryGen {
     private void prErr(String msg) {
         System.out.println("Standard Cell Library Generator Error: "+msg);
     }
-    private void prWarn(String msg) {
-        System.out.println("Standard Cell Library Generator Warning: "+msg);
-    }
+//    private void prWarn(String msg) {
+//        System.out.println("Standard Cell Library Generator Warning: "+msg);
+//    }
     private void prMsg(String msg) {
         System.out.println("Standard Cell Library Generator: "+msg);
     }

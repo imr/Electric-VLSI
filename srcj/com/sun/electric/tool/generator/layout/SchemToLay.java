@@ -445,12 +445,12 @@ public class SchemToLay {
 		return nm.startsWith("pms1") || nm.startsWith("pms2") ||
 			nm.startsWith("PmosWellTie");
 	}
-	private static boolean isNstk(Cell c) {
-		return isNstkNm(c.getName());
-	}
-	private static boolean isPstk(Cell c) {
-		return isPstkNm(c.getName());
-	}
+//	private static boolean isNstk(Cell c) {
+//		return isNstkNm(c.getName());
+//	}
+//	private static boolean isPstk(Cell c) {
+//		return isPstkNm(c.getName());
+//	}
 	private static boolean isNstk(NodeInst ni) {
 		return isNstkNm(ni.getProto().getName());
   }
@@ -577,7 +577,6 @@ public class SchemToLay {
 	
 	private static void metal1route(PortInst prev, PortInst port) {
 		NodeInst prevInst = prev.getNodeInst();
-		NodeInst portInst = port.getNodeInst();
 		// If one gate is half height and the other full height then we
 		// must route horizontally from the half height gate first because
 		// the half height gate doesn't have a full vertical metal-1
@@ -668,14 +667,14 @@ public class SchemToLay {
 		}
 	}
 	
-	// find the sums of the lengths of all routing segments
-	private static double estimateWireLength(ArrayList<RouteSeg> routeSegs) {
-		double len = 0;
-		for (int i=0; i<routeSegs.size(); i++) {
-			len += routeSegs.get(i).estimateLength();
-		}
-		return len;
-	}
+//	// find the sums of the lengths of all routing segments
+//	private static double estimateWireLength(ArrayList<RouteSeg> routeSegs) {
+//		double len = 0;
+//		for (int i=0; i<routeSegs.size(); i++) {
+//			len += routeSegs.get(i).estimateLength();
+//		}
+//		return len;
+//	}
 	
 	private static void buildPlacerNetlist(Placer placer, ArrayList<NodeInst> insts,
 										   ArrayList<RouteSeg> routeSegs) {
@@ -720,13 +719,13 @@ public class SchemToLay {
 	// try again using data structures built just for placement
 	private static ArrayList<NodeInst> place(ArrayList<NodeInst> insts, ArrayList<RouteSeg> routeSegs,
 								   StdCellParams stdCell, Cell gasp) {
-		long sT = System.currentTimeMillis();
+		//long sT = System.currentTimeMillis();
 		
 		Placer placer = new Placer(stdCell, gasp);
 		buildPlacerNetlist(placer, insts, routeSegs);
 		ArrayList<NodeInst> ans = placer.place1row();
-		long eT = System.currentTimeMillis();
-		double seconds = (eT-sT)/1000.0;
+		//long eT = System.currentTimeMillis();
+		//double seconds = (eT-sT)/1000.0;
 		//System.out.println("Placement took: "+seconds+" seconds");
 		
 		return ans;

@@ -242,7 +242,7 @@ class NetSchem extends NetCell {
 		}
 		Cell c = implementation.cell;
 		for (int i = 0; i < numPorts; i++) {
-			Export e = (Export)cell.getPort(i);
+			Export e = cell.getPort(i);
 			int equivIndex = -1;
 			if (c != null) {
 				Export equiv = e.getEquivalentPort(c);
@@ -261,7 +261,7 @@ class NetSchem extends NetCell {
 		}
 		if (c != null && numPorts != c.getNumPorts()) {
 			for (int i = 0; i < c.getNumPorts(); i++) {
-				Export e = (Export)c.getPort(i);
+				Export e = c.getPort(i);
 				if (e.getEquivalentPort(cell) == null) {
 					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell;
 					System.out.println(msg);
@@ -349,7 +349,7 @@ class NetSchem extends NetCell {
 		if (no instanceof NodeInst) {
 			NodeInst ni = (NodeInst)no;
 			int nodeIndex = ni.getNodeIndex();
-			int proxyOffset = nodeOffsets[nodeIndex];
+//			int proxyOffset = nodeOffsets[nodeIndex];
 			//if (proxyOffset >= 0) {
 				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
 				if (drawn < 0) return -1;
@@ -377,7 +377,7 @@ class NetSchem extends NetCell {
 		if (no instanceof NodeInst) {
 			NodeInst ni = (NodeInst)no;
 			int nodeIndex = ni.getNodeIndex();
-			int proxyOffset = nodeOffsets[nodeIndex];
+//			int proxyOffset = nodeOffsets[nodeIndex];
 			//if (proxyOffset >= 0) {
 				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
 				if (drawn < 0) return 0;
@@ -487,7 +487,7 @@ class NetSchem extends NetCell {
 						if (drawn < 0 || drawn >= numConnectedDrawns) continue;
 						int portIndex = ((NetSchem)netCell).portImplementation[j];
 						if (portIndex < 0) continue;
-						Export e = (Export)sch.cell.getPort(portIndex);
+						Export e = sch.cell.getPort(portIndex);
 						if (!e.isGlobalPartition()) continue;
 						if (gb == null) gb = new HashSet<Global>();
 						for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
@@ -557,7 +557,7 @@ class NetSchem extends NetCell {
 		int mapOffset = portOffsets[0] = globals.size();
 		int numPorts = cell.getNumPorts();
 		for (int i = 1; i <= numPorts; i++) {
-			Export export = (Export)cell.getPort(i - 1);
+			Export export = cell.getPort(i - 1);
 			if (NetworkTool.debug) System.out.println(export+" "+portOffsets[i-1]);
 			mapOffset += export.getNameKey().busWidth();
 			if (portOffsets[i] != mapOffset) {
@@ -581,7 +581,7 @@ class NetSchem extends NetCell {
 		name2proxy.clear();
 		proxyExcludeGlobals = null;
 		for (int n = 0; n < numNodes; n++) {
-			NodeInst ni = (NodeInst)cell.getNode(n);
+			NodeInst ni = cell.getNode(n);
 			int proxyOffset = nodeOffsets[n];
 			if (NetworkTool.debug) System.out.println(ni+" "+proxyOffset);
 			if (proxyOffset >= 0) continue;
@@ -595,7 +595,7 @@ class NetSchem extends NetCell {
                 if (!name.isTempname()) {
                     Proxy namedProxy = name2proxy.get(name);
                     if (namedProxy != null) {
-                        Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
+//                        Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
                         String msg = "Network: " + cell + " has instances " + ni + " and " +
                                 namedProxy.nodeInst + " with same name <" + name + ">";
                         System.out.println(msg);
@@ -663,7 +663,7 @@ class NetSchem extends NetCell {
 				continue;
 			}
 			if (oldWidth != newWidth) {
-                reportDrawnWidthError((Export)cell.getPort(i), null, drawnNames[drawn].toString(), name.toString());
+                reportDrawnWidthError(cell.getPort(i), null, drawnNames[drawn].toString(), name.toString());
                 if (oldWidth < newWidth) {
                     drawnNames[drawn] = name;
                     drawnWidths[drawn] = newWidth;
@@ -763,7 +763,7 @@ class NetSchem extends NetCell {
         for (int i = 0; i < numPorts; i++) {
             String name = cell.getPort(i).getName();
             if (name.equals(firstname)) {
-                networkManager.pushHighlight((Export)cell.getPort(i));
+                networkManager.pushHighlight(cell.getPort(i));
                 originalFound = true;
                 break;
             }
@@ -793,7 +793,7 @@ class NetSchem extends NetCell {
 		// Exports
 		int numExports = cell.getNumPorts();
 		for (int k = 0; k < numExports; k++) {
-			Export e = (Export) cell.getPort(k);
+			Export e = cell.getPort(k);
 			int portOffset = portOffsets[k];
 			Name expNm = e.getNameKey();
 			int busWidth = expNm.busWidth();
@@ -860,7 +860,7 @@ class NetSchem extends NetCell {
 		// Arcs
 		int numArcs = cell.getNumArcs();
 		for (int k = 0; k < numArcs; k++) {
-			ArcInst ai = (ArcInst) cell.getArc(k);
+			ArcInst ai = cell.getArc(k);
 			int drawn = drawns[arcsOffset + k];
 			if (drawn < 0) continue;
 			if (!ai.isUsernamed()) continue;
@@ -1039,7 +1039,7 @@ class NetSchem extends NetCell {
 
 		// add temporary names to unconnected ports
 		for (int n = 0, numNodes = cell.getNumNodes(); n < numNodes; n++) {
-			NodeInst ni = (NodeInst)cell.getNode(n);
+			NodeInst ni = cell.getNode(n);
 			NodeProto np = ni.getProto();
             int arraySize = ni.getNameKey().busWidth();
 			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {

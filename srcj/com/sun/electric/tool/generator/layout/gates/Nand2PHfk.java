@@ -40,9 +40,9 @@ public class Nand2PHfk {
 	private static final double outHiY = 11.0;
 	private static final double outLoY = -11.0;
 	
-	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
+//	private static void error(boolean pred, String msg) {
+//		LayoutLib.error(pred, msg);
+//	}
 
 	public static Cell makePart(double sz, StdCellParams stdCell) {
 		String nm = "nand2PHfk";

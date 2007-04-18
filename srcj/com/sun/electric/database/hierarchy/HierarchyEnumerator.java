@@ -803,8 +803,7 @@ public final class HierarchyEnumerator {
 		public final NetNameProxy getUniqueNetNameProxy(int netID, String sep) {
 			NetDescription ns = netIdToNetDesc.get(netID);
 			VarContext netContext = ns.getCellInfo().getContext();
-			String leafName;
-
+//			String leafName;
 //			Iterator it = ns.getNet().getNames();
 //			if (it.hasNext()) {
 //				leafName = (String) it.next();

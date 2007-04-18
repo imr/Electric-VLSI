@@ -96,15 +96,15 @@ public class Regression {
 //                        System.out.println("Snapshot received");
                         break;
                     case 2:
-                        Integer jobId = Integer.valueOf(reader.readInt());
-                        String jobName = reader.readString();
-                        Job.Type jobType = Job.Type.valueOf(reader.readString());
+                        Integer.valueOf(reader.readInt());		// ignore jobID
+                        reader.readString();		// ignore jobName
+                        Job.Type.valueOf(reader.readString());		// ignore jobType
                         EJob.State newState = EJob.State.valueOf(reader.readString());
-                        long timeStamp = reader.readLong();
+                        reader.readLong();		// ignore timestamp
                         if (newState == EJob.State.WAITING) {
                             boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
-                                byte[] serializedJob = reader.readBytes();
+                                reader.readBytes();		// ignore serializedJob
                             }
                         }
                         if (newState == EJob.State.SERVER_DONE) {

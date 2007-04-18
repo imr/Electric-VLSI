@@ -57,7 +57,7 @@ public enum PortCharacteristic
 	private final String shortName;
 	private final String fullName;
 	private final int bits;
-	private static int ordering = 0;
+//	private static int ordering = 0;
 
 	private PortCharacteristic(String shortName, String fullName, String name)
 	{

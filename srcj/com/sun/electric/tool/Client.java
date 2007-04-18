@@ -186,11 +186,11 @@ public abstract class Client {
     }
     
     static class PrintEvent extends ServerEvent {
-        private final Client client;
+//        private final Client client;
         private final String s;
         
         PrintEvent(Client client, String s) {
-            this.client = client;
+//            this.client = client;
             this.s = s;
         }
         

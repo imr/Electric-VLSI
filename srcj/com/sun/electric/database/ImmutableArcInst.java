@@ -487,7 +487,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             System.out.println("LARGE " + tailLocation + " " + headLocation + " " + gridFullWidth);
             return;
         }
-        int width = (int)gridFullWidth;
+        int width = gridFullWidth;
         if (width <= 0) {
             if (width != 0 || protoType.getNumArcLayers() != 1) {
                 System.out.println(protoType + " many zero-width layers");
@@ -552,7 +552,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return flags;
         if (!(tailLocation.isSmall() && headLocation.isSmall() && GenMath.isSmallInt(gridFullWidth)))
             return flags;
-        int width = (int)gridFullWidth;
+        int width = gridFullWidth;
         if (width <= 0) {
             if (width != 0 || protoType.getNumArcLayers() != 1) return flags;
             return flags | EASY_MASK;
@@ -864,7 +864,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridFullWidth,
-                updateAngle((short)angle, tailLocation, headLocation), flags, vars);
+                updateAngle(angle, tailLocation, headLocation), flags, vars);
     }
     
     /**

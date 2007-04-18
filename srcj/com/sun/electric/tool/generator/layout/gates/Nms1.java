@@ -40,7 +40,7 @@ public class Nms1 {
 	private static final double dY = -11.0;
 	private static final double nmosTop = -9.0;
 	// The minimum diffusion surrounding a diffusion contact
-	private static final double minContDiff = 5;
+//	private static final double minContDiff = 5;
 	
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);

@@ -48,7 +48,7 @@ import com.sun.electric.tool.generator.layout.TrackRouterH;
  * the strong PMOS gets very small, we have to mirror the weak PMOS
  * about it's gate. */
 public class Inv2iKp {
-	private static final double outHiY = 11.0;
+//	private static final double outHiY = 11.0;
 	private static final double outLoY = -11.0;
 	private static final double outBusWidth = 10;
 	private static final double outBusSpace =  3;

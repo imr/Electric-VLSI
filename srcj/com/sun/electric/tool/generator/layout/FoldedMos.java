@@ -221,7 +221,7 @@ public abstract class FoldedMos {
 		ArcProto diff = isPmos() ? Tech.pdiff() : Tech.ndiff();
 		NodeProto difNod = isPmos() ? Tech.pdNode() : Tech.ndNode();
 
-		double foldPitch = 8 + (nbSeries - 1) * (3 + 2);
+//		double foldPitch = 8 + (nbSeries - 1) * (3 + 2);
 		int diffNdx = 0, mosNdx = 0, internalDiffNdx = 0;
 
 		// Contact only needs to be multiple of 5 lambda high. Because

@@ -99,7 +99,7 @@ public class EDIF extends Input
 		/** the original MASK layer */	private String original;
 		/** the replacement layer */	private String replace;
 		/** the basic electric node */	private NodeProto node;
-		/** the basic arc type */		private ArcProto arc;
+//		/** the basic arc type */		private ArcProto arc;
 		/** default text height */		private int textHeight;
 		/** default justification */	private TextDescriptor.Position justification;
 		/** layer is visible */			private boolean visible;
@@ -161,10 +161,10 @@ public class EDIF extends Input
 
 	private static class EDIFNetPort
 	{
-		/** unique node port is attached to */	private NodeInst ni;
-		/** port type */						private PortProto pp;
-		/** member for an array */				private int member;
-		/** next common to a net */				private EDIFNetPort next;
+//		/** unique node port is attached to */	private NodeInst ni;
+//		/** port type */						private PortProto pp;
+//		/** member for an array */				private int member;
+//		/** next common to a net */				private EDIFNetPort next;
 	}
 
 	private static class VendorType {}
@@ -199,7 +199,7 @@ public class EDIF extends Input
 	/** the current active instance */			private NodeInst curNode;
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
-	/** the current (if exists) arc type */		private ArcProto curArcType;
+//	/** the current (if exists) arc type */		private ArcProto curArcType;
 	/** the cellRef type */						private NodeProto cellRefProto;
 	/** the cellRef tech bits if primitive */	private int cellRefProtoTechBits;
 	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
@@ -247,7 +247,6 @@ public class EDIF extends Input
 	/** the current net name */					private String netReference;
 	/** the current net name (original) */		private String netName;
 	/** the current property name */			private String propertyReference;
-	/** the current property name (original) */	private String propertyName;
     /** the current viewRef name */             private String viewRef;
     /** the current cellRef name */             private String cellRef;
     /** the current libraryRef name */          private String libraryRef;
@@ -273,11 +272,10 @@ public class EDIF extends Input
 
 	// net constructors
 	/** the list of ports on a net */			private EDIFNetPort netPortListHead;
-	/** the last in the list on a net */		private EDIFNetPort netPortListTail;
 
 	// view NETLIST layout
 	/** current sheet position */				private int sheetXPos, sheetYPos;
-	/** current position pointers */			private int inPortPos, bidirPortPos, outPortPos;
+	/** current position pointers */			private int inPortPos, bidirPortPos;
 
 	/** stack of keywords at this point */		private EDIFKEY [] keyStack = new EDIFKEY[1000];
 	/** depth of keyword stack */				private int keyStackDepth;
@@ -339,7 +337,7 @@ public class EDIF extends Input
 		KWRITTEN.stateArray = new EDIFKEY [] {KSTATUS};
 
 		// inits
-		netPortListHead = netPortListTail = null;
+		netPortListHead = null;
 		propertyValue = null;
 		curPoints = new ArrayList<Point2D>();
 		saveTextPoints = new ArrayList<Point2D>();
@@ -369,7 +367,6 @@ public class EDIF extends Input
 		curArc = null;
 		curPort = null;
 		curFigureGroup = null;
-		curArcType = null;
 		cellRefProto = null;
 
 		// name inits
@@ -546,15 +543,7 @@ public class EDIF extends Input
 	private void makeNetPort()
 	{
 		EDIFNetPort netPort = new EDIFNetPort();
-
-		if (netPortListHead == null) netPortListHead = netPort; else
-			netPortListTail.next = netPort;
-
-		netPortListTail = netPort;
-		netPort.next = null;
-		netPort.ni = null;
-		netPort.pp = null;
-		netPort.member = 0;
+		if (netPortListHead == null) netPortListHead = netPort;
 	}
 
 	/**
@@ -562,7 +551,7 @@ public class EDIF extends Input
 	 */
 	private void freeNetPorts()
 	{
-		netPortListHead = netPortListTail = null;
+		netPortListHead = null;
 	}
 
 	/**
@@ -709,7 +698,6 @@ public class EDIF extends Input
 			{
 				// found the layer
 				curFigureGroup = nt.node;
-				curArcType = nt.arc;
 				textHeight = nt.textHeight;
 				textJustification = nt.justification;
 				textVisible = nt.visible;
@@ -725,7 +713,6 @@ public class EDIF extends Input
 		nt.original = layer;
 		nt.replace = nt.original;
 		curFigureGroup = nt.node = Artwork.tech.boxNode;
-		curArcType = nt.arc = Schematics.tech.wire_arc;
 		textHeight = nt.textHeight = 0;
 		textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 		textVisible = nt.visible = true;
@@ -1308,7 +1295,6 @@ public class EDIF extends Input
 				} else if (keyStack[keyStackDepth-1] == KPROPERTY)
 				{
 					propertyReference = objectName;
-					propertyName = objectName;
 				}
 			}
 		}
@@ -1539,8 +1525,8 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// get the name of the cell
-			String aName = getToken((char)0);
+			// ignore the name of the cell
+			getToken((char)0);
 		}
 
 		protected void pop()
@@ -1609,7 +1595,6 @@ public class EDIF extends Input
 					double yPos = p0.getY();
 					if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					NodeInst ni = placePin(cellRefProto, xPos, yPos, cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curOrientation, curCell);
-//					NodeInst ni = placePin(cellRefProto, xPos, yPos, size.getX(), size.getY(), curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
@@ -1691,8 +1676,8 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// get the name of the library
-			String aName = getToken((char)0);
+			// ignore the name of the library
+			getToken((char)0);
 		}
 	}
 
@@ -1771,7 +1756,6 @@ public class EDIF extends Input
 				{
 					// found the layer
 					curFigureGroup = nt.node;
-					curArcType = nt.arc;
 					textHeight = nt.textHeight;
 					textJustification = nt.justification;
 					textVisible = nt.visible;
@@ -1786,7 +1770,6 @@ public class EDIF extends Input
 
 			nt.replace = nt.original;
 			curFigureGroup = nt.node = Artwork.tech.boxNode;
-			curArcType = nt.arc = Schematics.tech.wire_arc;
 			textHeight = nt.textHeight = 0;
 			textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 			textVisible = nt.visible = true;
@@ -2049,7 +2032,7 @@ public class EDIF extends Input
 			curCellPage = 0;
 
 			// now set the current position in the schematic page
-			inPortPos = bidirPortPos = outPortPos = 0;
+			inPortPos = bidirPortPos = 0;
 		}
 
 		protected void pop()
@@ -2136,8 +2119,8 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// get the name of the library
-			String aName = getToken((char)0);
+			// ignore the name of the library
+			getToken((char)0);
 		}
 	}
 
@@ -2220,7 +2203,6 @@ public class EDIF extends Input
 				} else if (keyStack[kPtr] == KPROPERTY)
 				{
 					propertyReference = objectName;
-					propertyName = objectName;
 				}
 
 				// init the point lists
@@ -2496,7 +2478,6 @@ public class EDIF extends Input
 						{
 							// create the "from" pin
 							NodeInst ni = placePin(np, fX, fY, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, curCell);
-//							NodeInst ni = placePin(np, fX, fY, np.getDefWidth(), np.getDefHeight(), 0, curCell);
 							if (ni != null) fList.add(ni.getOnlyPortInst());
 						}
 					}
@@ -3071,7 +3052,6 @@ public class EDIF extends Input
 			if (checkName())
 			{
 				propertyReference = objectName;
-				propertyName = objectName;
 			}
 		}
 
@@ -3209,8 +3189,6 @@ public class EDIF extends Input
 					errorCount++;
 				} else if (curFigureGroup == Artwork.tech.openedDottedPolygonNode)
 				{
-					double cX = (p0.getX() + p1.getX()) / 2;
-					double cY = (p0.getY() + p1.getY()) / 2;
 					EPoint [] pts = new EPoint[5];
 					pts[0] = new EPoint(p0.getX(), p0.getY());
 					pts[1] = new EPoint(p0.getX(), p1.getY());
@@ -3303,7 +3281,6 @@ public class EDIF extends Input
 			} else if (keyStack[kPtr] == KPROPERTY)
 			{
 				propertyReference = objectName;
-				propertyName = originalName;
 			}
 		}
 	}
@@ -3377,9 +3354,6 @@ public class EDIF extends Input
 			} else if (keyStack[kPtr] == KNETBUNDLE)
 			{
 				bundleName = originalName;
-			} else if (keyStack[kPtr] == KPROPERTY)
-			{
-				propertyName = originalName;
 			}
 		}
 
@@ -3564,7 +3538,6 @@ public class EDIF extends Input
 					nt.original = "layer_" + gdsLayer;
 					nt.replace = layer.getName();
 					curFigureGroup = nt.node = Artwork.tech.boxNode;
-					curArcType = nt.arc = Schematics.tech.wire_arc;
 					textHeight = nt.textHeight = 0;
 					textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 					textVisible = nt.visible = true;
@@ -3578,7 +3551,6 @@ public class EDIF extends Input
 				NodeProto np = curTechnology.findNodeProto(nodeName);
 				if (np == null) np = Artwork.tech.boxNode;
 				nt.node = np;
-				nt.arc = curTechnology.findArcProto(nt.replace);;
 			}
 		}
 	}

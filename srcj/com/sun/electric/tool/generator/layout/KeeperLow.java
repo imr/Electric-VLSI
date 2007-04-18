@@ -48,7 +48,7 @@ public class KeeperLow {
 		// extract size information
 		double szNmos = -1, szK = -1, szI = -1;
 		while (nodes.hasNext()) {
-			NodeInst ni = (NodeInst) nodes.next();
+			NodeInst ni = nodes.next();
 			String nm = ni.getProto().getName();
 			if (nm.equals("nms1K{ic}")) {
 				szNmos = StdCellParams.getSize(ni, context);

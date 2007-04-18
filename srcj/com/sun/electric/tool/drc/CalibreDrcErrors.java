@@ -220,10 +220,10 @@ public class CalibreDrcErrors {
                 System.out.println("Error on shape: expected ordinal and count numbers, line number "+lineno+": "+nextLine);
                 return null;
             }
-            int ordinal = 0;
+//            int ordinal = 0;
             int lines = 0;
             try {
-                ordinal = Integer.parseInt(parts[1]);
+//                ordinal = Integer.parseInt(parts[1]);
                 lines = Integer.parseInt(parts[2]);
             } catch (NumberFormatException e) {
                 System.out.println("Error on shape: expected ordinal and count numbers, line number "+lineno+": "+nextLine);
@@ -331,17 +331,17 @@ public class CalibreDrcErrors {
         int sortKey = 0;
         int count = 0;
         for (Iterator<DrcRuleViolation> it = ruleViolations.iterator(); it.hasNext(); ) {
-            DrcRuleViolation v = (DrcRuleViolation)it.next();
+            DrcRuleViolation v = it.next();
             String ruleDesc = v.header.comment.toString().replaceAll("\\n", ";");
             logger.setGroupName(sortKey, ruleDesc);
             int y = 1;
             for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
-                DrcError drcError = (DrcError)it2.next();
+                DrcError drcError = it2.next();
                 Cell cell = drcError.cell;
                 List<EPoint> lineList = new ArrayList<EPoint>();
                 List<PolyBase> polyList = new ArrayList<PolyBase>();
                 for (Iterator<Shape> it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
-                    Shape shape = (Shape)it3.next();
+                    Shape shape = it3.next();
                     if (shape instanceof Line2D) {
                         Line2D line = (Line2D)shape;
                         lineList.add(new EPoint(line.getX1(), line.getY1()));
@@ -370,12 +370,12 @@ public class CalibreDrcErrors {
     // -----------------------------------------------------------------------------
 
     private static class DrcRuleViolation {
-        private final String ruleNumber;
+//        private final String ruleNumber;
         private final Header header;
         private final List<DrcError> errors;              // list of DrcErrors
 
         private DrcRuleViolation(String ruleNumber, Header header) {
-            this.ruleNumber = ruleNumber;
+//            this.ruleNumber = ruleNumber;
             this.header = header;
             this.errors = new ArrayList<DrcError>();
         }
@@ -399,24 +399,24 @@ public class CalibreDrcErrors {
 
     private static class Header {
         private final int currentDrcResultsCount;
-        private final int originalDrcResultsCount;
+//        private final int originalDrcResultsCount;
         private final int headerLength;         // does not include headerStart line
-        private String ruleFilePath;
-        private String ruleFileTitle;
+//        private String ruleFilePath;
+//        private String ruleFileTitle;
         private StringBuffer comment;
 
         private Header(int currentDrcResultsCount, int originalDrcResultsCount, int headerLength) {
             this.currentDrcResultsCount = currentDrcResultsCount;
-            this.originalDrcResultsCount = originalDrcResultsCount;
+//            this.originalDrcResultsCount = originalDrcResultsCount;
             this.headerLength = headerLength;
             comment = new StringBuffer();
         }
 
         public void addHeaderLine(String line) {
             if (line.startsWith("Rule File Pathname")) {
-                ruleFilePath = line;
+//                ruleFilePath = line;
             } else if (line.startsWith("Rule File Title")) {
-                ruleFileTitle = line;
+//                ruleFileTitle = line;
             } else {
                 if (comment.length() != 0) {
                     // already a line added

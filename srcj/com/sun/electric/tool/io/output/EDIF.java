@@ -56,9 +56,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.output.Topology.CellAggregateSignal;
-import com.sun.electric.tool.io.output.Topology.CellNetInfo;
-import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -90,7 +87,6 @@ public class EDIF extends Topology
 	}
 	private static final EGraphic EGUNKNOWN = new EGraphic("UNKNOWN");
 	private static final EGraphic EGART = new EGraphic("ARTWORK");
-//	private static final EGraphic EGTEXT = new EGraphic("TEXT");
 	private static final EGraphic EGWIRE = new EGraphic("WIRE");
 	private static final EGraphic EGBUS = new EGraphic("BUS");
 
@@ -180,10 +176,8 @@ public class EDIF extends Topology
     private final List<Library> libsToWriteOrder; // list of libraries to write, in order
 
     private static class LibToWrite {
-        private final Library lib;
         private final List<CellToWrite> cellsToWrite;
         private LibToWrite(Library l) {
-            lib = l;
             cellsToWrite = new ArrayList<CellToWrite>();
         }
         private void add(CellToWrite c) { cellsToWrite.add(c); }
@@ -228,9 +222,6 @@ public class EDIF extends Topology
 
 	protected void start()
 	{
-        // find the edit window
-		String name = makeToken(topCell.getName());
-
 		// If this is a layout representation, then create the footprint
 		if (topCell.getView() == View.LAYOUT)
 		{
@@ -582,10 +573,8 @@ public class EDIF extends Topology
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				NodeProto np = ni.getProto();
 				if (ni.isCellInstance()) continue;
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
-                PrimitiveNode pn = (PrimitiveNode)np;
 				PrimitiveNode.Function fun = ni.getFunction();
 				if (fun != PrimitiveNode.Function.PIN) continue;
 
@@ -655,7 +644,7 @@ public class EDIF extends Topology
 
 			if (!no.isCellInstance())
 			{
-				PrimitiveNode.Function fun = ((NodeInst)no).getFunction();
+				PrimitiveNode.Function fun = no.getFunction();
                 Variable var = no.getVar(Artwork.ART_MESSAGE);
                 if (var != null) {
                     // this is cell annotation text
@@ -713,7 +702,7 @@ public class EDIF extends Topology
                 }
             } else if (!no.isCellInstance())
 			{
-				NodeInst ni = (NodeInst)no;
+				NodeInst ni = no;
 				PrimitiveNode.Function fun = ni.getFunction();
 
                 // do default action for primitives
@@ -756,7 +745,7 @@ public class EDIF extends Topology
 			// now graphical information
 			if (IOTool.isEDIFUseSchematicView())
 			{
-                NodeInst ni = (NodeInst)no;
+                NodeInst ni = no;
                 blockOpen("transform");
 
                 // get the orientation (note only support orthogonal)
@@ -765,19 +754,7 @@ public class EDIF extends Topology
                 // now the origin
                 blockOpen("origin");
                 double cX = ni.getAnchorCenterX(), cY = ni.getAnchorCenterY();
-/*
-                if (no.isCellInstance())
-                {
-                    Rectangle2D cellBounds = ((Cell)no.getProto()).getBounds();
-                    cX = ni.getTrueCenterX() - cellBounds.getCenterX();
-                    cY = ni.getTrueCenterY() - cellBounds.getCenterY();
-                }
-*/
                 Point2D pt = new Point2D.Double(cX, cY);
-/*
-                AffineTransform trans = ni.rotateOut();
-                trans.transform(pt, pt);
-*/
                 writePoint(pt.getX(), pt.getY());
                 blockClose("transform");
 			}
@@ -786,7 +763,7 @@ public class EDIF extends Topology
 			if (IOTool.isEDIFUseSchematicView())
 			{
 				// do all display variables first
-                NodeInst ni = (NodeInst)no;
+                NodeInst ni = no;
                 Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false);
                 writeDisplayableVariables(varPolys, ni.rotateOut());
 			}
@@ -807,8 +784,6 @@ public class EDIF extends Topology
 
 			// establish if this is a global net
 			boolean globalport = false;
-//			if ((pp = (PORTPROTO *) net->temp2) != NOPORTPROTO)
-//				globalport = isGlobalExport(pp);
 
 			blockOpen("net");
 			netName = cs.getName();
@@ -1126,13 +1101,13 @@ public class EDIF extends Topology
 			}
 		}
 
-        // write text
-        Poly [] text = cell.getAllText(true, null);
-        if (text != null) {
-            for (int i=0; i<text.length; i++) {
-                Poly p = text[i];
-            }
-        }
+//        // write text
+//        Poly [] text = cell.getAllText(true, null);
+//        if (text != null) {
+//            for (int i=0; i<text.length; i++) {
+//                Poly p = text[i];
+//            }
+//        }
 
         if (IOTool.isEDIFUseSchematicView()) {
             blockClose("page");
@@ -1283,12 +1258,6 @@ public class EDIF extends Topology
 				}
                 if (primsFound.get(getPrimKey(ni, i)) != null) continue;    // already written
 
-/*
-				if (fun != PrimitiveNode.Function.UNKNOWN && fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
-					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.METER &&
-						fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND && fun != PrimitiveNode.Function.SOURCE &&
-							fun != PrimitiveNode.Function.SUBSTRATE && fun != PrimitiveNode.Function.WELL && fun != PrimitiveNode.Function.ART) {
-*/
                 if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART)
                     continue;
                 writePrimitive(pn, i, fun);
@@ -1324,7 +1293,6 @@ public class EDIF extends Topology
 			if (!ni.isCellInstance())
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
-                PrimitiveNode pn = (PrimitiveNode)np;
 				PrimitiveNode.Function fun = ni.getFunction();
 				if (fun == PrimitiveNode.Function.PIN)
 				{
@@ -1479,21 +1447,21 @@ public class EDIF extends Topology
 		return (int)(val*scale);
 	}
 
-	/**
-	 * Establish whether port 'e' is a global port or not
-	 */
-	private boolean isGlobalExport(Export e)
-	{
-		// pp is a global port if it is marked global
-		if (e.isBodyOnly()) return true;
-
-		// or if it does not exist on the icon
-		Cell parent = e.getParent();
-		Cell inp = parent.iconView();
-		if (inp == null) return false;
-		if (e.getEquivalent() == null) return true;
-		return false;
-	}
+//	/**
+//	 * Establish whether port 'e' is a global port or not
+//	 */
+//	private boolean isGlobalExport(Export e)
+//	{
+//		// pp is a global port if it is marked global
+//		if (e.isBodyOnly()) return true;
+//
+//		// or if it does not exist on the icon
+//		Cell parent = e.getParent();
+//		Cell inp = parent.iconView();
+//		if (inp == null) return false;
+//		if (e.getEquivalent() == null) return true;
+//		return false;
+//	}
 
 	/**
 	 * Method to properly identify an instance of a primitive node
@@ -1764,9 +1732,6 @@ public class EDIF extends Topology
 	 */
 	private void writeSymbolArcInst(ArcInst ai, AffineTransform trans)
 	{
-		Technology tech = ai.getProto().getTechnology();
-		Poly [] polys = tech.getShapeOfArc(ai);
-
 		// get the endpoints of the arcinst
 		Point2D [] points = new Point2D[2];
 		points[0] = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());

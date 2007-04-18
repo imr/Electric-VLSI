@@ -67,7 +67,7 @@ public final class ExportId implements PortProtoId, Serializable {
         this.externalId = externalId;
     }
     
-    private Object writeReplace() throws ObjectStreamException { return new ExportIdKey(this); }
+    private Object writeReplace() { return new ExportIdKey(this); }
     private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ExportId"); }
     
     private static class ExportIdKey extends EObjectInputStream.Key {

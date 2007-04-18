@@ -86,8 +86,8 @@ class LayoutCell {
     private boolean modified;
     /** True if change of Exports of this Cell causes recomputation of upper Cells. */
     private boolean exportsModified;
-    /** True if subcells changed names of Library:Cell:Export */
-    private boolean subcellsRenamed;
+//    /** True if subcells changed names of Library:Cell:Export */
+//    private boolean subcellsRenamed;
     /** True if this Cell is computed by Layout constraint system. */
     private boolean computed;
     /** Backup of this Cell before Job */
@@ -168,8 +168,8 @@ class LayoutCell {
         }
         if (oldNodes != null) {
             for (Map.Entry<NodeInst,ImmutableNodeInst> e : oldNodes.entrySet()) {
-                NodeInst ni = (NodeInst)e.getKey();
-                ImmutableNodeInst d = (ImmutableNodeInst)e.getValue();
+                NodeInst ni = e.getKey();
+                ImmutableNodeInst d = e.getValue();
                 if (d != null) {
                     modifiedInsts.add(ni);
                     if (!ni.getAnchorCenter().equals(d.anchor) || !ni.getOrient().equals(d.orient))
@@ -345,7 +345,7 @@ class LayoutCell {
 
 			PortInst opi = ai.getPortInst(otherEndIndex);
 			NodeInst ono = opi.getNodeInst();
-			PortProto opt = opi.getPortProto();
+//			PortProto opt = opi.getPortProto();
 			EPoint otherLocation = ai.getLocation(otherEndIndex);
 
 			// create the two points that will be the new ends of this arc
@@ -830,9 +830,9 @@ class LayoutCell {
 		// manhattan arcinst becomes nonmanhattan: remember facts about it
 		if (Layout.DEBUG) System.out.println("Jogging arc");
 		PortInst fpi = ai.getHeadPortInst();
-		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
+//		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
 		PortInst tpi = ai.getTailPortInst();
-		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
+//		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
 
 		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getLambdaFullWidth();
 

@@ -46,8 +46,7 @@ class ExportAssertionTable extends ExportTable {
     
     protected ExportAssertionTable(NccGuiInfo res) {
         super(res, 2);
-        failures = (ExportAssertionFailures[])result.getExportAssertionFailures()
-                                       .toArray(new ExportAssertionFailures[0]);
+        failures = result.getExportAssertionFailures().toArray(new ExportAssertionFailures[0]);
         height = Math.min(failures.length, MAXROWS);
         setup();
         

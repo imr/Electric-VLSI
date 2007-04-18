@@ -64,7 +64,7 @@ public final class LibId implements Serializable {
         this.libIndex = libIndex;
     }
     
-    private Object writeReplace() throws ObjectStreamException { return new LibIdKey(this); }
+    private Object writeReplace() { return new LibIdKey(this); }
     private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("LibId"); }
     
     private static class LibIdKey extends EObjectInputStream.Key {

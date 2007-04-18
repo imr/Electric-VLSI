@@ -46,7 +46,7 @@ import java.net.URL;
  */
 public class CVSLibrary {
 
-    private Library lib;
+//    private Library lib;
     private FileType type;
     private State libState;                 // only used for non-DELIB file types
     private Map<Cell,State> cellStates;
@@ -56,7 +56,7 @@ public class CVSLibrary {
     private static Map<Library,CVSLibrary> CVSLibraries = new HashMap<Library,CVSLibrary>();
 
     private CVSLibrary(Library lib) {
-        this.lib = lib;
+//        this.lib = lib;
         String libFile = lib.getLibFile().getPath();
         type = OpenFile.getOpenFileType(libFile, FileType.JELIB);
         libState = State.NONE;

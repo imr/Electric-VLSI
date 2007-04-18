@@ -214,7 +214,7 @@ public class Orientation implements Serializable {
 
 	}
 
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return fromJava(jAngle, jMirrorX, jMirrorY);
     }
     
@@ -245,7 +245,7 @@ public class Orientation implements Serializable {
 		Orientation orient;
 		synchronized (map)
 		{
-			orient = (Orientation)map.get(key);
+			orient = map.get(key);
 			if (orient == null)
 			{
 				orient = new Orientation(jAngle, jMirrorX, jMirrorY, null);

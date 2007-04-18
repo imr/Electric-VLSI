@@ -78,7 +78,7 @@ class Placer {
 			double cost = getCostX(nets);
 			if (cost<bestCost) {
 				bestCost = cost;
-				bestPermutation = (int[]) permutation.clone();
+				bestPermutation = permutation.clone();
 				//System.out.println("Cost= "+cost);
 			}
 			nbChecked++;
@@ -98,7 +98,7 @@ class Placer {
 									 int depth) {
 			double pX=leftX, nX=leftX;
 			for (int i=0; i<=depth; i++) {
-				Inst inst = (Inst) insts.get(permutation[i]);
+				Inst inst = insts.get(permutation[i]);
 				if (inst.isN()) {
 					// NMOS only gate
 					inst.moveTo(nX, 0);
@@ -126,7 +126,7 @@ class Placer {
 			// possibly be less than this.
 			for (int i=0; i<placed.length; i++) {
 				if (!placed[i]) {
-					Inst inst = (Inst) insts.get(i);
+					Inst inst = insts.get(i);
 					inst.moveTo(nX, 0);
 				}
 			}
@@ -153,7 +153,7 @@ class Placer {
 			*/
 			return prune;
 		}
-		private double getBestCost() {return bestCost;}
+//		private double getBestCost() {return bestCost;}
 		private ArrayList<Inst> getBestPermutation() {
 			ArrayList<Inst> best = new ArrayList<Inst>();
 			for (int i=0; i<bestPermutation.length; i++)
@@ -172,14 +172,14 @@ class Placer {
 	// ------------------------ Private methods ------------------------
 	private static void updateElectric(ArrayList<Inst> insts, double rowHeight) {
 		for (int i=0; i<insts.size(); i++) {
-			((Inst)insts.get(i)).updateElectric(rowHeight);
+			insts.get(i).updateElectric(rowHeight);
 		}
 	}
 	
 	private static void abutLeftRight(double leftX, ArrayList<Inst> insts) {
 		double pX=leftX, nX=leftX;
 		for (int i=0; i<insts.size(); i++) {
-			Inst inst = (Inst) insts.get(i);
+			Inst inst = insts.get(i);
 			if (inst.isN()) {
 				// NMOS only gate
 				inst.moveTo(nX, 0);
@@ -200,24 +200,24 @@ class Placer {
 	private static double getCostX(ArrayList<Net> nets) {
 		double cost = 0;
 		for (int i=0; i<nets.size(); i++) {
-			cost += ((Net)nets.get(i)).getCostX();
+			cost += nets.get(i).getCostX();
 		}
 		return cost;
 	}
-	private static double getCost2row(ArrayList<Net> nets) {
-		double cost = 0;
-		for (int i=0; i<nets.size(); i++) {
-			cost += ((Net)nets.get(i)).getCost2row();
-		}
-		return cost;
-	}
+//	private static double getCost2row(ArrayList<Net> nets) {
+//		double cost = 0;
+//		for (int i=0; i<nets.size(); i++) {
+//			cost += nets.get(i).getCost2row();
+//		}
+//		return cost;
+//	}
 	
 	// Any ports to the right of maxX are unplaced. Compute the cost as
 	// if they are all at maxX.
 	private static double getPlacedCostX(ArrayList<Net> nets, double maxX) {
 		double cost = 0;
 		for (int i=0; i<nets.size(); i++) {
-			cost += ((Net)nets.get(i)).getPlacedCostX(maxX);
+			cost += nets.get(i).getPlacedCostX(maxX);
 		}
 		return cost;
 	}
@@ -301,7 +301,7 @@ class Placer {
 		double maxDist = stdCell.getWellTiePitch();
 		double pSp=maxDist/2, nSp=maxDist/2;
 		for (int i=0; i<insts.size(); i++) {
-			Inst inst = (Inst) insts.get(i);
+			Inst inst = insts.get(i);
 			double instWid = inst.getWidth();
 			if (instWid > maxDist) {
 				System.out.println("The gate: "+
@@ -378,7 +378,7 @@ class Placer {
 		ArrayList<Inst> nInsts=new ArrayList<Inst>(),  pInsts=new ArrayList<Inst>(),
 			pnInsts=new ArrayList<Inst>();
 		for (int i=0; i<insts.size(); i++) {
-			Inst inst = (Inst) insts.get(i);
+			Inst inst = insts.get(i);
 			if (inst.isN()) {
 				nInsts.add(inst);
 			} else if (inst.isP()) {
@@ -392,7 +392,7 @@ class Placer {
 		allInsts.addAll(pInsts);
 		abutLeftRight(0, allInsts);
 		
-		Inst lastFull = (Inst) pnInsts.get(pnInsts.size()-1);
+		Inst lastFull = pnInsts.get(pnInsts.size()-1);
 		double rightFullX = lastFull.getX() + lastFull.getWidth();
 		
 		ArrayList<Inst> ans = new ArrayList<Inst>(exhaustive(pnInsts, nets, 0, maxPerms));
@@ -420,7 +420,7 @@ class Placer {
 		}
 		
 		int nbPorts() {return ports.size();}
-		Port getPort(int i) {return (Port) ports.get(i);}
+		Port getPort(int i) {return ports.get(i);}
 		public Port addPort(double ofstX, double ofstY) {
 			Port p = new Port(this, ofstX, ofstY);
 			ports.add(p);
@@ -466,7 +466,7 @@ class Placer {
 		ArrayList<Port> ports = new ArrayList<Port>();
 		
 		int nbPorts() {return ports.size();}
-		Port getPort(int i) {return (Port) ports.get(i);}
+		Port getPort(int i) {return ports.get(i);}
 		public void addPort(Port port) {ports.add(port);}
 		
 		double getCostX() {
@@ -501,8 +501,8 @@ class Placer {
 		double getCost2row() {
 			final int nbRows = 2;
 			double[] minX = new double[nbRows],
-				maxX = new double[nbRows],
-				costX = new double[nbRows];
+				maxX = new double[nbRows];
+//			double[] costX = new double[nbRows];
 			for (int i=0; i<nbRows; i++) {
 				minX[i] = Double.MAX_VALUE;  maxX[i] = Double.MIN_VALUE;
 			}
@@ -559,12 +559,12 @@ class Placer {
 		abutLeftRight(0, insts);
 		updateElectric(insts, rowHeight);
 		
-		Inst rightInst = (Inst) insts.get(insts.size()-1);
+		Inst rightInst = insts.get(insts.size()-1);
 		stdCell.addEssentialBounds(0, rightInst.getMaxX(), part);
 		
 		ArrayList<NodeInst> nodeInsts = new ArrayList<NodeInst>();
 		for (int i=0; i<insts.size(); i++) {
-			nodeInsts.add(((Inst)insts.get(i)).getNodeInst());
+			nodeInsts.add(insts.get(i).getNodeInst());
 		}
 		return nodeInsts;
 	}

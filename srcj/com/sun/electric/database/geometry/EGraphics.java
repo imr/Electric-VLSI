@@ -80,8 +80,8 @@ public class EGraphics extends Observable
 		/** Draw stipple pattern with far dotted thicker outline. */
 		PAT_DO2_T2("Dotted-Far-Thicker", 0x7F, 9, 5);
         
-		private static final int SAMPLEWID = 60;
-		private static final int SAMPLEHEI = 11;
+//		private static final int SAMPLEWID = 60;
+//		private static final int SAMPLEHEI = 11;
 
 		private String name;
 		private int pattern, len;
@@ -270,7 +270,7 @@ public class EGraphics extends Observable
 		this.blue = gColor.getBlue();
 		this.opacity = g.getOpacity();
 		this.foreground = g.getForeground();
-		setPatternLow((int[])g.getPattern().clone());
+		setPatternLow(g.getPattern().clone());
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
@@ -281,9 +281,7 @@ public class EGraphics extends Observable
 		}
 	}
     
-    private static void setPattern() {
-        
-    }
+//    private static void setPattern() {}
 
 	/**
 	 * Method to return the Layer associated with this EGraphics.

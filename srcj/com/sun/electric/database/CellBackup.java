@@ -637,7 +637,7 @@ public class CellBackup {
                     wiped.set(a.headNodeId);
                 }
             }
-            short[] shrink = new short[maxNodeId + 1];
+//            short[] shrink = new short[maxNodeId + 1];
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;

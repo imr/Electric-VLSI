@@ -41,8 +41,7 @@ class UnrecognizedPartTable extends ExportTable {
     
     public UnrecognizedPartTable(NccGuiInfo res) {
         super(res, 2);
-        moses = (UnrecognizedPart[])result.getUnrecognizedParts()
-                                         .toArray(new UnrecognizedPart[0]);
+        moses = result.getUnrecognizedParts().toArray(new UnrecognizedPart[0]);
         height = Math.min(moses.length, MAXROWS);
         setup();
         

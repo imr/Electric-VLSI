@@ -30,7 +30,9 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -41,13 +43,12 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
-
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * The Variable immutable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -133,13 +134,13 @@ public class Variable implements Serializable
 	 */
 	public static synchronized Key findKey(String name)
 	{
-		Key key = (Key)varKeys.get(name);
+		Key key = varKeys.get(name);
 		if (key != null) return key;
         if (varKeys.containsKey(name)) return null;
         name = name.intern();
         varKeys.put(name, null);
 		String canonicName = TextUtils.canonicString(name);
-		key = (Key)varCanonicKeys.get(canonicName);
+		key = varCanonicKeys.get(canonicName);
         if (key != null)
         {
             String msg = "WARNING: Variable \"" + name + "\" not found though variable \"" + key.getName() + "\" exists";
@@ -169,13 +170,13 @@ public class Variable implements Serializable
 	 */
 	public static synchronized Key newKey(String name, ElectricObject parent)
 	{
-		Key key = (Key)varKeys.get(name);
+		Key key = varKeys.get(name);
         if (key != null) return key;
         name = name.intern();
 		key = new Key(name);
         varKeys.put(name, key);
 		String canonicName = TextUtils.canonicString(name);
-		Key	key2 = (Variable.Key)varCanonicKeys.get(canonicName);
+		Key	key2 = varCanonicKeys.get(canonicName);
         if (key2 != null)
         {
         	// find examples of these two variables
@@ -316,7 +317,7 @@ public class Variable implements Serializable
                 value = value.toString();
         }
         if (value instanceof Object[]) {
-            Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
+            Byte typeByte = validClasses.get(value.getClass().getComponentType());
             if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
             value = ((Object[])value).clone();
@@ -324,7 +325,7 @@ public class Variable implements Serializable
             if (!validValue(type, value))
                 throw new IllegalArgumentException(value.toString());
         } else {
-            Byte typeByte = (Byte)validClasses.get(value.getClass());
+            Byte typeByte = validClasses.get(value.getClass());
             if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
             type = typeByte.byteValue();
@@ -341,11 +342,11 @@ public class Variable implements Serializable
 		assert key != null;
         assert value != null;
         if (value instanceof Object[]) {
-            Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
+            Byte typeByte = validClasses.get(value.getClass().getComponentType());
             assert type == (byte)(typeByte.byteValue()|ARRAY);
             assert validValue(type, value);
         } else {
-            Byte typeByte = (Byte)validClasses.get(value.getClass());
+            Byte typeByte = validClasses.get(value.getClass());
             assert type == typeByte.byteValue();
         }
         assert descriptor != null;
@@ -518,9 +519,9 @@ public class Variable implements Serializable
             case LIBRARY:
                 return reader.readLibId();
             case CELL:
-                return (CellId)reader.readNodeProtoId();
+                return reader.readNodeProtoId();
             case EXPORT:
-                return (ExportId)reader.readPortProtoId();
+                return reader.readPortProtoId();
             case STRING:
                 return reader.readString();
             case DOUBLE:
@@ -544,7 +545,7 @@ public class Variable implements Serializable
             case TECHNOLOGY:
                 return reader.readTechnology();
             case PRIM_NODE:
-                return (PrimitiveNode)reader.readNodeProtoId();
+                return reader.readNodeProtoId();
             case ARC_PROTO:
                 return reader.readArcProto();
             default:

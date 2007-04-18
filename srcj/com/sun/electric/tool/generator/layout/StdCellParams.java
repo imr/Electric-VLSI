@@ -1210,8 +1210,6 @@ public class StdCellParams {
 		for (String k : asgn.keySet()) {
 			Object v = asgn.get(k);
 			// check types of key and value
-			error(!(k instanceof String),
-				  "Track assignment key not String: "+k);
 			error(!(v instanceof Integer),
 				  trkMsg(k,s)+"Value not Integer: "+v);
 

@@ -98,7 +98,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** key of Varible holding serpentine transistor length. */	public static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
 
 	private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
-	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
+//	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
     /**
 	 * Method to detect if np is not relevant for some tool calculation and therefore
@@ -346,7 +346,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 System.out.println(msg);
             }
         }
-        CellId parentId = (CellId)parent.getId();
+        CellId parentId = parent.getId();
         
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
         if (protoDescriptor == null) protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
@@ -545,7 +545,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public static void modifyInstances(NodeInst [] nis, double [] dXs, double [] dYs, double [] dXSizes, double [] dYSizes) {
         // make the change
-        double cX = 0, cY = 0;
         for(int i=0; i<nis.length; i++) {
             NodeInst ni = nis[i];
             if (ni == null) continue;
@@ -1263,7 +1262,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			{
 				Integer iAddr = (Integer)addr;
 				returnValues[0] = 0.0;
-				returnValues[1] = (double)iAddr.intValue() * Math.PI / 1800.0;
+				returnValues[1] = iAddr.intValue() * Math.PI / 1800.0;
 			} else if (addr instanceof Float[])
 			{
 				Float [] fAddr = (Float [])addr;
@@ -1900,7 +1899,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if ((arcWidth != -1) && (np.getFunction() == PrimitiveNode.Function.CONTACT)) {
                 // reduce the port size such that the connecting arc's width cannot extend
                 // beyond the width of the contact
-                SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
+                SizeOffset so = np.getProtoSizeOffset();
                 double width = ni.getXSize() - so.getHighXOffset() - so.getLowXOffset();
                 double height = ni.getYSize() - so.getHighYOffset() - so.getLowYOffset();
                 double newportwidth = width - arcWidth;

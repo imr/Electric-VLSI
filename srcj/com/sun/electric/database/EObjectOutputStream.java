@@ -183,7 +183,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         private Object readResolve() throws ObjectStreamException {
             Technology tech = Technology.findTechnology(techName);
             PrimitiveNode pn = tech.findNodeProto(primName);
-            PrimitivePort pp = (PrimitivePort)pn.getPort(portIndex);
+            PrimitivePort pp = pn.getPort(portIndex);
             if (pp == null) throw new InvalidObjectException("PrimitivePort");
             return pp;
         }

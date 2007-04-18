@@ -300,7 +300,7 @@ public class AddRemove {
             if (this.cells == null) this.cells = new ArrayList<Cell>();
         }
         public boolean doIt() {
-            StringBuffer buf = new StringBuffer();
+//            StringBuffer buf = new StringBuffer();
             for (Library lib : libs) {
                 undo(lib);
             }

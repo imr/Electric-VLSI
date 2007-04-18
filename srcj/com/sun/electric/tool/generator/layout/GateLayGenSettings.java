@@ -12,7 +12,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 public class GateLayGenSettings extends Tool {
 	public static GateLayGenSettings tool = new GateLayGenSettings();
 	// per-package namespace for preferences
-	private Pref.Group prefs = Pref.groupForPackage(this.getClass());
+//	private Pref.Group prefs = Pref.groupForPackage(this.getClass());
     
     /**
 	 * The constructor sets up the DRC tool.

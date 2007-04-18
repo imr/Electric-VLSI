@@ -244,13 +244,13 @@ public class GDS extends Geometry
 				selectLayer(layer);
 //				selectLayer(foundry, layer);
 
-				int textLayer = -1, pinLayer = -1, textType = 0, pinType = 0;
-				textLayer = pinLayer = IOTool.getGDSOutDefaultTextLayer();
-				if (currentLayerNumbers.getTextLayer() != -1)
-				{
-					textLayer = currentLayerNumbers.getTextLayer() & 0xFFFF;
-					textType = (currentLayerNumbers.getTextLayer() >> 16) & 0xFFFF;
-				}
+//				int textLayer = IOTool.getGDSOutDefaultTextLayer(), textType = 0;
+//				if (currentLayerNumbers.getTextLayer() != -1)
+//				{
+//					textLayer = currentLayerNumbers.getTextLayer() & 0xFFFF;
+//					textType = (currentLayerNumbers.getTextLayer() >> 16) & 0xFFFF;
+//				}
+				int pinLayer = IOTool.getGDSOutDefaultTextLayer(), pinType = 0;
 				if (currentLayerNumbers.getPinLayer() != -1)
 				{
 					pinLayer = currentLayerNumbers.getPinLayer() & 0xFFFF;

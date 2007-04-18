@@ -94,14 +94,14 @@ public class AnalyzeHeap {
             objs.set(h, s);
         }
         for (int h = 1; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj == null)
                 objs.set(h, new MyObject());
         }
         for (int h = 1;; h++) {
             int classH = in.readInt();
             if (classH == 0) break;
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             MyClass cls = (MyClass)objs.get(classH);
             obj.id = h;
             obj.setClass(cls);
@@ -110,7 +110,7 @@ public class AnalyzeHeap {
                     int length = in.readInt();
                     for (int i = 0; i < length; i++) {
                         int elem = in.readInt();
-                        new Link(obj, MyField.getElem(i), (MyObject)objs.get(elem));
+                        new Link(obj, MyField.getElem(i), objs.get(elem));
                         //                          System.out.println("\t" + elem);
                     }
                     break;
@@ -118,9 +118,9 @@ public class AnalyzeHeap {
                     int mapLength = in.readInt();
                     for (int i = 0; i < mapLength; i++) {
                         int key = in.readInt();
-                        new Link(obj, MyField.getKey(i), (MyObject)objs.get(key));
+                        new Link(obj, MyField.getKey(i), objs.get(key));
                         int value = in.readInt();
-                        new Link(obj, MyField.getElem(i), (MyObject)objs.get(value));
+                        new Link(obj, MyField.getElem(i), objs.get(value));
                     }
                     break;
                 case MyClass.STRING:
@@ -129,18 +129,18 @@ public class AnalyzeHeap {
                     obj.pathLink = new Link(null, ((MyClass)obj).classField, obj);
                     for (int i = 0; i < cls.fields.length; i++) {
                         int value = in.readInt();
-                        new Link(obj, cls.fields[i], (MyObject)objs.get(value));
+                        new Link(obj, cls.fields[i], objs.get(value));
                     }
                     cls = (MyClass)objs.get(h);
                     for (int i = 0; i < cls.staticFields.length; i++) {
                         int value = in.readInt();
-                        new Link(obj, cls.staticFields[i], (MyObject)objs.get(value));
+                        new Link(obj, cls.staticFields[i], objs.get(value));
                     }
                     break;
                 case MyClass.NORMAL:
                     for (int i = 0; i < cls.fields.length; i++) {
                         int value = in.readInt();
-                        new Link(obj, cls.fields[i], (MyObject)objs.get(value));
+                        new Link(obj, cls.fields[i], objs.get(value));
                     }
                     break;
             }
@@ -151,7 +151,7 @@ public class AnalyzeHeap {
         if (obj == null || visited.contains(obj)) return;
         visited.add(obj);
         for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
-            Link l = (Link)it.next();
+            Link l = it.next();
             if (!REFERENCES && l.field.referent)
                 continue;
             garbageCollect(l.to, visited);
@@ -161,20 +161,20 @@ public class AnalyzeHeap {
     private void garbageCollect() {
         HashSet<MyObject> visited = new HashSet<MyObject>();
         for (int h = 1; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj instanceof MyClass)
                 garbageCollect(obj, visited);
         }
         int collected = 0, remained = 0;
         for (int h = 1; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj == null) continue;
             if (!visited.contains(obj)) {
                 objs.set(h, null);
                 collected++;
             }
             for (Iterator<Link> it = obj.linksTo.iterator(); it.hasNext(); ) {
-                Link l = (Link)it.next();
+                Link l = it.next();
                 if (l.from != null && !visited.contains(l.from))
                     it.remove();
             }
@@ -203,7 +203,7 @@ public class AnalyzeHeap {
 
         int singleRefered = 0;
         for (int h = 0; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj == null) continue;
             if (!obj.isSingleOwned()) continue;
             if (obj.linksTo.size() == 0) {
@@ -211,7 +211,7 @@ public class AnalyzeHeap {
                 continue;
             }
             singleRefered++;
-            Link pathLink = (Link)obj.linksTo.get(0);
+            Link pathLink = obj.linksTo.get(0);
             assert obj.pathLink == null || obj.pathLink == pathLink;
             obj.pathLink = pathLink;;
         }
@@ -222,12 +222,12 @@ public class AnalyzeHeap {
     private int stepPath(boolean doMaps, boolean trackReferents, boolean verbose) {
         HashSet<MyObject> named = new HashSet<MyObject>();
         for (int h = 1; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj == null || obj.pathLink == null) continue;
             if (named.contains(obj)) continue;
             boolean doAll = doMaps || obj.cls.mode != MyClass.MAP && obj.cls.mode != MyClass.ARRAY;
             for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
-                Link l = (Link)it.next();
+                Link l = it.next();
                 if (l.to == null || l.to.pathLink != null) continue;
                 if (!trackReferents && l.field.referent) continue;
                 boolean single = l.to.isSingleOwned();
@@ -247,7 +247,7 @@ public class AnalyzeHeap {
     private void countUnnamed() {
         int unnamed = 0;
         for (int h = 0; h < objs.size(); h++) {
-            MyObject obj = (MyObject)objs.get(h);
+            MyObject obj = objs.get(h);
             if (obj != null && obj.pathLink == null)
                 unnamed++;
         }
@@ -258,17 +258,17 @@ public class AnalyzeHeap {
         try {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(dumpName)));
             for (int h = 0; h < objs.size(); h++) {
-                MyObject obj = (MyObject)objs.get(h);
+                MyObject obj = objs.get(h);
                 if (obj == null) continue;
                 out.println(obj.toString());
                 for (Iterator<Link> it = obj.linksFrom.iterator(); it.hasNext(); ) {
-                    Link l = (Link)it.next();
+                    Link l = it.next();
                     if (l.to == null) continue;
                     out.println("\t" + l.field.name + "\t" + (l.to != null ? l.to.toString() : "null"));
                 }
                 out.println("\t-");
                 for (Iterator<Link> it = obj.linksTo.iterator(); it.hasNext(); ) {
-                    Link l = (Link)it.next();
+                    Link l = it.next();
                     if (l == obj.pathLink) continue;
                     out.println("\t" + (l.from != null ? l.from.path() + "." : "") + l.field.name);
                 }
@@ -387,13 +387,13 @@ class MyField {
     static MyField getElem(int index) {
         while (elems.size() <= index)
             elems.add(new MyField(elems.size(), ELEM, elems.size() + ""));
-        return (MyField)elems.get(index);
+        return elems.get(index);
     }
 
     static MyField getKey(int index) {
         while (keys.size() <= index)
             keys.add(new MyField(keys.size(), KEY, keys.size() + "k"));
-        return (MyField)keys.get(index);
+        return keys.get(index);
     }
 }
 

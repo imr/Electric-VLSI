@@ -129,7 +129,7 @@ public abstract class ExportConflict implements Serializable {
             StringBuffer buf = new StringBuffer(10);
             buf.append("{");
             for (Iterator<String> it = net.getNames(); it.hasNext();) {
-                buf.append(" " + (String)it.next());
+                buf.append(" " + it.next());
                 if (it.hasNext()) buf.append(",");
             }
             buf.append(" }");

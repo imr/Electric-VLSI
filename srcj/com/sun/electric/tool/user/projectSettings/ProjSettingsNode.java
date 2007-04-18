@@ -57,8 +57,8 @@ import java.io.Serializable;
  */
 public class ProjSettingsNode implements Serializable {
 
-    private final ProjSettingsNode parent;
-    private final String key;
+//    private final ProjSettingsNode parent;
+//    private final String key;
     private final String path;
     final LinkedHashMap<String, Object> data = new LinkedHashMap<String,Object>();
 
@@ -73,8 +73,6 @@ public class ProjSettingsNode implements Serializable {
      * Create a new default proj settings node
      */
     ProjSettingsNode() {
-        parent = null;
-        key = null;
         path = "";
     }
 
@@ -82,8 +80,8 @@ public class ProjSettingsNode implements Serializable {
      * Create a new default proj settings node
      */
     private ProjSettingsNode(ProjSettingsNode parent, String key) {
-        this.parent = parent;
-        this.key = key;
+//        this.parent = parent;
+//        this.key = key;
         path = parent + key + ".";
     }
 
@@ -153,9 +151,9 @@ public class ProjSettingsNode implements Serializable {
         return null;
     }
 
-    private void prIllegalRequestError(String key) {
-        System.out.println("ERROR! Project Settings key conflict: "+key);
-    }
+//    private void prIllegalRequestError(String key) {
+//        System.out.println("ERROR! Project Settings key conflict: "+key);
+//    }
 
     // ----------------------------- Protected --------------------------------
 
