@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/17/07, DN) ELIB reader crashes.
+FIX: In ELIB.readNodeProto restore "ignore the cell bounding box" code.
+
 BUG: (4/16/07, GVG) contact spacing incorrect for large contacts in tsmc180 (Bug#1298)
 FIX: This bug was most probably introduced around 8.04x. From now, multi-cut spacings in poly contacts (nxm)
 is dictated by CO.S.2.

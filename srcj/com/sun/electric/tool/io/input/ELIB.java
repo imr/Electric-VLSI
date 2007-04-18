@@ -1619,6 +1619,12 @@ public class ELIB extends LibraryFiles
         nodeProtoList[cellIndex] = cell;
         assert cell.getCellName() != null;
 
+		// ignore the cell bounding box
+		readBigInteger(); // lowX
+		readBigInteger(); // highX
+		readBigInteger();  // lowY
+		readBigInteger(); // highY
+
 		// ignore the linked list pointers (versions 5 or older)
 		if (magic >= ELIBConstants.MAGIC5)
 		{
