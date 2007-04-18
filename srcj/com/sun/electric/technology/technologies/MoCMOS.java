@@ -1429,7 +1429,8 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX,Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1437,8 +1438,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
 		metalActiveContactNodes[P_TYPE].setFunction(PrimitiveNode.Function.CONTACT);
-		metalActiveContactNodes[P_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
-		metalActiveContactNodes[P_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+//		metalActiveContactNodes[P_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalActiveContactNodes[P_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metalActiveContactNodes[P_TYPE].setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-N-active-contact */
@@ -1449,7 +1450,8 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1457,8 +1459,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
 		metalActiveContactNodes[N_TYPE].setFunction(PrimitiveNode.Function.CONTACT);
-		metalActiveContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
-		metalActiveContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+//		metalActiveContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalActiveContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metalActiveContactNodes[N_TYPE].setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-polysilicon-1-contact */
@@ -1467,7 +1469,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
 		metal1PolyContactNodes[0].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1475,8 +1478,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
 		metal1PolyContactNodes[0].setFunction(PrimitiveNode.Function.CONTACT);
-		metal1PolyContactNodes[0].setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PolyContactNodes[0].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+//		metal1PolyContactNodes[0].setSpecialType(PrimitiveNode.MULTICUT);
+//		metal1PolyContactNodes[0].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
 		metal1PolyContactNodes[0].setMinSize(5, 5, "5.2, 7.3");
 
 		/** metal-1-polysilicon-2-contact */
@@ -1485,7 +1488,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
 				new Technology.NodeLayer(poly2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		metal1PolyContactNodes[1].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1493,8 +1497,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(4.5), EdgeV.fromBottom(4.5), EdgeH.fromRight(4.5), EdgeV.fromTop(4.5))
 			});
 		metal1PolyContactNodes[1].setFunction(PrimitiveNode.Function.CONTACT);
-		metal1PolyContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PolyContactNodes[1].setSpecialValues(new double [] {2, 2, 4, 4, 3, 3});
+//		metal1PolyContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
+//		metal1PolyContactNodes[1].setSpecialValues(new double [] {2, 2, 4, 4, 3, 3});
 //		metal1PolyContactNodes[1].setNotUsed(true);
 		metal1PolyContactNodes[1].setMinSize(10, 10, "?");
 
@@ -1505,7 +1509,8 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(5.5)),
 				new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(5)),
 				new Technology.NodeLayer(poly2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(7.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
 			});
 		metal1PolyContactNodes[2].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1513,8 +1518,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(7), EdgeV.fromBottom(7), EdgeH.fromRight(7), EdgeV.fromTop(7))
 			});
 		metal1PolyContactNodes[2].setFunction(PrimitiveNode.Function.CONTACT);
-		metal1PolyContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PolyContactNodes[2].setSpecialValues(new double [] {2, 2, 6.5, 6.5, 3, 3});
+//		metal1PolyContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
+//		metal1PolyContactNodes[2].setSpecialValues(new double [] {2, 2, 6.5, 6.5, 3, 3});
 //		metal1PolyContactNodes[2].setNotUsed(true);
 		metal1PolyContactNodes[2].setMinSize(15, 15, "?");
 
@@ -1721,7 +1726,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(metalLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
-				new Technology.NodeLayer(viaLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
+				Technology.NodeLayer.makeMulticut(viaLayers[0], 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(viaLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
 		metalContactNodes[0].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1729,8 +1735,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metalContactNodes[0].setFunction(PrimitiveNode.Function.CONTACT);
-		metalContactNodes[0].setSpecialType(PrimitiveNode.MULTICUT);
-		metalContactNodes[0].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+//		metalContactNodes[0].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalContactNodes[0].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 		metalContactNodes[0].setMinSize(5, 5, "8.3, 9.3");
 
 		/** metal-2-metal-3-contact */
@@ -1739,7 +1745,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metalLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(viaLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				Technology.NodeLayer.makeMulticut(viaLayers[1], 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 3, 3)
+//				new Technology.NodeLayer(viaLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		metalContactNodes[1].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1747,8 +1754,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		metalContactNodes[1].setFunction(PrimitiveNode.Function.CONTACT);
-		metalContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
-		metalContactNodes[1].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+//		metalContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalContactNodes[1].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 		metalContactNodes[1].setMinSize(6, 6, "14.3, 15.3");
 
 		/** metal-3-metal-4-contact */
@@ -1757,7 +1764,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metalLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(viaLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				Technology.NodeLayer.makeMulticut(viaLayers[2], 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 3, 3)
+//				new Technology.NodeLayer(viaLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		metalContactNodes[2].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1765,8 +1773,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		metalContactNodes[2].setFunction(PrimitiveNode.Function.CONTACT);
-		metalContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
-		metalContactNodes[2].setSpecialValues(new double [] {2, 2, 2, 2, 3, 3});
+//		metalContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalContactNodes[2].setSpecialValues(new double [] {2, 2, 2, 2, 3, 3});
 		metalContactNodes[2].setMinSize(6, 6, "21.3, 22.3");
 
 		/** metal-4-metal-5-contact */
@@ -1775,7 +1783,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
-				new Technology.NodeLayer(viaLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2.5))
+				Technology.NodeLayer.makeMulticut(viaLayers[3], 0, Poly.Type.FILLED, TechPoint.makeIndented(3.5), 2, 2, 3, 3)
+//				new Technology.NodeLayer(viaLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2.5))
 			});
 		metalContactNodes[3].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1783,18 +1792,22 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		metalContactNodes[3].setFunction(PrimitiveNode.Function.CONTACT);
-		metalContactNodes[3].setSpecialType(PrimitiveNode.MULTICUT);
-		metalContactNodes[3].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+//		metalContactNodes[3].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalContactNodes[3].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
 //		metalContactNodes[3].setNotUsed(true);
 		metalContactNodes[3].setMinSize(7, 7, "25.3, 26.3");
 
 		/** metal-5-metal-6-contact */
-		metalContactNodes[4] = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),
+		metalContactNodes[4] = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1.5, 1.5, 1.5, 1.5),
+//		metalContactNodes[4] = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(metalLayers[5], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(viaLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3))
+				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
+				new Technology.NodeLayer(metalLayers[5], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
+				Technology.NodeLayer.makeMulticut(viaLayers[4], 0, Poly.Type.FILLED, TechPoint.makeIndented(4), 3, 3, 4, 4)
+//				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+//				new Technology.NodeLayer(metalLayers[5], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+//				new Technology.NodeLayer(viaLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3))
 			});
 		metalContactNodes[4].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1802,8 +1815,8 @@ public class MoCMOS extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		metalContactNodes[4].setFunction(PrimitiveNode.Function.CONTACT);
-		metalContactNodes[4].setSpecialType(PrimitiveNode.MULTICUT);
-		metalContactNodes[4].setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
+//		metalContactNodes[4].setSpecialType(PrimitiveNode.MULTICUT);
+//		metalContactNodes[4].setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
 //		metalContactNodes[4].setNotUsed(true);
 		metalContactNodes[4].setMinSize(8, 8, "29.3, 30.3");
 
@@ -1821,7 +1834,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(active, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
                     new Technology.NodeLayer(wellLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
                     new Technology.NodeLayer(selectLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-                    new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+//                    new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
                 });
             metalWellContactNodes[i].addPrimitivePorts(new PrimitivePort []
                 {
@@ -1831,8 +1845,8 @@ public class MoCMOS extends Technology
                         EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
                 });
             metalWellContactNodes[i].setFunction(func);
-            metalWellContactNodes[i].setSpecialType(PrimitiveNode.MULTICUT);
-            metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+//            metalWellContactNodes[i].setSpecialType(PrimitiveNode.MULTICUT);
+//            metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
             metalWellContactNodes[i].setMinSize(17, 17, "4.2, 6.2, 7.3");
         }
 
@@ -2549,10 +2563,18 @@ public class MoCMOS extends Technology
 		double metContInset = actContInset + 0.5;
 
 		// determine the multicut information
-		double [] specialValues = metalActiveContactNodes[P_TYPE].getSpecialValues();
-		double cutSize = specialValues[0];
-		double cutIndent = specialValues[2];   // or specialValues[3]
-		double cutSep = specialValues[4];      // or specialValues[5]
+        NodeLayer activeMulticut = metalActiveContactNodes[P_TYPE].findMulticut();
+        NodeLayer activeSurround = metalActiveContactNodes[P_TYPE].getLayers()[1];
+        assert activeSurround.getLayer().getFunction().isDiff();
+        double cutSize = activeMulticut.getMulticutSizeX();
+        assert cutSize == activeMulticut.getMulticutSizeY();
+        double cutIndent = activeMulticut.getLeftEdge().getAdder() - activeSurround.getLeftEdge().getAdder();
+        double cutSep = activeMulticut.getMulticutSep1D();
+        assert cutSep == activeMulticut.getMulticutSep2D();
+//		double [] specialValues = metalActiveContactNodes[P_TYPE].getSpecialValues();
+//		double cutSize = specialValues[0];
+//		double cutIndent = specialValues[2];   // or specialValues[3]
+//		double cutSep = specialValues[4];      // or specialValues[5]
 		int numCuts = (int)((activeWid-cutIndent*2+cutSep) / (cutSize+cutSep));
 		if (numCuts <= 0) numCuts = 1;
 		double cutBase = 0;

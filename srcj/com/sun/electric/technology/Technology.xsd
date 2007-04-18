@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="http://xml.netbeans.org/schema/Technology"
-            xmlns:tns="http://xml.netbeans.org/schema/Technology"
+            targetNamespace="http://electric.sun.com/Technology"
+            xmlns:tns="http://electric.sun.com/Technology"
             elementFormDefault="qualified">
                 
     <xsd:simpleType name="ColorComponent">
@@ -413,18 +413,20 @@
                                     <xsd:sequence>
                                         <xsd:choice>
                                             <xsd:element name="box">
-                                                <xsd:complexType>
-                                                    <xsd:sequence/>
-                                                </xsd:complexType>
+                                                <xsd:complexType></xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="minbox">
-                                                <xsd:complexType>
-                                                    <xsd:sequence/>
-                                                </xsd:complexType>
+                                                <xsd:complexType></xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="points">
+                                                <xsd:complexType></xsd:complexType>
+                                            </xsd:element>
+                                            <xsd:element name="multicutbox">
                                                 <xsd:complexType>
-                                                    <xsd:sequence/>
+                                                    <xsd:attribute name="sizex" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sizey" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
                                                 </xsd:complexType>
                                             </xsd:element>
                                         </xsd:choice>
@@ -455,18 +457,11 @@
                                 <xsd:element name="serpTrans">
                                     <xsd:complexType>
                                         <xsd:sequence>
-                                            <xsd:element name="specualValue" type="xsd:double" maxOccurs="6" minOccurs="6"></xsd:element>
+                                            <xsd:element name="specialValue" type="xsd:double" maxOccurs="6" minOccurs="6"></xsd:element>
                                         </xsd:sequence>
                                     </xsd:complexType>
                                 </xsd:element>
                                 <xsd:element name="polygonal"></xsd:element>
-                                <xsd:element name="multiCut">
-                                    <xsd:complexType>
-                                        <xsd:sequence>
-                                            <xsd:element name="specualValue" type="xsd:double" maxOccurs="6" minOccurs="6"></xsd:element>
-                                        </xsd:sequence>
-                                    </xsd:complexType>
-                                </xsd:element>
                             </xsd:choice>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="xsd:NCName" use="required"/>

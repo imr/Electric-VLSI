@@ -3142,9 +3142,13 @@ public class Quick
             return false;
 
         PrimitiveNode nty = (PrimitiveNode)np;
-        double[] specValues = nty.getSpecialValues();
-        // 0 and 1 hold CUTSIZE
-        if (specValues == null) return false; // no values
+        Technology.NodeLayer cutLayer = nty.findMulticut();
+        if (cutLayer == null) return false; // no cut layer
+        double cutSizeX = cutLayer.getMulticutSizeX();
+        double cutSizeY = cutLayer.getMulticutSizeY();
+//        double[] specValues = nty.getSpecialValues();
+//        // 0 and 1 hold CUTSIZE
+//        if (specValues == null) return false; // no values
 
         Rectangle2D box1 = poly.getBounds2D();
         Rectangle2D box2 = nPoly.getBounds2D();
@@ -3167,16 +3171,16 @@ public class Quick
 //        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getRule(nty.getPrimNodeIndexInTech(),
 //                DRCTemplate.DRCRuleType.CUTSIZE);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
-        if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
+        if (DBMath.isGreaterThan(rect.getWidth(), cutSizeX))
         {
-            reportError(DRCErrorType.CUTERROR, "along X", topCell, specValues[0], rect.getWidth(),
+            reportError(DRCErrorType.CUTERROR, "along X", topCell, cutSizeX, rect.getWidth(),
                     ruleName, new Poly(rect), null, layer, null, null, nLayer);
             foundError = true;
 
         }
-        if (DBMath.isGreaterThan(rect.getHeight(), specValues[1]))
+        if (DBMath.isGreaterThan(rect.getHeight(), cutSizeY))
         {
-            reportError(DRCErrorType.CUTERROR, "along Y", topCell, specValues[1], rect.getHeight(),
+            reportError(DRCErrorType.CUTERROR, "along Y", topCell, cutSizeY, rect.getHeight(),
                     ruleName, new Poly(rect), null, layer, null, null, layer);
             foundError = true;
 

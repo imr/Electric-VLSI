@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
+
 /**
  * An EdgeV is a scalable Y coordinate that converts a NodeInst bounds to a location inside of that NodeInst.
  * It consists of two numbers: a <I>multiplier</I> and an <I>adder</I>.
@@ -39,6 +41,7 @@ public class EdgeV
 {
 	/** The multiplier (scales the height by this amount). */	private double multiplier;
 	/** The adder (adds this amount to the scaled height). */	private double adder;
+	/** The adder (adds this amount to the scaled width) in grid units. */	private long gridAdder;
 
 	/**
 	 * Constructs an <CODE>EdgeV</CODE> with the specified values.
@@ -48,7 +51,7 @@ public class EdgeV
 	public EdgeV(double multiplier, double adder)
 	{
 		this.multiplier = multiplier;
-		this.adder = adder;
+        setAdder(adder);
 	}
 
     /**
@@ -83,6 +86,13 @@ public class EdgeV
 	public double getAdder() { return adder; }
 
 	/**
+	 * Returns the adder in grid units.
+	 * This is the amount to add to a NodeInst height.
+	 * @return the adder.
+	 */
+	public long getGridAdder() { return gridAdder; }
+
+	/**
 	 * Sets the adder.
 	 * This is the amount to add to a NodeInst height.
 	 * @param adder the new adder.
@@ -92,8 +102,9 @@ public class EdgeV
 	{
 		if (this.adder != adder)
 		{
-			this.adder = adder;
-			return true;
+            gridAdder = DBMath.lambdaToGrid(adder);
+			this.adder = DBMath.gridToLambda(gridAdder);
+            return true;
 		}
 		return false;
 	}

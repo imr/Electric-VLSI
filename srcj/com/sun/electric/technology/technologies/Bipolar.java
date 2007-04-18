@@ -613,10 +613,10 @@ public class Bipolar extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 			new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5)),
 		};
-		Technology.TechPoint [] box_29 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
-		};
+//		Technology.TechPoint [] box_29 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+//		};
 		Technology.TechPoint [] box_30 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
@@ -696,7 +696,8 @@ public class Bipolar extends Technology
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_28),
 				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_30),
-				new Technology.NodeLayer(V_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
+				Technology.NodeLayer.makeMulticut(V_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 2, 2)
+//				new Technology.NodeLayer(V_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
 			});
 		v_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -704,8 +705,8 @@ public class Bipolar extends Technology
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
 		v_node.setFunction(PrimitiveNode.Function.CONNECT);
-		v_node.setSpecialType(PrimitiveNode.MULTICUT);
-		v_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
+//		v_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		v_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** M1_PP_Contact */
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("M1_PP_Contact", this, 6, 6, new SizeOffset(2, 2, 2, 2),
@@ -714,7 +715,8 @@ public class Bipolar extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_31),
 				new Technology.NodeLayer(PD_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_31),
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_30),
-				new Technology.NodeLayer(C_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
+				Technology.NodeLayer.makeMulticut(C_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 2, 2)
+//				new Technology.NodeLayer(C_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -722,8 +724,8 @@ public class Bipolar extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		mpc_node.setFunction(PrimitiveNode.Function.CONNECT);
-		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
+//		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
 
 		/** M1_NP_Contact */
 		PrimitiveNode mnc_node = PrimitiveNode.newInstance("M1_NP_Contact", this, 6, 6, new SizeOffset(2, 2, 2, 2),
@@ -732,7 +734,8 @@ public class Bipolar extends Technology
 				new Technology.NodeLayer(PD_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_31),
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_31),
 				new Technology.NodeLayer(N_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_30),
-				new Technology.NodeLayer(C_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
+				Technology.NodeLayer.makeMulticut(C_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 2, 2)
+//				new Technology.NodeLayer(C_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_29)
 			});
 		mnc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -740,8 +743,8 @@ public class Bipolar extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		mnc_node.setFunction(PrimitiveNode.Function.CONNECT);
-		mnc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mnc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
+//		mnc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mnc_node.setSpecialValues(new double [] {2, 2, 0, 0, 2, 2});
 
 		/** NPResistor */
 		PrimitiveNode n_node = PrimitiveNode.newInstance("NPResistor", this, 5, 7, new SizeOffset(1, 1, 2, 2),

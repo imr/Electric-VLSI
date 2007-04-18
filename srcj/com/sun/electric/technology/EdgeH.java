@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
+
 /**
  * An EdgeH is a scalable X coordinate that converts a NodeInst bounds to a location inside of that NodeInst.
  * It consists of two numbers: a <I>multiplier</I> and an <I>adder</I>.
@@ -39,6 +41,7 @@ public class EdgeH
 {
 	/** The multiplier (scales the width by this amount). */	private double multiplier;
 	/** The adder (adds this amount to the scaled width). */	private double adder;
+	/** The adder (adds this amount to the scaled width) in grid units. */	private long gridAdder;
 
 	/**
 	 * Constructs an <CODE>EdgeH</CODE> with the specified values.
@@ -48,7 +51,7 @@ public class EdgeH
 	public EdgeH(double multiplier, double adder)
 	{
 		this.multiplier = multiplier;
-		this.adder = adder;
+        setAdder(adder);
 	}
 
     /**
@@ -82,6 +85,13 @@ public class EdgeH
 	public double getAdder() { return adder; }
 
 	/**
+	 * Returns the adder in grid units.
+	 * This is the amount to add to a NodeInst height.
+	 * @return the adder.
+	 */
+	public long getGridAdder() { return gridAdder; }
+
+	/**
 	 * Sets the adder.
 	 * This is the amount to add to a NodeInst width.
 	 * @param adder the new adder.
@@ -91,7 +101,8 @@ public class EdgeH
 	{
 		if (this.adder != adder)
 		{
-			this.adder = adder;
+            gridAdder = DBMath.lambdaToGrid(adder);
+			this.adder = DBMath.gridToLambda(gridAdder);
 			return true;
 		}
 		return false;

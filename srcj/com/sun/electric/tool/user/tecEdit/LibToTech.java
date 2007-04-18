@@ -345,10 +345,10 @@ public class LibToTech
 					prim.setSpecialValues(nList[i].specialValues);
 					prim.setSpecialType(nList[i].specialType);
 					break;
-				case PrimitiveNode.MULTICUT:
-					prim.setSpecialValues(nList[i].specialValues);
-					prim.setSpecialType(nList[i].specialType);
-					break;
+//				case PrimitiveNode.MULTICUT:
+//					prim.setSpecialValues(nList[i].specialValues);
+//					prim.setSpecialType(nList[i].specialType);
+//					break;
 				case PrimitiveNode.POLYGONAL:
 					prim.setHoldsOutline();
 					prim.setSpecialType(nList[i].specialType);
@@ -950,29 +950,29 @@ public class LibToTech
 				return null;
 			}
 
-			// handle multicut layers
-			for(int i=0; i<nIn.nodeLayers.length; i++)
-			{
-				NodeInfo.LayerDetails nld = nIn.nodeLayers[i];
-				if (nld.multiCut)
-				{
-					nIn.specialType = PrimitiveNode.MULTICUT;
-					nIn.specialValues = new double[6];
-					nIn.specialValues[0] = nIn.nodeLayers[i].multiXS;
-					nIn.specialValues[1] = nIn.nodeLayers[i].multiYS;
-					nIn.specialValues[2] = nIn.nodeLayers[i].multiIndent;
-					nIn.specialValues[3] = nIn.nodeLayers[i].multiIndent;
-					nIn.specialValues[4] = nIn.nodeLayers[i].multiSep;
-					nIn.specialValues[5] = nIn.nodeLayers[i].multiSep;
-
-					// make the multicut layer the last one
-					NodeInfo.LayerDetails nldLast = nIn.nodeLayers[nIn.nodeLayers.length-1];
-					NodeInfo.LayerDetails nldMC = nIn.nodeLayers[i];
-					nIn.nodeLayers[i] = nldLast;
-					nIn.nodeLayers[nIn.nodeLayers.length-1] = nldMC;
-					break;
-				}
-			}
+//			// handle multicut layers
+//			for(int i=0; i<nIn.nodeLayers.length; i++)
+//			{
+//				NodeInfo.LayerDetails nld = nIn.nodeLayers[i];
+//				if (nld.multiCut)
+//				{
+//					nIn.specialType = PrimitiveNode.MULTICUT;
+//					nIn.specialValues = new double[6];
+//					nIn.specialValues[0] = nIn.nodeLayers[i].multiXS;
+//					nIn.specialValues[1] = nIn.nodeLayers[i].multiYS;
+//					nIn.specialValues[2] = nIn.nodeLayers[i].multiIndent;
+//					nIn.specialValues[3] = nIn.nodeLayers[i].multiIndent;
+//					nIn.specialValues[4] = nIn.nodeLayers[i].multiSep;
+//					nIn.specialValues[5] = nIn.nodeLayers[i].multiSep;
+//
+//					// make the multicut layer the last one
+//					NodeInfo.LayerDetails nldLast = nIn.nodeLayers[nIn.nodeLayers.length-1];
+//					NodeInfo.LayerDetails nldMC = nIn.nodeLayers[i];
+//					nIn.nodeLayers[i] = nldLast;
+//					nIn.nodeLayers[nIn.nodeLayers.length-1] = nldMC;
+//					break;
+//				}
+//			}
 
 			// count the number of ports on this node
 			int portCount = 0;
@@ -3213,13 +3213,13 @@ public class LibToTech
 						buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.POLYGONAL);");
 						break;
-					case PrimitiveNode.MULTICUT:
-						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.MULTICUT);");
-						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
-							nIn.specialValues[0] + ", " + nIn.specialValues[1] + ", " +
-							nIn.specialValues[2] + ", " + nIn.specialValues[3] + ", " +
-							nIn.specialValues[4] + ", " + nIn.specialValues[5] + "});");
-						break;
+//					case PrimitiveNode.MULTICUT:
+//						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.MULTICUT);");
+//						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
+//							nIn.specialValues[0] + ", " + nIn.specialValues[1] + ", " +
+//							nIn.specialValues[2] + ", " + nIn.specialValues[3] + ", " +
+//							nIn.specialValues[4] + ", " + nIn.specialValues[5] + "});");
+//						break;
 				}
 			}
 		}
@@ -3255,18 +3255,30 @@ public class LibToTech
         for(int j=0; j<tot; j++) {
             NodeInfo.LayerDetails nld = layerDetails[j];
             int portNum = nld.portIndex;
-            buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
-                    nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
-                    nld.style.name() + ",");
             switch (nld.representation) {
                 case Technology.NodeLayer.BOX:
-                    buffWriter.print(" Technology.NodeLayer.BOX,");     break;
+                    buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+                            nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+                            nld.style.name() + ", Technology.NodeLayer.BOX,");
+                    break;
                 case Technology.NodeLayer.MINBOX:
-                    buffWriter.print(" Technology.NodeLayer.MINBOX,");  break;
+                    buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+                            nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+                            nld.style.name() + ", Technology.NodeLayer.MINBOX,");
+                    break;
                 case Technology.NodeLayer.POINTS:
-                    buffWriter.print(" Technology.NodeLayer.POINTS,");  break;
+                    buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+                            nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+                            nld.style.name() + ", Technology.NodeLayer.POINTS,");
+                    break;
+                case Technology.NodeLayer.MULTICUTBOX:
+                    buffWriter.print("\t\t\t\tTechnology.NodeLayer.makeMulticut(" +
+                            nld.layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+                            nld.style.name() + ",");
+                    break;
                 default:
-                    buffWriter.print(" Technology.NodeLayer.????,");    break;
+                    buffWriter.print(" Technology.NodeLayer.????,");
+                    break;
             }
             buffWriter.println(" new Technology.TechPoint [] {");
             int totLayers = nld.values.length;
@@ -3280,6 +3292,8 @@ public class LibToTech
             if (isSerpentine) {
                 buffWriter.print(", " + nld.lWidth + ", " + nld.rWidth + ", " +
                         nld.extendB + ", " + nld.extendT);
+            } else if (nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+                buffWriter.print(", " + nld.multiXS + ", " + nld.multiYS + ", " + nld.multiSep + ", " + nld.multiSep2D);
             }
             buffWriter.print(")");
             if (j+1 < tot) buffWriter.print(",");

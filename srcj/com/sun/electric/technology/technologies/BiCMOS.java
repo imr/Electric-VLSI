@@ -692,14 +692,14 @@ public class BiCMOS extends Technology
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
-//		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
-//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
-//		};
-//		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
-//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2)),
-//		};
+// 		Technology.TechPoint [] box_1 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
+// 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
+// 		};
+// 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
+// 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2)),
+// 		};
 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(4)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(4)),
@@ -714,14 +714,14 @@ public class BiCMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.fromCenter(-1)),
 			new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.fromCenter(1)),
 		};
-//		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
-//			new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.makeCenter()),
-//		};
-//		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.makeCenter()),
-//			new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5)),
-//		};
+// 		Technology.TechPoint [] box_6 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
+// 			new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.makeCenter()),
+// 		};
+// 		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.makeCenter()),
+// 			new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5)),
+// 		};
 		Technology.TechPoint [] box_8 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(7)),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(7)),
@@ -748,10 +748,10 @@ public class BiCMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
 			new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5)),
 		};
-		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
-		};
+//		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+//		};
 		Technology.TechPoint [] box_14 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(36), EdgeV.fromBottom(11)),
 			new Technology.TechPoint(EdgeH.fromRight(8), EdgeV.fromTop(23)),
@@ -1146,7 +1146,8 @@ public class BiCMOS extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_11),
 				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_58),
 				new Technology.NodeLayer(PS_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_55),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(8), 2, 2, 2, 2)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1154,8 +1155,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(6), EdgeV.fromBottom(6), EdgeH.fromRight(6), EdgeV.fromTop(6))
 			});
 		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
+//		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** M1_Ndiff_Con */
 		PrimitiveNode mnc_node = PrimitiveNode.newInstance("M1_Ndiff_Con", this, 10, 10, new SizeOffset(2, 2, 2, 2),
@@ -1164,7 +1165,8 @@ public class BiCMOS extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_10),
 				new Technology.NodeLayer(A_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_56),
 				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_58),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(5), 2, 2, 2, 2)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		mnc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1172,8 +1174,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
 		mnc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mnc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mnc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
+//		mnc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mnc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** M1_Poly1_Con */
 		PrimitiveNode mpc0_node = PrimitiveNode.newInstance("M1_Poly1_Con", this, 6, 6, null,
@@ -1181,7 +1183,8 @@ public class BiCMOS extends Technology
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_9),
 				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_58),
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(PC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 2, 2)
+//				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		mpc0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1189,8 +1192,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mpc0_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc0_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc0_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
+//		mpc0_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc0_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** M1_Poly2_Con */
 		PrimitiveNode mpc1_node = PrimitiveNode.newInstance("M1_Poly2_Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
@@ -1198,7 +1201,8 @@ public class BiCMOS extends Technology
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_57),
 				new Technology.NodeLayer(P1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_58),
-				new Technology.NodeLayer(PC0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(PC0_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 2, 2)
+//				new Technology.NodeLayer(PC0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		mpc1_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1206,8 +1210,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mpc1_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc1_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc1_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
+//		mpc1_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc1_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** PMOSFET */
 		PrimitiveNode p_node = PrimitiveNode.newInstance("PMOSFET", this, 12, 16, new SizeOffset(5, 5, 7, 7),
@@ -1258,7 +1262,8 @@ public class BiCMOS extends Technology
 				new Technology.NodeLayer(OW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_55),
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_4),
 				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_57),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(6), 2, 2, 2, 2)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		mnwc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1266,8 +1271,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(4), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
 		mnwc_node.setFunction(PrimitiveNode.Function.WELL);
-		mnwc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mnwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
+//		mnwc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mnwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
 		/** Poly1_Poly2_Cap */
 		PrimitiveNode ppc_node = PrimitiveNode.newInstance("Poly1_Poly2_Cap", this, 12, 12, null,
@@ -1315,7 +1320,8 @@ public class BiCMOS extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_55),
 				new Technology.NodeLayer(OS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_56),
 				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_58),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(5), 2, 2, 2, 2)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
 			});
 		msc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1323,8 +1329,8 @@ public class BiCMOS extends Technology
 					EdgeH.fromLeft(4), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
 		msc_node.setFunction(PrimitiveNode.Function.UNKNOWN);
-		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		msc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
+//		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		msc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Active_Node */
 		PrimitiveNode an_node = PrimitiveNode.newInstance("Active_Node", this, 4, 4, null,

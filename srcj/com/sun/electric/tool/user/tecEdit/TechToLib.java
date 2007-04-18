@@ -36,7 +36,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -393,15 +392,22 @@ public class TechToLib
 			xsc[3] = xS*2;   ysc[3] = yS*2;
 
 			// for multicut contacts, make large size be just right for 2 cuts
-			if (pnp.getSpecialType() == PrimitiveNode.MULTICUT)
+			if (pnp.isMulticut())
 			{
-				double [] values = pnp.getSpecialValues();
-				double min2X = values[0]*2 + values[2]*2 + values[5];
-				double min2Y = values[1]*2 + values[3]*2 + values[5];
-				xsc[1] = min2X;
-				xsc[3] = min2X;
-				ysc[2] = min2Y;
-				ysc[3] = min2Y;
+                EPoint min2size = pnp.getMulticut2Size();
+                double min2X = min2size.getLambdaX();
+                double min2Y = min2size.getLambdaY();
+                xsc[1] = min2X;
+                xsc[3] = min2X;
+                ysc[2] = min2Y;
+                ysc[3] = min2Y;
+//				double [] values = pnp.getSpecialValues();
+//				double min2X = values[0]*2 + values[2]*2 + values[5];
+//				double min2Y = values[1]*2 + values[3]*2 + values[5];
+//				xsc[1] = min2X;
+//				xsc[3] = min2X;
+//				ysc[2] = min2Y;
+//				ysc[3] = min2Y;
 			}
 			Cell nNp = null;
 			Rectangle2D mainBounds = null;
@@ -848,6 +854,11 @@ public class TechToLib
         for(int k=0; k<lList.length; k++) {
             if (nl.getLayer().getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
         }
+        nld.multiCut = nld.representation == Technology.NodeLayer.MULTICUTBOX;
+        nld.multiXS = nl.getMulticutSizeX();
+        nld.multiYS = nl.getMulticutSizeY();
+        nld.multiSep = nl.getMulticutSep1D();
+        nld.multiSep2D = nl.getMulticutSep2D();
         return nld;
     }
     

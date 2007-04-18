@@ -121,9 +121,9 @@ public class Xml {
         l();
         
         b("technology"); a("name", techName); l();
-        a("xmlns", "http://xml.netbeans.org/schema/Technology"); l();
+        a("xmlns", "http://electric.sun.com/Technology"); l();
         a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
-        a("xsi:schemaLocation", "http://xml.netbeans.org/schema/Technology file:/home/dn146861/electric/srcj/com/sun/electric/technology/Technology.xsd"); cl();
+        a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
         l();
         
         if (gi.shortName != null) {
@@ -206,10 +206,10 @@ public class Xml {
         
         bcpel("patternedOnDisplay", desc.isPatternedOnDisplay());
         bcpel("patternedOnPrinter", desc.isPatternedOnDisplay());
-
+        
         int [] pattern = li.desc.getPattern();
-//      boolean hasPattern = false;
-//		for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
+//         boolean hasPattern = false;
+//         for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
         if (true/*hasPattern*/) {
             for(int j=0; j<16; j++) {
                 String p = "";
@@ -283,6 +283,9 @@ public class Xml {
                 case Technology.NodeLayer.POINTS:
                     b("points"); el();
                     break;
+                case Technology.NodeLayer.MULTICUTBOX:
+                    b("multicutbox"); a("sizex", nl.multiXS); a("sizey", nl.multiYS); a("sep1d", nl.multiSep);  a("sep2d", nl.multiSep2D);el();
+                    break;
                 default:
                     b("?????"); el();
                     break;
@@ -345,13 +348,6 @@ public class Xml {
             el("primitivePort");
         }
         switch (ni.specialType) {
-            case PrimitiveNode.MULTICUT:
-                b("multiCut"); cl();
-                for (int i = 0; i < 6; i++) {
-                    bcpel("specialValue", ni.specialValues[i]);
-                }
-                el("multiCut");
-                break;
             case PrimitiveNode.POLYGONAL:
                 bel("polygonal");
                 break;

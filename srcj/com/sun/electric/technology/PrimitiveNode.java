@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
@@ -461,7 +462,6 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** Defines a normal node. */					public static final int NORMAL = 0;
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
-	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
@@ -496,6 +496,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
+    /** true if contains MULTICUTBOX layers */      private boolean hasMultiCuts;
     /** minimum width and height rule */            private NodeSizeRule minNodeSize;
 	/** offset from database to user */				private SizeOffset offset;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
@@ -532,6 +533,13 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		this.minNodeSize = null;
 		globalPrimNodeIndex = primNodeNumber++;
 
+        boolean hasMultiCuts = false;
+        for (Technology.NodeLayer nodeLayer: layers) {
+            if (nodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
+                hasMultiCuts = true;
+        }
+        this.hasMultiCuts = hasMultiCuts;
+        
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
 	}
@@ -762,6 +770,33 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		return null;
 	}
 
+    /**
+     * Tells whether this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
+     * For now, multicut primitives and resistor primitives have such NodeLayers.
+     * @return true if this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
+     */
+    public boolean hasMultiCuts() { return hasMultiCuts; }
+    
+    /**
+     * Find a NodeLayer of this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
+     * If no such NodeLayer exists, returns null, if many - returns any of them..
+     * @return a NodeLayer of this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
+     */
+    public Technology.NodeLayer findMulticut() {
+        for (Technology.NodeLayer nl: layers) {
+            if (nl.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
+                return nl;
+        }
+        return null;
+    }
+    
+    /**
+     * Tells whether this PrimitiveNode is multicut, i.e. it has NodeLayer with MULTICUTBOX representation,
+     * but it is not a resistor.
+     * @return true if this PrimitiveNode is multicut.
+     */
+    public boolean isMulticut() { return hasMultiCuts && !function.isResistor(); }
+    
 	/**
 	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
 	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
@@ -1063,7 +1098,18 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * @return the special values stored on this PrimitiveNode.
 	 */
 	public double [] getSpecialValues() { return specialValues; }
-
+    
+    public EPoint getMulticut2Size() {
+        Technology.NodeLayer cutLayer = findMulticut();
+        assert cutLayer.getLeftEdge().getMultiplier() == -0.5;
+        assert cutLayer.getBottomEdge().getMultiplier() == -0.5;
+        assert cutLayer.getRightEdge().getMultiplier() == 0.5;
+        assert cutLayer.getTopEdge().getMultiplier() == 0.5;
+        double x = cutLayer.getMulticutSizeX() + cutLayer.getMulticutSep2D() + cutLayer.getLeftEdge().getAdder() - cutLayer.getRightEdge().getAdder();
+        double y = cutLayer.getMulticutSizeY() + cutLayer.getMulticutSep2D() + cutLayer.getBottomEdge().getAdder() - cutLayer.getTopEdge().getAdder();
+        return EPoint.fromLambda(x, y);
+    }
+    
 	/**
 	 * Method to set the special values stored on this PrimitiveNode.
 	 * The special values are an array of values that describe unusual features of the PrimitiveNode.

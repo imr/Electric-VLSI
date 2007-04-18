@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/17/07, DN) Numbers in MoCMOS:Metal-5-Metal-6-Con primitive are updated to
+    described default SCMOS 6-metal sizes.
+
+IMP: (4/17/07, DN) NodeLayer has MULTICUTBOX representation. Its two tech points define
+    a rectangular region where cut centers are located. The NodeLayer also have
+    cutSizeX, cutSizeY, cutSep1D, cutSep2D special values. The zero-sized region can
+    contain only one cut. Large regions can have as many cuts as allowed by special values.
+    PrimitiveNode can have a few NodeLayers with MULTICUTBOX representation, this resistor
+    primitives are described in regular way, and we don't have to override "Technology.getShapeOfNode"
+    methods to handle their shapes.
+
 BUG: (4/17/07, DN) ELIB reader crashes.
 FIX: In ELIB.readNodeProto restore "ignore the cell bounding box" code.
 

@@ -314,6 +314,7 @@ public class Technology implements Comparable<Technology>
 		private String message;
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
+        private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
 
 		// the meaning of "representation"
 		/**
@@ -337,6 +338,13 @@ public class Technology implements Comparable<Technology>
 		public static final int MINBOX = 2;
 
 		/**
+		 * Indicates that the "points" list defines a rectangle,
+         * where centers of multi-cut are located
+		 * It contains two diagonally opposite points.
+		 */
+		public static final int MULTICUTBOX = 3;
+
+		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
 		 * @param layer the <CODE>Layer</CODE> this is on.
 		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
@@ -353,7 +361,6 @@ public class Technology implements Comparable<Technology>
 			this.representation = representation;
 			this.points = points;
 			descriptor = TextDescriptor.EMPTY;
-			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
 
@@ -388,7 +395,6 @@ public class Technology implements Comparable<Technology>
 			this.representation = representation;
 			this.points = points;
 			descriptor = TextDescriptor.EMPTY;
-			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
 			this.extentT = extentT;
@@ -406,13 +412,22 @@ public class Technology implements Comparable<Technology>
 			this.style = node.getStyle();
 			this.representation = node.getRepresentation();
             this.descriptor = TextDescriptor.EMPTY;
-			layer.getTechnology().addNodeLayer(this);
             TechPoint [] oldPoints = node.getPoints();
 			this.points = new TechPoint[oldPoints.length];
 			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
         }
 
+        public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
+                double cutSizeX, double cutSizeY, double cutSep1D, double cutSep2D) {
+			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
+            nl.cutGridSizeX = DBMath.lambdaToGrid(cutSizeX);
+            nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
+            nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
+            nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
+            return nl;
+        }
+        
 		/**
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
@@ -565,6 +580,11 @@ public class Technology implements Comparable<Technology>
 		 * @param extendB the bottom extension of this layer.
 		 */
 		public void setSerpentineExtentB(double extendB) { this.extendB = extendB; }
+        
+        public double getMulticutSizeX() { return DBMath.gridToLambda(cutGridSizeX); }
+        public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
+        public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
+        public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 	}
 
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
@@ -596,7 +616,6 @@ public class Technology implements Comparable<Technology>
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
-	/** list of NodeLayers in this Technology. */			private final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -677,7 +696,7 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 	}
 
-    public Technology(Xml.Technology t) {
+    public Technology(Xml.Technology t, boolean full) {
         this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
@@ -716,7 +735,10 @@ public class Technology implements Comparable<Technology>
             for (int i = 0; i < nodeLayers.length; i++) {
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
                 TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
-                nodeLayers[i] = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
+                if (nl.representation == NodeLayer.MULTICUTBOX)
+                    nodeLayers[i] = NodeLayer.makeMulticut(layers.get(nl.layer), nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
+                else
+                    nodeLayers[i] = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
             }
             PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth, n.defaultHeight, n.sizeOffset, nodeLayers);
             pnp.setFunction(n.function);
@@ -736,9 +758,6 @@ public class Technology implements Comparable<Technology>
             pnp.addPrimitivePorts(ports);
             pnp.setSpecialType(n.specialType);
             switch (n.specialType) {
-                case com.sun.electric.technology.PrimitiveNode.MULTICUT:
-                    pnp.setSpecialValues(n.specialValues);
-                    break;
                 case com.sun.electric.technology.PrimitiveNode.POLYGONAL:
 					pnp.setHoldsOutline();
                     break;
@@ -746,6 +765,8 @@ public class Technology implements Comparable<Technology>
 					pnp.setHoldsOutline();
                     pnp.setCanShrink();
                     pnp.setSpecialValues(n.specialValues);
+                    break;
+                default:
                     break;
             }
         }
@@ -835,7 +856,7 @@ public class Technology implements Comparable<Technology>
         lazyTechnologies.put("mocmosold", "com.sun.electric.technology.technologies.MoCMOSOld");
         lazyTechnologies.put("mocmossub", "com.sun.electric.technology.technologies.MoCMOSSub");
         if (false) {
-            new Technology(Xml.parseTechnology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml")));
+            new Technology(Xml.parseTechnology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml")), true);
         } else {
             lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
         }
@@ -1614,20 +1635,6 @@ public class Technology implements Comparable<Technology>
 		nodes.put(np.getName(), np);
 	}
 
-    /**
-     * Returns an Iterator on the Technology.NodeLayer objects in this technology.
-     * @return an Iterator on the Technology.NodeLayer objects in this technology.
-     */
-	public Iterator<NodeLayer> getNodeLayers()
-	{
-		return nodeLayers.iterator();
-	}
-
-	private void addNodeLayer(NodeLayer nodeLayer)
-	{
-		nodeLayers.add(nodeLayer);
-	}
-
 	/**
 	 * Method to return the pure "NodeProto Function" a PrimitiveNode in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that know the node's function.
@@ -2015,19 +2022,26 @@ public class Technology implements Comparable<Technology>
 
 		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
-		// Determine if possible cutlayer is really a contact layer
-		boolean isCutLayer = (numBasicLayers > 0) && /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
+//		// Determine if possible cutlayer is really a contact layer
+//		boolean isCutLayer = (numBasicLayers > 0) && /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
-		if (specialType == PrimitiveNode.MULTICUT && isCutLayer)
+		if (np.hasMultiCuts())
 		{
-			mcd = new MultiCutData(ni.getD(), np.getSpecialValues());
-			if (reasonable) numExtraLayers = mcd.cutsReasonable; else
-			numExtraLayers = mcd.cutsTotal;
-			numBasicLayers--;
+            for (NodeLayer nodeLayer: primLayers) {
+                if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
+                    mcd = new MultiCutData(ni.getD().size, nodeLayer);
+                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                        numExtraLayers += (mcd.cutsTotal - 1);
+                }
+            }
+//			mcd = new MultiCutData(ni.getD());
+//			if (reasonable) numExtraLayers = mcd.cutsReasonable; else
+//			numExtraLayers = mcd.cutsTotal;
+//			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
 			std = new SerpentineTrans(ni.getD(), primLayers);
@@ -2092,15 +2106,31 @@ public class Technology implements Comparable<Technology>
 					pointList[j] = new Point2D.Double(x, y);
 				}
 				polys[fillPoly] = new Poly(pointList);
-			}
+			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
+                mcd = new MultiCutData(ni.getD().size, primLayer);
+                Poly.Type style = primLayer.getStyle();
+                PortProto port = null;
+                if (electrical) port = np.getPort(0);
+                if (reasonable) numExtraLayers = mcd.cutsReasonable; else
+                    numExtraLayers = mcd.cutsTotal;
+                for(int j = 0; j < numExtraLayers; j++) {
+                    polys[fillPoly] = mcd.fillCutPoly(ni.getD(), j);
+                    polys[fillPoly].setStyle(style);
+                    polys[fillPoly].setLayer(primLayer.getLayer());
+                    polys[fillPoly].setPort(port);
+                    fillPoly++;
+                }
+                continue;
+            }
+             
 			Poly.Type style = primLayer.getStyle();
 			if (style.isText())
 			{
 				polys[fillPoly].setString(primLayer.getMessage());
 				polys[fillPoly].setTextDescriptor(primLayer.getDescriptor());
 			}
-			polys[i].setStyle(style);
-			if (layerOverride != null) polys[i].setLayer(layerOverride); else
+			polys[fillPoly].setStyle(style);
+			if (layerOverride != null) polys[fillPoly].setLayer(layerOverride); else
 				polys[fillPoly].setLayer(primLayer.getLayer());
 			if (electrical)
 			{
@@ -2110,22 +2140,23 @@ public class Technology implements Comparable<Technology>
 			fillPoly++;
 		}
 
-		// add in the extra contact cuts
-		if (mcd != null)
-		{
-			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
-			Poly.Type style = primLayer.getStyle();
-			PortProto port = null;
-			if (electrical) port = np.getPort(0);
-			for(int i = 0; i < numExtraLayers; i++)
-			{
-				polys[fillPoly] = mcd.fillCutPoly(ni.getD(), i);
-				polys[fillPoly].setStyle(style);
-				polys[fillPoly].setLayer(primLayer.getLayer());
-				polys[fillPoly].setPort(port);
-				fillPoly++;
-			}
-		}
+
+//		// add in the extra contact cuts
+//		if (mcd != null)
+//		{
+//			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
+//			Poly.Type style = primLayer.getStyle();
+//			PortProto port = null;
+//			if (electrical) port = np.getPort(0);
+//			for(int i = 0; i < numExtraLayers; i++)
+//			{
+//				polys[fillPoly] = mcd.fillCutPoly(ni.getD(), i);
+//				polys[fillPoly].setStyle(style);
+//				polys[fillPoly].setLayer(primLayer.getLayer());
+//				polys[fillPoly].setPort(port);
+//				fillPoly++;
+//			}
+//		}
 
 		// add in negating bubbles
 		if (numNegatingBubbles > 0)
@@ -2165,6 +2196,7 @@ public class Technology implements Comparable<Technology>
 				fillPoly++;
 			}
 		}
+        assert fillPoly == polys.length;
 		return polys;
 	}
 
@@ -2187,9 +2219,9 @@ public class Technology implements Comparable<Technology>
 	{
 		if (ni.isCellInstance()) return false;
 		PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
+		if (!pnp.isMulticut()) return false;
 
-		return (isMultiCutInTechnology(new MultiCutData(ni.getD(), pnp.getSpecialValues())));
+		return (isMultiCutInTechnology(new MultiCutData(ni.getD())));
 	}
 
 	/**
@@ -2197,46 +2229,53 @@ public class Technology implements Comparable<Technology>
 	 */
 	public static class MultiCutData
 	{
-		/** the size of each cut */													private double cutSizeX, cutSizeY;
-		/** the separation between cuts */											private double cutSep;
-		/** the separation between cuts */											private double cutSep1D;
-		/** the separation between cuts in 3-neiboring or more cases*/				private double cutSep2D;
-		/** the indent of the edge cuts to the node along X */						private double cutIndentX;
-		/** the indent of the edge cuts to the node along Y */						private double cutIndentY;
+		/** the size of each cut */													private long cutSizeX, cutSizeY;
+		/** the separation between cuts */											private long cutSep;
+		/** the separation between cuts */											private long cutSep1D;
+		/** the separation between cuts in 3-neiboring or more cases*/				private long cutSep2D;
 		/** the number of cuts in X and Y */										private int cutsX, cutsY;
 		/** the total number of cuts */												private int cutsTotal;
 		/** the "reasonable" number of cuts (around the outside only) */			private int cutsReasonable;
-		/** the X coordinate of the leftmost cut's center */						private double cutBaseX;
-		/** the Y coordinate of the topmost cut's center */							private double cutBaseY;
+		/** the X coordinate of the leftmost cut's center */						private long cutBaseX;
+		/** the Y coordinate of the topmost cut's center */							private long cutBaseY;
 		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
 
-        private void calcultateInternalData(double xSize, double ySize, double anchorCenterX, double anchorCenterY,
-                                            double cutLX, double cutHX, double cutLY, double cutHY, double [] specialValues)
+        private void calculateInternalData(EPoint size, NodeLayer cutLayer)
         {
-            cutSizeX = specialValues[0];
-			cutSizeY = specialValues[1];
-			cutIndentX = specialValues[2];
-			cutIndentY = specialValues[3];
-			cutSep1D = specialValues[4];
-            cutSep2D = specialValues[5];
+           assert cutLayer.representation == NodeLayer.MULTICUTBOX;
+            TechPoint[] techPoints = cutLayer.points;
+            long lx = techPoints[0].getX().getGridAdder() + (long)(size.getGridX()*techPoints[0].getX().getMultiplier());
+            long hx = techPoints[1].getX().getGridAdder() + (long)(size.getGridX()*techPoints[1].getX().getMultiplier());
+            long ly = techPoints[0].getY().getGridAdder() + (long)(size.getGridY()*techPoints[0].getY().getMultiplier());
+            long hy = techPoints[1].getY().getGridAdder() + (long)(size.getGridY()*techPoints[1].getY().getMultiplier());
+            cutSizeX = cutLayer.cutGridSizeX;
+            cutSizeY = cutLayer.cutGridSizeY;
+            cutSep1D = cutLayer.cutGridSep1D;
+            cutSep2D = cutLayer.cutGridSep2D;
+            calculateInternalData(lx, hx, ly, hy);
+        }
 
+        private void calculateInternalData(long lx, long hx, long ly, long hy)
+        {
 			// determine the actual node size
-			double cutAreaWidth = xSize - cutLX - cutHX;
-			double cutAreaHeight = ySize - cutLY - cutHY;
+            cutBaseX = (lx + hx)>>1;
+            cutBaseY = (ly + hy)>>1;
+			long cutAreaWidth = hx - lx;
+			long cutAreaHeight = hy - ly;
 
 			// number of cuts depends on the size
 			// Checking first if configuration gives 2D cuts
 //			int oneDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
 //			int oneDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
-            int oneDcutsX = (int)(DBMath.round(cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
-			int oneDcutsY = (int)(DBMath.round((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D)));
+            int oneDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep1D));
+			int oneDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep1D));
 //			int twoDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
 //			int twoDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
-            int twoDcutsX = (int)(DBMath.round(cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
-			int twoDcutsY = (int)(DBMath.round(cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
+            int twoDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep2D));
+			int twoDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep2D));
 //            if (oneDcutsX != oneDcutsXOLD || oneDcutsY != oneDcutsYOLD || twoDcutsXOLD != twoDcutsX || twoDcutsYOLD != twoDcutsY)
 //                System.out.println("ERROR in multicut");
 
@@ -2267,12 +2306,6 @@ public class Technology implements Comparable<Technology>
 			if (cutsTotal != 1)
 			{
 				// prepare for the multiple contact cut locations
-				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
-					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) +
-						anchorCenterX - xSize / 2;
-				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
-					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) +
-						anchorCenterY - ySize / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
@@ -2281,12 +2314,6 @@ public class Technology implements Comparable<Technology>
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
 				}
 			}
-        }
-
-        public MultiCutData(double xSize, double ySize, double anchorCenterX, double anchorCenterY,
-                            double cutLX, double cutHX, double cutLY, double cutHY, double [] specialValues)
-        {
-            calcultateInternalData(xSize, ySize, anchorCenterX, anchorCenterY, cutLX, cutHX, cutLY, cutHY, specialValues);
         }
 
 		/**
@@ -2299,15 +2326,26 @@ public class Technology implements Comparable<Technology>
 		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
 		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
 		 */
-		public MultiCutData(ImmutableNodeInst niD, double [] specialValues)
+		private MultiCutData(EPoint size, NodeLayer cutLayer)
 		{
-            PrimitiveNode pn = (PrimitiveNode)niD.protoId;
-            SizeOffset so = pn.getProtoSizeOffset();
-//			SizeOffset so = ni.getSizeOffset();
-            calcultateInternalData(niD.size.getLambdaX(), niD.size.getLambdaY(), niD.anchor.getX(), niD.anchor.getY(),
-                    so.getLowXOffset(), so.getHighXOffset(), so.getLowYOffset(), so.getHighYOffset(), specialValues);
+            calculateInternalData(size, cutLayer);
 		}
 
+		/**
+		 * Constructor to initialize for multiple cuts.
+		 * @param niD the NodeInst with multiple cuts.
+		 * @param specialValues the array of special values for the NodeInst.
+		 * The values in "specialValues" are:
+		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
+		 *     cuts indented at least "cutIndentX/Y" from the node edge (specialValues[2] / specialValues[3])
+		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
+		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
+		 */
+		public MultiCutData(ImmutableNodeInst niD)
+		{
+            this(niD.size, ((PrimitiveNode)niD.protoId).findMulticut());
+		}
+        
 		/**
 		 * Method to return the number of cuts in the contact node.
 		 * @return the number of cuts in the contact node.
@@ -2343,64 +2381,56 @@ public class Technology implements Comparable<Technology>
 		 */
 		protected Poly fillCutPoly(ImmutableNodeInst ni, int cut)
 		{
-            return (fillCutPoly(ni.anchor.getX(), ni.anchor.getY(), cut));
+            return (fillCutPoly(ni.anchor, cut));
 		}
 
         /**
          * Method to fill in the contact cuts based on anchor information.
         */
-        public Poly fillCutPoly(double anchorX, double anchorY, int cut)
+        public Poly fillCutPoly(EPoint anchor, int cut)
 		{
-			if (cutsX > 2 && cutsY > 2)
-			{
-				// rearrange cuts so that the initial ones go around the outside
-				if (cut < cutsX)
-				{
-					// bottom edge: it's ok as is
-				} else if (cut < cutTopEdge)
-				{
-					// top edge: shift up
-					cut += cutsX * (cutsY-2);
-				} else if (cut < cutLeftEdge)
-				{
-					// left edge: rearrange
-					cut = (int)((cut - cutTopEdge) * cutsX + cutsX);
-				} else if (cut < cutRightEdge)
-				{
-					// right edge: rearrange
-					cut = (int)((cut - cutLeftEdge) * cutsX + cutsX*2-1);
-				} else
-				{
-					// center: rearrange and scale down
-					cut = cut - (int)cutRightEdge;
-					int cutx = cut % (cutsX-2);
-					int cuty = cut / (cutsX-2);
-					cut = cuty * cutsX + cutx+cutsX+1;
-				}
-			}
-
-			// locate the X center of the cut
-			double cX;
-			if (cutsX == 1)
-			{
-				cX = anchorX;
-//				cX = ni.getTrueCenterX();
-			} else
-			{
-				cX = cutBaseX + (cut % cutsX) * (cutSizeX + cutSep);
-			}
-
-			// locate the Y center of the cut
-			double cY;
-			if (cutsY == 1)
-			{
-				cY = anchorY;
-// 				cY = ni.getTrueCenterY();
-			} else
-			{
-				cY = cutBaseY + (cut / cutsX) * (cutSizeY + cutSep);
-			}
-			return new Poly(cX, cY, cutSizeX, cutSizeY);
+            long cX = anchor.getGridX() + cutBaseX;
+            long cY = anchor.getGridY() + cutBaseY;
+            if (cutsX > 1 || cutsY > 1) {
+                if (cutsX > 2 && cutsY > 2) {
+                    // rearrange cuts so that the initial ones go around the outside
+                    if (cut < cutsX) {
+                        // bottom edge: it's ok as is
+                    } else if (cut < cutTopEdge) {
+                        // top edge: shift up
+                        cut += cutsX * (cutsY-2);
+                    } else if (cut < cutLeftEdge) {
+                        // left edge: rearrange
+                        cut = (int)((cut - cutTopEdge) * cutsX + cutsX);
+                    } else if (cut < cutRightEdge) {
+                        // right edge: rearrange
+                        cut = (int)((cut - cutLeftEdge) * cutsX + cutsX*2-1);
+                    } else {
+                        // center: rearrange and scale down
+                        cut = cut - (int)cutRightEdge;
+                        int cutx = cut % (cutsX-2);
+                        int cuty = cut / (cutsX-2);
+                        cut = cuty * cutsX + cutx+cutsX+1;
+                    }
+                }
+                
+                // locate the X center of the cut
+                if (cutsX != 1)
+                    cX += ((cut % cutsX)*2 - (cutsX - 1))*(cutSizeX + cutSep)*0.5;
+                // locate the Y center of the cut
+                if (cutsY != 1)
+                    cY += ((cut / cutsX)*2 - (cutsY - 1))*(cutSizeY + cutSep)*0.5;
+            }
+            double lX = DBMath.gridToLambda(cX - (cutSizeX >> 1));
+            double hX = DBMath.gridToLambda(cX + (cutSizeX >> 1));
+            double lY = DBMath.gridToLambda(cY - (cutSizeY >> 1));
+            double hY = DBMath.gridToLambda(cY + (cutSizeY >> 1));
+            Point2D.Double[] points = new Point2D.Double[] {
+                new Point2D.Double(lX, lY),
+                new Point2D.Double(hX, lY),
+                new Point2D.Double(hX, hY),
+                new Point2D.Double(lX, hY)};
+			return new Poly(points);
 		}
 	}
 
@@ -3018,13 +3048,13 @@ public class Technology implements Comparable<Technology>
                 "Logical Effort tab", techShortName + " " + what, factory);
     }
 
-//    private Setting makeLESetting(String what, int factory) {
-//        String techShortName = getTechShortName();
-//        if (techShortName == null) techShortName = getTechName();
-//        return Setting.makeIntSetting(what + "IN" + getTechName(), prefs,
-//                getLESettingsNode(), what,
-//                "Logical Effort tab", techShortName + " " + what, factory);
-//    }
+//     private Setting makeLESetting(String what, int factory) {
+//         String techShortName = getTechShortName();
+//         if (techShortName == null) techShortName = getTechName();
+//         return Setting.makeIntSetting(what + "IN" + getTechName(), prefs,
+//                 getLESettingsNode(), what,
+//                 "Logical Effort tab", techShortName + " " + what, factory);
+//     }
 
     // ************************ tech specific?  - start *****************************
 //    /**

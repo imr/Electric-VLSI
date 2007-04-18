@@ -555,14 +555,14 @@ public class nMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 			new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5)),
 		};
-//		Technology.TechPoint [] box_11 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
-//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
-//		};
-//		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
-//			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
-//		};
+// 		Technology.TechPoint [] box_11 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeBottomEdge()),
+// 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeCenter()),
+// 		};
+// 		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.makeCenter()),
+// 			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.makeTopEdge()),
+// 		};
 		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(2)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(2)),
@@ -583,10 +583,10 @@ public class nMOS extends Technology
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeTopEdge()),
 		};
-		Technology.TechPoint [] box_18 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
-		};
+//		Technology.TechPoint [] box_18 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+//		};
 		Technology.TechPoint [] box_19 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1)),
@@ -649,7 +649,8 @@ public class nMOS extends Technology
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
+                Technology.NodeLayer.makeMulticut(CC_lay, 0, Poly.Type.CROSSED, TechPoint.makeIndented(2), 2, 2, 2, 2)
+//				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -657,8 +658,8 @@ public class nMOS extends Technology
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
+//		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Metal-Diffusion-Con */
 		PrimitiveNode mdc_node = PrimitiveNode.newInstance("Metal-Diffusion-Con", this, 4, 4, null,
@@ -666,7 +667,8 @@ public class nMOS extends Technology
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
+				Technology.NodeLayer.makeMulticut(CC_lay, 0, Poly.Type.CROSSED, TechPoint.makeIndented(2), 2, 2, 2, 2)
+//				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
 			});
 		mdc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -674,8 +676,8 @@ public class nMOS extends Technology
 					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
 			});
 		mdc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mdc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mdc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
+//		mdc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mdc_node.setSpecialValues(new double [] {2, 2, 1, 1, 2, 2});
 
 		/** Butting-Con */
 		PrimitiveNode bc_node = PrimitiveNode.newInstance("Butting-Con", this, 6, 4, null,

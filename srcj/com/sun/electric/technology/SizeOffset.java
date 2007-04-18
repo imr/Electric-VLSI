@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -45,6 +46,7 @@ public class SizeOffset
 	public static final SizeOffset ZERO_OFFSET = new SizeOffset(0, 0, 0, 0);
 
 	private final double lx, hx, ly, hy;
+    private final int gridLx, gridHx, gridLy, gridHy;
 
 	/**
 	 * Constructor to create a SizeOffset from the specified parameters.
@@ -55,10 +57,15 @@ public class SizeOffset
 	 */
 	public SizeOffset(double lx, double hx, double ly, double hy)
 	{
-		this.lx = lx;
-		this.hx = hx;
-		this.ly = ly;
-		this.hy = hy;
+        gridLx = (int)DBMath.lambdaToGrid(lx);
+        gridHx = (int)DBMath.lambdaToGrid(hx);
+        gridLy = (int)DBMath.lambdaToGrid(ly);
+        gridHy = (int)DBMath.lambdaToGrid(hy);
+        
+		this.lx = DBMath.gridToLambda(gridLx);
+		this.hx = DBMath.gridToLambda(gridHx);
+		this.ly = DBMath.gridToLambda(gridLy);
+		this.hy = DBMath.gridToLambda(gridHy);
 	}
 
 	/**
@@ -88,6 +95,34 @@ public class SizeOffset
 	 * @return the high-Y offset of this SizeOffset.
 	 */
 	public double getHighYOffset() { return hy; }
+
+	/**
+	 * Method to return the low-X offset of this SizeOffset in grid units.
+	 * The low-X offset is the distance from the left side to the acutal bounds.
+	 * @return the low-X offset of this SizeOffset.
+	 */
+	public long getLowXGridOffset() { return gridLx; }
+
+	/**
+	 * Method to return the high-X offset of this SizeOffset in grid units.
+	 * The high-X offset is the distance from the right side to the acutal bounds.
+	 * @return the high-X offset of this SizeOffset.
+	 */
+	public long getHighXGridOffset() { return gridHx; }
+
+	/**
+	 * Method to return the low-Y offset of this SizeOffset in grid units.
+	 * The low-Y offset is the distance from the bottom side to the acutal bounds.
+	 * @return the low-Y offset of this SizeOffset.
+	 */
+	public long getLowYGridOffset() { return gridLy; }
+
+	/**
+	 * Method to return the high-Y offset of this SizeOffset in grid units.
+	 * The high-Y offset is the distance from the top side to the acutal bounds.
+	 * @return the high-Y offset of this SizeOffset.
+	 */
+	public long getHighYGridOffset() { return gridHy; }
 
 	/**
 	 * Returns a printable version of this SizeOffset.

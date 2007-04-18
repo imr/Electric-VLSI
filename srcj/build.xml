@@ -187,6 +187,7 @@
         <delete dir="junit"/>
         <delete dir="junit4.0"/>
         <delete dir="junit4.1"/>
+	<delete file="acknowledgements.txt"/>
     </target>
 
     <!-- Not able to put if condition inside unjar -->

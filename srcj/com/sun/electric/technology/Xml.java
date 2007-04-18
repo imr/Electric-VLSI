@@ -130,6 +130,7 @@ public class Xml {
         public int portNum;
         public int representation;
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
+        public double sizex, sizey, sep1d, sep2d;
     }
     
     public static class PrimitivePort {
@@ -201,6 +202,7 @@ public class Xml {
         nodeLayer,
         box,
         minbox,
+        multicutbox,
         points,
         techPoint,
         primitivePort,
@@ -208,7 +210,6 @@ public class Xml {
         portTopology(true),
 //        techPoint,
         portArc(true),
-        multiCut,
         polygonal,
         serpTrans,
         specialValue(true),
@@ -627,6 +628,13 @@ public class Xml {
                 case points:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.POINTS;
                     break;
+                case multicutbox:
+                    curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX;
+                    curNodeLayer.sizex = Double.parseDouble(a("sizex"));
+                    curNodeLayer.sizey = Double.parseDouble(a("sizey"));
+                    curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
+                    curNodeLayer.sep2d = Double.parseDouble(a("sep2d"));
+                    break;
                 case techPoint:
                     double xm = Double.parseDouble(a("xm"));
                     double xa = Double.parseDouble(a("xa"));
@@ -649,11 +657,6 @@ public class Xml {
                 case portAngle:
                     curPort.portAngle = Integer.parseInt(a("primary"));
                     curPort.portRange = Integer.parseInt(a("range"));
-                    break;
-                case multiCut:
-                    curNode.specialType = com.sun.electric.technology.PrimitiveNode.MULTICUT;
-                    curNode.specialValues = new double[6];
-                    curSpecialValueIndex = 0;
                     break;
                 case polygonal:
                     curNode.specialType = com.sun.electric.technology.PrimitiveNode.POLYGONAL;
@@ -868,9 +871,9 @@ public class Xml {
                 case box:
                 case minbox:
                 case points:
+                case multicutbox:
                 case techPoint:
                 case portAngle:
-                case multiCut:
                 case polygonal:
                 case serpTrans:
                 case spiceLine:

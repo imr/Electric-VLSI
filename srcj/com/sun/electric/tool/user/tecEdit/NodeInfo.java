@@ -71,7 +71,7 @@ public class NodeInfo extends Info
 		int                    portIndex;
 		boolean                multiCut;				/* true if a multi-cut layer */
 		double                 multiXS, multiYS;			/* size of multicut */
-		double                 multiIndent, multiSep;	/* indent and separation of multicuts */
+		double                 multiIndent, multiSep, multiSep2D;	/* indent and separation of multicuts */
 		double                 lWidth, rWidth, extendT, extendB;		/* serpentine transistor information */
         String                 message;
         TextDescriptor         descriptor;

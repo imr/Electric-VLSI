@@ -1165,14 +1165,14 @@ public class MoCMOSSub extends Technology
 			new Technology.TechPoint(EdgeH.fromCenter(-2), EdgeV.fromCenter(-2)),
 			new Technology.TechPoint(EdgeH.fromCenter(2), EdgeV.fromCenter(2)),
 		};
-//		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.makeCenter()),
-//		};
-//		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.makeCenter()),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6)),
-//		};
+// 		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
+// 			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.makeCenter()),
+// 		};
+// 		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
+// 			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.makeCenter()),
+// 			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6)),
+// 		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3.5), EdgeV.fromBottom(9)),
 			new Technology.TechPoint(EdgeH.fromRight(3.5), EdgeV.fromTop(9)),
@@ -1185,10 +1185,10 @@ public class MoCMOSSub extends Technology
 			new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 			new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5)),
 		};
-		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
-			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
-		};
+//		Technology.TechPoint [] box_7 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+//			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+//		};
 		Technology.TechPoint [] box_8 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
 			new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5)),
@@ -1390,7 +1390,8 @@ public class MoCMOSSub extends Technology
 				new Technology.NodeLayer(PA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
 				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 4, 4)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mpac_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1398,8 +1399,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
 		mpac_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpac_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpac_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
+//		mpac_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpac_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
 
 		/** Metal-1-N-Active-Con */
 		PrimitiveNode mnac_node = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17, 17, new SizeOffset(6, 6, 6, 6),
@@ -1409,7 +1410,8 @@ public class MoCMOSSub extends Technology
 				new Technology.NodeLayer(NA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
 				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 4, 4)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mnac_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1417,8 +1419,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
 		mnac_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mnac_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mnac_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
+//		mnac_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mnac_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
 
 		/** Metal-1-Polysilicon-1-Con */
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-Con", this, 5, 5, null,
@@ -1426,7 +1428,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_6),
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(PC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5), 2, 2, 4, 4)
+//				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1434,8 +1437,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
 		mpc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
+//		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 4, 4});
 
 		/** Metal-1-Polysilicon-2-Con */
 		PrimitiveNode mpc0_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-2-Con", this, 4, 4, null,
@@ -1443,7 +1446,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_6),
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(PC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 4, 4)
+//				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mpc0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1451,8 +1455,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mpc0_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc0_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc0_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
+//		mpc0_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc0_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
 
 		/** Metal-1-Polysilicon-1-2-Con */
 		PrimitiveNode mpc1_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-2-Con", this, 7, 7, null,
@@ -1460,7 +1464,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_5),
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(PC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3.5), 2, 2, 4, 4)
+//				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mpc1_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1468,8 +1473,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		mpc1_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mpc1_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mpc1_node.setSpecialValues(new double [] {2, 2, 2.5, 2.5, 4, 4});
+//		mpc1_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mpc1_node.setSpecialValues(new double [] {2, 2, 2.5, 2.5, 4, 4});
 
 		/** P-Transistor */
 		PrimitiveNode pt_node = PrimitiveNode.newInstance("P-Transistor", this, 15, 20, new SizeOffset(6, 6, 9, 9),
@@ -1529,7 +1534,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
-				new Technology.NodeLayer(V_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(V_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 4, 4)
+//				new Technology.NodeLayer(V_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mmc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1537,8 +1543,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mmc_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mmc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
+//		mmc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mmc_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
 
 		/** Metal-2-Metal-3-Con */
 		PrimitiveNode mmc0_node = PrimitiveNode.newInstance("Metal-2-Metal-3-Con", this, 4, 4, null,
@@ -1546,7 +1552,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
-				new Technology.NodeLayer(V0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(V0_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 4, 4)
+//				new Technology.NodeLayer(V0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mmc0_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1554,8 +1561,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mmc0_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mmc0_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc0_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
+//		mmc0_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mmc0_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
 
 		/** Metal-3-Metal-4-Con */
 		PrimitiveNode mmc1_node = PrimitiveNode.newInstance("Metal-3-Metal-4-Con", this, 4, 4, null,
@@ -1563,7 +1570,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
-				new Technology.NodeLayer(V1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(V1_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 4, 4)
+//				new Technology.NodeLayer(V1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mmc1_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1571,8 +1579,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mmc1_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mmc1_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc1_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
+//		mmc1_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mmc1_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
 
 		/** Metal-4-Metal-5-Con */
 		PrimitiveNode mmc2_node = PrimitiveNode.newInstance("Metal-4-Metal-5-Con", this, 4, 4, null,
@@ -1580,7 +1588,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
-				new Technology.NodeLayer(V2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(V2_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(2), 2, 2, 4, 4)
+//				new Technology.NodeLayer(V2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mmc2_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1588,8 +1597,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		mmc2_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mmc2_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc2_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
+//		mmc2_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mmc2_node.setSpecialValues(new double [] {2, 2, 1, 1, 4, 4});
 
 		/** Metal-5-Metal-6-Con */
 		PrimitiveNode mmc3_node = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 6, 6, null,
@@ -1597,7 +1606,8 @@ public class MoCMOSSub extends Technology
 			{
 				new Technology.NodeLayer(M4_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(M3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11),
-				new Technology.NodeLayer(V3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(V3_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 4, 4)
+//				new Technology.NodeLayer(V3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mmc3_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1605,8 +1615,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
 		mmc3_node.setFunction(PrimitiveNode.Function.CONTACT);
-		mmc3_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mmc3_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
+//		mmc3_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mmc3_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
 
 		/** Metal-1-Well-Con */
 		PrimitiveNode mwc_node = PrimitiveNode.newInstance("Metal-1-Well-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
@@ -1616,7 +1626,8 @@ public class MoCMOSSub extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1),
 				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_5),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(7), 2, 2, 4, 4)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		mwc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1624,8 +1635,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5), EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))
 			});
 		mwc_node.setFunction(PrimitiveNode.Function.WELL);
-		mwc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		mwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
+//		mwc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		mwc_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
 
 		/** Metal-1-Substrate-Con */
 		PrimitiveNode msc_node = PrimitiveNode.newInstance("Metal-1-Substrate-Con", this, 14, 14, new SizeOffset(4, 4, 4, 4),
@@ -1635,7 +1646,8 @@ public class MoCMOSSub extends Technology
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1),
 				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_12),
 				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_5),
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
+				Technology.NodeLayer.makeMulticut(AC_lay, 0, Poly.Type.FILLED, TechPoint.makeIndented(7), 2, 2, 4, 4)
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		msc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1643,8 +1655,8 @@ public class MoCMOSSub extends Technology
 					EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5), EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))
 			});
 		msc_node.setFunction(PrimitiveNode.Function.SUBSTRATE);
-		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
-		msc_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
+//		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
+//		msc_node.setSpecialValues(new double [] {2, 2, 2, 2, 4, 4});
 
 		/** Metal-1-Node */
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3, 3, null,

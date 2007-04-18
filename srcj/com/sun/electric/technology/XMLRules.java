@@ -1027,24 +1027,41 @@ public class XMLRules implements DRCRules {
         double totalSurrY = cutSizeValue + cutY*2;
 
         DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-        if (minNode != null)
-        {
-            tech.setDefNodeSize(contact, minNode.getValue(0), minNode.getValue(1));
-            double offX = (contact.getMinSizeRule().getWidth() - totalSurrX)/2;
-            double offY = (contact.getMinSizeRule().getHeight() - totalSurrY)/2;
-            contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
-        }
-        else
-        {
-            contact.setSizeOffset(new SizeOffset(0, 0, 0, 0));
+        if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
             contact.setDefSize(totalSurrX, totalSurrY);
             contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
         }
+        double minWidth = contact.getMinSizeRule().getWidth();
+        double minHeight = contact.getMinSizeRule().getHeight();
+        double offX = (minWidth - totalSurrX)/2;
+        double offY = (minHeight - totalSurrY)/2;
+        contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
+//        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+//        if (minNode != null)
+//        {
+//            tech.setDefNodeSize(contact, minNode.getValue(0), minNode.getValue(1));
+//            double offX = (contact.getMinSizeRule().getWidth() - totalSurrX)/2;
+//            double offY = (contact.getMinSizeRule().getHeight() - totalSurrY)/2;
+//            contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
+//        }
+//        else
+//        {
+//            contact.setSizeOffset(new SizeOffset(0, 0, 0, 0));
+//            contact.setDefSize(totalSurrX, totalSurrY);
+//            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
+//        }
 
-        cutNode.setPoints(Technology.TechPoint.makeIndented(cutX, cutY));
-        contact.setSpecialValues(new double [] {cutSizeValue, cutSizeValue,
-                                                cutX, cutY,
-                                                spacing1D.getValue(0), spacing2D.getValue(0)});
+        Technology.NodeLayer[] nodeLayers = contact.getLayers();
+        assert cutNode == nodeLayers[nodeLayers.length - 1];
+        cutNode = Technology.NodeLayer.makeMulticut(cutNode.getLayer(), cutNode.getPortNum(), cutNode.getStyle(),
+                Technology.TechPoint.makeIndented(minWidth/2, minHeight/2),
+                cutSizeValue, cutSizeValue,
+                spacing1D.getValue(0), spacing2D.getValue(0));
+        nodeLayers[nodeLayers.length - 1] = cutNode;
+//        cutNode.setPoints(Technology.TechPoint.makeIndented(cutX, cutY));
+//        contact.setSpecialValues(new double [] {cutSizeValue, cutSizeValue,
+//                                                cutX, cutY,
+//                                                spacing1D.getValue(0), spacing2D.getValue(0)});
         return cutSur;
     }
 
