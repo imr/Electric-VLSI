@@ -833,7 +833,7 @@ public class Highlight
 			}
 
             // draw nodeInst outline
-            Poly niPoly = getNodeInstOutline(ni);
+            Poly niPoly = getNodeInstOutlineOLD(ni);
             boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
             if ((offX == 0 && offY == 0) || point < 0)
             {
@@ -1056,7 +1056,7 @@ public class Highlight
      * @param ni the nodeinst to get a poly that will be used to highlight it
      * @return a poly outlining the nodeInst.
      */
-    public static Poly getNodeInstOutline(NodeInst ni) {
+    public static Poly getNodeInstOutlineOLD(NodeInst ni) {
 
         AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
