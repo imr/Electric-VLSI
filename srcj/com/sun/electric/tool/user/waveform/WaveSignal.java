@@ -155,7 +155,7 @@ public class WaveSignal
 		}
 	}
 
-	public static WaveSignal addSignalToPanel(Signal sSig, Panel panel)
+	public static WaveSignal addSignalToPanel(Signal sSig, Panel panel, Color newColor)
 	{
 		// see if the signal is already there
 		WaveSignal ws = panel.findWaveSignal(sSig);
@@ -180,7 +180,9 @@ public class WaveSignal
 		// not found: add it
 		int sigNo = panel.getNumSignals();
 		WaveSignal wsig = new WaveSignal(panel, sSig);
-		wsig.color = colorArray[sigNo % colorArray.length];
+		if (newColor == null) newColor = colorArray[sigNo % colorArray.length];
+		wsig.color = newColor;
+		wsig.getButton().setForeground(newColor);
 		panel.getSignalButtons().validate();
 		panel.getSignalButtons().repaint();
 		if (panel.getSignalButtonsPane() != null) panel.getSignalButtonsPane().validate();

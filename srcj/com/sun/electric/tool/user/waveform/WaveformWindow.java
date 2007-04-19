@@ -1168,14 +1168,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void rightScrollChanged(int e) {}
 
-//	public boolean cellHistoryCanGoBack() { return false; }
-//
-//	public boolean cellHistoryCanGoForward() { return false; }
-//
-//	public void cellHistoryGoBack() {}
-//
-//	public void cellHistoryGoForward() {}
-
 	// ************************************* WINDOW CONTROL *************************************
 	
 	/**
@@ -2255,7 +2247,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (name.equals(sSig.getFullName())) {
 					alreadyPlotted = true;
 					// add it again, this will increment colors
-					WaveSignal.addSignalToPanel(ws.getSignal(), wp);
+					WaveSignal.addSignalToPanel(ws.getSignal(), wp, null);
 				}
 			}
 			if (!alreadyPlotted) {
@@ -3795,7 +3787,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 						return;					
 					}
-					WaveSignal.addSignalToPanel(sig, wp);
+					WaveSignal.addSignalToPanel(sig, wp, null);
 					if (getMainHorizRuler() != null)
 						getMainHorizRuler().repaint();
 					break;
@@ -4342,12 +4334,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						sourcePanel.getSignalButtons().validate();
 						sourcePanel.getSignalButtons().repaint();
 						sourcePanel.repaintContents();
-						WaveSignal newSig = WaveSignal.addSignalToPanel(sSig, panel);
-						if (newSig != null)
-						{
-							newSig.setColor(oldColor);
-							newSig.getButton().setForeground(oldColor);
-						}
+						WaveSignal.addSignalToPanel(sSig, panel, oldColor);
 					}
 					ww.saveSignalOrder();
 					dtde.dropComplete(true);
@@ -4381,7 +4368,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						dtde.dropComplete(true);
 						return;					
 					}
-					WaveSignal.addSignalToPanel(sSig, panel);
+					WaveSignal.addSignalToPanel(sSig, panel, null);
 					panel.makeSelectedPanel();
 					continue;
 				}
