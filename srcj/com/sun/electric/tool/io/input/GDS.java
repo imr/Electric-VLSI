@@ -1513,11 +1513,10 @@ public class GDS extends Input
 		Layer layer = layerNames.get(layerInt);
 		if (layer == null)
 		{
-            String message = (IOTool.isGDSInIgnoresUnknownLayers()) ?
-                "GDS layer " + layerNum + ", type " + layerType +
-                	" unknown in cell '" + theCell.cell.getName() + "', ignoring it" :
-                "GDS layer " + layerNum + ", type " + layerType +
-                	" unknown '" + theCell.cell.getName() + "', using Generic:DRC";
+            String message = "GDS layer " + layerNum + ", type " + layerType +
+        		" unknown in cell '" + theCell.cell.getName();
+            if (IOTool.isGDSInIgnoresUnknownLayers()) message += "', ignoring it" ; else
+            	message += "', using Generic:DRC";
             errorLogger.logWarning(message, theCell.cell, 0);
             System.out.println(message);
 			layerNames.put(layerInt, Generic.tech.drcLay);
