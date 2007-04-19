@@ -1319,8 +1319,8 @@ class HighlightEOBJ extends Highlight2
 
 class HighlightText extends Highlight2
 {                                                          
-	/** The highlighted object. */								protected ElectricObject eobj;
-	/** The highlighted variable. */							protected Variable.Key varKey;
+	/** The highlighted object. */								protected final ElectricObject eobj;
+	/** The highlighted variable. */							protected final Variable.Key varKey;
 
     public HighlightText(ElectricObject e, Cell c, Variable.Key key)
     {
@@ -1477,7 +1477,7 @@ class HighlightText extends Highlight2
     {
         if (DisplayedText.objectMovesWithText(eobj, varKey))
         {
-            if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
+            if (eobj instanceof Export) return ((Export)eobj).getOriginalPort().getNodeInst();
             if (eobj instanceof Geometric) return (Geometric)eobj;
         }
         return null;
