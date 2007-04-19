@@ -882,7 +882,7 @@ public class ArcProto implements Comparable<ArcProto>
      * @param arcLayerIndex layer index
      * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      */
-    public long getLayerGridExtend(int arcLayerIndex) { return gridWidthOffset - layers[arcLayerIndex].getGridOffset(); }
+    public long getLayerGridExtend(int arcLayerIndex) { return (gridWidthOffset - layers[arcLayerIndex].getGridOffset()) >> 1; }
     
     /**
      * Returns the Poly.Style of specified layer that comprise this ArcLayer.

@@ -1776,7 +1776,7 @@ public class Connectivity
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaFullWidth();
-            double arcLayerWidth = ap.getDefaultLambdaBaseWidth() + ap.getLayerLambdaExtend(layer);
+            double arcLayerWidth = ap.getDefaultLambdaBaseWidth() + 2*ap.getLayerLambdaExtend(layer);
 //            double arcLayerWidth = wid - getLayerOffset(layer, ap);
 
 			List<PolyBase> polyList = getMergePolys(merge, layer);
