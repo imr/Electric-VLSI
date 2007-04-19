@@ -1116,9 +1116,9 @@ public class JELIB extends LibraryFiles
 					if (cc.revision >= 1) arcName = unQuote(cc.revision, arcName);
 				}
 			}
-			long gridFullWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
-            if (cc.revision >= 3)
-                gridFullWidth += ap.getGridWidthOffset();
+			long gridBaseWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
+            if (cc.revision < 3)
+                gridBaseWidth -= ap.getGridWidthOffset();
 
 			String headNodeName = cc.revision >= 1 ? pieces.get(5) : unQuote(cc.revision, pieces.get(5));
 			String headPortName = unQuote(cc.revision, pieces.get(6));
@@ -1202,7 +1202,7 @@ public class JELIB extends LibraryFiles
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridFullWidth, angle, flags);
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridBaseWidth, angle, flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();

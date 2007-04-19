@@ -117,7 +117,7 @@ public class Technology implements Comparable<Technology>
 	 * Each ArcProto is composed of a number of ArcLayer descriptors.
 	 * A descriptor converts a specific ArcInst into a polygon that describe this particular layer.
 	 */
-	public static class ArcLayer
+	protected static class ArcLayer
 	{
 		private final Layer layer;
 		private final int gridOffset;
@@ -134,7 +134,7 @@ public class Technology implements Comparable<Technology>
         }
 
         private ArcLayer(Layer layer, long gridOffset, Poly.Type style) {
-            if (gridOffset < 0 || gridOffset > Integer.MAX_VALUE || (gridOffset&1) != 0)
+            if (gridOffset < 0 || gridOffset >= Integer.MAX_VALUE/4 || (gridOffset&1) != 0)
                 throw new IllegalArgumentException("geidOffset=" + gridOffset);
             this.layer = layer;
             this.gridOffset = (int)gridOffset;
@@ -145,7 +145,7 @@ public class Technology implements Comparable<Technology>
 		 * Returns the Layer from the Technology to be used for this ArcLayer.
 		 * @return the Layer from the Technology to be used for this ArcLayer.
 		 */
-		public Layer getLayer() { return layer; }
+		Layer getLayer() { return layer; }
 
 		/**
 		 * Returns the distance from the outside of the ArcInst to this ArcLayer in lambda units.
@@ -153,7 +153,7 @@ public class Technology implements Comparable<Technology>
 		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
 		 * @return the distance from the outside of the ArcInst to this ArcLayer in lambda units.
 		 */
-		public double getLambdaOffset() { return DBMath.gridToLambda(getGridOffset()); }
+		double getLambdaOffset() { return DBMath.gridToLambda(getGridOffset()); }
 
 		/**
 		 * Returns the distance from the outside of the ArcInst to this ArcLayer in grid units.
@@ -161,7 +161,7 @@ public class Technology implements Comparable<Technology>
 		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
 		 * @return the distance from the outside of the ArcInst to this ArcLayer in grid units.
 		 */
-		public long getGridOffset() { return gridOffset; }
+		int getGridOffset() { return gridOffset; }
 
 		/**
          * Returns ArcLayer which differs from this ArcLayer by offset.
@@ -170,7 +170,7 @@ public class Technology implements Comparable<Technology>
          * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
          * @param gridOffset the distance from the outside of the ArcInst to this ArcLayer in grid units.
          */
-		public ArcLayer withGridOffset(long gridOffset) {
+		ArcLayer withGridOffset(long gridOffset) {
             if (this.gridOffset == gridOffset) return this;
             return new ArcLayer(layer, gridOffset, style);
         }
@@ -179,7 +179,7 @@ public class Technology implements Comparable<Technology>
 		 * Returns the Poly.Style of this ArcLayer.
 		 * @return the Poly.Style of this ArcLayer.
 		 */
-		public Poly.Type getStyle() { return style; }
+		Poly.Type getStyle() { return style; }
 	}
 
 	/**

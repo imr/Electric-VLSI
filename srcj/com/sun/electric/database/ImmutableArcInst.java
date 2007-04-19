@@ -496,8 +496,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             assert false;
         }
         for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
-            Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
-            if (arcLayer.getStyle() != Poly.Type.FILLED) {
+            if (protoType.getLayerStyle(i) != Poly.Type.FILLED) {
                 System.out.println("Wide should be filled");
                 return;
             }
@@ -558,8 +557,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return flags | EASY_MASK;
         }
         for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
-            Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
-            if (arcLayer.getStyle() != Poly.Type.FILLED) return flags;
+            if (protoType.getLayerStyle(i) != Poly.Type.FILLED)
+                return flags;
         }
         int tx = (int)tailLocation.getGridX();
         int ty = (int)tailLocation.getGridY();
@@ -596,7 +595,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param headNodeId NodeId on head end of this ImmutableArcInst.
      * @param headPortId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
-     * @param gridFullWidth the full width of this ImmutableArcInst in grid units.
+     * @param gridBaseWidth the base width of this ImmutableArcInst in grid units.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
      * @param flags flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
@@ -606,7 +605,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public static ImmutableArcInst newInstance(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            long gridFullWidth, int angle, int flags) {
+            long gridBaseWidth, int angle, int flags) {
         if (arcId < 0) throw new IllegalArgumentException("arcId");
         if (protoType == null) throw new NullPointerException("protoType");
         if (name == null) throw new NullPointerException("name");
@@ -619,6 +618,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
+        long gridFullWidth = gridBaseWidth + protoType.getGridWidthOffset();
         if (gridFullWidth < 0 || gridFullWidth < protoType.getMaxLayerGridOffset() || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridFullWidth");
         int intGridWidth = (int)gridFullWidth;
         angle %= 3600;
@@ -691,12 +691,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
 	/**
      * Returns ImmutableArcInst which differs from this ImmutableArcInst by width.
-     * @param gridFullWidth full arc width in grid units.
+     * @param gridBaseWidth full arc width in grid units.
      * @return ImmutableArcInst which differs from this ImmutableArcInst by width.
      * @throws IllegalArgumentException if width is negative.
      */
-	public ImmutableArcInst withGridFullWidth(long gridFullWidth) {
-		if (getGridFullWidth() == gridFullWidth) return this;
+	public ImmutableArcInst withGridBaseWidth(long gridBaseWidth) {
+		if (getGridBaseWidth() == gridBaseWidth) return this;
+        long gridFullWidth = gridBaseWidth + protoType.getGridWidthOffset();
         if (gridFullWidth < 0 || gridFullWidth < protoType.getMaxLayerGridOffset() || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
         if (this.gridFullWidth == gridFullWidth) return this;
         int flags = updateEasyShape(this.protoType, (int)gridFullWidth, this.tailLocation, this.headLocation, this.angle, getVars(), this.flags);

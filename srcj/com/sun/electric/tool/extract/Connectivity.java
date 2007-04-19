@@ -58,7 +58,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -1746,25 +1746,25 @@ public class Connectivity
 
 	/********************************************** CONVERT CONNECTING GEOMETRY **********************************************/
 
-	/**
-	 * Method to determine the width offset of a given layer in an ArcProto.
-	 * For most situations, this is zero.
-	 * For Active arcs, the active layer is smaller than the default ArcProto width,
-	 * and the difference is returned.
-	 * @param layer the layer in question.
-	 * @param ap the ArcProto in question.
-	 * @return the difference between the default width of the layer and the ArcProto.
-	 */
-	private double getLayerOffset(Layer layer, ArcProto ap)
-	{
-		for(int i=0; i<ap.getNumArcLayers(); i++)
-		{
-			Technology.ArcLayer al = ap.getArcLayer(i);
-			if (layer == al.getLayer())
-				return al.getLambdaOffset();
-		}
-		return 0;
-	}
+//	/**
+//	 * Method to determine the width offset of a given layer in an ArcProto.
+//	 * For most situations, this is zero.
+//	 * For Active arcs, the active layer is smaller than the default ArcProto width,
+//	 * and the difference is returned.
+//	 * @param layer the layer in question.
+//	 * @param ap the ArcProto in question.
+//	 * @return the difference between the default width of the layer and the ArcProto.
+//	 */
+//	private double getLayerOffset(Layer layer, ArcProto ap)
+//	{
+//		for(int i=0; i<ap.getNumArcLayers(); i++)
+//		{
+//			Technology.ArcLayer al = ap.getArcLayer(i);
+//			if (layer == al.getLayer())
+//				return al.getLambdaOffset();
+//		}
+//		return 0;
+//	}
 
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
@@ -1776,7 +1776,8 @@ public class Connectivity
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaFullWidth();
-            double arcLayerWidth = wid - getLayerOffset(layer, ap);
+            double arcLayerWidth = ap.getDefaultLambdaBaseWidth() + ap.getLayerLambdaExtend(layer);
+//            double arcLayerWidth = wid - getLayerOffset(layer, ap);
 
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
@@ -3074,7 +3075,7 @@ public class Connectivity
 		{
 			if (np.getFunction() != PrimitiveNode.Function.PIN)
 			{
-	            Poly niPoly = Highlight.getNodeInstOutline(ni);
+	            Poly niPoly = Highlight2.getNodeInstOutline(ni);
 				addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 			}
 		}
@@ -3122,7 +3123,7 @@ public class Connectivity
 			{
 				if (pNp.getFunction() != PrimitiveNode.Function.PIN)
 				{
-		            Poly niPoly = Highlight.getNodeInstOutline(ni);
+		            Poly niPoly = Highlight2.getNodeInstOutline(ni);
 					addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 				}
 			}

@@ -464,7 +464,7 @@ public class SeaOfGates
 			ArcProto ap = it.next();
 			for(int i=0; i<numMetalLayers; i++)
 			{
-				if (ap.getArcLayer(0).getLayer() == metalLayers[i])
+				if (ap.getLayer(0) == metalLayers[i])
 				{
 					metalArcs[i] = ap;
 					favorArcs[i] = Routing.isSeaOfGatesFavor(ap);

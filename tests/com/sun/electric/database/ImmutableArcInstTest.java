@@ -82,7 +82,7 @@ public class ImmutableArcInstTest {
         n0 = ImmutableNodeInst.newInstance(0, pn, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
         n1 = ImmutableNodeInst.newInstance(1, pn, Name.findName("n1"), null, Orientation.IDENT, EPoint.fromLambda(21, 2), EPoint.fromLambda(17, 17), 0, 0, null);
         nameA0 = Name.findName("a0");
-        a0 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        a0 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
 
     @After public void tearDown() {
@@ -372,22 +372,22 @@ public class ImmutableArcInstTest {
         System.out.println("newInstance");
         
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, td, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, td, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
         a1.check();
         assertTrue(a1.nameDescriptor.isDisplay());
         assertFalse(a1.nameDescriptor.isCode());
         assertFalse(a1.nameDescriptor.isParam());
         
-        ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), -1, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(3), -1, ImmutableArcInst.DEFAULT_FLAGS);
         a2.check();
         assertEquals(3599, a2.getAngle());
         
-        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
         assertEquals(1800, a3.getAngle());
         
         int flags = ImmutableArcInst.TAIL_NEGATED.set(ImmutableArcInst.DEFAULT_FLAGS, true);
-        ImmutableArcInst a4 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, flags);
+        ImmutableArcInst a4 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, flags);
         a4.check();
         assertFalse(a4.isTailNegated());
         assertFalse(a4.is(ImmutableArcInst.TAIL_NEGATED));
@@ -398,7 +398,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadArcId() {
         System.out.println("newInstanceBadArcId");
-        ImmutableArcInst.newInstance(-1, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(-1, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -406,7 +406,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadProto() {
         System.out.println("newInstanceBadProto");
-        ImmutableArcInst.newInstance(0, null, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, null, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -414,7 +414,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadName1() {
         System.out.println("newInstanceBadName1");
-        ImmutableArcInst.newInstance(0, ap, null, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, null, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -422,7 +422,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName2() {
         System.out.println("newInstanceBadName2");
-        ImmutableArcInst.newInstance(0, ap, Name.findName("a:"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, Name.findName("a:"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -430,7 +430,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName3() {
         System.out.println("newInstanceBadName3");
-        ImmutableArcInst.newInstance(0, ap, Name.findName("a,"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, Name.findName("a,"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -438,7 +438,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName4() {
         System.out.println("newInstanceBadName4");
-        ImmutableArcInst.newInstance(0, ap, Name.findName("Net@0"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, Name.findName("Net@0"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -446,7 +446,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName5() {
         System.out.println("newInstanceBadName5");
-        ImmutableArcInst.newInstance(0, ap, Name.findName("net@0[0:1]"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, Name.findName("net@0[0:1]"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -454,7 +454,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadTailNodeId() {
         System.out.println("newInstanceBadTailNodeId");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, -1, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, -1, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -462,7 +462,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadTailPortId() {
         System.out.println("newInstanceBadTailPortId");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, null, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, null, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -470,7 +470,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadTailLocation() {
         System.out.println("newInstanceBadTailLocation");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, null, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, null, 1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -478,7 +478,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadHeadNodeId() {
         System.out.println("newInstanceBadHeadNodeId");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, -1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, -1, pp, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -486,7 +486,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadHeadPortId() {
         System.out.println("newInstanceBadHeadPortId");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, null, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, null, n1.anchor, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -494,7 +494,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = NullPointerException.class) public void testNewInstanceBadHeadLocation() {
         System.out.println("newInstanceBadHeadLocation");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, null, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, null, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -502,7 +502,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth1() {
         System.out.println("newInstanceBadWidth1");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15) + 1, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3) + 1, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -510,7 +510,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth2() {
         System.out.println("newInstanceBadWidth2");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(12) - 2, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor,  -2, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -623,38 +623,38 @@ public class ImmutableArcInstTest {
     /**
      * Test of withGridFullWidth method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    @Test public void testWithGridFullWidth() {
-        System.out.println("withGridFullWidth");
-        assertSame(a0, a0.withGridFullWidth(a0.getGridFullWidth()));
+    @Test public void testWithGridBaseWidth() {
+        System.out.println("withGridBaseWidth");
+        assertSame(a0, a0.withGridBaseWidth(a0.getGridBaseWidth()));
         
-        long largeWidth = 1100*1000*1000;
-        ImmutableArcInst a1 = a0.withGridFullWidth(largeWidth);
-        assertEquals(largeWidth, a1.getGridFullWidth());
-        assertFalse(a1.isEasyShape());
+        long largeWidth = 260*1000*1000;
+        ImmutableArcInst a1 = a0.withGridBaseWidth(largeWidth);
+        assertEquals(largeWidth, a1.getGridBaseWidth());
+        assertTrue(a1.isEasyShape());
     }
 
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad1() {
-        System.out.println("withGridFullWidthBad1");
-        a0.withGridFullWidth(DBMath.lambdaToGrid(15) + 1);
+    @Test(expected = IllegalArgumentException.class) public void testWithGridBaseWidthBad1() {
+        System.out.println("withGridBaseWidthBad1");
+        a0.withGridBaseWidth(DBMath.lambdaToGrid(3) + 1);
     }
     
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad2() {
-        System.out.println("withGridFullWidthBad2");
-        a0.withGridFullWidth(DBMath.lambdaToGrid(12) - 2);
+    @Test(expected = IllegalArgumentException.class) public void testWithGridBaseWidthBad2() {
+        System.out.println("withGridBaseWidthBad2");
+        a0.withGridBaseWidth(-2);
     }
     
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad3() {
-        System.out.println("withGridFullWidthBad3");
-        a0.withGridFullWidth(DBMath.lambdaToGrid(6000000));
+    @Test(expected = IllegalArgumentException.class) public void testWithGridBaseWidthBad3() {
+        System.out.println("withGridBaseWidthBad3");
+        a0.withGridBaseWidth(DBMath.lambdaToGrid(6000000));
     }
     
     /**
@@ -830,7 +830,7 @@ public class ImmutableArcInstTest {
         MyBuilder b = new MyBuilder();
         for (int angle = 0; angle < 3600; angle++) {
             EPoint p1 = EPoint.fromLambda(n0.anchor.getLambdaX() + 10*GenMath.cos(angle), n0.anchor.getLambdaY() + 10*GenMath.sin(angle));
-            ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, p1, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+            ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, p1, DBMath.lambdaToGrid(3), 0, ImmutableArcInst.DEFAULT_FLAGS);
             assertEquals(angle, a1.getAngle());
             ImmutableArcInst[] arcs = { a1 };
             CellBackup cellBackup = cellBackup0.with(c, 0, false, null, arcs, null);

@@ -864,17 +864,69 @@ public class ArcProto implements Comparable<ArcProto>
     public int getNumArcLayers() { return layers.length; }
     
 	/**
+	 * Method to return layer that comprises by its index in all layers
+     * @param arcLayerIndex layer index
+	 * @return specified layer that comprises this ArcProto.
+	 */
+    public Layer getLayer(int arcLayerIndex) { return layers[arcLayerIndex].getLayer(); }
+
+    /**
+     * Returns the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
+     * @param arcLayerIndex layer index
+     * @return the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
+     */
+    public double getLayerLambdaExtend(int arcLayerIndex) { return DBMath.gridToLambda(getLayerGridExtend(arcLayerIndex)); }
+    
+    /**
+     * Returns the extend of specified layer that comprise this ArcProto over base arc width in grid units.
+     * @param arcLayerIndex layer index
+     * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
+     */
+    public long getLayerGridExtend(int arcLayerIndex) { return gridWidthOffset - layers[arcLayerIndex].getGridOffset(); }
+    
+    /**
+     * Returns the Poly.Style of specified layer that comprise this ArcLayer.
+     * @param arcLayerIndex layer index
+     * @return the Poly.Style of specified layer that comprise this ArcLayer.
+     */
+    public Poly.Type getLayerStyle(int arcLayerIndex) { return layers[arcLayerIndex].getStyle(); }
+    
+    /**
+     * Returns the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
+     * @param layer specified Layer
+     * @return the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
+     * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
+     */
+    public double getLayerLambdaExtend(Layer layer) { return getLayerLambdaExtend(indexOf(layer)); }
+    
+    /**
+     * Returns the extend of specified layer that comprise this ArcProto over base arc width in grid units.
+     * @param layer specified Layer
+     * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
+     * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
+     */
+    public long getLayerGridExtend(Layer layer) { return getLayerGridExtend(indexOf(layer)); }
+    
+    /**
+     * Returns the Poly.Style of specified layer that comprise this ArcLayer.
+     * @param layer specified Layer
+     * @return the Poly.Style of specified layer that comprise this ArcLayer.
+     * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
+     */
+    public Poly.Type getLayerStyle(Layer layer) { return getLayerStyle(indexOf(layer)); }
+    
+	/**
 	 * Method to return specified layer that comprise this ArcProto.
      * @param i layer index
 	 * @return specified layer that comprise this ArcProto.
 	 */
-    public Technology.ArcLayer getArcLayer(int i) { return layers[i]; }
+    Technology.ArcLayer getArcLayer(int i) { return layers[i]; }
 
-	/**
-	 * Method to return the array of layers that comprise this ArcProto.
-	 * @return the array of layers that comprise this ArcProto.
-	 */
-	public Iterator<Technology.ArcLayer> getArcLayers() { return ArrayIterator.iterator(layers); }
+//	/**
+//	 * Method to return the array of layers that comprise this ArcProto.
+//	 * @return the array of layers that comprise this ArcProto.
+//	 */
+//	public Iterator<Technology.ArcLayer> getArcLayers() { return ArrayIterator.iterator(layers); }
 
 	/**
 	 * Method to return an iterator over the layers in this ArcProto.
@@ -917,21 +969,35 @@ public class ArcProto implements Comparable<ArcProto>
 		}
 	}
 
+//	/**
+//	 * Method to find the ArcLayer on this ArcProto with a given Layer.
+//	 * If there are more than 1 with the given Layer, the first is returned.
+//	 * @param layer the Layer to find.
+//	 * @return the ArcLayer that has this Layer.
+//	 */
+//	public Technology.ArcLayer findArcLayer(Layer layer)
+//	{
+//		for(int j=0; j<layers.length; j++)
+//		{
+//			Technology.ArcLayer oneLayer = layers[j];
+//			if (oneLayer.getLayer() == layer) return oneLayer;
+//		}
+//		return null;
+//	}
+    
 	/**
-	 * Method to find the ArcLayer on this ArcProto with a given Layer.
-	 * If there are more than 1 with the given Layer, the first is returned.
+	 * Method to find an index of Layer in a list of Layers that comprise this ArcProto.
+	 * If this layer is not in the list, return -1
 	 * @param layer the Layer to find.
-	 * @return the ArcLayer that has this Layer.
+	 * @return an index of Layer in a list of Layers that comprise this ArcProto, or -1.
 	 */
-	public Technology.ArcLayer findArcLayer(Layer layer)
-	{
-		for(int j=0; j<layers.length; j++)
-		{
-			Technology.ArcLayer oneLayer = layers[j];
-			if (oneLayer.getLayer() == layer) return oneLayer;
-		}
-		return null;
-	}
+    public int indexOf(Layer layer) {
+        for (int arcLayerIndex = 0; arcLayerIndex < layers.length; arcLayerIndex++) {
+            if (layers[arcLayerIndex].getLayer() == layer)
+                return arcLayerIndex;
+        }
+        return -1;
+    }
     
 	/**
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
@@ -941,35 +1007,37 @@ public class ArcProto implements Comparable<ArcProto>
 	                                        double surround)
 	{
 		// find the inner layer
-		Technology.ArcLayer inLayer = findArcLayer(innerLayer);
-		if (inLayer == null)
+		int inLayerIndex = indexOf(innerLayer);
+		if (inLayerIndex < 0)
 		{
 		    System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-                    inLayer.getLayer().getName() + "' is not valid in '" + getName() + "'");
+                    innerLayer.getName() + "' is not valid in '" + getName() + "'");
 			return;
 		}
 
 		// find the outer layer
-        int i = 0;
-        while (i < layers.length && layers[i].getLayer() != outerLayer) i++;
+        int i = indexOf(outerLayer);
         
-		if (i >= layers.length)
+		if (i < 0)
 		{
             System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-                    inLayer.getLayer().getName() + "' is not valid in '" + getName() + "'");
+                    outerLayer.getName() + "' is not valid in '" + getName() + "'");
 			return;
 		}
 
 		// compute the indentation of the outer layer
-		long indent = inLayer.getGridOffset() - DBMath.lambdaToGrid(surround)*2;
+		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
         layers[i] = layers[i].withGridOffset(indent);
         computeMaxLayerGridOffset();
 	}
     
     private void computeMaxLayerGridOffset() {
         long max = Long.MIN_VALUE;
-        for (Technology.ArcLayer primLayer: layers)
+        for (int i = 0; i < layers.length; i++) {
+            Technology.ArcLayer primLayer = layers[i];
+            assert indexOf(primLayer.getLayer()) == i; // layers are unique
             max = Math.max(max, primLayer.getGridOffset());
+        }
         assert 0 <= max && max < Integer.MAX_VALUE;
         maxLayerGridOffset = (int)max;
     }

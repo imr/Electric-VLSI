@@ -151,9 +151,11 @@ public class LibToTech
 			setNoNegatedArcs();
 		}
 
-        @Override
-        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, Technology.ArcLayer... layers) {
-            return super.newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, layers);
+        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, ArcInfo.LayerDetails [] ad) {
+			ArcLayer [] arcLayers = new ArcLayer[ad.length];
+			for(int j=0; j<ad.length; j++)
+				arcLayers[j] = new ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
+            return newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, arcLayers);
         }
         
         private void setTheScale(double scale)
@@ -297,10 +299,7 @@ public class LibToTech
 		for(int i=0; i<aList.length; i++)
 		{
 			ArcInfo.LayerDetails [] ad = aList[i].arcDetails;
-			Technology.ArcLayer [] arcLayers = new Technology.ArcLayer[ad.length];
-			for(int j=0; j<ad.length; j++)
-				arcLayers[j] = new Technology.ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
-			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, arcLayers);
+			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, ad);
 			newArc.setFactoryFixedAngle(aList[i].fixAng);
 			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
 			newArc.setFactoryAngleIncrement(aList[i].angInc);

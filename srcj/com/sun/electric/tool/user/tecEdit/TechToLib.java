@@ -26,6 +26,7 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -757,14 +758,14 @@ public class TechToLib
         aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
         aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];
         for(int i=0; i<aIn.arcDetails.length; i++) {
-            Technology.ArcLayer al = ap.getArcLayer(i);
             ArcInfo.LayerDetails ald = new ArcInfo.LayerDetails();
             aIn.arcDetails[i] = ald;
+            String layerName = ap.getLayer(i).getName();
             for(int j=0; j<lList.length; j++) {
-                if (lList[j].name.equals(al.getLayer().getName())) { ald.layer = lList[j];   break; }
+                if (lList[j].name.equals(layerName)) { ald.layer = lList[j];   break; }
             }
-            ald.style = al.getStyle();
-            ald.width = al.getLambdaOffset();
+            ald.style = ap.getLayerStyle(i);
+            ald.width = DBMath.gridToLambda(ap.getGridWidthOffset() - ap.getLayerGridExtend(i));
         }
         return aIn;
     }

@@ -29,7 +29,6 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,14 +41,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
-import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 
 /**
  * Class for defining RouteElements that are arcs.
@@ -99,16 +95,20 @@ public class RouteElementArc extends RouteElement {
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
     	if (stayInside != null)
     	{
-        	Technology.ArcLayer al = ap.getArcLayer(0);
-        	Layer layer = al.getLayer();
-        	double offset = al.getLambdaOffset();
-        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
+//        	Technology.ArcLayer al = ap.getArcLayer(0);
+        	Layer layer = ap.getLayer(0);
+            double widthExtend = ap.getLayerLambdaExtend(0);
+//        	double offset = al.getLambdaOffset();
+            double arcBaseWidth = arcWidth - ap.getLambdaWidthOffset();
+        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcBaseWidth+widthExtend, headExtend, tailExtend);
+//        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
 
         	// try reducing to default width if it doesn't fit
         	if (!good && arcWidth > ap.getDefaultLambdaFullWidth())
         	{
         		arcWidth = ap.getDefaultLambdaFullWidth();
-            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
+            	good = stayInside.arcPolyFits(layer, headEP, tailEP, ap.getDefaultLambdaBaseWidth() + widthExtend, headExtend, tailExtend);
+//            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
         	}
 
         	// make it zero-width if it doesn't fit

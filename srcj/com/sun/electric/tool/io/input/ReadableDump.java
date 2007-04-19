@@ -606,7 +606,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			ArcProto ap = ail.arcProto[j];
 			String name = ail.arcInstName[j];
-			long gridFullWidth = DBMath.lambdaToSizeGrid(ail.arcWidth[j] / lambda);
+			long gridBaseWidth = DBMath.lambdaToSizeGrid(ail.arcWidth[j] / lambda) - ap.getGridWidthOffset();
             NodeInst arcHeadNode = nodeInstList[cellIndex].theNode[ail.arcHeadNode[j]];
             NodeInst arcTailNode = nodeInstList[cellIndex].theNode[ail.arcTailNode[j]];
 			if (!arcHeadNode.isLinked() || !arcTailNode.isLinked()) continue;
@@ -632,7 +632,7 @@ public class ReadableDump extends LibraryFiles
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, ail.arcNameDescriptor[j],
-                    headPortInst, tailPortInst, headPt, tailPt, gridFullWidth,
+                    headPortInst, tailPortInst, headPt, tailPt, gridBaseWidth,
                     ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;
 //            ELIBConstants.applyELIBArcBits(ai, userBits);
