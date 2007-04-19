@@ -68,12 +68,29 @@ public class Xml {
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
         public final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
+        public MenuPalette menuPalette;
         public final List<Foundry> foundries = new ArrayList<Foundry>();
         
         public Layer findLayer(String name) {
             for (Layer layer: layers) {
                 if (layer.name.equals(name))
                     return layer;
+            }
+            return null;
+        }
+        
+        public ArcProto findArc(String name) {
+            for (ArcProto arc: arcs) {
+                if (arc.name.equals(name))
+                    return arc;
+            }
+            return null;
+        }
+        
+        public PrimitiveNode findNode(String name) {
+            for (PrimitiveNode node: nodes) {
+                if (node.name.equals(name))
+                    return node;
             }
             return null;
         }
@@ -95,11 +112,16 @@ public class Xml {
     public static class ArcProto {
         public String name;
         public com.sun.electric.technology.ArcProto.Function function;
+        public boolean wipable;
+        public boolean curvable;
+        public boolean special;
+        public boolean notUsed;
+        public boolean skipSizeInPalette;
+        
         public double widthOffset;
-        public double defaultWidth;
+        public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
-        public boolean wipable;
         public int angleIncrement;
         public double antennaRatio;
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
@@ -107,27 +129,44 @@ public class Xml {
     
     public static class ArcLayer {
         public String layer;
-        public double widthOffset;
+        public final Distance width = new Distance();
         public Poly.Type style;
     }
     
     public static class PrimitiveNode {
         public String name;
-        public com.sun.electric.technology.PrimitiveNode.Function function;
-        public double defaultWidth;
-        public double defaultHeight;
-        public SizeOffset sizeOffset;
         public boolean shrinkArcs;
+        public boolean square;
+        public boolean canBeZeroSize;
+        public boolean wipes;
+        public boolean lockable;
+        public boolean edgeSelect;
+        public boolean skipSizeInPalette;
+        public boolean notUsed;
+        public boolean lowVt;
+        public boolean highVt;
+        public boolean nativeBit;
+        public boolean od18;
+        public boolean od25;
+        public boolean od33;
+        
+        public com.sun.electric.technology.PrimitiveNode.Function function;
+        public final Distance defaultWidth = new Distance();
+        public final Distance defaultHeight = new Distance();
+        public SizeOffset sizeOffset;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
         public int specialType;
         public double[] specialValues;
+        public com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule;
     }
     
     public static class NodeLayer {
         public String layer;
         public Poly.Type style;
         public int portNum;
+        public boolean inLayers;
+        public boolean inElectricalLayers;
         public int representation;
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
@@ -145,6 +184,15 @@ public class Xml {
     public static class SpiceHeader {
         public int level;
         public final List<String> spiceLines = new ArrayList<String>();
+    }
+  
+    public static class MenuPalette {
+        public int numColumns;
+        public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
+    }
+    
+    public static class Distance {
+        public double value;
     }
     
     public static class Foundry {
@@ -182,23 +230,46 @@ public class Xml {
         patternedOnPrinter(true),
         pattern(true),
         outlined(true),
+        opacity(true),
+        foreground(true),
         display3D,
         cifLayer,
         parasitics,
+        
         arcProto,
-        widthOffset(true),
-        defaultWidth(true),
+        wipable,
+        curvable,
+        special,
+        notUsed,
+        skipSizeInPalette,
+
         extended(true),
         fixedAngle(true),
-        wipable(true),
         angleIncrement(true),
         antennaRatio(true),
+        
+        widthOffset(true),
+        defaultWidth,
         arcLayer,
+        
         primitiveNode,
-//        defaultWidth(true),
-        defaultHeight(true),
-        sizeOffset,
         shrinkArcs,
+        square,
+        canBeZeroSize,
+        wipes,
+        lockable,
+        edgeSelect,
+//        skipSizeInPalette,
+//        notUsed,
+        lowVt,
+        highVt,
+        nativeBit,
+        od18,
+        od25,
+        od33,
+//        defaultWidth,
+        defaultHeight,
+        sizeOffset,
         nodeLayer,
         box,
         minbox,
@@ -213,8 +284,15 @@ public class Xml {
         polygonal,
         serpTrans,
         specialValue(true),
+        minSizeRule,
         spiceHeader,
         spiceLine,
+        menuPalette,
+        menuBox,
+        menuArc(true),
+        menuNode(true),
+        menuText(true),
+        lambda(true),
         Foundry,
         LayersRule;
         
@@ -273,11 +351,15 @@ public class Xml {
         private final int[] pattern = new int[16];
         private int curPatternIndex;
         private EGraphics.Outline outline;
+        private double opacity;
+        private boolean foreground;
         private ArcProto curArc;
         private PrimitiveNode curNode;
         private NodeLayer curNodeLayer;
         private PrimitivePort curPort;
         private int curSpecialValueIndex;
+        private ArrayList<Object> curMenuBox;
+        private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
         
@@ -539,13 +621,13 @@ public class Xml {
                     curLayer.function = com.sun.electric.technology.Layer.Function.valueOf(a("fun"));
                     String extraFunStr = a_("extraFun");
                     if (extraFunStr != null) {
-                        if (extraFunStr.equals("DEPLETION_HEAVY"))
+                        if (extraFunStr.equals("depletion_heavy"))
                             curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.HEAVY;
-                        else if (extraFunStr.equals("DEPLETION_LIGHT"))
+                        else if (extraFunStr.equals("depletion_light"))
                             curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.LIGHT;
-                        else if (extraFunStr.equals("ENHANCEMENT_HEAVY"))
+                        else if (extraFunStr.equals("enhancement_heavy"))
                             curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.HEAVY;
-                        else if (extraFunStr.equals("ENHANCEMENT_LIGHT"))
+                        else if (extraFunStr.equals("enhancement_light"))
                             curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.LIGHT;
                         else
                             curLayer.extraFunction = com.sun.electric.technology.Layer.Function.parseExtraName(extraFunStr);
@@ -589,10 +671,37 @@ public class Xml {
                     curArc.name = a("name");
                     curArc.function = com.sun.electric.technology.ArcProto.Function.valueOf(a("fun"));
                     break;
+                case wipable:
+                    curArc.wipable = true;
+                    break;
+                case curvable:
+                    curArc.curvable = true;
+                    break;
+                case special:
+                    curArc.special = true;
+                    break;
+                case notUsed:
+                    if (curArc != null)
+                        curArc.notUsed = true;
+                    if (curNode != null)
+                        curNode.notUsed = true;
+                    break;
+                case skipSizeInPalette:
+                    if (curArc != null)
+                        curArc.skipSizeInPalette = true;
+                    if (curNode != null)
+                        curNode.skipSizeInPalette = true;
+                    break;
+                case defaultWidth:
+                    if (curArc != null)
+                        curDistance = curArc.defaultWidth;
+                    if (curNode != null)
+                        curDistance = curNode.defaultWidth;
+                    break;
                 case arcLayer:
                     ArcLayer arcLayer = new ArcLayer();
                     arcLayer.layer = a("layer");
-                    arcLayer.widthOffset = Double.parseDouble(a("widthOffset"));
+                    curDistance = arcLayer.width;
                     arcLayer.style = Poly.Type.valueOf(a("style"));
                     curArc.arcLayers.add(arcLayer);
                     break;
@@ -601,15 +710,51 @@ public class Xml {
                     curNode.name = a("name");
                     curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     break;
+                case shrinkArcs:
+                    curNode.shrinkArcs = true;
+                    break;
+                case square:
+                    curNode.square = true;
+                    break;
+                case canBeZeroSize:
+                    curNode.canBeZeroSize = true;
+                    break;
+                case wipes:
+                    curNode.wipes = true;
+                    break;
+                case lockable:
+                    curNode.lockable = true;
+                    break;
+                case edgeSelect:
+                    curNode.edgeSelect = true;
+                    break;
+                case lowVt:
+                    curNode.lowVt = true;
+                    break;
+                case highVt:
+                    curNode.highVt = true;
+                    break;
+                case nativeBit:
+                    curNode.nativeBit = true;
+                    break;
+                case od18:
+                    curNode.od18 = true;
+                    break;
+                case od25:
+                    curNode.od25 = true;
+                    break;
+                case od33:
+                    curNode.od33 = true;
+                    break;
+                case defaultHeight:
+                    curDistance = curNode.defaultHeight;
+                    break;
                 case sizeOffset:
                     double lx = Double.parseDouble(a("lx"));
                     double hx = Double.parseDouble(a("hx"));
                     double ly = Double.parseDouble(a("ly"));
                     double hy = Double.parseDouble(a("hy"));
                     curNode.sizeOffset = new SizeOffset(lx, hx, ly, hy);
-                    break;
-                case shrinkArcs:
-                    curNode.shrinkArcs = true;
                     break;
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
@@ -618,6 +763,15 @@ public class Xml {
                     String portNum = a_("portNum");
                     if (portNum != null)
                         curNodeLayer.portNum = Integer.parseInt(portNum);
+                    String electrical = a_("electrical");
+                    if (electrical != null) {
+                        if (Boolean.parseBoolean(electrical))
+                            curNodeLayer.inElectricalLayers = true;
+                        else
+                            curNodeLayer.inLayers = true;
+                    } else {
+                        curNodeLayer.inElectricalLayers = curNodeLayer.inLayers = true;
+                    }
                     break;
                 case box:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
@@ -666,6 +820,12 @@ public class Xml {
                     curNode.specialValues = new double[6];
                     curSpecialValueIndex = 0;
                     break;
+                case minSizeRule:
+                    curNode.nodeSizeRule = new com.sun.electric.technology.PrimitiveNode.NodeSizeRule(
+                            Double.parseDouble(a("width")),
+                            Double.parseDouble(a("height")),
+                            a("rule"));
+                    break;
                 case spiceHeader:
                     curSpiceHeader = new SpiceHeader();
                     curSpiceHeader.level = Integer.parseInt(a("level"));
@@ -673,6 +833,14 @@ public class Xml {
                     break;
                 case spiceLine:
                     curSpiceHeader.spiceLines.add(a("line"));
+                    break;
+                case menuPalette:
+                    tech.menuPalette = new MenuPalette();
+                    tech.menuPalette.numColumns = Integer.parseInt(a("numColumns"));
+                    break;
+                case menuBox:
+                    curMenuBox = new ArrayList<Object>();
+                    tech.menuPalette.menuBoxes.add(curMenuBox);
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -780,12 +948,14 @@ public class Xml {
                     case outlined:
                         outline = EGraphics.Outline.valueOf(text);
                         break;
+                    case opacity:
+                        opacity = Double.parseDouble(text);
+                        break;
+                    case foreground:
+                        foreground = Boolean.parseBoolean(text);
+                        break;
                     case widthOffset:
                         curArc.widthOffset = Double.parseDouble(text);
-                        break;
-                    case defaultWidth: // arc and node
-                        if (curArc != null) curArc.defaultWidth = Double.parseDouble(text);
-                        if (curNode != null) curNode.defaultWidth = Double.parseDouble(text);
                         break;
                     case extended:
                         curArc.extended = Boolean.parseBoolean(text);
@@ -802,9 +972,6 @@ public class Xml {
                     case antennaRatio:
                         curArc.antennaRatio = Double.parseDouble(text);
                         break;
-                    case defaultHeight:
-                        curNode.defaultHeight = Double.parseDouble(text);
-                        break;
                     case portTopology:
                         curPort.portTopology = Integer.parseInt(text);
                         break;
@@ -813,6 +980,18 @@ public class Xml {
                         break;
                     case specialValue:
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
+                        break;
+                    case menuArc:
+                        curMenuBox.add(tech.findArc(text));
+                        break;
+                    case menuNode:
+                        curMenuBox.add(tech.findNode(text));
+                        break;
+                    case menuText:
+                        curMenuBox.add(text);
+                        break;
+                    case lambda:
+                        curDistance.value += Double.parseDouble(text);
                         break;
                     default:
                         assert false;
@@ -832,7 +1011,7 @@ public class Xml {
                 case layer:
                     assert curPatternIndex == pattern.length;
                     curLayer.desc = new EGraphics(patternedOnDisplay, patternedOnPrinter, outline, curTransparent,
-                            curR, curG, curB, 0.8, true, pattern.clone());
+                            curR, curG, curB, opacity, foreground, pattern.clone());
                     assert tech.findLayer(curLayer.name) == null;
                     tech.layers.add(curLayer);
                     curLayer = null;
@@ -865,9 +1044,30 @@ public class Xml {
                 case display3D:
                 case cifLayer:
                 case parasitics:
+                    
+                case wipable:
+                case curvable:
+                case special:
+                case notUsed:
+                case skipSizeInPalette:
+                case defaultWidth:
                 case arcLayer:
-                case sizeOffset:
+                    
                 case shrinkArcs:
+                case square:
+                case canBeZeroSize:
+                case wipes:
+                case lockable:
+                case edgeSelect:
+                case lowVt:
+                case highVt:
+                case nativeBit:
+                case od18:
+                case od25:
+                case od33:
+                    
+                case defaultHeight:
+                case sizeOffset:
                 case box:
                 case minbox:
                 case points:
@@ -876,7 +1076,10 @@ public class Xml {
                 case portAngle:
                 case polygonal:
                 case serpTrans:
+                case minSizeRule:
                 case spiceLine:
+                case menuPalette:
+                case menuBox:
                 case Foundry:
                 case LayersRule:
                     break;

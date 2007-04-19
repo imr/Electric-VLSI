@@ -651,6 +651,7 @@ public class Technology implements Comparable<Technology>
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
     /** old-style DRC rules. */                             protected double[] conDist, unConDist;
+    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
 
 	/****************************** CONTROL ******************************/
 
@@ -696,8 +697,13 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 	}
 
-    public Technology(Xml.Technology t, boolean full) {
+    protected Technology(URL urlXml, boolean full) {
+        this(Xml.parseTechnology(urlXml), full);
+    }
+    
+    private Technology(Xml.Technology t, boolean full) {
         this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
+        xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
         setFactoryScale(t.scaleValue, t.scaleRelevant);
@@ -719,33 +725,81 @@ public class Technology implements Comparable<Technology>
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                arcLayers[i] = new ArcLayer(layers.get(al.layer), al.widthOffset, al.style);
+                double widthOffset = full ? a.widthOffset - al.width.value : 2;
+                arcLayers[i] = new ArcLayer(layers.get(al.layer), widthOffset, al.style);
             }
-    		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth, a.function, arcLayers);
+    		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth.value + a.widthOffset, a.function, arcLayers);
             arcs.put(a.name, ap);
             if (a.wipable)
                 ap.setWipable();
+            if (a.curvable)
+                ap.setCurvable();
+            if (a.special)
+                ap.setSpecialArc();
+            if (a.notUsed)
+                ap.setNotUsed(true);
+            if (a.skipSizeInPalette)
+                ap.setSkipSizeInPalette();
             ap.setFactoryExtended(a.extended);
             ap.setFactoryFixedAngle(a.fixedAngle);
             ap.setFactoryAngleIncrement(a.angleIncrement);
             ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
         }
         for (Xml.PrimitiveNode n: t.nodes) {
-            NodeLayer[] nodeLayers = new NodeLayer[n.nodeLayers.size()];
-            for (int i = 0; i < nodeLayers.length; i++) {
+            boolean needElectricalLayers = false;
+            ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
+            ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
+            for (int i = 0; i < n.nodeLayers.size(); i++) {
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
                 TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
+                NodeLayer nodeLayer;
                 if (nl.representation == NodeLayer.MULTICUTBOX)
-                    nodeLayers[i] = NodeLayer.makeMulticut(layers.get(nl.layer), nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
+                    nodeLayer = NodeLayer.makeMulticut(layers.get(nl.layer), nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
                 else
-                    nodeLayers[i] = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
+                    nodeLayer = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
+                if (!(nl.inLayers && nl.inElectricalLayers))
+                    needElectricalLayers = true;
+                if (nl.inLayers)
+                    nodeLayers.add(nodeLayer);
+                if (nl.inElectricalLayers)
+                    electricalNodeLayers.add(nodeLayer);
             }
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth, n.defaultHeight, n.sizeOffset, nodeLayers);
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth.value, n.defaultHeight.value, n.sizeOffset,
+                    nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             pnp.setFunction(n.function);
+            if (needElectricalLayers)
+                pnp.setElectricalLayers(electricalNodeLayers.toArray(new NodeLayer[electricalNodeLayers.size()]));
             if (n.shrinkArcs) {
                 pnp.setArcsWipe();
                 pnp.setArcsShrink();
             }
+            if (n.square)
+                pnp.setSquare();
+            if (n.canBeZeroSize)
+                pnp.setCanBeZeroSize();
+            if (n.wipes)
+                pnp.setWipeOn1or2();
+            if (n.lockable)
+                pnp.setLockedPrim();
+            if (n.edgeSelect)
+                pnp.setEdgeSelect();
+            if (n.skipSizeInPalette)
+                pnp.setSkipSizeInPalette();
+            if (n.notUsed)
+                pnp.setNotUsed(true);
+            if (n.lowVt)
+                pnp.setNodeBit(PrimitiveNode.LOWVTBIT);
+            if (n.highVt)
+                pnp.setNodeBit(PrimitiveNode.HIGHVTBIT);
+            if (n.nativeBit)
+                pnp.setNodeBit(PrimitiveNode.NATIVEBIT);
+            if (n.od18)
+                pnp.setNodeBit(PrimitiveNode.OD18BIT);
+            if (n.od25)
+                pnp.setNodeBit(PrimitiveNode.OD25BIT);
+            if (n.od33)
+                pnp.setNodeBit(PrimitiveNode.OD33BIT);
+            
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
@@ -769,6 +823,38 @@ public class Technology implements Comparable<Technology>
                 default:
                     break;
             }
+            if (n.function == PrimitiveNode.Function.NODE) {
+                assert pnp.getLayers().length == 1;
+                Layer layer = pnp.getLayers()[0].getLayer();
+                assert layer.getPureLayerNode() == null;
+                layer.setPureLayerNode(pnp);
+            }
+            if (n.nodeSizeRule != null)
+                pnp.setMinSize(n.nodeSizeRule.getWidth(), n.nodeSizeRule.getHeight(), n.nodeSizeRule.getRuleName());
+        }
+        if (!full) return;
+        if (t.menuPalette != null) {
+            int numColumns = t.menuPalette.numColumns;
+            ArrayList<Object[]> rows = new ArrayList<Object[]>();
+            Object[] row = null;
+            for (int i = 0; i < t.menuPalette.menuBoxes.size(); i++) {
+                int column = i % numColumns;
+                if (column == 0) {
+                    row = new Object[numColumns];
+                    rows.add(row);
+                }
+                ArrayList<Object> menuBoxList = t.menuPalette.menuBoxes.get(i);
+                if (menuBoxList == null || menuBoxList.isEmpty()) continue;
+                if (menuBoxList.size() == 1) {
+                    row[column] = convertMenuItem(menuBoxList.get(0));
+                } else {
+                    ArrayList<Object> list = new ArrayList<Object>();
+                    for (Object o: menuBoxList)
+                        list.add(convertMenuItem(o));
+                    row[column] = list;
+                }
+            }
+            nodeGroups = rows.toArray(new Object[rows.size()][]);
         }
         for (Xml.SpiceHeader h: t.spiceHeaders) {
             String[] spiceLines = h.spiceLines.toArray(new String[h.spiceLines.size()]);
@@ -814,6 +900,27 @@ public class Technology implements Comparable<Technology>
         setup();
     }
     
+    private Object convertMenuItem(Object menuItem) {
+        if (menuItem instanceof Xml.ArcProto)
+            return findArcProto(((Xml.ArcProto)menuItem).name);
+        if (menuItem instanceof Xml.PrimitiveNode)
+            return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
+        return menuItem.toString();
+    }
+    
+    protected void resizeXml(XMLRules rules) {
+        for (Xml.ArcProto xap: xmlTech.arcs) {
+            ArcProto ap = findArcProto(xap.name);
+            assert xap.arcLayers.size() == ap.layers.length;
+            for (int i = 0; i < ap.layers.length; i++) {
+                Xml.ArcLayer xal = xap.arcLayers.get(i);
+                double widthOffset = xap.widthOffset - xal.width.value;
+                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(widthOffset));
+            }
+            ap.computeMaxLayerGridOffset();
+        }
+    }
+    
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -856,7 +963,7 @@ public class Technology implements Comparable<Technology>
         lazyTechnologies.put("mocmosold", "com.sun.electric.technology.technologies.MoCMOSOld");
         lazyTechnologies.put("mocmossub", "com.sun.electric.technology.technologies.MoCMOSSub");
         if (false) {
-            new Technology(Xml.parseTechnology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml")), true);
+            new Technology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml"), true);
         } else {
             lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
         }

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Layer;
@@ -175,6 +176,8 @@ public class Xml {
         writeSpiceHeaderXml(1, gi.spiceLevel1Header);
         writeSpiceHeaderXml(2, gi.spiceLevel2Header);
         writeSpiceHeaderXml(3, gi.spiceLevel3Header);
+
+        writeMenuPaletteXml(gi.menuPalette);
         
         writeDesignRulesXml(gi.defaultFoundry, lList, gi.conDist, gi.unConDist);
         
@@ -187,12 +190,12 @@ public class Xml {
         if (li.funExtra != 0) {
             int funExtra = li.funExtra;
             if ((funExtra&Layer.Function.DEPLETION) != 0 || (funExtra&Layer.Function.ENHANCEMENT) != 0) {
-                funString = Layer.Function.getExtraConstantName(funExtra&(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT));
+                funString = Layer.Function.getExtraName(funExtra&(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT));
                 funExtra &= ~(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT);
                 if (funExtra != 0)
-                    funString += "_" + Layer.Function.getExtraConstantName(funExtra);
+                    funString += "_" + Layer.Function.getExtraName(funExtra);
             } else {
-                funString = Layer.Function.getExtraConstantName(funExtra);
+                funString = Layer.Function.getExtraName(funExtra);
             }
         }
         b("layer"); a("name", li.name); a("fun", li.fun.name()); a("extraFun", funString); cl();
@@ -205,9 +208,9 @@ public class Xml {
         }
         
         bcpel("patternedOnDisplay", desc.isPatternedOnDisplay());
-        bcpel("patternedOnPrinter", desc.isPatternedOnDisplay());
+        bcpel("patternedOnPrinter", desc.isPatternedOnPrinter());
         
-        int [] pattern = li.desc.getPattern();
+        int [] pattern = desc.getPattern();
 //         boolean hasPattern = false;
 //         for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
         if (true/*hasPattern*/) {
@@ -221,6 +224,8 @@ public class Xml {
         
         if (li.desc.getOutlined() != null)
             bcpel("outlined", desc.getOutlined().getConstName());
+        bcpel("opacity", desc.getOpacity());
+        bcpel("foreground", desc.getForeground());
         
         // write the 3D information
         if (li.thick3d != 0 || li.height3d != 0) {
@@ -240,25 +245,83 @@ public class Xml {
     
     private void writeXml(ArcInfo ai) {
         b("arcProto"); a("name", ai.name); a("fun", ai.func.getConstantName()); cl();
-        bcpel("widthOffset", ai.widthOffset);
-        bcpel("defaultWidth", ai.maxWidth);
+        
+        if (ai.wipes)
+            bel("wipable");
+        if (ai.curvable)
+            bel("curvable");
+        if (ai.special)
+            bel("special");
+        if (ai.notUsed)
+            bel("notUsed");
+        if (ai.skipSizeInPalette)
+            bel("skipSizeInPalette");
         bcpel("extended", !ai.noExtend);
         bcpel("fixedAngle", ai.fixAng);
-        bcpel("wipable", ai.wipes);
         bcpel("angleIncrement", ai.angInc);
         bcpel("antennaRatio", ai.antennaRatio);
         
+        if (ai.widthOffset != 0)
+            bcpel("widthOffset", ai.widthOffset);
+        
+        bcl("defaultWidth");
+        bcpel("lambda", DBMath.round(ai.maxWidth - ai.widthOffset));
+        el("defaultWidth");
+            
         for (ArcInfo.LayerDetails al: ai.arcDetails) {
             String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
-            b("arcLayer"); a(" layer", al.layer.name); a("widthOffset", al.width); a("style", style); el();
+            b("arcLayer"); a("layer", al.layer.name); a("style", style);
+            double extend = DBMath.round(ai.widthOffset - al.width);
+            if (extend == 0) {
+                el();
+            } else {
+                cl();
+                bcpel("lambda", extend);
+                el("arcLayer");
+            }
         }
         el("arcProto");
     }
     
     private void writeXml(NodeInfo ni) {
         b("primitiveNode"); a("name", ni.name); a("fun", ni.func.name()); cl();
-        bcpel("defaultWidth", ni.xSize);
-        bcpel("defaultHeight", ni.ySize);
+        
+        if (ni.arcsShrink)
+            bel("shrinkArcs");
+        if (ni.square)
+            bel("square");
+        if (ni.canBeZeroSize)
+            bel("canBeZeroSize");
+        if (ni.wipes)
+            bel("wipes");
+        if (ni.lockable)
+            bel("lockable");
+        if (ni.edgeSelect)
+            bel("edgeSelect");
+        if (ni.skipSizeInPalette)
+            bel("skipSizeInPalette");
+        if (ni.notUsed)
+            bel("notUsed");
+        if (ni.lowVt)
+            bel("lowVt");
+        if (ni.highVt)
+            bel("highVt");
+        if (ni.nativeBit)
+            bel("nativeBit");
+        if (ni.od18)
+            bel("od18");
+        if (ni.od25)
+            bel("od25");
+        if (ni.od33)
+            bel("od33");
+        
+        bcl("defaultWidth");
+        bcpel("lambda", DBMath.round(ni.xSize));
+        el("defaultWidth");
+        
+        bcl("defaultHeight");
+        bcpel("lambda", DBMath.round(ni.ySize));
+        el("defaultHeight");
         if (ni.so != null) {
             double lx = ni.so.getLowXOffset();
             double hx = ni.so.getHighXOffset();
@@ -266,13 +329,14 @@ public class Xml {
             double hy = ni.so.getHighYOffset();
             b("sizeOffset"); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
         }
-        if (ni.arcsShrink)
-            bel("shrinkArcs");
         
         for(int j=0; j<ni.nodeLayers.length; j++) {
             NodeInfo.LayerDetails nl = ni.nodeLayers[j];
             Integer portNum = nl.portIndex != 0 ? Integer.valueOf(nl.portIndex) : null;
-            b("nodeLayer"); a("layer", nl.layer.name); a("style", nl.style.name()); a(" portNum", portNum); cl();
+            b("nodeLayer"); a("layer", nl.layer.name); a("style", nl.style.name()); a(" portNum", portNum);
+            if (!(nl.inLayers && nl.inElectricalLayers))
+                a("electrical", nl.inElectricalLayers);
+            cl();
             switch (nl.representation) {
                 case Technology.NodeLayer.BOX:
                     b("box"); el();
@@ -359,6 +423,10 @@ public class Xml {
                 el("serpTrans");
                 break;
         }
+        if (ni.nodeSizeRule != null) {
+            PrimitiveNode.NodeSizeRule r = ni.nodeSizeRule;
+            b("minSizeRule"); a("width", r.getWidth()); a("height", r.getHeight()); a("rule", r.getRuleName()); el();
+        }
 
         el("primitiveNode");
     }
@@ -371,6 +439,36 @@ public class Xml {
         }
         el("spiceHeader");
         l();
+    }
+    
+    private void writeMenuPaletteXml(Object[][] menuPalette) {
+        if (menuPalette == null) return;
+        int numColumns = menuPalette[0].length;
+        b("menuPalette"); a("numColumns", numColumns); cl();
+        for (Object[] menuLine: menuPalette) {
+            l();
+            for (int i = 0; i < numColumns; i++)
+                writeMenuBoxXml(menuLine[i]);
+        }
+        l();
+        el("menuPalette");
+        l();
+    }
+    
+    private void writeMenuBoxXml(Object o) {
+        b("menuBox");
+        if (o == null) {
+            el();
+            return;
+        }
+        cl();
+        if (o instanceof ArcInfo)
+            bcpel("menuArc", ((ArcInfo)o).name);
+        else if (o instanceof NodeInfo)
+            bcpel("menuNode", ((NodeInfo)o).name);
+        else
+            bcpel("menuText", o);
+        el("menuBox");
     }
     
     private void writeDesignRulesXml(String foundry, LayerInfo[] lList, double[] conDist, double[] uConDist) {
@@ -425,6 +523,10 @@ public class Xml {
     private void bcpel(String key, Object v) {
         if (v == null) return;
         b(key); c(); p(v.toString()); el(key);
+    }
+    
+    private void bcl(String key) {
+        b(key); cl();
     }
     
     private void bel(String key) {

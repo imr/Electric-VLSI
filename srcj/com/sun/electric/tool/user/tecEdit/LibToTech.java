@@ -3112,7 +3112,7 @@ public class LibToTech
 			}
 
 			// print layers
-            dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS);
+            dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, false);
             for(int k=0; k<nIn.nodeLayers.length; k++) {
                 NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
                 if (nld.message != null)
@@ -3153,9 +3153,14 @@ public class LibToTech
 				buffWriter.println();
 			}
 			buffWriter.println("\t\t\t});");
-            if (nIn.electricalLayers != null) {
+            boolean needElectricalLayers = false;
+            for (NodeInfo.LayerDetails nld: nIn.nodeLayers) {
+                if (!(nld.inLayers && nld.inElectricalLayers))
+                    needElectricalLayers = true;
+            }
+            if (needElectricalLayers) {
                 buffWriter.println("\t\t" + ab + "_node.setElectricalLayers(");
-                dumpNodeLayersToJava(buffWriter, nIn.electricalLayers, nIn.specialType == PrimitiveNode.SERPTRANS);
+                dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, true);
             }
             for (int j = 0; j < numPorts; j++) {
 				NodeInfo.PortDetails portDetail = nIn.nodePortDetails[j];
@@ -3246,13 +3251,18 @@ public class LibToTech
         buffWriter.println();
 	}
     
-    private static void dumpNodeLayersToJava(PrintStream buffWriter, NodeInfo.LayerDetails[] layerDetails, boolean isSerpentine) {
+    private static void dumpNodeLayersToJava(PrintStream buffWriter, NodeInfo.LayerDetails[] mergedLayerDetails, boolean isSerpentine, boolean electrical) {
         // print layers
         buffWriter.println("\t\t\tnew Technology.NodeLayer []");
         buffWriter.println("\t\t\t{");
-        int tot = layerDetails.length;
+        ArrayList<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
+        for (NodeInfo.LayerDetails nld: mergedLayerDetails) {
+            if (electrical ? nld.inElectricalLayers : nld.inLayers)
+                layerDetails.add(nld);
+        }
+        int tot = layerDetails.size();
         for(int j=0; j<tot; j++) {
-            NodeInfo.LayerDetails nld = layerDetails[j];
+            NodeInfo.LayerDetails nld = layerDetails.get(j);
             int portNum = nld.portIndex;
             switch (nld.representation) {
                 case Technology.NodeLayer.BOX:

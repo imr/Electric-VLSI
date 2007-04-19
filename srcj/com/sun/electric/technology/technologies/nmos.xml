@@ -89,6 +89,8 @@
         <pattern>  X   X   X   X </pattern>
         <pattern>X   X   X   X   </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NM"/>
         <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
     </layer>
@@ -114,6 +116,8 @@
         <pattern> X   X   X   X  </pattern>
         <pattern>  X   X   X   X </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NP"/>
         <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
     </layer>
@@ -139,11 +143,13 @@
         <pattern> X   X   X   X  </pattern>
         <pattern>   X   X   X   X</pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="ND"/>
         <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
     </layer>
 
-    <layer name="Implant" fun="IMPLANT" extraFun="DEPLETION_HEAVY">
+    <layer name="Implant" fun="IMPLANT" extraFun="depletion_heavy">
         <transparentColor transparent="4"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -164,6 +170,8 @@
         <pattern>   X   X   X   X</pattern>
         <pattern>                </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NI"/>
     </layer>
 
@@ -188,6 +196,8 @@
         <pattern>                </pattern>
         <pattern>                </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NC"/>
     </layer>
 
@@ -212,6 +222,8 @@
         <pattern> X   X   X   X  </pattern>
         <pattern>X   X   X   X   </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NB"/>
     </layer>
 
@@ -236,10 +248,12 @@
         <pattern> X X X X X X X X</pattern>
         <pattern>  X   X   X   X </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NG"/>
     </layer>
 
-    <layer name="Light-Implant" fun="IMPLANT" extraFun="DEPLETION_LIGHT">
+    <layer name="Light-Implant" fun="IMPLANT" extraFun="depletion_light">
         <opaqueColor r="150" g="90" b="0"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -260,6 +274,8 @@
         <pattern>                </pattern>
         <pattern>                </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NJ"/>
     </layer>
 
@@ -284,10 +300,12 @@
         <pattern>                </pattern>
         <pattern>                </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NO"/>
     </layer>
 
-    <layer name="Hard-Enhancement" fun="IMPLANT" extraFun="ENHANCEMENT_HEAVY">
+    <layer name="Hard-Enhancement" fun="IMPLANT" extraFun="enhancement_heavy">
         <opaqueColor r="0" g="0" b="0"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -308,10 +326,12 @@
         <pattern>     X       X  </pattern>
         <pattern>    X       X   </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NE"/>
     </layer>
 
-    <layer name="Light-Enhancement" fun="IMPLANT" extraFun="ENHANCEMENT_LIGHT">
+    <layer name="Light-Enhancement" fun="IMPLANT" extraFun="enhancement_light">
         <opaqueColor r="0" g="0" b="0"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -332,10 +352,12 @@
         <pattern> X       X      </pattern>
         <pattern>  X       X     </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
         <cifLayer cif="NF"/>
     </layer>
 
-    <layer name="Transistor" fun="TRANSISTOR" extraFun="PSEUDO">
+    <layer name="Transistor" fun="TRANSISTOR" extraFun="pseudo">
         <opaqueColor r="200" g="200" b="200"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -356,9 +378,11 @@
         <pattern>                </pattern>
         <pattern>                </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
     </layer>
 
-    <layer name="Pseudo-Metal" fun="METAL1" extraFun="PSEUDO">
+    <layer name="Pseudo-Metal" fun="METAL1" extraFun="pseudo">
         <transparentColor transparent="1"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -379,9 +403,11 @@
         <pattern>  X   X   X   X </pattern>
         <pattern>X   X   X   X   </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
     </layer>
 
-    <layer name="Pseudo-Polysilicon" fun="POLY1" extraFun="PSEUDO">
+    <layer name="Pseudo-Polysilicon" fun="POLY1" extraFun="pseudo">
         <transparentColor transparent="2"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -402,9 +428,11 @@
         <pattern> X   X   X   X  </pattern>
         <pattern>  X   X   X   X </pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
     </layer>
 
-    <layer name="Pseudo-Diffusion" fun="DIFF" extraFun="PSEUDO">
+    <layer name="Pseudo-Diffusion" fun="DIFF" extraFun="pseudo">
         <transparentColor transparent="3"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -425,47 +453,56 @@
         <pattern> X   X   X   X  </pattern>
         <pattern>   X   X   X   X</pattern>
         <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
     </layer>
 
     <!-- ******************** ARCS ******************** -->
     <arcProto name="Metal" fun="METAL1">
-        <widthOffset>0.0</widthOffset>
-        <defaultWidth>3.0</defaultWidth>
+        <wipable/>
         <extended>true</extended>
         <fixedAngle>true</fixedAngle>
-        <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <arcLayer  layer="Metal" widthOffset="0.0" style="FILLED"/>
+        <defaultWidth>
+            <lambda>3.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Metal" style="FILLED"/>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
-        <widthOffset>0.0</widthOffset>
-        <defaultWidth>2.0</defaultWidth>
+        <wipable/>
         <extended>true</extended>
         <fixedAngle>true</fixedAngle>
-        <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <arcLayer  layer="Polysilicon" widthOffset="0.0" style="FILLED"/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Polysilicon" style="FILLED"/>
     </arcProto>
 
     <arcProto name="Diffusion" fun="DIFF">
-        <widthOffset>0.0</widthOffset>
-        <defaultWidth>2.0</defaultWidth>
+        <wipable/>
         <extended>true</extended>
         <fixedAngle>true</fixedAngle>
-        <wipable>true</wipable>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <arcLayer  layer="Diffusion" widthOffset="0.0" style="FILLED"/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Diffusion" style="FILLED"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-Pin" fun="PIN">
-        <defaultWidth>3.0</defaultWidth>
-        <defaultHeight>3.0</defaultHeight>
         <shrinkArcs/>
+        <defaultWidth>
+            <lambda>3.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>3.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Pseudo-Metal" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -481,9 +518,13 @@
     </primitiveNode>
 
     <primitiveNode name="Polysilicon-Pin" fun="PIN">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
         <shrinkArcs/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Pseudo-Polysilicon" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -499,9 +540,13 @@
     </primitiveNode>
 
     <primitiveNode name="Diffusion-Pin" fun="PIN">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
         <shrinkArcs/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Pseudo-Diffusion" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -517,8 +562,12 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
-        <defaultWidth>4.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -545,8 +594,12 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diffusion-Con" fun="CONTACT">
-        <defaultWidth>4.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -573,8 +626,12 @@
     </primitiveNode>
 
     <primitiveNode name="Butting-Con" fun="CONNECT">
-        <defaultWidth>6.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -614,8 +671,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross" fun="CONNECT">
-        <defaultWidth>6.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="2">
             <box/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
@@ -662,8 +723,12 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor" fun="TRANMOS">
-        <defaultWidth>6.0</defaultWidth>
-        <defaultHeight>6.0</defaultHeight>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>6.0</lambda>
+        </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
@@ -714,8 +779,12 @@
     </primitiveNode>
 
     <primitiveNode name="Implant-Transistor" fun="TRADMOS">
-        <defaultWidth>6.0</defaultWidth>
-        <defaultHeight>6.0</defaultHeight>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>6.0</lambda>
+        </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
@@ -771,8 +840,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-S" fun="CONNECT">
-        <defaultWidth>4.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
@@ -820,8 +893,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-T" fun="CONNECT">
-        <defaultWidth>5.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>5.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
@@ -861,8 +938,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Polysurr" fun="CONNECT">
-        <defaultWidth>5.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>5.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
             <box/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
@@ -909,8 +990,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-I" fun="CONNECT">
-        <defaultWidth>5.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>5.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
             <box/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
@@ -949,8 +1034,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-T" fun="CONNECT">
-        <defaultWidth>6.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
             <box/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
@@ -996,8 +1085,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-L" fun="CONNECT">
-        <defaultWidth>5.0</defaultWidth>
-        <defaultHeight>4.0</defaultHeight>
+        <defaultWidth>
+            <lambda>5.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Buried-Contact" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1034,8 +1127,12 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Node" fun="NODE">
-        <defaultWidth>3.0</defaultWidth>
-        <defaultHeight>3.0</defaultHeight>
+        <defaultWidth>
+            <lambda>3.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>3.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Metal" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1052,8 +1149,12 @@
     </primitiveNode>
 
     <primitiveNode name="Polysilicon-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1070,8 +1171,12 @@
     </primitiveNode>
 
     <primitiveNode name="Diffusion-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1088,8 +1193,12 @@
     </primitiveNode>
 
     <primitiveNode name="Implant-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Implant" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1105,8 +1214,12 @@
     </primitiveNode>
 
     <primitiveNode name="Cut-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1122,8 +1235,12 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Buried-Contact" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1139,8 +1256,12 @@
     </primitiveNode>
 
     <primitiveNode name="Overglass-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Overglass" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1156,8 +1277,12 @@
     </primitiveNode>
 
     <primitiveNode name="Light-Implant-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Light-Implant" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1173,8 +1298,12 @@
     </primitiveNode>
 
     <primitiveNode name="Oversize-Cut-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Oversize-Contact" style="CLOSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1190,8 +1319,12 @@
     </primitiveNode>
 
     <primitiveNode name="Hard-Enhancement-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Hard-Enhancement" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1207,8 +1340,12 @@
     </primitiveNode>
 
     <primitiveNode name="Light-Enhancement-Node" fun="NODE">
-        <defaultWidth>2.0</defaultWidth>
-        <defaultHeight>2.0</defaultHeight>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
         <nodeLayer layer="Light-Enhancement" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
@@ -1252,6 +1389,80 @@
         <spiceLine line="*MOSIS IS NOT RESPONSIBLE FOR THE FOLLOWING DIOD DATA"/>
         <spiceLine line=".MODEL DIFFCAP D CJO=.11MF/m^2"/>
     </spiceHeader>
+
+    <menuPalette numColumns="3">
+
+        <menuBox>
+            <menuArc>Polysilicon</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Polysilicon-Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-Polysilicon-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Metal</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Butting-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Diffusion</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Diffusion-Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-Diffusion-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>Buried-Con-Cross</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Transistor</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Implant-Transistor</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>Buried-Con-Cross-S</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Buried-Con-Cross-T</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Buried-Con-Polysurr</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>Buried-Con-Diffsurr-I</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Buried-Con-Diffsurr-T</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Buried-Con-Diffsurr-L</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Pure</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Misc.</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Cell</menuText>
+        </menuBox>
+
+    </menuPalette>
 
     <Foundry name="NONE">
         <LayersRule ruleName="U0" layerNames="{Metal, Metal}" type="UCONSPA" when="ALL" value="3.0"/>

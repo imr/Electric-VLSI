@@ -1031,7 +1031,7 @@ public class ArcProto implements Comparable<ArcProto>
         computeMaxLayerGridOffset();
 	}
     
-    private void computeMaxLayerGridOffset() {
+    void computeMaxLayerGridOffset() {
         long max = Long.MIN_VALUE;
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer primLayer = layers[i];

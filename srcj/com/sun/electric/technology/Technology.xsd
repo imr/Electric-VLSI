@@ -17,6 +17,24 @@
         </xsd:sequence>
     </xsd:group>
     
+    <xsd:group name="Distance">
+        <xsd:sequence>
+            <xsd:choice maxOccurs="unbounded" minOccurs="0">
+                <xsd:element name="lambda" type="xsd:double"></xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="MenuItem">
+        <xsd:sequence>
+            <xsd:choice>
+            <xsd:element name="menuArc" type="tns:ArcProtoName"></xsd:element>
+            <xsd:element name="menuNode" type="tns:PrimitiveNodeName"></xsd:element>
+            <xsd:element name="menuText" type="xsd:string"></xsd:element>
+        </xsd:choice>
+        </xsd:sequence>
+    </xsd:group>
+    
     <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
@@ -106,17 +124,17 @@
     
     <xsd:simpleType name="LayerExtraFun">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="PSEUDO"/>
-            <xsd:enumeration value="NONELEC"/>
-            <xsd:enumeration value="CONMETAL"/>
-            <xsd:enumeration value="CONPOLY"/>
-            <xsd:enumeration value="CONDIFF"/>
-            <xsd:enumeration value="DEPLETION_HEAVY"/>
-            <xsd:enumeration value="DEPLETION_LIGHT"/>
-            <xsd:enumeration value="ENHANCEMENT_HEAVY"/>
-            <xsd:enumeration value="ENHANCEMENT_LIGHT"/>
-            <xsd:enumeration value="HLVT"/>
-            <xsd:enumeration value="THICK"/>
+            <xsd:enumeration value="pseudo"/>
+            <xsd:enumeration value="nonelectrical"/>
+            <xsd:enumeration value="connects-metal"/>
+            <xsd:enumeration value="connects-poly"/>
+            <xsd:enumeration value="connects-diff"/>
+            <xsd:enumeration value="depletion_heavy"/>
+            <xsd:enumeration value="depletion_light"/>
+            <xsd:enumeration value="enhancement_heavy"/>
+            <xsd:enumeration value="enhancement_light"/>
+            <xsd:enumeration value="vt"/>
+            <xsd:enumeration value="thick"/>
         </xsd:restriction>
     </xsd:simpleType>
     
@@ -138,6 +156,17 @@
             <xsd:enumeration value="PAT_DO1_T2"/>
             <xsd:enumeration value="PAT_DO2_T2"/>
         </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="Opacity">
+        <xsd:restriction base="xsd:double">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="ArcProtoName">
+        <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
     
     <xsd:simpleType name="ArcProtoFun">
@@ -174,6 +203,10 @@
             <xsd:enumeration value="FILLED"/>
             <xsd:enumeration value="CLOSED"/>
         </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="PrimitiveNodeName">
+        <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
     
     <xsd:simpleType name="PrimitiveNodeFun">
@@ -348,6 +381,8 @@
                                 </xsd:simpleType>
                             </xsd:element>
                             <xsd:element name="outlined" type="tns:LayerOutline"></xsd:element>
+                            <xsd:element name="opacity" type="tns:Opacity"></xsd:element>
+                            <xsd:element name="foreground" type="xsd:boolean"></xsd:element>
                             <xsd:element name="display3D" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="thick" type="xsd:double" use="required"/>
@@ -375,30 +410,68 @@
                 <xsd:element name="arcProto" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element name="widthOffset" type="xsd:double"/>
-                            <xsd:element name="defaultWidth" type="xsd:double"/>
+                            <xsd:element name="wipable" minOccurs="0"> <xsd:complexType/> </xsd:element>
+                            <xsd:element name="curvable" minOccurs="0"> <xsd:complexType/> </xsd:element>
+                            <xsd:element name="special" minOccurs="0"> <xsd:complexType/> </xsd:element>
+                            <xsd:element name="notUsed" minOccurs="0"> <xsd:complexType/> </xsd:element>
+                            <xsd:element name="skipSizeInPalette" minOccurs="0"> <xsd:complexType/> </xsd:element>
+                            
                             <xsd:element name="extended" type="xsd:boolean"/>
                             <xsd:element name="fixedAngle" type="xsd:boolean"/>
-                            <xsd:element name="wipable" type="xsd:boolean"/>
                             <xsd:element name="angleIncrement" type="xsd:integer"/>
                             <xsd:element name="antennaRatio" type="xsd:double"/>
+                            <xsd:element name="widthOffset" type="xsd:double" minOccurs="0"/>
+                            <xsd:element name="defaultWidth">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:Distance"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
                             <xsd:element name="arcLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
+                                    <xsd:group ref="tns:Distance"/>
                                     <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
-                                    <xsd:attribute name="widthOffset" type="xsd:double" use="required"/>
                                     <xsd:attribute name="style" type="tns:ArcLayerStyle" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
-                        <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+                        <xsd:attribute name="name" type="tns:ArcProtoName" use="required"/>
                         <xsd:attribute name="fun" type="tns:ArcProtoFun" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="primitiveNode" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element name="defaultWidth" type="xsd:double"/>
-                            <xsd:element name="defaultHeight" type="xsd:double"/>
+                            <xsd:element name="shrinkArcs" minOccurs="0"/>
+                            <xsd:element name="square" minOccurs="0"/>
+                            <xsd:element name="canBeZeroSize" minOccurs="0"/>
+                            <xsd:element name="wipes" minOccurs="0"/>
+                            <xsd:element name="lockable" minOccurs="0"/>
+                            <xsd:element name="edgeSelect" minOccurs="0"/>
+                            <xsd:element name="skipSizeInPalette" minOccurs="0"/>
+                            <xsd:element name="notUsed" minOccurs="0"/>
+                            <xsd:element name="lowVt" minOccurs="0"/>
+                            <xsd:element name="highVt" minOccurs="0"/>
+                            <xsd:element name="nativeBit" minOccurs="0"/>
+                            <xsd:element name="od18" minOccurs="0"/>
+                            <xsd:element name="od25" minOccurs="0"/>
+                            <xsd:element name="od33" minOccurs="0"/>
+                            
+                            <xsd:element name="defaultWidth">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:Distance"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="defaultHeight">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:Distance"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
                             <xsd:element name="sizeOffset" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="lx" type="xsd:double" use="required"/>
@@ -407,7 +480,6 @@
                                     <xsd:attribute name="hy" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="shrinkArcs" minOccurs="0"/>
                             <xsd:element name="nodeLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:sequence>
@@ -435,6 +507,7 @@
                                     <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
                                     <xsd:attribute name="portNum" type="xsd:integer"/>
+                                    <xsd:attribute name="electrical" type="xsd:boolean"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="primitivePort" minOccurs="0" maxOccurs="unbounded">
@@ -448,7 +521,7 @@
                                         </xsd:element>
                                         <xsd:element name="portTopology" type="xsd:integer"></xsd:element>
                                         <xsd:element name="techPoint" type="tns:TechPoint" maxOccurs="2" minOccurs="2"></xsd:element>
-                                        <xsd:element name="portArc" type="xsd:NCName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+                                        <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="name" type="xsd:NCName" use="required"/>
                                 </xsd:complexType>
@@ -463,8 +536,15 @@
                                 </xsd:element>
                                 <xsd:element name="polygonal"></xsd:element>
                             </xsd:choice>
+                            <xsd:element name="minSizeRule" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="width" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="height" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="rule" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
                         </xsd:sequence>
-                        <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+                        <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
                         <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
@@ -478,6 +558,20 @@
                             </xsd:element>
                         </xsd:sequence>
                         <xsd:attribute name="level" type="tns:SpiceLevel"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="menuPalette" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="menuBox" maxOccurs="unbounded" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:MenuItem" minOccurs="0" maxOccurs="unbounded"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="numColumns" type="xsd:int"/>
                     </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="Foundry">

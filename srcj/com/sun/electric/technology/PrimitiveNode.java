@@ -1546,8 +1546,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      */
     public static class NodeSizeRule
     {
-        double sizeX, sizeY;
-        String rule;
+        private final double sizeX, sizeY;
+        private final String rule;
 
         public NodeSizeRule(double sizeX, double sizeY, String rule)
         {

@@ -803,16 +803,26 @@ public class TechToLib
         nIn.autoGrowth = pnp.getAutoGrowth();
         nIn.specialType = pnp.getSpecialType();
         nIn.specialValues = pnp.getSpecialValues();
-        Technology.NodeLayer[] nodeLayers = pnp.getLayers();
-        nIn.nodeLayers = new NodeInfo.LayerDetails[nodeLayers.length];
-        for (int i = 0; i < nodeLayers.length; i++)
-            nIn.nodeLayers[i] = makeNodeLayerDetails(nodeLayers[i], lList);
-        Technology.NodeLayer[] electricalLayers = pnp.getElectricalLayers();
-        if (electricalLayers != null) {
-            nIn.electricalLayers = new NodeInfo.LayerDetails[electricalLayers.length];
-            for (int i = 0; i < electricalLayers.length; i++)
-                nIn.electricalLayers[i] = makeNodeLayerDetails(electricalLayers[i], lList);
+        List<Technology.NodeLayer> nodeLayers = Arrays.asList(pnp.getLayers());
+        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
+        if (pnp.getElectricalLayers() != null)
+            electricalNodeLayers = Arrays.asList(pnp.getElectricalLayers());
+        List<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
+        int m = 0;
+        for (Technology.NodeLayer nld: electricalNodeLayers) {
+            int j = nodeLayers.indexOf(nld);
+            if (j < 0) {
+                layerDetails.add(makeNodeLayerDetails(nld, lList, false, true));
+                continue;
+            }
+            while (m < j)
+                layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, false));
+            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, true));
         }
+        while (m < nodeLayers.size())
+            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, false));
+        nIn.nodeLayers = layerDetails.toArray(new NodeInfo.LayerDetails[layerDetails.size()]);
+        
         nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
         for (int i = 0; i < nIn.nodePortDetails.length; i++) {
             PrimitivePort pp = pnp.getPort(i);
@@ -846,8 +856,10 @@ public class TechToLib
         return nIn;
     }
     
-    private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList) {
+    private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList, boolean inLayers, boolean inElectricalLayers) {
         NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
+        nld.inLayers = inLayers;
+        nld.inElectricalLayers = inElectricalLayers;
         nld.style = nl.getStyle();
         nld.portIndex = nl.getPortNum();
         nld.representation = nl.getRepresentation();

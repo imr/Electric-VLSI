@@ -69,6 +69,8 @@ public class NodeInfo extends Info
 		Technology.TechPoint[] values;
 		Sample                 ns;
 		int                    portIndex;
+        boolean                inLayers;
+        boolean                inElectricalLayers;
 		boolean                multiCut;				/* true if a multi-cut layer */
 		double                 multiXS, multiYS;			/* size of multicut */
 		double                 multiIndent, multiSep, multiSep2D;	/* indent and separation of multicuts */
@@ -97,7 +99,6 @@ public class NodeInfo extends Info
     boolean                od25;
     boolean                od33;
 	LayerDetails []        nodeLayers;
-    LayerDetails []        electricalLayers;
 	PortDetails []         nodePortDetails;
 	PrimitivePort[]        primPorts;
 	SizeOffset             so;
