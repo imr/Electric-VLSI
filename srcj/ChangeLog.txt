@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/19/07, GVG) CsaClient.computeTestVar returns wrong
+FIX: signature change CsaOpVariable.
+
+IMP: (4/19/07, GVG) Latest changes to get running required in both early/late graphs.
+
 BUG: (4/19/07, SMR) Signals in waveform window change color when dragged to a new panel (Bug #1301).
 FIX: In WaveformWindow.WaveFormDropTarget.drop(), pass the new color to WaveSignal.addSignalToPanel().
 
