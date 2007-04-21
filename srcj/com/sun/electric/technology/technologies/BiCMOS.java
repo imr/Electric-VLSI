@@ -162,131 +162,6 @@ public class BiCMOS extends Technology
 			new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		/** PM layer */
-		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal_1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,/*107,226,96,*/ 0.8,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
-
-		/** PM0 layer */
-		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal_2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 224, 95,255,/*0,0,0,*/ 0.8,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
-
-		/** PP layer */
-		Layer PP_lay = Layer.newInstance(this, "Pseudo_Polysilicon",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,155,192,/*224,95,255,*/ 0.8,true,
-			new int[] { 0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
-						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
-						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010}));//    X       X    
-
-		/** PPS layer */
-		Layer PPS_lay = Layer.newInstance(this, "Pseudo_P_Select",
-			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,255,0, 0.8,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
-
-		/** PNS layer */
-		Layer PNS_lay = Layer.newInstance(this, "Pseudo_N_Select",
-			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 175,255,175, 0.8,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
-						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X   
-
-		/** PNW layer */
-		Layer PNW_lay = Layer.newInstance(this, "Pseudo_N_Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 240,221,181,/*0,0,0,*/ 0.8,true,
-			new int[] { 0x1000,   //    X            
-						0x0020,   //           X     
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0001,   //                X
-						0x0200,   //       X         
-						0x0000,   //                 
-						0x0000,   //                 
-						0x1000,   //    X            
-						0x0020,   //           X     
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0001,   //                X
-						0x0200,   //       X         
-						0x0000,   //                 
-						0x0000}));//                 
-
-		/** PP0 layer */
-		Layer PP0_lay = Layer.newInstance(this, "Pseudo_Polysilicon_2",
-			new EGraphics(false, false, null, 0, 255,0,255, 0.8,true,
-			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
-
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "M1",
 			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,/*107,226,96,*/ 0.8,true,
@@ -397,26 +272,6 @@ public class BiCMOS extends Technology
 			new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		/** PA layer */
-		Layer PA_lay = Layer.newInstance(this, "Pseudo_Active",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
-			new int[] { 0x0000,   //                 
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
-						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
-						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
-
 		/** PBA layer */
 		Layer PBA_lay = Layer.newInstance(this, "P_Base_Active",
 			new EGraphics(true, true, EGraphics.Outline.PAT_S, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
@@ -467,6 +322,151 @@ public class BiCMOS extends Technology
 			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
+//		/** PPS layer */
+//		Layer PPS_lay = Layer.newInstance(this, "Pseudo_P_Select",
+//			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,255,0, 0.8,true,
+//			new int[] { 0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808,   //     X       X   
+//						0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808}));//     X       X   
+//
+//		/** PNS layer */
+//		Layer PNS_lay = Layer.newInstance(this, "Pseudo_N_Select",
+//			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 175,255,175, 0.8,true,
+//			new int[] { 0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808,   //     X       X   
+//						0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808}));//     X       X   
+//
+//		/** PNW layer */
+//		Layer PNW_lay = Layer.newInstance(this, "Pseudo_N_Well",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 240,221,181,/*0,0,0,*/ 0.8,true,
+//			new int[] { 0x1000,   //    X            
+//						0x0020,   //           X     
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x0001,   //                X
+//						0x0200,   //       X         
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x1000,   //    X            
+//						0x0020,   //           X     
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x0001,   //                X
+//						0x0200,   //       X         
+//						0x0000,   //                 
+//						0x0000}));//                 
+//
+//		/** PM layer */
+//		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal_1",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,/*107,226,96,*/ 0.8,true,
+//			new int[] { 0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000}));//                 
+//
+//		/** PM0 layer */
+//		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal_2",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 224, 95,255,/*0,0,0,*/ 0.8,true,
+//			new int[] { 0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808,   //     X       X   
+//						0x1010,   //    X       X    
+//						0x2020,   //   X       X     
+//						0x4040,   //  X       X      
+//						0x8080,   // X       X       
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X 
+//						0x0404,   //      X       X  
+//						0x0808}));//     X       X   
+//
+//		/** PP layer */
+//		Layer PP_lay = Layer.newInstance(this, "Pseudo_Polysilicon",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,155,192,/*224,95,255,*/ 0.8,true,
+//			new int[] { 0x0808,   //     X       X   
+//						0x0404,   //      X       X  
+//						0x0202,   //       X       X 
+//						0x0101,   //        X       X
+//						0x8080,   // X       X       
+//						0x4040,   //  X       X      
+//						0x2020,   //   X       X     
+//						0x1010,   //    X       X    
+//						0x0808,   //     X       X   
+//						0x0404,   //      X       X  
+//						0x0202,   //       X       X 
+//						0x0101,   //        X       X
+//						0x8080,   // X       X       
+//						0x4040,   //  X       X      
+//						0x2020,   //   X       X     
+//						0x1010}));//    X       X    
+//        
+//		/** PP0 layer */
+//		Layer PP0_lay = Layer.newInstance(this, "Pseudo_Polysilicon_2",
+//			new EGraphics(false, false, null, 0, 255,0,255, 0.8,true,
+//			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+//
+//		/** PA layer */
+//		Layer PA_lay = Layer.newInstance(this, "Pseudo_Active",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
+//			new int[] { 0x0000,   //                 
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X   
+//						0x0303,   //       XX      XX
+//						0x0000,   //                 
+//						0x3030,   //   XX      XX    
+//						0x8484,   // X    X  X    X  
+//						0x3030,   //   XX      XX    
+//						0x0000,   //                 
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X   
+//						0x0303,   //       XX      XX
+//						0x0000,   //                 
+//						0x3030,   //   XX      XX    
+//						0x8484,   // X    X  X    X  
+//						0x3030}));//   XX      XX    
+//
 		// The layer functions
 		PS_lay.setFunction(Layer.Function.IMPLANTP);		// P_Select
 		NS_lay.setFunction(Layer.Function.IMPLANTN);		// N_Select
@@ -474,15 +474,8 @@ public class BiCMOS extends Technology
 		V_lay.setFunction(Layer.Function.CONTACT2);		// Via
 		P_lay.setFunction(Layer.Function.OVERGLASS);		// Passivation
 		PF_lay.setFunction(Layer.Function.ART);		// Pad_Frame
-		T_lay.setFunction(Layer.Function.TRANSISTOR, Layer.Function.PSEUDO);		// Transistor
+		T_lay.setFunction(Layer.Function.TRANSISTOR/*, Layer.Function.PSEUDO*/);		// Transistor
 		AC_lay.setFunction(Layer.Function.CONTACT1);		// Active_Cut
-		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo_Metal_1
-		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo_Metal_2
-		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo_Polysilicon
-		PPS_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);		// Pseudo_P_Select
-		PNS_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);		// Pseudo_N_Select
-		PNW_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo_N_Well
-		PP0_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo_Polysilicon_2
 		M_lay.setFunction(Layer.Function.METAL1);		// M1
 		M0_lay.setFunction(Layer.Function.METAL2);		// M2
 		P0_lay.setFunction(Layer.Function.POLY1);		// Poly1
@@ -490,11 +483,26 @@ public class BiCMOS extends Technology
 		A_lay.setFunction(Layer.Function.DIFF);		// Active
 		PC_lay.setFunction(Layer.Function.CONTACT1);		// Poly1_Cut
 		PC0_lay.setFunction(Layer.Function.CONTACT3);		// Poly2_Cut
-		PA_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo_Active
 		PBA_lay.setFunction(Layer.Function.DIFFP);		// P_Base_Active
 		B_lay.setFunction(Layer.Function.IMPLANTN);		// BCCD
 		OS_lay.setFunction(Layer.Function.SUBSTRATE);		// Ohmic_Substrate
 		OW_lay.setFunction(Layer.Function.WELL);		// Ohmic_Well
+		Layer PPS_lay = PS_lay.makePseudo("Pseudo_P_Select");		// Pseudo_P_Select
+		Layer PNS_lay = NS_lay.makePseudo("Pseudo_N_Select");		// Pseudo_N_Select
+		Layer PNW_lay = NW_lay.makePseudo("Pseudo_N_Well");		// Pseudo_N_Well
+		Layer PM_lay = M_lay.makePseudo("Pseudo_Metal_1");		// Pseudo_Metal_1
+		Layer PM0_lay = M0_lay.makePseudo("Pseudo_Metal_2");		// Pseudo_Metal_2
+		Layer PP_lay = P0_lay.makePseudo("Pseudo_Polysilicon");		// Pseudo_Polysilicon
+		Layer PP0_lay = P1_lay.makePseudo("Pseudo_Polysilicon_2");		// Pseudo_Polysilicon_2
+		Layer PA_lay = A_lay.makePseudo("Pseudo_Active");		// Pseudo_Active
+//		PPS_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);		// Pseudo_P_Select
+//		PNS_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);		// Pseudo_N_Select
+//		PNW_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo_N_Well
+//		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo_Metal_1
+//		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo_Metal_2
+//		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo_Polysilicon
+//		PP0_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo_Polysilicon_2
+//		PA_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo_Active
 
 		// The CIF names
 		PS_lay.setFactoryCIFLayer("CSP");		// P_Select
@@ -505,13 +513,6 @@ public class BiCMOS extends Technology
 		PF_lay.setFactoryCIFLayer("XP");		// Pad_Frame
 		T_lay.setFactoryCIFLayer("");		// Transistor
 		AC_lay.setFactoryCIFLayer("CCA");		// Active_Cut
-		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal_1
-		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal_2
-		PP_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon
-		PPS_lay.setFactoryCIFLayer("");		// Pseudo_P_Select
-		PNS_lay.setFactoryCIFLayer("");		// Pseudo_N_Select
-		PNW_lay.setFactoryCIFLayer("");		// Pseudo_N_Well
-		PP0_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon_2
 		M_lay.setFactoryCIFLayer("CMF");		// M1
 		M0_lay.setFactoryCIFLayer("CMS");		// M2
 		P0_lay.setFactoryCIFLayer("CPG");		// Poly1
@@ -519,11 +520,18 @@ public class BiCMOS extends Technology
 		A_lay.setFactoryCIFLayer("CAA");		// Active
 		PC_lay.setFactoryCIFLayer("CCP");		// Poly1_Cut
 		PC0_lay.setFactoryCIFLayer("CCE");		// Poly2_Cut
-		PA_lay.setFactoryCIFLayer("");		// Pseudo_Active
 		PBA_lay.setFactoryCIFLayer("CBA");		// P_Base_Active
 		B_lay.setFactoryCIFLayer("CCD");		// BCCD
 		OS_lay.setFactoryCIFLayer("CAA");		// Ohmic_Substrate
 		OW_lay.setFactoryCIFLayer("CAA");		// Ohmic_Well
+		PPS_lay.setFactoryCIFLayer("");		// Pseudo_P_Select
+		PNS_lay.setFactoryCIFLayer("");		// Pseudo_N_Select
+		PNW_lay.setFactoryCIFLayer("");		// Pseudo_N_Well
+		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal_1
+		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal_2
+		PP_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon
+		PP0_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon_2
+		PA_lay.setFactoryCIFLayer("");		// Pseudo_Active
 
 		// The DXF names
 		PS_lay.setFactoryDXFLayer("");		// P_Select
@@ -534,13 +542,6 @@ public class BiCMOS extends Technology
 		PF_lay.setFactoryDXFLayer("");		// Pad_Frame
 		T_lay.setFactoryDXFLayer("");		// Transistor
 		AC_lay.setFactoryDXFLayer("");		// Active_Cut
-		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal_1
-		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal_2
-		PP_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon
-		PPS_lay.setFactoryDXFLayer("");		// Pseudo_P_Select
-		PNS_lay.setFactoryDXFLayer("");		// Pseudo_N_Select
-		PNW_lay.setFactoryDXFLayer("");		// Pseudo_N_Well
-		PP0_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon_2
 		M_lay.setFactoryDXFLayer("");		// M1
 		M0_lay.setFactoryDXFLayer("");		// M2
 		P0_lay.setFactoryDXFLayer("");		// Poly1
@@ -548,85 +549,164 @@ public class BiCMOS extends Technology
 		A_lay.setFactoryDXFLayer("");		// Active
 		PC_lay.setFactoryDXFLayer("");		// Poly1_Cut
 		PC0_lay.setFactoryDXFLayer("");		// Poly2_Cut
-		PA_lay.setFactoryDXFLayer("");		// Pseudo_Active
 		PBA_lay.setFactoryDXFLayer("");		// P_Base_Active
 		B_lay.setFactoryDXFLayer("");		// BCCD
 		OS_lay.setFactoryDXFLayer("");		// Ohmic_Substrate
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
+		PPS_lay.setFactoryDXFLayer("");		// Pseudo_P_Select
+		PNS_lay.setFactoryDXFLayer("");		// Pseudo_N_Select
+		PNW_lay.setFactoryDXFLayer("");		// Pseudo_N_Well
+		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal_1
+		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal_2
+		PP_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon
+		PP0_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon_2
+		PA_lay.setFactoryDXFLayer("");		// Pseudo_Active
 
 		//******************** DESIGN RULES ********************
 
 		conDist = new double[] {
-			//            P  N  N  V  P  P  T  A  P  P  P  P  P  P  P  M  M  P  P  A  P  P  P  P  B  O  O  
-			//            S  S  W        F     C  M  M  P  P  N  N  P     0  0  1     C  C  A  B     S  W  
-			//                                       0     S  S  W  0                    0     A           
+			//            P  N  N  V  P  P  T  A  M  M  P  P  A  P  P  P  B  O  O  P  P  P  P  P  P  P  P  
+			//            S  S  W        F     C     0  0  1     C  C  B     S  W  P  N  N  M  M  P  P  A  
+			//                                                      0  A           S  S  W     0     0     
 			//                                                                                             
 			//                                                                                             
 			//                                                                                             
 			/* PS     */ XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* NS     */    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* NW     */       XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* V      */          2,XX,XX,XX,2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,2,XX,XX,XX,XX,XX,XX,
+			/* V      */           2,XX,XX,XX, 2,XX,XX,XX,XX,XX, 2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* P      */             XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* PF     */                XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* T      */                   XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* AC     */                      2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PM     */                         XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PM0    */                            XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PP     */                               XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PPS    */                                  XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PNS    */                                     XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PNW    */                                        XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PP0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* M      */                                              XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* M0     */                                                 XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* P0     */                                                    XX,XX,1,XX,XX,XX,XX,XX,XX,XX,
-			/* P1     */                                                       XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* A      */                                                          XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PC     */                                                             2,XX,XX,XX,XX,XX,XX,
-			/* PC0    */                                                                XX,XX,XX,XX,XX,XX,
-			/* PA     */                                                                   XX,XX,XX,XX,XX,
-			/* PBA    */                                                                      XX,XX,XX,XX,
-			/* B      */                                                                         XX,XX,XX,
-			/* OS     */                                                                            XX,XX,
-			/* OW     */                                                                               XX
+			/* AC     */                       2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* M      */                         XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* M0     */                            XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* P0     */                               XX,XX, 1,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* P1     */                                  XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* A      */                                     XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PC     */                                         2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PC0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PBA    */                                              XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* B      */                                                 XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* OS     */                                                    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* OW     */                                                       XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PPS    */                                                          XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PNS    */                                                             XX,XX,XX,XX,XX,XX,XX,
+			/* PNW    */                                                                XX,XX,XX,XX,XX,XX,
+			/* PM     */                                                                   XX,XX,XX,XX,XX,
+			/* PM0    */                                                                      XX,XX,XX,XX,
+			/* PP     */                                                                         XX,XX,XX,
+			/* PP0    */                                                                            XX,XX,
+			/* PA     */                                                                               XX
 		};
 
+//		conDist = new double[] {
+//			//            P  N  N  V  P  P  T  A  P  P  P  P  P  P  P  M  M  P  P  A  P  P  P  P  B  O  O  
+//			//            S  S  W        F     C  M  M  P  P  N  N  P     0  0  1     C  C  A  B     S  W  
+//			//                                       0     S  S  W  0                    0     A           
+//			//                                                                                             
+//			//                                                                                             
+//			//                                                                                             
+//			/* PS     */ XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* NS     */    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* NW     */       XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* V      */          2,XX,XX,XX,2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,2,XX,XX,XX,XX,XX,XX,
+//			/* P      */             XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PF     */                XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* T      */                   XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* AC     */                      2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PM     */                         XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PM0    */                            XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PP     */                               XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PPS    */                                  XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PNS    */                                     XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PNW    */                                        XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PP0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* M      */                                              XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* M0     */                                                 XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* P0     */                                                    XX,XX,1,XX,XX,XX,XX,XX,XX,XX,
+//			/* P1     */                                                       XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* A      */                                                          XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PC     */                                                             2,XX,XX,XX,XX,XX,XX,
+//			/* PC0    */                                                                XX,XX,XX,XX,XX,XX,
+//			/* PA     */                                                                   XX,XX,XX,XX,XX,
+//			/* PBA    */                                                                      XX,XX,XX,XX,
+//			/* B      */                                                                         XX,XX,XX,
+//			/* OS     */                                                                            XX,XX,
+//			/* OW     */                                                                               XX
+//		};
+        
 		unConDist = new double[] {
-			//            P  N  N  V  P  P  T  A  P  P  P  P  P  P  P  M  M  P  P  A  P  P  P  P  B  O  O  
-			//            S  S  W        F     C  M  M  P  P  N  N  P     0  0  1     C  C  A  B     S  W  
-			//                                       0     S  S  W  0                    0     A           
+			//            P  N  N  V  P  P  T  A  M  M  P  P  A  P  P  P  B  O  O  P  P  P  P  P  P  P  P  
+			//            S  S  W        F     C     0  0  1     C  C  B     S  W  P  N  N  M  M  P  P  A  
+			//                                                      0  A           S  S  W     0     0     
 			//                                                                                             
 			//                                                                                             
 			//                                                                                             
 			/* PS     */ XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* NS     */    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* NW     */       XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* V      */          3,XX,XX,2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,2,XX,2,XX,XX,XX,XX,XX,XX,XX,
+			/* V      */           3,XX,XX, 2,XX,XX,XX, 2,XX, 2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* P      */             XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* PF     */                XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
 			/* T      */                   XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* AC     */                      XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,5,XX,XX,XX,XX,XX,XX,XX,
-			/* PM     */                         XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PM0    */                            XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PP     */                               XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PPS    */                                  XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PNS    */                                     XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PNW    */                                        XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* PP0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* M      */                                              3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* M0     */                                                 4,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* P0     */                                                    2,XX,1,4,XX,XX,XX,XX,XX,XX,
-			/* P1     */                                                       3,XX,XX,XX,XX,XX,XX,XX,XX,
-			/* A      */                                                          3,XX,XX,XX,XX,XX,XX,XX,
-			/* PC     */                                                             XX,XX,XX,XX,XX,XX,XX,
-			/* PC0    */                                                                XX,XX,XX,XX,XX,XX,
-			/* PA     */                                                                   XX,XX,XX,XX,XX,
-			/* PBA    */                                                                      XX,XX,XX,XX,
-			/* B      */                                                                         XX,XX,XX,
-			/* OS     */                                                                            XX,XX,
-			/* OW     */                                                                               XX
+			/* AC     */                      XX,XX,XX,XX,XX, 5,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* M      */                          3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* M0     */                             4,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* P0     */                                2,XX, 1, 4,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* P1     */                                   3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* A      */                                      3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PC     */                                        XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PC0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PBA    */                                              XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* B      */                                                 XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* OS     */                                                    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* OW     */                                                       XX,XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PM     */                                                          XX,XX,XX,XX,XX,XX,XX,XX,
+			/* PM0    */                                                             XX,XX,XX,XX,XX,XX,XX,
+			/* PP     */                                                                XX,XX,XX,XX,XX,XX,
+			/* PM     */                                                                   XX,XX,XX,XX,XX,
+			/* PM0    */                                                                      XX,XX,XX,XX,
+			/* PP     */                                                                            XX,XX,
+			/* PP0    */                                                                            XX,XX,
+			/* PA     */                                                                               XX
 		};
+        
+//		unConDist = new double[] {
+//			//            P  N  N  V  P  P  T  A  P  P  P  P  P  P  P  M  M  P  P  A  P  P  P  P  B  O  O  
+//			//            S  S  W        F     C  M  M  P  P  N  N  P     0  0  1     C  C  A  B     S  W  
+//			//                                       0     S  S  W  0                    0     A           
+//			//                                                                                             
+//			//                                                                                             
+//			//                                                                                             
+//			/* PS     */ XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* NS     */    XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* NW     */       XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* V      */          3,XX,XX,2,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,2,XX,2,XX,XX,XX,XX,XX,XX,XX,
+//			/* P      */             XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PF     */                XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* T      */                   XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* AC     */                      XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,5,XX,XX,XX,XX,XX,XX,XX,
+//			/* PM     */                         XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PM0    */                            XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PP     */                               XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PPS    */                                  XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PNS    */                                     XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PNW    */                                        XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* PP0    */                                           XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* M      */                                              3,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* M0     */                                                 4,XX,XX,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* P0     */                                                    2,XX,1,4,XX,XX,XX,XX,XX,XX,
+//			/* P1     */                                                       3,XX,XX,XX,XX,XX,XX,XX,XX,
+//			/* A      */                                                          3,XX,XX,XX,XX,XX,XX,XX,
+//			/* PC     */                                                             XX,XX,XX,XX,XX,XX,XX,
+//			/* PC0    */                                                                XX,XX,XX,XX,XX,XX,
+//			/* PA     */                                                                   XX,XX,XX,XX,XX,
+//			/* PBA    */                                                                      XX,XX,XX,XX,
+//			/* B      */                                                                         XX,XX,XX,
+//			/* OS     */                                                                            XX,XX,
+//			/* OW     */                                                                               XX
+//		};
 
 		//******************** ARCS ********************
 

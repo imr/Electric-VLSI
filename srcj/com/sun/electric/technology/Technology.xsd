@@ -64,6 +64,10 @@
         </xsd:restriction>
     </xsd:simpleType>
     
+    <xsd:simpleType name="LayerName">
+        <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+    
     <xsd:simpleType name="LayerFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -124,7 +128,6 @@
     
     <xsd:simpleType name="LayerExtraFun">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="pseudo"/>
             <xsd:enumeration value="nonelectrical"/>
             <xsd:enumeration value="connects-metal"/>
             <xsd:enumeration value="connects-poly"/>
@@ -401,8 +404,9 @@
                                     <xsd:attribute name="edgeCapacitance" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
+                            <xsd:element name="pseudoLayer" type="tns:LayerName" minOccurs="0"></xsd:element>
                         </xsd:sequence>
-                        <xsd:attribute name="name" type="xsd:ID" use="required"/>
+                        <xsd:attribute name="name" type="tns:LayerName" use="required"/>
                         <xsd:attribute name="fun" type="tns:LayerFun" use="required"/>
                         <xsd:attribute name="extraFun" type="tns:LayerExtraFun"/>
                     </xsd:complexType>
@@ -431,7 +435,7 @@
                             <xsd:element name="arcLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:group ref="tns:Distance"/>
-                                    <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
+                                    <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
                                     <xsd:attribute name="style" type="tns:ArcLayerStyle" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
@@ -504,7 +508,7 @@
                                         </xsd:choice>
                                         <xsd:element name="techPoint" minOccurs="2" maxOccurs="unbounded" type="tns:TechPoint"></xsd:element>
                                     </xsd:sequence>
-                                    <xsd:attribute name="layer" type="xsd:IDREF" use="required"/>
+                                    <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
                                     <xsd:attribute name="portNum" type="xsd:integer"/>
                                     <xsd:attribute name="electrical" type="xsd:boolean"/>

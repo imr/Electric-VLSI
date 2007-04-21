@@ -107,6 +107,7 @@ public class Xml {
         public double resistance;
         public double capacitance;
         public double edgeCapacitance;
+        public String pseudoLayer;
     }
     
     public static class ArcProto {
@@ -235,6 +236,7 @@ public class Xml {
         display3D,
         cifLayer,
         parasitics,
+        pseudoLayer(true),
         
         arcProto,
         wipable,
@@ -953,6 +955,9 @@ public class Xml {
                         break;
                     case foreground:
                         foreground = Boolean.parseBoolean(text);
+                        break;
+                    case pseudoLayer:
+                        curLayer.pseudoLayer = text;
                         break;
                     case widthOffset:
                         curArc.widthOffset = Double.parseDouble(text);

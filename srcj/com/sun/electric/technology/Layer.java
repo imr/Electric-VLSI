@@ -57,7 +57,7 @@ public class Layer
     /** Describes a enhancement layer. */											private static final int ENHANCEMENT =   01000;
     /** Describes a light doped layer. */											private static final int LIGHT =         02000;
     /** Describes a heavy doped layer. */											private static final int HEAVY =         04000;
-    /** Describes a pseudo layer. */												private static final int PSEUDO =       010000;
+//    /** Describes a pseudo layer. */												private static final int PSEUDO =       010000;
     /** Describes a nonelectrical layer (does not carry signals). */				private static final int NONELEC =      020000;
     /** Describes a layer that contacts metal (used to identify contacts/vias). */	private static final int CONMETAL =     040000;
     /** Describes a layer that contacts polysilicon (used to identify contacts). */	private static final int CONPOLY =     0100000;
@@ -137,7 +137,7 @@ public class Layer
         /** Describes a enhancement layer. */											public static final int ENHANCEMENT = Layer.ENHANCEMENT;
         /** Describes a light doped layer. */											public static final int LIGHT = Layer.LIGHT;
         /** Describes a heavy doped layer. */											public static final int HEAVY = Layer.HEAVY;
-        /** Describes a pseudo layer. */												public static final int PSEUDO = Layer.PSEUDO;
+//        /** Describes a pseudo layer. */												public static final int PSEUDO = Layer.PSEUDO;
         /** Describes a nonelectrical layer (does not carry signals). */				public static final int NONELEC = Layer.NONELEC;
         /** Describes a layer that contacts metal (used to identify contacts/vias). */	public static final int CONMETAL = Layer.CONMETAL;
         /** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY = Layer.CONPOLY;
@@ -153,7 +153,7 @@ public class Layer
 		private int level;
 		private final int height;
 		private final int extraBits;
-		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, PSEUDO, NONELEC, CONMETAL, CONPOLY, CONDIFF, HLVT, INTRANS, THICK};
+		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, /*PSEUDO,*/ NONELEC, CONMETAL, CONPOLY, CONDIFF, HLVT, INTRANS, THICK};
 
         static {
             allFunctions = Arrays.asList(Function.class.getEnumConstants());
@@ -234,7 +234,7 @@ public class Layer
 			if (extra == ENHANCEMENT) return "enhancement";
 			if (extra == LIGHT) return "light";
 			if (extra == HEAVY) return "heavy";
-			if (extra == PSEUDO) return "pseudo";
+//			if (extra == PSEUDO) return "pseudo";
 			if (extra == NONELEC) return "nonelectrical";
 			if (extra == CONMETAL) return "connects-metal";
 			if (extra == CONPOLY) return "connects-poly";
@@ -259,7 +259,7 @@ public class Layer
 			if (extra == ENHANCEMENT) return "ENHANCEMENT";
 			if (extra == LIGHT) return "LIGHT";
 			if (extra == HEAVY) return "HEAVY";
-			if (extra == PSEUDO) return "PSEUDO";
+//			if (extra == PSEUDO) return "PSEUDO";
 			if (extra == NONELEC) return "NONELEC";
 			if (extra == CONMETAL) return "CONMETAL";
 			if (extra == CONPOLY) return "CONPOLY";
@@ -283,7 +283,7 @@ public class Layer
 			if (name.equalsIgnoreCase("enhancement")) return ENHANCEMENT;
 			if (name.equalsIgnoreCase("light")) return LIGHT;
 			if (name.equalsIgnoreCase("heavy")) return HEAVY;
-			if (name.equalsIgnoreCase("pseudo")) return PSEUDO;
+//			if (name.equalsIgnoreCase("pseudo")) return PSEUDO;
 			if (name.equalsIgnoreCase("nonelectrical")) return NONELEC;
 			if (name.equalsIgnoreCase("connects-metal")) return CONMETAL;
 			if (name.equalsIgnoreCase("connects-poly")) return CONPOLY;
@@ -493,12 +493,13 @@ public class Layer
         }
 	}
 
-	private String name;
+	private final String name;
 	private int index = -1; // contains index in technology or -1 for standalone layers
-	private Technology tech;
+	private final Technology tech;
 	private EGraphics graphics;
 	private Function function;
 	private int functionExtras;
+    private boolean pseudo;
 	private Setting cifLayerSetting;
 	private Setting dxfLayerSetting;
 //	private String gdsLayer;
@@ -570,6 +571,26 @@ public class Layer
 	}
 
 	/**
+	 * Method to create a pseudo-layer for this Layer with a standard name "Pseudo-XXX".
+	 * @return the pseudo-layer.
+	 */
+    public Layer makePseudo() {
+        return makePseudo("Pseudo-" + name);
+    }
+    
+	/**
+	 * Method to create a pseudo-layer for this Layer with a specified name.
+     * @param pseudoLayerName a name for pseudo-layer.
+	 * @return the pseudo-layer.
+	 */
+    public Layer makePseudo(String pseudoLayerName) {
+        Layer pseudo = newInstance(tech, pseudoLayerName, new EGraphics(graphics));
+        pseudo.setFunction(function, functionExtras, true);
+        pseudo.nonPseudoLayer = this;
+        return pseudo;
+    }
+    
+	/**
 	 * Method to return the name of this Layer.
 	 * @return the name of this Layer.
 	 */
@@ -619,6 +640,19 @@ public class Layer
 	 * @param functionExtras extra bits to describe the Function of this Layer.
 	 */
 	public void setFunction(Function function, int functionExtras)
+    {
+        setFunction(function, functionExtras, false);
+    }
+    
+	/**
+	 * Method to set the Function of this Layer when the function is complex.
+	 * Some layer functions have extra bits of information to describe them.
+	 * For example, P-Type Diffusion has the Function DIFF but the extra bits PTYPE.
+	 * @param function the Function of this Layer.
+	 * @param functionExtras extra bits to describe the Function of this Layer.
+     * @param pseudo true if the Layer is pseudo-layer
+	 */
+	public void setFunction(Function function, int functionExtras, boolean pseudo)
 	{
 		this.function = function;
         int numBits = 0;
@@ -631,6 +665,7 @@ public class Layer
                 functionExtras != (ENHANCEMENT|HEAVY) && functionExtras != (ENHANCEMENT|LIGHT))
             throw new IllegalArgumentException("functionExtras=" + Integer.toHexString(functionExtras));
         this.functionExtras = functionExtras;
+        this.pseudo = pseudo;
 	}
 
 	/**
@@ -683,7 +718,7 @@ public class Layer
 	 * Pseudo layers are those used in pins, and have no real geometry.
 	 * @return true if this is pseudo-layer.
 	 */
-	public boolean isPseudoLayer() { return (functionExtras&Layer.Function.PSEUDO) != 0; }
+	public boolean isPseudoLayer() { return pseudo; }
 	/**
 	 * Method to return the non-pseudo layer associated with this pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.
@@ -697,7 +732,7 @@ public class Layer
 	 * Pseudo layers are those used in pins, and have no real geometry.
 	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
 	 */
-	public void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
+	private void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
 
 	/**
 	 * Method to tell whether this Layer is visible.

@@ -571,290 +571,292 @@ public class MoCMOS extends Technology
 						0x4040,   //  X       X
 						0x2020}));//   X       X
 
-		/** pseudo metal 1 */
-		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255, 1,true,
-			new int[] { 0x2222,   //   X   X   X   X
-						0x0000,   //
-						0x8888,   // X   X   X   X
-						0x0000,   //
-						0x2222,   //   X   X   X   X
-						0x0000,   //
-						0x8888,   // X   X   X   X
-						0x0000,   //
-						0x2222,   //   X   X   X   X
-						0x0000,   //
-						0x8888,   // X   X   X   X
-						0x0000,   //
-						0x2222,   //   X   X   X   X
-						0x0000,   //
-						0x8888,   // X   X   X   X
-						0x0000}));//
-
-		/** pseudo metal-2 */
-		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 224,95,255, 1,true,
-			new int[] { 0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808,   //     X       X
-						0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808}));//     X       X
-
-		/** pseudo metal-3 */
-		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 247,251,20, 1,true,
-			new int[] { 0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808,   //     X       X
-						0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808}));//     X       X
-
-		/** pseudo metal-4 */
-		Layer pseudoMetal4_lay = Layer.newInstance(this, "Pseudo-Metal-4",
-			new EGraphics(true, true, null, 0, 150,150,255, 1,true,
-			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000,   //
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x0000}));//
-
-		/** pseudo metal-5 */
-		Layer pseudoMetal5_lay = Layer.newInstance(this, "Pseudo-Metal-5",
-			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,190,6, 1,true,
-			new int[] { 0x8888,   // X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x8888,   // X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x8888,   // X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x8888,   // X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x4444}));//  X   X   X   X
-
-		/** pseudo metal-6 */
-		Layer pseudoMetal6_lay = Layer.newInstance(this, "Pseudo-Metal-6",
-			new EGraphics(true, true, null, 0, 0,255,255, 1,true,
-			new int[] { 0x8888,   // X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X
-						0x4444,   //  X   X   X   X
-						0x2222,   //   X   X   X   X
-						0x1111}));//    X   X   X   X
-
-		/** pseudo poly layer */
-		Layer pseudoPoly1_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_2, 255,155,192, 1,true,
-			new int[] { 0x1111,   //    X   X   X   X
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x1111,   //    X   X   X   X
-						0x5555,   //  X X X X X X X X
-						0x1111,   //    X   X   X   X
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x1111,   //    X   X   X   X
-						0x5555,   //  X X X X X X X X
-						0x1111,   //    X   X   X   X
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x1111,   //    X   X   X   X
-						0x5555,   //  X X X X X X X X
-						0x1111,   //    X   X   X   X
-						0xFFFF,   // XXXXXXXXXXXXXXXX
-						0x1111,   //    X   X   X   X
-						0x5555}));//  X X X X X X X X
-
-		/** pseudo poly2 layer */
-		Layer pseudoPoly2_lay = Layer.newInstance(this, "Pseudo-Electrode",
-			new EGraphics(true, true, null, 0, 255,190,6, 1,true,
-			new int[] { 0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X
-						0xFAFA,   // XXXXX X XXXXX X
-						0x8888,   // X   X   X   X
-						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X
-						0xFAFA,   // XXXXX X XXXXX X
-						0x8888,   // X   X   X   X
-						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X
-						0xFAFA,   // XXXXX X XXXXX X
-						0x8888,   // X   X   X   X
-						0xAFAF,   // X X XXXXX X XXXX
-						0x8888,   // X   X   X   X
-						0xFAFA,   // XXXXX X XXXXX X
-						0x8888}));// X   X   X   X
-
-		/** pseudo P active */
-		pseudoActiveLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
-			new int[] { 0x0000,   //
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X
-						0x0303,   //       XX      XX
-						0x0000,   //
-						0x3030,   //   XX      XX
-						0x8484,   // X    X  X    X
-						0x3030,   //   XX      XX
-						0x0000,   //
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X
-						0x0303,   //       XX      XX
-						0x0000,   //
-						0x3030,   //   XX      XX
-						0x8484,   // X    X  X    X
-						0x3030}));//   XX      XX
-
-		/** pseudo N active */
-		pseudoActiveLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
-			new int[] { 0x0000,   //
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X
-						0x0303,   //       XX      XX
-						0x0000,   //
-						0x3030,   //   XX      XX
-						0x8484,   // X    X  X    X
-						0x3030,   //   XX      XX
-						0x0000,   //
-						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X
-						0x0303,   //       XX      XX
-						0x0000,   //
-						0x3030,   //   XX      XX
-						0x8484,   // X    X  X    X
-						0x3030}));//   XX      XX
-
-		/** pseudo P Select */
-		pseudoSelectLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Select",
-			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-			new int[] { 0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808,   //     X       X
-						0x1010,   //    X       X
-						0x2020,   //   X       X
-						0x4040,   //  X       X
-						0x8080,   // X       X
-						0x0101,   //        X       X
-						0x0202,   //       X       X
-						0x0404,   //      X       X
-						0x0808}));//     X       X
-
-		/** pseudo N Select */
-		pseudoSelectLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Select",
-			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-			new int[] { 0x0101,   //        X       X
-						0x0000,   //
-						0x1010,   //    X       X
-						0x0000,   //
-						0x0101,   //        X       X
-						0x0000,   //
-						0x1010,   //    X       X
-						0x0000,   //
-						0x0101,   //        X       X
-						0x0000,   //
-						0x1010,   //    X       X
-						0x0000,   //
-						0x0101,   //        X       X
-						0x0000,   //
-						0x1010,   //    X       X
-						0x0000}));//
-
-		/** pseudo P Well */
-		pseudoWellLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X
-						0x0101,   //        X       X
-						0x8080,   // X       X
-						0x4040,   //  X       X
-						0x2020,   //   X       X
-						0x1010,   //    X       X
-						0x0808,   //     X       X
-						0x0404,   //      X       X
-						0x0202,   //       X       X
-						0x0101,   //        X       X
-						0x8080,   // X       X
-						0x4040,   //  X       X
-						0x2020,   //   X       X
-						0x1010,   //    X       X
-						0x0808,   //     X       X
-						0x0404}));//      X       X
-
-		/** pseudo N Well */
-		pseudoWellLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Well",
-			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-			new int[] { 0x0202,   //       X       X
-						0x0000,   //
-						0x2020,   //   X       X
-						0x0000,   //
-						0x0202,   //       X       X
-						0x0000,   //
-						0x2020,   //   X       X
-						0x0000,   //
-						0x0202,   //       X       X
-						0x0000,   //
-						0x2020,   //   X       X
-						0x0000,   //
-						0x0202,   //       X       X
-						0x0000,   //
-						0x2020,   //   X       X
-						0x0000}));//
-
 		/** pad frame */
 		padFrameLayer = Layer.newInstance(this, "Pad-Frame",
 			new EGraphics(false, true, null, 0, 255,0,0, 1,false,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+        
+        createExtraLayers();
+
+//		/** pseudo metal 1 */
+//		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255, 1,true,
+//			new int[] { 0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000}));//
+//
+//		/** pseudo metal-2 */
+//		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 224,95,255, 1,true,
+//			new int[] { 0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808,   //     X       X
+//						0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808}));//     X       X
+//
+//		/** pseudo metal-3 */
+//		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 247,251,20, 1,true,
+//			new int[] { 0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808,   //     X       X
+//						0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808}));//     X       X
+//
+//		/** pseudo metal-4 */
+//		Layer pseudoMetal4_lay = Layer.newInstance(this, "Pseudo-Metal-4",
+//			new EGraphics(true, true, null, 0, 150,150,255, 1,true,
+//			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000,   //
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x0000}));//
+//
+//		/** pseudo metal-5 */
+//		Layer pseudoMetal5_lay = Layer.newInstance(this, "Pseudo-Metal-5",
+//			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,190,6, 1,true,
+//			new int[] { 0x8888,   // X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x4444}));//  X   X   X   X
+//
+//		/** pseudo metal-6 */
+//		Layer pseudoMetal6_lay = Layer.newInstance(this, "Pseudo-Metal-6",
+//			new EGraphics(true, true, null, 0, 0,255,255, 1,true,
+//			new int[] { 0x8888,   // X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X
+//						0x4444,   //  X   X   X   X
+//						0x2222,   //   X   X   X   X
+//						0x1111}));//    X   X   X   X
+//
+//		/** pseudo poly layer */
+//		Layer pseudoPoly1_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_2, 255,155,192, 1,true,
+//			new int[] { 0x1111,   //    X   X   X   X
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x1111,   //    X   X   X   X
+//						0x5555,   //  X X X X X X X X
+//						0x1111,   //    X   X   X   X
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x1111,   //    X   X   X   X
+//						0x5555,   //  X X X X X X X X
+//						0x1111,   //    X   X   X   X
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x1111,   //    X   X   X   X
+//						0x5555,   //  X X X X X X X X
+//						0x1111,   //    X   X   X   X
+//						0xFFFF,   // XXXXXXXXXXXXXXXX
+//						0x1111,   //    X   X   X   X
+//						0x5555}));//  X X X X X X X X
+//
+//		/** pseudo poly2 layer */
+//		Layer pseudoPoly2_lay = Layer.newInstance(this, "Pseudo-Electrode",
+//			new EGraphics(true, true, null, 0, 255,190,6, 1,true,
+//			new int[] { 0xAFAF,   // X X XXXXX X XXXX
+//						0x8888,   // X   X   X   X
+//						0xFAFA,   // XXXXX X XXXXX X
+//						0x8888,   // X   X   X   X
+//						0xAFAF,   // X X XXXXX X XXXX
+//						0x8888,   // X   X   X   X
+//						0xFAFA,   // XXXXX X XXXXX X
+//						0x8888,   // X   X   X   X
+//						0xAFAF,   // X X XXXXX X XXXX
+//						0x8888,   // X   X   X   X
+//						0xFAFA,   // XXXXX X XXXXX X
+//						0x8888,   // X   X   X   X
+//						0xAFAF,   // X X XXXXX X XXXX
+//						0x8888,   // X   X   X   X
+//						0xFAFA,   // XXXXX X XXXXX X
+//						0x8888}));// X   X   X   X
+//
+//		/** pseudo P active */
+//		pseudoActiveLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Active",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
+//			new int[] { 0x0000,   //
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X
+//						0x0303,   //       XX      XX
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030,   //   XX      XX
+//						0x0000,   //
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X
+//						0x0303,   //       XX      XX
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030}));//   XX      XX
+//
+//		/** pseudo N active */
+//		pseudoActiveLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Active",
+//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
+//			new int[] { 0x0000,   //
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X
+//						0x0303,   //       XX      XX
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030,   //   XX      XX
+//						0x0000,   //
+//						0x0303,   //       XX      XX
+//						0x4848,   //  X  X    X  X
+//						0x0303,   //       XX      XX
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030}));//   XX      XX
+//
+//		/** pseudo P Select */
+//		pseudoSelectLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Select",
+//			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
+//			new int[] { 0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808,   //     X       X
+//						0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
+//						0x0101,   //        X       X
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808}));//     X       X
+//
+//		/** pseudo N Select */
+//		pseudoSelectLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Select",
+//			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
+//			new int[] { 0x0101,   //        X       X
+//						0x0000,   //
+//						0x1010,   //    X       X
+//						0x0000,   //
+//						0x0101,   //        X       X
+//						0x0000,   //
+//						0x1010,   //    X       X
+//						0x0000,   //
+//						0x0101,   //        X       X
+//						0x0000,   //
+//						0x1010,   //    X       X
+//						0x0000,   //
+//						0x0101,   //        X       X
+//						0x0000,   //
+//						0x1010,   //    X       X
+//						0x0000}));//
+//
+//		/** pseudo P Well */
+//		pseudoWellLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Well",
+//			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
+//			new int[] { 0x0202,   //       X       X
+//						0x0101,   //        X       X
+//						0x8080,   // X       X
+//						0x4040,   //  X       X
+//						0x2020,   //   X       X
+//						0x1010,   //    X       X
+//						0x0808,   //     X       X
+//						0x0404,   //      X       X
+//						0x0202,   //       X       X
+//						0x0101,   //        X       X
+//						0x8080,   // X       X
+//						0x4040,   //  X       X
+//						0x2020,   //   X       X
+//						0x1010,   //    X       X
+//						0x0808,   //     X       X
+//						0x0404}));//      X       X
+//
+//		/** pseudo N Well */
+//		pseudoWellLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Well",
+//			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
+//			new int[] { 0x0202,   //       X       X
+//						0x0000,   //
+//						0x2020,   //   X       X
+//						0x0000,   //
+//						0x0202,   //       X       X
+//						0x0000,   //
+//						0x2020,   //   X       X
+//						0x0000,   //
+//						0x0202,   //       X       X
+//						0x0000,   //
+//						0x2020,   //   X       X
+//						0x0000,   //
+//						0x0202,   //       X       X
+//						0x0000,   //
+//						0x2020,   //   X       X
+//						0x0000}));//
 
 		// The layer functions
 		metalLayers[0].setFunction(Layer.Function.METAL1);									// Metal-1
@@ -885,21 +887,35 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFunction(Layer.Function.ART);								// Silicide-Block
 
 		thickActiveLayer.setFunction(Layer.Function.DIFF, Layer.Function.THICK);			// Thick-Active
-		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
-		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
-		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
-		pseudoMetal4_lay.setFunction(Layer.Function.METAL4, Layer.Function.PSEUDO);		// Pseudo-Metal-4
-		pseudoMetal5_lay.setFunction(Layer.Function.METAL5, Layer.Function.PSEUDO);		// Pseudo-Metal-5
-		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);		// Pseudo-Metal-6
-		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-2
-		pseudoActiveLayers[P_TYPE].setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
-		pseudoActiveLayers[N_TYPE].setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
-		pseudoSelectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
-		pseudoSelectLayers[N_TYPE].setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
-		pseudoWellLayers[P_TYPE].setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
-		pseudoWellLayers[N_TYPE].setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
 		padFrameLayer.setFunction(Layer.Function.ART);									// Pad-Frame
+		Layer pseudoMetal1_lay = metalLayers[0].makePseudo();		// Pseudo-Metal-1
+		Layer pseudoMetal2_lay = metalLayers[1].makePseudo();		// Pseudo-Metal-2
+		Layer pseudoMetal3_lay = metalLayers[2].makePseudo();		// Pseudo-Metal-3
+		Layer pseudoMetal4_lay = metalLayers[3].makePseudo();		// Pseudo-Metal-4
+		Layer pseudoMetal5_lay = metalLayers[4].makePseudo();		// Pseudo-Metal-5
+		Layer pseudoMetal6_lay = metalLayers[5].makePseudo();		// Pseudo-Metal-6
+		Layer pseudoPoly1_lay = poly1Layer.makePseudo("Pseudo-Polysilicon");		// Pseudo-Polysilicon-1
+		Layer pseudoPoly2_lay = poly2_lay.makePseudo("Pseudo-Electrode");		// Pseudo-Polysilicon-2
+		pseudoActiveLayers[P_TYPE] = activeLayers[P_TYPE].makePseudo();		// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE] = activeLayers[N_TYPE].makePseudo();		// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE] = selectLayers[P_TYPE].makePseudo();	// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE] = selectLayers[N_TYPE].makePseudo();	// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE] = wellLayers[P_TYPE].makePseudo();		// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE] = wellLayers[N_TYPE].makePseudo();		// Pseudo-N-Well
+//		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFunction(Layer.Function.METAL4, Layer.Function.PSEUDO);		// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFunction(Layer.Function.METAL5, Layer.Function.PSEUDO);		// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);		// Pseudo-Metal-6
+//		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-2
+//		pseudoActiveLayers[P_TYPE].setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
+//		pseudoActiveLayers[N_TYPE].setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
+//		pseudoSelectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
+//		pseudoSelectLayers[N_TYPE].setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
+//		pseudoWellLayers[P_TYPE].setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
+//		pseudoWellLayers[N_TYPE].setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
 
 		// The CIF names
 		metalLayers[0].setFactoryCIFLayer("CMF");				// Metal-1
@@ -929,6 +945,7 @@ public class MoCMOS extends Technology
 		pActiveWellLayer.setFactoryCIFLayer("CAA");			// P-Active-Well
 		silicideBlockLayer.setFactoryCIFLayer("CSB");		// Silicide-Block
 		thickActiveLayer.setFactoryCIFLayer("CTA");			// Thick-Active
+		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactoryCIFLayer("");			// Pseudo-Metal-3
@@ -943,7 +960,6 @@ public class MoCMOS extends Technology
 		pseudoSelectLayers[N_TYPE].setFactoryCIFLayer("CSN");		// Pseudo-N-Select
 		pseudoWellLayers[P_TYPE].setFactoryCIFLayer("CWP");			// Pseudo-P-Well
 		pseudoWellLayers[N_TYPE].setFactoryCIFLayer("CWN");			// Pseudo-N-Well
-		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1
@@ -973,6 +989,7 @@ public class MoCMOS extends Technology
 		pActiveWellLayer.setFactorySkillLayer("aa");			// P-Active-Well
 		silicideBlockLayer.setFactorySkillLayer("");	    // Silicide-Block
         thickActiveLayer.setFactorySkillLayer("");			// Thick-Active
+		padFrameLayer.setFactorySkillLayer("");				// Pad-Frame
 		pseudoMetal1_lay.setFactorySkillLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactorySkillLayer("");			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactorySkillLayer("");			// Pseudo-Metal-3
@@ -987,7 +1004,6 @@ public class MoCMOS extends Technology
 		pseudoSelectLayers[N_TYPE].setFactorySkillLayer("nplus");	// Pseudo-N-Select
 		pseudoWellLayers[P_TYPE].setFactorySkillLayer("pwell");		// Pseudo-P-Well
 		pseudoWellLayers[N_TYPE].setFactorySkillLayer("nwell");		// Pseudo-N-Well
-		padFrameLayer.setFactorySkillLayer("");				// Pad-Frame
 
         // Logical Effort Tech-dependent settings
         setFactoryLESettings(0.167, 0.16, 0.7);
@@ -2290,6 +2306,8 @@ public class MoCMOS extends Technology
 //        buildTechPalette();
     }
 
+    protected void createExtraLayers() {}
+    
     protected void initFoundryMOSIS() {
         newFoundry(Foundry.Type.MOSIS, MOSRules.class.getResource("Mosis180.xml"),
                 // The GDS names for MOSIS

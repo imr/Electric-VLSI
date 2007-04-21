@@ -185,10 +185,12 @@ public class Xml {
      }
     
     private void writeXml(LayerInfo li) {
+        if (li.pseudo) return;
         EGraphics desc = li.desc;
         String funString = null;
-        if (li.funExtra != 0) {
-            int funExtra = li.funExtra;
+        Boolean pseudo = li.pseudo ? Boolean.TRUE : null;
+        int funExtra = li.funExtra;
+        if (funExtra != 0) {
             if ((funExtra&Layer.Function.DEPLETION) != 0 || (funExtra&Layer.Function.ENHANCEMENT) != 0) {
                 funString = Layer.Function.getExtraName(funExtra&(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT));
                 funExtra &= ~(Layer.Function.DEPLETION|Layer.Function.ENHANCEMENT);
@@ -239,6 +241,9 @@ public class Xml {
         // write the SPICE information
         if (li.spiRes != 0 || li.spiCap != 0 || li.spiECap != 0) {
             b("parasitics"); a("resistance", li.spiRes); a("capacitance", li.spiCap); a("edgeCapacitance", li.spiECap); el();
+        }
+        if (li.myPseudo != null) {
+            bcpel("pseudoLayer", li.myPseudo.name);
         }
         el("layer");
     }

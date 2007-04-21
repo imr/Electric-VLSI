@@ -342,45 +342,45 @@ public class Bipolar extends Technology
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0xffff}));// XXXXXXXXXXXXXXXX
 
-		/** PM layer */
-		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 255,  0,  0,/*115,255,82,*/ 0.8,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
-
-		/** PM0 layer */
-		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4,  96,213,255,/*0,0,0,*/ 0.8,true,
-			new int[] { 0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
-						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
-						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010}));//    X       X    
+//		/** PM layer */
+//		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal1",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 255,  0,  0,/*115,255,82,*/ 0.8,true,
+//			new int[] { 0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x0000,   //                 
+//						0x8888,   // X   X   X   X   
+//						0x0000}));//                 
+//
+//		/** PM0 layer */
+//		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal2",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4,  96,213,255,/*0,0,0,*/ 0.8,true,
+//			new int[] { 0x0808,   //     X       X   
+//						0x0404,   //      X       X  
+//						0x0202,   //       X       X 
+//						0x0101,   //        X       X
+//						0x8080,   // X       X       
+//						0x4040,   //  X       X      
+//						0x2020,   //   X       X     
+//						0x1010,   //    X       X    
+//						0x0808,   //     X       X   
+//						0x0404,   //      X       X  
+//						0x0202,   //       X       X 
+//						0x0101,   //        X       X
+//						0x8080,   // X       X       
+//						0x4040,   //  X       X      
+//						0x2020,   //   X       X     
+//						0x1010}));//    X       X    
 
 		// The layer functions
 		M_lay.setFunction(Layer.Function.METAL1);		// Metal1
@@ -397,8 +397,10 @@ public class Bipolar extends Technology
 		V_lay.setFunction(Layer.Function.CONTACT2);		// Via
 		SP_lay.setFunction(Layer.Function.OVERGLASS);		// Scratch_Protection
 		B_lay.setFunction(Layer.Function.DIFF);		// Buried
-		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo_Metal1
-		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo_Metal2
+		Layer PM_lay = M_lay.makePseudo("Pseudo_Metal1");		// Pseudo_Metal1
+		Layer PM0_lay = M0_lay.makePseudo("Pseudo_Metal2");		// Pseudo_Metal2
+//		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo_Metal1
+//		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo_Metal2
 
 		// The CIF names
 		M_lay.setFactoryCIFLayer("IM1");	// Metal1

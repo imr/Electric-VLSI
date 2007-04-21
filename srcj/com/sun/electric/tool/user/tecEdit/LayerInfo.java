@@ -54,6 +54,8 @@ public class LayerInfo extends Info
 	EGraphics      desc;
 	Layer.Function fun;
 	int            funExtra;
+    boolean        pseudo;
+    LayerInfo      myPseudo;
 	String         cif;
     String         dxf;
     String         skill;

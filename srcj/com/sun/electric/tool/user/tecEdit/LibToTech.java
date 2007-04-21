@@ -278,7 +278,7 @@ public class LibToTech
 		{
             LayerInfo li = lList[i];
 			Layer lay = Layer.newInstance(tech, li.name, li.desc);
-			lay.setFunction(li.fun, li.funExtra);
+			lay.setFunction(li.fun, li.funExtra, li.pseudo);
 			lay.setFactoryCIFLayer(li.cif);
             gdsLayers[i] = li.name + " " + li.gds;
 //            mosis.setGDSLayer(lay, li.gds);
@@ -387,7 +387,7 @@ public class LibToTech
 		// create the pure-layer associations
 		for(int i=0; i<lList.length; i++)
 		{
-			if ((lList[i].funExtra&Layer.Function.PSEUDO) != 0) continue;
+			if (lList[i].pseudo) continue;
 
 			// find the pure layer node
 			for(int j=0; j<nList.length; j++)
@@ -582,7 +582,7 @@ public class LibToTech
 		// make sure there is a pure-layer node for every nonpseudo layer
 		for(int i=0; i<lList.length; i++)
 		{
-			if ((lList[i].funExtra & Layer.Function.PSEUDO) != 0) continue;
+			if (lList[i].pseudo) continue;
 			boolean found = false;
 			for(int j=0; j<nList.length; j++)
 			{
@@ -620,7 +620,7 @@ public class LibToTech
 							for(int m=0; m<nIn.nodeLayers.length; m++)
 							{
 								LayerInfo lin = nIn.nodeLayers[m].layer;
-								if ((lin.funExtra & Layer.Function.PSEUDO) == 0) { allPseudo = false;   break; }
+								if (!lin.pseudo) { allPseudo = false;   break; }
 							}
 							if (!allPseudo)
 								System.out.println("Warning: Pin " + nIn.name + " is not composed of pseudo-layers");
@@ -2793,6 +2793,11 @@ public class LibToTech
 					extraFunction = true;
 				}
 			}
+            if (lList[i].pseudo) {
+					if (extraFunction) infstr += "|"; else
+						infstr += ", ";
+					infstr += "Layer.Function.PSEUDO";
+            }
 			infstr += ");";
 			buffWriter.println("\t\t" + infstr + "\t\t// " + lList[i].name);
 		}
@@ -3233,7 +3238,7 @@ public class LibToTech
 		buffWriter.println("\t\t// The pure layer nodes");
 		for(int i=0; i<lList.length; i++)
 		{
-			if ((lList[i].funExtra&Layer.Function.PSEUDO) != 0) continue;
+			if (lList[i].pseudo) continue;
 
 			// find the pure layer node
 			for(int j=0; j<nList.length; j++)

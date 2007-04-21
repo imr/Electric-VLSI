@@ -714,11 +714,23 @@ public class Technology implements Comparable<Technology>
         for (Xml.Layer l: t.layers) {
             Layer layer = Layer.newInstance(this, l.name, l.desc);
             layers.put(l.name, layer);
+            int extraFunction = l.extraFunction;
             layer.setFunction(l.function, l.extraFunction);
             if (l.cif != null)
                 layer.setFactoryCIFLayer(l.cif);
             layer.setFactory3DInfo(l.thick3D, l.height3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
+        }
+        for (Xml.Layer l: t.layers) {
+            if (l.pseudoLayer == null) continue;
+            Layer owner = layers.get(l.name);
+            assert !layers.containsKey(l.pseudoLayer);
+            Layer layer = owner.makePseudo(l.pseudoLayer);
+            layers.put(l.pseudoLayer, layer);
+//            if (l.cif != null)
+//                layer.setFactoryCIFLayer(l.cif);
+//            layer.setFactory3DInfo(l.thick3D, l.height3D);
+//            layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
         for (Xml.ArcProto a: t.arcs) {
@@ -872,7 +884,7 @@ public class Technology implements Comparable<Technology>
         }
         for (Xml.Foundry f: t.foundries) {
             if (!f.layerRules.isEmpty()) {
-                int layerTotal = t.layers.size();
+                int layerTotal = this.layers.size();
                 int rulesSize = layerTotal*(layerTotal + 1)/2;
                 conDist = new double[rulesSize];
                 unConDist = new double[rulesSize];
@@ -1048,25 +1060,25 @@ public class Technology implements Comparable<Technology>
 		// do any specific intialization
 		init();
 
-		// setup mapping from pseudo-layers to real layers
-		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			if (!layer.isPseudoLayer()) continue;
-			Layer.Function fun = layer.getFunction();
-			int extras = layer.getFunctionExtras() & ~Layer.Function.PSEUDO;
-			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
-			{
-				Layer oLayer = oIt.next();
-				int oExtras = oLayer.getFunctionExtras();
-				Layer.Function oFun = oLayer.getFunction();
-				if (oFun == fun && oExtras == extras)
-				{
-					layer.setNonPseudoLayer(oLayer);
-					break;
-				}
-			}
-        }
+//		// setup mapping from pseudo-layers to real layers
+//		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
+//		{
+//			Layer layer = it.next();
+//			if (!layer.isPseudoLayer()) continue;
+//			Layer.Function fun = layer.getFunction();
+//			int extras = layer.getFunctionExtras() & ~Layer.Function.PSEUDO;
+//			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
+//			{
+//				Layer oLayer = oIt.next();
+//				int oExtras = oLayer.getFunctionExtras();
+//				Layer.Function oFun = oLayer.getFunction();
+//				if (oFun == fun && oExtras == extras)
+//				{
+//					layer.setNonPseudoLayer(oLayer);
+//					break;
+//				}
+//			}
+//        }
         
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);

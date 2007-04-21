@@ -239,6 +239,13 @@ public class TechToLib
             li.name = layer.getName();
 			li.fun = layer.getFunction();
 			li.funExtra = layer.getFunctionExtras();
+            li.pseudo = layer.isPseudoLayer();
+            if (li.pseudo) {
+                String masterName = layer.getNonPseudoLayer().getName();
+                for(int j=0; j<i; j++) {
+                    if (lList[j].name.equals(masterName)) { lList[j].myPseudo = li;   break; }
+                }
+            }
 			li.desc = desc;
 
 			// compute foreign file formats

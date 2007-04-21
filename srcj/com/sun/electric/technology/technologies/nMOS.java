@@ -259,65 +259,65 @@ public class nMOS extends Technology
 			new EGraphics(false, false, null, 0, 200,200,200,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-		/** PM layer */
-		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1,   0,  0,200,/*70,250,70,*/0.8,true,
-			new int[] { 0x0000,   //                 
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x8888}));// X   X   X   X   
-
-		/** PP layer */
-		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 220,  0,120,/*250,250,0,*/0.8,true,
-			new int[] { 0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
-						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222}));//   X   X   X   X 
-
-		/** PD layer */
-		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3,  70,250, 70,/*180,180,180,*/0.8,true,
-			new int[] { 0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111,   //    X   X   X   X
-						0x4444,   //  X   X   X   X  
-						0x1111}));//    X   X   X   X
+//		/** PM layer */
+//		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1,   0,  0,200,/*70,250,70,*/0.8,true,
+//			new int[] { 0x0000,   //                 
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x8888,   // X   X   X   X   
+//						0x0000,   //                 
+//						0x0000,   //                 
+//						0x2222,   //   X   X   X   X 
+//						0x8888}));// X   X   X   X   
+//
+//		/** PP layer */
+//		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 220,  0,120,/*250,250,0,*/0.8,true,
+//			new int[] { 0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X   
+//						0x4444,   //  X   X   X   X  
+//						0x2222,   //   X   X   X   X 
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X   
+//						0x4444,   //  X   X   X   X  
+//						0x2222,   //   X   X   X   X 
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X   
+//						0x4444,   //  X   X   X   X  
+//						0x2222,   //   X   X   X   X 
+//						0x1111,   //    X   X   X   X
+//						0x8888,   // X   X   X   X   
+//						0x4444,   //  X   X   X   X  
+//						0x2222}));//   X   X   X   X 
+//
+//		/** PD layer */
+//		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
+//			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3,  70,250, 70,/*180,180,180,*/0.8,true,
+//			new int[] { 0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111,   //    X   X   X   X
+//						0x4444,   //  X   X   X   X  
+//						0x1111}));//    X   X   X   X
 
 		// The layer functions
 		M_lay.setFunction(Layer.Function.METAL1);		// Metal
@@ -331,10 +331,13 @@ public class nMOS extends Technology
 		OC_lay.setFunction(Layer.Function.CONTACT3);		// Oversize-Contact
 		HE_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.ENHANCEMENT|Layer.Function.HEAVY);		// Hard-Enhancement
 		LE_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.ENHANCEMENT|Layer.Function.LIGHT);		// Light-Enhancement
-		T_lay.setFunction(Layer.Function.TRANSISTOR, Layer.Function.PSEUDO);		// Transistor
-		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal
-		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon
-		PD_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo-Diffusion
+		T_lay.setFunction(Layer.Function.TRANSISTOR /*, Layer.Function.PSEUDO*/);		// Transistor
+		Layer PM_lay = M_lay.makePseudo();		// Pseudo-Metal
+		Layer PP_lay = P_lay.makePseudo();		// Pseudo-Polysilicon
+		Layer PD_lay = D_lay.makePseudo();		// Pseudo-Diffusion
+//		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal
+//		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon
+//		PD_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo-Diffusion
 
 		// The CIF names
 		M_lay.setFactoryCIFLayer("NM");		// Metal

@@ -93,6 +93,7 @@
         <foreground>true</foreground>
         <cifLayer cif="NM"/>
         <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
+        <pseudoLayer>Pseudo-Metal</pseudoLayer>
     </layer>
 
     <layer name="Polysilicon" fun="POLY1">
@@ -120,6 +121,7 @@
         <foreground>true</foreground>
         <cifLayer cif="NP"/>
         <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
+        <pseudoLayer>Pseudo-Polysilicon</pseudoLayer>
     </layer>
 
     <layer name="Diffusion" fun="DIFF">
@@ -147,6 +149,7 @@
         <foreground>true</foreground>
         <cifLayer cif="ND"/>
         <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
+        <pseudoLayer>Pseudo-Diffusion</pseudoLayer>
     </layer>
 
     <layer name="Implant" fun="IMPLANT" extraFun="depletion_heavy">
@@ -357,7 +360,7 @@
         <cifLayer cif="NF"/>
     </layer>
 
-    <layer name="Transistor" fun="TRANSISTOR" extraFun="pseudo">
+    <layer name="Transistor" fun="TRANSISTOR">
         <opaqueColor r="200" g="200" b="200"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -382,80 +385,8 @@
         <foreground>true</foreground>
     </layer>
 
-    <layer name="Pseudo-Metal" fun="METAL1" extraFun="pseudo">
-        <transparentColor transparent="1"/>
-        <patternedOnDisplay>false</patternedOnDisplay>
-        <patternedOnPrinter>false</patternedOnPrinter>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>X   X   X   X   </pattern>
-        <outlined>NOPAT</outlined>
-        <opacity>0.8</opacity>
-        <foreground>true</foreground>
-    </layer>
 
-    <layer name="Pseudo-Polysilicon" fun="POLY1" extraFun="pseudo">
-        <transparentColor transparent="2"/>
-        <patternedOnDisplay>false</patternedOnDisplay>
-        <patternedOnPrinter>false</patternedOnPrinter>
-        <pattern>   X   X   X   X</pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern>X   X   X   X   </pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>  X   X   X   X </pattern>
-        <outlined>NOPAT</outlined>
-        <opacity>0.8</opacity>
-        <foreground>true</foreground>
-    </layer>
 
-    <layer name="Pseudo-Diffusion" fun="DIFF" extraFun="pseudo">
-        <transparentColor transparent="3"/>
-        <patternedOnDisplay>false</patternedOnDisplay>
-        <patternedOnPrinter>false</patternedOnPrinter>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <pattern> X   X   X   X  </pattern>
-        <pattern>   X   X   X   X</pattern>
-        <outlined>NOPAT</outlined>
-        <opacity>0.8</opacity>
-        <foreground>true</foreground>
-    </layer>
 
     <!-- ******************** ARCS ******************** -->
     <arcProto name="Metal" fun="METAL1">

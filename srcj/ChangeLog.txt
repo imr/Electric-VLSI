@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/20/07, DN) Sometimes properties of pseudo-layer don't match master layer. For example:
+    "tsmc180:Pseudo-NT-N" has function "DIFFN", though tsmc180:NT-N" has function "IMPLANTN";
+    "cmos90:Pseudo-OD18", "cmos90:Pseudo-OD25", "cmos90-Pseudo-OD33" haven't extra function "THICK"
+    while "cmos90:OD18", "cmos90:OD25", "cmos90:OD33" have it.
+FIX: Add method Layer.makePseudo() and use it everywhere.
+
+BUG: (4/20/07, DN) There are pseudo-layers without master layer, though they are not used.
+FIX: Don't set "PSEDO" extra function to layers:
+    nmos:Transistor, cmos:Transistor, bicmos:Transistro, mocmosold:Transistro, mocmossub:Transistor .
+
 BUG: (4/19/07, GVG) CsaClient.computeTestVar returns wrong
 FIX: signature change CsaOpVariable.
 
