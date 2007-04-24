@@ -158,7 +158,6 @@ public class Xml {
         comment("**************************************** LAYERS ****************************************");
         for (LayerInfo li: lList) {
             writeXml(li);
-            l();
         }
         
 		comment("******************** ARCS ********************");
@@ -169,6 +168,8 @@ public class Xml {
         
 		comment("******************** NODES ********************");
         for (NodeInfo ni: nList) {
+            if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
+                continue;
             writeXml(ni);
             l();
         }
@@ -245,7 +246,21 @@ public class Xml {
         if (li.myPseudo != null) {
             bcpel("pseudoLayer", li.myPseudo.name);
         }
+        if (li.pureLayerNode != null) {
+            String nodeName = li.pureLayerNode.name;
+            Poly.Type style = li.pureLayerNode.nodeLayers[0].style;
+            String styleStr = style == Poly.Type.FILLED ? null : style.name();
+            String portName = li.pureLayerNode.nodePortDetails[0].name;
+            b("pureLayerNode"); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
+            bcl("size");
+            bcpel("lambda", DBMath.round(li.pureLayerNode.xSize));
+            el("size");
+            for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
+                bcpel("portArc", a.name);
+            el("pureLayerNode");
+        }
         el("layer");
+        l();
     }
     
     private void writeXml(ArcInfo ai) {

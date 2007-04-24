@@ -862,6 +862,12 @@ public class TechToLib
             }
             pd.connections = validArcInfoConns.toArray(new ArcInfo[validArcInfoConns.size()]);
         }
+        if (nIn.func == PrimitiveNode.Function.NODE) {
+            assert nIn.nodeLayers.length == 1;
+            LayerInfo l = nIn.nodeLayers[0].layer;
+            assert l.pureLayerNode == null;
+            l.pureLayerNode = nIn;
+        }
         return nIn;
     }
     

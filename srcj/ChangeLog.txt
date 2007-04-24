@@ -4,6 +4,39 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/24/07, DN) Some pure layer node have strange connections.
+FIX: Remove connections:
+   mocmos:Thick-Active-Node  Polysilicon-1 arc
+   tsmc180:Thick-Active-Node Polysilicon-1 arc
+   tsmc180:BJTDUMMY-Node     Polysilicon-1 arc
+   tsmc180:DIODUMMY-Node     Polysilicon-1 arc
+   tsmc180:RWDUMMY-Node      Polysilicon-1 arc
+   tsmc180:ESD2DMY-Node      Polysilicon-1 arc
+   tsmc180:sdiDMY-Node       Polysilicon-1 arc
+
+BUG: (4/24/07, DN) Some pure layer nodes have non-zero port indent.
+FIX: Set zero port indenet for pure layer nodes:
+    rcmos:Metal-1-Node
+    rcmos:Metal-2-Node
+    rcmos:Polysilicon-Node
+    rcmos:Active-Node
+    rcmos:D-Active-Node
+    rcmos:Select-Node
+    rcmos:Cut-Node
+    rcmos:Poly-Cut-Node
+    rcmos:Active-Cut-Node
+    rcmos:Via-Node
+    rcmos:Well-Node
+    rcmos:Passivation-Node
+    generic:DRC-Node
+    generic:AFG-Node
+
+BUG: (4/24/07, DN) CIF writer writes pseudo-layer pins.
+FIX: In output.CIF.writeLayer() return false on pseudo-layers.
+
+BUG: (4/23/07, DN) Spice writer tries get capacitance of pseudo-layers.
+FIX: In output.Spice insert checks for pseudo-layers.
+
 BUG: (4/20/07, DN) Sometimes properties of pseudo-layer don't match master layer. For example:
     "tsmc180:Pseudo-NT-N" has function "DIFFN", though tsmc180:NT-N" has function "IMPLANTN";
     "cmos90:Pseudo-OD18", "cmos90:Pseudo-OD25", "cmos90-Pseudo-OD33" haven't extra function "THICK"

@@ -216,36 +216,36 @@ public class Generic extends Technology
 		portNode.setFunction(PrimitiveNode.Function.ART);
 		portNode.setCanBeZeroSize();
 
-		/** DRC Node */
-		drcNode = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(drcLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		drcNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
-			});
-		drcNode.setFunction(PrimitiveNode.Function.NODE);
-		drcNode.setHoldsOutline();
-        drcNode.setSpecialType(PrimitiveNode.POLYGONAL);
-        
-        /** AFG Node */
-		afgNode = PrimitiveNode.newInstance("AFG-Node", this, 2.0, 2.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(afgLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		afgNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, afgNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
-			});
-		afgNode.setFunction(PrimitiveNode.Function.NODE);
-		afgNode.setHoldsOutline();
-        afgNode.setSpecialType(PrimitiveNode.POLYGONAL);
-
+//		/** DRC Node */
+//		drcNode = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(drcLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		drcNode.addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
+//			});
+//		drcNode.setFunction(PrimitiveNode.Function.NODE);
+//		drcNode.setHoldsOutline();
+//        drcNode.setSpecialType(PrimitiveNode.POLYGONAL);
+//        
+//        /** AFG Node */
+//		afgNode = PrimitiveNode.newInstance("AFG-Node", this, 2.0, 2.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(afgLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		afgNode.addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, afgNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
+//			});
+//		afgNode.setFunction(PrimitiveNode.Function.NODE);
+//		afgNode.setHoldsOutline();
+//        afgNode.setSpecialType(PrimitiveNode.POLYGONAL);
+//
 		/** Essential Bounds Node */
 		essentialBoundsNode = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
@@ -277,8 +277,10 @@ public class Generic extends Technology
 		simProbeNode.setCanBeZeroSize();
 
 		// The pure layer nodes
-		drcLay.setPureLayerNode(drcNode);
-        afgLay.setPureLayerNode(afgNode);
+        drcNode = drcLay.makePureLayerNode("DRC-Node", 2.0, Poly.Type.FILLED, "center", invisible_arc, universal_arc);
+        afgNode = afgLay.makePureLayerNode("AFG-Node", 2.0, Poly.Type.FILLED, "center", invisible_arc, universal_arc);
+//		drcLay.setPureLayerNode(drcNode);
+//        afgLay.setPureLayerNode(afgNode);
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

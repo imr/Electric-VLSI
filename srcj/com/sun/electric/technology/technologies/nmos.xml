@@ -94,6 +94,12 @@
         <cifLayer cif="NM"/>
         <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
         <pseudoLayer>Pseudo-Metal</pseudoLayer>
+        <pureLayerNode name="Metal-Node" port="metal">
+            <size>
+                <lambda>3.0</lambda>
+            </size>
+            <portArc>Metal</portArc>
+        </pureLayerNode>
     </layer>
 
     <layer name="Polysilicon" fun="POLY1">
@@ -122,6 +128,12 @@
         <cifLayer cif="NP"/>
         <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
         <pseudoLayer>Pseudo-Polysilicon</pseudoLayer>
+        <pureLayerNode name="Polysilicon-Node" port="polysilicon">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+            <portArc>Polysilicon</portArc>
+        </pureLayerNode>
     </layer>
 
     <layer name="Diffusion" fun="DIFF">
@@ -150,6 +162,12 @@
         <cifLayer cif="ND"/>
         <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
         <pseudoLayer>Pseudo-Diffusion</pseudoLayer>
+        <pureLayerNode name="Diffusion-Node" port="diffusion">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+            <portArc>Diffusion</portArc>
+        </pureLayerNode>
     </layer>
 
     <layer name="Implant" fun="IMPLANT" extraFun="depletion_heavy">
@@ -176,6 +194,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NI"/>
+        <pureLayerNode name="Implant-Node" port="implant">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Contact-Cut" fun="CONTACT1">
@@ -202,6 +225,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NC"/>
+        <pureLayerNode name="Cut-Node" style="CROSSED" port="cut">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Buried-Contact" fun="IMPLANT">
@@ -228,6 +256,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NB"/>
+        <pureLayerNode name="Buried-Node" port="buried">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Overglass" fun="OVERGLASS">
@@ -254,6 +287,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NG"/>
+        <pureLayerNode name="Overglass-Node" port="overglass">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Light-Implant" fun="IMPLANT" extraFun="depletion_light">
@@ -280,6 +318,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NJ"/>
+        <pureLayerNode name="Light-Implant-Node" port="light-implant">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Oversize-Contact" fun="CONTACT3">
@@ -306,6 +349,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NO"/>
+        <pureLayerNode name="Oversize-Cut-Node" style="CLOSED" port="oversize-contact">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Hard-Enhancement" fun="IMPLANT" extraFun="enhancement_heavy">
@@ -332,6 +380,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NE"/>
+        <pureLayerNode name="Hard-Enhancement-Node" port="hard-enhancement">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Light-Enhancement" fun="IMPLANT" extraFun="enhancement_light">
@@ -358,6 +411,11 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="NF"/>
+        <pureLayerNode name="Light-Enhancement-Node" port="light-enhancement">
+            <size>
+                <lambda>2.0</lambda>
+            </size>
+        </pureLayerNode>
     </layer>
 
     <layer name="Transistor" fun="TRANSISTOR">
@@ -384,9 +442,6 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
     </layer>
-
-
-
 
     <!-- ******************** ARCS ******************** -->
     <arcProto name="Metal" fun="METAL1">
@@ -1055,240 +1110,6 @@
             <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>3.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Metal" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="metal">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-            <portArc>Metal</portArc>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Polysilicon-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="polysilicon">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-            <portArc>Polysilicon</portArc>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Diffusion-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="diffusion">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-            <portArc>Diffusion</portArc>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Implant-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Implant" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="implant">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Cut-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Contact-Cut" style="CROSSED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="cut">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Buried-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="buried">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Overglass-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Overglass" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="overglass">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Light-Implant-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Light-Implant" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="light-implant">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Oversize-Cut-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Oversize-Contact" style="CLOSED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="oversize-contact">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Hard-Enhancement-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Hard-Enhancement" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="hard-enhancement">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
-    </primitiveNode>
-
-    <primitiveNode name="Light-Enhancement-Node" fun="NODE">
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
-        <nodeLayer layer="Light-Enhancement" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </nodeLayer>
-        <primitivePort name="light-enhancement">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
-        </primitivePort>
-        <polygonal/>
     </primitiveNode>
 
     <spiceHeader level="1">

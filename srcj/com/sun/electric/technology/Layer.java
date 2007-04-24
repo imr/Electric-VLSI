@@ -24,6 +24,8 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.user.Resources;
@@ -694,6 +696,32 @@ public class Layer
 	 * @param pln the Pure Layer PrimitiveNode to use for this Layer.
 	 */
 	public void setPureLayerNode(PrimitiveNode pln) { pureLayerNode = pln; }
+
+	/**
+	 * Method to make the Pure Layer Node associated with this Layer.
+	 * @param protoName the name of the PrimitiveNode.
+	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * @param size the width and the height of the PrimitiveNode.
+     * @param style the Poly.Type this PrimitiveNode will generate (polygon, cross, etc.).
+	 * @return the Pure Layer PrimitiveNode to use for this Layer.
+	 */
+	public PrimitiveNode makePureLayerNode(String nodeName, double size, Poly.Type style, String portName, ArcProto ... connections) {
+		PrimitiveNode pln = PrimitiveNode.newInstance(nodeName, tech, size, size, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(this, 0, style, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+			});
+		pln.addPrimitivePorts(new PrimitivePort[]
+			{
+				PrimitivePort.newInstance(tech, pln, connections, portName, 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		pln.setFunction(PrimitiveNode.Function.NODE);
+		pln.setHoldsOutline();
+		pln.setSpecialType(PrimitiveNode.POLYGONAL);
+        pureLayerNode = pln;
+        return pln;
+    }
 
 	/**
 	 * Method to return the Pure Layer Node associated with this Layer.

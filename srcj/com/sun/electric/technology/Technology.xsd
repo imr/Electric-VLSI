@@ -294,6 +294,10 @@
         </xsd:restriction>
     </xsd:simpleType>
     
+    <xsd:simpleType name="PrimitivePortName">
+        <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+    
     <xsd:simpleType name="SpiceLevel">
         <xsd:restriction base="xsd:int">
             <xsd:minInclusive value="1"/>
@@ -405,6 +409,23 @@
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="pseudoLayer" type="tns:LayerName" minOccurs="0"></xsd:element>
+                            <xsd:element name="pureLayerNode" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="size">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:group ref="tns:Distance"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName"/>
+                                    <xsd:attribute name="style" type="tns:NodeLayerStyle"/>
+                                    <xsd:attribute name="port" type="tns:PrimitivePortName"/>
+                                </xsd:complexType>
+                            </xsd:element>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="tns:LayerName" use="required"/>
                         <xsd:attribute name="fun" type="tns:LayerFun" use="required"/>

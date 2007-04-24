@@ -1096,263 +1096,279 @@ public class MoCMOSOld extends Technology
 //		msc_node.setSpecialType(PrimitiveNode.MULTICUT);
 //		msc_node.setSpecialValues(new double [] {2, 2, 2, 2, 2, 2});
 
-		/** Metal-1-Node */
-		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-1-Node", this, 4, 4, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		mn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		mn_node.setFunction(PrimitiveNode.Function.NODE);
-		mn_node.setHoldsOutline();
-		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Metal-2-Node */
-		PrimitiveNode mn0_node = PrimitiveNode.newInstance("Metal-2-Node", this, 4, 4, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		mn0_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		mn0_node.setFunction(PrimitiveNode.Function.NODE);
-		mn0_node.setHoldsOutline();
-		mn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Polysilicon-Node */
-		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		pn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		pn_node.setFunction(PrimitiveNode.Function.NODE);
-		pn_node.setHoldsOutline();
-		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Active-Node */
-		PrimitiveNode an_node = PrimitiveNode.newInstance("Active-Node", this, 4, 4, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		an_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		an_node.setFunction(PrimitiveNode.Function.NODE);
-		an_node.setHoldsOutline();
-		an_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** D-Active-Node */
-		PrimitiveNode dan_node = PrimitiveNode.newInstance("D-Active-Node", this, 4, 4, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		dan_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, dan_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		dan_node.setFunction(PrimitiveNode.Function.NODE);
-		dan_node.setHoldsOutline();
-		dan_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** P-Select-Node */
-		PrimitiveNode psn_node = PrimitiveNode.newInstance("P-Select-Node", this, 6, 6, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		psn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, psn_node, new ArcProto [] {}, "select", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		psn_node.setFunction(PrimitiveNode.Function.NODE);
-		psn_node.setHoldsOutline();
-		psn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** N-Select-Node */
-		PrimitiveNode nsn_node = PrimitiveNode.newInstance("N-Select-Node", this, 6, 6, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		nsn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, nsn_node, new ArcProto [] {}, "select", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		nsn_node.setFunction(PrimitiveNode.Function.NODE);
-		nsn_node.setHoldsOutline();
-		nsn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Cut-Node */
-		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 2, 2, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		cn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		cn_node.setFunction(PrimitiveNode.Function.NODE);
-		cn_node.setHoldsOutline();
-		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Poly-Cut-Node */
-		PrimitiveNode pcn_node = PrimitiveNode.newInstance("Poly-Cut-Node", this, 2, 2, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		pcn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, pcn_node, new ArcProto [] {}, "polycut", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		pcn_node.setFunction(PrimitiveNode.Function.NODE);
-		pcn_node.setHoldsOutline();
-		pcn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Active-Cut-Node */
-		PrimitiveNode acn_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 2, 2, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		acn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, acn_node, new ArcProto [] {}, "activecut", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		acn_node.setFunction(PrimitiveNode.Function.NODE);
-		acn_node.setHoldsOutline();
-		acn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Via-Node */
-		PrimitiveNode vn_node = PrimitiveNode.newInstance("Via-Node", this, 2, 2, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(V_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_13)
-			});
-		vn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, vn_node, new ArcProto [] {}, "via", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		vn_node.setFunction(PrimitiveNode.Function.NODE);
-		vn_node.setHoldsOutline();
-		vn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** P-Well-Node */
-		PrimitiveNode pwn_node = PrimitiveNode.newInstance("P-Well-Node", this, 6, 6, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		pwn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, pwn_node, new ArcProto [] {S_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		pwn_node.setFunction(PrimitiveNode.Function.NODE);
-		pwn_node.setHoldsOutline();
-		pwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** N-Well-Node */
-		PrimitiveNode nwn_node = PrimitiveNode.newInstance("N-Well-Node", this, 6, 6, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		nwn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, nwn_node, new ArcProto [] {D_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		nwn_node.setFunction(PrimitiveNode.Function.NODE);
-		nwn_node.setHoldsOutline();
-		nwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Passivation-Node */
-		PrimitiveNode pn0_node = PrimitiveNode.newInstance("Passivation-Node", this, 8, 8, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		pn0_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {}, "passivation", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		pn0_node.setFunction(PrimitiveNode.Function.NODE);
-		pn0_node.setHoldsOutline();
-		pn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** Pad-Frame-Node */
-		PrimitiveNode pfn_node = PrimitiveNode.newInstance("Pad-Frame-Node", this, 8, 8, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(PF_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_13)
-			});
-		pfn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, pfn_node, new ArcProto [] {}, "pad-frame", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		pfn_node.setFunction(PrimitiveNode.Function.NODE);
-		pfn_node.setHoldsOutline();
-		pfn_node.setSpecialType(PrimitiveNode.POLYGONAL);
-
-		/** S-Active-Well-Node */
-		PrimitiveNode sawn_node = PrimitiveNode.newInstance("S-Active-Well-Node", this, 8, 8, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(SAW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
-			});
-		sawn_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, sawn_node, new ArcProto [] {}, "s-active-well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		sawn_node.setFunction(PrimitiveNode.Function.NODE);
-		sawn_node.setHoldsOutline();
-		sawn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//		/** Metal-1-Node */
+//		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-1-Node", this, 4, 4, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		mn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		mn_node.setFunction(PrimitiveNode.Function.NODE);
+//		mn_node.setHoldsOutline();
+//		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Metal-2-Node */
+//		PrimitiveNode mn0_node = PrimitiveNode.newInstance("Metal-2-Node", this, 4, 4, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(M0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		mn0_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		mn0_node.setFunction(PrimitiveNode.Function.NODE);
+//		mn0_node.setHoldsOutline();
+//		mn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Polysilicon-Node */
+//		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		pn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		pn_node.setFunction(PrimitiveNode.Function.NODE);
+//		pn_node.setHoldsOutline();
+//		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Active-Node */
+//		PrimitiveNode an_node = PrimitiveNode.newInstance("Active-Node", this, 4, 4, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		an_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		an_node.setFunction(PrimitiveNode.Function.NODE);
+//		an_node.setHoldsOutline();
+//		an_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** D-Active-Node */
+//		PrimitiveNode dan_node = PrimitiveNode.newInstance("D-Active-Node", this, 4, 4, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		dan_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, dan_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		dan_node.setFunction(PrimitiveNode.Function.NODE);
+//		dan_node.setHoldsOutline();
+//		dan_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** P-Select-Node */
+//		PrimitiveNode psn_node = PrimitiveNode.newInstance("P-Select-Node", this, 6, 6, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(PS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		psn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, psn_node, new ArcProto [] {}, "select", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		psn_node.setFunction(PrimitiveNode.Function.NODE);
+//		psn_node.setHoldsOutline();
+//		psn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** N-Select-Node */
+//		PrimitiveNode nsn_node = PrimitiveNode.newInstance("N-Select-Node", this, 6, 6, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(NS_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		nsn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, nsn_node, new ArcProto [] {}, "select", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		nsn_node.setFunction(PrimitiveNode.Function.NODE);
+//		nsn_node.setHoldsOutline();
+//		nsn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Cut-Node */
+//		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 2, 2, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(CC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		cn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		cn_node.setFunction(PrimitiveNode.Function.NODE);
+//		cn_node.setHoldsOutline();
+//		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Poly-Cut-Node */
+//		PrimitiveNode pcn_node = PrimitiveNode.newInstance("Poly-Cut-Node", this, 2, 2, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(PC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		pcn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, pcn_node, new ArcProto [] {}, "polycut", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		pcn_node.setFunction(PrimitiveNode.Function.NODE);
+//		pcn_node.setHoldsOutline();
+//		pcn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Active-Cut-Node */
+//		PrimitiveNode acn_node = PrimitiveNode.newInstance("Active-Cut-Node", this, 2, 2, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		acn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, acn_node, new ArcProto [] {}, "activecut", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		acn_node.setFunction(PrimitiveNode.Function.NODE);
+//		acn_node.setHoldsOutline();
+//		acn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Via-Node */
+//		PrimitiveNode vn_node = PrimitiveNode.newInstance("Via-Node", this, 2, 2, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(V_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		vn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, vn_node, new ArcProto [] {}, "via", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		vn_node.setFunction(PrimitiveNode.Function.NODE);
+//		vn_node.setHoldsOutline();
+//		vn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** P-Well-Node */
+//		PrimitiveNode pwn_node = PrimitiveNode.newInstance("P-Well-Node", this, 6, 6, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		pwn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, pwn_node, new ArcProto [] {S_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		pwn_node.setFunction(PrimitiveNode.Function.NODE);
+//		pwn_node.setHoldsOutline();
+//		pwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** N-Well-Node */
+//		PrimitiveNode nwn_node = PrimitiveNode.newInstance("N-Well-Node", this, 6, 6, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(NW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		nwn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, nwn_node, new ArcProto [] {D_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		nwn_node.setFunction(PrimitiveNode.Function.NODE);
+//		nwn_node.setHoldsOutline();
+//		nwn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Passivation-Node */
+//		PrimitiveNode pn0_node = PrimitiveNode.newInstance("Passivation-Node", this, 8, 8, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(P0_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		pn0_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {}, "passivation", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		pn0_node.setFunction(PrimitiveNode.Function.NODE);
+//		pn0_node.setHoldsOutline();
+//		pn0_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** Pad-Frame-Node */
+//		PrimitiveNode pfn_node = PrimitiveNode.newInstance("Pad-Frame-Node", this, 8, 8, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(PF_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		pfn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, pfn_node, new ArcProto [] {}, "pad-frame", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		pfn_node.setFunction(PrimitiveNode.Function.NODE);
+//		pfn_node.setHoldsOutline();
+//		pfn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+//
+//		/** S-Active-Well-Node */
+//		PrimitiveNode sawn_node = PrimitiveNode.newInstance("S-Active-Well-Node", this, 8, 8, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(SAW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13)
+//			});
+//		sawn_node.addPrimitivePorts(new PrimitivePort[]
+//			{
+//				PrimitivePort.newInstance(this, sawn_node, new ArcProto [] {}, "s-active-well", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+//			});
+//		sawn_node.setFunction(PrimitiveNode.Function.NODE);
+//		sawn_node.setHoldsOutline();
+//		sawn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		// The pure layer nodes
-		M_lay.setPureLayerNode(mn_node);		// Metal-1
-		M0_lay.setPureLayerNode(mn0_node);		// Metal-2
-		P_lay.setPureLayerNode(pn_node);		// Polysilicon
-		SA_lay.setPureLayerNode(an_node);		// S-Active
-		DA_lay.setPureLayerNode(dan_node);		// D-Active
-		PS_lay.setPureLayerNode(psn_node);		// P-Select
-		NS_lay.setPureLayerNode(nsn_node);		// N-Select
-		PW_lay.setPureLayerNode(pwn_node);		// P-Well
-		NW_lay.setPureLayerNode(nwn_node);		// N-Well
-		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
-		V_lay.setPureLayerNode(vn_node);		// Via
-		P0_lay.setPureLayerNode(pn0_node);		// Passivation
-		PC_lay.setPureLayerNode(pcn_node);		// Poly-Cut
-		AC_lay.setPureLayerNode(acn_node);		// Active-Cut
-		SAW_lay.setPureLayerNode(sawn_node);		// S-Active-Well
-		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
+        M_lay.makePureLayerNode("Metal-1-Node", 4.0, Poly.Type.FILLED, "metal-1", Metal_1_arc);
+        M0_lay.makePureLayerNode("Metal-2-Node", 4.0, Poly.Type.FILLED, "metal-2", Metal_2_arc);
+        P_lay.makePureLayerNode("Polysilicon-Node", 4.0, Poly.Type.FILLED, "polysilicon", Polysilicon_arc);
+        SA_lay.makePureLayerNode("Active-Node", 4.0, Poly.Type.FILLED, "active", Active_arc, S_Active_arc, D_Active_arc);
+        DA_lay.makePureLayerNode("D-Active-Node", 4.0, Poly.Type.FILLED, "active", Active_arc, S_Active_arc, D_Active_arc);
+        PS_lay.makePureLayerNode("P-Select-Node", 6.0, Poly.Type.FILLED, "select");
+        NS_lay.makePureLayerNode("N-Select-Node", 6.0, Poly.Type.FILLED, "select");
+        PW_lay.makePureLayerNode("P-Well-Node", 6.0, Poly.Type.FILLED, "well", S_Active_arc);
+        NW_lay.makePureLayerNode("N-Well-Node", 6.0, Poly.Type.FILLED, "well", D_Active_arc);
+        CC_lay.makePureLayerNode("Cut-Node", 2.0, Poly.Type.FILLED, "cut");
+        V_lay.makePureLayerNode("Via-Node", 2.0, Poly.Type.CLOSED, "via");
+        P0_lay.makePureLayerNode("Passivation-Node", 8.0, Poly.Type.FILLED, "passivation");
+        PC_lay.makePureLayerNode("Poly-Cut-Node", 2.0, Poly.Type.FILLED, "polycut");
+        AC_lay.makePureLayerNode("Active-Cut-Node", 2.0, Poly.Type.FILLED, "activecut");
+        SAW_lay.makePureLayerNode("S-Active-Well-Node", 8.0, Poly.Type.FILLED, "s-active-well");
+        PF_lay.makePureLayerNode("Pad-Frame-Node", 8.0, Poly.Type.CLOSED, "pad-frame");
+//		M_lay.setPureLayerNode(mn_node);		// Metal-1
+//		M0_lay.setPureLayerNode(mn0_node);		// Metal-2
+//		P_lay.setPureLayerNode(pn_node);		// Polysilicon
+//		SA_lay.setPureLayerNode(an_node);		// S-Active
+//		DA_lay.setPureLayerNode(dan_node);		// D-Active
+//		PS_lay.setPureLayerNode(psn_node);		// P-Select
+//		NS_lay.setPureLayerNode(nsn_node);		// N-Select
+//		PW_lay.setPureLayerNode(pwn_node);		// P-Well
+//		NW_lay.setPureLayerNode(nwn_node);		// N-Well
+//		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
+//		V_lay.setPureLayerNode(vn_node);		// Via
+//		P0_lay.setPureLayerNode(pn0_node);		// Passivation
+//		PC_lay.setPureLayerNode(pcn_node);		// Poly-Cut
+//		AC_lay.setPureLayerNode(acn_node);		// Active-Cut
+//		SAW_lay.setPureLayerNode(sawn_node);		// S-Active-Well
+//		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
 
         // Information for palette
         int maxY = 2 /*metal arcs*/ + 3 /* active arcs */ + 1 /* text */ + 1 /* poly*/ + 1 /* trans */;

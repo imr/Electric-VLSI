@@ -56,6 +56,7 @@ public class LayerInfo extends Info
 	int            funExtra;
     boolean        pseudo;
     LayerInfo      myPseudo;
+    NodeInfo       pureLayerNode;
 	String         cif;
     String         dxf;
     String         skill;
