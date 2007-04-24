@@ -946,20 +946,20 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFactoryCIFLayer("CSB");		// Silicide-Block
 		thickActiveLayer.setFactoryCIFLayer("CTA");			// Thick-Active
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
-		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactoryCIFLayer("");			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactoryCIFLayer("");			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactoryCIFLayer("");			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactoryCIFLayer("");			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-2
-		pseudoActiveLayers[P_TYPE].setFactoryCIFLayer("");			// Pseudo-P-Active
-		pseudoActiveLayers[N_TYPE].setFactoryCIFLayer("");			// Pseudo-N-Active
-		pseudoSelectLayers[P_TYPE].setFactoryCIFLayer("CSP");		// Pseudo-P-Select
-		pseudoSelectLayers[N_TYPE].setFactoryCIFLayer("CSN");		// Pseudo-N-Select
-		pseudoWellLayers[P_TYPE].setFactoryCIFLayer("CWP");			// Pseudo-P-Well
-		pseudoWellLayers[N_TYPE].setFactoryCIFLayer("CWN");			// Pseudo-N-Well
+//		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFactoryCIFLayer("");			// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFactoryCIFLayer("");			// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFactoryCIFLayer("");			// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFactoryCIFLayer("");			// Pseudo-Metal-6
+//		pseudoPoly1_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-2
+//		pseudoActiveLayers[P_TYPE].setFactoryCIFLayer("");			// Pseudo-P-Active
+//		pseudoActiveLayers[N_TYPE].setFactoryCIFLayer("");			// Pseudo-N-Active
+//		pseudoSelectLayers[P_TYPE].setFactoryCIFLayer("CSP");		// Pseudo-P-Select
+//		pseudoSelectLayers[N_TYPE].setFactoryCIFLayer("CSN");		// Pseudo-N-Select
+//		pseudoWellLayers[P_TYPE].setFactoryCIFLayer("CWP");			// Pseudo-P-Well
+//		pseudoWellLayers[N_TYPE].setFactoryCIFLayer("CWN");			// Pseudo-N-Well
 
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1
@@ -990,20 +990,20 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFactorySkillLayer("");	    // Silicide-Block
         thickActiveLayer.setFactorySkillLayer("");			// Thick-Active
 		padFrameLayer.setFactorySkillLayer("");				// Pad-Frame
-		pseudoMetal1_lay.setFactorySkillLayer("");			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactorySkillLayer("");			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactorySkillLayer("");			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactorySkillLayer("");			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactorySkillLayer("");			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactorySkillLayer("");			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-2
-		pseudoActiveLayers[P_TYPE].setFactorySkillLayer("");			// Pseudo-P-Active
-		pseudoActiveLayers[N_TYPE].setFactorySkillLayer("");			// Pseudo-N-Active
-		pseudoSelectLayers[P_TYPE].setFactorySkillLayer("pplus");	// Pseudo-P-Select
-		pseudoSelectLayers[N_TYPE].setFactorySkillLayer("nplus");	// Pseudo-N-Select
-		pseudoWellLayers[P_TYPE].setFactorySkillLayer("pwell");		// Pseudo-P-Well
-		pseudoWellLayers[N_TYPE].setFactorySkillLayer("nwell");		// Pseudo-N-Well
+//		pseudoMetal1_lay.setFactorySkillLayer("");			// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactorySkillLayer("");			// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFactorySkillLayer("");			// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFactorySkillLayer("");			// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFactorySkillLayer("");			// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFactorySkillLayer("");			// Pseudo-Metal-6
+//		pseudoPoly1_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-2
+//		pseudoActiveLayers[P_TYPE].setFactorySkillLayer("");			// Pseudo-P-Active
+//		pseudoActiveLayers[N_TYPE].setFactorySkillLayer("");			// Pseudo-N-Active
+//		pseudoSelectLayers[P_TYPE].setFactorySkillLayer("pplus");	// Pseudo-P-Select
+//		pseudoSelectLayers[N_TYPE].setFactorySkillLayer("nplus");	// Pseudo-N-Select
+//		pseudoWellLayers[P_TYPE].setFactorySkillLayer("pwell");		// Pseudo-P-Well
+//		pseudoWellLayers[N_TYPE].setFactorySkillLayer("nwell");		// Pseudo-N-Well
 
         // Logical Effort Tech-dependent settings
         setFactoryLESettings(0.167, 0.16, 0.7);
@@ -1048,13 +1048,13 @@ public class MoCMOS extends Technology
 		double FOX_LAYER = 1.75; // 0.35/0.2
 		double TOX_LAYER = 0; // Very narrow thin oxide in gate
 
-		/* for displaying pins */
-		pseudoMetal1_lay.setFactory3DInfo(0, metalLayers[0].getDistance());			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactory3DInfo(0, metalLayers[1].getDistance());			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactory3DInfo(0, metalLayers[2].getDistance());			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactory3DInfo(0, metalLayers[3].getDistance());			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactory3DInfo(0, metalLayers[4].getDistance());			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactory3DInfo(0, metalLayers[5].getDistance());			// Pseudo-Metal-6
+//		/* for displaying pins */
+//		pseudoMetal1_lay.setFactory3DInfo(0, metalLayers[0].getDistance());			// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactory3DInfo(0, metalLayers[1].getDistance());			// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFactory3DInfo(0, metalLayers[2].getDistance());			// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFactory3DInfo(0, metalLayers[3].getDistance());			// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFactory3DInfo(0, metalLayers[4].getDistance());			// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFactory3DInfo(0, metalLayers[5].getDistance());			// Pseudo-Metal-6
 
 		// Poly layers
 		poly1Layer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());					// Polysilicon-1
@@ -1070,14 +1070,14 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
         padFrameLayer.setFactory3DInfo(0, passivationLayer.getDepth());				// Pad-Frame
 
-		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
-		pseudoActiveLayers[P_TYPE].setFactory3DInfo(0, activeLayers[P_TYPE].getDistance());			// Pseudo-P-Active
-		pseudoActiveLayers[N_TYPE].setFactory3DInfo(0, activeLayers[N_TYPE].getDistance());			// Pseudo-N-Active
-		pseudoSelectLayers[P_TYPE].setFactory3DInfo(0, selectLayers[P_TYPE].getDistance());			// Pseudo-P-Select
-		pseudoSelectLayers[N_TYPE].setFactory3DInfo(0, selectLayers[N_TYPE].getDistance());			// Pseudo-N-Select
-		pseudoWellLayers[P_TYPE].setFactory3DInfo(0, wellLayers[P_TYPE].getDistance());				// Pseudo-P-Well
-		pseudoWellLayers[N_TYPE].setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
+//		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
+//		pseudoActiveLayers[P_TYPE].setFactory3DInfo(0, activeLayers[P_TYPE].getDistance());			// Pseudo-P-Active
+//		pseudoActiveLayers[N_TYPE].setFactory3DInfo(0, activeLayers[N_TYPE].getDistance());			// Pseudo-N-Active
+//		pseudoSelectLayers[P_TYPE].setFactory3DInfo(0, selectLayers[P_TYPE].getDistance());			// Pseudo-P-Select
+//		pseudoSelectLayers[N_TYPE].setFactory3DInfo(0, selectLayers[N_TYPE].getDistance());			// Pseudo-N-Select
+//		pseudoWellLayers[P_TYPE].setFactory3DInfo(0, wellLayers[P_TYPE].getDistance());				// Pseudo-P-Well
+//		pseudoWellLayers[N_TYPE].setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
 
 		// The Spice parasitics
 		metalLayers[0].setFactoryParasitics(0.078, 0.1209, 0.1104);			// Metal-1
@@ -1107,20 +1107,20 @@ public class MoCMOS extends Technology
 		pActiveWellLayer.setFactoryParasitics(0, 0, 0);			// P-Active-Well
 		silicideBlockLayer.setFactoryParasitics(0, 0, 0);		// Silicide-Block
         thickActiveLayer.setFactoryParasitics(0, 0, 0);			// Thick-Active
-		pseudoMetal1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
-		pseudoActiveLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Active
-		pseudoActiveLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Active
-		pseudoSelectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
-		pseudoSelectLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
-		pseudoWellLayers[P_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
-		pseudoWellLayers[N_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
+//		pseudoMetal1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-6
+//		pseudoPoly1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
+//		pseudoActiveLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Active
+//		pseudoActiveLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Active
+//		pseudoSelectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
+//		pseudoSelectLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
+//		pseudoWellLayers[P_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
+//		pseudoWellLayers[N_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
 		padFrameLayer.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
 		setFactoryParasitics(4, 0.1);

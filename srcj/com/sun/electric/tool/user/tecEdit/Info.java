@@ -403,11 +403,11 @@ public class Info
 
 		// if there is no sequence, simply return the list
 		Variable var = dependentlibs[dependentlibs.length-1].getVar(seqKey);
-		if (var == null) return (Cell [])npList.toArray();
+//		if (var == null) return (Cell [])npList.toArray();
 
 		// build a new list with the sequence
 		List<Cell> sequence = new ArrayList<Cell>();
-		String [] sequenceNames = (String [])var.getObject();
+		String [] sequenceNames = var != null ? (String [])var.getObject() : new String[0];
 		for(int i=0; i<sequenceNames.length; i++)
 		{
 			Cell foundCell = null;

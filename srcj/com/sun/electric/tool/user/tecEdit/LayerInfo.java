@@ -310,7 +310,7 @@ public class LayerInfo extends Info
 				case LAYERTRANSPARENCY:
 					if (str.equalsIgnoreCase("none")) li.desc.setTransparentLayer(0); else
 					{
-						int layerNum = TextUtils.atoi(str.substring(6));
+						int layerNum = TextUtils.atoi(str.substring(str.indexOf('-') + 1));
 						li.desc.setTransparentLayer(layerNum);
 					}
 					break;

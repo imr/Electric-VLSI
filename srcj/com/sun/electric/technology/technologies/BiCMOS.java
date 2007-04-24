@@ -524,14 +524,14 @@ public class BiCMOS extends Technology
 		B_lay.setFactoryCIFLayer("CCD");		// BCCD
 		OS_lay.setFactoryCIFLayer("CAA");		// Ohmic_Substrate
 		OW_lay.setFactoryCIFLayer("CAA");		// Ohmic_Well
-		PPS_lay.setFactoryCIFLayer("");		// Pseudo_P_Select
-		PNS_lay.setFactoryCIFLayer("");		// Pseudo_N_Select
-		PNW_lay.setFactoryCIFLayer("");		// Pseudo_N_Well
-		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal_1
-		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal_2
-		PP_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon
-		PP0_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon_2
-		PA_lay.setFactoryCIFLayer("");		// Pseudo_Active
+//		PPS_lay.setFactoryCIFLayer("");		// Pseudo_P_Select
+//		PNS_lay.setFactoryCIFLayer("");		// Pseudo_N_Select
+//		PNW_lay.setFactoryCIFLayer("");		// Pseudo_N_Well
+//		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal_1
+//		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal_2
+//		PP_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon
+//		PP0_lay.setFactoryCIFLayer("");		// Pseudo_Polysilicon_2
+//		PA_lay.setFactoryCIFLayer("");		// Pseudo_Active
 
 		// The DXF names
 		PS_lay.setFactoryDXFLayer("");		// P_Select
@@ -553,14 +553,14 @@ public class BiCMOS extends Technology
 		B_lay.setFactoryDXFLayer("");		// BCCD
 		OS_lay.setFactoryDXFLayer("");		// Ohmic_Substrate
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
-		PPS_lay.setFactoryDXFLayer("");		// Pseudo_P_Select
-		PNS_lay.setFactoryDXFLayer("");		// Pseudo_N_Select
-		PNW_lay.setFactoryDXFLayer("");		// Pseudo_N_Well
-		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal_1
-		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal_2
-		PP_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon
-		PP0_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon_2
-		PA_lay.setFactoryDXFLayer("");		// Pseudo_Active
+//		PPS_lay.setFactoryDXFLayer("");		// Pseudo_P_Select
+//		PNS_lay.setFactoryDXFLayer("");		// Pseudo_N_Select
+//		PNW_lay.setFactoryDXFLayer("");		// Pseudo_N_Well
+//		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal_1
+//		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal_2
+//		PP_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon
+//		PP0_lay.setFactoryDXFLayer("");		// Pseudo_Polysilicon_2
+//		PA_lay.setFactoryDXFLayer("");		// Pseudo_Active
 
 		//******************** DESIGN RULES ********************
 

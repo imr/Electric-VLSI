@@ -177,7 +177,7 @@ public class Foundry {
             int space = gdsDef.indexOf(' ');
             Layer layer = tech.findLayer(gdsDef.substring(0, space));
             while (space < gdsDef.length() && gdsDef.charAt(space) == ' ') space++;
-            if (layer == null || gdsMap.put(layer, gdsDef.substring(space)) != null)
+            if (layer == null || layer.isPseudoLayer() || gdsMap.put(layer, gdsDef.substring(space)) != null)
                 throw new IllegalArgumentException(gdsDef);
         }
         

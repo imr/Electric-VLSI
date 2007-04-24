@@ -47,6 +47,8 @@ import java.util.Collection;
  */
 public class Layer
 {
+    private static final boolean PSEUDO_SHARES_GRAPHICS = true;
+    
     private static final double DEFAULT_THICKNESS = 0;
     private static final double DEFAULT_DISTANCE = 0;
     private static final double DEFAULT_AREA_COVERAGE = 10; // 10%
@@ -551,7 +553,8 @@ public class Layer
                 throw new IllegalArgumentException();
         }
 		Layer layer = new Layer(name, tech, graphics);
-		graphics.setLayer(layer);
+        if (graphics.getLayer() == null)
+            graphics.setLayer(layer);
 		tech.addLayer(layer);
 		return layer;
 	}
@@ -584,6 +587,11 @@ public class Layer
 	 * @return the pseudo-layer.
 	 */
     public Layer makePseudo(String pseudoLayerName) {
+        EGraphics pseudoGraphics = graphics;
+        if (!PSEUDO_SHARES_GRAPHICS) {
+            pseudoGraphics = new EGraphics(graphics);
+            assert pseudoGraphics.getLayer() == null;
+        }
         Layer pseudo = newInstance(tech, pseudoLayerName, new EGraphics(graphics));
         pseudo.setFunction(function, functionExtras, true);
         pseudo.nonPseudoLayer = this;
@@ -892,6 +900,7 @@ public class Layer
 	 */
 	public void setFactory3DInfo(double thickness, double distance)
 	{
+        assert !isPseudoLayer();
 		getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
 		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
 	}
@@ -901,7 +910,11 @@ public class Layer
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane.
 	 */
-	public double getDistance() { return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble(); }
+	public double getDistance() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getDistance();
+        return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble();
+    }
 
 	/**
 	 * Method to set the distance of this layer.
@@ -910,6 +923,7 @@ public class Layer
 	 */
 	public void setDistance(double distance)
     {
+        assert !isPseudoLayer();
         // Not done with observer/observable to avoid long list of elements attached to this class
         // so reflection will be used.
         try
@@ -938,7 +952,11 @@ public class Layer
 	 * Layers can have a thickness of 0, which causes them to be rendered flat.
 	 * @return the thickness of this layer.
 	 */
-	public double getThickness() { return getDoublePref("Thickness", layer3DThicknessPrefs, DEFAULT_THICKNESS).getDouble(); }
+	public double getThickness() {
+        if (isPseudoLayer())
+            return 0;
+        return getDoublePref("Thickness", layer3DThicknessPrefs, DEFAULT_THICKNESS).getDouble();
+    }
 
 	/**
 	 * Method to set the thickness of this layer.
@@ -947,6 +965,7 @@ public class Layer
 	 */
 	public void setThickness(double thickness)
     {
+        assert !isPseudoLayer();
         // Not done with observer/observable to avoid long list of elements attached to this class
         // so reflection will be used.
         try
@@ -965,7 +984,10 @@ public class Layer
 	 * Method to set the factory-default CIF name of this Layer.
 	 * @param cifLayer the factory-default CIF name of this Layer.
 	 */
-	public void setFactoryCIFLayer(String cifLayer) { cifLayerSetting = makeLayerSetting("CIF", cifLayer); }
+	public void setFactoryCIFLayer(String cifLayer) {
+        assert !isPseudoLayer();
+        cifLayerSetting = makeLayerSetting("CIF", cifLayer);
+    }
 	/**
 	 * Method to return the CIF name of this layer.
 	 * @return the CIF name of this layer.
@@ -1023,7 +1045,11 @@ public class Layer
 	 * Method to set the factory-default DXF name of this Layer.
 	 * @param dxfLayer the factory-default DXF name of this Layer.
 	 */
-	public void setFactoryDXFLayer(String dxfLayer) { dxfLayerSetting = makeLayerSetting("DXF", dxfLayer); }
+	public void setFactoryDXFLayer(String dxfLayer) {
+        assert !isPseudoLayer();
+        dxfLayerSetting = makeLayerSetting("DXF", dxfLayer);
+    }
+    
 	/**
 	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.
@@ -1039,7 +1065,10 @@ public class Layer
 	 * Method to set the factory-default Skill name of this Layer.
 	 * @param skillLayer the factory-default Skill name of this Layer.
 	 */
-	public void setFactorySkillLayer(String skillLayer) { skillLayerSetting = makeLayerSetting("Skill", skillLayer); }
+	public void setFactorySkillLayer(String skillLayer) {
+        assert !isPseudoLayer();
+        skillLayerSetting = makeLayerSetting("Skill", skillLayer);
+    }
 	/**
 	 * Method to return the Skill name of this layer.
 	 * @return the Skill name of this layer.
@@ -1062,6 +1091,7 @@ public class Layer
 	 */
 	public void setFactoryParasitics(double resistance, double capacitance, double edgeCapacitance)
 	{
+        assert !isPseudoLayer();
 		resistanceSetting = makeParasiticSetting("Resistance", resistance);
 		capacitanceSetting = makeParasiticSetting("Capacitance", capacitance);
 		edgeCapacitanceSetting = makeParasiticSetting("EdgeCapacitance", edgeCapacitance);

@@ -329,11 +329,11 @@ public class CMOS extends Technology
 		PW_lay.setFactoryCIFLayer("CW");	// P-Well
 		O_lay.setFactoryCIFLayer("CG");		// Overglass
 		T_lay.setFactoryCIFLayer("");		// Transistor
-		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryCIFLayer("");		// Pseudo-Diffusion
-		PP0_lay.setFactoryCIFLayer("");		// Pseudo-P+
-		PPW_lay.setFactoryCIFLayer("");		// Pseudo-P-Well
+//		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal
+//		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
+//		PD_lay.setFactoryCIFLayer("");		// Pseudo-Diffusion
+//		PP0_lay.setFactoryCIFLayer("");		// Pseudo-P+
+//		PPW_lay.setFactoryCIFLayer("");		// Pseudo-P-Well
 
 		// The DXF names
 		M_lay.setFactoryDXFLayer("");		// Metal
@@ -345,11 +345,11 @@ public class CMOS extends Technology
 		PW_lay.setFactoryDXFLayer("");		// P-Well
 		O_lay.setFactoryDXFLayer("");		// Overglass
 		T_lay.setFactoryDXFLayer("");		// Transistor
-		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
-		PP0_lay.setFactoryDXFLayer("");		// Pseudo-P+
-		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
+//		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal
+//		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
+//		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
+//		PP0_lay.setFactoryDXFLayer("");		// Pseudo-P+
+//		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 

@@ -421,13 +421,13 @@ public class RCMOS extends Technology
 		passivation_lay.setFactoryCIFLayer("COG");		// Passivation
 		polyCut_lay.setFactoryCIFLayer("CCP");			// Poly-Cut
 		activeCut_lay.setFactoryCIFLayer("CCA");		// Active-Cut
-		pseudoMetal1_lay.setFactoryCIFLayer("");		// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactoryCIFLayer("");		// Pseudo-Metal-2
-		pseudoPolysilicon_lay.setFactoryCIFLayer("");	// Pseudo-Polysilicon
-		pseudoSActive_lay.setFactoryCIFLayer("");		// Pseudo-S-Active
-		pseudoDActive_lay.setFactoryCIFLayer("");		// Pseudo-D-Active
-		pseudoSelect_lay.setFactoryCIFLayer("");		// Pseudo-Select
-		pseudoWell_lay.setFactoryCIFLayer("");			// Pseudo-Well
+//		pseudoMetal1_lay.setFactoryCIFLayer("");		// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactoryCIFLayer("");		// Pseudo-Metal-2
+//		pseudoPolysilicon_lay.setFactoryCIFLayer("");	// Pseudo-Polysilicon
+//		pseudoSActive_lay.setFactoryCIFLayer("");		// Pseudo-S-Active
+//		pseudoDActive_lay.setFactoryCIFLayer("");		// Pseudo-D-Active
+//		pseudoSelect_lay.setFactoryCIFLayer("");		// Pseudo-Select
+//		pseudoWell_lay.setFactoryCIFLayer("");			// Pseudo-Well
 
 		//******************** ARCS ********************
 

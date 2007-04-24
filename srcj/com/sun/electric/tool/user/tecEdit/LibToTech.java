@@ -2808,9 +2808,11 @@ public class LibToTech
 			if (lList[j].cif.length() > 0)
 			{
 				buffWriter.println("\n\t\t// The CIF names");
-				for(int i=0; i<lList.length; i++)
+				for(int i=0; i<lList.length; i++) {
+                    if (lList[i].pseudo) continue;
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryCIFLayer(\"" + lList[i].cif +
 						"\");\t\t// " + lList[i].name);
+                }
 				break;
 			}
 		}
@@ -2818,12 +2820,14 @@ public class LibToTech
 		// write the DXF layer names
 		for(int j=0; j<lList.length; j++)
 		{
-			if (lList[j].dxf.length() > 0)
+			if (lList[j].dxf != null && lList[j].dxf.length() > 0)
 			{
 				buffWriter.println("\n\t\t// The DXF names");
-				for(int i=0; i<lList.length; i++)
+				for(int i=0; i<lList.length; i++) {
+                    if (lList[i].pseudo) continue;
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryDXFLayer(\"" + lList[i].dxf +
 						"\");\t\t// " + lList[i].name);
+                }
 				break;
 			}
 		}
@@ -2831,12 +2835,14 @@ public class LibToTech
 		// write the Skill layer names
 		for(int j=0; j<lList.length; j++)
 		{
-			if (lList[j].skill.length() > 0)
+			if (lList[j].skill != null && lList[j].skill.length() > 0)
 			{
 				buffWriter.println("\n\t\t// The Skill names");
-				for(int i=0; i<lList.length; i++)
+				for(int i=0; i<lList.length; i++) {
+                    if (lList[i].pseudo) continue;
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactorySkillLayer(\"" + lList[i].skill +
 						"\");\t\t// " + lList[i].name);
+                }
 				break;
 			}
 		}
@@ -2860,10 +2866,12 @@ public class LibToTech
 			if (lList[j].thick3d != 0 || lList[j].height3d != 0)
 			{
 				buffWriter.println("\n\t\t// The layer height");
-				for(int i=0; i<lList.length; i++)
+				for(int i=0; i<lList.length; i++) {
+                    if (lList[i].pseudo) continue;
 					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactory3DInfo(" +
 						TextUtils.formatDouble(lList[i].thick3d, NUM_FRACTIONS) + ", " + TextUtils.formatDouble(lList[i].height3d, NUM_FRACTIONS) +
 						");\t\t// " + lList[i].name);
+                }
 				break;
 			}
 		}

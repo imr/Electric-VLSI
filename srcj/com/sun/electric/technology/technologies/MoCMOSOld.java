@@ -549,15 +549,15 @@ public class MoCMOSOld extends Technology
 		AC_lay.setFactoryCIFLayer("CCA");		// Active-Cut
 		SAW_lay.setFactoryCIFLayer("CAA");		// S-Active-Well
 		PF_lay.setFactoryCIFLayer("CX");		// Pad-Frame
-		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal-1
-		PM0_lay.setFactoryCIFLayer("");		// Pseudo-Metal-2
-		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
-		PSA_lay.setFactoryCIFLayer("");		// Pseudo-S-Active
-		PDA_lay.setFactoryCIFLayer("");		// Pseudo-D-Active
-		PPS_lay.setFactoryCIFLayer("");		// Pseudo-P-Select
-		PNS_lay.setFactoryCIFLayer("");		// Pseudo-N-Select
-		PPW_lay.setFactoryCIFLayer("");		// Pseudo-P-Well
-		PNW_lay.setFactoryCIFLayer("");		// Pseudo-N-Well
+//		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal-1
+//		PM0_lay.setFactoryCIFLayer("");		// Pseudo-Metal-2
+//		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
+//		PSA_lay.setFactoryCIFLayer("");		// Pseudo-S-Active
+//		PDA_lay.setFactoryCIFLayer("");		// Pseudo-D-Active
+//		PPS_lay.setFactoryCIFLayer("");		// Pseudo-P-Select
+//		PNS_lay.setFactoryCIFLayer("");		// Pseudo-N-Select
+//		PPW_lay.setFactoryCIFLayer("");		// Pseudo-P-Well
+//		PNW_lay.setFactoryCIFLayer("");		// Pseudo-N-Well
 
 		// The DXF names
 		M_lay.setFactoryDXFLayer("");		// Metal-1
@@ -577,15 +577,15 @@ public class MoCMOSOld extends Technology
 		AC_lay.setFactoryDXFLayer("");		// Active-Cut
 		SAW_lay.setFactoryDXFLayer("");		// S-Active-Well
 		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
-		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal-1
-		PM0_lay.setFactoryDXFLayer("");		// Pseudo-Metal-2
-		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
-		PSA_lay.setFactoryDXFLayer("");		// Pseudo-S-Active
-		PDA_lay.setFactoryDXFLayer("");		// Pseudo-D-Active
-		PPS_lay.setFactoryDXFLayer("");		// Pseudo-P-Select
-		PNS_lay.setFactoryDXFLayer("");		// Pseudo-N-Select
-		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
-		PNW_lay.setFactoryDXFLayer("");		// Pseudo-N-Well
+//		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal-1
+//		PM0_lay.setFactoryDXFLayer("");		// Pseudo-Metal-2
+//		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
+//		PSA_lay.setFactoryDXFLayer("");		// Pseudo-S-Active
+//		PDA_lay.setFactoryDXFLayer("");		// Pseudo-D-Active
+//		PPS_lay.setFactoryDXFLayer("");		// Pseudo-P-Select
+//		PNS_lay.setFactoryDXFLayer("");		// Pseudo-N-Select
+//		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
+//		PNW_lay.setFactoryDXFLayer("");		// Pseudo-N-Well
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03, 0.03, 0);		// Metal-1
@@ -605,15 +605,15 @@ public class MoCMOSOld extends Technology
 		AC_lay.setFactoryParasitics(0, 0, 0);		// Active-Cut
 		SAW_lay.setFactoryParasitics(0, 0, 0);		// S-Active-Well
 		PF_lay.setFactoryParasitics(0, 0, 0);		// Pad-Frame
-		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-1
-		PM0_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-2
-		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
-		PSA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-S-Active
-		PDA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-D-Active
-		PPS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
-		PNS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
-		PPW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Well
-		PNW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Well
+//		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-1
+//		PM0_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-2
+//		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
+//		PSA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-S-Active
+//		PDA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-D-Active
+//		PPS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
+//		PNS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
+//		PPW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Well
+//		PNW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Well
 		setFactoryParasitics(50, 50);
 		String [] headerLevel1 =
 		{

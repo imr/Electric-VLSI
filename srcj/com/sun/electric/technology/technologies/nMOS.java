@@ -352,10 +352,10 @@ public class nMOS extends Technology
 		HE_lay.setFactoryCIFLayer("NE");		// Hard-Enhancement
 		LE_lay.setFactoryCIFLayer("NF");		// Light-Enhancement
 		T_lay.setFactoryCIFLayer("");		// Transistor
-		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryCIFLayer("");		// Pseudo-Diffusion
-
+//		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal
+//		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
+//		PD_lay.setFactoryCIFLayer("");		// Pseudo-Diffusion
+//
 		// The DXF names
 		M_lay.setFactoryDXFLayer("");		// Metal
 		P_lay.setFactoryDXFLayer("");		// Polysilicon
@@ -369,9 +369,9 @@ public class nMOS extends Technology
 		HE_lay.setFactoryDXFLayer("");		// Hard-Enhancement
 		LE_lay.setFactoryDXFLayer("");		// Light-Enhancement
 		T_lay.setFactoryDXFLayer("");		// Transistor
-		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
+//		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal
+//		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
+//		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03, 0.03, 0);		// Metal
@@ -386,9 +386,9 @@ public class nMOS extends Technology
 		HE_lay.setFactoryParasitics(0, 0, 0);		// Hard-Enhancement
 		LE_lay.setFactoryParasitics(0, 0, 0);		// Light-Enhancement
 		T_lay.setFactoryParasitics(0, 0, 0);		// Transistor
-		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal
-		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
-		PD_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Diffusion
+//		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal
+//		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
+//		PD_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Diffusion
 		setFactoryParasitics(50, 50);
 		String [] headerLevel1 =
 		{

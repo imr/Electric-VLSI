@@ -2788,6 +2788,7 @@ public class Spice extends Topology
                 Simulation.isSpiceUseParasitics() && (cell.getView() == View.LAYOUT);
         if (useParasitics) {
             for (Layer layer : layoutTechnology.getLayersSortedByHeight()) {
+                if (layer.isPseudoLayer()) continue;
                 double edgecap = layer.getEdgeCapacitance();
                 double areacap = layer.getCapacitance();
                 double res = layer.getResistance();
@@ -3001,6 +3002,7 @@ public class Spice extends Topology
 
 			// don't bother with layers without capacity
 			Layer layer = poly.getLayer();
+            if (layer.isPseudoLayer()) continue;
 			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
 

@@ -1091,7 +1091,8 @@ public class Technology implements Comparable<Technology>
             foundry.finish();
         }
         for (Layer layer: layers) {
-            layer.finish();
+            if (!layer.isPseudoLayer())
+                layer.finish();
         }
         
         check();

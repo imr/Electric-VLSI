@@ -211,7 +211,7 @@ public class TechToLib
 
 		// create the layer nodes
 		System.out.println("Creating the layers...");
-		String [] layerSequence = new String[layerTotal];
+		ArrayList<String> layerSequence = new ArrayList<String>();
         LayerInfo [] lList = new LayerInfo[layerTotal];
         Map<Layer,String> gdsLayers = tech.getGDSLayers();
 
@@ -240,13 +240,14 @@ public class TechToLib
 			li.fun = layer.getFunction();
 			li.funExtra = layer.getFunctionExtras();
             li.pseudo = layer.isPseudoLayer();
+			li.desc = desc;
             if (li.pseudo) {
                 String masterName = layer.getNonPseudoLayer().getName();
                 for(int j=0; j<i; j++) {
                     if (lList[j].name.equals(masterName)) { lList[j].myPseudo = li;   break; }
                 }
+                continue;
             }
-			li.desc = desc;
 
 			// compute foreign file formats
 			li.cif = (String)layer.getCIFLayerSetting().getFactoryValue();
@@ -267,11 +268,12 @@ public class TechToLib
 
 			// build the layer cell
 			li.generate(lNp);
-			layerSequence[i] = lNp.getName().substring(6);
+			layerSequence.add(lNp.getName().substring(6));
 		}
 
 		// save the layer sequence
-		lib.newVar(Info.LAYERSEQUENCE_KEY, layerSequence);
+        String[] layerSequenceArray = layerSequence.toArray(new String[layerSequence.size()]);
+		lib.newVar(Info.LAYERSEQUENCE_KEY, layerSequenceArray);
 
 		// create the arc cells
 		System.out.println("Creating the arcs...");

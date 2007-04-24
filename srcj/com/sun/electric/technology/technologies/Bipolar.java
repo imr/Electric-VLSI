@@ -417,8 +417,8 @@ public class Bipolar extends Technology
 		V_lay.setFactoryCIFLayer("IV");		// Via
 		SP_lay.setFactoryCIFLayer("ISP");	// Scratch_Protection
 		B_lay.setFactoryCIFLayer("IB");		// Buried
-		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal1
-		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal2
+//		PM_lay.setFactoryCIFLayer("");		// Pseudo_Metal1
+//		PM0_lay.setFactoryCIFLayer("");		// Pseudo_Metal2
 
 		// The DXF names
 		M_lay.setFactoryDXFLayer("");		// Metal1
@@ -435,8 +435,8 @@ public class Bipolar extends Technology
 		V_lay.setFactoryDXFLayer("");		// Via
 		SP_lay.setFactoryDXFLayer("");		// Scratch_Protection
 		B_lay.setFactoryDXFLayer("");		// Buried
-		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal1
-		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
+//		PM_lay.setFactoryDXFLayer("");		// Pseudo_Metal1
+//		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
 
 		//******************** DESIGN RULES ********************
 
@@ -1091,9 +1091,9 @@ public class Bipolar extends Technology
                 "Contact 7",
                 "Via 81",
                 "Scratch_Protection 10",
-                "Buried 1",
-                "Pseudo_Metal1 18",
-                "Pseudo_Metal2 19");
+                "Buried 1");
+//                "Pseudo_Metal1 18",
+//                "Pseudo_Metal2 19");
 //        mosis.setFactoryGDSLayer(M_lay, "8");		// Metal1
 //		mosis.setFactoryGDSLayer(M0_lay, "9");		// Metal2
 //		mosis.setFactoryGDSLayer(N_lay, "52");		// NPImplant
