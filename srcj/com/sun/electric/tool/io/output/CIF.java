@@ -238,7 +238,7 @@ public class CIF extends Geometry
 	 */
 	private boolean writeLayer(Layer layer)
 	{
-        if (layer.isPseudoLayer()) return false;
+        if (layer.isPseudoLayer()) return true;
 		String layName = layer.getCIFLayer();
 		if (layName == null || layName.equals("")) return true;
 		writeLine("L " + layName + ";");
