@@ -432,7 +432,12 @@ public class VerilogReader extends Input
                 {
                     VerilogData.VerilogPort export = module.findPort(name);
                     assert(export != null);
-                    export.type = portType;
+                    // except for clk!!
+                    if (export.type != PortCharacteristic.UNKNOWN && export.type != portType)
+                        System.out.println("Inconsistency in asigning port type. Found " + portType +
+                        " and was " + export.type);
+//                    else
+                        export.type = portType;
                     if (l.size() == 2)
                         export.busPins = l.get(0);
                 }
