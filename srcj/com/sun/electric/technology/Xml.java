@@ -108,6 +108,15 @@ public class Xml {
         public double capacitance;
         public double edgeCapacitance;
         public String pseudoLayer;
+        public PureLayerNode pureLayerNode;
+    }
+    
+    public static class PureLayerNode {
+        public String name;
+        public Poly.Type style;
+        public String port;
+        public final Distance size = new Distance();
+        public final List<String> portArcs = new ArrayList<String>();
     }
     
     public static class ArcProto {
@@ -237,6 +246,7 @@ public class Xml {
         cifLayer,
         parasitics,
         pseudoLayer(true),
+        pureLayerNode,
         
         arcProto,
         wipable,
@@ -668,6 +678,14 @@ public class Xml {
                     curLayer.capacitance = Double.parseDouble(a("capacitance"));
                     curLayer.edgeCapacitance = Double.parseDouble(a("edgeCapacitance"));
                     break;
+                case pureLayerNode:
+                    curLayer.pureLayerNode = new PureLayerNode();
+                    curLayer.pureLayerNode.name = a("name");
+                    String styleStr = a_("style");
+                    curLayer.pureLayerNode.style = styleStr != null ? Poly.Type.valueOf(styleStr) : Poly.Type.FILLED;
+                    curLayer.pureLayerNode.port = a("port");
+                    curDistance = curLayer.pureLayerNode.size;
+                    break;
                 case arcProto:
                     curArc = new ArcProto();
                     curArc.name = a("name");
@@ -981,7 +999,10 @@ public class Xml {
                         curPort.portTopology = Integer.parseInt(text);
                         break;
                     case portArc:
-                        curPort.portArcs.add(text);
+                        if (curLayer != null && curLayer.pureLayerNode != null)
+                            curLayer.pureLayerNode.portArcs.add(text);
+                        if (curPort != null)
+                            curPort.portArcs.add(text);
                         break;
                     case specialValue:
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
@@ -1049,6 +1070,7 @@ public class Xml {
                 case display3D:
                 case cifLayer:
                 case parasitics:
+                case pureLayerNode:
                     
                 case wipable:
                 case curvable:

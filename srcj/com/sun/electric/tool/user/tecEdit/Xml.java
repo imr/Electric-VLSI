@@ -252,9 +252,7 @@ public class Xml {
             String styleStr = style == Poly.Type.FILLED ? null : style.name();
             String portName = li.pureLayerNode.nodePortDetails[0].name;
             b("pureLayerNode"); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
-            bcl("size");
             bcpel("lambda", DBMath.round(li.pureLayerNode.xSize));
-            el("size");
             for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
                 bcpel("portArc", a.name);
             el("pureLayerNode");

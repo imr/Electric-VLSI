@@ -92,10 +92,9 @@ public class Setting {
         valid = true;
         this.description = description;
         this.location = location;
-        if (xmlName == null) xmlName = getPrefName();
+        setCachedObjFromPreferences();
         xmlNode.putValue(xmlName, this);
         
-        setCachedObjFromPreferences();
     }
     
     /**

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
@@ -35,12 +34,22 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.technologies.utils.MOSRules;
-import com.sun.electric.technology.*;
-import com.sun.electric.technology.Technology.TechPoint;
-import com.sun.electric.technology.Technology.TechSetting;
 
 import java.awt.Color;
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -2507,6 +2516,14 @@ public class MoCMOS extends Technology
 		return description + ")";
 	}
 
+    @Override
+    protected void dumpExtraProjectSettings(PrintWriter out) {
+        printlnSetting(out, getRuleSetSetting());
+        printlnSetting(out, getSecondPolysiliconSetting());
+        printlnSetting(out, getDisallowStackedViasSetting());
+        printlnSetting(out, getAlternateActivePolyRulesSetting());
+    }
+    
 	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
 
 	private static final int SCALABLE_ACTIVE_TOP = 0;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/25/07, DN) TechnologyTest added to regressions.
+
 BUG: (4/24/07, DN) Some pure layer node have strange connections.
 FIX: Remove connections:
    mocmos:Thick-Active-Node  Polysilicon-1 arc

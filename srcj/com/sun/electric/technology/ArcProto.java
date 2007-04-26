@@ -26,11 +26,10 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1138,6 +1137,30 @@ public class ArcProto implements Comparable<ArcProto>
 		return "arc " + describe();
 	}
 
+    void dump(PrintWriter out) {
+        out.println("ArcProto " + getName() + " " + getFunction());
+        out.println("\tisWipable=" + isWipable());
+        out.println("\tisCurvable=" + isCurvable());
+        out.println("\tisSpecialArc=" + isSpecialArc());
+        out.println("\tisEdgeSelect=" + isEdgeSelect());
+        out.println("\tisNotUsed=" + isNotUsed());
+        out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
+        
+        out.println("\twidthOffset=" + getLambdaWidthOffset());
+        Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultAnglePrefs.get(this));
+        Technology.printlnPref(out, 1, defaultRigidPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultFixedAnglePrefs.get(this));
+        Technology.printlnPref(out, 1, defaultExtendedPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultDirectionalPrefs.get(this));
+        
+        for (int arcLayerIndex = 0; arcLayerIndex < getNumArcLayers(); arcLayerIndex++) {
+            out.println("\t\tarcLayer layer=" + getLayer(arcLayerIndex).getName() +
+                    " style=" + getLayerStyle(arcLayerIndex).name() +
+                    " extend=" + getLayerLambdaExtend(arcLayerIndex));
+        }
+    }
+    
     /**
      * Method to check invariants in this ArcProto.
      * @exception AssertionError if invariants are not valid

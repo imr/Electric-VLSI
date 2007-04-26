@@ -412,13 +412,7 @@
                             <xsd:element name="pureLayerNode" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:sequence>
-                                        <xsd:element name="size">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:group ref="tns:Distance"/>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
+                                        <xsd:group ref="tns:Distance"/>
                                         <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="name" type="tns:PrimitiveNodeName"/>

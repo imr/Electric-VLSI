@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -61,6 +62,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -606,7 +608,6 @@ public class Technology implements Comparable<Technology>
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
 	/** 0-based index of this technology */					private int techIndex;
-	///** critical dimensions for this technology */			private double scale;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
@@ -843,6 +844,14 @@ public class Technology implements Comparable<Technology>
             }
             if (n.nodeSizeRule != null)
                 pnp.setMinSize(n.nodeSizeRule.getWidth(), n.nodeSizeRule.getHeight(), n.nodeSizeRule.getRuleName());
+        }
+        for (Xml.Layer l: t.layers) {
+            if (l.pureLayerNode == null) continue;
+            Layer layer = layers.get(l.name);
+            ArcProto[] connections = new ArcProto[l.pureLayerNode.portArcs.size()];
+            for (int j = 0; j < connections.length; j++)
+                connections[j] = arcs.get(l.pureLayerNode.portArcs.get(j));
+            layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
         }
         if (!full) return;
         if (t.menuPalette != null) {
@@ -1251,7 +1260,125 @@ public class Technology implements Comparable<Technology>
      */
     public boolean cleanUnusedNodesInLibrary(NodeInst ni, List<Geometric> list) {return false;}
 
-	/****************************** LAYERS ******************************/
+    public void dump(PrintWriter out) {
+        final String[] techBits = {
+            "NONELECTRICAL", "NODIRECTIONALARCS", "NONEGATEDARCS",
+            "NONSTANDARD", "STATICTECHNOLOGY", "NOPRIMTECHNOLOGY"
+        };
+        final String[] layerBits = {
+            null, null, null,
+            null, null, null,
+            "PTYPE", "NTYPE", "DEPLETION",
+            "ENHANCEMENT",  "LIGHT", "HEAVY",
+            null, "NONELEC", "CONMETAL",
+            "CONPOLY", "CONDIFF", null,
+            null, null, null,
+            "HLVT", "INTRANS", "THICK"
+        };
+    
+        out.println("Technology " + getTechName());
+        out.println(getClass().toString());
+        out.println("shortName=" + getTechShortName());
+        out.println("techDesc=" + getTechDesc());
+        out.print("Bits: "); printlnBits(out, techBits, userBits);
+        out.print("isScaleRelevant=" + isScaleRelevant()); printlnSetting(out, getScaleSetting());
+        printlnSetting(out, getPrefFoundrySetting());
+        printlnSetting(out, getNumMetalsSetting());
+        dumpExtraProjectSettings(out);
+        printlnSetting(out, getMinResistanceSetting());
+        printlnSetting(out, getGateLengthSubtractionSetting());
+        printlnSetting(out, getGateIncludedSetting());
+        printlnSetting(out, getGroundNetIncludedSetting());
+        printlnSetting(out, getMaxSeriesResistanceSetting());
+        printlnSetting(out, getGateCapacitanceSetting());
+        printlnSetting(out, getWireRatioSetting());
+        printlnSetting(out, getDiffAlphaSetting());
+
+        printlnPref(out, 0, prefResolution);
+        assert getNumTransparentLayers() == (transparentColorPrefs != null ? transparentColorPrefs.length : 0);
+        for (int i = 0; i < getNumTransparentLayers(); i++)
+            out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentColorPrefs[i].getIntFactoryValue()));
+        
+        for (Layer layer: layers) {
+            if (layer.isPseudoLayer()) continue;
+            out.print("Layer " + layer.getName() + " " + layer.getFunction().name());
+            printlnBits(out, layerBits, layer.getFunctionExtras());
+            out.print("\t"); printlnSetting(out, layer.getCIFLayerSetting());
+            out.print("\t"); printlnSetting(out, layer.getDXFLayerSetting());
+            out.print("\t"); printlnSetting(out, layer.getSkillLayerSetting());
+            out.print("\t"); printlnSetting(out, layer.getResistanceSetting());
+            out.print("\t"); printlnSetting(out, layer.getCapacitanceSetting());
+            out.print("\t"); printlnSetting(out, layer.getEdgeCapacitanceSetting());
+            // GDS
+            EGraphics desc = layer.getGraphics();
+            out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + desc.isFactoryPatternedOnDisplay() + ")");
+            out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + desc.isFactoryPatternedOnPrinter() + ")");
+            out.println("\toutlined=" + desc.getOutlined() + "(" + desc.getFactoryOutlined() + ")");
+            out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + desc.getFactoryTransparentLayer() + ")");
+            out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()));
+            out.println("\tforeground=" + desc.getForeground());
+            int pattern[] = desc.getFactoryPattern();
+            out.print("\tpattern");
+            for (int p: pattern)
+                out.print(" " + Integer.toHexString(p));
+            out.println();
+            out.println("\tdistance3D=" + layer.getDistance());
+            out.println("\tthickness3D=" + layer.getThickness());
+
+            if (layer.getPseudoLayer() != null)
+                out.println("\tpseudoLayer=" + layer.getPseudoLayer().getName());
+        }
+        for (ArcProto ap: arcs.values())
+            ap.dump(out);
+        for (PrimitiveNode pnp: nodes.values())
+            pnp.dump(out);
+        
+        printSpiceHeader(out, 1, getSpiceHeaderLevel1());
+        printSpiceHeader(out, 2, getSpiceHeaderLevel2());
+        printSpiceHeader(out, 3, getSpiceHeaderLevel3());
+    }
+    
+    protected void dumpExtraProjectSettings(PrintWriter out) {}
+    
+    protected static void printlnSetting(PrintWriter out, Setting setting) {
+        out.println(setting.getXmlPath() + "=" + setting.getValue() + "(" + setting.getFactoryValue() + ")");
+    }
+    
+    static void printlnPref(PrintWriter out, int indent, Pref pref) {
+        if (pref == null) return;
+        while (indent-- > 0)
+            out.print("\t");
+        out.println(pref.getPrefName() + "=" + pref.getValue() + "(" + pref.getFactoryValue() + ")");
+    }
+    
+    protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
+        for (int i = 0; i < Integer.SIZE; i++) {
+            if ((bits & (1 << i)) == 0) continue;
+            String bitName = i < bitNames.length ? bitNames[i] : null;
+            if (bitName == null)
+                bitName = "BIT" + i;
+            out.print(" " + bitName);
+        }
+        out.println();
+    }
+    
+    private void printSpiceHeader(PrintWriter out, int level, String[] header) {
+        if (header == null) return;
+        out.println("SpiceHeader " + level);
+        for (String s: header)
+            out.println("\t\"" + s + "\"");
+    }
+//	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
+//	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
+//	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+//    /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
+//	/** To group elements for the component menu */         protected Object[][] nodeGroups;
+//	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
+//    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
+//    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
+
+    
+    /****************************** LAYERS ******************************/
 
 	/**
 	 * Returns an Iterator on the Layers in this Technology.
@@ -4395,6 +4522,8 @@ public class Technology implements Comparable<Technology>
 
         private TechSetting(String prefName, Pref.Group group, Technology tech, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
             super(prefName, Technology.prefs, xmlNode, xmlName, location, description, factoryObj);
+            if (tech == null)
+                throw new NullPointerException();
             this.tech = tech;
         }
 
@@ -4402,6 +4531,7 @@ public class Technology implements Comparable<Technology>
 		protected void setSideEffect()
 		{
 			//technologyChangedFromDatabase(tech, true);
+            if (tech == null) return;
             tech.setState();
             reloadUIData();
 		}

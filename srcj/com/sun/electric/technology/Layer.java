@@ -511,6 +511,7 @@ public class Layer
     private Setting resistanceSetting;
     private Setting capacitanceSetting;
     private Setting edgeCapacitanceSetting;
+	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if this layer is visible */									private boolean visible;
 	/** true if this layer's visibity has been initialized */				private boolean visibilityInitialized;
@@ -594,10 +595,11 @@ public class Layer
             pseudoGraphics = new EGraphics(graphics);
             assert pseudoGraphics.getLayer() == null;
         }
-        Layer pseudo = newInstance(tech, pseudoLayerName, new EGraphics(graphics));
-        pseudo.setFunction(function, functionExtras, true);
-        pseudo.nonPseudoLayer = this;
-        return pseudo;
+        assert pseudoLayer == null;
+        pseudoLayer = newInstance(tech, pseudoLayerName, new EGraphics(graphics));
+        pseudoLayer.setFunction(function, functionExtras, true);
+        pseudoLayer.nonPseudoLayer = this;
+        return pseudoLayer;
     }
     
 	/**
@@ -755,6 +757,13 @@ public class Layer
 	 * @return true if this is pseudo-layer.
 	 */
 	public boolean isPseudoLayer() { return pseudo; }
+	/**
+	 * Method to return the pseudo layer associated with this real-Layer.
+	 * Pseudo layers are those used in pins, and have no real geometry.
+	 * @return the pseudo layer associated with this read-Layer.
+	 * If this layer is hass not pseudo, the null is returned.
+	 */
+	public Layer getPseudoLayer() { return pseudoLayer; }
 	/**
 	 * Method to return the non-pseudo layer associated with this pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.

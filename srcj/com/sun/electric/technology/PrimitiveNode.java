@@ -36,6 +36,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
 import java.util.Iterator;
@@ -1518,6 +1519,44 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		return "node " + describe(true);
 	}
 
+    private static final String[] nodeBits = {
+        "NODESHRINK", null, null,
+        "LOWVTBIT", "HIGHVTBIT", "NATIVEBIT",
+        "OD18BIT", "OD25BIT", "OD33BIT",
+        "ARCSWIPE", "NSQUARE", "HOLDSTRACE",
+        "CANBEZEROSIZE", "WIPEON1OR2", "LOCKEDPRIM",
+        "NEDGESELECT", "ARCSHRINK", "NINVISIBLE",
+        "SKIPSIZEINPALETTE", "NNOTUSED", null
+    };
+    
+    void dump(PrintWriter out) {
+        out.print("PrimitiveNode " + getName() + " " + getFunction());
+        Technology.printlnBits(out, nodeBits, userBits);
+//	// constants used in the "specialType" field
+//	/** Defines a normal node. */					public static final int NORMAL = 0;
+//	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
+//	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
+//
+//	// --------------------- private data -----------------------------------
+//	
+//	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
+//	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
+//	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts;
+//	/** Global index of this PrimitiveNode. */		private int globalPrimNodeIndex;
+//    /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
+//	/** special type of unusual primitives */		private int specialType;
+//	/** special factors for unusual primitives */	private double[] specialValues;
+//    /** true if contains MULTICUTBOX layers */      private boolean hasMultiCuts;
+//    /** minimum width and height rule */            private NodeSizeRule minNodeSize;
+//	/** offset from database to user */				private SizeOffset offset;
+//	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
+//
+//	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
+//	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultWidthPrefs = new HashMap<PrimitiveNode,Pref>();
+//	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultHeightPrefs = new HashMap<PrimitiveNode,Pref>();
+//
+    }
+    
 	/**
 	 * Method to get MinZ and MaxZ of the cell calculated based on nodes
 	 * @param array array[0] is minZ and array[1] is max
