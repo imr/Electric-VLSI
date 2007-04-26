@@ -34,6 +34,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
+import java.io.PrintWriter;
 
 /**
  * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
@@ -416,4 +417,13 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	{
 		return "PrimitivePort " + getName();
 	}
+    
+    void dump(PrintWriter out) {
+            out.println("\tport " + getName() + " angle=" + getAngle() + " range=" + getAngleRange() + " topology=" + getTopology() + " " + getCharacteristic());
+            out.println("\t\tlm=" + left.getMultiplier() + " la=" + left.getAdder() + " rm=" + right.getMultiplier() + " ra=" + right.getAdder() +
+                    " bm=" + bottom.getMultiplier() + " ba=" + bottom.getAdder() + " tm=" + top.getMultiplier() + " ta=" + top.getAdder());
+            out.println("\t\tisolated=" + isolated + " negatable=" + negatable);
+            for (ArcProto ap: portArcs)
+                out.println("portArc " + ap.getName());
+    }
 }

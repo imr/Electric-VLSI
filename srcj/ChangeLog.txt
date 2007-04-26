@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP/MAN: (4/26,07, DN) Parameter "Analog" was added to "macmos" technology, which is off by default.
+    If it is enabled, then a layer "mocmos:P-Base" and nodes "mocmos:NPN-Transistor" and "mocmos:P-Base-Node" appear.
+    A new "when" "AN" was added to DRC template. A few rules are added to "Mosis180.xml".
+
 IMP: (4/25/07, DN) TechnologyTest added to regressions.
 
 BUG: (4/24/07, DN) Some pure layer node have strange connections.

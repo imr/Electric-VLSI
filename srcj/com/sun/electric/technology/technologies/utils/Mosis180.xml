@@ -233,6 +233,12 @@
         <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M3" value="8" maxW="100" minLen="0"/>
         <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M456" value="6" maxW="100" minLen="0"/>
 
+        <!-- PBase -->
+        <LayersRule ruleName="16.3 Mosis" layerNames="{N-Select, P-Base}" type="SURROUND" when="AN" value="2" />
+        <LayersRule ruleName="16.5 Mosis" layerNames="{P-Select, P-Base}" type="SURROUND" when="AN" value="2" />
+        <LayersRule ruleName="16.7 Mosis" layerNames="{P-Base, N-Well}" type="SURROUND" when="AN" value="6" />
+        <LayersRule ruleName="16.8 Mosis" layerNames="{P-Base, P-Active}" type="SPACING" when="AN" value="4" />
+        
         <!-- Metal3 contacts -->
         <LayerRule ruleName="21.1 Mosis" layerName="Via3" type="MINWID" when="DE" value="3" />
         <NodeRule ruleName="21.1 Mosis" type="NODSIZ" when="DE" value="5" nodeName="Metal-3-Metal-4-Con"/>

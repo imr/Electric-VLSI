@@ -65,6 +65,7 @@ public class DRCTemplate implements Serializable
         /** only applies if there are 7 metal layers in process */		    M7 (0100000),
         /** only applies if there are 8 metal layers in process */		    M8 (0200000),
         /** only applies if there are 9 metal layers in process */		    M9 (0400000),
+        /** only applies if analog (npn-transistor( rules are in effect */  AN(01000000),
 
         /** only applies if alternate contact rules are in effect */		AC (040),
         /** only applies if alternate contact rules are not in effect */	NAC (0100),

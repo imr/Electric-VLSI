@@ -1332,10 +1332,37 @@ public class Technology implements Comparable<Technology>
             ap.dump(out);
         for (PrimitiveNode pnp: nodes.values())
             pnp.dump(out);
+        for (Foundry foundry: foundries) {
+            out.println("Foundry " + foundry.getType());
+            for (Layer layer: layers) {
+                if (layer.isPseudoLayer()) continue;
+                Setting setting = foundry.getGDSLayerSetting(layer);
+                out.print("\t"); printlnSetting(out,setting);
+            }
+        }
         
         printSpiceHeader(out, 1, getSpiceHeaderLevel1());
         printSpiceHeader(out, 2, getSpiceHeaderLevel2());
         printSpiceHeader(out, 3, getSpiceHeaderLevel3());
+        
+        if (nodeGroups != null) {
+            for (int i = 0; i < nodeGroups.length; i++) {
+                Object[] nodeLine = nodeGroups[i];
+                for (int j = 0; j < nodeLine.length; j++) {
+                    Object entry = nodeLine[j];
+                    if (entry == null) continue;
+                    out.print(" menu " + i + " " + j);
+                    if (entry instanceof List) {
+                        List<?> list = (List<?>)entry;
+                        for (Object o: list)
+                            printMenuEntry(out, o);
+                    } else {
+                        printMenuEntry(out, entry);
+                    }
+                    out.println();
+                }
+            }
+        }
     }
     
     protected void dumpExtraProjectSettings(PrintWriter out) {}
@@ -1349,6 +1376,23 @@ public class Technology implements Comparable<Technology>
         while (indent-- > 0)
             out.print("\t");
         out.println(pref.getPrefName() + "=" + pref.getValue() + "(" + pref.getFactoryValue() + ")");
+    }
+    
+    private static void printMenuEntry(PrintWriter out, Object entry) {
+        if (entry instanceof ArcProto) {
+            out.print(" arc " + ((ArcProto)entry).getName());
+        } else if (entry instanceof PrimitiveNode) {
+            out.print(" node " + ((PrimitiveNode)entry).getName());
+        } else if (entry instanceof NodeInst) {
+            NodeInst ni = (NodeInst)entry;
+            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+            out.print(" nodeInst " + pn.getName());
+        } else if (entry instanceof String) {
+            out.print(" " + entry);
+        } else {
+            assert false;
+        }
+        
     }
     
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
@@ -1368,11 +1412,6 @@ public class Technology implements Comparable<Technology>
         for (String s: header)
             out.println("\t\"" + s + "\"");
     }
-//	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
-//	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
-//	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
-//    /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
-//	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 //	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
 //    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
 //    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;

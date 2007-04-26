@@ -34,6 +34,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import java.io.PrintWriter;
@@ -1532,29 +1533,45 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     void dump(PrintWriter out) {
         out.print("PrimitiveNode " + getName() + " " + getFunction());
         Technology.printlnBits(out, nodeBits, userBits);
-//	// constants used in the "specialType" field
-//	/** Defines a normal node. */					public static final int NORMAL = 0;
-//	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
-//	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
-//
-//	// --------------------- private data -----------------------------------
-//	
-//	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
-//	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
-//	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts;
-//	/** Global index of this PrimitiveNode. */		private int globalPrimNodeIndex;
-//    /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
-//	/** special type of unusual primitives */		private int specialType;
-//	/** special factors for unusual primitives */	private double[] specialValues;
-//    /** true if contains MULTICUTBOX layers */      private boolean hasMultiCuts;
-//    /** minimum width and height rule */            private NodeSizeRule minNodeSize;
-//	/** offset from database to user */				private SizeOffset offset;
-//	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
-//
-//	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
-//	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultWidthPrefs = new HashMap<PrimitiveNode,Pref>();
-//	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultHeightPrefs = new HashMap<PrimitiveNode,Pref>();
-//
+        out.print("\tspecialType=" + specialType + " hasMultiCuts=" + hasMultiCuts);
+        if (specialValues != null) {
+            for (double v: specialValues)
+                out.print(" " + v);
+        }
+        out.println();
+        if (offset != null)
+            out.println("\t" + offset);
+        if (minNodeSize != null)
+            out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
+        if (autoGrowth != null)
+            out.println("\tautoGrowth " + autoGrowth);
+        Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultHeightPrefs.get(this));
+        out.println("\tlayers:");
+        dumpNodeLayers(out, layers);
+        if (electricalLayers != null) {
+            out.println("\telectricalLayers:");
+            dumpNodeLayers(out, electricalLayers);
+        }
+        for (PrimitivePort pp: primPorts)
+            pp.dump(out);
+    }
+    
+    private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers) {
+        for (Technology.NodeLayer nl: layers) {
+            out.println("\tlayer=" + nl.getLayer().getName() + " port=" + nl.getPortNum() + " style=" + nl.getStyle().name() + " repr=" + nl.getRepresentation());
+            if (nl.getMessage() != null) {
+                TextDescriptor td = nl.getDescriptor();
+                out.println("\t\tmessage=\"" + nl.getMessage() + "\" td=" + Long.toHexString(td.lowLevelGet()) + " colorIndex=" + td.getColorIndex() + " disp=" + td.isDisplay());
+            }
+            if (nl.getMulticutSizeX() != 0 || nl.getMulticutSizeY() != 0 || nl.getMulticutSep1D() != 0 || nl.getMulticutSep2D() != 0)
+                out.println("\t\tmultiSizeX=" + nl.getMulticutSizeX() + " multiSizeY=" + nl.getMulticutSizeY() + " multiSep=" + nl.getMulticutSep1D() + " multiSpe2D=" + nl.getMulticutSep2D());
+            
+            if (nl.getSerpentineLWidth() != 0 || nl.getSerpentineRWidth() != 0 || nl.getSerpentineExtentB() != 0 || nl.getSerpentineExtentT() != 0)
+                out.println("\t\tLWidth=" + nl.getSerpentineLWidth() + " rWidth=" + nl.getSerpentineRWidth() + " bExtend=" + nl.getSerpentineExtentB() + " tExtend=" + nl.getSerpentineExtentT());
+            for (Technology.TechPoint p: nl.getPoints())
+                out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
+        }
     }
     
 	/**

@@ -110,6 +110,7 @@ public class MoCMOS extends Technology
     protected Layer passivationLayer;
     protected Layer polyCapLayer;
     protected Layer padFrameLayer;
+    protected Layer pBaseLayer;
 
 	// arcs
     /** metal 1->6 arc */						protected ArcProto[] metalArcs = new ArcProto[6];
@@ -126,6 +127,7 @@ public class MoCMOS extends Technology
     /** P/N-Transistors */                      protected PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
     /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes;
+    /** NPN Transistor */                       private PrimitiveNode npnTransistorNode;
     /** M1M2 -> M5M6 contacts */				protected PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            protected PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 //	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
@@ -157,7 +159,7 @@ public class MoCMOS extends Technology
         initFoundryMOSIS();
     }
 
-    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveScalableTransistors) {
+    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveMocmosExtensions) {
         super(techName, defaultFoundryType, 6);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
@@ -898,6 +900,8 @@ public class MoCMOS extends Technology
 
 		thickActiveLayer.setFunction(Layer.Function.DIFF, Layer.Function.THICK);			// Thick-Active
 		padFrameLayer.setFunction(Layer.Function.ART);									// Pad-Frame
+        if (pBaseLayer != null)
+            pBaseLayer.setFunction(Layer.Function.BASE);
 		Layer pseudoMetal1_lay = metalLayers[0].makePseudo();		// Pseudo-Metal-1
 		Layer pseudoMetal2_lay = metalLayers[1].makePseudo();		// Pseudo-Metal-2
 		Layer pseudoMetal3_lay = metalLayers[2].makePseudo();		// Pseudo-Metal-3
@@ -1651,7 +1655,7 @@ public class MoCMOS extends Technology
             thickTransistorNodes[i].setNodeBit(PrimitiveNode.OD18BIT);
 		}
 
-        if (haveScalableTransistors) {
+        if (haveMocmosExtensions) {
              scalableTransistorNodes = new PrimitiveNode[2];
             /** Scalable-P-Transistor */
             scalableTransistorNodes[P_TYPE] = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
@@ -1744,6 +1748,123 @@ public class MoCMOS extends Technology
             scalableTransistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
             scalableTransistorNodes[N_TYPE].setCanShrink();
             scalableTransistorNodes[N_TYPE].setMinSize(17, 26, "2.1, 3.1");
+            
+            npnTransistorNode = PrimitiveNode.newInstance("NPN-Transistor", this, 56.0, 48.0, new SizeOffset(13, 13, 13, 13),
+                new Technology.NodeLayer []
+                {
+                    // Right Collector Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(8)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(8))}, 2, 2, 2, 2/*3, 3*/),
+                    // Right Collector Metal
+                    new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))}),
+                    // Right Collector P-Active
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))}),
+                    // Right Collector N+ Select
+                    new Technology.NodeLayer(selectLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromBottom(11)),
+                        new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(11))}),
+                    // Left Collector Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(8)),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(8))}, 2, 2, 2, 2/*3, 3*/),
+                    // Left Collector Metal
+                    new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(3))}),
+                    // Left Collector P-Active
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(3))}),
+                    // Left Collector N+ Select
+                    new Technology.NodeLayer(selectLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(11)),
+                        new Technology.TechPoint(EdgeH.fromLeft(11), EdgeV.fromTop(11))}),
+                    // Bottom Collector Left Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(11), EdgeV.fromBottom(6)),
+                        new Technology.TechPoint(EdgeH.fromCenter(-13), EdgeV.fromBottom(6))}, 2, 2, 2, 2/*3, 3*/),
+                    // Bottom Collector Left Metal
+                    new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.fromBottom(9))}),
+                    // Bottom Collector Right Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(13), EdgeV.fromBottom(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromBottom(6))}, 2, 2, 2, 2/*3, 3*/),
+                     // Bottom Collector Right Metal
+                    new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(10), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(9))}),
+                     // Bottom Collector P-Active
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromBottom(3)),
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(9))}),
+                    // Bottom Collector N+ Select
+                    new Technology.NodeLayer(selectLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+                        new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromBottom(11))}),
+                    // Top Collector Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(11), EdgeV.fromTop(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromTop(6))}, 2, 2, 2, 2/*3, 3*/),
+                     // Top Collector Metal
+                    new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(9)),
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromTop(3))}),
+                     // Top Collector P-Active
+                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(9)),
+                        new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromTop(3))}),
+                    // Top Collector N+ Select
+                    new Technology.NodeLayer(selectLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromTop(11)),
+                        new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())}),
+                    // Emitter Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 1, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(22), EdgeV.fromBottom(24)),
+                        new Technology.TechPoint(EdgeH.fromCenter(-6), EdgeV.fromTop(24))}, 2, 2, 2, 2/*3, 3*/),
+                    // Emitter Metal
+                    new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(19), EdgeV.fromBottom(21)),
+                        new Technology.TechPoint(EdgeH.fromCenter(-3), EdgeV.fromTop(21))}),
+                    // Emitter N+ Select
+                    new Technology.NodeLayer(selectLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(19), EdgeV.fromBottom(21)),
+                        new Technology.TechPoint(EdgeH.fromCenter(-3), EdgeV.fromTop(21))}),
+                    // Base Cuts
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(6), EdgeV.fromBottom(24)),
+                        new Technology.TechPoint(EdgeH.fromRight(22), EdgeV.fromTop(24))}, 2, 2, 2, 2/*3, 3*/),
+                    // Base Metal
+                    new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(3), EdgeV.fromBottom(21)),
+                        new Technology.TechPoint(EdgeH.fromRight(19), EdgeV.fromTop(21))}),
+                    // Base P+ Select
+                    new Technology.NodeLayer(selectLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(3), EdgeV.fromBottom(21)),
+                        new Technology.TechPoint(EdgeH.fromRight(19), EdgeV.fromTop(21))}),
+                    // P Base
+                    new Technology.NodeLayer(pBaseLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(13)),
+                    // N Well
+                    new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+                });
+            npnTransistorNode.addPrimitivePorts(new PrimitivePort []
+                {
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "base", 180,90, 0, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromCenter(5.5), EdgeV.fromBottom(23.5), EdgeH.fromRight(21.5), EdgeV.fromTop(23.5)),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "emitter", 90,90, 1, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromLeft(21.5), EdgeV.fromBottom(23.5), EdgeH.fromCenter(-5.5), EdgeV.fromTop(23.5)),
+                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "collector", 90,90, 1, PortCharacteristic.UNKNOWN,
+                        EdgeH.fromLeft(5.5), EdgeV.fromTop(6.5), EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))
+                });
+            npnTransistorNode.setFunction(PrimitiveNode.Function.TRANPN);
+            npnTransistorNode.setCanShrink();
+            npnTransistorNode.setMinSize(56, 48, "16.*");
         }
 
 		/** metal-1-metal-2-contact */
@@ -2312,6 +2433,8 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.makePureLayerNode("Silicide-Block-Node", 2.0, Poly.Type.FILLED, "silicide-block", polyArcs[0]);
 		thickActiveLayer.makePureLayerNode("Thick-Active-Node", 4.0, Poly.Type.FILLED, "thick-active"/*, polyArcs[0]*/); // 4.0 is given by rule 24.1
 		padFrameLayer.makePureLayerNode("Pad-Frame-Node", 8.0, Poly.Type.FILLED, "pad-frame");
+        if (pBaseLayer != null)
+            pBaseLayer.makePureLayerNode("P-Base-Node", 22.0, Poly.Type.FILLED, "p-base");
 
 //        for(int i = 0; i < metalLayers.length; i++)
 //		    metalLayers[i].setPureLayerNode(metalNodes[i]);					// Metal-1->6
@@ -2339,7 +2462,26 @@ public class MoCMOS extends Technology
 //		padFrameLayer.setPureLayerNode(padFrameNode);				// Pad-Frame
     }
     
-    protected void createExtraLayers() {}
+    protected void createExtraLayers() {
+		pBaseLayer = Layer.newInstance(this, "P-Base",
+			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 107,226, 96,/*240,221,181,*/ 0.8,true,
+			new int[] { 0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x0888,   //     X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x8888,   // X   X   X   X   
+						0x4444,   //  X   X   X   X  
+						0x2222,   //   X   X   X   X 
+						0x1111,   //    X   X   X   X
+						0x0888}));//     X   X   X   
+    }
     
     protected void initFoundryMOSIS() {
         newFoundry(Foundry.Type.MOSIS, MOSRules.class.getResource("Mosis180.xml"),
@@ -2417,6 +2559,7 @@ public class MoCMOS extends Technology
         String[] stdNames = {"p", "n"};
 
         // Transistor nodes first
+        nodeGroups[count][0] = npnTransistorNode;
         for (int i = 0; i < transistorNodes.length; i++)
         {
             tmp = new ArrayList<NodeInst>(2);
@@ -2486,6 +2629,8 @@ public class MoCMOS extends Technology
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
         findNodeProto("Active-Pin").setNotUsed(true);
 		findArcProto("Active").setNotUsed(true);
+        if (npnTransistorNode != null)
+            npnTransistorNode.setNotUsed(!isAnalog());
 
 		// set rules
         cachedRules = getFactoryDesignRules();
@@ -2522,6 +2667,7 @@ public class MoCMOS extends Technology
         printlnSetting(out, getSecondPolysiliconSetting());
         printlnSetting(out, getDisallowStackedViasSetting());
         printlnSetting(out, getAlternateActivePolyRulesSetting());
+        printlnSetting(out, getAnalogSetting());
     }
     
 	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
@@ -2815,6 +2961,10 @@ public class MoCMOS extends Technology
 				if ((when&DRCTemplate.DRCMode.NSV.mode()) != 0)
 				{
 					if (!isDisallowStackedVias()) continue;
+				}
+				if ((when&DRCTemplate.DRCMode.AN.mode()) != 0)
+				{
+					if (!isAnalog()) continue;
 				}
 
 				// get more information about the rule
@@ -3348,6 +3498,20 @@ public class MoCMOS extends Technology
 	 * @return project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
 	 */
 	public static Setting getAlternateActivePolyRulesSetting() { return MoCMOS.cacheAlternateActivePolyRules; }
+
+	private final Setting cacheAnalog = TechSetting.makeBooleanSetting(this, getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Vertical NPN transistor pbase",
+		getProjectSettings(), "Analog", true);
+	/**
+	 * Method to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * The default is false.
+	 * @return true if this Technology has layers for vertical NPN transistor pbase.
+	 */
+	public boolean isAnalog() { return cacheAnalog.getBoolean(); }
+	/**
+	 * Returns project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * @eturn project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
+	 */
+	public Setting getAnalogSetting() { return cacheAnalog; }
 
     /** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
 //	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
