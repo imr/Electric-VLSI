@@ -61,7 +61,7 @@ public class RTNode
 	}
 
 	/** Method to get the number of children of this RTNode. */
-	private int getTotal() { return total; }
+	public int getTotal() { return total; }
 	/** Method to set the number of children of this RTNode. */
 	private void setTotal(int total) { this.total = total; }
 
@@ -71,12 +71,12 @@ public class RTNode
 	private void setParent(RTNode parent) { this.parent = parent; }
 
 	/** Method to get the number of children of this RTNode. */
-	private Object getChild(int index) { return pointers[index]; }
+	public Object getChild(int index) { return pointers[index]; }
 	/** Method to set the number of children of this RTNode. */
 	private void setChild(int index, Object obj) { this.pointers[index] = obj; }
 
 	/** Method to get the leaf/branch flag of this RTNode. */
-	private boolean getFlag() { return flag; }
+	public boolean getFlag() { return flag; }
 	/** Method to set the leaf/branch flag of this RTNode. */
 	private void setFlag(boolean flag) { this.flag = flag; }
 
