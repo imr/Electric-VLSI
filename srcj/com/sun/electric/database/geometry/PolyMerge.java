@@ -84,6 +84,26 @@ public class PolyMerge
             return;
 		addPolygon(layer, poly);
 	}
+
+	/**
+	 * Method to add a PolyBase to the merged collection.
+	 * @param layer the layer that this Poly sits on.
+	 * @param poly the PolyBase to merge.
+	 */
+	public void addRectangle(Layer layer, Rectangle2D rect)
+	{
+		Area area = (Area)layers.get(layer);
+		if (area == null)
+		{
+			area = new Area();
+			layers.put(layer, area);
+		}
+
+		// add "rect" to "area"
+		Area additionalArea = new Area(rect);
+		area.add(additionalArea);
+	}
+
 	/**
 	 * Method to add a PolyBase to the merged collection.
 	 * @param layer the layer that this Poly sits on.
@@ -244,6 +264,22 @@ public class PolyMerge
 		}
 		if (destArea == null) layers.remove(dest); else
 			layers.put(dest, destArea);
+	}
+
+	/**
+	 * Method to subtract another Merge to this one.
+	 * @param other the other Merge to subtract.
+	 */
+	public void subtractMerge(PolyMerge other)
+	{
+		for(Layer subLayer : other.layers.keySet())
+		{
+			Area area = (Area)layers.get(subLayer);
+			if (area == null) continue;
+
+			Area subArea = (Area)other.layers.get(subLayer);
+			area.subtract(subArea);
+		}
 	}
 
 	/**
