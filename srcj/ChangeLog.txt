@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (4/30/07, SMR) Waveform window gives error if cross-probing to wrong cell (Bug #1303).
+FIX: In WaveformWindow.crossProbeWaveformToEditWindow(), do not call hl.addNetwork()
+     if the cell does not match.
+
 IMP/MAN: (4/26/07, SMR) Added "Analog" checkbox to Technology Project Settings.
 
 IMP/MAN: (4/26,07, DN) Parameter "Analog" was added to "mocmos" technology, which is off by default.

@@ -2935,9 +2935,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Network net = findNetwork(netlist, desired);
 				if (net != null)
 				{
-					if (net.getParent() != cell)
-						System.out.println("Network's parent is "+net.getParent()+" but cell is "+cell); else
-							hl.addNetwork(net, cell);
+					if (net.getParent() == cell)
+						hl.addNetwork(net, cell);
 				} else
 				{
 					// see if this name is really a current source
