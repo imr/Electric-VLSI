@@ -1865,6 +1865,7 @@ public class MoCMOS extends Technology
             npnTransistorNode.setFunction(PrimitiveNode.Function.TRANPN);
             npnTransistorNode.setCanShrink();
             npnTransistorNode.setMinSize(56, 48, "16.*");
+            npnTransistorNode.setSkipSizeInPalette(); // not used to size palette.
         }
 
 		/** metal-1-metal-2-contact */
