@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (4/30/07, GVG) Removing Highlight from CVS (old version of Highlight2)
+
 IMP: (4/30/07, GVG) New layers in CMOS90: DEXCL-RDL, SDI, ESD1DMY, ESD2DMY, ESD3, DIODMY.
 
 BUG: (4/30/07, SMR) Waveform window gives error if cross-probing to wrong cell (Bug #1303).
