@@ -1495,10 +1495,10 @@ public class EditMenu {
      */
     public static void showUndoListCommand()
     {
-        Undo.showHistoryList();
+    	Undo.showHistoryList();
     }
 
-    public static void describeTechnologyCommand()
+	public static void describeTechnologyCommand()
     {
         int pageWidth = TopLevel.getMessagesWindow().getMessagesCharWidth();
         Technology tech = Technology.getCurrent();

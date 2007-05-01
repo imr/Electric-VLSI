@@ -519,14 +519,64 @@ public class CellMenu {
      */
     private static void deleteOldCellVersionsCommand()
     {
-		for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+    	// count the number of old unused cells to delete in the current and in other libraries
+    	int oldUnusedCurrent = 0, oldUnusedElsewhere = 0;
+    	for(Library lib : Library.getVisibleLibraries())
     	{
-    		Cell cell = it.next();
-			if (cell.getNewestVersion() == cell) continue;
-			if (cell.getInstancesOf().hasNext()) continue;
-	    	CircuitChanges.cleanCellRef(cell);
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+	    	{
+	    		Cell cell = it.next();
+				if (cell.getNewestVersion() == cell) continue;
+				if (cell.getInstancesOf().hasNext()) continue;
+				if (lib == Library.getCurrent()) oldUnusedCurrent++; else
+					oldUnusedElsewhere++;
+	    	}
     	}
-    	new CellChangeJobs.DeleteUnusedOldCells();
+
+    	// if complex, prompt for what to do
+    	if (oldUnusedCurrent+oldUnusedElsewhere != 0 && oldUnusedElsewhere != 0)
+    	{
+    		// old unused cells are not just in the current library: ask what to do
+    		String [] options = {"Current library", "Other libraries", "All libraries", "Cancel"};
+    		int ret = Job.getUserInterface().askForChoice("There are " + oldUnusedCurrent +
+    			" old unused cells in the current library and " + oldUnusedElsewhere +
+    			" in other libraries.  Which libraries should have their old unused cells deleted?",
+    			"Which Old Unused Cells to Delete", options, "No");
+    		if (ret == 0) oldUnusedElsewhere = 0;
+    		if (ret == 1) oldUnusedCurrent = 0;
+    		if (ret == 3) return;
+    	}
+
+    	// stop now if nothing to delete
+    	if (oldUnusedCurrent == 0 && oldUnusedElsewhere == 0)
+    	{
+    		System.out.println("There are no old unused cells to delete");
+    		return;
+    	}
+
+    	// pre-clean the cell references
+    	List<Cell> cellsToDelete = new ArrayList<Cell>();
+    	for(Library lib : Library.getVisibleLibraries())
+    	{
+			if (lib == Library.getCurrent())
+			{
+				if (oldUnusedCurrent == 0) continue;
+			} else
+			{
+				if (oldUnusedElsewhere == 0) continue;
+			}
+			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+	    	{
+	    		Cell cell = it.next();
+				if (cell.getNewestVersion() == cell) continue;
+				if (cell.getInstancesOf().hasNext()) continue;
+		    	CircuitChanges.cleanCellRef(cell);
+		    	cellsToDelete.add(cell);
+	    	}
+    	}
+
+    	// do the deletion
+    	new CellChangeJobs.DeleteManyCells(cellsToDelete);
     }
     
     /**

@@ -98,6 +98,37 @@ public class CellChangeJobs
 		}
 	}
 
+	/**
+	 * This class implement the command to delete a list of cells.
+	 */
+	public static class DeleteManyCells extends Job
+	{
+		private List<Cell> cellsToDelete;
+
+		public DeleteManyCells(List<Cell> cellsToDelete)
+		{
+			super("Delete Multiple Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cellsToDelete = cellsToDelete;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			for(Cell cell : cellsToDelete)
+			{
+				System.out.println("Deleting " + cell);
+				cell.kill();
+			}
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			System.out.println("Deleted " + cellsToDelete.size() + " cells");
+			EditWindow.repaintAll();
+		}
+	}
+
 	/****************************** RENAME CELLS ******************************/
 
 	/**
@@ -181,54 +212,6 @@ public class CellChangeJobs
 				}
 			}
 			return true;
-		}
-	}
-
-	/****************************** DELETE UNUSED OLD VERSIONS OF CELLS ******************************/
-
-	/**
-	 * This class implement the command to delete unused old versions of cells.
-	 */
-	public static class DeleteUnusedOldCells extends Job
-	{
-		private int totalDeleted;
-
-		public DeleteUnusedOldCells()
-		{
-			super("Delete Unused Old Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			boolean found = true;
-			totalDeleted = 0;
-			while (found)
-			{
-				found = false;
-				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
-				{
-					Cell cell = it.next();
-					if (cell.getNewestVersion() == cell) continue;
-					if (cell.getInstancesOf().hasNext()) continue;
-					System.out.println("Deleting " + cell);
-					cell.kill();
-					found = true;
-					totalDeleted++;
-					break;
-				}
-			}
-			fieldVariableChanged("totalDeleted");
-			return true;
-		}
-
-		public void terminateOK()
-		{
-			if (totalDeleted == 0) System.out.println("No unused old cell versions to delete"); else
-			{
-				System.out.println("Deleted " + totalDeleted + " cells");
-				EditWindow.repaintAll();
-			}
 		}
 	}
 

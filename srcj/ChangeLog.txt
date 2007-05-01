@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+BUG: (5/1/07, SMR) "Delete Old Unused Versions" works only in the current library.
+FIX: Now looks everywhere and prompts user to delete from non-current libraries.
+
 BUG: (4/30/07, GVG) Transistors in MoCMOS-Mosis too tinny in the palette (Bug #1304)
 FIX: npnTransistorNode.setSkipSizeInPalette(); 
 
