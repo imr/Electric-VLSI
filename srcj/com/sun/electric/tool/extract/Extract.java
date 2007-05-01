@@ -92,6 +92,23 @@ public class Extract extends Tool
 	 */
 	public static void setUnifyActive(boolean a) { cacheUnifyActive.setBoolean(a); }
 
+	private static Pref cacheApproximateCuts = Pref.makeBooleanPref("ApproximateCuts", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should approximate cut placement in multicut situations.
+	 * When via layers in multicut situations do not exactly match Electric's spacing, this will allow
+	 * a single large contact to be placed.
+	 * The default is "false".
+	 * @return true if the node extractor should approximate cut placement in multicut situations.
+	 */
+	public static boolean isApproximateCuts() { return cacheApproximateCuts.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should approximate cut placement in multicut situations.
+	 * When via layers in multicut situations do not exactly match Electric's spacing, this will allow
+	 * a single large contact to be placed.
+	 * @param a true if the node extractor should approximate cut placement in multicut situations.
+	 */
+	public static void setApproximateCuts(boolean a) { cacheApproximateCuts.setBoolean(a); }
+
 	private static Pref cacheSmallestPolygonSize = Pref.makeDoublePref("SmallestPolygonSize", Extract.tool.prefs, 0.25);
 	/**
 	 * Method to return the size of the smallest polygon to extract.
