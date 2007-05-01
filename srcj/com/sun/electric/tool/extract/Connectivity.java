@@ -40,10 +40,12 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
@@ -105,13 +107,15 @@ public class Connectivity
 	/** true to debug object creation */						private static final boolean DEBUGSTEPS = false;
 
 	/** the current technology for extraction */				private Technology tech;
-	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
+	/** layers to use for given arc functions */				private Map<Layer.Function,Layer> layerForFunction;
 	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
 	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1;
 	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
-	/** associates arc prototypes with layers */				private HashMap<Layer,ArcProto> arcsForLayer;
-	/** map of extracted cells */								private HashMap<Cell,Cell> convertedCells;
-	/** map of export indices in each extracted cell */			private HashMap<Cell,GenMath.MutableInteger> exportNumbers;
+	/** associates arc prototypes with layers */				private Map<Layer,ArcProto> arcsForLayer;
+	/** map of extracted cells */								private Map<Cell,Cell> convertedCells;
+	/** map of export indices in each extracted cell */			private Map<Cell,GenMath.MutableInteger> exportNumbers;
+	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,List<PolyBase>> allCutLayers;
+	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
@@ -170,7 +174,9 @@ public class Connectivity
 				addedBatchLines = new ArrayList<List<ERectangle>>();
 				addedBatchNames = new ArrayList<String>();
 			}
+			Job.getUserInterface().startProgressDialog("Extracting", null);
 			newCell = c.doExtract(cell, recursive, pat, true, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			Job.getUserInterface().stopProgressDialog();
 			fieldVariableChanged("addedBatchRectangles");
 			fieldVariableChanged("addedBatchLines");
 			fieldVariableChanged("addedBatchNames");
@@ -214,6 +220,26 @@ public class Connectivity
 		convertedCells = new HashMap<Cell,Cell>();
 		exportNumbers = new HashMap<Cell,GenMath.MutableInteger>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
+
+		ignoreNodes = new HashSet<PrimitiveNode>();
+		for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
+		{
+			PrimitiveNode np = pIt.next();
+			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+			Technology.NodeLayer [] nLays = np.getLayers();
+			boolean validLayers = false;
+			for(int i=0; i<nLays.length; i++)
+			{
+				Technology.NodeLayer nLay = nLays[i];
+				Layer.Function fun = nLay.getLayer().getFunction();
+				if (fun == Layer.Function.UNKNOWN || fun == Layer.Function.OVERGLASS ||
+					fun == Layer.Function.GUARD || fun == Layer.Function.ISOLATION ||
+					fun == Layer.Function.BUS || fun == Layer.Function.ART ||
+					fun == Layer.Function.CONTROL || fun == Layer.Function.TILENOT) continue;
+				validLayers = true;
+			}
+			if (!validLayers) ignoreNodes.add(np);
+		}
 
 		// see if active layers should be unified
 		unifyActive = Extract.isUnifyActive();
@@ -352,8 +378,10 @@ public class Connectivity
 		PolyMerge merge = new PolyMerge();
 
 		// convert the nodes
+		startSection("Gathering geometry in " + oldCell + "...");		// HAS PROGRESS IN IT
 		Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
+		allCutLayers = new HashMap<Layer,List<PolyBase>>();
 		extractCell(oldCell, newCell, pat, expandedCells, merge, GenMath.MATID);
 		if (expandedCells.size() > 0)
 		{
@@ -370,45 +398,44 @@ public class Connectivity
 		PolyMerge originalMerge = new PolyMerge();
 		originalMerge.addMerge(merge, new AffineTransform());
 
-		System.out.println("Extracting " + oldCell + "...");
-
 		// start by extracting vias
 		initDebugging();
+		startSection("Extracting vias...");		// HAS PROGRESS IN IT
 		extractVias(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
-		System.out.println("Extracted vias");
 
 		// now extract transistors
 		initDebugging();
+		startSection("Extracting transistors...");
 		extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
-		System.out.println("Extracted transistors");
 
 		// extend geometry that sticks out in space
 		initDebugging();
+		startSection("Extracting extensions...");		// HAS PROGRESS IN IT
 		extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
-		System.out.println("Extracted extensions");
 
 		// look for wires and pins
 		initDebugging();
+		startSection("Extracting wires...");		// HAS PROGRESS IN IT
 		if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
-		System.out.println("Extracted wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
+		startSection("Extracting connections...");		// HAS PROGRESS IN IT
 		extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
-		System.out.println("Extracted connections");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		initDebugging();
+		startSection("Extracting leftover geometry...");
 		convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
-		System.out.println("Extracted geometry");
 
 		// reexport any that were there before
+		startSection("Adding connecting wires...");		// HAS PROGRESS IN IT
 		restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
@@ -423,7 +450,7 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false);
+		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -438,6 +465,13 @@ public class Connectivity
 		}
 		System.out.println("Extraction done.");
 		return newCell;
+	}
+
+	private void startSection(String msg)
+	{
+		System.out.println(msg);
+		Job.getUserInterface().setProgressNote(msg);
+		Job.getUserInterface().setProgressValue(0);
 	}
 
 	private void initDebugging()
@@ -472,9 +506,13 @@ public class Connectivity
 	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, Set<Cell> expandedCells, PolyMerge merge, AffineTransform prevTrans)
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+		int totalNodes = oldCell.getNumNodes();
+		int soFar = 0;
 		for(Iterator<NodeInst> nIt = oldCell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst ni = nIt.next();
+			soFar++;
+			if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalNodes);
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 			// see if the node can be copied or must be extracted
@@ -503,7 +541,10 @@ public class Connectivity
 			} else
 			{
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
-				if (np.getFunction() != PrimitiveNode.Function.NODE) copyType = ni.getProto();
+				if (np.getFunction() != PrimitiveNode.Function.NODE) copyType = ni.getProto(); else
+				{
+					if (ignoreNodes.contains(np)) copyType = ni.getProto();
+				}
 			}
 
 			// copy it now if requested
@@ -583,7 +624,22 @@ public class Connectivity
 				}
 				for(int i=0; i<points.length; i++)
 					points[i].setLocation(scaleUp(points[i].getX()), scaleUp(points[i].getY()));
-				merge.addPolygon(layer, poly);
+				if (layer.getFunction().isContact())
+				{
+					// cut layers are stored in lists because merging them is too expensive and pointless
+					List<PolyBase> cutsOnLayer = allCutLayers.get(layer);
+					if (cutsOnLayer == null)
+					{
+						cutsOnLayer = new ArrayList<PolyBase>();
+						allCutLayers.put(layer, cutsOnLayer);
+					}
+					cutsOnLayer.add(poly);
+				} else
+				{
+					Rectangle2D box = poly.getBox();
+					if (box != null) merge.addRectangle(layer, box); else
+						merge.addPolygon(layer, poly);
+				}
 			}
 
 			// save exports on pure-layer nodes for restoration later
@@ -652,22 +708,32 @@ public class Connectivity
 	 */
 	private boolean makeWires(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		// make a list of layers that could be turned into wires
-		List<Layer> wireLayers = new ArrayList<Layer>();
+		// make a list of polygons that could be turned into wires
+		int totPolys = 0;
+		Map<Layer,List<PolyBase>> geomToWire = new HashMap<Layer,List<PolyBase>>();
 		for (Layer layer : merge.getKeySet())
 		{
 			Layer.Function fun = layer.getFunction();
 			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
-				wireLayers.add(layer);
+			{
+				List<PolyBase> polyList = getMergePolys(merge, layer);
+				totPolys += polyList.size();
+				geomToWire.put(layer, polyList);
+			}
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
-		for (Layer layer : wireLayers)
+		int soFar = 0;
+		Set<Layer> allLayers = geomToWire.keySet();
+		for (Layer layer : allLayers)
 		{
 			// examine the geometry on the layer
-			List<PolyBase> polyList = getMergePolys(merge, layer);
+			List<PolyBase> polyList = geomToWire.get(layer);
 			for(PolyBase poly : polyList)
 			{
+				Job.getUserInterface().setProgressValue(soFar * 100 / totPolys);
+				soFar++;
+
 				// figure out which arcproto to use here
 				ArcProto ap = findArcProtoForPoly(layer, poly, originalMerge);
 				if (ap == null) continue;
@@ -711,7 +777,7 @@ public class Connectivity
 		}
 
 		// examine each wire layer, looking for a simple rectangle that covers it
-		for(Layer layer : wireLayers)
+		for(Layer layer : allLayers)
 		{
 			// examine the geometry on the layer
 			List<PolyBase> polyList = getMergePolys(merge, layer);
@@ -1195,6 +1261,7 @@ public class Connectivity
 		int rotation;
 		double minWidth, minHeight;
 		double largestShrink;
+		Technology.NodeLayer cutNodeLayer;
 		Layer [] layers;
 		double [] shrinkL, shrinkR, shrinkT, shrinkB;
 
@@ -1216,21 +1283,27 @@ public class Connectivity
 	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// make a list of all via/cut layers in the technology
+		int totalCuts = 0;
 		List<Layer> layers = new ArrayList<Layer>();
-		for (Layer layer : merge.getKeySet())
+		for (Layer layer : allCutLayers.keySet())
 		{
-			Layer.Function fun = layer.getFunction();
-			if (fun.isContact()) layers.add(layer);
+			layers.add(layer);
+			List<PolyBase> cutList = allCutLayers.get(layer);
+			if (cutList != null) totalCuts += cutList.size();
 		}
 
+		// create a list of nodes that have been created
+		List<NodeInst> contactNodes = new ArrayList<NodeInst>();
+
 		// examine all vias/cuts for possible contacts
+		int soFar = 0;
 		for (Layer layer : layers)
 		{
 			// compute the possible via nodes that this layer could become
 			List<PossibleVia> possibleVias = findPossibleVias(layer);
 
 			// get all of the geometry on the cut/via layer
-			List<PolyBase> cutList = getMergePolys(merge, layer);
+			List<PolyBase> cutList = allCutLayers.get(layer);
 
 			// make a list of all necessary layers
 			Set<Layer> layersToExamine = new HashSet<Layer>();
@@ -1240,9 +1313,22 @@ public class Connectivity
 					layersToExamine.add(pv.layers[i]);
 			}
 
-			// the new way to extract vias
-			for(PolyBase cut : cutList)
+			RTNode root = null;
+			if (Extract.isApproximateCuts())
 			{
+				root = RTNode.makeTopLevel();
+				for(PolyBase cut : cutList)
+					root = RTNode.linkGeom(null, root, new CutBound(cut));
+			}
+
+			// the new way to extract vias
+			while (cutList.size() > 0)
+			{
+				PolyBase cut = cutList.get(0);
+
+				soFar++;
+				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalCuts);
+
 				// figure out which of the layers are present at this cut point
 				Rectangle2D cutBox = cut.getBox();
 				if (cutBox == null) continue;
@@ -1291,11 +1377,154 @@ public class Connectivity
 					}
 					if (someLayersMissing) continue;
 
-					// extract the via if its layers fit
-					if (extractOneVia(pv, cut, merge, originalMerge, newCell, ignorePWell, ignoreNWell)) break;
-				}				
+					// if selected, look for larger collection of cuts and place larger multi-cut contact
+					if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
+					{
+						// look for other cuts in the vicinity
+						Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
+						cutsInArea.add(cut);
+						Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
+						double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
+							Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
+						cutLimit *= SCALEFACTOR;
+						boolean foundMore = true;
+						while (foundMore)
+						{
+							foundMore = false;
+							Rectangle2D searchArea = new Rectangle2D.Double(multiCutArea.getMinX()-cutLimit, multiCutArea.getMinY()-cutLimit,
+								multiCutArea.getWidth() + cutLimit*2, multiCutArea.getHeight() + cutLimit*2);
+							for(RTNode.Search sea = new RTNode.Search(searchArea, root, true); sea.hasNext(); )
+							{
+								CutBound cBound = (CutBound)sea.next();
+								if (cutsInArea.contains(cBound.cut)) continue;
+								Rectangle2D bound = cBound.getBounds();
+								if (searchArea.contains(bound.getCenterX(), bound.getCenterY()))
+								{
+									cutsInArea.add(cBound.cut);
+									double lX = Math.min(multiCutArea.getMinX(), bound.getCenterX());
+									double hX = Math.max(multiCutArea.getMaxX(), bound.getCenterX());
+									double lY = Math.min(multiCutArea.getMinY(), bound.getCenterY());
+									double hY = Math.max(multiCutArea.getMaxY(), bound.getCenterY());
+									multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
+									foundMore = true;
+								}
+							}
+						}
+
+						// see if a multi-cut contact fits
+						double lX = multiCutArea.getMinX() - pv.minWidth/2;
+						double hX = multiCutArea.getMaxX() + pv.minWidth/2;
+						double lY = multiCutArea.getMinY() - pv.minHeight/2;
+						double hY = multiCutArea.getMaxY() + pv.minHeight/2;
+						multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
+						if (doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell))
+						{
+							// it fits: create it
+							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), multiCutArea.getWidth(), multiCutArea.getHeight(),
+								pv.rotation*10, null, merge, newCell, contactNodes);
+							for(PolyBase cutsFound : cutsInArea)
+								cutList.remove(cutsFound);
+							break;
+						}
+					}
+
+					// see if a single-cut contact fits
+					Rectangle2D cutLoc = new Rectangle2D.Double(cut.getCenterX(), cut.getCenterY(), pv.minWidth, pv.minHeight);
+					if (doesNodeFit(pv, cutLoc, originalMerge, ignorePWell, ignoreNWell))
+					{
+						// it fits: create it
+						realizeNode(pv.pNp, cutLoc.getCenterX(), cutLoc.getCenterY(), cutLoc.getWidth(), cutLoc.getHeight(),
+							pv.rotation*10, null, merge, newCell, contactNodes);
+						cutList.remove(cut);
+						break;
+					}
+				}
 			}
 		}
+
+		// now remove all created contacts from the original merge
+		startSection("Finish extracting " + contactNodes.size() + " vias...");
+
+		// build an R-Tree of all created nodes
+		RTNode root = RTNode.makeTopLevel();
+		for(NodeInst ni : contactNodes)
+			root = RTNode.linkGeom(null, root, ni);
+
+		// recursively scan the R-Tree, merging geometry on created nodes and removing them from the main merge
+		PolyMerge subtractMerge = new PolyMerge();
+		extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
+		merge.subtractMerge(subtractMerge);
+	}
+
+	/**
+	 * Class to define an R-Tree leaf node for geometry in the via cuts.
+	 */
+	private static class CutBound implements RTBounds
+	{
+		private PolyBase cut;
+
+		CutBound(PolyBase cut)
+		{
+			this.cut = cut;
+		}
+		
+		public Rectangle2D getBounds() { return cut.getBounds2D(); }
+	}
+
+	/**
+	 * Method to recursively scan the R-Tree of created contact nodes to remove their geometry from the main merge.
+	 * @param root the current position in the scan of the R-Tree.
+	 * @param merge the main merge.
+	 * @param subtractMerge a merge of created contact nodes that will be subtracted from the main merge.
+	 * @param soFar the number of contacts handled so far.
+	 * @param totalContacts the total number of contacts to handle.
+	 * @return the number of contacts handled so far.
+	 */
+	private int extractContactNodes(RTNode root, PolyMerge merge, PolyMerge subtractMerge, int soFar, int totalContacts)
+	{
+		for(int j=0; j<root.getTotal(); j++)
+		{
+			Object child = root.getChild(j);
+			if (root.getFlag())
+			{
+				soFar++;
+				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalContacts);
+				NodeInst ni = (NodeInst)child;
+				AffineTransform trans = ni.rotateOut();
+				Poly [] polys = tech.getShapeOfNode(ni);
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					Layer layer = poly.getLayer();
+
+					// make sure the geometric database is made up of proper layers
+					layer = geometricLayer(layer);
+					if (layer.getFunction().isContact()) continue;
+
+					poly.transform(trans);
+					Point2D [] points = poly.getPoints();
+					for(int k=0; k<points.length; k++)
+						points[k].setLocation(scaleUp(points[k].getX()), scaleUp(points[k].getY()));
+					poly.roundPoints();
+					subtractMerge.add(layer, poly);
+				}
+
+				// every 500 nodes, apply the merge to the original
+				if ((soFar % 500) == 0)
+				{
+					merge.subtractMerge(subtractMerge);
+					List<Layer> allLayers = new ArrayList<Layer>();
+					for(Layer lay : subtractMerge.getKeySet())
+						allLayers.add(lay);
+					for(Layer lay : allLayers)
+						subtractMerge.deleteLayer(lay);
+				}
+			} else
+			{
+				soFar = extractContactNodes((RTNode)child, merge, subtractMerge, soFar, totalContacts);
+			}
+		}
+		return soFar;
 	}
 
 	/**
@@ -1331,7 +1560,7 @@ public class Connectivity
 			if (bogus) continue;
 
 			// load the layer information
-			boolean cutFound = false;
+			Technology.NodeLayer cutNodeLayer = null;
 			List<Technology.NodeLayer> pvLayers = new ArrayList<Technology.NodeLayer>();
 			for(int i=0; i<nLayers.length; i++)
 			{
@@ -1354,16 +1583,17 @@ public class Connectivity
 					// special case for active/poly cut confusion
 					if (nLayer.getFunction() == lay.getFunction()) cutLayer = true;
 				}
-				if (cutLayer) cutFound = true; else
+				if (cutLayer) cutNodeLayer = nLay; else
 				{
 					pvLayers.add(nLay);
 				}
 			}
-			if (!cutFound) continue;
+			if (cutNodeLayer == null) continue;
 
 			// create a PossibleVia object to test for them
 			PossibleVia pv = new PossibleVia(pNp, pvLayers.size());
 			pv.rotation = 0;
+			pv.cutNodeLayer = cutNodeLayer;
 			pv.minWidth = scaleUp(pNp.getDefWidth());
 			pv.minHeight = scaleUp(pNp.getDefHeight());
 			pv.largestShrink = 0;
@@ -1404,6 +1634,7 @@ public class Connectivity
 				// horizontal/vertical or rotational symmetry missing: add a 90-degree rotation
 				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 90;
+				newPV.cutNodeLayer = pv.cutNodeLayer;
 				newPV.largestShrink = pv.largestShrink;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
@@ -1422,6 +1653,7 @@ public class Connectivity
 				// rotational symmetry missing: add a 180-degree and 270-degree rotation
 				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 180;
+				newPV.cutNodeLayer = pv.cutNodeLayer;
 				newPV.largestShrink = pv.largestShrink;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
@@ -1437,6 +1669,7 @@ public class Connectivity
 
 				newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 270;
+				newPV.cutNodeLayer = pv.cutNodeLayer;
 				newPV.largestShrink = pv.largestShrink;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
@@ -1500,47 +1733,36 @@ public class Connectivity
 	}
 
 	/**
-	 * Method to see if a via exists around a given cut.
+	 * Method to see if a via can be placed.
 	 * @param pv the possible via.
-	 * @param cut the cut layer that may be the via.
-	 * @param merge the merge data at this point (after extracted nodes are removed).
+	 * @param cutBox the size of the contact node.
 	 * @param originalMerge the original merge data.
-	 * @param newCell the cell in which extracted geometry goes.
-	 * @return true if a contact was extracted.
+	 * @param ignorePWell true to ignore p-well layers.
+	 * @param ignoreNWell true to ignore n-well layers.
+	 * @return true if a contact can be created.
 	 */
-	private boolean extractOneVia(PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge,
-		Cell newCell, boolean ignorePWell, boolean ignoreNWell)
+	private boolean doesNodeFit(PossibleVia pv, Rectangle2D cutBox, PolyMerge originalMerge,
+		boolean ignorePWell, boolean ignoreNWell)
 	{
-		// can only handle manhattan contacts now
-		Rectangle2D cutBox = cut.getBox();
-		if (cutBox == null) return false;
-		double cX = cutBox.getCenterX();
-		double cY = cutBox.getCenterY();
 		for(int i=0; i<pv.layers.length; i++)
 		{
 			Layer l = pv.layers[i];
 			if (ignorePWell && l.getFunction() == Layer.Function.WELLP) continue;
 			if (ignoreNWell && l.getFunction() == Layer.Function.WELLN) continue;
-			double lX = cX - pv.minWidth/2 + pv.shrinkL[i];
-			double hX = cX + pv.minWidth/2 - pv.shrinkR[i];
-			double lY = cY - pv.minHeight/2 + pv.shrinkB[i];
-			double hY = cY + pv.minHeight/2 - pv.shrinkT[i];
+			double lX = cutBox.getMinX() + pv.shrinkL[i];
+			double hX = cutBox.getMaxX() - pv.shrinkR[i];
+			double lY = cutBox.getMinY() + pv.shrinkB[i];
+			double hY = cutBox.getMaxY() - pv.shrinkT[i];
 			double layerCX = (lX + hX) / 2;
 			double layerCY = (lY + hY) / 2;
 			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
 			if (!originalMerge.contains(l, layerPoly))
 			{
-//System.out.println("NO,  CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" DOES NOT FIT AT ("
-//	+(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+") BECAUSE LAYER "+l.getName()+" NEEDS "+
-//	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
 				return false;
 			}
 		}
-//System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FITS AT ("+
-//	(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+")");
 
-		// found: create the node
-		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
+		// all layers fit: can create the node
 		return true;
 	}
 
@@ -1621,7 +1843,7 @@ public class Connectivity
 				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 				double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
 				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(),
-					width, height, angle, null, merge, newCell);
+					width, height, angle, null, merge, newCell, null);
 			} else
 			{
 				// complex polygon: extract angled or serpentine transistor
@@ -1659,7 +1881,7 @@ public class Connectivity
 			double cY = (cl.start.getY() + cl.end.getY()) / 2;
 			double sX = polySize + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 			double sY = activeSize + scaleUp(so.getLowYOffset() + so.getHighYOffset());
-			realizeNode(transistor, cX, cY, sX, sY, cl.angle, null, merge, newCell);
+			realizeNode(transistor, cX, cY, sX, sY, cl.angle, null, merge, newCell, null);
 			return;
 		}
 
@@ -1741,49 +1963,56 @@ public class Connectivity
 		double cY = (lY + hY) / 2;
 		for(int i=0; i<points.length; i++)
 			points[i] = new EPoint((points[i].getX()) / SCALEFACTOR, (points[i].getY()) / SCALEFACTOR);
-		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell);
+		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell, null);
 	}
 
 	/********************************************** CONVERT CONNECTING GEOMETRY **********************************************/
-
-//	/**
-//	 * Method to determine the width offset of a given layer in an ArcProto.
-//	 * For most situations, this is zero.
-//	 * For Active arcs, the active layer is smaller than the default ArcProto width,
-//	 * and the difference is returned.
-//	 * @param layer the layer in question.
-//	 * @param ap the ArcProto in question.
-//	 * @return the difference between the default width of the layer and the ArcProto.
-//	 */
-//	private double getLayerOffset(Layer layer, ArcProto ap)
-//	{
-//		for(int i=0; i<ap.getNumArcLayers(); i++)
-//		{
-//			Technology.ArcLayer al = ap.getArcLayer(i);
-//			if (layer == al.getLayer())
-//				return al.getLambdaOffset();
-//		}
-//		return 0;
-//	}
 
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
 	 */
 	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend)
 	{
+		// make a list of layers that can be extended
+		List<Layer> extendableLayers = new ArrayList<Layer>();
 		for (Layer layer : merge.getKeySet())
+		{
+			ArcProto ap = arcsForLayer.get(layer);
+			if (ap == null) continue;
+			extendableLayers.add(layer);
+		}
+
+		// gather everything to extend
+		int totExtensions = 0;
+		Map<Layer,List<PolyBase>> geomToExtend = new HashMap<Layer,List<PolyBase>>();
+		int soFar = 0;
+		for (Layer layer : extendableLayers)
+		{
+			List<PolyBase> polyList = getMergePolys(merge, layer);
+			geomToExtend.put(layer, polyList);
+			totExtensions += polyList.size();
+			soFar++;
+			Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
+		}
+		Job.getUserInterface().setProgressValue(0);
+
+		soFar = 0;
+		for (Layer layer : extendableLayers)
 		{
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaFullWidth();
             double arcLayerWidth = ap.getDefaultLambdaBaseWidth() + 2*ap.getLayerLambdaExtend(layer);
-//            double arcLayerWidth = wid - getLayerOffset(layer, ap);
 
-			List<PolyBase> polyList = getMergePolys(merge, layer);
+			List<PolyBase> polyList = geomToExtend.get(layer);
 			for(PolyBase poly : polyList)
 			{
+				soFar++;
+				Job.getUserInterface().setProgressValue(soFar * 100 / totExtensions);
+
 				// find out what this polygon touches
-				HashMap<Network,Object> netsThatTouch = getNetsThatTouch(poly, newCell);
+				HashMap<Network,Object> netsThatTouch = getNetsThatTouch(poly, newCell, justExtend);
+				if (netsThatTouch == null) continue;
 
 				// make a list of port/arc ends that touch this polygon
 				List<Object> objectsToConnect = new ArrayList<Object>();
@@ -2110,7 +2339,14 @@ public class Connectivity
 		return false;
 	}
 
-	private HashMap<Network,Object> getNetsThatTouch(PolyBase poly, Cell newCell)
+	/**
+	 * Method to build a map of networks and objects that touch a polygon.
+	 * @param poly the polygon to analyze
+	 * @param newCell the cell in which to search.
+	 * @param justExtend true to insist on just 1 net; false to allow 2 nets also.
+	 * @return the map of networks (null if too many nets).
+	 */
+	private HashMap<Network,Object> getNetsThatTouch(PolyBase poly, Cell newCell, boolean justExtend)
 	{
 		// scale the polygon back
 		Point2D [] points = poly.getPoints();
@@ -2151,6 +2387,8 @@ public class Connectivity
 					if (net != null)
 					{
 						netsThatTouch.put(net, pi);
+						int numNets = netsThatTouch.size();
+						if (numNets > 2 || (numNets > 1 && justExtend)) return null;
 						break;
 					}
 				}
@@ -2175,6 +2413,8 @@ public class Connectivity
 					if (net != null)
 					{
 						if (netsThatTouch.get(net) == null) netsThatTouch.put(net, ai);
+						int numNets = netsThatTouch.size();
+						if (numNets > 2 || (numNets > 1 && justExtend)) return null;
 						break;
 					}
 				}
@@ -2196,6 +2436,7 @@ public class Connectivity
 	 */
 	private List<Centerline> findCenterlines(PolyBase poly, Layer layer, double minWidth, PolyMerge merge, PolyMerge originalMerge)
 	{
+//System.out.println("ANALYZING LAYER "+layer.getName());
 		// the list of centerlines
 		List<Centerline> validCenterlines = new ArrayList<Centerline>();
 
@@ -2214,15 +2455,16 @@ public class Connectivity
 			{
 				// first make a list of all parallel wires in the polygon
 				aPoly.setLayer(layer);
-//System.out.print("FOR POLY:");
-//Point2D [] points = aPoly.getPoints();
-//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()/SCALEFACTOR+","+points[i].getY()/SCALEFACTOR+")");
-//System.out.println();
+//System.out.print("FOR POLY:"); Point2D [] points = aPoly.getPoints();
+//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()/SCALEFACTOR+","+points[i].getY()/SCALEFACTOR+")"); System.out.println();
 				List<Centerline> centerlines = gatherCenterlines(aPoly, merge, originalMerge);
+				if (centerlines == null)
+				{
+					merge.subtract(tempLayer1, aPoly);
+					continue;
+				}
 
-//System.out.println("GATHERED:");
-//for(Centerline cl : centerlines)
-//	System.out.println("    "+cl);
+//System.out.println("GATHERED:"); for(Centerline cl : centerlines) System.out.println("    "+cl);
 				// now pull out the relevant ones
 				double lastWidth = -1;
 				boolean lastWidthNonManhattan = false;
@@ -2410,12 +2652,16 @@ public class Connectivity
 		// first make a list of all parallel wires in the polygon
 		List<Centerline> centerlines = new ArrayList<Centerline>();
 		Point2D [] points = poly.getPoints();
+//if (points.length > 1000) return null;
 		if (DEBUGCENTERLINES)
 		{
 			System.out.print("POLYGON ON LAYER "+poly.getLayer().getName()+":");
-			for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
+			for(int i=0; i<points.length; i++) System.out.print(" "+i+"("+TextUtils.formatDouble(points[i].getX())+","+TextUtils.formatDouble(points[i].getY())+")");
 			System.out.println();
 		}
+
+		// make a list of line segments that are parallel
+		Map<Integer,List<Integer>> linesAtAngle = new HashMap<Integer,List<Integer>>();
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;
@@ -2423,33 +2669,86 @@ public class Connectivity
 			Point2D lastPt = points[lastI];
 			Point2D thisPt = points[i];
 			if (lastPt.equals(thisPt)) continue;
-			double angle = GenMath.figureAngleRadians(thisPt, lastPt);
-			while (angle < -Math.PI/2) angle += Math.PI;
-			while (angle > Math.PI/2) angle -= Math.PI;
-
-			// now find another line parallel to this one
-			for(int j=i+2; j<points.length; j++)
+			int angle = GenMath.figureAngle(thisPt, lastPt);
+			while (angle < 0) angle += 1800;
+			while (angle >= 1800) angle -= 1800;
+			Integer iAngle = new Integer(angle);
+			List<Integer> linesSoFar = linesAtAngle.get(iAngle);
+			if (linesSoFar == null)
 			{
-				Point2D oLastPt = points[j-1];
-				Point2D oThisPt = points[j];
-				if (oLastPt.equals(oThisPt)) continue;
-				double oAngle = GenMath.figureAngleRadians(oThisPt, oLastPt);
-				while (oAngle < -Math.PI/2) oAngle += Math.PI;
-				while (oAngle > Math.PI/2) oAngle -= Math.PI;
-				if (Math.abs(oAngle - angle) < 0.01)
+				linesSoFar = new ArrayList<Integer>();
+				linesAtAngle.put(iAngle, linesSoFar);
+			}
+			linesSoFar.add(new Integer(i));
+		}
+
+		// now see how many holes there are (by counting colinear segments)
+		int colinearSegs = 0;
+		for(Integer iAangle : linesAtAngle.keySet())
+		{
+			// get list of all line segments that are parallel to each other
+			List<Integer> linesAtThisAngle = linesAtAngle.get(iAangle);
+			if (linesAtThisAngle == null) continue;
+			for(int ai=0; ai<linesAtThisAngle.size(); ai++)
+			{
+				int i = linesAtThisAngle.get(ai).intValue();
+				int lastI = i-1;
+				if (lastI < 0) lastI = points.length-1;
+				Point2D lastPt = points[lastI];
+				Point2D thisPt = points[i];
+
+				for(int aj = ai+2; aj<linesAtThisAngle.size()-1; aj++)
 				{
-					// parallel lines: find the center line
-					double perpAngle = angle + Math.PI/2;
+					int j = linesAtThisAngle.get(aj).intValue();
+					if (GenMath.isOnLine(lastPt, thisPt, points[j])) colinearSegs++;
+				}
+			}
+		}
+//		boolean tooManyHoles = colinearSegs*7 > points.length;
+//System.out.println("   so have "+points.length+" points with "+colinearSegs+" colinear segments"+ (tooManyHoles?" TOO MANY":""));
+//		if (tooManyHoles) return null;
+
+		// preallocate
+		Point2D [] corners = new Point2D[4];
+		corners[0] = new Point2D.Double(0, 0);
+		corners[1] = new Point2D.Double(0, 0);
+		corners[2] = new Point2D.Double(0, 0);
+		corners[3] = new Point2D.Double(0, 0);
+		Point2D [] possibleStart = new Point2D[4];
+		Point2D [] possibleEnd = new Point2D[4];
+
+		// now scan all sets of parallel lines
+		for(Integer iAangle : linesAtAngle.keySet())
+		{
+			// get list of all line segments that are parallel to each other
+			List<Integer> linesAtThisAngle = linesAtAngle.get(iAangle);
+			if (linesAtThisAngle == null) continue;
+			int angle = iAangle.intValue();
+			for(int ai=0; ai<linesAtThisAngle.size(); ai++)
+			{
+				int i = linesAtThisAngle.get(ai).intValue();
+				int lastI = i-1;
+				if (lastI < 0) lastI = points.length-1;
+				Point2D lastPt = points[lastI];
+				Point2D thisPt = points[i];
+
+				for(int aj = ai+1; aj<linesAtThisAngle.size(); aj++)
+				{
+					int j = linesAtThisAngle.get(aj).intValue();
+					Point2D oLastPt = points[j-1];
+					Point2D oThisPt = points[j];
+
+					// parallel lines: find point on the center line
+					int perpAngle = angle + 900;
 					Point2D oneSide = thisPt;
-					Point2D otherSide = intersectRadians(thisPt, perpAngle, oThisPt, oAngle);
+					Point2D otherSide = GenMath.intersect(thisPt, perpAngle, oThisPt, angle);
 					Point2D centerPt = new Point2D.Double((oneSide.getX()+otherSide.getX()) / 2, (oneSide.getY()+otherSide.getY()) / 2);
-					double width = oneSide.distance(otherSide);
 
 					// now determine range along that centerline
-					Point2D lastPtCL = intersectRadians(lastPt, perpAngle, centerPt, angle);
-					Point2D thisPtCL = intersectRadians(thisPt, perpAngle, centerPt, angle);
-					Point2D oLastPtCL = intersectRadians(oLastPt, perpAngle, centerPt, angle);
-					Point2D oThisPtCL = intersectRadians(oThisPt, perpAngle, centerPt, angle);
+					Point2D lastPtCL = GenMath.intersect(lastPt, perpAngle, centerPt, angle);
+					Point2D thisPtCL = GenMath.intersect(thisPt, perpAngle, centerPt, angle);
+					Point2D oLastPtCL = GenMath.intersect(oLastPt, perpAngle, centerPt, angle);
+					Point2D oThisPtCL = GenMath.intersect(oThisPt, perpAngle, centerPt, angle);
 
 					// find the bounding box of the range lines
 					double minX = Math.min(Math.min(lastPtCL.getX(), thisPtCL.getX()), Math.min(oLastPtCL.getX(), oThisPtCL.getX()));
@@ -2458,11 +2757,10 @@ public class Connectivity
 					double maxY = Math.max(Math.max(lastPtCL.getY(), thisPtCL.getY()), Math.max(oLastPtCL.getY(), oThisPtCL.getY()));
 
 					// determine an extreme point along the centerline
-					Point2D [] corners = new Point2D[4];
-					corners[0] = new Point2D.Double(minX, minY);
-					corners[1] = new Point2D.Double(minX, maxY);
-					corners[2] = new Point2D.Double(maxX, maxY);
-					corners[3] = new Point2D.Double(maxX, minY);
+					corners[0].setLocation(minX, minY);
+					corners[1].setLocation(minX, maxY);
+					corners[2].setLocation(maxX, maxY);
+					corners[3].setLocation(maxX, minY);
 					Point2D aCorner = null;
 					for(int k=0; k<4; k++)
 					{
@@ -2517,8 +2815,6 @@ public class Connectivity
 					}
 
 					// make a list of the centerline extent possibilities
-					Point2D [] possibleStart = new Point2D[4];
-					Point2D [] possibleEnd = new Point2D[4];
 					possibleStart[0] = oStart;   possibleEnd[0] = oFinish;
 					if (start.distance(oStart) < finish.distance(oFinish))
 					{
@@ -2532,6 +2828,7 @@ public class Connectivity
 					possibleStart[3] = start;   possibleEnd[3] = finish;
 
 					// try all possible spans
+					double width = oneSide.distance(otherSide);
 					for(int p=0; p<4; p++)
 					{
 						double length = possibleStart[p].distance(possibleEnd[p]);
@@ -2612,15 +2909,6 @@ public class Connectivity
 				System.out.println("FINALLY HAVE "+cl.toString());
 		}
 		return centerlines;
-	}
-
-	private static Point2D intersectRadians(Point2D thisPt, double perpAngle, Point2D oThisPt, double oAngle)
-	{
-		Point2D res2 = GenMath.intersect(thisPt, (int)(perpAngle/Math.PI*1800), oThisPt, (int)(oAngle/Math.PI*1800));
-//		Point2D res1 = GenMath.intersectRadians(thisPt, perpAngle, oThisPt, oAngle);
-//		if (!res1.equals(res2))
-//			System.out.println("RADIANS SEZ ("+res1.getX()+","+res1.getY()+") BUT RIGHT ANSWER IS ("+res2.getX()+","+res2.getY()+")");
-		return res2;
 	}
 
 	public static Poly makeEndPointPoly(double len, double wid, double angle, Point2D endH, Point2D endT)
@@ -3093,9 +3381,11 @@ public class Connectivity
 	 * @param points an array of Point2D objects that define the new node's outline (null if there is no outline).
 	 * @param merge the geometry collection.  The new node will be removed from the merge.
 	 * @param newCell the cell in which to create the new node.
+	 * @param realizedNodes a list of nodes to which this one will be added.  If null, do not add to the list.
+	 * If not null, add to the list but DO NOT remove the realized node's geometry from the merge.
 	 */
 	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle,
-		Point2D [] points, PolyMerge merge, Cell newCell)
+		Point2D [] points, PolyMerge merge, Cell newCell, List<NodeInst> realizedNodes)
 	{
 		Orientation orient = Orientation.fromAngle(angle);
 		double cX = centerX / SCALEFACTOR;
@@ -3129,19 +3419,25 @@ public class Connectivity
 			}
 		}
 
-		// now remove the generated layers from the Merge
-		AffineTransform trans = ni.rotateOut();
-		Poly [] polys = tech.getShapeOfNode(ni);
-		for(int i=0; i<polys.length; i++)
+		if (realizedNodes != null)
 		{
-			Poly poly = polys[i];
-			Layer layer = poly.getLayer();
+			realizedNodes.add(ni);
+		} else
+		{
+			// now remove the generated layers from the Merge
+			AffineTransform trans = ni.rotateOut();
+			Poly [] polys = tech.getShapeOfNode(ni);
+			for(int i=0; i<polys.length; i++)
+			{
+				Poly poly = polys[i];
+				Layer layer = poly.getLayer();
 
-			// make sure the geometric database is made up of proper layers
-			layer = geometricLayer(layer);
+				// make sure the geometric database is made up of proper layers
+				layer = geometricLayer(layer);
 
-			poly.transform(trans);
-			removePolyFromMerge(merge, layer, poly);
+				poly.transform(trans);
+				removePolyFromMerge(merge, layer, poly);
+			}
 		}
 	}
 

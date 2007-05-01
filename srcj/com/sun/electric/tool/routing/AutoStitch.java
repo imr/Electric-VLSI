@@ -180,7 +180,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, false);
 			return true;
 		}
 	}
@@ -193,12 +193,13 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param showProgress true to show progress.
 	 */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean showProgress)
 	{
 		AutoStitch as = new AutoStitch();
-		as.runNow(cell, nodesToStitch, arcsToStitch, stayInside, limitBound, forced);
+		as.runNow(cell, nodesToStitch, arcsToStitch, stayInside, limitBound, forced, showProgress);
 	}
 
 	private AutoStitch()
@@ -216,10 +217,12 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param showProgress true to show progress.
 	 */
 	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean showProgress)
 	{
+		if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
 		ArcProto preferredArc = Routing.getPreferredRoutingArcProto();
 
 		if (nodesToStitch == null) // no data from highlighter
@@ -301,9 +304,17 @@ public class AutoStitch
 		// finally, initialize the information about which layer is smallest on each arc
 		HashMap<ArcProto,Layer> arcLayers = new HashMap<ArcProto,Layer>();
 
+		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
+		int soFar = 0;
+		if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects...");
+
 		// now run through the nodeinsts to be checked for stitching
 		for(NodeInst ni : nodesToStitch)
 		{
+			soFar++;
+			if (showProgress && (soFar%100) == 0)
+				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+
 			if (cell.isAllLocked()) continue;
 			Netlist netlist = cell.acquireUserNetlist();
 			if (netlist == null)
@@ -317,6 +328,10 @@ public class AutoStitch
 		// now run through the arcinsts to be checked for stitching
 		for(ArcInst ai : arcsToStitch)
 		{
+			soFar++;
+			if (showProgress && (soFar%100) == 0)
+				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+
 			if (!ai.isLinked()) continue;
 			if (cell.isAllLocked()) continue;
 
@@ -333,11 +348,22 @@ public class AutoStitch
 		}
 
 		// create the routes
+		totalToStitch = allRoutes.size();
+		soFar = 0;
+		if (showProgress)
+		{
+			Job.getUserInterface().setProgressValue(0);
+			Job.getUserInterface().setProgressNote("Creating " + totalToStitch + " wires...");
+		}
 		Collections.sort(allRoutes, new compRoutes());
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
 		for (Route route : allRoutes)
 		{
+			soFar++;
+			if (showProgress && (soFar%100) == 0)
+				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+
 			RouteElement re = route.get(0);
 			Cell c = re.getCell();
 
@@ -417,6 +443,11 @@ public class AutoStitch
 		if (forced) Router.reportRoutingResults("AUTO ROUTING", arcsCreatedMap, nodesCreatedMap);
 
 		// check for any inline pins due to created wires
+		if (showProgress)
+		{
+			Job.getUserInterface().setProgressValue(0);
+			Job.getUserInterface().setProgressNote("Cleaning up pins...");
+		}
 		List<CircuitChangeJobs.Reconnect> pinsToPassThrough = new ArrayList<CircuitChangeJobs.Reconnect>();
 		for (NodeInst ni : possibleInlinePins)
 		{

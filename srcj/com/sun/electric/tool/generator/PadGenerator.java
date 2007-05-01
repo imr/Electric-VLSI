@@ -847,7 +847,7 @@ public class PadGenerator
 		}
 
 		// auto stitch everything
-		AutoStitch.runAutoStitch(framecell, null, null, null, null, true);
+		AutoStitch.runAutoStitch(framecell, null, null, null, null, true, false);
 
 		if (corename != null)
 		{
