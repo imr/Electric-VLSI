@@ -62,6 +62,7 @@ public class NetworkTab extends PreferencePanel
 		// node extraction
 		extractGridAlign.setSelected(Extract.isGridAlignExtraction());
 		extractUnifyNandP.setSelected(Extract.isUnifyActive());
+		extractApproximateCuts.setSelected(Extract.isApproximateCuts());
 		extractSmallestPolygonSize.setText(Double.toString(Extract.getSmallestPolygonSize()));
 		extractCellPattern.setText(Extract.getCellExpandPattern());
 	}
@@ -76,6 +77,9 @@ public class NetworkTab extends PreferencePanel
 
 		nowBoolean = extractUnifyNandP.isSelected();
 		if (Extract.isUnifyActive() != nowBoolean) Extract.setUnifyActive(nowBoolean);
+
+		nowBoolean = extractApproximateCuts.isSelected();
+		if (Extract.isApproximateCuts() != nowBoolean) Extract.setApproximateCuts(nowBoolean);
 
 		double nowDouble = TextUtils.atof(extractSmallestPolygonSize.getText());
 		if (nowDouble != Extract.getSmallestPolygonSize())
@@ -107,6 +111,7 @@ public class NetworkTab extends PreferencePanel
         extractUnifyNandP = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         extractSmallestPolygonSize = new javax.swing.JTextField();
+        extractApproximateCuts = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -173,14 +178,14 @@ public class NetworkTab extends PreferencePanel
         jLabel1.setText("Flatten cells whose names match this:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel3.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
@@ -197,7 +202,7 @@ public class NetworkTab extends PreferencePanel
         jLabel3.setText("Smallest extracted polygon (square units):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(jLabel3, gridBagConstraints);
@@ -205,10 +210,18 @@ public class NetworkTab extends PreferencePanel
         extractSmallestPolygonSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(extractSmallestPolygonSize, gridBagConstraints);
+
+        extractApproximateCuts.setText("Approximate cut placement");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel3.add(extractApproximateCuts, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -229,6 +242,7 @@ public class NetworkTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox extractApproximateCuts;
     private javax.swing.JTextField extractCellPattern;
     private javax.swing.JCheckBox extractGridAlign;
     private javax.swing.JTextField extractSmallestPolygonSize;
