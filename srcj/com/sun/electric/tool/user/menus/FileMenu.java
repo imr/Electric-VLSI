@@ -450,7 +450,15 @@ public class FileMenu {
              // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
             if (noname != null) {
-                if (!noname.getCells().hasNext()) {
+                // Only when noname is not exactly the library read that could be empty
+                if (noname == lib)
+                {
+                    // Making sure the URL is propoerly setup since the dummy noname library is
+                    // retrieved from LibraryFiles.readLibrary()
+                    if (lib.getLibFile() == null)
+                        lib.setLibFile(fileURL);
+                }
+                else if (!noname.getCells().hasNext()) {
                     noname.kill("delete");
                 }
             }

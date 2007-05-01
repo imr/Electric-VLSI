@@ -25,13 +25,11 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -133,7 +131,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (existingLibrary != null)
 		{
 			System.out.println("Error: library '" + legalName + "' already exists");
-			return existingLibrary;
+            return existingLibrary;
 		}
 		
 		// create the library
