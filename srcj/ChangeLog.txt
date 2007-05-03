@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (5/3/07, SMR) Area delete (when area-selection is deleted) now splits
+     polygonally-defined nodes.
+
 IMP: (5/3/07, SMR) Auto-stitcher now creates only as many arcs as are necessary
      to connect many nodes in a tight area.
 

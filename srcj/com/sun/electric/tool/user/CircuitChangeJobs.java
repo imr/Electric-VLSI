@@ -30,6 +30,8 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -52,6 +54,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -1057,8 +1060,8 @@ public class CircuitChangeJobs
 						continue;
 					}
 
-					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), ni.getOnlyPortInst(), ai.getHeadPortInst(), headPtAdj,
-					        ai.getHeadLocation(), newName);
+					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), ni.getOnlyPortInst(),
+						ai.getHeadPortInst(), headPtAdj, ai.getHeadLocation(), newName);
 					if (ai1 == null)
 					{
 						System.out.println("Error shortening "+ai);
@@ -1074,7 +1077,70 @@ public class CircuitChangeJobs
 			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst ni = nIt.next();
-		
+
+				// special case for nodes with outline information: clip the outline
+				if (!ni.isCellInstance())
+				{
+					if (ni.getProto().getFunction() == PrimitiveNode.Function.NODE)
+					{
+						// first see if it is completely ignored
+						Rectangle2D pointBounds = ni.getBounds();
+						if (pointBounds.getMinX() > hX || pointBounds.getMaxX() < lX ||
+							pointBounds.getMinY() > hY || pointBounds.getMaxY() < lY) continue;
+
+						// if it cannot be modified, stop
+						int errorCode = cantEdit(cell, ni, true, false, true);
+						if (errorCode < 0) return false;
+						if (errorCode > 0) continue;
+
+						// if it is completely covered, delete it
+						if (pointBounds.getMinX() >= lX && pointBounds.getMaxX() <= hX &&
+							pointBounds.getMinY() >= lY && pointBounds.getMaxY() <= hY)
+						{
+							nodesToDelete.add(ni);
+							continue;
+						}
+
+						// crop it against the delete bounds
+						Layer lay = ni.getProto().getTechnology().getLayer(0);
+						PolyMerge merge = new PolyMerge();
+						PolyBase poly;
+						Point2D [] points = ni.getTrace();
+						if (points == null) poly = new PolyBase(pointBounds); else
+						{
+							double cX = pointBounds.getCenterX();
+							double cY = pointBounds.getCenterY();
+							Point2D [] newPoints = new Point2D[points.length];
+							for(int i=0; i<points.length; i++)
+								newPoints[i] = new Point2D.Double(points[i].getX()+cX, points[i].getY()+cY);
+							poly = new PolyBase(newPoints);
+							poly.transform(ni.rotateOut());
+						}
+						merge.addPolygon(lay, poly);
+						PolyBase polySub = new PolyBase((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+						merge.subtract(lay, polySub);
+						List<PolyBase> resultingPolys = merge.getMergedPoints(lay, true);
+						if (resultingPolys != null)
+						{
+							// find the largest polygon
+							PolyBase largest = null;
+							double largestSize = 0;
+							for(PolyBase pb : resultingPolys)
+							{
+								double sz = pb.getArea();
+								if (sz >= largestSize)
+								{
+									largestSize = sz;
+									largest = pb;
+								}
+							}
+							if (largest != null)
+								ni.setTrace(largest.getPoints());
+							continue;
+						}
+					}
+				}
+
 				// if the node is outside of the area, ignore it
 				double cX = ni.getTrueCenterX();
 				double cY = ni.getTrueCenterY();
