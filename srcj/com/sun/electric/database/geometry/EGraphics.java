@@ -620,6 +620,8 @@ public class EGraphics extends Observable
         reversedPattern = new int[16];
         for (int i = 0; i < reversedPattern.length; i++) {
             int shortPattern = pattern[i];
+            if ((shortPattern >>> 16) != 0)
+    			System.out.println("Graphics bad: has " + Integer.toHexString(shortPattern) + " pattern line");
             for (int j = 0; j < 16; j++) {
                 if ((shortPattern & (1 << (15 - j))) != 0)
                     reversedPattern[i] |= 0x10001 << j;

@@ -1315,7 +1315,8 @@ public class Technology implements Comparable<Technology>
             out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + desc.isFactoryPatternedOnPrinter() + ")");
             out.println("\toutlined=" + desc.getOutlined() + "(" + desc.getFactoryOutlined() + ")");
             out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + desc.getFactoryTransparentLayer() + ")");
-            out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()));
+            out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()) + ")");
+            out.println("\topacity=" + desc.getOpacity() + "(" + desc.getFactoryOpacity() + ")");
             out.println("\tforeground=" + desc.getForeground());
             int pattern[] = desc.getFactoryPattern();
             out.print("\tpattern");
@@ -1416,7 +1417,6 @@ public class Technology implements Comparable<Technology>
 //    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
 //    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
 
-    
     /****************************** LAYERS ******************************/
 
 	/**

@@ -498,7 +498,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
-    /** true if contains MULTICUTBOX layers */      private boolean hasMultiCuts;
+    /** true if contains MULTICUTBOX layers */      private int numMultiCuts;
     /** minimum width and height rule */            private NodeSizeRule minNodeSize;
 	/** offset from database to user */				private SizeOffset offset;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
@@ -535,12 +535,12 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		this.minNodeSize = null;
 		globalPrimNodeIndex = primNodeNumber++;
 
-        boolean hasMultiCuts = false;
+        int numMultiCuts = 0;
         for (Technology.NodeLayer nodeLayer: layers) {
             if (nodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
-                hasMultiCuts = true;
+                numMultiCuts++;
         }
-        this.hasMultiCuts = hasMultiCuts;
+        this.numMultiCuts = numMultiCuts;
         
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
@@ -777,7 +777,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * For now, multicut primitives and resistor primitives have such NodeLayers.
      * @return true if this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
      */
-    public boolean hasMultiCuts() { return hasMultiCuts; }
+    public boolean hasMultiCuts() { return numMultiCuts > 0; }
     
     /**
      * Find a NodeLayer of this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
@@ -793,11 +793,10 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     }
     
     /**
-     * Tells whether this PrimitiveNode is multicut, i.e. it has NodeLayer with MULTICUTBOX representation,
-     * but it is not a resistor.
+     * Tells whether this PrimitiveNode is multicut, i.e. it has exactly one NodeLayer with MULTICUTBOX representation,
      * @return true if this PrimitiveNode is multicut.
      */
-    public boolean isMulticut() { return hasMultiCuts && !function.isResistor(); }
+    public boolean isMulticut() { return numMultiCuts == 1; }
     
 	/**
 	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
@@ -1533,7 +1532,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     void dump(PrintWriter out) {
         out.print("PrimitiveNode " + getName() + " " + getFunction());
         Technology.printlnBits(out, nodeBits, userBits);
-        out.print("\tspecialType=" + specialType + " hasMultiCuts=" + hasMultiCuts);
+        out.print("\tspecialType=" + specialType + " numMultiCuts=" + numMultiCuts);
         if (specialValues != null) {
             for (double v: specialValues)
                 out.print(" " + v);

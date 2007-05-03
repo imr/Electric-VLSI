@@ -23,22 +23,27 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
+import com.sun.electric.tool.user.tecEdit.ArcInfo;
 
 import java.awt.Color;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.omg.CORBA.COMM_FAILURE;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -195,7 +200,7 @@ public class Xml {
         public int level;
         public final List<String> spiceLines = new ArrayList<String>();
     }
-  
+    
     public static class MenuPalette {
         public int numColumns;
         public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
@@ -254,7 +259,7 @@ public class Xml {
         special,
         notUsed,
         skipSizeInPalette,
-
+        
         extended(true),
         fixedAngle(true),
         angleIncrement(true),
@@ -1285,4 +1290,531 @@ public class Xml {
         
     }
     
+    public static void writeXml(String fileName, Xml.Technology t) {
+        try {
+            PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+            Writer writer = new Writer(buffWriter);
+            writer.writeTechnology(t);
+            buffWriter.close();
+            System.out.println("Wrote " + fileName);
+        } catch (IOException e) {
+            System.out.println("Error creating " + fileName);
+        }
+    }
+    
+    
+    private static class Writer {
+        private static final int INDENT_WIDTH = 4;
+        private final PrintStream out;
+        private int indent;
+        private boolean indentEmitted;
+        
+        Writer(PrintStream out) {
+            this.out = out;
+        }
+        
+        private void writeTechnology(Xml.Technology t) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(new Date());
+            
+            header();
+            
+            pl("");
+            out.println("<!--");
+            pl(" *");
+            pl(" * Electric(tm) VLSI Design System");
+            pl(" *");
+            pl(" * File: " + t.techName + ".xml");
+            pl(" * " + t.techName + " technology description");
+            pl(" * Generated automatically from a library");
+            pl(" *");
+            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
+            pl(" *");
+            pl(" * Electric(tm) is free software; you can redistribute it and/or modify");
+            pl(" * it under the terms of the GNU General Public License as published by");
+            pl(" * the Free Software Foundation; either version 2 of the License, or");
+            pl(" * (at your option) any later version.");
+            pl(" *");
+            pl(" * Electric(tm) is distributed in the hope that it will be useful,");
+            pl(" * but WITHOUT ANY WARRANTY; without even the implied warranty of");
+            pl(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
+            pl(" * GNU General Public License for more details.");
+            pl(" *");
+            pl(" * You should have received a copy of the GNU General Public License");
+            pl(" * along with Electric(tm); see the file COPYING.  If not, write to");
+            pl(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
+            pl(" * Boston, Mass 02111-1307, USA.");
+            pl(" */");
+            out.println("-->");
+            l();
+            
+            b(XmlKeyword.technology); a("name", t.techName); l();
+            a("xmlns", "http://electric.sun.com/Technology"); l();
+            a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
+            a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
+            l();
+            
+            bcpel(XmlKeyword.shortName, t.shortTechName);
+            bcpel(XmlKeyword.description, t.description);
+            b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
+            b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", t.scaleRelevant); el();
+            b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
+            b(XmlKeyword.minResistance); a("value", t.minResistance); el();
+            b(XmlKeyword.minCapacitance); a("value", t.minCapacitance); el();
+//        printlnAttribute("  gateLengthSubtraction", gi.gateShrinkage);
+//        printlnAttribute("  gateInclusion", gi.includeGateInResistance);
+//        printlnAttribute("  groundNetInclusion", gi.includeGround);
+            l();
+            
+            if (t.transparentLayers.size() != 0) {
+                comment("Transparent layers");
+                for (int i = 0; i < t.transparentLayers.size(); i++) {
+                    Color color = t.transparentLayers.get(i);
+                    b(XmlKeyword.transparentLayer); a("transparent", i + 1); cl();
+                    bcpel(XmlKeyword.r, color.getRed());
+                    bcpel(XmlKeyword.g, color.getGreen());
+                    bcpel(XmlKeyword.b, color.getBlue());
+                    el(XmlKeyword.transparentLayer);
+                }
+                l();
+            }
+            
+            comment("**************************************** LAYERS ****************************************");
+            for (Xml.Layer li: t.layers) {
+                writeXml(li);
+            }
+            
+            comment("******************** ARCS ********************");
+            for (Xml.ArcProto ai: t.arcs) {
+                writeXml(ai);
+                l();
+            }
+            
+            comment("******************** NODES ********************");
+            for (Xml.PrimitiveNode ni: t.nodes) {
+                writeXml(ni);
+                l();
+            }
+            
+            for (Xml.SpiceHeader spiceHeader: t.spiceHeaders)
+                writeSpiceHeaderXml(spiceHeader);
+            
+//            writeMenuPaletteXml(gi.menuPalette);
+//            
+//            writeDesignRulesXml(gi.defaultFoundry, lList, gi.conDist, gi.unConDist);
+//            
+//            el(XmlKeyword.technology);
+        }
+        
+        private void writeXml(Xml.Layer li) {
+            EGraphics desc = li.desc;
+            String funString = null;
+            int funExtra = li.extraFunction;
+            if (funExtra != 0) {
+                final int deplEnhMask = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.ENHANCEMENT;
+                if ((funExtra&deplEnhMask) != 0) {
+                    funString = com.sun.electric.technology.Layer.Function.getExtraName(funExtra&(deplEnhMask));
+                    funExtra &= ~deplEnhMask;
+                    if (funExtra != 0)
+                        funString += "_" + com.sun.electric.technology.Layer.Function.getExtraName(funExtra);
+                } else {
+                    funString = com.sun.electric.technology.Layer.Function.getExtraName(funExtra);
+                }
+            }
+            b(XmlKeyword.layer); a("name", li.name); a("fun", li.function.name()); a("extraFun", funString); cl();
+            
+            if (desc.getTransparentLayer() > 0) {
+                b(XmlKeyword.transparentColor); a("transparent", desc.getTransparentLayer()); el();
+            } else {
+                Color color = desc.getColor();
+                b(XmlKeyword.opaqueColor); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); el();
+            }
+            
+            bcpel(XmlKeyword.patternedOnDisplay, desc.isPatternedOnDisplay());
+            bcpel(XmlKeyword.patternedOnPrinter, desc.isPatternedOnPrinter());
+            
+            int [] pattern = desc.getPattern();
+            for(int j=0; j<16; j++) {
+                String p = "";
+                for(int k=0; k<16; k++)
+                    p += (pattern[j] & (1 << (15-k))) != 0 ? 'X' : ' ';
+                bcpel(XmlKeyword.pattern, p);
+            }
+            
+            if (li.desc.getOutlined() != null)
+                bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
+            bcpel(XmlKeyword.opacity, desc.getOpacity());
+            bcpel(XmlKeyword.foreground, desc.getForeground());
+            
+            // write the 3D information
+            if (li.thick3D != 0 || li.height3D != 0) {
+                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); el();
+            }
+            
+            if (li.cif != null && li.cif.length() > 0) {
+                b(XmlKeyword.cifLayer); a("cif", li.cif); el();
+            }
+            
+            // write the SPICE information
+            if (li.resistance != 0 || li.capacitance != 0 || li.edgeCapacitance != 0) {
+                b(XmlKeyword.parasitics); a("resistance", li.resistance); a("capacitance", li.capacitance); a("edgeCapacitance", li.edgeCapacitance); el();
+            }
+            bcpel(XmlKeyword.pseudoLayer, li.pseudoLayer);
+            if (li.pureLayerNode != null) {
+                String nodeName = li.pureLayerNode.name;
+                Poly.Type style = li.pureLayerNode.style;
+                String styleStr = style == Poly.Type.FILLED ? null : style.name();
+                String portName = li.pureLayerNode.port;
+                b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
+                bcpel(XmlKeyword.lambda, li.pureLayerNode.size.value);
+                for (String portArc: li.pureLayerNode.portArcs)
+                    bcpel(XmlKeyword.portArc, portArc);
+                el(XmlKeyword.pureLayerNode);
+            }
+            el(XmlKeyword.layer);
+            l();
+        }
+        
+        private void writeXml(Xml.ArcProto ai) {
+            b(XmlKeyword.arcProto); a("name", ai.name); a("fun", ai.function.getConstantName()); cl();
+            
+            if (ai.wipable)
+                bel(XmlKeyword.wipable);
+            if (ai.curvable)
+                bel(XmlKeyword.curvable);
+            if (ai.special)
+                bel(XmlKeyword.special);
+            if (ai.notUsed)
+                bel(XmlKeyword.notUsed);
+            if (ai.skipSizeInPalette)
+                bel(XmlKeyword.skipSizeInPalette);
+            bcpel(XmlKeyword.extended, ai.extended);
+            bcpel(XmlKeyword.fixedAngle, ai.fixedAngle);
+            bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
+            bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
+            
+            if (ai.widthOffset != 0)
+                bcpel(XmlKeyword.widthOffset, ai.widthOffset);
+            
+            bcl(XmlKeyword.defaultWidth);
+            bcpel(XmlKeyword.lambda, DBMath.round(ai.defaultWidth.value - ai.widthOffset));
+            el(XmlKeyword.defaultWidth);
+            
+            for (Xml.ArcLayer al: ai.arcLayers) {
+                String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
+                b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
+                double extend = DBMath.round(ai.widthOffset - al.width.value);
+                if (extend == 0) {
+                    el();
+                } else {
+                    cl();
+                    bcpel(XmlKeyword.lambda, extend);
+                    el(XmlKeyword.arcLayer);
+                }
+            }
+            el(XmlKeyword.arcProto);
+        }
+        
+        private void writeXml(Xml.PrimitiveNode ni) {
+            b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
+            
+            if (ni.shrinkArcs)
+                bel(XmlKeyword.shrinkArcs);
+            if (ni.square)
+                bel(XmlKeyword.square);
+            if (ni.canBeZeroSize)
+                bel(XmlKeyword.canBeZeroSize);
+            if (ni.wipes)
+                bel(XmlKeyword.wipes);
+            if (ni.lockable)
+                bel(XmlKeyword.lockable);
+            if (ni.edgeSelect)
+                bel(XmlKeyword.edgeSelect);
+            if (ni.skipSizeInPalette)
+                bel(XmlKeyword.skipSizeInPalette);
+            if (ni.notUsed)
+                bel(XmlKeyword.notUsed);
+            if (ni.lowVt)
+                bel(XmlKeyword.lowVt);
+            if (ni.highVt)
+                bel(XmlKeyword.highVt);
+            if (ni.nativeBit)
+                bel(XmlKeyword.nativeBit);
+            if (ni.od18)
+                bel(XmlKeyword.od18);
+            if (ni.od25)
+                bel(XmlKeyword.od25);
+            if (ni.od33)
+                bel(XmlKeyword.od33);
+            
+            bcl(XmlKeyword.defaultWidth);
+            bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultWidth.value));
+            el(XmlKeyword.defaultWidth);
+            
+            bcl(XmlKeyword.defaultHeight);
+            bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultHeight.value));
+            el(XmlKeyword.defaultHeight);
+            if (ni.sizeOffset != null) {
+                double lx = ni.sizeOffset.getLowXOffset();
+                double hx = ni.sizeOffset.getHighXOffset();
+                double ly = ni.sizeOffset.getLowYOffset();
+                double hy = ni.sizeOffset.getHighYOffset();
+                b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
+            }
+            
+            for(int j=0; j<ni.nodeLayers.size(); j++) {
+                Xml.NodeLayer nl = ni.nodeLayers.get(j);
+                Integer portNum = nl.portNum != 0 ? Integer.valueOf(nl.portNum) : null;
+                b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name()); a(" portNum", portNum);
+                if (!(nl.inLayers && nl.inElectricalLayers))
+                    a("electrical", nl.inElectricalLayers);
+                cl();
+                switch (nl.representation) {
+                    case com.sun.electric.technology.Technology.NodeLayer.BOX:
+                        b(XmlKeyword.box); el();
+                        break;
+                    case com.sun.electric.technology.Technology.NodeLayer.MINBOX:
+                        b(XmlKeyword.minbox); el();
+                        break;
+                    case com.sun.electric.technology.Technology.NodeLayer.POINTS:
+                        b(XmlKeyword.points); el();
+                        break;
+                    case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
+                        b(XmlKeyword.multicutbox); a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); el();
+                        break;
+                }
+                for (TechPoint tp: nl.techPoints) {
+                    double xm = tp.getX().getMultiplier();
+                    double xa = tp.getX().getAdder();
+                    double ym = tp.getY().getMultiplier();
+                    double ya = tp.getY().getAdder();
+                    b(XmlKeyword.techPoint); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
+                }
+                el(XmlKeyword.nodeLayer);
+            }
+            for (int j = 0; j < ni.ports.size(); j++) {
+                Xml.PrimitivePort pd = ni.ports.get(j);
+                b(XmlKeyword.primitivePort); a("name", pd.name); cl();
+                b(XmlKeyword.portAngle); a("primary", pd.portAngle); a("range", pd.portRange); el();
+                bcpel(XmlKeyword.portTopology, pd.portTopology);
+                for (int k = 0; k < 2; k++) {
+                    TechPoint p = k == 0 ? pd.p0 : pd.p1;
+                    double xm = p.getX().getMultiplier();
+                    double xa = p.getX().getAdder();
+                    double ym = p.getY().getMultiplier();
+                    double ya = p.getY().getAdder();
+                    b(XmlKeyword.techPoint); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
+                }
+                for (String portArc: pd.portArcs)
+                    bcpel(XmlKeyword.portArc, portArc);
+                el(XmlKeyword.primitivePort);
+            }
+            switch (ni.specialType) {
+                case com.sun.electric.technology.PrimitiveNode.POLYGONAL:
+                    bel(XmlKeyword.polygonal);
+                    break;
+                case com.sun.electric.technology.PrimitiveNode.SERPTRANS:
+                    b(XmlKeyword.serpTrans); cl();
+                    for (int i = 0; i < 6; i++) {
+                        bcpel(XmlKeyword.specialValue, ni.specialValues[i]);
+                    }
+                    el(XmlKeyword.serpTrans);
+                    break;
+            }
+            if (ni.nodeSizeRule != null) {
+                com.sun.electric.technology.PrimitiveNode.NodeSizeRule r = ni.nodeSizeRule;
+                b(XmlKeyword.minSizeRule); a("width", r.getWidth()); a("height", r.getHeight()); a("rule", r.getRuleName()); el();
+            }
+            
+            el(XmlKeyword.primitiveNode);
+        }
+        
+        private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {
+            b(XmlKeyword.spiceHeader); a("level", spiceHeader.level); cl();
+            for (String line: spiceHeader.spiceLines) {
+                b(XmlKeyword.spiceLine); a("line", line); el();
+            }
+            el(XmlKeyword.spiceHeader);
+            l();
+        }
+        
+//        private void writeMenuPaletteXml(Object[][] menuPalette) {
+//            if (menuPalette == null) return;
+//            int numColumns = menuPalette[0].length;
+//            b("menuPalette"); a("numColumns", numColumns); cl();
+//            for (Object[] menuLine: menuPalette) {
+//                l();
+//                for (int i = 0; i < numColumns; i++)
+//                    writeMenuBoxXml(menuLine[i]);
+//            }
+//            l();
+//            el("menuPalette");
+//            l();
+//        }
+//        
+//        private void writeMenuBoxXml(Object o) {
+//            b("menuBox");
+//            if (o == null) {
+//                el();
+//                return;
+//            }
+//            cl();
+//            if (o instanceof ArcInfo)
+//                bcpel("menuArc", ((ArcInfo)o).name);
+//            else if (o instanceof NodeInfo)
+//                bcpel("menuNode", ((NodeInfo)o).name);
+//            else
+//                bcpel("menuText", o);
+//            el("menuBox");
+//        }
+//        
+//        private void writeDesignRulesXml(String foundry, LayerInfo[] lList, double[] conDist, double[] uConDist) {
+//            b("Foundry"); a("name", foundry); cl();
+//            
+//            if (conDist != null && uConDist != null) {
+//                int layerTotal = lList.length;
+//                int ruleIndex = 0;
+//                for (int i1 = 0; i1 < layerTotal; i1++) {
+//                    LayerInfo l1 = lList[i1];
+//                    for (int i2 = i1; i2 < layerTotal; i2++) {
+//                        LayerInfo l2 = lList[i2];
+//                        double conSpa = conDist[ruleIndex];
+//                        double uConSpa = uConDist[ruleIndex];
+//                        if (conSpa > -1)
+//                            printDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa);
+//                        if (uConSpa > -1)
+//                            printDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa);
+//                        ruleIndex++;
+//                    }
+//                }
+//            }
+//            el("Foundry");
+//        }
+//        
+        private void header() {
+            checkIndent();
+            out.print("<?xml"); a("version", "1.0"); a("encoding", "UTF-8"); out.println("?>");
+        }
+        
+        private void comment(String s) {
+            checkIndent();
+            out.print("<!-- "); p(s); out.print(" -->"); l();
+        }
+        
+        /**
+         * Print attribute.
+         */
+        private void a(String name, Object value) {
+            checkIndent();
+            if (value == null) return;
+            out.print(" " + name + "=\"");
+            p(value.toString());
+            out.print("\"");
+        }
+        
+        private void bcpel(XmlKeyword key, Object v) {
+            if (v == null) return;
+            b(key); c(); p(v.toString()); el(key);
+        }
+        
+        private void bcl(XmlKeyword key) {
+            b(key); cl();
+        }
+        
+        private void bel(XmlKeyword key) {
+            b(key); el();
+        }
+        
+        /**
+         * Print text with replacement of special chars.
+         */
+        private void pl(String s) {
+            checkIndent();
+            p(s); l();
+        }
+        
+        /**
+         * Print text with replacement of special chars.
+         */
+        private void p(String s) {
+            assert indentEmitted;
+            for (int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
+                switch (c) {
+                    case '<':
+                        out.print("&lt;");
+                        break;
+                    case '>':
+                        out.print("&gt;");
+                        break;
+                    case '&':
+                        out.print("&amp;");
+                        break;
+                    case '\'':
+                        out.print("&apos;");
+                        break;
+                    case '"':
+                        out.print("quot;");
+                        break;
+                    default:
+                        out.print(c);
+                }
+            }
+        }
+        
+        /**
+         * Print element name, and indent.
+         */
+        private void b(XmlKeyword key) {
+            checkIndent();
+            out.print('<');
+            out.print(key.name());
+            indent += INDENT_WIDTH;
+        }
+        
+        private void cl() {
+            assert indentEmitted;
+            out.print('>');
+            l();
+        }
+        
+        private void c() {
+            assert indentEmitted;
+            out.print('>');
+        }
+        
+        private void el() {
+            e(); l();
+        }
+        
+        private void e() {
+            assert indentEmitted;
+            out.print("/>");
+            indent -= INDENT_WIDTH;
+        }
+        
+        private void el(XmlKeyword key) {
+            indent -= INDENT_WIDTH;
+            checkIndent();
+            out.print("</");
+            out.print(key.name());
+            out.print(">");
+            l();
+        }
+        
+        private void checkIndent() {
+            if (indentEmitted) return;
+            for (int i = 0; i < indent; i++)
+                out.print(' ');
+            indentEmitted = true;
+        }
+        
+        /**
+         *  Print new line.
+         */
+        private void l() {
+            out.println();
+            indentEmitted = false;
+        }
+    }
 }
