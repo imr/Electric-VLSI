@@ -908,8 +908,8 @@ public class MoCMOS extends Technology
 		Layer pseudoMetal4_lay = metalLayers[3].makePseudo();		// Pseudo-Metal-4
 		Layer pseudoMetal5_lay = metalLayers[4].makePseudo();		// Pseudo-Metal-5
 		Layer pseudoMetal6_lay = metalLayers[5].makePseudo();		// Pseudo-Metal-6
-		Layer pseudoPoly1_lay = poly1Layer.makePseudo("Pseudo-Polysilicon");		// Pseudo-Polysilicon-1
-		Layer pseudoPoly2_lay = poly2_lay.makePseudo("Pseudo-Electrode");		// Pseudo-Polysilicon-2
+		Layer pseudoPoly1_lay = poly1Layer.makePseudo();            // Pseudo-Polysilicon-1
+		Layer pseudoPoly2_lay = poly2_lay.makePseudo();             // Pseudo-Polysilicon-2
 		pseudoActiveLayers[P_TYPE] = activeLayers[P_TYPE].makePseudo();		// Pseudo-P-Active
 		pseudoActiveLayers[N_TYPE] = activeLayers[N_TYPE].makePseudo();		// Pseudo-N-Active
 		pseudoSelectLayers[P_TYPE] = selectLayers[P_TYPE].makePseudo();	// Pseudo-P-Select
@@ -2632,6 +2632,8 @@ public class MoCMOS extends Technology
 		findArcProto("Active").setNotUsed(true);
         if (npnTransistorNode != null)
             npnTransistorNode.setNotUsed(!isAnalog());
+        if (pBaseLayer != null)
+            pBaseLayer.getPureLayerNode().setNotUsed(!isAnalog());
 
 		// set rules
         cachedRules = getFactoryDesignRules();

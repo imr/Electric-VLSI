@@ -397,8 +397,8 @@ public class Bipolar extends Technology
 		V_lay.setFunction(Layer.Function.CONTACT2);		// Via
 		SP_lay.setFunction(Layer.Function.OVERGLASS);		// Scratch_Protection
 		B_lay.setFunction(Layer.Function.DIFF);		// Buried
-		Layer PM_lay = M_lay.makePseudo("Pseudo_Metal1");		// Pseudo_Metal1
-		Layer PM0_lay = M0_lay.makePseudo("Pseudo_Metal2");		// Pseudo_Metal2
+		Layer PM_lay = M_lay.makePseudo();		// Pseudo-Metal1
+		Layer PM0_lay = M0_lay.makePseudo();		// Pseudo-Metal2
 //		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo_Metal1
 //		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo_Metal2
 

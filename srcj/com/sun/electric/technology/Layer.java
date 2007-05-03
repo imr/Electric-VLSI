@@ -589,7 +589,7 @@ public class Layer
      * @param pseudoLayerName a name for pseudo-layer.
 	 * @return the pseudo-layer.
 	 */
-    public Layer makePseudo(String pseudoLayerName) {
+    Layer makePseudo(String pseudoLayerName) {
         EGraphics pseudoGraphics = graphics;
         if (!PSEUDO_SHARES_GRAPHICS) {
             pseudoGraphics = new EGraphics(graphics);

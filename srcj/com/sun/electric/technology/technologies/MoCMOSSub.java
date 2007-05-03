@@ -747,8 +747,8 @@ public class MoCMOSSub extends Technology
 		Layer PM2_lay = M2_lay.makePseudo();					// Pseudo-Metal-4
 		Layer PM3_lay = M3_lay.makePseudo();					// Pseudo-Metal-5
 		Layer PM4_lay = M4_lay.makePseudo();					// Pseudo-Metal-6
-		Layer PP_lay = P_lay.makePseudo("Pseudo-Polysilicon");	// Pseudo-Polysilicon
-		Layer PE_lay = P0_lay.makePseudo("Pseudo-Electrode");	// Pseudo-Electrode
+		Layer PP_lay = P_lay.makePseudo();                      // Pseudo-Polysilicon-1
+		Layer PE_lay = P0_lay.makePseudo();                     // Pseudo-Polysilicon-2
 		Layer PPA_lay = PA_lay.makePseudo();					// Pseudo-P-Active
 		Layer PNA_lay = NA_lay.makePseudo();					// Pseudo-N-Active
 		Layer PPS_lay = PS_lay.makePseudo();					// Pseudo-P-Select

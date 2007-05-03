@@ -487,14 +487,14 @@ public class BiCMOS extends Technology
 		B_lay.setFunction(Layer.Function.IMPLANTN);		// BCCD
 		OS_lay.setFunction(Layer.Function.SUBSTRATE);		// Ohmic_Substrate
 		OW_lay.setFunction(Layer.Function.WELL);		// Ohmic_Well
-		Layer PPS_lay = PS_lay.makePseudo("Pseudo_P_Select");		// Pseudo_P_Select
-		Layer PNS_lay = NS_lay.makePseudo("Pseudo_N_Select");		// Pseudo_N_Select
-		Layer PNW_lay = NW_lay.makePseudo("Pseudo_N_Well");		// Pseudo_N_Well
-		Layer PM_lay = M_lay.makePseudo("Pseudo_Metal_1");		// Pseudo_Metal_1
-		Layer PM0_lay = M0_lay.makePseudo("Pseudo_Metal_2");		// Pseudo_Metal_2
-		Layer PP_lay = P0_lay.makePseudo("Pseudo_Polysilicon");		// Pseudo_Polysilicon
-		Layer PP0_lay = P1_lay.makePseudo("Pseudo_Polysilicon_2");		// Pseudo_Polysilicon_2
-		Layer PA_lay = A_lay.makePseudo("Pseudo_Active");		// Pseudo_Active
+		Layer PPS_lay = PS_lay.makePseudo();		// Pseudo-P_Select
+		Layer PNS_lay = NS_lay.makePseudo();		// Pseudo-N_Select
+		Layer PNW_lay = NW_lay.makePseudo();		// Pseudo-N_Well
+		Layer PM_lay = M_lay.makePseudo();		// Pseudo-Metal_1
+		Layer PM0_lay = M0_lay.makePseudo();		// Pseudo-Metal_2
+		Layer PP_lay = P0_lay.makePseudo();		// Pseudo-Polysilicon
+		Layer PP0_lay = P1_lay.makePseudo();		// Pseudo-Polysilicon_2
+		Layer PA_lay = A_lay.makePseudo();		// Pseudo-Active
 //		PPS_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);		// Pseudo_P_Select
 //		PNS_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);		// Pseudo_N_Select
 //		PNW_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo_N_Well
