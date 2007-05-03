@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (5/3/07, SMR) Auto-stitcher now creates only as many arcs as are necessary
+     to connect many nodes in a tight area.
+
 BUG: (5/3/07, DN) Some layers in cmos90 technology have patterns wider than 16 bits.
 FIX: Mask the patterns by 0xFFFF .
 
