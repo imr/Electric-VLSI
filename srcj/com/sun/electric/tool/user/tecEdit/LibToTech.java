@@ -42,8 +42,16 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
-import com.sun.electric.technology.Technology.TechPoint;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -318,7 +326,7 @@ public class LibToTech
 			{
 				LayerInfo li = nd[j].layer;
 				Layer lay = li.generated;
-				TechPoint [] points = nd[j].values;
+				Technology.TechPoint [] points = nd[j].values;
 				if (nList[i].specialType == PrimitiveNode.SERPTRANS)
 				{
 					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
@@ -3472,4 +3480,220 @@ public class LibToTech
 		if (layerCell == null) return "HIGHLIGHT";
 		return layerCell.getName().substring(6);
 	}
+    
+    /**
+     * Dump technology information to Xml
+     * @param fileName name of file to write
+     * @param newTechName new technology name
+     * @param gi general technology information
+     * @param lList information about layers
+     * @param nList information about primitive nodes
+     * @param aList information about primitive arcs.
+     */
+    static void writeXml(String fileName, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        makeXml(newTechName, gi, lList, nList, aList).writeXml(fileName);
+    }
+    
+    private static Xml.Technology makeXml(String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+        Xml.Technology t = new Xml.Technology();
+        t.techName = newTechName;
+        t.shortTechName = gi.shortName;
+        t.description = gi.description;
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = gi.defaultNumMetals;
+        t.scaleValue = gi.scale;
+        t.scaleRelevant = gi.scaleRelevant;
+        t.defaultFoundry = gi.defaultFoundry;
+        t.minResistance = gi.minRes;
+        t.minCapacitance = gi.minCap;
+        
+        if (gi.transparentColors != null) {
+            for (int i = 0; i < gi.transparentColors.length; i++)
+                t.transparentLayers.add(gi.transparentColors[i]);
+        }
+        
+        for (LayerInfo li: lList) {
+            if (li.pseudo) continue;
+            Xml.Layer layer = new Xml.Layer();
+            layer.name = li.name;
+            layer.function = li.fun;
+            layer.extraFunction = li.funExtra;
+            layer.desc = li.desc;
+            layer.thick3D = li.thick3d;
+            layer.height3D = li.height3d;
+            layer.cif = li.cif;
+            layer.resistance = li.spiRes;
+            layer.capacitance = li.spiCap;
+            layer.edgeCapacitance = li.spiECap;
+            if (li.myPseudo != null)
+                layer.pseudoLayer = li.myPseudo.name;
+            if (li.pureLayerNode != null) {
+                layer.pureLayerNode = new Xml.PureLayerNode();
+                layer.pureLayerNode.name = li.pureLayerNode.name;
+                layer.pureLayerNode.style = li.pureLayerNode.nodeLayers[0].style;
+                layer.pureLayerNode.port = li.pureLayerNode.nodePortDetails[0].name;
+                layer.pureLayerNode.size.value = DBMath.round(li.pureLayerNode.xSize);
+                for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
+                    layer.pureLayerNode.portArcs.add(a.name);
+            }
+            t.layers.add(layer);
+        }
+        
+        for (ArcInfo ai: aList) {
+            Xml.ArcProto ap = new Xml.ArcProto();
+            ap.name = ai.name;
+            ap.function = ai.func;
+            ap.wipable = ai.wipes;
+            ap.curvable = ai.curvable;
+            ap.special = ai.special;
+            ap.notUsed = ai.notUsed;
+            ap.skipSizeInPalette = ai.skipSizeInPalette;
+            ap.extended = !ai.noExtend;
+            ap.fixedAngle = ai.fixAng;
+            ap.angleIncrement = ai.angInc;
+            ap.antennaRatio = ai.antennaRatio;
+            ap.widthOffset = ai.widthOffset;
+            ap.defaultWidth.value = DBMath.round(ai.maxWidth - ai.widthOffset);
+            for (ArcInfo.LayerDetails al: ai.arcDetails) {
+                Xml.ArcLayer l = new Xml.ArcLayer();
+                l.layer = al.layer.name;
+                l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
+                l.width.value = DBMath.round(al.width);
+                ap.arcLayers.add(l);
+            }
+            t.arcs.add(ap);
+        }
+        
+        for (NodeInfo ni: nList) {
+            if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
+                continue;
+            Xml.PrimitiveNode pn = new Xml.PrimitiveNode();
+            pn.name = ni.name;
+            pn.function = ni.func;
+            pn.shrinkArcs = ni.arcsShrink;
+            pn.square = ni.square;
+            pn.canBeZeroSize = ni.canBeZeroSize;
+            pn.wipes = ni.wipes;
+            pn.lockable = ni.lockable;
+            pn.edgeSelect = ni.edgeSelect;
+            pn.skipSizeInPalette = ni.skipSizeInPalette;
+            pn.notUsed = ni.notUsed;
+            pn.lowVt = ni.lowVt;
+            pn.highVt = ni.highVt;
+            pn.nativeBit = ni.nativeBit;
+            pn.od18 = ni.od18;
+            pn.od25 = ni.od25;
+            pn.od33 = ni.od33;
+            pn.defaultWidth.value = DBMath.round(ni.xSize);
+            pn.defaultHeight.value = DBMath.round(ni.ySize);
+            pn.sizeOffset = ni.so;
+            for(int j=0; j<ni.nodeLayers.length; j++) {
+                NodeInfo.LayerDetails nl = ni.nodeLayers[j];
+                Xml.NodeLayer l = new Xml.NodeLayer();
+                l.layer = nl.layer.name;
+                l.style = nl.style;
+                l.portNum = nl.portIndex;
+                l.inLayers = nl.inLayers;
+                l.inElectricalLayers = nl.inElectricalLayers;
+                l.representation = nl.representation;
+                if (l.representation == Technology.NodeLayer.MULTICUTBOX) {
+                    l.sizex = nl.multiXS;
+                    l.sizey = nl.multiYS;
+                    l.sep1d = nl.multiSep;
+                    l.sep2d = nl.multiSep2D;
+                }
+                for (Technology.TechPoint tp: nl.values)
+                    l.techPoints.add(tp);
+                pn.nodeLayers.add(l);
+            }
+            for (int j = 0; j < ni.nodePortDetails.length; j++) {
+                NodeInfo.PortDetails pd = ni.nodePortDetails[j];
+                Xml.PrimitivePort pp = new Xml.PrimitivePort();
+                pp.name = pd.name;
+                pp.portAngle = pd.angle;
+                pp.portRange = pd.range;
+                pp.portTopology = pd.netIndex;
+                pp.p0 = pd.values[0];
+                pp.p1 = pd.values[1];
+                for (ArcInfo a: pd.connections)
+                    pp.portArcs.add(a.name);
+                pn.ports.add(pp);
+            }
+            pn.specialType = ni.specialType;
+            if (pn.specialType == PrimitiveNode.SERPTRANS) {
+                pn.specialValues = new double[6];
+                for (int i = 0; i < 6; i++)
+                    pn.specialValues[i] = ni.specialValues[i];
+            }
+            pn.nodeSizeRule = ni.nodeSizeRule;
+            t.nodes.add(pn);
+            
+        }
+        
+        addSpiceHeader(t, 1, gi.spiceLevel1Header);
+        addSpiceHeader(t, 2, gi.spiceLevel2Header);
+        addSpiceHeader(t, 3, gi.spiceLevel3Header);
+        
+        if (gi.menuPalette != null) {
+            t.menuPalette = new Xml.MenuPalette();
+            int numColumns = gi.menuPalette[0].length;
+            t.menuPalette.numColumns = numColumns;
+            for (Object[] menuLine: gi.menuPalette) {
+                for (int i = 0; i < numColumns; i++)
+                    t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
+            }
+        }
+        
+        Xml.Foundry foundry = new Xml.Foundry();
+        foundry.name = gi.defaultFoundry;
+        if (gi.conDist != null && gi.unConDist != null) {
+            int layerTotal = lList.length;
+            int ruleIndex = 0;
+            for (int i1 = 0; i1 < layerTotal; i1++) {
+                LayerInfo l1 = lList[i1];
+                for (int i2 = i1; i2 < layerTotal; i2++) {
+                    LayerInfo l2 = lList[i2];
+                    double conSpa = gi.conDist[ruleIndex];
+                    double uConSpa = gi.unConDist[ruleIndex];
+                    if (conSpa > -1)
+                        foundry.layerRules.add(makeDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa));
+                    if (uConSpa > -1)
+                        foundry.layerRules.add(makeDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa));
+                    ruleIndex++;
+                }
+            }
+        }
+        t.foundries.add(foundry);
+        
+        return t;
+    }
+    
+    private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
+        if (spiceLines == null) return;
+        Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
+        spiceHeader.level = level;
+        for (String spiceLine: spiceLines)
+            spiceHeader.spiceLines.add(spiceLine);
+        t.spiceHeaders.add(spiceHeader);
+    }
+    
+    private static ArrayList<Object> makeMenuBoxXml(Xml.Technology t, Object o) {
+        ArrayList<Object> menuBox = new ArrayList<Object>();
+        if (o instanceof ArcInfo)
+            menuBox.add(t.findArc(((ArcInfo)o).name));
+        else if (o instanceof NodeInfo)
+            menuBox.add(t.findNode(((NodeInfo)o).name));
+        else if (o != null)
+            menuBox.add(o.toString());
+        return menuBox;
+    }
+    
+    private static Xml.LayersRule makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, String type, double value) {
+        Xml.LayersRule r = new Xml.LayersRule();
+        r.ruleName = ruleName;
+        r.layerNames = "{" + l1.name + ", " + l2.name + "}";
+        r.type = type;
+        r.when = "ALL";
+        r.value = value;
+        return r;
+    }
 }

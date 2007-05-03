@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
-import com.sun.electric.tool.user.tecEdit.ArcInfo;
 
 import java.awt.Color;
 import java.io.FileOutputStream;
@@ -98,6 +97,18 @@ public class Xml {
                     return node;
             }
             return null;
+        }
+        
+        public void writeXml(String fileName) {
+            try {
+                PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+                Writer writer = new Writer(buffWriter);
+                writer.writeTechnology(this);
+                buffWriter.close();
+                System.out.println("Wrote " + fileName);
+            } catch (IOException e) {
+                System.out.println("Error creating " + fileName);
+            }
         }
     }
     
@@ -1290,19 +1301,6 @@ public class Xml {
         
     }
     
-    public static void writeXml(String fileName, Xml.Technology t) {
-        try {
-            PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
-            Writer writer = new Writer(buffWriter);
-            writer.writeTechnology(t);
-            buffWriter.close();
-            System.out.println("Wrote " + fileName);
-        } catch (IOException e) {
-            System.out.println("Error creating " + fileName);
-        }
-    }
-    
-    
     private static class Writer {
         private static final int INDENT_WIDTH = 4;
         private final PrintStream out;
@@ -1399,11 +1397,12 @@ public class Xml {
             for (Xml.SpiceHeader spiceHeader: t.spiceHeaders)
                 writeSpiceHeaderXml(spiceHeader);
             
-//            writeMenuPaletteXml(gi.menuPalette);
-//            
-//            writeDesignRulesXml(gi.defaultFoundry, lList, gi.conDist, gi.unConDist);
-//            
-//            el(XmlKeyword.technology);
+            writeMenuPaletteXml(t.menuPalette);
+            
+            for (Xml.Foundry foundry: t.foundries)
+                writeFoundryXml(foundry);
+            
+            el(XmlKeyword.technology);
         }
         
         private void writeXml(Xml.Layer li) {
@@ -1497,7 +1496,7 @@ public class Xml {
                 bcpel(XmlKeyword.widthOffset, ai.widthOffset);
             
             bcl(XmlKeyword.defaultWidth);
-            bcpel(XmlKeyword.lambda, DBMath.round(ai.defaultWidth.value - ai.widthOffset));
+            bcpel(XmlKeyword.lambda, ai.defaultWidth.value);
             el(XmlKeyword.defaultWidth);
             
             for (Xml.ArcLayer al: ai.arcLayers) {
@@ -1638,59 +1637,50 @@ public class Xml {
             l();
         }
         
-//        private void writeMenuPaletteXml(Object[][] menuPalette) {
-//            if (menuPalette == null) return;
-//            int numColumns = menuPalette[0].length;
-//            b("menuPalette"); a("numColumns", numColumns); cl();
-//            for (Object[] menuLine: menuPalette) {
-//                l();
-//                for (int i = 0; i < numColumns; i++)
-//                    writeMenuBoxXml(menuLine[i]);
-//            }
-//            l();
-//            el("menuPalette");
-//            l();
-//        }
-//        
-//        private void writeMenuBoxXml(Object o) {
-//            b("menuBox");
-//            if (o == null) {
-//                el();
-//                return;
-//            }
-//            cl();
-//            if (o instanceof ArcInfo)
-//                bcpel("menuArc", ((ArcInfo)o).name);
-//            else if (o instanceof NodeInfo)
-//                bcpel("menuNode", ((NodeInfo)o).name);
-//            else
-//                bcpel("menuText", o);
-//            el("menuBox");
-//        }
-//        
-//        private void writeDesignRulesXml(String foundry, LayerInfo[] lList, double[] conDist, double[] uConDist) {
-//            b("Foundry"); a("name", foundry); cl();
-//            
-//            if (conDist != null && uConDist != null) {
-//                int layerTotal = lList.length;
-//                int ruleIndex = 0;
-//                for (int i1 = 0; i1 < layerTotal; i1++) {
-//                    LayerInfo l1 = lList[i1];
-//                    for (int i2 = i1; i2 < layerTotal; i2++) {
-//                        LayerInfo l2 = lList[i2];
-//                        double conSpa = conDist[ruleIndex];
-//                        double uConSpa = uConDist[ruleIndex];
-//                        if (conSpa > -1)
-//                            printDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa);
-//                        if (uConSpa > -1)
-//                            printDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa);
-//                        ruleIndex++;
-//                    }
-//                }
-//            }
-//            el("Foundry");
-//        }
-//        
+        private void writeMenuPaletteXml(Xml.MenuPalette menuPalette) {
+            if (menuPalette == null) return;
+            b(XmlKeyword.menuPalette); a("numColumns", menuPalette.numColumns); cl();
+            for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
+                if (i % menuPalette.numColumns == 0)
+                    l();
+                writeMenuBoxXml(menuPalette.menuBoxes.get(i));
+            }
+            l();
+            el(XmlKeyword.menuPalette);
+            l();
+        }
+        
+        private void writeMenuBoxXml(ArrayList<Object> list) {
+            b(XmlKeyword.menuBox);
+            if (list.size() == 0) {
+                el();
+                return;
+            }
+            cl();
+            for (Object o: list) {
+                if (o instanceof Xml.ArcProto)
+                    bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
+                else if (o instanceof Xml.PrimitiveNode)
+                    bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
+                else
+                    bcpel(XmlKeyword.menuText, o);
+            }
+            el(XmlKeyword.menuBox);
+        }
+        
+        private void writeFoundryXml(Xml.Foundry foundry) {
+            b(XmlKeyword.Foundry); a("name", foundry.name); cl();
+            for (Xml.LayersRule r: foundry.layerRules) {
+                b(XmlKeyword.LayersRule); a("ruleName", r.ruleName); a("layerNames", r.layerNames); a("type", r.type); a("when", r.when); a("value", r.value); el();
+            }
+            el(XmlKeyword.Foundry);
+        }
+        
+        private void printDesignRule(String ruleName, String l1, String l2, String type, double value) {
+            String layerNames = "{" + l1 + ", " + l2 + "}";
+            b(XmlKeyword.LayersRule); a("ruleName", ruleName); a("layerNames", layerNames); a("type", type); a("when", "ALL"); a("value", value); el();
+        }
+        
         private void header() {
             checkIndent();
             out.print("<?xml"); a("version", "1.0"); a("encoding", "UTF-8"); out.println("?>");
