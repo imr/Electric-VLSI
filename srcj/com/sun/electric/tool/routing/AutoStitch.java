@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.ObjectQTree;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -55,7 +54,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 
 import java.awt.geom.AffineTransform;
@@ -81,7 +79,6 @@ public class AutoStitch
 	/** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
 
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
-	/** sets of netlists that will be connected */					private Pairs intendedPairs;
 	/** list of pins that may be inline pins due to created arcs */	private HashSet<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private HashSet<NodeInst> nodeMark;
 
@@ -205,7 +202,6 @@ public class AutoStitch
 	private AutoStitch()
 	{
 		allRoutes = new ArrayList<Route>();
-		intendedPairs = new Pairs();
 		possibleInlinePins = new HashSet<NodeInst>();
 	}
 
@@ -308,6 +304,9 @@ public class AutoStitch
 		int soFar = 0;
 		if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects...");
 
+		// get the topology object for knowing what is connected
+		Topology top = new Topology(cell);
+
 		// now run through the nodeinsts to be checked for stitching
 		for(NodeInst ni : nodesToStitch)
 		{
@@ -316,13 +315,7 @@ public class AutoStitch
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 
 			if (cell.isAllLocked()) continue;
-			Netlist netlist = cell.acquireUserNetlist();
-			if (netlist == null)
-			{
-				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
-				break;
-			}
-			checkStitching(ni, nodeBounds, nodePortBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
+			checkStitching(ni, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
 		}
 
 		// now run through the arcinsts to be checked for stitching
@@ -337,14 +330,7 @@ public class AutoStitch
 
 			// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
 			if (!arcTooWide(ai)) continue;
-
-			Netlist netlist = cell.acquireUserNetlist();
-			if (netlist == null)
-			{
-				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
-				break;
-			}
-			checkStitching(ai, nodeBounds, nodePortBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
+			checkStitching(ai, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
 		}
 
 		// create the routes
@@ -585,13 +571,13 @@ public class AutoStitch
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param netlist network information for the Cell with these objects.
+	 * @param top network information for the Cell with these objects.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param preferredArc preferred ArcProto to use.
 	 */
 	private void checkStitching(Geometric geom, HashMap<NodeInst, Rectangle2D[]> nodeBounds,
 		HashMap<NodeInst, ObjectQTree> nodePortBounds, HashMap<ArcProto,Layer> arcLayers,
-		PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound, ArcProto preferredArc)
+		PolyMerge stayInside, Topology top, Rectangle2D limitBound, ArcProto preferredArc)
 	{
 		Cell cell = geom.getParent();
 		NodeInst ni = null;
@@ -622,12 +608,12 @@ public class AutoStitch
 					if (!arcTooWide(oAi)) continue;
 
 					// compare arc "geom" against arc "oAi"
-					compareTwoArcs((ArcInst)geom, oAi, stayInside, netlist, limitBound);
+					compareTwoArcs((ArcInst)geom, oAi, stayInside, top, limitBound);
 					continue;
 				} else
 				{
 					// compare node "ni" against arc "oAi"
-					compareNodeWithArc(ni, oAi, stayInside, netlist, limitBound);
+					compareNodeWithArc(ni, oAi, stayInside, top, limitBound);
 				}
 			} else
 			{
@@ -643,12 +629,12 @@ public class AutoStitch
 				if (ni == null)
 				{
 					// compare arc "geom" against node "oNi"
-					compareNodeWithArc(oNi, (ArcInst)geom, stayInside, netlist, limitBound);
+					compareNodeWithArc(oNi, (ArcInst)geom, stayInside, top, limitBound);
 					continue;
 				}
 
 				// compare node "ni" against node "oNi"
-				compareTwoNodes(ni, oNi, nodeBounds, nodePortBounds, arcLayers, stayInside, netlist, limitBound, preferredArc);
+				compareTwoNodes(ni, oNi, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
 			}
 		}
 	}
@@ -661,14 +647,14 @@ public class AutoStitch
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param netlist network information for the Cell with these nodes.
+	 * @param top network information for the Cell with these nodes.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param preferredArc preferred ArcProto to use.
 	 */
 	private void compareTwoNodes(NodeInst ni, NodeInst oNi,
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<NodeInst, ObjectQTree> nodePortBounds,
 		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside,
-		Netlist netlist, Rectangle2D limitBound, ArcProto preferredArc)
+		Topology top, Rectangle2D limitBound, ArcProto preferredArc)
 	{
 		// if both nodes are being checked, examine them only once
 		if (nodeMark.contains(oNi) && oNi.getNodeIndex() <= ni.getNodeIndex()) return;
@@ -776,7 +762,7 @@ public class AutoStitch
 									}
 
 									// pass it on to the next test
-									connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
+									connected = testPoly(ni, pp, ap, poly, oNi, top, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
 									if (connected) break;
 								}
 								if (connected) break;
@@ -800,20 +786,6 @@ public class AutoStitch
 						if (bounds.getMinX() > oBounds.getMaxX() || bounds.getMaxX() < oBounds.getMinX() ||
 							bounds.getMinY() > oBounds.getMaxY() || bounds.getMaxY() < oBounds.getMinY()) continue;
 					}
-
-					// stop now if already an arc on this port to other node
-					/*
-					boolean found = false;
-					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
-					{
-						Connection con = cIt.next();
-						PortInst pi = con.getPortInst();
-						if (pi.getPortProto() != pp) continue;
-						if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
-							con.getArc().getTailPortInst().getNodeInst() == oNi) { found = true;   break; }
-					}
-					if (found) continue;
-					*/
 
 					// find the primitive node at the bottom of this port
 					AffineTransform trans = ni.rotateOut();
@@ -900,7 +872,7 @@ public class AutoStitch
 								}
 
 								// pass it on to the next test
-								connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
+								connected = testPoly(ni, pp, ap, poly, oNi, top, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
 								if (connected) break;
 							}
 							if (connected) break;
@@ -969,7 +941,7 @@ public class AutoStitch
 					for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto tPp = pIt.next();
-						if (!netlist.portsConnected(ni, tPp, polyPtr.getPort())) continue;
+						if (!top.portsConnected(ni, tPp, polyPtr.getPort())) continue;
 
 						// compute best distance to the other node
 						Poly portPoly = ni.getShapeOfPort(tPp);
@@ -997,7 +969,7 @@ public class AutoStitch
 				{
 					Connection con = cIt.next();
 					PortInst pi = con.getPortInst();
-					if (!netlist.portsConnected(ni, rPp, pi.getPortProto())) continue;
+					if (!top.portsConnected(ni, rPp, pi.getPortProto())) continue;
 					if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
 						con.getArc().getTailPortInst().getNodeInst() == oNi) { found = true;   break; }
 				}
@@ -1031,7 +1003,7 @@ public class AutoStitch
 						}
 
 						// pass it on to the next test
-						connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
+						connected = testPoly(ni, rPp, ap, polyPtr, oNi, top, nodeBounds, nodePortBounds, arcLayers, stayInside, limitBound);
 						if (connected) break;
 					}
 					if (connected) break;
@@ -1046,15 +1018,15 @@ public class AutoStitch
 	 * @param ai1 the first ArcInst to compare.
 	 * @param ai2 the second ArcInst to compare.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param nl the Netlist information for the Cell with the arcs.
+	 * @param top the Netlist information for the Cell with the arcs.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 */
-	private void compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
+	private void compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Topology top, Rectangle2D limitBound)
 	{
 		// if connected, stop now
 		if (ai1.getProto() != ai2.getProto()) return;
-		Network net1 = nl.getNetwork(ai1, 0);
-		Network net2 = nl.getNetwork(ai2, 0);
+		Network net1 = top.getArcNetwork(ai1);
+		Network net2 = top.getArcNetwork(ai2);
 		if (net1 == net2) return;
 
 		// look at all polygons on the first arcinst
@@ -1089,7 +1061,7 @@ public class AutoStitch
 				double y = intersection.getCenterY();
 
 				// run the wire
-				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside, limitBound);
+				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside, limitBound, top);
 				return;
 			}
 		}
@@ -1100,13 +1072,13 @@ public class AutoStitch
 	 * @param ni the NodeInst to compare.
 	 * @param ai the ArcInst to compare.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param nl the Netlist information for the Cell with the node and arc.
+	 * @param top the Netlist information for the Cell with the node and arc.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 */
-	private void compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
+	private void compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Topology top, Rectangle2D limitBound)
 	{
 		if (ni.isCellInstance()) return;
-		Network arcNet = nl.getNetwork(ai, 0);
+		Network arcNet = top.getArcNetwork(ai);
 
 		// gather information about the node
 		Poly [] nodePolys = shapeOfNode(ni);
@@ -1148,7 +1120,7 @@ public class AutoStitch
 				for(Iterator<PortProto> pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto tPp = pIt.next();
-					if (!nl.portsConnected(ni, tPp, nodePoly.getPort())) continue;
+					if (!top.portsConnected(ni, tPp, nodePoly.getPort())) continue;
 
 					// compute best distance to the other node
 					Poly portPoly = ni.getShapeOfPort(tPp);
@@ -1166,7 +1138,7 @@ public class AutoStitch
 				Poly portPoly = ni.getShapeOfPort(bestPp);
 				double portCX = portPoly.getCenterX();
 				double portCY = portPoly.getCenterY();
-				Network nodeNet = nl.getNetwork(pi);
+				Network nodeNet = top.getPortNetwork(pi);
 				if (arcNet == nodeNet) continue;
 				Point2D bend1 = new Point2D.Double(portCX, aCY);
 				Point2D bend2 = new Point2D.Double(aCX, portCY);
@@ -1177,7 +1149,7 @@ public class AutoStitch
 				{
 					if (!arcPoly.contains(bend1)) bend1 = bend2;
 				}
-				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), bend1 /*new Point2D.Double(aCX, aCY)*/, stayInside, limitBound);
+				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), bend1, stayInside, limitBound, top);
 				return;
 			}
 		}
@@ -1193,15 +1165,12 @@ public class AutoStitch
 	 * @param ctr bend point suggestion when making "L" connection.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param top the topology of the cell.
 	 * @return true if a connection is made.
 	 */
 	private boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
-		Cell cell, Point2D ctr, PolyMerge stayInside, Rectangle2D limitBound)
+		Cell cell, Point2D ctr, PolyMerge stayInside, Rectangle2D limitBound, Topology top)
 	{
-		// make sure this pair of networks isn't already scheduled for connection
-		if (intendedPairs.contains(net1, net2)) return false;
-		intendedPairs.add(net1, net2);
-
 		// run the wire
 		NodeInst ni1 = null;
 		if (eobj1 instanceof NodeInst) ni1 = (NodeInst)eobj1; else
@@ -1218,6 +1187,7 @@ public class AutoStitch
 			return false;
 		}
 		allRoutes.add(route);
+		top.connect(net1, net2);
 
 		// if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
 		if (ni1 != null)
@@ -1246,7 +1216,7 @@ public class AutoStitch
 	 * @param ap the arcproto to use when connecting the nodes.
 	 * @param poly the polygon on the first node to test.
 	 * @param oNi the second node to test.
-	 * @param netlist network information for the cell with the nodes.
+	 * @param top network information for the cell with the nodes.
 	 * @param nodeBounds bounds information for all nodes in the Cell (when not using quad-trees).
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
 	 * @param arcLayers a map from ArcProtos to Layers.
@@ -1254,13 +1224,13 @@ public class AutoStitch
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return the number of connections made (0 if none).
 	 */
-	private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist,
+	private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Topology top,
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<NodeInst, ObjectQTree> nodePortBounds,
 		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside, Rectangle2D limitBound)
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
-		Network net = netlist.getNetwork(ni, pp, 0);
+		Network net = top.getNodeNetwork(ni, pp);
 
 		// now look at every layer in this node
 		if (oNi.isCellInstance())
@@ -1285,7 +1255,7 @@ public class AutoStitch
 						if (!mPp.getBasePort().connectsTo(ap)) continue;
 
 						// do not stitch where there is already an electrical connection
-						Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+						Network oNet = top.getPortNetwork(oNi.findPortInstFromProto(mPp));
 						if (net != null && oNet == net) continue;
 
 						// do not stitch if there is already an arc connecting these two ports
@@ -1322,7 +1292,7 @@ public class AutoStitch
 						{
 							// not a geometric primitive: look for ports that touch
 							Poly oPoly = oNi.getShapeOfPort(mPp);
-							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 								return true;
 						} else
 						{
@@ -1349,7 +1319,7 @@ public class AutoStitch
 
 								// transform the polygon and pass it on to the next test
 								oPoly.transform(trans);
-								if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+								if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 									return true;
 							}
 						}
@@ -1376,7 +1346,7 @@ public class AutoStitch
 					if (!mPp.getBasePort().connectsTo(ap)) continue;
 	
 					// do not stitch where there is already an electrical connection
-					Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+					Network oNet = top.getPortNetwork(oNi.findPortInstFromProto(mPp));
 					if (net != null && oNet == net) continue;
 	
 					// do not stitch if there is already an arc connecting these two ports
@@ -1414,7 +1384,7 @@ public class AutoStitch
 					{
 						// not a geometric primitive: look for ports that touch
 						Poly oPoly = oNi.getShapeOfPort(mPp);
-						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 							return true;
 					} else
 					{
@@ -1441,7 +1411,7 @@ public class AutoStitch
 	
 							// transform the polygon and pass it on to the next test
 							oPoly.transform(trans);
-							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 								return true;
 						}
 					}
@@ -1482,7 +1452,7 @@ public class AutoStitch
 				if (bestPp != null)
 				{
 					PortProto rPp = bestPp;
-					Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(bestPp));
+					Network oNet = top.getPortNetwork(oNi.findPortInstFromProto(bestPp));
 					if (net == null || oNet != net)
 					{
 						// port must be able to connect to the arc
@@ -1490,7 +1460,7 @@ public class AutoStitch
 						{
 							// transformed the polygon and pass it on to the next test
 							Poly oPoly = oNi.getShapeOfPort(rPp);
-							if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+							if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 								return true;
 						}
 					}
@@ -1515,7 +1485,7 @@ public class AutoStitch
 
 					// do not stitch where there is already an electrical connection
 					PortInst oPi = oNi.findPortInstFromProto(oPoly.getPort());
-					Network oNet = netlist.getNetwork(oPi);
+					Network oNet = top.getPortNetwork(oPi);
 					if (net != null && oNet == net) continue;
 
 					// search all ports for the closest connected to this layer
@@ -1524,7 +1494,7 @@ public class AutoStitch
 					for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto rPp = pIt.next();
-						if (!netlist.portsConnected(oNi, rPp, oPoly.getPort())) continue;
+						if (!top.portsConnected(oNi, rPp, oPoly.getPort())) continue;
 
 						// compute best distance to the other node
 						Poly portPoly = oNi.getShapeOfPort(rPp);
@@ -1541,7 +1511,7 @@ public class AutoStitch
 
 					// transformed the polygon and pass it on to the next test
 					oPoly.transform(trans);
-					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, netlist, limitBound))
+					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
 						return true;
 				}
 			}
@@ -1562,13 +1532,13 @@ public class AutoStitch
 	 * @param net the Network responsible for the second polygon.
 	 * @param ap the type of arc to use when stitching the nodes.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param netlist the netlist for the Cell with the polygons.
+	 * @param top the netlist for the Cell with the polygons.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return true if the connection is made.
 	 */
 	private boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, Network oNet,
 		NodeInst ni, PortProto pp, Poly poly, Network net,
-		ArcProto ap, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
+		ArcProto ap, PolyMerge stayInside, Topology top, Rectangle2D limitBound)
 	{
 		// find the bounding boxes of the polygons
 		if (poly.separation(oPoly) >= DBMath.getEpsilon()) return false;
@@ -1597,7 +1567,7 @@ public class AutoStitch
 		{
 			PortProto tPp = it.next();
 			if (tPp == opp) continue;
-			if (!netlist.portsConnected(oNi, tPp, opp)) continue;
+			if (!top.portsConnected(oNi, tPp, opp)) continue;
 			portPoly = oNi.getShapeOfPort(tPp);
 			Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 			double tDist = portCenter.distance(tPortCenter);
@@ -1610,7 +1580,7 @@ public class AutoStitch
 		{
 			PortProto tPp = it.next();
 			if (tPp == pp) continue;
-			if (!netlist.portsConnected(ni, tPp, pp)) continue;
+			if (!top.portsConnected(ni, tPp, pp)) continue;
 			portPoly = ni.getShapeOfPort(tPp);
 			Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 			double tDist = oPortCenter.distance(tPortCenter);
@@ -1634,7 +1604,7 @@ public class AutoStitch
 		// run the wire
 		PortInst pi = ni.findPortInstFromProto(pp);
 		PortInst opi = oNi.findPortInstFromProto(opp);
-		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, limitBound);
+		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, limitBound, top);
 	}
 
 	/**
@@ -1744,44 +1714,117 @@ public class AutoStitch
 	}
 
 	/**
-	 * Class to implement pairs of objects (in any order).
+	 * Class to handle complex topology in the cell.
+	 * Accounts for existing as well as planned connections.
 	 */
-	private static class Pairs
+	private static class Topology
 	{
-		private HashMap<Object,HashSet<Object>> first;
+		private Netlist netlist;
+		private Map<Network,Network> connected;
 
-		Pairs()
+		Topology(Cell cell)
 		{
-			first = new HashMap<Object,HashSet<Object>>();
+			netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
+			}
+			connected = new HashMap<Network,Network>();
 		}
 
-		void add(Object o1, Object o2)
+		/**
+		 * Method to return the Network associated with a given node/port combination.
+		 * @param ni the NodeInst in question.
+		 * @param pp the PortProto on the NodeInst in question.
+		 * @return the Network associated with that node/port.
+		 */
+		Network getNodeNetwork(NodeInst ni, PortProto pp)
 		{
-			if (contains(o1, o2)) return;
-			HashSet<Object> other1 = first.get(o1);
-			if (other1 != null)
-			{
-				other1.add(o2);
-				return;
-			}
-			HashSet<Object> other2 = first.get(o2);
-			if (other2 != null)
-			{
-				other2.add(o1);
-				return;
-			}
-			other1 = new HashSet<Object>();
-			first.put(o1, other1);
-			other1.add(o2);			
+			Network net = netlist.getNetwork(ni, pp, 0);
+			return getRealNet(net);
 		}
 
-		boolean contains(Object o1, Object o2)
+		/**
+		 * Method to return the Network associated with a given PortInst.
+		 * @param pi the PortInst in question.
+		 * @return the Network associated with that PortInst.
+		 */
+		Network getPortNetwork(PortInst pi)
 		{
-			HashSet other1 = first.get(o1);
-			if (other1 != null && other1.contains(o2)) return true;
-			HashSet other2 = first.get(o2);
-			if (other2 != null && other2.contains(o1)) return true;
-			return false;
+			Network net = netlist.getNetwork(pi);
+			return getRealNet(net);
+		}
+
+		/**
+		 * Method to return the Network associated with a given ArcInst.
+		 * @param ai the ArcInst in question.
+		 * @return the Network associated with that ArcInst.
+		 */
+		Network getArcNetwork(ArcInst ai)
+		{
+			Network net = netlist.getNetwork(ai, 0);
+			return getRealNet(net);
+		}
+
+		/**
+		 * Method to tell whether two ports on a node are connected.
+		 * @param ni the NodeInst in question.
+		 * @param pp1 the first PortProto on that NodeInst.
+		 * @param pp2 the first PortProto on that NodeInst.
+		 * @return true if the ports are connected.
+		 */
+		boolean portsConnected(NodeInst ni, PortProto pp1, PortProto pp2)
+		{
+			return netlist.portsConnected(ni, pp1, pp2);
+		}
+
+		/**
+		 * Method to convert a Network to the actual one, once intended connections are made.
+		 * @param net the original Network.
+		 * @return the actual Network, for comparison purposes.
+		 */
+		private Network getRealNet(Network net)
+		{
+			for(;;)
+			{
+				Network nextNet = connected.get(net);
+				if (nextNet == null) return net;
+				net = nextNet;
+			}
+		}
+
+		/**
+		 * Method to plan for the connection of two Networks.
+		 * @param net1 the first Network that will be connected.
+		 * @param net2 the second Network that will be connected.
+		 */
+		void connect(Network net1, Network net2)
+		{
+			Network conNet1 = connected.get(net1);
+			Network conNet2 = connected.get(net2);
+
+			// if both nets are unknown, link one to the other
+			if (conNet1 == null && conNet2 == null)
+			{
+				connected.put(net1, net2);
+				return;
+			}
+
+			// if one net is unknown, link it to the known network
+			if (conNet1 == null)
+			{
+				connected.put(net1, conNet2);
+				return;				
+			}
+			if (conNet2 == null)
+			{
+				connected.put(net2, conNet1);
+				return;				
+			}
+
+			// if both nets are known, link them
+			connected.put(net2, conNet1);
 		}
 	}
+
 }
