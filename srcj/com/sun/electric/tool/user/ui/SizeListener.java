@@ -57,6 +57,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.List;
 
@@ -473,6 +474,7 @@ public class SizeListener
 		Poly nodePoly = new Poly((nodeLowX+nodeHighX)/2, (nodeLowY+nodeHighY)/2, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 		AffineTransform trans = ni.rotateOutAboutTrueCenter();
 		nodePoly.transform(trans);
+
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
 		Point2D closest = null;
@@ -647,13 +649,15 @@ public class SizeListener
 				double percY = newHeight / stretchNode.getYSize();
 				AffineTransform trans = stretchNode.pureRotateOut();
 				Point2D [] newPoints = new Point2D[points.length];
-				Point2D newPoint = new Point2D.Double(0, 0);
 				for(int i=0; i<points.length; i++)
 				{
-					trans.transform(points[i], newPoint);
-					newPoints[i] = new Point2D.Double(newPoint.getX()*percX, newPoint.getY()*percY);
+					Point2D newPoint = new Point2D.Double(points[i].getX() * percX, points[i].getY() * percY);
+					trans.transform(newPoint, newPoint);
+					newPoint.setLocation(newPoint.getX() + newCenter.getX(), newPoint.getY() + newCenter.getY());
+					newPoints[i] = newPoint;
 				}
 				stretchNode.setTrace(newPoints);
+				return true;
 			}
             double dWid = newWidth - stretchNode.getXSize();
             double dHei = newHeight - stretchNode.getYSize();
