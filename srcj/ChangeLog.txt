@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (5/3/07, SMR) No longer shows blue "prehighlight" when in area-selection mode.
+
 BUG: (5/3/07, SMR) Interactively sizing a rotated polygonally-defined node fails.
 FIX: In SizeListener.ScaleNode.doIt(), calculate new points correctly.
 

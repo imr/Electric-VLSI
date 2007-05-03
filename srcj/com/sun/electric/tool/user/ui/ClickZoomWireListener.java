@@ -895,6 +895,7 @@ public class ClickZoomWireListener
      */
     private void mouseOver(Point2D dbMouse, EditWindow wnd) {
         if (!User.isMouseOverHighlightingEnabled()) return;
+        if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA) return;
 
         Highlighter highlighter = wnd.getHighlighter();
         Highlighter mouseOverHighlighter = wnd.getMouseOverHighlighter();
