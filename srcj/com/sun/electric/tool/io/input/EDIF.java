@@ -282,6 +282,7 @@ public class EDIF extends Input
 
     /** Edif equivs for primitives */           private EDIFEquiv equivs;
     /** List of ports in net -> joined list */  private List<PortInst> netPortRefs;  // list of PortInst objects
+    /** mapping of renamed ports */				private Map<String,String> renamedPorts;
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -401,6 +402,7 @@ public class EDIF extends Input
 
         equivs = new EDIFEquiv();
         netPortRefs = new ArrayList<PortInst>();
+        renamedPorts = new HashMap<String,String>();
 
 		// parse the file
 		try
@@ -906,6 +908,17 @@ public class EDIF extends Input
 		}
 	}
 
+	private Export makeExport(Cell cell, PortInst pi, String name)
+	{
+		Export ppt = Export.newInstance(cell, pi, convertParens(name));
+		return ppt;
+	}
+
+	private String convertParens(String name)
+	{
+		return name.replace('(', '[').replace(')', ']');
+	}
+
 	/**
 	 * Method to determine the intersection of two lines
 	 * Inputs: Ax + By + C = 0 form
@@ -1005,7 +1018,7 @@ public class EDIF extends Input
 					else aName.append(netName + "[" + iY + "]");
 				}
 			}
-			ai.setName(aName.toString());
+			ai.setName(convertParens(aName.toString()));
 		} else
 		{
 			if (netReference.length() > 0)
@@ -1015,7 +1028,7 @@ public class EDIF extends Input
 			if (netName.length() > 0)
 			{
 				// set name of arc but don't display name
-				ai.setName(netName);
+				ai.setName(convertParens(netName));
 			}
 		}
 	}
@@ -1310,6 +1323,8 @@ public class EDIF extends Input
 
 	private EDIFKEY KBOOLEAN = new EDIFKEY ("boolean");
 
+	private EDIFKEY KBORDERPATTERN = new EDIFKEY ("borderpattern");
+
 	private EDIFKEY KBOUNDINGBOX = new KeyBoundingBox();
 	private class KeyBoundingBox extends EDIFKEY
 	{
@@ -1364,7 +1379,7 @@ public class EDIF extends Input
 			String view = "lay";
 			if (activeView != VMASKLAYOUT)
 			{
-				if (keyStack[keyStackDepth - 1] == KDESIGN) view = "p1"; else
+				if (keyStack[keyStackDepth - 1] == KDESIGN) view = "sch"; else
 					view = "ic";
 			}
 			if (curVendor == EVVIEWLOGIC && aName.equalsIgnoreCase("SPLITTER"))
@@ -1608,7 +1623,7 @@ public class EDIF extends Input
 						pName = ePort.name + "_" + (dup+1);
 					}
 					PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-					Export ppt = Export.newInstance(curCell, pi, pName);
+					Export ppt = makeExport(curCell, pi, pName);
 					if (ppt == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
@@ -1920,13 +1935,13 @@ public class EDIF extends Input
 								 */
 								if (instanceReference.equalsIgnoreCase(instanceName))
 								{
-									ni.setName(nodeName);
+									ni.setName(convertParens(nodeName));
 								} else
 								{
 									// now add the original name as the displayed name (only to the first element)
 									if (iX == 0 && iY == 0)
 									{
-										ni.setName(instanceName);
+										ni.setName(convertParens(instanceName));
 									}
 
 									// now save the EDIF name (not displayed)
@@ -2568,11 +2583,11 @@ public class EDIF extends Input
 							} else if (curGeometryType == GNET && i == 0)
 							{
 								if (netReference.length() > 0) ai.newVar("EDIF_name", netReference);
-								if (netName.length() > 0) ai.setName(netName);
+								if (netName.length() > 0) ai.setName(convertParens(netName));
 							} else if (curGeometryType == GBUS && i == 0)
 							{
 								if (bundleReference.length() > 0) ai.newVar("EDIF_name", bundleReference);
-								if (bundleName.length() > 0) ai.setName(bundleName);
+								if (bundleName.length() > 0) ai.setName(convertParens(bundleName));
 							}
 						}
 						if (ai != null) curArc = ai;
@@ -2711,7 +2726,7 @@ public class EDIF extends Input
 
 			// now create the port
 			PortInst pi = ni.findPortInstFromProto(fPp);
-			Export ppt = Export.newInstance(curCell, pi, portsListHead.name);
+			Export ppt = makeExport(curCell, pi, portsListHead.name);
 			if (ppt == null)
 			{
 				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portsListHead.name + ">");
@@ -2740,7 +2755,7 @@ public class EDIF extends Input
 		{
 			// set the current geometry type
 			freePointList();
-			cellRefProto = Schematics.tech.wirePinNode;
+			cellRefProto = Schematics.tech.busPinNode;
 			curGeometryType = GPIN;
 			curOrientation = OR0;
 			isArray = false;
@@ -2840,9 +2855,21 @@ public class EDIF extends Input
 					pp = ni.getProto().findPortProto(portReference);
 					if (pp == null)
 					{
-						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port (" +
-							portReference + ") on node (" + nodeName + ")");
-						return;
+						String alternateName = renamedPorts.get(portReference);
+						if (alternateName != null)
+						{
+							alternateName = convertParens(alternateName);
+							pp = ni.getProto().findPortProto(alternateName);
+						}
+						if (pp == null)
+						{
+							String errorMsg = "error, line " + lineReader.getLineNumber() +
+								": could not locate port (" + portReference;
+							if (alternateName != null) errorMsg += ") or (" + alternateName;
+							errorMsg += ") on node (" + nodeName + ")";
+							System.out.println(errorMsg);
+							return;
+						}
 					}
 
 					// we have both, set global variable
@@ -3216,7 +3243,7 @@ public class EDIF extends Input
 					if (ppt == null)
 					{
 						PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-						ppt = Export.newInstance(curCell, pi, objectName);
+						ppt = makeExport(curCell, pi, objectName);
 					}
 					if (ppt == null)
 					{
@@ -3282,6 +3309,7 @@ public class EDIF extends Input
 			{
 				propertyReference = objectName;
 			}
+			renamedPorts.put(objectName, originalName);
 		}
 	}
 
@@ -3647,7 +3675,7 @@ public class EDIF extends Input
 							iX = arrayXVal;
 							iY = arrayYVal;
 							PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-							Export ppt = Export.newInstance(curCell, pi, pName);
+							Export ppt = makeExport(curCell, pi, pName);
 							if (ppt == null)
 							{
 								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
@@ -3701,12 +3729,12 @@ public class EDIF extends Input
 								Variable.Key varKey;
 								if (instanceReference.equalsIgnoreCase(instanceName))
 								{
-									ni.setName(nodeName);
+									ni.setName(convertParens(nodeName));
 									varKey = NodeInst.NODE_NAME;
 								} else
 								{
 									// now add the original name as the displayed name (only to the first element)
-									if (iX == 0 && iY == 0) ni.setName(instanceName);
+									if (iX == 0 && iY == 0) ni.setName(convertParens(instanceName));
 
 									// now save the EDIF name (not displayed)
 									Variable var = ni.newVar("EDIF_name", nodeName);

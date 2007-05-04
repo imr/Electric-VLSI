@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05k: *********************************
 
+IMP: (5/4/07, SMR) Improved EDIF reading of unusual schematics.
+
 IMP: (5/4/07, DN) Xml description for technologies: bicmos, bipolar, cmos, mocmosold, mocmossub, nmos .
 
 IMP: (5/3/07, GVG) Assigning sink-cap parasitics to missing driver nodes. Added
