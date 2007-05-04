@@ -40,7 +40,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
@@ -123,7 +125,6 @@ public class Xml {
         public double resistance;
         public double capacitance;
         public double edgeCapacitance;
-        public String pseudoLayer;
         public PureLayerNode pureLayerNode;
     }
     
@@ -196,6 +197,7 @@ public class Xml {
         public int representation;
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
+        public double lWidth, rWidth, tExtent, bExtent;
     }
     
     public static class PrimitivePort {
@@ -223,6 +225,7 @@ public class Xml {
     
     public static class Foundry {
         public String name;
+        public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
         public final List<LayersRule> layerRules = new ArrayList<LayersRule>();
     }
     
@@ -261,7 +264,6 @@ public class Xml {
         display3D,
         cifLayer,
         parasitics,
-        pseudoLayer(true),
         pureLayerNode,
         
         arcProto,
@@ -302,6 +304,7 @@ public class Xml {
         box,
         minbox,
         multicutbox,
+        serpbox,
         points,
         techPoint,
         primitivePort,
@@ -322,6 +325,7 @@ public class Xml {
         menuText(true),
         lambda(true),
         Foundry,
+        layerGds,
         LayersRule;
         
         private final boolean hasText;
@@ -348,18 +352,16 @@ public class Xml {
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         // create the parser
         try {
+            long startTime = System.currentTimeMillis();
             SAXParser parser = factory.newSAXParser();
             URLConnection urlCon = fileURL.openConnection();
             InputStream inputStream = urlCon.getInputStream();
             
-            System.out.println("Parsing XML file \"" + fileURL + "\"");
-            
             XMLReader handler = new XMLReader();
-//            System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
             parser.parse(inputStream, handler);
-//            System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
-            System.out.println("End Parsing XML file ...");
-            return handler.tech;
+            long stopTime = System.currentTimeMillis();
+            System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
+            return ((XMLReader)handler).tech;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -368,6 +370,9 @@ public class Xml {
     }
     
     private static class XMLReader extends DefaultHandler {
+        private static boolean DEBUG = false;
+        private Locator locator;
+        
         private Xml.Technology tech = new Xml.Technology();
         private int curTransparent = 0;
         private int curR;
@@ -508,7 +513,11 @@ public class Xml {
          * @see org.xml.sax.Locator
          */
         public void setDocumentLocator(Locator locator) {
-            System.out.println("setDocumentLocator publicId=" + locator.getPublicId() + " systemId=" + locator.getSystemId() +
+            this.locator = locator;
+        }
+        
+        private void printLocator() {
+            System.out.println("publicId=" + locator.getPublicId() + " systemId=" + locator.getSystemId() +
                     " line=" + locator.getLineNumber() + " column=" + locator.getColumnNumber());
         }
         
@@ -527,7 +536,9 @@ public class Xml {
          */
         public void startDocument()
         throws SAXException {
-            System.out.println("startDocumnet");
+            if (DEBUG) {
+                System.out.println("startDocumnet");
+            }
         }
         
         
@@ -545,7 +556,9 @@ public class Xml {
          */
         public void endDocument()
         throws SAXException {
-            System.out.println("endDocumnet");
+            if (DEBUG) {
+                System.out.println("endDocumnet");
+            }
         }
         
         
@@ -564,7 +577,9 @@ public class Xml {
          */
         public void startPrefixMapping(String prefix, String uri)
         throws SAXException {
-            System.out.println("startPrefixMapping prefix=" + prefix + " uri=" + uri);;
+            if (DEBUG) {
+                System.out.println("startPrefixMapping prefix=" + prefix + " uri=" + uri);
+            }
         }
         
         
@@ -582,7 +597,9 @@ public class Xml {
          */
         public void endPrefixMapping(String prefix)
         throws SAXException {
-            System.out.println("endPrefixMapping prefix=" + prefix);
+            if (DEBUG) {
+                System.out.println("endPrefixMapping prefix=" + prefix);
+            }
         }
         
         
@@ -619,7 +636,7 @@ public class Xml {
             switch (key) {
                 case technology:
                     tech.techName = a("name");
-                    dump = true;
+//                    dump = true;
                     break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));
@@ -825,6 +842,13 @@ public class Xml {
                     curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
                     curNodeLayer.sep2d = Double.parseDouble(a("sep2d"));
                     break;
+                case serpbox:
+                    curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
+                    curNodeLayer.lWidth = Double.parseDouble(a("lWidth"));
+                    curNodeLayer.rWidth = Double.parseDouble(a("rWidth"));
+                    curNodeLayer.tExtent = Double.parseDouble(a("tExtent"));
+                    curNodeLayer.bExtent = Double.parseDouble(a("bExtent"));
+                    break;
                 case techPoint:
                     double xm = Double.parseDouble(a("xm"));
                     double xa = Double.parseDouble(a("xa"));
@@ -882,6 +906,9 @@ public class Xml {
                     curFoundry = new Foundry();
                     curFoundry.name = a("name");
                     tech.foundries.add(curFoundry);
+                    break;
+                case layerGds:
+                    curFoundry.layerGds.put(a("layer"), a("gds"));
                     break;
                 case LayersRule:
                     LayersRule layersRule = new LayersRule();
@@ -989,9 +1016,6 @@ public class Xml {
                         break;
                     case foreground:
                         foreground = Boolean.parseBoolean(text);
-                        break;
-                    case pseudoLayer:
-                        curLayer.pseudoLayer = text;
                         break;
                     case widthOffset:
                         curArc.widthOffset = Double.parseDouble(text);
@@ -1115,6 +1139,7 @@ public class Xml {
                 case minbox:
                 case points:
                 case multicutbox:
+                case serpbox:
                 case techPoint:
                 case portAngle:
                 case polygonal:
@@ -1124,6 +1149,7 @@ public class Xml {
                 case menuPalette:
                 case menuBox:
                 case Foundry:
+                case layerGds:
                 case LayersRule:
                     break;
                 default:
@@ -1252,7 +1278,8 @@ public class Xml {
          */
         public void warning(SAXParseException e)
         throws SAXException {
-            int x = 0;
+            System.out.println("warning publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
+                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
         }
         
         
@@ -1458,7 +1485,6 @@ public class Xml {
             if (li.resistance != 0 || li.capacitance != 0 || li.edgeCapacitance != 0) {
                 b(XmlKeyword.parasitics); a("resistance", li.resistance); a("capacitance", li.capacitance); a("edgeCapacitance", li.edgeCapacitance); el();
             }
-            bcpel(XmlKeyword.pseudoLayer, li.pseudoLayer);
             if (li.pureLayerNode != null) {
                 String nodeName = li.pureLayerNode.name;
                 Poly.Type style = li.pureLayerNode.style;
@@ -1570,7 +1596,11 @@ public class Xml {
                 cl();
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
-                        b(XmlKeyword.box); el();
+                        if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
+                            b(XmlKeyword.serpbox); a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); el();
+                        } else {
+                            b(XmlKeyword.box); el();
+                        }
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MINBOX:
                         b(XmlKeyword.minbox); el();
@@ -1670,6 +1700,9 @@ public class Xml {
         
         private void writeFoundryXml(Xml.Foundry foundry) {
             b(XmlKeyword.Foundry); a("name", foundry.name); cl();
+            for (Map.Entry<String,String> e: foundry.layerGds.entrySet()) {
+                b(XmlKeyword.layerGds); a("layer", e.getKey()); a("gds", e.getValue()); el();
+            }
             for (Xml.LayersRule r: foundry.layerRules) {
                 b(XmlKeyword.LayersRule); a("ruleName", r.ruleName); a("layerNames", r.layerNames); a("type", r.type); a("when", r.when); a("value", r.value); el();
             }

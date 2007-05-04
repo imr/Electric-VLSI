@@ -51,7 +51,6 @@ import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -409,7 +408,7 @@ public class Technology implements Comparable<Technology>
          */
         public NodeLayer(NodeLayer node)
         {
-            this.layer = node.getLayer();
+            this.layer = node.getLayerOrPseudoLayer();
 			this.portNum = node.getPortNum();
 			this.style = node.getStyle();
 			this.representation = node.getRepresentation();
@@ -434,7 +433,19 @@ public class Technology implements Comparable<Technology>
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 */
-		public Layer getLayer() { return layer; }
+		public Layer getLayer() { return Layer.PSEUDO_HIDDEN ? layer.getNonPseudoLayer() : layer; }
+
+		/**
+		 * Tells whether this NodeLayer is associated with pseudo-layer.
+		 * @return true if this NodeLayer is associated with pseudo-layer.
+		 */
+		public boolean isPseudoLayer() { return layer.isPseudoLayer(); }
+
+		/**
+		 * Returns the <CODE>Layer</CODE> or pseudo-layer object associated with this NodeLayer.
+		 * @return the <CODE>Layer</CODE> or pseudo-layer object associated with this NodeLayer.
+		 */
+		public Layer getLayerOrPseudoLayer() { return layer; }
 
 		/**
 		 * Returns the 0-based index of the port associated with this NodeLayer.
@@ -722,16 +733,6 @@ public class Technology implements Comparable<Technology>
             layer.setFactory3DInfo(l.thick3D, l.height3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
-        for (Xml.Layer l: t.layers) {
-            if (l.pseudoLayer == null) continue;
-            Layer owner = layers.get(l.name);
-            Layer layer = owner.makePseudo();
-            layers.put(l.pseudoLayer, layer);
-//            if (l.cif != null)
-//                layer.setFactoryCIFLayer(l.cif);
-//            layer.setFactory3DInfo(l.thick3D, l.height3D);
-//            layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
-        }
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
         for (Xml.ArcProto a: t.arcs) {
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
@@ -757,6 +758,7 @@ public class Technology implements Comparable<Technology>
             ap.setFactoryAngleIncrement(a.angleIncrement);
             ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
         }
+        setNoNegatedArcs();
         for (Xml.PrimitiveNode n: t.nodes) {
             boolean needElectricalLayers = false;
             ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
@@ -765,10 +767,18 @@ public class Technology implements Comparable<Technology>
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
                 TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
                 NodeLayer nodeLayer;
+                Layer layer = layers.get(nl.layer);
+                if (n.shrinkArcs) {
+                    if (layer.getPseudoLayer() == null)
+                        layer.makePseudo();
+                    layer = layer.getPseudoLayer();
+                }
                 if (nl.representation == NodeLayer.MULTICUTBOX)
-                    nodeLayer = NodeLayer.makeMulticut(layers.get(nl.layer), nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
+                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
+                else if (n.specialType == PrimitiveNode.SERPTRANS)
+                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
                 else
-                    nodeLayer = new NodeLayer(layers.get(nl.layer), nl.portNum, nl.style, nl.representation, techPoints);
+                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints);
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     needElectricalLayers = true;
                 if (nl.inLayers)
@@ -891,6 +901,13 @@ public class Technology implements Comparable<Technology>
             }
         }
         for (Xml.Foundry f: t.foundries) {
+            ArrayList<String> gdsLayers = new ArrayList<String>();
+            for (Layer layer: this.layers) {
+                String gds = f.layerGds.get(layer.getName());
+                if (gds == null) continue;
+                gdsLayers.add(layer.getName() + " " + gds);
+            }
+            ArrayList<DRCTemplate> rules = new ArrayList<DRCTemplate>();
             if (!f.layerRules.isEmpty()) {
                 int layerTotal = this.layers.size();
                 int rulesSize = layerTotal*(layerTotal + 1)/2;
@@ -909,13 +926,14 @@ public class Technology implements Comparable<Technology>
                     if (l1 == null || l2 == null) continue;
                     int i1 = l1.getIndex();
                     int i2 = l2.getIndex();
-                    int ruleIndex = MOSRules.getRuleIndex(i1, i2, layerTotal);
                     if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
-                        conDist[ruleIndex] = r.value;
-                    else
-                        unConDist[ruleIndex] = r.value;
+                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.CONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
+                    else if (r.type.equals(DRCTemplate.DRCRuleType.UCONSPA.name()))
+                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.UCONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
                 }
             }
+            Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), rules, gdsLayers.toArray(new String[gdsLayers.size()]));
+            foundries.add(foundry);
         }
         setup();
     }
@@ -975,18 +993,15 @@ public class Technology implements Comparable<Technology>
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
         
-        lazyTechnologies.put("bicmos",    "com.sun.electric.technology.technologies.BiCMOS");
-        lazyTechnologies.put("bipolar",   "com.sun.electric.technology.technologies.Bipolar");
-        lazyTechnologies.put("cmos",      "com.sun.electric.technology.technologies.CMOS");
+        new Technology(Technology.class.getResource("technologies/bicmos.xml"), true);
+        new Technology(Technology.class.getResource("technologies/bipolar.xml"), true);
+        new Technology(Technology.class.getResource("technologies/cmos.xml"), true);
+        new Technology(Technology.class.getResource("technologies/mocmosold.xml"), true);
+        new Technology(Technology.class.getResource("technologies/mocmossub.xml"), true);
+        new Technology(Technology.class.getResource("technologies/nmos.xml"), true);
+        
         lazyTechnologies.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
         lazyTechnologies.put("gem",       "com.sun.electric.technology.technologies.GEM");
-        lazyTechnologies.put("mocmosold", "com.sun.electric.technology.technologies.MoCMOSOld");
-        lazyTechnologies.put("mocmossub", "com.sun.electric.technology.technologies.MoCMOSSub");
-        if (false) {
-            new Technology(TextUtils.makeURLToFile("com/sun/electric/technology/technologies/nmos.xml"), true);
-        } else {
-            lazyTechnologies.put("nmos",      "com.sun.electric.technology.technologies.nMOS");
-        }
         lazyTechnologies.put("pcb",       "com.sun.electric.technology.technologies.PCB");
         lazyTechnologies.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
         
@@ -1360,6 +1375,33 @@ public class Technology implements Comparable<Technology>
                         printMenuEntry(out, entry);
                     }
                     out.println();
+                }
+            }
+        }
+        
+        DRCRules drcRules = getFactoryDesignRules();
+        if (drcRules != null) {
+    		int layerTotal = getNumLayers();
+            for (int i1 = 0; i1 < layerTotal; i1++) {
+                for (int i2 = i1; i2 < layerTotal; i2++) {
+                    for (DRCTemplate dt: drcRules.getSpacingRules(drcRules.getRuleIndex(i1, i2), DRCTemplate.DRCRuleType.SPACING, false)) {
+                        Xml.LayersRule r = null;
+                        if (dt.ruleType == DRCTemplate.DRCRuleType.CONSPA) {
+                            r = new Xml.LayersRule();
+                            r.ruleName = "C" + "_" + i1 + "_" + i2;
+                            r.type = "CONSPA";
+                        } else if (dt.ruleType == DRCTemplate.DRCRuleType.UCONSPA) {
+                            r = new Xml.LayersRule();
+                            r.ruleName = "U" + "_" + i1 + "_" + i2;
+                            r.type = "UCONSPA";
+                        }
+                        if (r != null) {
+                            r.layerNames = "{" + getLayer(i1).getName() + ", " + getLayer(i2).getName() + "}";
+                            r.when = "ALL";
+                            r.value = dt.getValue(0);
+                            out.println("LayersRule " + r.ruleName + " " + r.layerNames + " " + r.type + " " + r.when + " " + r.value);
+                        }
+                    }
                 }
             }
         }
@@ -2422,7 +2464,7 @@ public class Technology implements Comparable<Technology>
 			}
 			polys[fillPoly].setStyle(style);
 			if (layerOverride != null) polys[fillPoly].setLayer(layerOverride); else
-				polys[fillPoly].setLayer(primLayer.getLayer());
+				polys[fillPoly].setLayer(primLayer.getLayerOrPseudoLayer());
 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
@@ -4014,10 +4056,22 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
      */
-	public DRCRules getFactoryDesignRules()
-	{
-		return MOSRules.makeSimpleRules(this, conDist, unConDist);
-	}
+    public XMLRules getFactoryDesignRules() {
+        XMLRules rules = new XMLRules(this);
+
+        Foundry foundry = getSelectedFoundry();
+        List<DRCTemplate> rulesList = foundry.getRules();
+
+        // load the DRC tables from the explanation table
+        if (rulesList != null) {
+            for(DRCTemplate theRule : rulesList)
+                rules.loadDRCRules(this, foundry, theRule);
+        }
+        
+        if (xmlTech != null)
+            resizeXml(rules);
+        return rules;
+    }
 
 	/**
 	 * Method to compare a Rules set with the "factory" set and construct an override string.

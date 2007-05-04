@@ -408,7 +408,6 @@
                                     <xsd:attribute name="edgeCapacitance" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="pseudoLayer" type="tns:LayerName" minOccurs="0"></xsd:element>
                             <xsd:element name="pureLayerNode" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:sequence>
@@ -520,6 +519,14 @@
                                                     <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
                                                 </xsd:complexType>
                                             </xsd:element>
+                                            <xsd:element name="serpbox">
+                                                <xsd:complexType>
+                                                    <xsd:attribute name="lWidth" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="rWidth" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="tExtent" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="bExtent" type="xsd:double" use="required"/>
+                                                </xsd:complexType>
+                                            </xsd:element>
                                         </xsd:choice>
                                         <xsd:element name="techPoint" minOccurs="2" maxOccurs="unbounded" type="tns:TechPoint"></xsd:element>
                                     </xsd:sequence>
@@ -596,6 +603,13 @@
                 <xsd:element name="Foundry">
                     <xsd:complexType>
                         <xsd:sequence>
+                            <xsd:element name="layerGds" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:sequence/>
+                                    <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
+                                    <xsd:attribute name="gds" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
                             <xsd:element name="LayersRule" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:attribute name="ruleName" type="xsd:string" use="required"/>

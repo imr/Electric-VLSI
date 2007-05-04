@@ -1558,7 +1558,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers) {
         for (Technology.NodeLayer nl: layers) {
-            out.println("\tlayer=" + nl.getLayer().getName() + " port=" + nl.getPortNum() + " style=" + nl.getStyle().name() + " repr=" + nl.getRepresentation());
+            out.println("\tlayer=" + nl.getLayerOrPseudoLayer().getName() + " port=" + nl.getPortNum() + " style=" + nl.getStyle().name() + " repr=" + nl.getRepresentation());
             if (nl.getMessage() != null) {
                 TextDescriptor td = nl.getDescriptor();
                 out.println("\t\tmessage=\"" + nl.getMessage() + "\" td=" + Long.toHexString(td.lowLevelGet()) + " colorIndex=" + td.getColorIndex() + " disp=" + td.isDisplay());

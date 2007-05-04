@@ -3524,8 +3524,8 @@ public class LibToTech
             layer.resistance = li.spiRes;
             layer.capacitance = li.spiCap;
             layer.edgeCapacitance = li.spiECap;
-            if (li.myPseudo != null)
-                layer.pseudoLayer = li.myPseudo.name;
+//            if (li.myPseudo != null)
+//                layer.pseudoLayer = li.myPseudo.name;
             if (li.pureLayerNode != null) {
                 layer.pureLayerNode = new Xml.PureLayerNode();
                 layer.pureLayerNode.name = li.pureLayerNode.name;

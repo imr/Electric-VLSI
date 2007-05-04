@@ -4032,7 +4032,7 @@ public class Quick
 			Technology.NodeLayer [] layers = np.getLayers();
 			for(int i=0; i<layers.length; i++)
 			{
-				Layer layer = layers[i].getLayer().getNonPseudoLayer();
+				Layer layer = layers[i].getLayer();
 				layersValid[layer.getIndex()] = true;
 			}
 		}

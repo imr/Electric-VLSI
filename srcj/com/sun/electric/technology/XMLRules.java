@@ -831,7 +831,7 @@ public class XMLRules implements DRCRules {
     public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule)
     {
         int numMetals = tech.getNumMetals();
-        DRCTemplate.DRCMode m = DRCTemplate.DRCMode.valueOf("M"+numMetals);
+        DRCTemplate.DRCMode m = numMetals >= 2 ? DRCTemplate.DRCMode.valueOf("M"+numMetals) : DRCTemplate.DRCMode.ALL;
 
         // load the DRC tables from the explanation table
         int when = theRule.when;

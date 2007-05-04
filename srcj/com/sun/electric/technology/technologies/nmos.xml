@@ -93,7 +93,6 @@
         <foreground>true</foreground>
         <cifLayer cif="NM"/>
         <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
-        <pseudoLayer>Pseudo-Metal</pseudoLayer>
         <pureLayerNode name="Metal-Node" port="metal">
             <lambda>3.0</lambda>
             <portArc>Metal</portArc>
@@ -125,7 +124,6 @@
         <foreground>true</foreground>
         <cifLayer cif="NP"/>
         <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
-        <pseudoLayer>Pseudo-Polysilicon</pseudoLayer>
         <pureLayerNode name="Polysilicon-Node" port="polysilicon">
             <lambda>2.0</lambda>
             <portArc>Polysilicon</portArc>
@@ -157,7 +155,6 @@
         <foreground>true</foreground>
         <cifLayer cif="ND"/>
         <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
-        <pseudoLayer>Pseudo-Diffusion</pseudoLayer>
         <pureLayerNode name="Diffusion-Node" port="diffusion">
             <lambda>2.0</lambda>
             <portArc>Diffusion</portArc>
@@ -467,7 +464,7 @@
         <defaultHeight>
             <lambda>3.0</lambda>
         </defaultHeight>
-        <nodeLayer layer="Pseudo-Metal" style="CROSSED">
+        <nodeLayer layer="Metal" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -489,7 +486,7 @@
         <defaultHeight>
             <lambda>2.0</lambda>
         </defaultHeight>
-        <nodeLayer layer="Pseudo-Polysilicon" style="CROSSED">
+        <nodeLayer layer="Polysilicon" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -511,7 +508,7 @@
         <defaultHeight>
             <lambda>2.0</lambda>
         </defaultHeight>
-        <nodeLayer layer="Pseudo-Diffusion" style="CROSSED">
+        <nodeLayer layer="Diffusion" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -695,12 +692,12 @@
         </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-2.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
         </nodeLayer>
@@ -751,17 +748,17 @@
         </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-2.0"/>
         </nodeLayer>
         <nodeLayer layer="Implant" style="FILLED"  portNum="-1">
-            <box/>
+            <serpbox lWidth="2.5" rWidth="2.5" tExtent="1.5" bExtent="1.5"/>
             <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="0.5"/>
             <techPoint xm="0.5" xa="-0.5" ym="0.5" ya="-0.5"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
         </nodeLayer>
@@ -1195,16 +1192,16 @@
     </menuPalette>
 
     <Foundry name="NONE">
-        <LayersRule ruleName="U0" layerNames="{Metal, Metal}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U15" layerNames="{Polysilicon, Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C16" layerNames="{Polysilicon, Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="U16" layerNames="{Polysilicon, Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U17" layerNames="{Polysilicon, Implant}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U19" layerNames="{Polysilicon, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U29" layerNames="{Diffusion, Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U30" layerNames="{Diffusion, Implant}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U32" layerNames="{Diffusion, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U50" layerNames="{Implant, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U61" layerNames="{Contact-Cut, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_0_0" layerNames="{Metal, Metal}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Polysilicon, Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_1_2" layerNames="{Polysilicon, Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U_1_2" layerNames="{Polysilicon, Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon, Implant}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_1_5" layerNames="{Polysilicon, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_2" layerNames="{Diffusion, Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{Diffusion, Implant}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_5" layerNames="{Diffusion, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_11" layerNames="{Implant, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_4_11" layerNames="{Contact-Cut, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

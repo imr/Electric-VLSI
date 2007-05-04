@@ -65,6 +65,14 @@ public class Foundry {
         this.fileURL = fileURL;
         setFactoryGDSLayers(gdsLayers);
     }
+    Foundry(Technology tech, Type mode, List<DRCTemplate> rules, String[] gdsLayers) {
+        this.tech = tech;
+        this.type = mode;
+        fileURL = null;
+        this.rules = rules;
+        rulesLoaded = true;
+        setFactoryGDSLayers(gdsLayers);
+    }
     public Type getType() { return type; }
 //    /**
 //     * Method to search rule names per node names.

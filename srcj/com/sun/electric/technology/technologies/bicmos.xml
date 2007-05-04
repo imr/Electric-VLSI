@@ -1,0 +1,1866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: bicmos.xml
+ * bicmos technology description
+ * Generated automatically from a library
+ *
+ * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+<technology name="bicmos"
+     xmlns="http://electric.sun.com/Technology"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
+
+    <description>Bipolar/CMOS (from MOSIS, N-Well, SCE Rules)</description>
+    <numMetals min="2" max="2" default="2"/>
+    <scale value="1000.0" relevant="true"/>
+    <defaultFoundry value="MOSIS"/>
+    <minResistance value="10.0"/>
+    <minCapacitance value="0.0"/>
+
+    <!-- Transparent layers -->
+    <transparentLayer transparent="1">
+        <r>96</r>
+        <g>209</g>
+        <b>255</b>
+    </transparentLayer>
+    <transparentLayer transparent="2">
+        <r>255</r>
+        <g>155</g>
+        <b>192</b>
+    </transparentLayer>
+    <transparentLayer transparent="3">
+        <r>107</r>
+        <g>226</g>
+        <b>96</b>
+    </transparentLayer>
+    <transparentLayer transparent="4">
+        <r>224</r>
+        <g>95</g>
+        <b>255</b>
+    </transparentLayer>
+    <transparentLayer transparent="5">
+        <r>240</r>
+        <g>221</g>
+        <b>181</b>
+    </transparentLayer>
+
+    <!-- **************************************** LAYERS **************************************** -->
+    <layer name="P_Select" fun="IMPLANTP">
+        <opaqueColor r="255" g="255" b="0"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CSP"/>
+        <pureLayerNode name="P_Select_Node" style="CLOSED" port="select">
+            <lambda>6.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="N_Select" fun="IMPLANTN">
+        <opaqueColor r="175" g="255" b="175"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CSN"/>
+        <pureLayerNode name="N_Select_Node" style="CLOSED" port="N_Select">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="N_Well" fun="WELLN">
+        <transparentColor transparent="5"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X            </pattern>
+        <pattern>          X     </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>               X</pattern>
+        <pattern>      X         </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X            </pattern>
+        <pattern>          X     </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>               X</pattern>
+        <pattern>      X         </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CWN"/>
+        <pureLayerNode name="N_Well_Node" port="well">
+            <lambda>6.0</lambda>
+            <portArc>Pdiff</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Via" fun="CONTACT2">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CVA"/>
+        <pureLayerNode name="Via_Node" style="CLOSED" port="via">
+            <lambda>2.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Passivation" fun="OVERGLASS">
+        <opaqueColor r="100" g="100" b="100"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>  XXXXX   XXXXX </pattern>
+        <pattern>  XX XX   XX XX </pattern>
+        <pattern>  XXXXX   XXXXX </pattern>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>  XXXXX   XXXXX </pattern>
+        <pattern>  XX XX   XX XX </pattern>
+        <pattern>  XXXXX   XXXXX </pattern>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="COG"/>
+        <pureLayerNode name="Passivation_Node" style="CLOSED" port="passivation">
+            <lambda>8.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Pad_Frame" fun="ART">
+        <opaqueColor r="255" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="XP"/>
+        <pureLayerNode name="Pad_Frame_Node" style="CLOSED" port="pad-frame">
+            <lambda>8.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Transistor" fun="TRANSISTOR">
+        <opaqueColor r="200" g="200" b="200"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+    </layer>
+
+    <layer name="Active_Cut" fun="CONTACT1">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CCA"/>
+        <pureLayerNode name="Active_Cut_Node" port="activecut">
+            <lambda>2.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="M1" fun="METAL1">
+        <transparentColor transparent="1"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CMF"/>
+        <pureLayerNode name="M1_Node" port="metal-1">
+            <lambda>4.0</lambda>
+            <portArc>Metal_1</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="M2" fun="METAL2">
+        <transparentColor transparent="4"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <pattern>   X       X    </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>X       X       </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>      X       X </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>    X       X   </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CMS"/>
+        <pureLayerNode name="M2_Node" port="metal-2">
+            <lambda>4.0</lambda>
+            <portArc>Metal_2</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Poly1" fun="POLY1">
+        <transparentColor transparent="2"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>    X       X   </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>      X       X </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>X       X       </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern>   X       X    </pattern>
+        <pattern>    X       X   </pattern>
+        <pattern>     X       X  </pattern>
+        <pattern>      X       X </pattern>
+        <pattern>       X       X</pattern>
+        <pattern>X       X       </pattern>
+        <pattern> X       X      </pattern>
+        <pattern>  X       X     </pattern>
+        <pattern>   X       X    </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CPG"/>
+        <pureLayerNode name="Poly1_Node" port="polysilicon">
+            <lambda>4.0</lambda>
+            <portArc>Polysilicon</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Poly2" fun="POLY2">
+        <opaqueColor r="255" g="0" b="255"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>XXX     XXX     </pattern>
+        <pattern> XXX     XXX    </pattern>
+        <pattern>  XXX     XXX   </pattern>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>    XXX     XXX </pattern>
+        <pattern>     XXX     XXX</pattern>
+        <pattern>X     XXX     XX</pattern>
+        <pattern>XX     XXX     X</pattern>
+        <pattern>XXX     XXX     </pattern>
+        <pattern> XXX     XXX    </pattern>
+        <pattern>  XXX     XXX   </pattern>
+        <pattern>   XXX     XXX  </pattern>
+        <pattern>    XXX     XXX </pattern>
+        <pattern>     XXX     XXX</pattern>
+        <pattern>X     XXX     XX</pattern>
+        <pattern>XX     XXX     X</pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CEL"/>
+        <pureLayerNode name="Poly2_Node" port="P2">
+            <lambda>2.0</lambda>
+            <portArc>Polysilicon_2</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Active" fun="DIFF">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>      XX      XX</pattern>
+        <pattern> X  X    X  X   </pattern>
+        <pattern>      XX      XX</pattern>
+        <pattern>                </pattern>
+        <pattern>  XX      XX    </pattern>
+        <pattern>X    X  X    X  </pattern>
+        <pattern>  XX      XX    </pattern>
+        <pattern>                </pattern>
+        <pattern>      XX      XX</pattern>
+        <pattern> X  X    X  X   </pattern>
+        <pattern>      XX      XX</pattern>
+        <pattern>                </pattern>
+        <pattern>  XX      XX    </pattern>
+        <pattern>X    X  X    X  </pattern>
+        <pattern>  XX      XX    </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CAA"/>
+        <pureLayerNode name="Active_Node" port="active">
+            <lambda>4.0</lambda>
+            <portArc>Active</portArc>
+            <portArc>Pdiff</portArc>
+            <portArc>Ndiff</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Poly1_Cut" fun="CONTACT1">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CCP"/>
+        <pureLayerNode name="Poly1_Cut_Node" port="polycut">
+            <lambda>2.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Poly2_Cut" fun="CONTACT3">
+        <opaqueColor r="0" g="0" b="0"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CCE"/>
+        <pureLayerNode name="Poly_2_Cut_Node" port="Poly_2_Cut">
+            <lambda>4.0</lambda>
+            <portArc>Polysilicon_2</portArc>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="P_Base_Active" fun="DIFFP">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>    X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern> X   X   X   X  </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>   X   X   X   X</pattern>
+        <pattern>    X   X   X   </pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CBA"/>
+        <pureLayerNode name="P_Base_Active_Node" port="P_Base">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="BCCD" fun="IMPLANTN">
+        <opaqueColor r="255" g="150" b="150"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <pattern>X   X   X   X   </pattern>
+        <pattern>                </pattern>
+        <pattern>  X   X   X   X </pattern>
+        <pattern>                </pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CCD"/>
+        <pureLayerNode name="BCCD_Node" port="BCCD">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Ohmic_Substrate" fun="SUBSTRATE">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CAA"/>
+        <pureLayerNode name="Ohmic_Substrate" port="Ohmic_Substrate">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Ohmic_Well" fun="WELL">
+        <transparentColor transparent="3"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CAA"/>
+        <pureLayerNode name="Ohmic_Well" port="Ohmic_Well">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <!-- ******************** ARCS ******************** -->
+    <arcProto name="Metal_1" fun="METAL1">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>400.0</antennaRatio>
+        <defaultWidth>
+            <lambda>3.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="M1" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Metal_2" fun="METAL2">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>400.0</antennaRatio>
+        <defaultWidth>
+            <lambda>3.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="M2" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Polysilicon" fun="POLY1">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Poly1" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Polysilicon_2" fun="POLY2">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Poly2" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Active" fun="DIFF">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Active" style="FILLED"/>
+    </arcProto>
+
+    <arcProto name="Pdiff" fun="DIFFP">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <defaultWidth>
+            <lambda>12.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="N_Well" style="FILLED"/>
+        <arcLayer layer="Active" style="FILLED">
+            <lambda>-10.0</lambda>
+        </arcLayer>
+        <arcLayer layer="P_Select" style="CLOSED">
+            <lambda>-6.0</lambda>
+        </arcLayer>
+    </arcProto>
+
+    <arcProto name="Ndiff" fun="DIFFN">
+        <wipable/>
+        <extended>true</extended>
+        <fixedAngle>true</fixedAngle>
+        <angleIncrement>90</angleIncrement>
+        <antennaRatio>200.0</antennaRatio>
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <arcLayer layer="Active" style="FILLED">
+            <lambda>-4.0</lambda>
+        </arcLayer>
+        <arcLayer layer="N_Select" style="FILLED"/>
+    </arcProto>
+
+    <!-- ******************** NODES ******************** -->
+    <primitiveNode name="Active_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="active">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <portArc>Active</portArc>
+            <portArc>Pdiff</portArc>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="M1" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="metal-1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.5" ym="-0.5" ya="1.5"/>
+            <techPoint xm="0.5" xa="-1.5" ym="0.5" ya="-1.5"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M2_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="M2" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="metal-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.5" ym="-0.5" ya="1.5"/>
+            <techPoint xm="0.5" xa="-1.5" ym="0.5" ya="-1.5"/>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Poly1_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="Poly1" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="polysilicon">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Poly2_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>2.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>2.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="Poly2" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="p2-pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <portArc>Polysilicon_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Ndiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>8.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>8.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Active" style="CLOSED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="Ndiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Pdiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <defaultWidth>
+            <lambda>8.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>8.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Active" style="CLOSED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="CROSSED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="Pdiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="NPN1_transistor" fun="TRANPN">
+        <defaultWidth>
+            <lambda>46.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>24.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="22.0" hx="16.0" ly="8.0" hy="8.0"/>
+        <nodeLayer layer="M1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="35.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="6.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-6.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-29.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="8.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-8.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="24.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-18.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-39.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-38.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="8.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-8.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="CLOSED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="7.0"/>
+            <techPoint xm="0.5" xa="-36.0" ym="0.5" ya="-7.0"/>
+        </nodeLayer>
+        <primitivePort name="B2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="B1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="E1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>2</portTopology>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="C1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>3</portTopology>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="NPN2_Transistor" fun="TRANPN">
+        <defaultWidth>
+            <lambda>46.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>36.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-21.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="5">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="8.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-20.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="20.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-8.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="6">
+            <box/>
+            <techPoint xm="-0.5" xa="35.0" ym="-0.5" ya="22.0"/>
+            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-29.0" ym="0.5" ya="-22.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="22.0"/>
+            <techPoint xm="0.5" xa="-29.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="21.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="6">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="21.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-39.0" ym="0.5" ya="-22.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="5">
+            <box/>
+            <techPoint xm="-0.5" xa="24.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-18.0" ym="0.5" ya="-22.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-38.0" ym="0.5" ya="-21.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="4">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="21.0"/>
+            <techPoint xm="0.5" xa="-38.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="4">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="22.0"/>
+            <techPoint xm="0.5" xa="-39.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="24.0" ym="-0.5" ya="22.0"/>
+            <techPoint xm="0.5" xa="-18.0" ym="0.5" ya="-10.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED"  portNum="7">
+            <box/>
+            <techPoint xm="-0.5" xa="35.0" ym="-0.5" ya="10.0"/>
+            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="-22.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED"  portNum="7">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-21.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="6.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-6.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-23.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED"  portNum="6">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="21.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-23.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-21.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="4">
+            <box/>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="4">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="19.0"/>
+            <techPoint xm="0.5" xa="-36.0" ym="0.5" ya="-7.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="3">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="7.0"/>
+            <techPoint xm="0.5" xa="-36.0" ym="0.5" ya="-19.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="6">
+            <box/>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="5">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="8.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-20.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="22.0" ym="-0.5" ya="20.0"/>
+            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-8.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
+            <box/>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-11.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="5">
+            <box/>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-23.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED"  portNum="2">
+            <box/>
+            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="21.0"/>
+            <techPoint xm="0.5" xa="-28.0" ym="0.5" ya="-9.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED"  portNum="7">
+            <box/>
+            <techPoint xm="-0.5" xa="34.0" ym="-0.5" ya="9.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-21.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="7">
+            <box/>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-23.0"/>
+        </nodeLayer>
+        <primitivePort name="B1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-23.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="E2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="B3">
+            <portAngle primary="0" range="180"/>
+            <portTopology>2</portTopology>
+            <techPoint xm="-0.5" xa="14.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-30.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="C1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>3</portTopology>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-23.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="C2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>4</portTopology>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-40.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="E1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>5</portTopology>
+            <techPoint xm="-0.5" xa="25.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-19.0" ym="0.5" ya="-23.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="B4">
+            <portAngle primary="0" range="180"/>
+            <portTopology>6</portTopology>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="23.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-11.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="B2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>7</portTopology>
+            <techPoint xm="-0.5" xa="36.0" ym="-0.5" ya="11.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-23.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Pdiff_Con" fun="CONTACT">
+        <defaultWidth>
+            <lambda>16.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>16.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="5.0" hx="5.0" ly="5.0" hy="5.0"/>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="5.0" ym="-0.5" ya="5.0"/>
+            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-5.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED">
+            <minbox/>
+            <techPoint xm="-0.5" xa="6.0" ym="-0.5" ya="6.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-6.0"/>
+            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
+            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="CLOSED">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="8.0" ym="-0.5" ya="8.0"/>
+            <techPoint xm="0.5" xa="-8.0" ym="0.5" ya="-8.0"/>
+        </nodeLayer>
+        <primitivePort name="m1_pdiff">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="6.0" ym="-0.5" ya="6.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-6.0"/>
+            <portArc>Metal_1</portArc>
+            <portArc>Pdiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Ndiff_Con" fun="CONTACT">
+        <defaultWidth>
+            <lambda>10.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>10.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="M1" style="FILLED">
+            <minbox/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
+            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="5.0" ym="-0.5" ya="5.0"/>
+            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-5.0"/>
+        </nodeLayer>
+        <primitivePort name="M1_Ndiff">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+            <portArc>Metal_1</portArc>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>6.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="M1" style="FILLED">
+            <minbox/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
+            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Poly1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Poly1_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <primitivePort name="metal-1-polysilicon">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <portArc>Polysilicon</portArc>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Poly2_Con" fun="CONTACT">
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>6.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeLayer layer="M1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Poly2" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Poly2_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <primitivePort name="M1P2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <portArc>Metal_1</portArc>
+            <portArc>Polysilicon_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="PMOSFET" fun="TRAPMOS">
+        <defaultWidth>
+            <lambda>12.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>16.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="5.0" hx="5.0" ly="7.0" hy="7.0"/>
+        <nodeLayer layer="Poly1" style="FILLED">
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="7.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-7.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+            <serpbox lWidth="8.0" rWidth="8.0" tExtent="5.0" bExtent="5.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED">
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
+            <techPoint xm="-0.5" xa="5.0" ym="-0.5" ya="5.0"/>
+            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-5.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED"  portNum="-1">
+            <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0"/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <primitivePort name="pmos_poly_lt">
+            <portAngle primary="180" range="90"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="-0.5" xa="3.0" ym="0.0" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="4.0" ym="0.0" ya="1.0"/>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+        <primitivePort name="pmos_diff_top">
+            <portAngle primary="90" range="90"/>
+            <portTopology>3</portTopology>
+            <techPoint xm="0.0" xa="-1.0" ym="0.5" ya="-6.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="-5.0"/>
+            <portArc>Pdiff</portArc>
+        </primitivePort>
+        <primitivePort name="pmos_poly_rt">
+            <portAngle primary="0" range="90"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="0.5" xa="-4.0" ym="0.0" ya="-1.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.0" ya="1.0"/>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+        <primitivePort name="pmos_diff_bot">
+            <portAngle primary="270" range="90"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="0.0" xa="-1.0" ym="-0.5" ya="5.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="-0.5" ya="6.0"/>
+            <portArc>Pdiff</portArc>
+        </primitivePort>
+        <serpTrans>
+            <specialValue>0.0416667</specialValue>
+            <specialValue>0.0</specialValue>
+            <specialValue>1.0</specialValue>
+            <specialValue>2.0</specialValue>
+            <specialValue>0.0</specialValue>
+            <specialValue>1.0</specialValue>
+        </serpTrans>
+    </primitiveNode>
+
+    <primitiveNode name="M1_M2_Con" fun="CONTACT">
+        <defaultWidth>
+            <lambda>4.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>4.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="M1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M2" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Via" style="CLOSED">
+            <box/>
+            <techPoint xm="0.0" xa="-1.0" ym="0.0" ya="-1.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="0.0" ya="1.0"/>
+        </nodeLayer>
+        <primitivePort name="metal-1-metal-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="1.5" ym="-0.5" ya="1.5"/>
+            <techPoint xm="0.5" xa="-1.5" ym="0.5" ya="-1.5"/>
+            <portArc>Metal_1</portArc>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M1_N_Well_Con" fun="WELL">
+        <defaultWidth>
+            <lambda>12.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>12.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeLayer layer="N_Well" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Ohmic_Well" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <nodeLayer layer="M1" style="FILLED">
+            <minbox/>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="4.0"/>
+            <techPoint xm="0.5" xa="-4.0" ym="0.5" ya="-4.0"/>
+            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
+            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="6.0" ym="-0.5" ya="6.0"/>
+            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-6.0"/>
+        </nodeLayer>
+        <primitivePort name="metal-1-well">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="4.0"/>
+            <techPoint xm="0.5" xa="-4.0" ym="0.5" ya="-4.0"/>
+            <portArc>Metal_1</portArc>
+            <portArc>Active</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Poly1_Poly2_Cap" fun="CAPAC">
+        <defaultWidth>
+            <lambda>12.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>12.0</lambda>
+        </defaultHeight>
+        <nodeLayer layer="Poly1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Poly2" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <primitivePort name="P1P2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+            <portArc>Polysilicon</portArc>
+            <portArc>Polysilicon_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="NMOSFET" fun="TRANMOS">
+        <defaultWidth>
+            <lambda>6.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>10.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="4.0" hy="4.0"/>
+        <nodeLayer layer="Poly1" style="FILLED">
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="4.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-4.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active" style="FILLED">
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED"  portNum="-1">
+            <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="nmos_poly_lt">
+            <portAngle primary="180" range="90"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="-0.5" xa="0.0" ym="0.0" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.0" ya="1.0"/>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+        <primitivePort name="nmos_diff_top">
+            <portAngle primary="90" range="90"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="0.0" xa="-1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="-2.0"/>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+        <primitivePort name="nmos_poly_rt">
+            <portAngle primary="0" range="90"/>
+            <portTopology>1</portTopology>
+            <techPoint xm="0.5" xa="-1.0" ym="0.0" ya="-1.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.0" ya="1.0"/>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+        <primitivePort name="nmos_diff_bot">
+            <portAngle primary="270" range="90"/>
+            <portTopology>3</portTopology>
+            <techPoint xm="0.0" xa="-1.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="-0.5" ya="3.0"/>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+        <serpTrans>
+            <specialValue>0.0333333</specialValue>
+            <specialValue>0.0</specialValue>
+            <specialValue>1.0</specialValue>
+            <specialValue>2.0</specialValue>
+            <specialValue>0.0</specialValue>
+            <specialValue>1.0</specialValue>
+        </serpTrans>
+    </primitiveNode>
+
+    <primitiveNode name="M1_Substrate_Con" fun="UNKNOWN">
+        <defaultWidth>
+            <lambda>10.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>10.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeLayer layer="M1" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
+            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Ohmic_Substrate" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <nodeLayer layer="Active_Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
+            <techPoint xm="-0.5" xa="5.0" ym="-0.5" ya="5.0"/>
+            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-5.0"/>
+        </nodeLayer>
+        <primitivePort name="M1_Substrate">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="4.0" ym="-0.5" ya="4.0"/>
+            <techPoint xm="0.5" xa="-4.0" ym="0.5" ya="-4.0"/>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Ndiff_Node" fun="UNKNOWN">
+        <defaultWidth>
+            <lambda>8.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>8.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="active">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <portArc>Active</portArc>
+            <portArc>Pdiff</portArc>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+        <polygonal/>
+    </primitiveNode>
+
+    <primitiveNode name="Pdiff_Node" fun="UNKNOWN">
+        <defaultWidth>
+            <lambda>8.0</lambda>
+        </defaultWidth>
+        <defaultHeight>
+            <lambda>8.0</lambda>
+        </defaultHeight>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Active" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="FILLED">
+            <box/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </nodeLayer>
+        <primitivePort name="Pdiff">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+        </primitivePort>
+        <polygonal/>
+    </primitiveNode>
+
+    <menuPalette numColumns="3">
+
+        <menuBox>
+            <menuArc>Polysilicon</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Poly1_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_Poly1_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Polysilicon_2</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Poly2_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_Poly2_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Metal_1</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_Pin</menuNode>
+        </menuBox>
+        <menuBox/>
+
+        <menuBox>
+            <menuArc>Metal_2</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>M2_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_M2_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Pdiff</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Pdiff_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_Pdiff_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Ndiff</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Ndiff_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_Ndiff_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Active</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Active_Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>M1_N_Well_Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>M1_Substrate_Con</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>NPN2_Transistor</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>NPN1_transistor</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>Poly1_Poly2_Cap</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>NMOSFET</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>PMOSFET</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Pure</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Misc.</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Cell</menuText>
+        </menuBox>
+
+    </menuPalette>
+
+    <Foundry name="MOSIS">
+        <layerGds layer="P_Select" gds="8"/>
+        <layerGds layer="N_Select" gds="7"/>
+        <layerGds layer="N_Well" gds="1"/>
+        <layerGds layer="Passivation" gds="13"/>
+        <layerGds layer="Pad_Frame" gds="9"/>
+        <layerGds layer="Active_Cut" gds="35"/>
+        <layerGds layer="M1" gds="10"/>
+        <layerGds layer="M2" gds="12"/>
+        <layerGds layer="Poly1" gds="4"/>
+        <layerGds layer="Poly2" gds="19"/>
+        <layerGds layer="Active" gds="31"/>
+        <layerGds layer="Poly1_Cut" gds="45"/>
+        <layerGds layer="Poly2_Cut" gds="55"/>
+        <layerGds layer="P_Base_Active" gds="33"/>
+        <layerGds layer="BCCD" gds="17"/>
+        <layerGds layer="Ohmic_Substrate" gds="3"/>
+        <layerGds layer="Ohmic_Well" gds="3"/>
+        <LayersRule ruleName="C_3_3" layerNames="{Via, Via}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_3" layerNames="{Via, Via}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_3_6" layerNames="{Via, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_3_7" layerNames="{Via, Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_10" layerNames="{Via, Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_12" layerNames="{Via, Active}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_3_13" layerNames="{Via, Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_7_7" layerNames="{Active_Cut, Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_7_12" layerNames="{Active_Cut, Active}" type="UCONSPA" when="ALL" value="5.0"/>
+        <LayersRule ruleName="U_8_8" layerNames="{M1, M1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_9_9" layerNames="{M2, M2}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_10_10" layerNames="{Poly1, Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_10_12" layerNames="{Poly1, Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_10_12" layerNames="{Poly1, Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_10_13" layerNames="{Poly1, Poly1_Cut}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_11_11" layerNames="{Poly2, Poly2}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_12_12" layerNames="{Active, Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_13_13" layerNames="{Poly1_Cut, Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+    </Foundry>
+</technology>
