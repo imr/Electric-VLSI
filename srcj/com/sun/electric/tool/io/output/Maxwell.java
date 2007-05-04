@@ -132,9 +132,10 @@ public class Maxwell extends Output
 
 	private void writePolygon(Poly poly, int globalNetNum, Network net)
 	{
+        if (poly.isPseudoLayer()) return;
 		Layer layer = poly.getLayer();
 		if (layer.getTechnology() != Technology.getCurrent()) return;
-		if (layer.isPseudoLayer()) return;
+//		if (layer.isPseudoLayer()) return;
 		Rectangle2D box = poly.getBox();
 		if (box == null) return;
 		Color color = layer.getGraphics().getColor();

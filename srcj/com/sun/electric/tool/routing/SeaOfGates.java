@@ -1747,6 +1747,7 @@ public class SeaOfGates
 	 */
     private void addLayer(PolyBase poly, AffineTransform trans, int netID, boolean canPlacePseudo)
     {
+        if (!canPlacePseudo && poly.isPseudoLayer()) return;
 		Layer layer = poly.getLayer();
 		if (canPlacePseudo) layer = layer.getNonPseudoLayer(); else
 		{

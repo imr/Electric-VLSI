@@ -725,8 +725,7 @@ public class Technology implements Comparable<Technology>
         for (Xml.Layer l: t.layers) {
             if (l.pseudoLayer == null) continue;
             Layer owner = layers.get(l.name);
-            assert !layers.containsKey(l.pseudoLayer);
-            Layer layer = owner.makePseudo(l.pseudoLayer);
+            Layer layer = owner.makePseudo();
             layers.put(l.pseudoLayer, layer);
 //            if (l.cif != null)
 //                layer.setFactoryCIFLayer(l.cif);
@@ -1459,6 +1458,12 @@ public class Technology implements Comparable<Technology>
 		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
+			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
+		}
+		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next().getPseudoLayer();
+            if (layer == null) continue; 
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
 		}
 		return null;

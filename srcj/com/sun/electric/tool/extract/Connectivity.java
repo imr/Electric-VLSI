@@ -270,14 +270,14 @@ public class Connectivity
 
 		// find important layers
 		polyLayer = null;
-		tempLayer1 = null;
+//		tempLayer1 = null;
 		pActiveLayer = nActiveLayer = null;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
-			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
+//			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
 			if (unifyActive)
 			{
 				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
@@ -288,6 +288,8 @@ public class Connectivity
 			}
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
+        if (polyLayer != null)
+            tempLayer1 = polyLayer.getPseudoLayer();
 		pActiveLayer = pActiveLayer.getNonPseudoLayer();
 		if (unifyActive) nActiveLayer = pActiveLayer; else
 			nActiveLayer = nActiveLayer.getNonPseudoLayer();
@@ -1225,6 +1227,7 @@ public class Connectivity
 				for(int i=0; i<polyList.length; i++)
 				{
 					Poly poly = polyList[i];
+                    if (poly.isPseudoLayer()) continue;
 					if (poly.getPort() == null) continue;
 					if (geometricLayer(poly.getLayer()) != layer) continue;
 					poly.transform(trans);

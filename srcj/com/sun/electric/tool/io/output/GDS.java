@@ -510,6 +510,7 @@ public class GDS extends Geometry
 			for (int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
+                if (poly.isPseudoLayer()) continue;
 				Layer thisLayer = poly.getLayer();
 				if (thisLayer != null && firstLayer == null) firstLayer = thisLayer;
 				if (poly.getStyle().isText())

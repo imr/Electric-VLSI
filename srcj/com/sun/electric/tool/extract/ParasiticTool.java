@@ -207,9 +207,10 @@ public class ParasiticTool extends Tool {
                     Poly poly = arcInstPolyList[j];
                     if (poly.getStyle().isText()) continue;
 
+                    if (poly.isPseudoLayer()) continue;
                     Layer layer = poly.getLayer();
                     if (layer.getTechnology() != Technology.getCurrent()) continue;
-                    if (layer.isPseudoLayer()) continue;
+//                    if (layer.isPseudoLayer()) continue;
 
                     if (isDiffArc || layer.getCapacitance() > 0.0)
                     //if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))
@@ -252,6 +253,7 @@ public class ParasiticTool extends Tool {
             for(int i=0; i<tot; i++)
             {
                 Poly poly = polyList[i];
+                if (poly.isPseudoLayer()) continue;
 
                 // make sure this layer connects electrically to the desired port
                 PortProto pp = poly.getPort();
@@ -543,6 +545,7 @@ public class ParasiticTool extends Tool {
 					for(int i = 0; i < nodeInstPolyList.length; i++)
 					{
 						Poly poly = nodeInstPolyList[i];
+                        if (poly.isPseudoLayer()) continue;
 						Layer layer = poly.getLayer();
                         if (!layer.getFunction().isMetal()) continue;
 						poly.transform(trans);

@@ -164,13 +164,25 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * Method to return the layer associated with this Poly.
 	 * @return the layer associated with this Poly.
 	 */
-	public Layer getLayer() { return layer; }
+	public Layer getLayer() { return Layer.PSEUDO_HIDDEN && layer != null ? layer.getNonPseudoLayer() : layer; }
+
+	/**
+	 * Method to return the layer or pseudo-layer associated with this Poly.
+	 * @return the layer or pseudo-layer associated with this Poly.
+	 */
+	public Layer getLayerOrPseudoLayer() { return layer; }
 
 	/**
 	 * Method to set the layer associated with this Poly.
 	 * @param layer the layer associated with this Poly.
 	 */
 	public void setLayer(Layer layer) { this.layer = layer; }
+
+	/**
+	 * Method to tell if the layer associated with this Poly is a pseudo-layer.
+	 * @return true if the layer associated with this Poly is a pseudo-layer.
+	 */
+	public boolean isPseudoLayer() { return layer != null && layer.isPseudoLayer(); }
 
 	/**
 	 * Method to return the PortProto associated with this Poly.
@@ -1660,7 +1672,7 @@ public class PolyBase implements Shape, PolyNodeMerge
                 System.arraycopy(poly.getPoints(), 0, points, top.getPoints().length+1, poly.getPoints().length);
                 points[points.length-1] = (Point2D)poly.getPoints()[0].clone();
                 PolyBase p = new PolyBase(points);
-                p.setLayer(poly.getLayer()); // they are supposed to belong to the same layer
+                p.setLayer(poly.getLayerOrPseudoLayer()); // they are supposed to belong to the same layer
                 stack.push(p);
             }
             level++;
@@ -1866,7 +1878,7 @@ public class PolyBase implements Shape, PolyNodeMerge
             return (false);
 
         Poly poly = (Poly)obj;
-        if (getLayer() != poly.getLayer())
+        if (getLayerOrPseudoLayer() != poly.getLayerOrPseudoLayer())
         {
 	        // Don't put until polys are sorted by layer
 	        /*

@@ -49,7 +49,7 @@ import java.util.Collection;
  */
 public class Layer
 {
-    private static final boolean PSEUDO_SHARES_GRAPHICS = true;
+    public static final boolean PSEUDO_HIDDEN = false; // True if pseudo-layers don't apper in Technology.getLayers() and don't have layer index.'
     
     private static final double DEFAULT_THICKNESS = 0;
     private static final double DEFAULT_DISTANCE = 0;
@@ -581,22 +581,15 @@ public class Layer
 	 * @return the pseudo-layer.
 	 */
     public Layer makePseudo() {
-        return makePseudo("Pseudo-" + name);
-    }
-    
-	/**
-	 * Method to create a pseudo-layer for this Layer with a specified name.
-     * @param pseudoLayerName a name for pseudo-layer.
-	 * @return the pseudo-layer.
-	 */
-    Layer makePseudo(String pseudoLayerName) {
-        EGraphics pseudoGraphics = graphics;
-        if (!PSEUDO_SHARES_GRAPHICS) {
-            pseudoGraphics = new EGraphics(graphics);
+            assert pseudoLayer == null;
+        String pseudoLayerName = "Pseudo-" + name;
+        if (PSEUDO_HIDDEN) {
+            pseudoLayer = new Layer(pseudoLayerName, tech, graphics);
+        } else {
+            EGraphics pseudoGraphics = new EGraphics(graphics);
             assert pseudoGraphics.getLayer() == null;
+            pseudoLayer = newInstance(tech, pseudoLayerName, pseudoGraphics);
         }
-        assert pseudoLayer == null;
-        pseudoLayer = newInstance(tech, pseudoLayerName, new EGraphics(graphics));
         pseudoLayer.setFunction(function, functionExtras, true);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;

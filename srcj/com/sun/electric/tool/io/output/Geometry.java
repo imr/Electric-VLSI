@@ -183,6 +183,7 @@ public abstract class Geometry extends Output
         {
             for (int i=0; i<polys.length; i++)
             {
+                if (polys[i].isPseudoLayer()) continue;
                 List<Object> list = polyMap.get(polys[i].getLayer());
                 if (list == null)
                 {

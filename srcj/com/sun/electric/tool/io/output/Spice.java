@@ -557,9 +557,10 @@ public class Spice extends Topology
                     Poly poly = arcInstPolyList[j];
                     if (poly.getStyle().isText()) continue;
 
+                    if (poly.isPseudoLayer()) continue;
                     Layer layer = poly.getLayer();
                     if (layer.getTechnology() != layoutTechnology) continue;
-                    if (layer.isPseudoLayer()) continue;
+//                    if (layer.isPseudoLayer()) continue;
 
                     if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
                         double areacap = area * layer.getCapacitance();
@@ -3001,8 +3002,9 @@ public class Spice extends Topology
 			Network net = netList.getNetwork(ni, pp, 0);
 
 			// don't bother with layers without capacity
+            if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
-            if (layer.isPseudoLayer()) continue;
+//            if (layer.isPseudoLayer()) continue;
 			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
 
@@ -3045,9 +3047,10 @@ public class Spice extends Topology
 			Poly poly = arcInstPolyList[j];
 			if (poly.getStyle().isText()) continue;
 
+            if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
-			if (layer.isPseudoLayer()) continue;
+//			if (layer.isPseudoLayer()) continue;
 
 			if (layer.isDiffusionLayer()||
 				(!isDiffArc && layer.getCapacitance() > 0.0))

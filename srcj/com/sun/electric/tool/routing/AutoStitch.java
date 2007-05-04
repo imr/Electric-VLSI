@@ -1676,7 +1676,7 @@ public class AutoStitch
 
 				Poly newPoly = new Poly(coverage);
 				newPoly.setStyle(nodePolys[0].getStyle());
-				newPoly.setLayer(nodePolys[0].getLayer());
+				newPoly.setLayer(nodePolys[0].getLayerOrPseudoLayer());
 				newPoly.setPort(nodePolys[0].getPort());
 				nodePolys[0] = newPoly;				
 			}
