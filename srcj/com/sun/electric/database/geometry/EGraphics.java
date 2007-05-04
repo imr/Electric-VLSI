@@ -673,6 +673,14 @@ public class EGraphics extends Observable
 	public boolean getForeground() { return foreground; }
 
 	/**
+	 * Method to set whether this EGraphics should be drawn in the foreground.
+	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The background is typically used by implant and well layers.
+	 * @param f true if this EGraphics should be drawn in the foreground.
+	 */
+	public void setForeground(boolean f) { foreground = f; }
+
+	/**
 	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.
 	 */

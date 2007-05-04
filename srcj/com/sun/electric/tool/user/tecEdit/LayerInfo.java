@@ -304,9 +304,10 @@ public class LayerInfo extends Info
 					int g = TextUtils.atoi(st.nextToken());
 					int b = TextUtils.atoi(st.nextToken());
 					double o = TextUtils.atof(st.nextToken());
-					st.nextToken().equalsIgnoreCase("on");		// ignore last field: "foreground"
+					boolean f = st.nextToken().equalsIgnoreCase("on");
 					li.desc.setColor(new Color(r, g, b));
 					li.desc.setOpacity(o);
+					li.desc.setForeground(f);
 					break;
 				case LAYERTRANSPARENCY:
 					if (str.equalsIgnoreCase("none")) li.desc.setTransparentLayer(0); else

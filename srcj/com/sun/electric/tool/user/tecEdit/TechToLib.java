@@ -153,9 +153,15 @@ public class TechToLib
 		if (fNp == null) return null;
 		fNp.setInTechnologyLibrary();
 
-		int layerTotal = tech.getNumLayers();
+		// compute the number of layers (ignoring pseudo-layers)
+		int layerTotal = 0;
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next();
+			if (!layer.isPseudoLayer()) layerTotal++;
+		}
 
-		// build the layer cell
+		// build the general information cell
 		GeneralInfo gi = new GeneralInfo();
         gi.shortName = tech.getTechShortName();
         if (gi.shortName == null)
@@ -215,9 +221,11 @@ public class TechToLib
         LayerInfo [] lList = new LayerInfo[layerTotal];
         Map<Layer,String> gdsLayers = tech.getGDSLayers();
 
-		for(int i=0; i<layerTotal; i++)
+        int layIndex = 0;
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = tech.getLayer(i);
+			Layer layer = it.next();
+			if (layer.isPseudoLayer()) continue;
 			EGraphics desc = layer.getGraphics();
 			String fName = "layer-" + layer.getName() + "{lay}";
 
@@ -235,7 +243,7 @@ public class TechToLib
 			layerCells.put(layer, lNp);
 
 			LayerInfo li = new LayerInfo();
-            lList[i] = li;
+            lList[layIndex++] = li;
             li.name = layer.getName();
 			li.fun = layer.getFunction();
 			li.funExtra = layer.getFunctionExtras();
@@ -243,7 +251,7 @@ public class TechToLib
 			li.desc = desc;
             if (li.pseudo) {
                 String masterName = layer.getNonPseudoLayer().getName();
-                for(int j=0; j<i; j++) {
+                for(int j=0; j<layIndex; j++) {
                     if (lList[j].name.equals(masterName)) { lList[j].myPseudo = li;   break; }
                 }
                 continue;
@@ -314,7 +322,7 @@ public class TechToLib
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-				Layer arcLayer = poly.getLayer();
+				Layer arcLayer = poly.getLayer().getNonPseudoLayer();
 				if (arcLayer == null) continue;
 				EGraphics arcDesc = arcLayer.getGraphics();
 
@@ -437,7 +445,7 @@ public class TechToLib
 				for(int i=0; i<j; i++)
 				{
 					Poly poly = polys[i];
-					Layer nodeLayer = poly.getLayer();
+					Layer nodeLayer = poly.getLayer().getNonPseudoLayer();
 					if (nodeLayer == null) continue;
 					EGraphics desc = nodeLayer.getGraphics();
 
@@ -879,7 +887,7 @@ public class TechToLib
         nld.representation = nl.getRepresentation();
         nld.values = nl.getPoints();
         for(int k=0; k<lList.length; k++) {
-            if (nl.getLayer().getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
+            if (nl.getLayer().getNonPseudoLayer().getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
         }
         nld.multiCut = nld.representation == Technology.NodeLayer.MULTICUTBOX;
         nld.multiXS = nl.getMulticutSizeX();

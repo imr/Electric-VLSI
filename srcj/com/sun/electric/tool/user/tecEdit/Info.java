@@ -219,7 +219,7 @@ public class Info
 					break;
 				case LAYERTRANSPARENCY:
 					desc = (EGraphics)table[i].value;
-					str = "Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer " + desc.getTransparentLayer());
+					str = "Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer-" + desc.getTransparentLayer());
 					break;
 				case LAYERSTYLE:
 					desc = (EGraphics)table[i].value;
@@ -268,7 +268,7 @@ public class Info
 					str = "Wipes pins: "  + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
 					break;
 				case ARCNOEXTEND:
-					str = "Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					str = "Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "No" : "Yes");
 					break;
 				case ARCINC:
 					str = "Angle increment: " + ((Integer)table[i].value).intValue();
