@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+IMP: (5/4/07, DN) Pseudo-layers are hidden:
+    1) They are not mentioned in technology Xml files;
+    2) Tecnology.getLayers() doesn't contain them;
+    3) Technology.NodeLayer.getLayer() always returns non-pseudo layers;
+    4) Poly.getLayer() always returns non pseudo-lauer;
+    How to access pseudo-layers:
+    1) They are implicitely created for nodes with <shrinkArcs/> flags.
+    2) masterLayer.getPseudoLayer();
+    3) Technology.NodeLayer.getLayerOrPseudoLayer();
+    4) Poly.getLayerOrPseudoLayer();
+    How to test for pseudo-layer:
+    3) Technology.NodeLayer.isPseudoLayer();
+    4) Poly.isPseudoLayer();
+     
 ************************* Version 8.05k: *********************************
 
 IMP: (5/4/07, SMR) Improved EDIF reading of unusual schematics.

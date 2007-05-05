@@ -574,7 +574,6 @@
     </primitiveNode>
 
     <primitiveNode name="NPPoly_pin" fun="PIN">
-        <shrinkArcs/>
         <defaultWidth>
             <lambda>4.0</lambda>
         </defaultWidth>
@@ -602,7 +601,6 @@
     </primitiveNode>
 
     <primitiveNode name="PPPoly_pin" fun="PIN">
-        <shrinkArcs/>
         <defaultWidth>
             <lambda>4.0</lambda>
         </defaultWidth>

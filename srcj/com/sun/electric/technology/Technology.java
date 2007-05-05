@@ -662,7 +662,6 @@ public class Technology implements Comparable<Technology>
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
-    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
 
 	/****************************** CONTROL ******************************/
@@ -908,29 +907,21 @@ public class Technology implements Comparable<Technology>
                 gdsLayers.add(layer.getName() + " " + gds);
             }
             ArrayList<DRCTemplate> rules = new ArrayList<DRCTemplate>();
-            if (!f.layerRules.isEmpty()) {
-                int layerTotal = this.layers.size();
-                int rulesSize = layerTotal*(layerTotal + 1)/2;
-                conDist = new double[rulesSize];
-                unConDist = new double[rulesSize];
-                Arrays.fill(conDist, -1);
-                Arrays.fill(unConDist, -1);
-                for (Xml.LayersRule r: f.layerRules) {
-                    String nm = r.layerNames;
-                    if (nm.length() < 2 || nm.charAt(0) != '{' || nm.charAt(nm.length() - 1) != '}')
-                        continue;
-                    nm = nm.substring(1, nm.length() - 1);
-                    int comma = nm.indexOf(',');
-                    Layer l1 = layers.get(nm.substring(0,comma).trim());
-                    Layer l2 = layers.get(nm.substring(comma + 1).trim());
-                    if (l1 == null || l2 == null) continue;
-                    int i1 = l1.getIndex();
-                    int i2 = l2.getIndex();
-                    if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
-                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.CONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-                    else if (r.type.equals(DRCTemplate.DRCRuleType.UCONSPA.name()))
-                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.UCONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-                }
+            for (Xml.LayersRule r: f.layerRules) {
+                String nm = r.layerNames;
+                if (nm.length() < 2 || nm.charAt(0) != '{' || nm.charAt(nm.length() - 1) != '}')
+                    continue;
+                nm = nm.substring(1, nm.length() - 1);
+                int comma = nm.indexOf(',');
+                Layer l1 = layers.get(nm.substring(0,comma).trim());
+                Layer l2 = layers.get(nm.substring(comma + 1).trim());
+                if (l1 == null || l2 == null) continue;
+                int i1 = l1.getIndex();
+                int i2 = l2.getIndex();
+                if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
+                    rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.CONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
+                else if (r.type.equals(DRCTemplate.DRCRuleType.UCONSPA.name()))
+                    rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.UCONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
             }
             Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), rules, gdsLayers.toArray(new String[gdsLayers.size()]));
             foundries.add(foundry);
@@ -4089,18 +4080,6 @@ public class Technology implements Comparable<Technology>
 	 * @param newRules
 	 */
 	public void setRuleVariables(DRCRules newRules) {}
-
-	/**
-	 * Method to create a set of Design Rules from some simple spacing arrays.
-	 * Used by simpler technologies that do not have full-sets of design rules.
-	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
-	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
-	 * @return a set of design rules for the Technology.
-	 */
-	public static DRCRules makeSimpleRules(double [] conDist, double [] unConDist)
-	{
-		return null;
-	}
 
 	/**
 	 * Returns the color map for transparent layers in this technology.
