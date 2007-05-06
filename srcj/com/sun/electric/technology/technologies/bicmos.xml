@@ -1844,23 +1844,23 @@
         <layerGds layer="BCCD" gds="17"/>
         <layerGds layer="Ohmic_Substrate" gds="3"/>
         <layerGds layer="Ohmic_Well" gds="3"/>
-        <LayersRule ruleName="C_3_3" layerNames="{Via, Via}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_3_3" layerNames="{Via, Via}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_3_6" layerNames="{Via, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_3_7" layerNames="{Via, Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_3_10" layerNames="{Via, Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_3_12" layerNames="{Via, Active}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_3_13" layerNames="{Via, Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_7_7" layerNames="{Active_Cut, Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_7_12" layerNames="{Active_Cut, Active}" type="UCONSPA" when="ALL" value="5.0"/>
-        <LayersRule ruleName="U_8_8" layerNames="{M1, M1}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_9_9" layerNames="{M2, M2}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_10_10" layerNames="{Poly1, Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_10_12" layerNames="{Poly1, Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_10_12" layerNames="{Poly1, Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_10_13" layerNames="{Poly1, Poly1_Cut}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_11_11" layerNames="{Poly2, Poly2}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_12_12" layerNames="{Active, Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_13_13" layerNames="{Poly1_Cut, Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_3_3" layerNames="{Via,Via}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_3" layerNames="{Via,Via}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_3_6" layerNames="{Via,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_3_7" layerNames="{Via,Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_10" layerNames="{Via,Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_12" layerNames="{Via,Active}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_3_13" layerNames="{Via,Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_7_7" layerNames="{Active_Cut,Active_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_7_12" layerNames="{Active_Cut,Active}" type="UCONSPA" when="ALL" value="5.0"/>
+        <LayersRule ruleName="U_8_8" layerNames="{M1,M1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_9_9" layerNames="{M2,M2}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_10_10" layerNames="{Poly1,Poly1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_10_12" layerNames="{Poly1,Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_10_12" layerNames="{Poly1,Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_10_13" layerNames="{Poly1,Poly1_Cut}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_11_11" layerNames="{Poly2,Poly2}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_12_12" layerNames="{Active,Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_13_13" layerNames="{Poly1_Cut,Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

@@ -27,7 +27,6 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -37,13 +36,13 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Foundry;
@@ -53,16 +52,15 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Xml.ArcLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -75,16 +73,10 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -3600,9 +3592,9 @@ public class LibToTech
                     double conSpa = gi.conDist[ruleIndex];
                     double uConSpa = gi.unConDist[ruleIndex];
                     if (conSpa > -1)
-                        foundry.layerRules.add(makeDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa));
+                        foundry.rules.add(makeDesignRule("C" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.CONSPA, conSpa));
                     if (uConSpa > -1)
-                        foundry.layerRules.add(makeDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa));
+                        foundry.rules.add(makeDesignRule("U" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.UCONSPA, uConSpa));
                     ruleIndex++;
                 }
             }
@@ -3632,13 +3624,7 @@ public class LibToTech
         return menuBox;
     }
     
-    private static Xml.LayersRule makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, String type, double value) {
-        Xml.LayersRule r = new Xml.LayersRule();
-        r.ruleName = ruleName;
-        r.layerNames = "{" + l1.name + ", " + l2.name + "}";
-        r.type = type;
-        r.when = "ALL";
-        r.value = value;
-        return r;
+    private static DRCTemplate makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, DRCTemplate.DRCRuleType type, double value) {
+        return new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), type, l1.name, l2.name, new double[] {value}, null);
     }
 }

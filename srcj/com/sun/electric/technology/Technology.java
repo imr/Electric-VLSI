@@ -861,7 +861,6 @@ public class Technology implements Comparable<Technology>
                 connections[j] = arcs.get(l.pureLayerNode.portArcs.get(j));
             layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
         }
-        if (!full) return;
         if (t.menuPalette != null) {
             int numColumns = t.menuPalette.numColumns;
             ArrayList<Object[]> rows = new ArrayList<Object[]>();
@@ -906,27 +905,11 @@ public class Technology implements Comparable<Technology>
                 if (gds == null) continue;
                 gdsLayers.add(layer.getName() + " " + gds);
             }
-            ArrayList<DRCTemplate> rules = new ArrayList<DRCTemplate>();
-            for (Xml.LayersRule r: f.layerRules) {
-                String nm = r.layerNames;
-                if (nm.length() < 2 || nm.charAt(0) != '{' || nm.charAt(nm.length() - 1) != '}')
-                    continue;
-                nm = nm.substring(1, nm.length() - 1);
-                int comma = nm.indexOf(',');
-                Layer l1 = layers.get(nm.substring(0,comma).trim());
-                Layer l2 = layers.get(nm.substring(comma + 1).trim());
-                if (l1 == null || l2 == null) continue;
-                int i1 = l1.getIndex();
-                int i2 = l2.getIndex();
-                if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
-                    rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.CONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-                else if (r.type.equals(DRCTemplate.DRCRuleType.UCONSPA.name()))
-                    rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.UCONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-            }
-            Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), rules, gdsLayers.toArray(new String[gdsLayers.size()]));
+            Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), f.rules, gdsLayers.toArray(new String[gdsLayers.size()]));
             foundries.add(foundry);
         }
-        setup();
+        if (full)
+            setup();
     }
     
     private Object convertMenuItem(Object menuItem) {
@@ -934,6 +917,10 @@ public class Technology implements Comparable<Technology>
             return findArcProto(((Xml.ArcProto)menuItem).name);
         if (menuItem instanceof Xml.PrimitiveNode)
             return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
+        if (menuItem instanceof Xml.MenuNodeInst) {
+            Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
+            return makeNodeInst(findNodeProto(n.protoName), n.function, 0, true, n.text, n.fontSize);
+        }
         return menuItem.toString();
     }
     
@@ -1370,31 +1357,15 @@ public class Technology implements Comparable<Technology>
             }
         }
         
-        DRCRules drcRules = getFactoryDesignRules();
-        if (drcRules != null) {
-    		int layerTotal = getNumLayers();
-            for (int i1 = 0; i1 < layerTotal; i1++) {
-                for (int i2 = i1; i2 < layerTotal; i2++) {
-                    for (DRCTemplate dt: drcRules.getSpacingRules(drcRules.getRuleIndex(i1, i2), DRCTemplate.DRCRuleType.SPACING, false)) {
-                        Xml.LayersRule r = null;
-                        if (dt.ruleType == DRCTemplate.DRCRuleType.CONSPA) {
-                            r = new Xml.LayersRule();
-                            r.ruleName = "C" + "_" + i1 + "_" + i2;
-                            r.type = "CONSPA";
-                        } else if (dt.ruleType == DRCTemplate.DRCRuleType.UCONSPA) {
-                            r = new Xml.LayersRule();
-                            r.ruleName = "U" + "_" + i1 + "_" + i2;
-                            r.type = "UCONSPA";
-                        }
-                        if (r != null) {
-                            r.layerNames = "{" + getLayer(i1).getName() + ", " + getLayer(i2).getName() + "}";
-                            r.when = "ALL";
-                            r.value = dt.getValue(0);
-                            out.println("LayersRule " + r.ruleName + " " + r.layerNames + " " + r.type + " " + r.when + " " + r.value);
-                        }
-                    }
-                }
-            }
+        for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
+            Foundry foundry = it.next();
+            out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
+            for (Map.Entry<Layer,String> e: foundry.getGDSLayers().entrySet())
+                out.println("        <layerGds layer=\"" + e.getKey().getName() + "\" gds=\"" + e.getValue() + "\"/>");
+            List<DRCTemplate> rules = foundry.getRules();
+            if (rules != null)
+                DRCTemplate.exportDRCRules(out, rules);
+            out.println("    </Foundry>");
         }
     }
     
@@ -1419,13 +1390,16 @@ public class Technology implements Comparable<Technology>
         } else if (entry instanceof NodeInst) {
             NodeInst ni = (NodeInst)entry;
             PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-            out.print(" nodeInst " + pn.getName());
+            out.print(" nodeInst " + pn.getName() + ":" + ni.getFunction() + ":" + ni.getOrient());
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                out.print(":" + var.getObject()+ ":" + var.isDisplay() + ":" + var.getSize().getSize());
+            }
         } else if (entry instanceof String) {
             out.print(" " + entry);
         } else {
             assert false;
         }
-        
     }
     
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {

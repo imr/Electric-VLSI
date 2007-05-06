@@ -1192,16 +1192,16 @@
     </menuPalette>
 
     <Foundry name="NONE">
-        <LayersRule ruleName="U_0_0" layerNames="{Metal, Metal}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_1_1" layerNames="{Polysilicon, Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_1_2" layerNames="{Polysilicon, Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="U_1_2" layerNames="{Polysilicon, Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon, Implant}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_1_5" layerNames="{Polysilicon, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_2_2" layerNames="{Diffusion, Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{Diffusion, Implant}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_2_5" layerNames="{Diffusion, Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_3_11" layerNames="{Implant, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_4_11" layerNames="{Contact-Cut, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_0_0" layerNames="{Metal,Metal}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Polysilicon,Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_1_2" layerNames="{Polysilicon,Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U_1_2" layerNames="{Polysilicon,Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon,Implant}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_1_5" layerNames="{Polysilicon,Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_2" layerNames="{Diffusion,Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{Diffusion,Implant}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_5" layerNames="{Diffusion,Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_11" layerNames="{Implant,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_4_11" layerNames="{Contact-Cut,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

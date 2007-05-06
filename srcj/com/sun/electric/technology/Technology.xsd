@@ -31,7 +31,21 @@
             <xsd:element name="menuArc" type="tns:ArcProtoName"></xsd:element>
             <xsd:element name="menuNode" type="tns:PrimitiveNodeName"></xsd:element>
             <xsd:element name="menuText" type="xsd:string"></xsd:element>
-        </xsd:choice>
+                <xsd:element name="menuNodeInst">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="menuNodeText" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="text" type="xsd:string" use="required"/>
+                                    <xsd:attribute name="size" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="protoName" type="tns:PrimitiveNodeName" use="required"/>
+                        <xsd:attribute name="function" type="tns:PrimitiveNodeFun" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:choice>
         </xsd:sequence>
     </xsd:group>
     
@@ -132,6 +146,8 @@
             <xsd:enumeration value="connects-metal"/>
             <xsd:enumeration value="connects-poly"/>
             <xsd:enumeration value="connects-diff"/>
+            <xsd:enumeration value="heavy"/>
+            <xsd:enumeration value="light"/>
             <xsd:enumeration value="depletion_heavy"/>
             <xsd:enumeration value="depletion_light"/>
             <xsd:enumeration value="enhancement_heavy"/>
@@ -306,17 +322,55 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:simpleType name="DesignRuleType">
+    <xsd:simpleType name="RuleName">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LayerRuleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="MINWID"/>
+            <xsd:enumeration value="MINAREA"/>
+            <xsd:enumeration value="MINENCLOSEDAREA"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LayersRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="CONSPA"/>
             <xsd:enumeration value="UCONSPA"/>
+            <xsd:enumeration value="UCONSPA2D"/>
+            <xsd:enumeration value="SPACING"/>
+            <xsd:enumeration value="SPACINGE"/>
+            <xsd:enumeration value="FORBIDDEN"/>
+            <xsd:enumeration value="EXTENSION"/>
+            <xsd:enumeration value="EXTENSIONGATE"/>
+            <xsd:enumeration value="SURROUND"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="NodeLayersRuleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="SURROUND"/>
+            <xsd:enumeration value="ASURROUND"/>
+            <xsd:enumeration value="UCONSPA2D"/>
+            <xsd:enumeration value="SPACING"/>
+            <xsd:enumeration value="SPACINGE"/>
+            <xsd:enumeration value="FORBIDDEN"/>
+            <xsd:enumeration value="EXTENSION"/>
+            <xsd:enumeration value="EXTENSIONGATE"/>
+            <xsd:enumeration value="SURROUND"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="NodeRuleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="NODSIZ"/>
+            <xsd:enumeration value="FORBIDDEN"/>
         </xsd:restriction>
     </xsd:simpleType>
     
     <xsd:simpleType name="DesignRuleWhen">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="ALL"/>
-        </xsd:restriction>
+        <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
     
     <xsd:complexType name="TechPoint">
@@ -329,7 +383,7 @@
     <xsd:element name="technology">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element name="shortName" type="xsd:string"/>
+                <xsd:element name="shortName" type="xsd:string" minOccurs="0"/>
                 <xsd:element name="description" type="xsd:string"/>
                 <xsd:element name="numMetals">
                     <xsd:complexType>
@@ -600,7 +654,7 @@
                         <xsd:attribute name="numColumns" type="xsd:int"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="Foundry">
+                <xsd:element name="Foundry" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
                             <xsd:element name="layerGds" minOccurs="0" maxOccurs="unbounded">
@@ -610,15 +664,54 @@
                                     <xsd:attribute name="gds" type="xsd:string" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="LayersRule" minOccurs="0" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:attribute name="ruleName" type="xsd:string" use="required"/>
-                                    <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
-                                    <xsd:attribute name="type" type="tns:DesignRuleType" use="required"/>
-                                    <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
-                                    <xsd:attribute name="value" type="xsd:double" use="required"/>
-                                </xsd:complexType>
-                            </xsd:element>
+                            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                                <xsd:element name="LayerRule">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                                        <xsd:attribute name="layerName" type="tns:LayerName" use="required"/>
+                                        <xsd:attribute name="type" type="tns:LayerRuleType" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="value" type="xsd:double" use="required"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="LayersRule">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                                        <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
+                                        <xsd:attribute name="type" type="tns:LayersRuleType" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="valueX" type="xsd:double"/>
+                                        <xsd:attribute name="valueY" type="xsd:double"/>
+                                        <xsd:attribute name="value" type="xsd:double"/>
+                                        <xsd:attribute name="maxW" type="xsd:double"/>
+                                        <xsd:attribute name="minLen" type="xsd:double"/>
+                                        <xsd:attribute name="nodeName" type="tns:PrimitiveNodeName"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="NodeLayersRule">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                                        <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
+                                        <xsd:attribute name="nodeName" type="tns:PrimitiveNodeName" use="required"/>
+                                        <xsd:attribute name="type" type="tns:NodeLayersRuleType" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="value" type="xsd:double"/>
+                                        <xsd:attribute name="valueX" type="xsd:double"/>
+                                        <xsd:attribute name="valueY" type="xsd:double"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="NodeRule">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                                        <xsd:attribute name="type" type="tns:NodeRuleType" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="value" type="xsd:double"/>
+                                        <xsd:attribute name="valueX" type="xsd:double"/>
+                                        <xsd:attribute name="valueY" type="xsd:double"/>
+                                        <xsd:attribute name="nodeName" type="tns:PrimitiveNodeName" use="required"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                            </xsd:choice>
                         </xsd:sequence>
                         <xsd:attribute name="name" type="tns:Foundry" use="required"/>
                     </xsd:complexType>

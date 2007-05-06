@@ -4,6 +4,19 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+IMP: (5/5/07, DN) Xml description for technology "cmos90".
+
+IMP: (5/5/07, DN) Rename some nodes in "cmos90" to fit Xml syntax restrictions:
+        "cmos90:X Metal-1-Metal-2-Con" -> "cmos90:X-Metal-1-Metal-2-Con"
+        "cmos90:X Metal-2-Metal-3-Con" -> "cmos90:X-Metal-2-Metal-3-Con"
+        "cmos90:X Metal-3-Metal-4-Con" -> "cmos90:X-Metal-3-Metal-4-Con"
+        "cmos90:X Metal-4-Metal-5-Con" -> "cmos90:X-Metal-4-Metal-5-Con"
+        "cmos90:X Metal-5-Metal-6-Con" -> "cmos90:X-Metal-5-Metal-6-Con"
+        "cmos90:X Metal-6-Metal-7-Con" -> "cmos90:X-Metal-6-Metal-7-Con"
+        "cmos90:X Metal-7-Metal-8-Con" -> "cmos90:X-Metal-7-Metal-7-Con"
+        "cmos90:X Metal-8-Metal-9-Con" -> "cmos90:X-Metal-8-Metal-8-Con"
+        "cmos90:X Metal-4-Metal-7-Con" -> "cmos90:X-Metal-4-Metal-7-Con"
+
 IMP: (5/4/07, DN) Pseudo-layers are hidden:
     1) They are not mentioned in technology Xml files;
     2) Tecnology.getLayers() doesn't contain them;
