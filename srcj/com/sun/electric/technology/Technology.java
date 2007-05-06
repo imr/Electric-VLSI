@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -64,7 +65,6 @@ import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -609,7 +609,8 @@ public class Technology implements Comparable<Technology>
 
 	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
-	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyTechnologies = new TreeMap<String,String>();
+	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
+	/** static list of xml Technologies in Electric */		private static TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -626,8 +627,10 @@ public class Technology implements Comparable<Technology>
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
+    /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>(); 
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+    /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>(); 
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -708,11 +711,7 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 	}
 
-    protected Technology(URL urlXml, boolean full) {
-        this(Xml.parseTechnology(urlXml), full);
-    }
-    
-    private Technology(Xml.Technology t, boolean full) {
+    public Technology(Xml.Technology t) {
         this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
         setTechShortName(t.shortTechName);
@@ -737,10 +736,12 @@ public class Technology implements Comparable<Technology>
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                double widthOffset = full ? a.widthOffset - al.width.value : 2;
+                double widthOffset = a.widthOffset - al.width.value;
                 arcLayers[i] = new ArcLayer(layers.get(al.layer), widthOffset, al.style);
             }
     		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth.value + a.widthOffset, a.function, arcLayers);
+            if (a.oldName != null)
+                oldArcNames.put(a.oldName, ap);
             arcs.put(a.name, ap);
             if (a.wipable)
                 ap.setWipable();
@@ -787,6 +788,8 @@ public class Technology implements Comparable<Technology>
             }
             PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth.value, n.defaultHeight.value, n.sizeOffset,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
+            if (n.oldName != null)
+                oldNodeNames.put(n.oldName, pnp);
             pnp.setFunction(n.function);
             if (needElectricalLayers)
                 pnp.setElectricalLayers(electricalNodeLayers.toArray(new NodeLayer[electricalNodeLayers.size()]));
@@ -859,7 +862,10 @@ public class Technology implements Comparable<Technology>
             ArcProto[] connections = new ArcProto[l.pureLayerNode.portArcs.size()];
             for (int j = 0; j < connections.length; j++)
                 connections[j] = arcs.get(l.pureLayerNode.portArcs.get(j));
-            layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
+            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
+            if (l.pureLayerNode.oldName != null)
+                oldNodeNames.put(l.pureLayerNode.oldName, pn);
+            
         }
         if (t.menuPalette != null) {
             int numColumns = t.menuPalette.numColumns;
@@ -908,8 +914,6 @@ public class Technology implements Comparable<Technology>
             Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), f.rules, gdsLayers.toArray(new String[gdsLayers.size()]));
             foundries.add(foundry);
         }
-        if (full)
-            setup();
     }
     
     private Object convertMenuItem(Object menuItem) {
@@ -949,21 +953,11 @@ public class Technology implements Comparable<Technology>
 		Pref.delayPrefFlushing();
 
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Artwork.tech.setup();
-//		BiCMOS.tech.setup();
-//		Bipolar.tech.setup();
-//		CMOS.tech.setup();
-//		EFIDO.tech.setup();
-		FPGA.tech.setup();
-//		GEM.tech.setup();
-		MoCMOS.tech.setup();
-//		MoCMOSOld.tech.setup();
-//		MoCMOSSub.tech.setup();
-//		nMOS.tech.setup();
-//		PCB.tech.setup();
-//		RCMOS.tech.setup();
-		Schematics.tech.setup();
 		Generic.tech.setup();
+		Artwork.tech.setup();
+		FPGA.tech.setup();
+		MoCMOS.tech.setup();
+		Schematics.tech.setup();
 
 		// finished batching preferences
 		Pref.resumePrefFlushing();
@@ -971,25 +965,27 @@ public class Technology implements Comparable<Technology>
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
         
-        new Technology(Technology.class.getResource("technologies/bicmos.xml"), true);
-        new Technology(Technology.class.getResource("technologies/bipolar.xml"), true);
-        new Technology(Technology.class.getResource("technologies/cmos.xml"), true);
-        new Technology(Technology.class.getResource("technologies/mocmosold.xml"), true);
-        new Technology(Technology.class.getResource("technologies/mocmossub.xml"), true);
-        new Technology(Technology.class.getResource("technologies/nmos.xml"), true);
+        lazyUrls.put("bicmos",       Technology.class.getResource("technologies/bicmos.xml"));
+        lazyUrls.put("bipolar",      Technology.class.getResource("technologies/bipolar.xml"));
+        lazyUrls.put("cmos",         Technology.class.getResource("technologies/cmos.xml"));
+        lazyClasses.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
+        lazyClasses.put("gem",       "com.sun.electric.technology.technologies.GEM");
+        lazyClasses.put("pcb",       "com.sun.electric.technology.technologies.PCB");
+        lazyClasses.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
+        lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
+        lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
+        lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
         
-        lazyTechnologies.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
-        lazyTechnologies.put("gem",       "com.sun.electric.technology.technologies.GEM");
-        lazyTechnologies.put("pcb",       "com.sun.electric.technology.technologies.PCB");
-        lazyTechnologies.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
-        
-        lazyTechnologies.put("tsmc180",   "com.sun.electric.plugins.tsmc.TSMC180");
-        lazyTechnologies.put("cmos90",    "com.sun.electric.plugins.tsmc.CMOS90");
+        lazyClasses.put("tsmc180",   "com.sun.electric.plugins.tsmc.TSMC180");
+        lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));/*"com.sun.electric.plugins.tsmc.CMOS90");*/
         
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present
-            for(String techClassName: lazyTechnologies.values()) {
+            for(String techClassName: lazyClasses.values()) {
                 setupTechnology(techClassName);
+            }
+            for(URL techUrl: lazyUrls.values()) {
+                setupTechnology(techUrl);
             }
         }
 
@@ -1006,6 +1002,28 @@ public class Technology implements Comparable<Technology>
         try {
             Class<?> techClass = Class.forName(techClassName);
             Technology tech = (Technology)techClass.getField("tech").get(null);
+            tech.setup();
+            Generic.tech.makeUnivList();
+        } catch (ClassNotFoundException e) {
+            if (Job.getDebug())
+                System.out.println("GNU Release can't find extra technologies");
+            
+        } catch (Exception e) {
+            System.out.println("Exceptions while importing extra technologies");
+            ActivityLogger.logException(e);
+        } finally {
+            Pref.resumePrefFlushing();
+        }
+    }
+    
+    private static void setupTechnology(URL urlXml) {
+        Pref.delayPrefFlushing();
+        try {
+            Xml.Technology t = Xml.parseTechnology(urlXml);
+            Class<?> techClass = Technology.class;
+            if (t.className != null)
+                techClass = Class.forName(t.className);
+            Technology tech = (Technology)techClass.getConstructor(Xml.Technology.class).newInstance(t);
             tech.setup();
             Generic.tech.makeUnivList();
         } catch (ClassNotFoundException e) {
@@ -1323,8 +1341,18 @@ public class Technology implements Comparable<Technology>
         }
         for (ArcProto ap: arcs.values())
             ap.dump(out);
+        if (!oldArcNames.isEmpty()) {
+            out.println("OldArcNames:");
+            for (Map.Entry<String,ArcProto> e: getOldArcNames().entrySet())
+                out.println("\t" + e.getKey() + " --> " + e.getValue().getFullName());
+        }
         for (PrimitiveNode pnp: nodes.values())
             pnp.dump(out);
+        if (!oldNodeNames.isEmpty()) {
+            out.println("OldNodeNames:");
+            for (Map.Entry<String,PrimitiveNode> e: getOldNodeNames().entrySet())
+                out.println("\t" + e.getKey() + " --> " + e.getValue().getFullName());
+        }
         for (Foundry foundry: foundries) {
             out.println("Foundry " + foundry.getType());
             for (Layer layer: layers) {
@@ -1858,13 +1886,14 @@ public class Technology implements Comparable<Technology>
     
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
-	 * This method is overridden by those technologies that have any special arc name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * method is called, normal searches have failed.
 	 * @param name the unknown arc name, read from an old Library.
 	 * @return the proper ArcProto to use for this name.
 	 */
-	public ArcProto convertOldArcName(String name) { return null; }
+	public ArcProto convertOldArcName(String name) {
+        return oldArcNames.get(name);
+    }
+
+    public Map<String,ArcProto> getOldArcNames() { return new TreeMap<String,ArcProto>(oldArcNames); }
 
 	/****************************** NODES ******************************/
 
@@ -3079,12 +3108,14 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Method to convert old primitive node names to their proper NodeProtos.
 	 * This method is overridden by those technologies that have any special node name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * method is called, normal searches have failed.
 	 * @param name the unknown node name, read from an old Library.
 	 * @return the proper PrimitiveNode to use for this name.
 	 */
-	public PrimitiveNode convertOldNodeName(String name) { return null; }
+	public PrimitiveNode convertOldNodeName(String name) {
+        return oldNodeNames.get(name);
+    }
+    
+    public Map<String,PrimitiveNode> getOldNodeNames() { return new TreeMap<String,PrimitiveNode>(oldNodeNames); }
 
 	/****************************** PORTS ******************************/
 

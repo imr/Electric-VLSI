@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+BUG: (5/6/07, DN) DRCTemplate writer skips some DRCRuleTypes.
+FIX: Write FORBDEN and EXTENSIONGATE rules, comment CUTSURX and CUTSURY rules,
+    assert on SLOTSIZE rule.
+
 IMP: (5/5/07, DN) Xml description for technology "cmos90".
 
 IMP: (5/5/07, DN) Rename some nodes in "cmos90" to fit Xml syntax restrictions:

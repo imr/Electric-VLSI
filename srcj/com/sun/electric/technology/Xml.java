@@ -58,6 +58,7 @@ public class Xml {
     
     public static class Technology {
         public String techName;
+        public String className;
         public String shortTechName;
         public String description;
         public int minNumMetals;
@@ -129,6 +130,7 @@ public class Xml {
     
     public static class PureLayerNode {
         public String name;
+        public String oldName;
         public Poly.Type style;
         public String port;
         public final Distance size = new Distance();
@@ -137,6 +139,7 @@ public class Xml {
     
     public static class ArcProto {
         public String name;
+        public String oldName;
         public com.sun.electric.technology.ArcProto.Function function;
         public boolean wipable;
         public boolean curvable;
@@ -161,6 +164,7 @@ public class Xml {
     
     public static class PrimitiveNode {
         public String name;
+        public String oldName;
         public boolean shrinkArcs;
         public boolean square;
         public boolean canBeZeroSize;
@@ -265,6 +269,7 @@ public class Xml {
         pureLayerNode,
         
         arcProto,
+        oldName(true),
         wipable,
         curvable,
         special,
@@ -281,6 +286,7 @@ public class Xml {
         arcLayer,
         
         primitiveNode,
+        //oldName(true),
         shrinkArcs,
         square,
         canBeZeroSize,
@@ -640,6 +646,7 @@ public class Xml {
             switch (key) {
                 case technology:
                     tech.techName = a("name");
+                    tech.className = a_("class");
 //                    dump = true;
                     break;
                 case numMetals:
@@ -1027,6 +1034,14 @@ public class Xml {
                     case foreground:
                         foreground = Boolean.parseBoolean(text);
                         break;
+                    case oldName:
+                        if (curLayer != null)
+                            curLayer.pureLayerNode.oldName = text;
+                        if (curArc != null)
+                            curArc.oldName = text;
+                        if (curNode != null)
+                            curNode.oldName = text;
+                        break;
                     case widthOffset:
                         curArc.widthOffset = Double.parseDouble(text);
                         break;
@@ -1391,7 +1406,7 @@ public class Xml {
             out.println("-->");
             l();
             
-            b(XmlKeyword.technology); a("name", t.techName); l();
+            b(XmlKeyword.technology); a("name", t.techName); a("class", t.className); l();
             a("xmlns", "http://electric.sun.com/Technology"); l();
             a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
             a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
@@ -1509,6 +1524,7 @@ public class Xml {
                 String styleStr = style == Poly.Type.FILLED ? null : style.name();
                 String portName = li.pureLayerNode.port;
                 b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
+                bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
                 bcpel(XmlKeyword.lambda, li.pureLayerNode.size.value);
                 for (String portArc: li.pureLayerNode.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
@@ -1520,6 +1536,7 @@ public class Xml {
         
         private void writeXml(Xml.ArcProto ai) {
             b(XmlKeyword.arcProto); a("name", ai.name); a("fun", ai.function.getConstantName()); cl();
+            bcpel(XmlKeyword.oldName, ai.oldName);
             
             if (ai.wipable)
                 bel(XmlKeyword.wipable);
@@ -1560,6 +1577,7 @@ public class Xml {
         
         private void writeXml(Xml.PrimitiveNode ni) {
             b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
+            bcpel(XmlKeyword.oldName, ni.oldName);
             
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);

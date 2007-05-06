@@ -98,8 +98,8 @@ public class DRCTemplate implements Serializable
         /** a connected spacing rule */		CONSPA,
         /** an unconnected spacing rule */	UCONSPA,
         /** a spacing rule for 2D cuts*/	UCONSPA2D,
-        /** X contact cut surround rule */	CUTSURX,
-        /** Y contact cut surround rule */	CUTSURY,
+//        /** X contact cut surround rule */	CUTSURX,
+//        /** Y contact cut surround rule */	CUTSURY,
         /** arc surround rule */			ASURROUND,
         /** minimum area rule */			MINAREA,
         /** enclosed area rule */			MINENCLOSEDAREA,
@@ -322,6 +322,7 @@ public class DRCTemplate implements Serializable
                 case SPACING:
                 case SPACINGE:
                 case EXTENSION:
+                case EXTENSIONGATE:
                     String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
                     String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
                             + " minLen=\"" + rule.minLength + "\"") : "";
@@ -372,7 +373,23 @@ public class DRCTemplate implements Serializable
                             + "/>");
                     break;
                 case FORBIDDEN:
+                    if (rule.nodeName != null) {
+                        out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                                + " type=\""+rule.ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + " nodeName=\"" + rule.nodeName + "\""
+                                + "/>");
+                    } else {
+                        out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+                                + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                                + " type=\""+rule.ruleType+"\""
+                                + " when=\"" + whenName + "\""
+                                + "/>");
+                    }
+                   break;
+                case SLOTSIZE:
                 default:
+                    assert false;
                     System.out.println("Case not implemented " + rule.ruleType);
             }
         }

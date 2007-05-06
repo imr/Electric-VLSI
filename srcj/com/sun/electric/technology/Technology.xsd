@@ -55,6 +55,10 @@
         <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
     </xsd:complexType>
     
+    <xsd:simpleType name="ClassName">
+        <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+    
     <xsd:simpleType name="NumMetals">
         <xsd:restriction base="xsd:int">
             <xsd:minInclusive value="0"/>
@@ -464,6 +468,7 @@
                             </xsd:element>
                             <xsd:element name="pureLayerNode" minOccurs="0">
                                 <xsd:complexType>
+                                    <xsd:element name="oldName" type="tns:PrimitiveNodeName" minOccurs="0"></xsd:element>
                                     <xsd:sequence>
                                         <xsd:group ref="tns:Distance"/>
                                         <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
@@ -482,12 +487,12 @@
                 <xsd:element name="arcProto" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
+                            <xsd:element name="oldName" type="tns:ArcProtoName" minOccurs="0"></xsd:element>
                             <xsd:element name="wipable" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="curvable" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="special" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="notUsed" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="skipSizeInPalette" minOccurs="0"> <xsd:complexType/> </xsd:element>
-                            
                             <xsd:element name="extended" type="xsd:boolean"/>
                             <xsd:element name="fixedAngle" type="xsd:boolean"/>
                             <xsd:element name="angleIncrement" type="xsd:integer"/>
@@ -515,6 +520,7 @@
                 <xsd:element name="primitiveNode" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
+                            <xsd:element name="oldName" type="tns:PrimitiveNodeName" minOccurs="0"></xsd:element>
                             <xsd:element name="shrinkArcs" minOccurs="0"/>
                             <xsd:element name="square" minOccurs="0"/>
                             <xsd:element name="canBeZeroSize" minOccurs="0"/>
@@ -529,7 +535,6 @@
                             <xsd:element name="od18" minOccurs="0"/>
                             <xsd:element name="od25" minOccurs="0"/>
                             <xsd:element name="od33" minOccurs="0"/>
-                            
                             <xsd:element name="defaultWidth">
                                 <xsd:complexType>
                                     <xsd:sequence>
@@ -718,6 +723,7 @@
                 </xsd:element>
             </xsd:sequence>
             <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+            <xsd:attribute name="class" type="tns:ClassName"/>
         </xsd:complexType>
         
         <xsd:key name="transparent">

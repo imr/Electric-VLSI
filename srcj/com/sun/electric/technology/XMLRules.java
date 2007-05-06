@@ -967,16 +967,16 @@ public class XMLRules implements DRCRules {
             case UCONSPA2D:
                 addRule(index, theRule);
                 break;
-            case CUTSURX:
-                specValues = nty.getSpecialValues();
-                specValues[2] = distance;
-                assert(false);
-                break;
-            case CUTSURY:
-                specValues = nty.getSpecialValues();
-                specValues[3] = distance;
-                assert(false);
-                break;
+//            case CUTSURX:
+//                specValues = nty.getSpecialValues();
+//                specValues[2] = distance;
+//                assert(false);
+//                break;
+//            case CUTSURY:
+//                specValues = nty.getSpecialValues();
+//                specValues[3] = distance;
+//                assert(false);
+//                break;
             case NODSIZ:
                 addRule(nty.getPrimNodeIndexInTech(), theRule);
                 break;

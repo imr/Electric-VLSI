@@ -1999,6 +1999,9 @@ public class MoCMOS extends Technology
         }
 
         createPureLayerNodes();
+        
+		oldNodeNames.put("Metal-1-Substrate-Con", metalWellContactNodes[N_TYPE]);
+		oldNodeNames.put("Metal-1-Well-Con", metalWellContactNodes[P_TYPE]);
     }
 
     protected void createPureLayerNodes() {
@@ -3411,17 +3414,17 @@ public class MoCMOS extends Technology
 		return false;
 	}
 
-	/**
-	 * Method to convert old primitive names to their proper NodeProtos.
-	 * @param name the name of the old primitive.
-	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-	 */
-	public PrimitiveNode convertOldNodeName(String name)
-	{
-		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
-		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
-		return null;
-	}
+//	/**
+//	 * Method to convert old primitive names to their proper NodeProtos.
+//	 * @param name the name of the old primitive.
+//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+//	 */
+//	public PrimitiveNode convertOldNodeName(String name)
+//	{
+//		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
+//		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
+//		return null;
+//	}
 
 	/******************** OPTIONS ********************/
 
