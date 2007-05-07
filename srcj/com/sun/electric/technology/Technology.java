@@ -47,6 +47,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.plugins.tsmc.TSMC180;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
@@ -728,6 +729,8 @@ public class Technology implements Comparable<Technology>
             layer.setFunction(l.function, l.extraFunction);
             if (l.cif != null)
                 layer.setFactoryCIFLayer(l.cif);
+            if (l.skill != null)
+                layer.setFactorySkillLayer(l.skill);
             layer.setFactory3DInfo(l.thick3D, l.height3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
@@ -975,9 +978,8 @@ public class Technology implements Comparable<Technology>
         lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
         lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
-        
-        lazyClasses.put("tsmc180",   "com.sun.electric.plugins.tsmc.TSMC180");
-        lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));/*"com.sun.electric.plugins.tsmc.CMOS90");*/
+        lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
+        lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));
         
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present

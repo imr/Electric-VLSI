@@ -2244,6 +2244,7 @@ public class Schematics extends Technology
      * @param width the new width
      * @param length the new length
      */
+    @Override
     public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
         setPrimitiveNodeSize(ni, new Double(width), new Double(length));

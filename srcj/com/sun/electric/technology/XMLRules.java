@@ -1072,10 +1072,11 @@ public class XMLRules implements DRCRules {
      */
     public void resizeMetalContacts(PrimitiveNode[] contacts, int numMetals)
     {
-        for (int i = 0; i < numMetals - 1; i++)
+        for (int i = 0; i < contacts.length; i++)
+//        for (int i = 0; i < numMetals - 1; i++)
         {
             PrimitiveNode metalContact = contacts[i];
-            assert !metalContact.isNotUsed();
+            assert metalContact.isNotUsed() == i >= numMetals - 1;
             Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
             Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
             Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal

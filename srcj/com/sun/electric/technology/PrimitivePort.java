@@ -424,6 +424,6 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
                     " bm=" + bottom.getMultiplier() + " ba=" + bottom.getAdder() + " tm=" + top.getMultiplier() + " ta=" + top.getAdder());
             out.println("\t\tisolated=" + isolated + " negatable=" + negatable);
             for (ArcProto ap: portArcs)
-                out.println("portArc " + ap.getName());
+                out.println("\t\tportArc " + ap.getName());
     }
 }

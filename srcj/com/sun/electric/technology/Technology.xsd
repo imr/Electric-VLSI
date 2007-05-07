@@ -459,6 +459,11 @@
                                     <xsd:attribute name="cif" type="xsd:string" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
+                            <xsd:element name="skillLayer" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="skill" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
                             <xsd:element name="parasitics" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="resistance" type="xsd:double" use="required"/>
@@ -468,8 +473,8 @@
                             </xsd:element>
                             <xsd:element name="pureLayerNode" minOccurs="0">
                                 <xsd:complexType>
-                                    <xsd:element name="oldName" type="tns:PrimitiveNodeName" minOccurs="0"></xsd:element>
                                     <xsd:sequence>
+                                        <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
                                         <xsd:group ref="tns:Distance"/>
                                         <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
@@ -487,7 +492,7 @@
                 <xsd:element name="arcProto" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element name="oldName" type="tns:ArcProtoName" minOccurs="0"></xsd:element>
+                            <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
                             <xsd:element name="wipable" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="curvable" minOccurs="0"> <xsd:complexType/> </xsd:element>
                             <xsd:element name="special" minOccurs="0"> <xsd:complexType/> </xsd:element>
@@ -520,7 +525,7 @@
                 <xsd:element name="primitiveNode" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element name="oldName" type="tns:PrimitiveNodeName" minOccurs="0"></xsd:element>
+                            <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
                             <xsd:element name="shrinkArcs" minOccurs="0"/>
                             <xsd:element name="square" minOccurs="0"/>
                             <xsd:element name="canBeZeroSize" minOccurs="0"/>

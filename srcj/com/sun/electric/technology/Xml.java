@@ -122,6 +122,7 @@ public class Xml {
         public double thick3D;
         public double height3D;
         public String cif;
+        public String skill;
         public double resistance;
         public double capacitance;
         public double edgeCapacitance;
@@ -265,6 +266,7 @@ public class Xml {
         foreground(true),
         display3D,
         cifLayer,
+        skillLayer,
         parasitics,
         pureLayerNode,
         
@@ -717,6 +719,9 @@ public class Xml {
                 case cifLayer:
                     curLayer.cif = a("cif");
                     break;
+                case skillLayer:
+                    curLayer.skill = a("skill");
+                    break;
                 case parasitics:
                     curLayer.resistance = Double.parseDouble(a("resistance"));
                     curLayer.capacitance = Double.parseDouble(a("capacitance"));
@@ -1138,6 +1143,7 @@ public class Xml {
                 case opaqueColor:
                 case display3D:
                 case cifLayer:
+                case skillLayer:
                 case parasitics:
                 case pureLayerNode:
                     
@@ -1513,6 +1519,9 @@ public class Xml {
             if (li.cif != null && li.cif.length() > 0) {
                 b(XmlKeyword.cifLayer); a("cif", li.cif); el();
             }
+            if (li.skill != null && li.skill.length() > 0) {
+                b(XmlKeyword.skillLayer); a("skill", li.skill); el();
+            }
             
             // write the SPICE information
             if (li.resistance != 0 || li.capacitance != 0 || li.edgeCapacitance != 0) {
@@ -1751,6 +1760,7 @@ public class Xml {
             for (Map.Entry<String,String> e: foundry.layerGds.entrySet()) {
                 b(XmlKeyword.layerGds); a("layer", e.getKey()); a("gds", e.getValue()); el();
             }
+            l();
             DRCTemplate.exportDRCRules(out, foundry.rules);
             el(XmlKeyword.Foundry);
         }

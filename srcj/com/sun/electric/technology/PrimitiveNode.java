@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -1607,8 +1608,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
         public NodeSizeRule(double sizeX, double sizeY, String rule)
         {
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
+            this.sizeX = DBMath.round(sizeX);
+            this.sizeY = DBMath.round(sizeY);
             this.rule = rule;
         }
 
