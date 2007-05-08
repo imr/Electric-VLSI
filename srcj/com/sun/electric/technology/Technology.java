@@ -111,7 +111,11 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
-    /**
+    
+    /** key of Variable for saving scalable transistor contact information. */
+    public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
+      
+   /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
 	 * each layer in a typical ArcInst.
@@ -626,8 +630,10 @@ public class Technology implements Comparable<Technology>
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
+    /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>(); 
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+    /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>(); 
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -662,7 +668,6 @@ public class Technology implements Comparable<Technology>
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
-    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
 
 	/****************************** CONTROL ******************************/
@@ -730,6 +735,8 @@ public class Technology implements Comparable<Technology>
             layer.setFunction(l.function, l.extraFunction);
             if (l.cif != null)
                 layer.setFactoryCIFLayer(l.cif);
+            if (l.skill != null)
+                layer.setFactorySkillLayer(l.skill);
             layer.setFactory3DInfo(l.thick3D, l.height3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
@@ -738,10 +745,12 @@ public class Technology implements Comparable<Technology>
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                double widthOffset = full ? a.widthOffset - al.width.value : 2;
+                double widthOffset = a.widthOffset - al.width.value;
                 arcLayers[i] = new ArcLayer(layers.get(al.layer), widthOffset, al.style);
             }
     		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth.value + a.widthOffset, a.function, arcLayers);
+            if (a.oldName != null)
+                oldArcNames.put(a.oldName, ap);
             arcs.put(a.name, ap);
             if (a.wipable)
                 ap.setWipable();
@@ -788,6 +797,8 @@ public class Technology implements Comparable<Technology>
             }
             PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth.value, n.defaultHeight.value, n.sizeOffset,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
+            if (n.oldName != null)
+                oldNodeNames.put(n.oldName, pnp);
             pnp.setFunction(n.function);
             if (needElectricalLayers)
                 pnp.setElectricalLayers(electricalNodeLayers.toArray(new NodeLayer[electricalNodeLayers.size()]));
@@ -860,7 +871,9 @@ public class Technology implements Comparable<Technology>
             ArcProto[] connections = new ArcProto[l.pureLayerNode.portArcs.size()];
             for (int j = 0; j < connections.length; j++)
                 connections[j] = arcs.get(l.pureLayerNode.portArcs.get(j));
-            layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
+            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
+            if (l.pureLayerNode.oldName != null)
+                oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
         if (!full) return;
         if (t.menuPalette != null) {
@@ -907,32 +920,7 @@ public class Technology implements Comparable<Technology>
                 if (gds == null) continue;
                 gdsLayers.add(layer.getName() + " " + gds);
             }
-            ArrayList<DRCTemplate> rules = new ArrayList<DRCTemplate>();
-            if (!f.layerRules.isEmpty()) {
-                int layerTotal = this.layers.size();
-                int rulesSize = layerTotal*(layerTotal + 1)/2;
-                conDist = new double[rulesSize];
-                unConDist = new double[rulesSize];
-                Arrays.fill(conDist, -1);
-                Arrays.fill(unConDist, -1);
-                for (Xml.LayersRule r: f.layerRules) {
-                    String nm = r.layerNames;
-                    if (nm.length() < 2 || nm.charAt(0) != '{' || nm.charAt(nm.length() - 1) != '}')
-                        continue;
-                    nm = nm.substring(1, nm.length() - 1);
-                    int comma = nm.indexOf(',');
-                    Layer l1 = layers.get(nm.substring(0,comma).trim());
-                    Layer l2 = layers.get(nm.substring(comma + 1).trim());
-                    if (l1 == null || l2 == null) continue;
-                    int i1 = l1.getIndex();
-                    int i2 = l2.getIndex();
-                    if (r.type.equals(DRCTemplate.DRCRuleType.CONSPA.name()))
-                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.CONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-                    else if (r.type.equals(DRCTemplate.DRCRuleType.UCONSPA.name()))
-                        rules.add(new DRCTemplate(r.ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.UCONSPA, l1.getName(), l2.getName(), new double[] {r.value}, null));
-                }
-            }
-            Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), rules, gdsLayers.toArray(new String[gdsLayers.size()]));
+            Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), f.rules, gdsLayers.toArray(new String[gdsLayers.size()]));
             foundries.add(foundry);
         }
         setup();
@@ -943,6 +931,10 @@ public class Technology implements Comparable<Technology>
             return findArcProto(((Xml.ArcProto)menuItem).name);
         if (menuItem instanceof Xml.PrimitiveNode)
             return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
+        if (menuItem instanceof Xml.MenuNodeInst) {
+            Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
+            return makeNodeInst(findNodeProto(n.protoName), n.function, 0, true, n.text, n.fontSize);
+        }
         return menuItem.toString();
     }
     
@@ -1016,9 +1008,9 @@ public class Technology implements Comparable<Technology>
         }
 
 		// set the current technology, given priority to user defined
-        curLayoutTech = MoCMOS.tech;
+        curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
-        if (tech == null) tech = MoCMOS.tech;
+        if (tech == null) tech = curLayoutTech;
         tech.setCurrent();
 
 	}
@@ -1042,6 +1034,20 @@ public class Technology implements Comparable<Technology>
         }
     }
     
+    private static Technology mocmos = null;
+    private static boolean mocmosCached = false;
+    /**
+     * Method to return the MOSIS CMOS technology.
+     * @return the MOSIS CMOS technology object.
+     */
+    public static Technology getMocmosTechnology() {
+        if (!mocmosCached) {
+            mocmosCached = true;
+            mocmos = findTechnology("mocmos");
+        }
+        return mocmos;
+    }
+     
     private static Technology tsmc180 = null;
     private static boolean tsmc180Cached = false;
 	/**
@@ -1345,8 +1351,18 @@ public class Technology implements Comparable<Technology>
         }
         for (ArcProto ap: arcs.values())
             ap.dump(out);
+        if (!oldArcNames.isEmpty()) {
+            out.println("OldArcNames:");
+            for (Map.Entry<String,ArcProto> e: getOldArcNames().entrySet())
+                out.println("\t" + e.getKey() + " --> " + e.getValue().getFullName());
+        }
         for (PrimitiveNode pnp: nodes.values())
             pnp.dump(out);
+        if (!oldNodeNames.isEmpty()) {
+            out.println("OldNodeNames:");
+            for (Map.Entry<String,PrimitiveNode> e: getOldNodeNames().entrySet())
+                out.println("\t" + e.getKey() + " --> " + e.getValue().getFullName());
+        }
         for (Foundry foundry: foundries) {
             out.println("Foundry " + foundry.getType());
             for (Layer layer: layers) {
@@ -1379,31 +1395,17 @@ public class Technology implements Comparable<Technology>
             }
         }
         
-        DRCRules drcRules = getFactoryDesignRules();
-        if (drcRules != null) {
-    		int layerTotal = getNumLayers();
-            for (int i1 = 0; i1 < layerTotal; i1++) {
-                for (int i2 = i1; i2 < layerTotal; i2++) {
-                    for (DRCTemplate dt: drcRules.getSpacingRules(drcRules.getRuleIndex(i1, i2), DRCTemplate.DRCRuleType.SPACING, false)) {
-                        Xml.LayersRule r = null;
-                        if (dt.ruleType == DRCTemplate.DRCRuleType.CONSPA) {
-                            r = new Xml.LayersRule();
-                            r.ruleName = "C" + "_" + i1 + "_" + i2;
-                            r.type = "CONSPA";
-                        } else if (dt.ruleType == DRCTemplate.DRCRuleType.UCONSPA) {
-                            r = new Xml.LayersRule();
-                            r.ruleName = "U" + "_" + i1 + "_" + i2;
-                            r.type = "UCONSPA";
-                        }
-                        if (r != null) {
-                            r.layerNames = "{" + getLayer(i1).getName() + ", " + getLayer(i2).getName() + "}";
-                            r.when = "ALL";
-                            r.value = dt.getValue(0);
-                            out.println("LayersRule " + r.ruleName + " " + r.layerNames + " " + r.type + " " + r.when + " " + r.value);
-                        }
-                    }
-                }
+        for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
+            Foundry foundry = it.next();
+            out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
+            for (Map.Entry<Layer,String> e: foundry.getGDSLayers().entrySet())
+                out.println("        <layerGds layer=\"" + e.getKey().getName() + "\" gds=\"" + e.getValue() + "\"/>");
+            List<DRCTemplate> rules = foundry.getRules();
+            if (rules != null) {
+                for (DRCTemplate rule: rules)
+                    DRCTemplate.exportDRCRule(out, rule);
             }
+            out.println("    </Foundry>");
         }
     }
     
@@ -1428,13 +1430,16 @@ public class Technology implements Comparable<Technology>
         } else if (entry instanceof NodeInst) {
             NodeInst ni = (NodeInst)entry;
             PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-            out.print(" nodeInst " + pn.getName());
+            out.print(" nodeInst " + pn.getName() + ":" + ni.getFunction() + ":" + ni.getOrient());
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                out.print(":" + var.getObject()+ ":" + var.isDisplay() + ":" + var.getSize().getSize());
+            }
         } else if (entry instanceof String) {
             out.print(" " + entry);
         } else {
             assert false;
         }
-        
     }
     
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
@@ -1893,13 +1898,14 @@ public class Technology implements Comparable<Technology>
     
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
-	 * This method is overridden by those technologies that have any special arc name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * method is called, normal searches have failed.
 	 * @param name the unknown arc name, read from an old Library.
 	 * @return the proper ArcProto to use for this name.
 	 */
-	public ArcProto convertOldArcName(String name) { return null; }
+	public ArcProto convertOldArcName(String name) {
+        return oldArcNames.get(name);
+    }
+
+    public Map<String,ArcProto> getOldArcNames() { return new TreeMap<String,ArcProto>(oldArcNames); }
 
 	/****************************** NODES ******************************/
 
@@ -3113,13 +3119,14 @@ public class Technology implements Comparable<Technology>
 
 	/**
 	 * Method to convert old primitive node names to their proper NodeProtos.
-	 * This method is overridden by those technologies that have any special node name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * method is called, normal searches have failed.
 	 * @param name the unknown node name, read from an old Library.
 	 * @return the proper PrimitiveNode to use for this name.
 	 */
-	public PrimitiveNode convertOldNodeName(String name) { return null; }
+	public PrimitiveNode convertOldNodeName(String name) {
+        return oldNodeNames.get(name);
+    }
+    
+    public Map<String,PrimitiveNode> getOldNodeNames() { return new TreeMap<String,PrimitiveNode>(oldNodeNames); }
 
 	/****************************** PORTS ******************************/
 
@@ -4089,18 +4096,6 @@ public class Technology implements Comparable<Technology>
 	 * @param newRules
 	 */
 	public void setRuleVariables(DRCRules newRules) {}
-
-	/**
-	 * Method to create a set of Design Rules from some simple spacing arrays.
-	 * Used by simpler technologies that do not have full-sets of design rules.
-	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
-	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
-	 * @return a set of design rules for the Technology.
-	 */
-	public static DRCRules makeSimpleRules(double [] conDist, double [] unConDist)
-	{
-		return null;
-	}
 
 	/**
 	 * Returns the color map for transparent layers in this technology.

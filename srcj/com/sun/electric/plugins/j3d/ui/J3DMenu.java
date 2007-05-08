@@ -36,7 +36,6 @@ import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 
 import java.lang.reflect.Method;
 
@@ -101,7 +100,7 @@ public class J3DMenu {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
         Technology tech = curCell.getTechnology();
-        if (tech != MoCMOS.tech && tech != Technology.getTSMC180Technology() && tech != Technology.getCMOS90Technology())
+        if (tech != Technology.getMocmosTechnology() && tech != Technology.getTSMC180Technology() && tech != Technology.getCMOS90Technology())
         {
             System.out.println("3D View only available for 180nm and 90nm technologies.");
             return;

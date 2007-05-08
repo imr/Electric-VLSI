@@ -62,26 +62,7 @@ import java.util.Map;
  */
 public class MoCMOS extends Technology
 {
-	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = initializeMoCMOS();
-
-    // Depending on plugins available
-    private static MoCMOS initializeMoCMOS()
-    {
-        return new MoCMOS();
-//        MoCMOS tech;
-//        try
-//        {
-//            Class<?> tsmcClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180");
-//            tech = (MoCMOS)tsmcClass.getDeclaredConstructor().newInstance();
-//        } catch (Exception e)
-//        {
-////            e.printStackTrace();
-//            if (Job.getDebug())
-//                System.out.println("GNU Release can't find TSMC180nm plugin");
-//            tech = new MoCMOS();
-//        }
-//        return tech;
-    }
+	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = new MoCMOS();
 
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
 	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
@@ -89,8 +70,6 @@ public class MoCMOS extends Technology
 
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
-	/** key of Variable for saving scalable transistor contact information. */
-	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
 	// layers to share with subclasses
     protected Layer[] viaLayers = new Layer[5];
@@ -1999,6 +1978,9 @@ public class MoCMOS extends Technology
         }
 
         createPureLayerNodes();
+        
+		oldNodeNames.put("Metal-1-Substrate-Con", metalWellContactNodes[N_TYPE]);
+		oldNodeNames.put("Metal-1-Well-Con", metalWellContactNodes[P_TYPE]);
     }
 
     protected void createPureLayerNodes() {
@@ -2996,9 +2978,10 @@ public class MoCMOS extends Technology
 				}
 				String ruleName = rule.ruleName;
 				String extraString = metal + proc;
-				if (extraString.length() > 0 && ruleName.indexOf(extraString) == -1)
-					ruleName += ", " +  extraString;
-				rule.ruleName = new String(ruleName);
+                if (extraString.length() > 0 && ruleName.indexOf(extraString) == -1) {
+                    rule = new DRCTemplate(rule);
+                    rule.ruleName +=  ", " +  extraString;
+                }
 
                 rules.loadDRCRules(this, foundry, rule);
 			}
@@ -3403,6 +3386,7 @@ public class MoCMOS extends Technology
 	/**
 	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
 	 */
+    @Override
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
 		if (layer1 == layer2) return true;
@@ -3411,17 +3395,17 @@ public class MoCMOS extends Technology
 		return false;
 	}
 
-	/**
-	 * Method to convert old primitive names to their proper NodeProtos.
-	 * @param name the name of the old primitive.
-	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-	 */
-	public PrimitiveNode convertOldNodeName(String name)
-	{
-		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
-		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
-		return null;
-	}
+//	/**
+//	 * Method to convert old primitive names to their proper NodeProtos.
+//	 * @param name the name of the old primitive.
+//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+//	 */
+//	public PrimitiveNode convertOldNodeName(String name)
+//	{
+//		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
+//		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
+//		return null;
+//	}
 
 	/******************** OPTIONS ********************/
 
@@ -3596,6 +3580,7 @@ public class MoCMOS extends Technology
      * @param width the new width (positive values only)
      * @param length the new length (positive values only)
      */
+    @Override
     public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
         if (ni.getFunction().isResistor()) {

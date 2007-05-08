@@ -39,8 +39,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.Tool;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -59,6 +60,7 @@ public class ImmutableArcInstTest {
     
     private static final long SHAPE_SCALE = 1L << 20;
     
+    private Technology tech;
     private PrimitiveNode pn;
     private PrimitivePort pp;
     private ArcProto ap;
@@ -72,10 +74,15 @@ public class ImmutableArcInstTest {
     @Before public void setUp() throws Exception {
         EDatabase.theDatabase.lock(true);
         EDatabase.theDatabase.lowLevelBeginChanging(null);
+        if (Technology.findTechnology("mocmos") == null) {
+            Tool.initAllTools();
+            Technology.initAllTechnologies();
+        }
         
-        pn = MoCMOS.tech.findNodeProto("Metal-1-P-Active-Con");
+        tech = Technology.getMocmosTechnology();
+        pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pp = pn.getPort(0);
-        ap = MoCMOS.tech.findArcProto("P-Active");
+        ap = tech.findArcProto("P-Active");
         idManager = new IdManager();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
@@ -824,7 +831,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testMakeGridPoly() {
         System.out.println("makeGridPoly");
-        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTech(MoCMOS.tech);
+        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTech(tech);
         ImmutableNodeInst[] nodes = { n0, n1 };
         CellBackup cellBackup0 = new CellBackup(c).with(c, 0, false, nodes, null, null);
         MyBuilder b = new MyBuilder();

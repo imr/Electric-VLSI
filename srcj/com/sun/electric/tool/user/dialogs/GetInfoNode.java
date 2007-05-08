@@ -44,9 +44,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -499,7 +499,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		scalableTrans = false;
 		if (!ni.isCellInstance())
 		{
-			if (np.getTechnology() == MoCMOS.tech)
+			if (np.getTechnology() == Technology.getMocmosTechnology())
 			{
 				if (np.getName().equals("P-Transistor-Scalable") ||
 					np.getName().equals("N-Transistor-Scalable"))
@@ -514,7 +514,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			popup.addItem("Only Bottom / normal spacing");
 			popup.addItem("Only Bottom / half-unit closer");
 			popup.addItem("None");
-			Variable var = ni.getVar(MoCMOS.TRANS_CONTACT, String.class);
+			Variable var = ni.getVar(Technology.TRANS_CONTACT, String.class);
 			int numContacts = 2;
 			boolean insetContacts = false;
 			if (var != null)
@@ -862,7 +862,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					boolean inset = (currentPopupIndex&1) != 0;
 					String contactInfo = String.valueOf(numContacts);
 					if (inset) contactInfo += "i";
-					ni.newVar(MoCMOS.TRANS_CONTACT, contactInfo);
+					ni.newVar(Technology.TRANS_CONTACT, contactInfo);
 				}
 
 				if (!currentTextField.equals(initialTextField))

@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -2244,6 +2243,7 @@ public class Schematics extends Technology
      * @param width the new width
      * @param length the new length
      */
+    @Override
     public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
         setPrimitiveNodeSize(ni, new Double(width), new Double(length));
@@ -2375,7 +2375,7 @@ public class Schematics extends Technology
 		if (bestTech == null)
 		{
 			// presume mosis cmos
-			bestTech = MoCMOS.tech;
+			bestTech = getMocmosTechnology();
 		}
 
 //		User.setSchematicTechnology(bestTech);

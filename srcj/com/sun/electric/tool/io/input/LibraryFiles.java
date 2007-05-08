@@ -46,7 +46,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -526,7 +525,7 @@ public abstract class LibraryFiles extends Input
 		Technology tech = null;
 		if (convertMosisCmosTechnologies)
 		{
-			if (name.equals("mocmossub")) tech = MoCMOS.tech; else
+			if (name.equals("mocmossub")) tech = Technology.getMocmosTechnology(); else
 				if (name.equals("mocmos")) tech = Technology.findTechnology("mocmosold");
 		}
 		if (tech == null) tech = Technology.findTechnology(name);

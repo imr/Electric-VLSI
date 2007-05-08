@@ -33,8 +33,9 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.Tool;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
@@ -48,6 +49,7 @@ import org.junit.Test;
  */
 public class ImmutableNodeInstTest {
     
+    private Technology tech;
     private PrimitiveNode pn;
     private Name nameA0;
     private ImmutableNodeInst n0;
@@ -55,8 +57,13 @@ public class ImmutableNodeInstTest {
     @Before public void setUp() throws Exception {
         EDatabase.theDatabase.lock(true);
         EDatabase.theDatabase.lowLevelBeginChanging(null);
+        if (Technology.findTechnology("mocmos") == null) {
+            Tool.initAllTools();
+            Technology.initAllTechnologies();
+        }
         
-        pn = MoCMOS.tech.findNodeProto("Metal-1-P-Active-Con");
+        tech = Technology.getMocmosTechnology();
+        pn = tech.findNodeProto("Metal-1-P-Active-Con");
         nameA0 = Name.findName("a0");
         n0 = ImmutableNodeInst.newInstance(0, pn, nameA0, null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }

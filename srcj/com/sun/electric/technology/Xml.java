@@ -29,10 +29,9 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 
 import java.awt.Color;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -59,6 +58,7 @@ public class Xml {
     
     public static class Technology {
         public String techName;
+        public String className;
         public String shortTechName;
         public String description;
         public int minNumMetals;
@@ -103,10 +103,10 @@ public class Xml {
         
         public void writeXml(String fileName) {
             try {
-                PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
-                Writer writer = new Writer(buffWriter);
+                PrintWriter out = new PrintWriter(fileName);
+                Writer writer = new Writer(out);
                 writer.writeTechnology(this);
-                buffWriter.close();
+                out.close();
                 System.out.println("Wrote " + fileName);
             } catch (IOException e) {
                 System.out.println("Error creating " + fileName);
@@ -122,6 +122,7 @@ public class Xml {
         public double thick3D;
         public double height3D;
         public String cif;
+        public String skill;
         public double resistance;
         public double capacitance;
         public double edgeCapacitance;
@@ -130,6 +131,7 @@ public class Xml {
     
     public static class PureLayerNode {
         public String name;
+        public String oldName;
         public Poly.Type style;
         public String port;
         public final Distance size = new Distance();
@@ -138,6 +140,7 @@ public class Xml {
     
     public static class ArcProto {
         public String name;
+        public String oldName;
         public com.sun.electric.technology.ArcProto.Function function;
         public boolean wipable;
         public boolean curvable;
@@ -162,6 +165,7 @@ public class Xml {
     
     public static class PrimitiveNode {
         public String name;
+        public String oldName;
         public boolean shrinkArcs;
         public boolean square;
         public boolean canBeZeroSize;
@@ -219,6 +223,13 @@ public class Xml {
         public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
     }
     
+    public static class MenuNodeInst {
+        public String protoName;
+        public com.sun.electric.technology.PrimitiveNode.Function function;
+        public String text;
+        public double fontSize;
+    }
+    
     public static class Distance {
         public double value;
     }
@@ -226,15 +237,7 @@ public class Xml {
     public static class Foundry {
         public String name;
         public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
-        public final List<LayersRule> layerRules = new ArrayList<LayersRule>();
-    }
-    
-    public static class LayersRule {
-        public String ruleName;
-        public String layerNames;
-        public String type;
-        public String when;
-        public double value;
+        public final List<DRCTemplate> rules = new ArrayList<DRCTemplate>();
     }
     
     private Xml() {}
@@ -263,10 +266,12 @@ public class Xml {
         foreground(true),
         display3D,
         cifLayer,
+        skillLayer,
         parasitics,
         pureLayerNode,
         
         arcProto,
+        oldName(true),
         wipable,
         curvable,
         special,
@@ -283,6 +288,7 @@ public class Xml {
         arcLayer,
         
         primitiveNode,
+        //oldName(true),
         shrinkArcs,
         square,
         canBeZeroSize,
@@ -323,10 +329,15 @@ public class Xml {
         menuArc(true),
         menuNode(true),
         menuText(true),
+        menuNodeInst,
+        menuNodeText,
         lambda(true),
         Foundry,
         layerGds,
-        LayersRule;
+        LayerRule,
+        LayersRule,
+        NodeLayersRule,
+        NodeRule;
         
         private final boolean hasText;
         
@@ -392,6 +403,7 @@ public class Xml {
         private PrimitivePort curPort;
         private int curSpecialValueIndex;
         private ArrayList<Object> curMenuBox;
+        private MenuNodeInst curMenuNodeInst;
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
@@ -636,6 +648,7 @@ public class Xml {
             switch (key) {
                 case technology:
                     tech.techName = a("name");
+                    tech.className = a_("class");
 //                    dump = true;
                     break;
                 case numMetals:
@@ -705,6 +718,9 @@ public class Xml {
                     break;
                 case cifLayer:
                     curLayer.cif = a("cif");
+                    break;
+                case skillLayer:
+                    curLayer.skill = a("skill");
                     break;
                 case parasitics:
                     curLayer.resistance = Double.parseDouble(a("resistance"));
@@ -902,6 +918,15 @@ public class Xml {
                     curMenuBox = new ArrayList<Object>();
                     tech.menuPalette.menuBoxes.add(curMenuBox);
                     break;
+                case menuNodeInst:
+                    curMenuNodeInst = new MenuNodeInst();
+                    curMenuNodeInst.protoName = a("protoName");
+                    curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
+                    break;
+                case menuNodeText:
+                    curMenuNodeInst.text = a("text");
+                    curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
+                    break;
                 case Foundry:
                     curFoundry = new Foundry();
                     curFoundry.name = a("name");
@@ -910,14 +935,11 @@ public class Xml {
                 case layerGds:
                     curFoundry.layerGds.put(a("layer"), a("gds"));
                     break;
+                case LayerRule:
                 case LayersRule:
-                    LayersRule layersRule = new LayersRule();
-                    layersRule.ruleName = a("ruleName");
-                    layersRule.layerNames = a("layerNames");
-                    layersRule.type = a("type");
-                    layersRule.when = a("when");
-                    layersRule.value = Double.parseDouble(a("value"));
-                    curFoundry.layerRules.add(layersRule);
+                case NodeLayersRule:
+                case NodeRule:
+                    DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes);
                     break;
                 default:
                     assert key.hasText;
@@ -1017,6 +1039,14 @@ public class Xml {
                     case foreground:
                         foreground = Boolean.parseBoolean(text);
                         break;
+                    case oldName:
+                        if (curLayer != null)
+                            curLayer.pureLayerNode.oldName = text;
+                        if (curArc != null)
+                            curArc.oldName = text;
+                        if (curNode != null)
+                            curNode.oldName = text;
+                        break;
                     case widthOffset:
                         curArc.widthOffset = Double.parseDouble(text);
                         break;
@@ -1098,6 +1128,10 @@ public class Xml {
                     curNode.ports.add(curPort);
                     curPort = null;
                     break;
+                case menuNodeInst:
+                    curMenuBox.add(curMenuNodeInst);
+                    curMenuNodeInst = null;
+                    break;
                     
                 case spiceHeader:
                 case numMetals:
@@ -1109,6 +1143,7 @@ public class Xml {
                 case opaqueColor:
                 case display3D:
                 case cifLayer:
+                case skillLayer:
                 case parasitics:
                 case pureLayerNode:
                     
@@ -1148,9 +1183,13 @@ public class Xml {
                 case spiceLine:
                 case menuPalette:
                 case menuBox:
+                case menuNodeText:
                 case Foundry:
                 case layerGds:
+                case LayerRule:
                 case LayersRule:
+                case NodeLayersRule:
+                case NodeRule:
                     break;
                 default:
                     assert false;
@@ -1330,11 +1369,11 @@ public class Xml {
     
     private static class Writer {
         private static final int INDENT_WIDTH = 4;
-        private final PrintStream out;
+        private final PrintWriter out;
         private int indent;
         private boolean indentEmitted;
         
-        Writer(PrintStream out) {
+        Writer(PrintWriter out) {
             this.out = out;
         }
         
@@ -1373,7 +1412,7 @@ public class Xml {
             out.println("-->");
             l();
             
-            b(XmlKeyword.technology); a("name", t.techName); l();
+            b(XmlKeyword.technology); a("name", t.techName); a("class", t.className); l();
             a("xmlns", "http://electric.sun.com/Technology"); l();
             a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
             a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
@@ -1480,6 +1519,9 @@ public class Xml {
             if (li.cif != null && li.cif.length() > 0) {
                 b(XmlKeyword.cifLayer); a("cif", li.cif); el();
             }
+            if (li.skill != null && li.skill.length() > 0) {
+                b(XmlKeyword.skillLayer); a("skill", li.skill); el();
+            }
             
             // write the SPICE information
             if (li.resistance != 0 || li.capacitance != 0 || li.edgeCapacitance != 0) {
@@ -1491,6 +1533,7 @@ public class Xml {
                 String styleStr = style == Poly.Type.FILLED ? null : style.name();
                 String portName = li.pureLayerNode.port;
                 b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
+                bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
                 bcpel(XmlKeyword.lambda, li.pureLayerNode.size.value);
                 for (String portArc: li.pureLayerNode.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
@@ -1502,6 +1545,7 @@ public class Xml {
         
         private void writeXml(Xml.ArcProto ai) {
             b(XmlKeyword.arcProto); a("name", ai.name); a("fun", ai.function.getConstantName()); cl();
+            bcpel(XmlKeyword.oldName, ai.oldName);
             
             if (ai.wipable)
                 bel(XmlKeyword.wipable);
@@ -1542,6 +1586,7 @@ public class Xml {
         
         private void writeXml(Xml.PrimitiveNode ni) {
             b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
+            bcpel(XmlKeyword.oldName, ni.oldName);
             
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
@@ -1688,24 +1733,36 @@ public class Xml {
             }
             cl();
             for (Object o: list) {
-                if (o instanceof Xml.ArcProto)
+                if (o instanceof Xml.ArcProto) {
                     bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
-                else if (o instanceof Xml.PrimitiveNode)
+                } else if (o instanceof Xml.PrimitiveNode) {
                     bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
-                else
+                } else if (o instanceof Xml.MenuNodeInst) {
+                    Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
+                    b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());
+                    if (ni.text == null) {
+                        el();
+                    } else {
+                        cl();
+                        b(XmlKeyword.menuNodeText); a("text", ni.text); a("size", ni.fontSize); el();
+                        el(XmlKeyword.menuNodeInst);
+                    }
+                } else {
                     bcpel(XmlKeyword.menuText, o);
+                }
             }
             el(XmlKeyword.menuBox);
         }
         
         private void writeFoundryXml(Xml.Foundry foundry) {
             b(XmlKeyword.Foundry); a("name", foundry.name); cl();
+            l();
             for (Map.Entry<String,String> e: foundry.layerGds.entrySet()) {
                 b(XmlKeyword.layerGds); a("layer", e.getKey()); a("gds", e.getValue()); el();
             }
-            for (Xml.LayersRule r: foundry.layerRules) {
-                b(XmlKeyword.LayersRule); a("ruleName", r.ruleName); a("layerNames", r.layerNames); a("type", r.type); a("when", r.when); a("value", r.value); el();
-            }
+            l();
+            for (DRCTemplate rule: foundry.rules)
+                DRCTemplate.exportDRCRule(out, rule);
             el(XmlKeyword.Foundry);
         }
         

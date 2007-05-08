@@ -1060,6 +1060,7 @@
     </menuPalette>
 
     <Foundry name="MOSIS">
+
         <layerGds layer="Metal1" gds="8"/>
         <layerGds layer="Metal2" gds="9"/>
         <layerGds layer="NPImplant" gds="52"/>
@@ -1074,14 +1075,15 @@
         <layerGds layer="Via" gds="81"/>
         <layerGds layer="Scratch_Protection" gds="10"/>
         <layerGds layer="Buried" gds="1"/>
-        <LayersRule ruleName="U_0_0" layerNames="{Metal1, Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_1_1" layerNames="{Metal2, Metal2}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{NPImplant, PPImplant}" type="UCONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="U_4_4" layerNames="{Poly_Definition, Poly_Definition}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_5_5" layerNames="{Field_Implant, Field_Implant}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_6_10" layerNames="{Isolation, Contact}" type="UCONSPA" when="ALL" value="0.5"/>
-        <LayersRule ruleName="U_10_10" layerNames="{Contact, Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_10_11" layerNames="{Contact, Via}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_11_11" layerNames="{Via, Via}" type="UCONSPA" when="ALL" value="2.0"/>
+
+        <LayersRule ruleName="U_0_0" layerNames="{Metal1,Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Metal2,Metal2}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{NPImplant,PPImplant}" type="UCONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U_4_4" layerNames="{Poly_Definition,Poly_Definition}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_5_5" layerNames="{Field_Implant,Field_Implant}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_6_10" layerNames="{Isolation,Contact}" type="UCONSPA" when="ALL" value="0.5"/>
+        <LayersRule ruleName="U_10_10" layerNames="{Contact,Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_10_11" layerNames="{Contact,Via}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_11_11" layerNames="{Via,Via}" type="UCONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

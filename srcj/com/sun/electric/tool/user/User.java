@@ -40,7 +40,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -760,7 +759,7 @@ public class User extends Listener
 	{
         String t = tool.cacheSchematicTechnology.getString();
 		Technology tech = Technology.findTechnology(t);
-        if (tech == null) return MoCMOS.tech;
+        if (tech == null) return Technology.getMocmosTechnology();
         return tech;
     }
 	/**

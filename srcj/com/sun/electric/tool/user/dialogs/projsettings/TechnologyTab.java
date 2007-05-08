@@ -26,9 +26,9 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.ArrayList;
@@ -44,14 +44,19 @@ public class TechnologyTab extends ProjSettingsPanel
 {
 	private ArrayList<Object> extraTechTabs = new ArrayList<Object>();
 
+	/** Value for standard SCMOS rules. */		public static final int MOCMOS_SCMOSRULES = 0; // = MoCMOS.SCMOSRULES
+	/** Value for submicron rules. */			public static final int MOCMOS_SUBMRULES  = 1; // = MoCMOS.SUBMRULES
+	/** Value for deep rules. */				public static final int MOCMOS_DEEPRULES  = 2; // = MoCMOS.DEEPRULES
+
 	private Setting defaultTechnologySetting = User.getDefaultTechnologySetting();
 	private Setting schematicTechnologySetting = User.getSchematicTechnologySetting();
-	private Setting mocmosRuleSetSetting = MoCMOS.getRuleSetSetting();
-	private Setting mocmosNumMetalSetting = MoCMOS.tech.getNumMetalsSetting();
-	private Setting mocmosSecondPolysiliconSetting = MoCMOS.tech.getSecondPolysiliconSetting();
-	private Setting mocmosDisallowStackedViasSetting = MoCMOS.getDisallowStackedViasSetting();
-	private Setting mocmosAlternateActivePolyRulesSetting = MoCMOS.getAlternateActivePolyRulesSetting();
-	private Setting mocmosAnalogSetting = MoCMOS.tech.getAnalogSetting();
+    private ProjSettingsNode mocmos = Technology.getMocmosTechnology().getProjectSettings();
+	private Setting mocmosRuleSetSetting                  = mocmos.getValue("MOCMOS Rule Set");
+	private Setting mocmosNumMetalSetting                 = mocmos.getValue("NumMetalLayers");
+	private Setting mocmosSecondPolysiliconSetting        = mocmos.getValue("UseSecondPolysilicon");
+	private Setting mocmosDisallowStackedViasSetting      = mocmos.getValue("DisallowStackedVias");
+	private Setting mocmosAlternateActivePolyRulesSetting = mocmos.getValue("UseAlternativeActivePolyRules");
+	private Setting mocmosAnalogSetting                   = mocmos.getValue("Analog");
 
 	/** Creates new form TechnologyTab */
 	public TechnologyTab(ProjectSettingsFrame parent, boolean modal)
@@ -92,8 +97,8 @@ public class TechnologyTab extends ProjSettingsPanel
 	{
 		// MOCMOS
 		int initialTechRules = getInt(mocmosRuleSetSetting);
-		if (initialTechRules == MoCMOS.SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
-			if (initialTechRules == MoCMOS.SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
+		if (initialTechRules == MOCMOS_SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
+			if (initialTechRules == MOCMOS_SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
 				techMOCMOSDeepRules.setSelected(true);
 
 		techMetalLayers.addItem("2 Layers");
@@ -144,20 +149,20 @@ public class TechnologyTab extends ProjSettingsPanel
 	{
 		// MOCMOS
 		int currentNumMetals = techMetalLayers.getSelectedIndex() + 2;
-		int currentRules = MoCMOS.SCMOSRULES;
-		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
-			if (techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
+		int currentRules = MOCMOS_SCMOSRULES;
+		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MOCMOS_SUBMRULES; else
+			if (techMOCMOSDeepRules.isSelected()) currentRules = MOCMOS_DEEPRULES;
 		boolean secondPoly = techMOCMOSSecondPoly.isSelected();
 		boolean alternateContactRules = techMOCMOSAlternateContactRules.isSelected();
 		if (techMOCMOSAnalog.isSelected())
 		{
 			// analog rules demand 2 metals, SCMOS, 2 poly, no stacked vias
-			if (currentNumMetals != 2 || currentRules != MoCMOS.SCMOSRULES || !secondPoly || alternateContactRules)
+			if (currentNumMetals != 2 || currentRules != MOCMOS_SCMOSRULES || !secondPoly || alternateContactRules)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"The Analog setting requires 2 metals, 2 polys, SCMOS rules, and no alternate contact rules...making these changes");
 				currentNumMetals = 2;
-				currentRules = MoCMOS.SCMOSRULES;
+				currentRules = MOCMOS_SCMOSRULES;
 				secondPoly = true;
 				alternateContactRules = false;
 			}
@@ -169,22 +174,22 @@ public class TechnologyTab extends ProjSettingsPanel
 			case 2:
 			case 3:
 			case 4:
-				if (currentRules == MoCMOS.DEEPRULES)
+				if (currentRules == MOCMOS_DEEPRULES)
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 						"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
-					currentRules = MoCMOS.SUBMRULES;
+					currentRules = MOCMOS_SUBMRULES;
 				}
 				break;
 
 			// cannot use scmos rules if more than 4 layers of metal
 			case 5:
 			case 6:
-				if (currentRules == MoCMOS.SCMOSRULES)
+				if (currentRules == MOCMOS_SCMOSRULES)
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 						"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
-					currentRules = MoCMOS.SUBMRULES;
+					currentRules = MOCMOS_SUBMRULES;
 				}
 				break;
 		}

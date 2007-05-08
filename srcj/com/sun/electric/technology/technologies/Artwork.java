@@ -430,6 +430,15 @@ public class Artwork extends Technology
 //        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
 //		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
 
+		oldArcNames.put("Dash-1", dottedArc);
+		oldArcNames.put("Dash-2", dashedArc);
+		oldArcNames.put("Dash-3", thickerArc);
+        
+        oldNodeNames.put("Message", Generic.tech.invisiblePinNode);
+        oldNodeNames.put("Centered-Message", Generic.tech.invisiblePinNode);
+        oldNodeNames.put("Left-Message", Generic.tech.invisiblePinNode);
+        oldNodeNames.put("Right-Message", Generic.tech.invisiblePinNode);
+        oldNodeNames.put("Opened-FarDotted-Polygon", openedThickerPolygonNode);
 	}
 
 	/**
@@ -859,33 +868,33 @@ public class Artwork extends Technology
 //			if (patternVar != null) eObj.delVar(ART_PATTERN);
 //		}
 //	}
-
-	/**
-	 * Method to convert old primitive names to their proper NodeProtos.
-	 * @param name the name of the old primitive.
-	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-	 */
-	public PrimitiveNode convertOldNodeName(String name)
-	{
-		if (name.equals("Message") || name.equals("Centered-Message") ||
-			name.equals("Left-Message") || name.equals("Right-Message"))
-				return Generic.tech.invisiblePinNode;
-		if (name.equals("Opened-FarDotted-Polygon")) return openedThickerPolygonNode;
-		return null;
-	}
-
-	/**
-	 * Method to convert old primitive names to their proper ArcProtos.
-	 * @param name the name of the old primitive.
-	 * @return the proper ArcProto to use (or null if none can be determined).
-	 */
-	public ArcProto convertOldArcName(String name)
-	{
-		if (name.equals("Dash-1")) return dottedArc;
-		if (name.equals("Dash-2")) return dashedArc;
-		if (name.equals("Dash-3")) return thickerArc;
-		return null;
-	}
+//
+//	/**
+//	 * Method to convert old primitive names to their proper NodeProtos.
+//	 * @param name the name of the old primitive.
+//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+//	 */
+//	public PrimitiveNode convertOldNodeName(String name)
+//	{
+//		if (name.equals("Message") || name.equals("Centered-Message") ||
+//			name.equals("Left-Message") || name.equals("Right-Message"))
+//				return Generic.tech.invisiblePinNode;
+//		if (name.equals("Opened-FarDotted-Polygon")) return openedThickerPolygonNode;
+//		return null;
+//	}
+//
+//	/**
+//	 * Method to convert old primitive names to their proper ArcProtos.
+//	 * @param name the name of the old primitive.
+//	 * @return the proper ArcProto to use (or null if none can be determined).
+//	 */
+//	public ArcProto convertOldArcName(String name)
+//	{
+//		if (name.equals("Dash-1")) return dottedArc;
+//		if (name.equals("Dash-2")) return dashedArc;
+//		if (name.equals("Dash-3")) return thickerArc;
+//		return null;
+//	}
 
     /**
      * Method to determ if ArcProto is an Artwork primitive arc

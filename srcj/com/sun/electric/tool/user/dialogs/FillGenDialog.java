@@ -48,10 +48,8 @@ import javax.swing.JTextField;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.layout.TechType;
@@ -690,11 +688,9 @@ public class FillGenDialog extends EDialog {
         }
         TechType techNm = TechType.CMOS90; // putting one possible value
 
-        if (tech == MoCMOS.tech)
+        if (tech == Technology.getMocmosTechnology())
         {
-            techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
-                    TechType.TSMC180 :
-                    TechType.MOCMOS;
+            techNm = TechType.MOCMOS;
         }
         else if (tech == Technology.getCMOS90Technology())
         {

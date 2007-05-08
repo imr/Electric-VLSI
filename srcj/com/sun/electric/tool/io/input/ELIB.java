@@ -58,7 +58,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
@@ -476,7 +475,7 @@ public class ELIB extends LibraryFiles
 			boolean imosconv = false;
 			if (name.equals("imos"))
 			{
-				tech = MoCMOS.tech;
+				tech = Technology.getMocmosTechnology();
 				imosconv = true;
 			}
 			if (tech == null)
@@ -1887,7 +1886,7 @@ public class ELIB extends LibraryFiles
             c.lowLevelSetRevisionDate(revisionDate);
 
             // create an artwork "Crossed box" to define the cell size
-            Technology tech = MoCMOS.tech;
+            Technology tech = Technology.getMocmosTechnology();
             if (c.isIcon()) tech = Artwork.tech; else
                 if (c.isSchematic()) tech = Schematics.tech;
             double lambda = getScale(tech);

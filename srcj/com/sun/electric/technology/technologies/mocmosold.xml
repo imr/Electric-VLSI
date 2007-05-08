@@ -1273,6 +1273,7 @@
     </menuPalette>
 
     <Foundry name="MOSIS">
+
         <layerGds layer="Metal-1" gds="10"/>
         <layerGds layer="Metal-2" gds="19"/>
         <layerGds layer="Polysilicon" gds="12"/>
@@ -1288,31 +1289,32 @@
         <layerGds layer="Poly-Cut" gds="9"/>
         <layerGds layer="Active-Cut" gds="9"/>
         <layerGds layer="S-Active-Well" gds="2"/>
-        <LayersRule ruleName="U_0_0" layerNames="{Metal-1, Metal-1}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_1_1" layerNames="{Metal-2, Metal-2}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_2_2" layerNames="{Polysilicon, Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_2_3" layerNames="{Polysilicon, S-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{Polysilicon, S-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="C_2_4" layerNames="{Polysilicon, D-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_2_4" layerNames="{Polysilicon, D-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_2_10" layerNames="{Polysilicon, Via}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_2_13" layerNames="{Polysilicon, Poly-Cut}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_3_3" layerNames="{S-Active, S-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_3_4" layerNames="{S-Active, D-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_3_7" layerNames="{S-Active, P-Well}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_3_10" layerNames="{S-Active, Via}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_3_14" layerNames="{S-Active, Active-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
-        <LayersRule ruleName="U_4_4" layerNames="{D-Active, D-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_4_10" layerNames="{D-Active, Via}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_4_14" layerNames="{D-Active, Active-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
-        <LayersRule ruleName="U_9_9" layerNames="{Contact-Cut, Contact-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_9_10" layerNames="{Contact-Cut, Via}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_10_10" layerNames="{Via, Via}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_10_10" layerNames="{Via, Via}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_10_12" layerNames="{Via, Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_10_13" layerNames="{Via, Poly-Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_10_14" layerNames="{Via, Active-Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_13_13" layerNames="{Poly-Cut, Poly-Cut}" type="CONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_14_14" layerNames="{Active-Cut, Active-Cut}" type="CONSPA" when="ALL" value="2.0"/>
+
+        <LayersRule ruleName="U_0_0" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_2_2" layerNames="{Polysilicon,Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_2_3" layerNames="{Polysilicon,S-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{Polysilicon,S-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="C_2_4" layerNames="{Polysilicon,D-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_2_4" layerNames="{Polysilicon,D-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_2_10" layerNames="{Polysilicon,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_13" layerNames="{Polysilicon,Poly-Cut}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_3_3" layerNames="{S-Active,S-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_3_4" layerNames="{S-Active,D-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_3_7" layerNames="{S-Active,P-Well}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_3_10" layerNames="{S-Active,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_14" layerNames="{S-Active,Active-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
+        <LayersRule ruleName="U_4_4" layerNames="{D-Active,D-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_4_10" layerNames="{D-Active,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_4_14" layerNames="{D-Active,Active-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
+        <LayersRule ruleName="U_9_9" layerNames="{Contact-Cut,Contact-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_9_10" layerNames="{Contact-Cut,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_10_10" layerNames="{Via,Via}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_10_10" layerNames="{Via,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_10_12" layerNames="{Via,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_10_13" layerNames="{Via,Poly-Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_10_14" layerNames="{Via,Active-Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_13_13" layerNames="{Poly-Cut,Poly-Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_14_14" layerNames="{Active-Cut,Active-Cut}" type="CONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>
