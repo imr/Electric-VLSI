@@ -1084,7 +1084,11 @@ public class Layer
 	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.
 	 */
-	public String getDXFLayer() { return dxfLayerSetting.getString(); }
+	public String getDXFLayer()
+	{
+		if (dxfLayerSetting == null) return "";
+		return dxfLayerSetting.getString();
+	}
 	/**
 	 * Returns project Setting to tell the DXF name of this Layer.
 	 * @return project Setting to tell the DXF name of this Layer.

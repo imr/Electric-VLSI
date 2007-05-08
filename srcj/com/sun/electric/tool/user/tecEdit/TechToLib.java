@@ -138,7 +138,7 @@ public class TechToLib
 	 * Method to convert technology "tech" into a library and return that library.
 	 * Returns NOLIBRARY on error
 	 */
-	private static Library makeLibFromTech(Technology tech)
+	public static Library makeLibFromTech(Technology tech)
 	{
 		Library lib = Library.newInstance(tech.getTechName(), null);
 		if (lib == null)
@@ -286,15 +286,21 @@ public class TechToLib
 		// create the arc cells
 		System.out.println("Creating the arcs...");
         int arcTotal = 0;
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+			if (!it.next().isNotUsed()) arcTotal++;
+
+		ArcInfo[] aList = new ArcInfo[arcTotal];
+		String [] arcSequence = new String[arcTotal];
         int arcCount = 0;
-        ArcInfo[] aList = new ArcInfo[tech.getNumArcs()];
 		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			ArcInfo aIn = makeArcInfo(ap, lList);
-            aList[arcCount++] = aIn;
 			if (ap.isNotUsed()) continue;
+			ArcInfo aIn = makeArcInfo(ap, lList);
+            aList[arcCount] = aIn;
+			arcSequence[arcCount] = ap.getName();
+			arcCount++;
             
 			String fName = "arc-" + ap.getName() + "{lay}";
 
@@ -346,47 +352,35 @@ public class TechToLib
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));
 			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
-			arcTotal++;
 
 			// compact it accordingly
 			ArcInfo.compactCell(aNp);
 		}
 
 		// save the arc sequence
-		String [] arcSequence = new String[arcTotal];
-		int arcIndex = 0;
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			if (ap.isNotUsed()) continue;
-			arcSequence[arcIndex++] = ap.getName();
-		}
 		lib.newVar(Info.ARCSEQUENCE_KEY, arcSequence);
 
 		// create the node cells
 		System.out.println("Creating the nodes...");
-        NodeInfo[] nList = new NodeInfo[tech.getNumNodes()];
 		int nodeTotal = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode pnp = it.next();
-			if (!pnp.isNotUsed()) nodeTotal++;
-		}
+			if (!it.next().isNotUsed()) nodeTotal++;
+        NodeInfo[] nList = new NodeInfo[nodeTotal];
 		String [] nodeSequence = new String[nodeTotal];
-        int nodeCount = 0;
+
 		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = it.next();
+			if (pnp.isNotUsed()) continue;
             Technology.NodeLayer[] nodeLayers = pnp.getLayers();
             NodeInfo nIn = makeNodeInfo(pnp, lList, aList);
-            nList[nodeCount++] = nIn;
-			if (pnp.isNotUsed()) continue;
-            
-			nodeSequence[nodeIndex++] = pnp.getName();
-			boolean first = true;
+            nList[nodeIndex] = nIn;
+            nodeSequence[nodeIndex] = pnp.getName();
+			nodeIndex++;
 
 			// create the node layers
+			boolean first = true;
 			NodeInst oNi = NodeInst.makeDummyInstance(pnp);
 			double xS = pnp.getDefWidth() * 2;
 			double yS = pnp.getDefHeight() * 2;
@@ -595,7 +589,6 @@ public class TechToLib
 					}
 				}
 			}
-			nodeTotal++;
 
 			// compact it accordingly
 			NodeInfo.compactCell(nNp);

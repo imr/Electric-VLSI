@@ -203,7 +203,7 @@ public class LibToTech
 		}
     }
 
-	private static void makeTech(String newName, String fileName)
+	public static Technology makeTech(String newName, String fileName)
 	{
 		Library lib = Library.getCurrent();
 
@@ -236,21 +236,21 @@ public class LibToTech
 		if (np == null)
 		{
 			System.out.println("Cell with general information, called 'factors', is missing");
-			return;
+			return null;
 		}
 		GeneralInfo gi = GeneralInfo.parseCell(np);
 
 		// get layer information
 		LayerInfo [] lList = extractLayers(dependentLibs);
-		if (lList == null) return;
+		if (lList == null) return null;
 
 		// get arc information
 		ArcInfo [] aList = extractArcs(dependentLibs, lList);
-		if (aList == null) return;
+		if (aList == null) return null;
 
 		// get node information
 		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
-		if (nList == null) return;
+		if (nList == null) return null;
 
 		// create the technology
 		SoftTech tech = new SoftTech(newTechName, gi.defaultFoundry, gi.defaultNumMetals);
@@ -280,10 +280,10 @@ public class LibToTech
 			lay.setFactoryCIFLayer(li.cif);
             gdsLayers[i] = li.name + " " + li.gds;
 //            mosis.setGDSLayer(lay, li.gds);
-            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiCap);
+            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiECap);
 //			lay.setResistance(li.spiRes);
 //			lay.setCapacitance(li.spiCap);
-//			lay.setEdgeCapacitance(li.spiCap);
+//			lay.setEdgeCapacitance(li.spiECap);
 			lay.setDistance(li.height3d);
 			lay.setThickness(li.thick3d);
 			li.generated = lay;
@@ -423,6 +423,7 @@ public class LibToTech
 		// switch to this technology
 		System.out.println("Technology " + tech.getTechName() + " built.");
 		WindowFrame.updateTechnologyLists();
+		return tech;
 	}
 
 	/**
@@ -2514,6 +2515,7 @@ public class LibToTech
 		multiDetails.values = ns.values;
 		multiDetails.ns = ns;
 		multiDetails.multiCut = true;
+		multiDetails.representation = Technology.NodeLayer.MULTICUTBOX;
 		multiDetails.multiXS = multiXS;
 		multiDetails.multiYS = multiYS;
 		multiDetails.multiIndent = multiIndent;

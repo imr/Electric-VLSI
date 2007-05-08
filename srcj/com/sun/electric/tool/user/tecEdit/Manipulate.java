@@ -1295,20 +1295,39 @@ public class Manipulate
 		new RedoLayerGraphicsJob(ni.getParent());
 	}
 
+	private static final String PRINTSOLID = "PRINTER: Solid";
+	private static final String PRINTPATTERNED = "PRINTER: Patterned";
+
 	private static void modLayerStyle(EditWindow wnd, NodeInst ni)
 	{
 		String initialStyleName = Info.getValueOnNode(ni);
+		String printerPart;
+		int commaPos = initialStyleName.indexOf(',');
+		if (commaPos < 0) printerPart = ""; else
+		{
+			printerPart = initialStyleName.substring(commaPos);
+			initialStyleName = initialStyleName.substring(0, commaPos);
+		}
 		List<EGraphics.Outline> outlines = EGraphics.Outline.getOutlines();
-		String [] styleNames = new String[outlines.size()+1];
+		String [] styleNames = new String[outlines.size()+3];
 		styleNames[0] = "Solid";
 		int i = 1;
 		for(EGraphics.Outline o : outlines)
 		{
 			styleNames[i++] = "Patterned/Outline=" + o.getName();
 		}
+		styleNames[i++] = PRINTSOLID;
+		styleNames[i++] = PRINTPATTERNED;
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer Drawing Style",
 			"New drawing style for this layer:", initialStyleName, styleNames);
 		if (choice == null) return;
+		if (choice.equals(PRINTSOLID))
+		{
+			choice = initialStyleName + ",PrintSolid";
+		} else if (choice.equals(PRINTPATTERNED))
+		{
+			choice = initialStyleName;
+		} else choice += printerPart;
 		new SetTextJob(ni, "Style: " + choice);
 
 		// redraw the demo layer in this cell

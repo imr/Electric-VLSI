@@ -166,12 +166,6 @@ public class LayerInfo extends Info
             
             TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5);
 			ni.newVar(Artwork.ART_MESSAGE, "Stipple Pattern", td);
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Stipple Pattern");
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setRelSize(0.5);
-//			}
 		}
 
 		// create the patch control object
@@ -327,24 +321,28 @@ public class LayerInfo extends Info
 					patternCount++;
 					break;
 				case LAYERSTYLE:
+					li.desc.setPatternedOnPrinter(true);
+					commaPos = str.indexOf(',');
+					if (commaPos >= 0)
+					{
+						if (str.substring(commaPos+1).equals("PrintSolid"))
+							li.desc.setPatternedOnPrinter(false);
+						str = str.substring(0, commaPos);
+					}
 					if (str.equalsIgnoreCase("solid"))
 					{
 						li.desc.setPatternedOnDisplay(false);
-						li.desc.setPatternedOnPrinter(false);
 					} else if (str.equalsIgnoreCase("patterned"))
 					{
 						li.desc.setPatternedOnDisplay(true);
-						li.desc.setPatternedOnPrinter(true);
 						li.desc.setOutlined(EGraphics.Outline.NOPAT);
 					} else if (str.equalsIgnoreCase("patterned/outlined"))
 					{
 						li.desc.setPatternedOnDisplay(true);
-						li.desc.setPatternedOnPrinter(true);
 						li.desc.setOutlined(EGraphics.Outline.PAT_S);
 					} else if (TextUtils.canonicString(str).startsWith("patterned/outline="))
 					{
 						li.desc.setPatternedOnDisplay(true);
-						li.desc.setPatternedOnPrinter(true);
 						EGraphics.Outline out = EGraphics.Outline.findOutline(str.substring(18));
 						li.desc.setOutlined(out);
 					}

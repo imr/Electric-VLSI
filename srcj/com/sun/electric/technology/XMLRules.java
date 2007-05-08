@@ -884,7 +884,7 @@ public class XMLRules implements DRCRules {
             if (index1 == -1)
             {
                 System.out.println("Warning: no layer '" + theRule.name1 + "' in " +
-                        tech.getTechDesc());
+                        tech.getTechName());
                 return;
             }
         }
@@ -900,7 +900,7 @@ public class XMLRules implements DRCRules {
             if (index2 == -1)
             {
                 System.out.println("Warning: no layer '" + theRule.name2 + "' in " +
-                        tech.getTechDesc());
+                        tech.getTechName());
                 return;
             }
         }
@@ -932,7 +932,7 @@ public class XMLRules implements DRCRules {
                 if (nty == null)
                 {
                     System.out.println("Warning: no node '" + theRule.nodeName + "' in " +
-                            tech.getTechDesc());
+                            tech.getTechName());
                     return;
                 }
             }
@@ -989,7 +989,7 @@ public class XMLRules implements DRCRules {
             default:
                 assert(false);
                 System.out.println("Rule " +  theRule.ruleName + " type " + theRule.ruleType +
-                        " not implemented in " + tech.getTechDesc());
+                        " not implemented in " + tech.getTechName());
         }
     }
 
