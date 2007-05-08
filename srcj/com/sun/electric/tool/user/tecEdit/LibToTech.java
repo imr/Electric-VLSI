@@ -42,7 +42,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Foundry;
@@ -52,7 +51,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Xml.ArcLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -3592,9 +3590,9 @@ public class LibToTech
                     double conSpa = gi.conDist[ruleIndex];
                     double uConSpa = gi.unConDist[ruleIndex];
                     if (conSpa > -1)
-                        foundry.rules.add(makeDesignRule("C" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.CONSPA, conSpa));
+                        foundry.layerRules.add(makeDesignRule("C" + ruleIndex, l1, l2, "CONSPA", conSpa));
                     if (uConSpa > -1)
-                        foundry.rules.add(makeDesignRule("U" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.UCONSPA, uConSpa));
+                        foundry.layerRules.add(makeDesignRule("U" + ruleIndex, l1, l2, "UCONSPA", uConSpa));
                     ruleIndex++;
                 }
             }
@@ -3624,7 +3622,13 @@ public class LibToTech
         return menuBox;
     }
     
-    private static DRCTemplate makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, DRCTemplate.DRCRuleType type, double value) {
-        return new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), type, l1.name, l2.name, new double[] {value}, null);
+    private static Xml.LayersRule makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, String type, double value) {
+        Xml.LayersRule r = new Xml.LayersRule();
+        r.ruleName = ruleName;
+        r.layerNames = "{" + l1.name + ", " + l2.name + "}";
+        r.type = type;
+        r.when = "ALL";
+        r.value = value;
+        return r;
     }
 }

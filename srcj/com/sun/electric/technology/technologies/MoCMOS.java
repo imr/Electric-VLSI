@@ -46,7 +46,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
-import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 
 import java.awt.Color;
@@ -63,7 +62,26 @@ import java.util.Map;
  */
 public class MoCMOS extends Technology
 {
-	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = new MoCMOS();
+	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = initializeMoCMOS();
+
+    // Depending on plugins available
+    private static MoCMOS initializeMoCMOS()
+    {
+        return new MoCMOS();
+//        MoCMOS tech;
+//        try
+//        {
+//            Class<?> tsmcClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180");
+//            tech = (MoCMOS)tsmcClass.getDeclaredConstructor().newInstance();
+//        } catch (Exception e)
+//        {
+////            e.printStackTrace();
+//            if (Job.getDebug())
+//                System.out.println("GNU Release can't find TSMC180nm plugin");
+//            tech = new MoCMOS();
+//        }
+//        return tech;
+    }
 
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
 	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
@@ -75,57 +93,57 @@ public class MoCMOS extends Technology
 	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
 	// layers to share with subclasses
-    private Layer[] viaLayers = new Layer[5];
-	private Layer poly1Layer, poly2_lay, transistorPolyLayer;
-    private Layer silicideBlockLayer;
-    private Layer[] selectLayers;
-    private Layer[] metalLayers = new Layer[6]; // 1 -> 6
-    private Layer polyCutLayer;
-    private Layer pActiveWellLayer;
-    private Layer[] activeLayers = new Layer[2];
-    private Layer[] pseudoActiveLayers = new Layer[2];
-    private Layer[] pseudoSelectLayers = new Layer[2];
-    private Layer[] pseudoWellLayers = new Layer[2];
-    private Layer[] wellLayers = new Layer[2];
-    private Layer activeCutLayer;
-    private Layer thickActiveLayer;
-    private Layer passivationLayer;
-    private Layer polyCapLayer;
-    private Layer padFrameLayer;
-    private Layer pBaseLayer;
+    protected Layer[] viaLayers = new Layer[5];
+	protected Layer poly1Layer, poly2_lay, transistorPolyLayer;
+    protected Layer silicideBlockLayer;
+    protected Layer[] selectLayers;
+    protected Layer[] metalLayers = new Layer[6]; // 1 -> 6
+    protected Layer polyCutLayer;
+    protected Layer pActiveWellLayer;
+    protected Layer[] activeLayers = new Layer[2];
+    protected Layer[] pseudoActiveLayers = new Layer[2];
+    protected Layer[] pseudoSelectLayers = new Layer[2];
+    protected Layer[] pseudoWellLayers = new Layer[2];
+    protected Layer[] wellLayers = new Layer[2];
+    protected Layer activeCutLayer;
+    protected Layer thickActiveLayer;
+    protected Layer passivationLayer;
+    protected Layer polyCapLayer;
+    protected Layer padFrameLayer;
+    protected Layer pBaseLayer;
 
 	// arcs
-    /** metal 1->6 arc */						private ArcProto[] metalArcs = new ArcProto[6];
-	/** polysilicon 1/2 arc */					private ArcProto[] polyArcs = new ArcProto[2];
-    /** P/N-active arc */                       private ArcProto[] activeArcs = new ArcProto[2];
+    /** metal 1->6 arc */						protected ArcProto[] metalArcs = new ArcProto[6];
+	/** polysilicon 1/2 arc */					protected ArcProto[] polyArcs = new ArcProto[2];
+    /** P/N-active arc */                       protected ArcProto[] activeArcs = new ArcProto[2];
     /** General active arc */                   private ArcProto active_arc;
 
 	// nodes. Storing nodes only whe they are need in outside the constructor
     /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
 	/** active pins */					        private PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
-	/** polysilicon-1-pin/2-pin */			    private PrimitiveNode[] polyPinNodes = new PrimitiveNode[2];
-    /** metal-1-P/N-active-contacts */          private PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
-	/** metal-1-polysilicon-1/2/1-2/-contact */	private PrimitiveNode[] metal1PolyContactNodes = new PrimitiveNode[3];
-    /** P/N-Transistors */                      private PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
+	/** polysilicon-1-pin/2-pin */			    protected PrimitiveNode[] polyPinNodes = new PrimitiveNode[2];
+    /** metal-1-P/N-active-contacts */          protected PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
+	/** metal-1-polysilicon-1/2/1-2/-contact */	protected PrimitiveNode[] metal1PolyContactNodes = new PrimitiveNode[3];
+    /** P/N-Transistors */                      protected PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
     /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes;
     /** NPN Transistor */                       private PrimitiveNode npnTransistorNode;
-    /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
-    /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
+    /** M1M2 -> M5M6 contacts */				protected PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
+    /** metal-1-P/N-Well-contacts */            protected PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 //	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
 	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
 
     // for dynamically modifying the transistor geometry
-	private Technology.NodeLayer[] transistorPolyLayers = new Technology.NodeLayer[2];
-	private Technology.NodeLayer[] transistorActiveLayers = new Technology.NodeLayer[2];
-	private Technology.NodeLayer[] transistorActiveTLayers = new Technology.NodeLayer[2];
-    private Technology.NodeLayer[] transistorActiveBLayers = new Technology.NodeLayer[2];
-	private Technology.NodeLayer[] transistorPolyLLayers = new Technology.NodeLayer[2];
-    private Technology.NodeLayer[] transistorPolyRLayers = new Technology.NodeLayer[2];
-    private Technology.NodeLayer[] transistorPolyCLayers = new Technology.NodeLayer[2];
-	private Technology.NodeLayer[] transistorWellLayers = new Technology.NodeLayer[2];
-	private Technology.NodeLayer[] transistorSelectLayers = new Technology.NodeLayer[2];
-//	/** Metal-1 -> Metal-6 Nodes */			    private PrimitiveNode[] metalNodes = new PrimitiveNode[6];
+	protected Technology.NodeLayer[] transistorPolyLayers = new Technology.NodeLayer[2];
+	protected Technology.NodeLayer[] transistorActiveLayers = new Technology.NodeLayer[2];
+	protected Technology.NodeLayer[] transistorActiveTLayers = new Technology.NodeLayer[2];
+    protected Technology.NodeLayer[] transistorActiveBLayers = new Technology.NodeLayer[2];
+	protected Technology.NodeLayer[] transistorPolyLLayers = new Technology.NodeLayer[2];
+    protected Technology.NodeLayer[] transistorPolyRLayers = new Technology.NodeLayer[2];
+    protected Technology.NodeLayer[] transistorPolyCLayers = new Technology.NodeLayer[2];
+	protected Technology.NodeLayer[] transistorWellLayers = new Technology.NodeLayer[2];
+	protected Technology.NodeLayer[] transistorSelectLayers = new Technology.NodeLayer[2];
+//	/** Metal-1 -> Metal-6 Nodes */			    protected PrimitiveNode[] metalNodes = new PrimitiveNode[6];
 
 	// design rule constants
 //	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
@@ -135,13 +153,13 @@ public class MoCMOS extends Technology
     /**
      * Constructs MOCMOS technology without TSMC180 foundry.
      */
-	private MoCMOS()
+	protected MoCMOS()
     {
 		this("mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200, true); // in nanometers: really 0.2 micron
         initFoundryMOSIS();
     }
 
-    private MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveMocmosExtensions) {
+    protected MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveMocmosExtensions) {
         super(techName, defaultFoundryType, 6);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
@@ -1981,12 +1999,9 @@ public class MoCMOS extends Technology
         }
 
         createPureLayerNodes();
-        
-		oldNodeNames.put("Metal-1-Substrate-Con", metalWellContactNodes[N_TYPE]);
-		oldNodeNames.put("Metal-1-Well-Con", metalWellContactNodes[P_TYPE]);
     }
 
-    private void createPureLayerNodes() {
+    protected void createPureLayerNodes() {
 //        /**************************************************************************
 //         * Metal Nodes
 //        **************************************************************************/
@@ -2448,7 +2463,7 @@ public class MoCMOS extends Technology
 //		padFrameLayer.setPureLayerNode(padFrameNode);				// Pad-Frame
     }
     
-    private void createExtraLayers() {
+    protected void createExtraLayers() {
 		pBaseLayer = Layer.newInstance(this, "P-Base",
 			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] { 0x4444,   //  X   X   X   X  
@@ -2469,7 +2484,7 @@ public class MoCMOS extends Technology
 						0x0888}));//     X   X   X   
     }
     
-    private void initFoundryMOSIS() {
+    protected void initFoundryMOSIS() {
         newFoundry(Foundry.Type.MOSIS, MoCMOS.class.getResource("utils/Mosis180.xml"),
                 // The GDS names for MOSIS
                 "Metal-1 49, 80p, 80t",
@@ -2535,7 +2550,7 @@ public class MoCMOS extends Technology
     /**
      * Method to load primitive nodes in the palette after rules have been loaded
      */
-    private void buildTechPalette()
+    protected void buildTechPalette()
     {
         // Information for palette
         int maxY = metalArcs.length + activeArcs.length + 2 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
@@ -2630,7 +2645,7 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to describe the technology when it is in state "state".
 	 */
-	private String describeState()
+	protected String describeState()
 	{
 		int numMetals = getNumMetals();
 		String rules = "";
@@ -3000,7 +3015,7 @@ public class MoCMOS extends Technology
     /**
      * Method to replace resizeNodes
      */
-    private void resizeNodes(XMLRules rules)
+    protected void resizeNodes(XMLRules rules)
     {
         int numMetals = getNumMetals();
         rules.resizeMetalContacts(metalContactNodes, numMetals);
@@ -3388,7 +3403,6 @@ public class MoCMOS extends Technology
 	/**
 	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
 	 */
-    @Override
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
 		if (layer1 == layer2) return true;
@@ -3397,17 +3411,17 @@ public class MoCMOS extends Technology
 		return false;
 	}
 
-//	/**
-//	 * Method to convert old primitive names to their proper NodeProtos.
-//	 * @param name the name of the old primitive.
-//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-//	 */
-//	public PrimitiveNode convertOldNodeName(String name)
-//	{
-//		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
-//		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
-//		return null;
-//	}
+	/**
+	 * Method to convert old primitive names to their proper NodeProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
+		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
+		return null;
+	}
 
 	/******************** OPTIONS ********************/
 
@@ -3582,7 +3596,6 @@ public class MoCMOS extends Technology
      * @param width the new width (positive values only)
      * @param length the new length (positive values only)
      */
-    @Override
     public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
         if (ni.getFunction().isResistor()) {

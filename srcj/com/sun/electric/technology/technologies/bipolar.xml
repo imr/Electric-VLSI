@@ -151,7 +151,7 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="INP"/>
-        <pureLayerNode name="NPImplant_Node" port="NPimplant">
+        <pureLayerNode name="NPImplant_Node" port="N+implant">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>
@@ -180,7 +180,7 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="IPP"/>
-        <pureLayerNode name="PPImplant_Node" port="PPimplant">
+        <pureLayerNode name="PPImplant_Node" port="P+implant">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>
@@ -574,6 +574,7 @@
     </primitiveNode>
 
     <primitiveNode name="NPPoly_pin" fun="PIN">
+        <shrinkArcs/>
         <defaultWidth>
             <lambda>4.0</lambda>
         </defaultWidth>
@@ -601,6 +602,7 @@
     </primitiveNode>
 
     <primitiveNode name="PPPoly_pin" fun="PIN">
+        <shrinkArcs/>
         <defaultWidth>
             <lambda>4.0</lambda>
         </defaultWidth>
@@ -1072,14 +1074,14 @@
         <layerGds layer="Via" gds="81"/>
         <layerGds layer="Scratch_Protection" gds="10"/>
         <layerGds layer="Buried" gds="1"/>
-        <LayersRule ruleName="U_0_0" layerNames="{Metal1,Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_1_1" layerNames="{Metal2,Metal2}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{NPImplant,PPImplant}" type="UCONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="U_4_4" layerNames="{Poly_Definition,Poly_Definition}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_5_5" layerNames="{Field_Implant,Field_Implant}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_6_10" layerNames="{Isolation,Contact}" type="UCONSPA" when="ALL" value="0.5"/>
-        <LayersRule ruleName="U_10_10" layerNames="{Contact,Contact}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_10_11" layerNames="{Contact,Via}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_11_11" layerNames="{Via,Via}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_0_0" layerNames="{Metal1, Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Metal2, Metal2}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{NPImplant, PPImplant}" type="UCONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U_4_4" layerNames="{Poly_Definition, Poly_Definition}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_5_5" layerNames="{Field_Implant, Field_Implant}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_6_10" layerNames="{Isolation, Contact}" type="UCONSPA" when="ALL" value="0.5"/>
+        <LayersRule ruleName="U_10_10" layerNames="{Contact, Contact}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_10_11" layerNames="{Contact, Via}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_11_11" layerNames="{Via, Via}" type="UCONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

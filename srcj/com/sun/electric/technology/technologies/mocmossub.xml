@@ -2054,72 +2054,72 @@
         <layerGds layer="Poly-Cap" gds="28"/>
         <layerGds layer="P-Active-Well" gds="43"/>
         <layerGds layer="Pad-Frame" gds="19"/>
-        <LayersRule ruleName="C_0_0" layerNames="{Metal-1,Metal-1}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_0_0" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_1_1" layerNames="{Metal-2,Metal-2}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_1_1" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_2_2" layerNames="{Metal-3,Metal-3}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_2_2" layerNames="{Metal-3,Metal-3}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_3_3" layerNames="{Metal-4,Metal-4}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_3_3" layerNames="{Metal-4,Metal-4}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_4_4" layerNames="{Metal-5,Metal-5}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_4_4" layerNames="{Metal-5,Metal-5}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_5_5" layerNames="{Metal-6,Metal-6}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_5_5" layerNames="{Metal-6,Metal-6}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_6_6" layerNames="{Polysilicon-1,Polysilicon-1}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_6_6" layerNames="{Polysilicon-1,Polysilicon-1}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_6_8" layerNames="{Polysilicon-1,P-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_6_8" layerNames="{Polysilicon-1,P-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="C_6_9" layerNames="{Polysilicon-1,N-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_6_9" layerNames="{Polysilicon-1,N-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_6_15" layerNames="{Polysilicon-1,Active-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_6_24" layerNames="{Polysilicon-1,P-Active-Well}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_6_24" layerNames="{Polysilicon-1,P-Active-Well}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="C_7_7" layerNames="{Polysilicon-2,Polysilicon-2}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_7_7" layerNames="{Polysilicon-2,Polysilicon-2}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_7_8" layerNames="{Polysilicon-2,P-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_7_8" layerNames="{Polysilicon-2,P-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="C_7_9" layerNames="{Polysilicon-2,N-Active}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_7_9" layerNames="{Polysilicon-2,N-Active}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_7_14" layerNames="{Polysilicon-2,Poly-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_7_24" layerNames="{Polysilicon-2,P-Active-Well}" type="CONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_7_24" layerNames="{Polysilicon-2,P-Active-Well}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="C_8_8" layerNames="{P-Active,P-Active}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_8_8" layerNames="{P-Active,P-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_8_9" layerNames="{P-Active,N-Active}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_8_9" layerNames="{P-Active,N-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_8_14" layerNames="{P-Active,Poly-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_8_24" layerNames="{P-Active,P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_8_24" layerNames="{P-Active,P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_9_9" layerNames="{N-Active,N-Active}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_9_9" layerNames="{N-Active,N-Active}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_9_14" layerNames="{N-Active,Poly-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_9_24" layerNames="{N-Active,P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_9_24" layerNames="{N-Active,P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_10_10" layerNames="{P-Select,P-Select}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="U_10_11" layerNames="{P-Select,N-Select}" type="UCONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="U_11_11" layerNames="{N-Select,N-Select}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="C_12_12" layerNames="{P-Well,P-Well}" type="CONSPA" when="ALL" value="6.0"/>
-        <LayersRule ruleName="U_12_12" layerNames="{P-Well,P-Well}" type="UCONSPA" when="ALL" value="18.0"/>
-        <LayersRule ruleName="U_12_13" layerNames="{P-Well,N-Well}" type="UCONSPA" when="ALL" value="0.0"/>
-        <LayersRule ruleName="C_13_13" layerNames="{N-Well,N-Well}" type="CONSPA" when="ALL" value="6.0"/>
-        <LayersRule ruleName="U_13_13" layerNames="{N-Well,N-Well}" type="UCONSPA" when="ALL" value="18.0"/>
-        <LayersRule ruleName="C_14_14" layerNames="{Poly-Cut,Poly-Cut}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_14_14" layerNames="{Poly-Cut,Poly-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_14_15" layerNames="{Poly-Cut,Active-Cut}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_15_15" layerNames="{Active-Cut,Active-Cut}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_15_15" layerNames="{Active-Cut,Active-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_16_16" layerNames="{Via1,Via1}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_16_16" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_17_17" layerNames="{Via2,Via2}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_17_17" layerNames="{Via2,Via2}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_18_18" layerNames="{Via3,Via3}" type="CONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="U_18_18" layerNames="{Via3,Via3}" type="UCONSPA" when="ALL" value="4.0"/>
-        <LayersRule ruleName="C_19_19" layerNames="{Via4,Via4}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_19_19" layerNames="{Via4,Via4}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_20_20" layerNames="{Via5,Via5}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_20_20" layerNames="{Via5,Via5}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="C_24_24" layerNames="{P-Active-Well,P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_24_24" layerNames="{P-Active-Well,P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_0_0" layerNames="{Metal-1, Metal-1}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_0_0" layerNames="{Metal-1, Metal-1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_1_1" layerNames="{Metal-2, Metal-2}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_1_1" layerNames="{Metal-2, Metal-2}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_2_2" layerNames="{Metal-3, Metal-3}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_2_2" layerNames="{Metal-3, Metal-3}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_3_3" layerNames="{Metal-4, Metal-4}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_3_3" layerNames="{Metal-4, Metal-4}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_4_4" layerNames="{Metal-5, Metal-5}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_4_4" layerNames="{Metal-5, Metal-5}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_5_5" layerNames="{Metal-6, Metal-6}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_5_5" layerNames="{Metal-6, Metal-6}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_6_6" layerNames="{Polysilicon-1, Polysilicon-1}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_6_6" layerNames="{Polysilicon-1, Polysilicon-1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_6_8" layerNames="{Polysilicon-1, P-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_6_8" layerNames="{Polysilicon-1, P-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="C_6_9" layerNames="{Polysilicon-1, N-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_6_9" layerNames="{Polysilicon-1, N-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_6_15" layerNames="{Polysilicon-1, Active-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_6_24" layerNames="{Polysilicon-1, P-Active-Well}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_6_24" layerNames="{Polysilicon-1, P-Active-Well}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="C_7_7" layerNames="{Polysilicon-2, Polysilicon-2}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_7_7" layerNames="{Polysilicon-2, Polysilicon-2}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_7_8" layerNames="{Polysilicon-2, P-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_7_8" layerNames="{Polysilicon-2, P-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="C_7_9" layerNames="{Polysilicon-2, N-Active}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_7_9" layerNames="{Polysilicon-2, N-Active}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_7_14" layerNames="{Polysilicon-2, Poly-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_7_24" layerNames="{Polysilicon-2, P-Active-Well}" type="CONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="U_7_24" layerNames="{Polysilicon-2, P-Active-Well}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayersRule ruleName="C_8_8" layerNames="{P-Active, P-Active}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_8_8" layerNames="{P-Active, P-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_8_9" layerNames="{P-Active, N-Active}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_8_9" layerNames="{P-Active, N-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_8_14" layerNames="{P-Active, Poly-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_8_24" layerNames="{P-Active, P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_8_24" layerNames="{P-Active, P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_9_9" layerNames="{N-Active, N-Active}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_9_9" layerNames="{N-Active, N-Active}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_9_14" layerNames="{N-Active, Poly-Cut}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_9_24" layerNames="{N-Active, P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_9_24" layerNames="{N-Active, P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_10_10" layerNames="{P-Select, P-Select}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_10_11" layerNames="{P-Select, N-Select}" type="UCONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="U_11_11" layerNames="{N-Select, N-Select}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_12_12" layerNames="{P-Well, P-Well}" type="CONSPA" when="ALL" value="6.0"/>
+        <LayersRule ruleName="U_12_12" layerNames="{P-Well, P-Well}" type="UCONSPA" when="ALL" value="18.0"/>
+        <LayersRule ruleName="U_12_13" layerNames="{P-Well, N-Well}" type="UCONSPA" when="ALL" value="0.0"/>
+        <LayersRule ruleName="C_13_13" layerNames="{N-Well, N-Well}" type="CONSPA" when="ALL" value="6.0"/>
+        <LayersRule ruleName="U_13_13" layerNames="{N-Well, N-Well}" type="UCONSPA" when="ALL" value="18.0"/>
+        <LayersRule ruleName="C_14_14" layerNames="{Poly-Cut, Poly-Cut}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_14_14" layerNames="{Poly-Cut, Poly-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_14_15" layerNames="{Poly-Cut, Active-Cut}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_15_15" layerNames="{Active-Cut, Active-Cut}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_15_15" layerNames="{Active-Cut, Active-Cut}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_16_16" layerNames="{Via1, Via1}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_16_16" layerNames="{Via1, Via1}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_17_17" layerNames="{Via2, Via2}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_17_17" layerNames="{Via2, Via2}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_18_18" layerNames="{Via3, Via3}" type="CONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="U_18_18" layerNames="{Via3, Via3}" type="UCONSPA" when="ALL" value="4.0"/>
+        <LayersRule ruleName="C_19_19" layerNames="{Via4, Via4}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_19_19" layerNames="{Via4, Via4}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_20_20" layerNames="{Via5, Via5}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_20_20" layerNames="{Via5, Via5}" type="UCONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="C_24_24" layerNames="{P-Active-Well, P-Active-Well}" type="CONSPA" when="ALL" value="3.0"/>
+        <LayersRule ruleName="U_24_24" layerNames="{P-Active-Well, P-Active-Well}" type="UCONSPA" when="ALL" value="3.0"/>
     </Foundry>
 </technology>

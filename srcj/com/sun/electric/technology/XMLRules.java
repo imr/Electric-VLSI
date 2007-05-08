@@ -967,16 +967,16 @@ public class XMLRules implements DRCRules {
             case UCONSPA2D:
                 addRule(index, theRule);
                 break;
-//            case CUTSURX:
-//                specValues = nty.getSpecialValues();
-//                specValues[2] = distance;
-//                assert(false);
-//                break;
-//            case CUTSURY:
-//                specValues = nty.getSpecialValues();
-//                specValues[3] = distance;
-//                assert(false);
-//                break;
+            case CUTSURX:
+                specValues = nty.getSpecialValues();
+                specValues[2] = distance;
+                assert(false);
+                break;
+            case CUTSURY:
+                specValues = nty.getSpecialValues();
+                specValues[3] = distance;
+                assert(false);
+                break;
             case NODSIZ:
                 addRule(nty.getPrimNodeIndexInTech(), theRule);
                 break;
@@ -1072,11 +1072,10 @@ public class XMLRules implements DRCRules {
      */
     public void resizeMetalContacts(PrimitiveNode[] contacts, int numMetals)
     {
-        for (int i = 0; i < contacts.length; i++)
-//        for (int i = 0; i < numMetals - 1; i++)
+        for (int i = 0; i < numMetals - 1; i++)
         {
             PrimitiveNode metalContact = contacts[i];
-            assert metalContact.isNotUsed() == i >= numMetals - 1;
+            assert !metalContact.isNotUsed();
             Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
             Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
             Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal

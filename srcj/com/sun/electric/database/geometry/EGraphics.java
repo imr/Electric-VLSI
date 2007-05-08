@@ -403,7 +403,7 @@ public class EGraphics extends Observable
 		int pos = 0;
 		for(int i=0; i<16; i++)
 		{
-			pattern[i] = TextUtils.atoi(patString.substring(pos));
+			pattern[i] = TextUtils.atoi(patString.substring(pos)) & 0xFFFF;
 			pos = patString.indexOf('/', pos) + 1;
 		}
 	}

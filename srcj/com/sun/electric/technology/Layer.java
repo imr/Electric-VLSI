@@ -49,7 +49,7 @@ import java.util.Collection;
  */
 public class Layer
 {
-    public static final boolean PSEUDO_HIDDEN = true; // True if pseudo-layers don't apper in Technology.getLayers() and don't have layer index.'
+    public static final boolean PSEUDO_HIDDEN = false; // True if pseudo-layers don't apper in Technology.getLayers() and don't have layer index.'
     
     private static final double DEFAULT_THICKNESS = 0;
     private static final double DEFAULT_DISTANCE = 0;

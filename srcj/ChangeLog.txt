@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+(5/7/07, DN) Temporarily rollback changes which I made after 8.05k.
+
 IMP: (5/6/07, DN) Xml description for technology "tsmc90".
 
 BUG: (5/6/07, DN) DRCTemplate writer skips some DRCRuleTypes.

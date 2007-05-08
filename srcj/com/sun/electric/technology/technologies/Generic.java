@@ -284,8 +284,6 @@ public class Generic extends Technology
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
-        
-		oldNodeNames.put("Cell-Center", cellCenterNode);
 	}
 
     public static void setBackgroudColor(Color c)
@@ -358,16 +356,16 @@ public class Generic extends Technology
 		simProbePort.setConnections(upconn);
 	}
 
-//	/**
-//	 * Method to convert old primitive names to their proper NodeProtos.
-//	 * @param name the name of the old primitive.
-//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-//	 */
-//	public PrimitiveNode convertOldNodeName(String name)
-//	{
-//		if (name.equals("Cell-Center")) return(cellCenterNode);
-//		return null;
-//	}
+	/**
+	 * Method to convert old primitive names to their proper NodeProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+		if (name.equals("Cell-Center")) return(cellCenterNode);
+		return null;
+	}
 
     /**
 	 * Method to detect if this Generic proto is not relevant for some tool calculation and therefore

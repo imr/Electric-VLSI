@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -1548,17 +1547,16 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
         Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
         Technology.printlnPref(out, 1, defaultHeightPrefs.get(this));
         out.println("\tlayers:");
-        boolean isSerp = specialType == SERPTRANS;
-        dumpNodeLayers(out, layers, isSerp);
+        dumpNodeLayers(out, layers);
         if (electricalLayers != null) {
             out.println("\telectricalLayers:");
-            dumpNodeLayers(out, electricalLayers, isSerp);
+            dumpNodeLayers(out, electricalLayers);
         }
         for (PrimitivePort pp: primPorts)
             pp.dump(out);
     }
     
-    private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
+    private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers) {
         for (Technology.NodeLayer nl: layers) {
             out.println("\tlayer=" + nl.getLayerOrPseudoLayer().getName() + " port=" + nl.getPortNum() + " style=" + nl.getStyle().name() + " repr=" + nl.getRepresentation());
             if (nl.getMessage() != null) {
@@ -1568,7 +1566,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
             if (nl.getMulticutSizeX() != 0 || nl.getMulticutSizeY() != 0 || nl.getMulticutSep1D() != 0 || nl.getMulticutSep2D() != 0)
                 out.println("\t\tmultiSizeX=" + nl.getMulticutSizeX() + " multiSizeY=" + nl.getMulticutSizeY() + " multiSep=" + nl.getMulticutSep1D() + " multiSpe2D=" + nl.getMulticutSep2D());
             
-            if (isSerp)
+            if (nl.getSerpentineLWidth() != 0 || nl.getSerpentineRWidth() != 0 || nl.getSerpentineExtentB() != 0 || nl.getSerpentineExtentT() != 0)
                 out.println("\t\tLWidth=" + nl.getSerpentineLWidth() + " rWidth=" + nl.getSerpentineRWidth() + " bExtend=" + nl.getSerpentineExtentB() + " tExtend=" + nl.getSerpentineExtentT());
             for (Technology.TechPoint p: nl.getPoints())
                 out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
@@ -1608,8 +1606,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
         public NodeSizeRule(double sizeX, double sizeY, String rule)
         {
-            this.sizeX = DBMath.round(sizeX);
-            this.sizeY = DBMath.round(sizeY);
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
             this.rule = rule;
         }
 
