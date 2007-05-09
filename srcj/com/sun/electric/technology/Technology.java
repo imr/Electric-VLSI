@@ -319,7 +319,7 @@ public class Technology implements Comparable<Technology>
 		private String message;
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
-        private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
+        private long cutGridSizeX, cutGridSizeY, cutGridIndent, cutGridSep1D, cutGridSep2D;
 
 		// the meaning of "representation"
 		/**
@@ -428,6 +428,8 @@ public class Technology implements Comparable<Technology>
 			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
             nl.cutGridSizeX = DBMath.lambdaToGrid(cutSizeX);
             nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
+            double cutIndent = techPoints[0].getX().getAdder();
+            nl.cutGridIndent = DBMath.lambdaToGrid(cutIndent);
             nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
             nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
             return nl;
@@ -467,9 +469,18 @@ public class Technology implements Comparable<Technology>
 		/**
 		 * Returns the method of interpreting "points".
 		 * @return the method of interpreting "points".
-		 * It can be POINTS, BOX, ABSPOINTS, or MINBOX.
+		 * It can be POINTS, BOX, MINBOX, or MULTICUTBOX.
 		 */
 		public int getRepresentation() { return representation; }
+
+		public static String getRepresentationName(int rep)
+		{
+			if (rep == POINTS) return "points";
+			if (rep == BOX) return "box";
+			if (rep == MINBOX) return "min-box";
+			if (rep == MULTICUTBOX) return "multi-cut-box";
+			return "?";
+		}
 
 		/**
 		 * Returns the list of coordinates (stored as TechPoints) associated with this NodeLayer.
@@ -600,6 +611,7 @@ public class Technology implements Comparable<Technology>
         
         public double getMulticutSizeX() { return DBMath.gridToLambda(cutGridSizeX); }
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
+        public double getMulticutIndent() { return DBMath.gridToLambda(cutGridIndent); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 	}
@@ -2569,6 +2581,7 @@ public class Technology implements Comparable<Technology>
 	public static class MultiCutData
 	{
 		/** the size of each cut */													private long cutSizeX, cutSizeY;
+		/** the indentation of cuts at the edge */									private long cutIndent;
 		/** the separation between cuts */											private long cutSep;
 		/** the separation between cuts */											private long cutSep1D;
 		/** the separation between cuts in 3-neiboring or more cases*/				private long cutSep2D;
@@ -2592,6 +2605,7 @@ public class Technology implements Comparable<Technology>
             long hy = techPoints[1].getY().getGridAdder() + (long)(size.getGridY()*techPoints[1].getY().getMultiplier());
             cutSizeX = cutLayer.cutGridSizeX;
             cutSizeY = cutLayer.cutGridSizeY;
+            cutIndent = cutLayer.cutGridIndent;
             cutSep1D = cutLayer.cutGridSep1D;
             cutSep2D = cutLayer.cutGridSep2D;
             calculateInternalData(lx, hx, ly, hy);

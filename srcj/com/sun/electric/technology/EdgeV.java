@@ -64,6 +64,18 @@ public class EdgeV
     }
 
     /**
+     * Compare to another EdgeV
+     * @param other the other EdgeV to compare.
+     * @return true if the two have the same values.
+     */
+    public boolean equals(Object other)
+    {
+    	if (!(other instanceof EdgeV)) return false;
+    	EdgeV otherE = (EdgeV)other;
+    	return multiplier == otherE.multiplier && adder == otherE.adder;
+    }
+
+    /**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst height.
 	 * @return the multiplier.

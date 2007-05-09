@@ -210,7 +210,6 @@ public class Info
 					break;
 
 				case LAYERFUNCTION:
-					int e = table[i].extra;
 					str = "Function: " + LayerInfo.makeLayerFunctionName((Layer.Function)table[i].value, table[i].extra);
 					break;
 				case LAYERCOLOR:

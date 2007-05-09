@@ -1077,6 +1077,18 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	public void setSpecialType(int specialType) { this.specialType = specialType; }
 
 	/**
+	 * Method to return the name of a special PrimitiveNode type.
+	 * @param t the integer special type.
+	 * @return the name of that type.
+	 */
+	public static String getSpecialTypeName(int t)
+	{
+		if (t == NORMAL) return "normal";
+		if (t == SERPTRANS) return "serp-trans";
+		if (t == POLYGONAL) return "outline";
+		return "?";
+	}
+	/**
 	 * Method to return the special values stored on this PrimitiveNode.
 	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
 	 * They are only relevant for certain specialType cases:

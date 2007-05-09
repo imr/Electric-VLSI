@@ -64,6 +64,18 @@ public class EdgeH
     }
 
     /**
+     * Compare to another EdgeH
+     * @param other the other EdgeH to compare.
+     * @return true if the two have the same values.
+     */
+    public boolean equals(Object other)
+    {
+    	if (!(other instanceof EdgeH)) return false;
+    	EdgeH otherE = (EdgeH)other;
+    	return multiplier == otherE.multiplier && adder == otherE.adder;
+    }
+
+    /**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst width.
 	 * @return the multiplier.

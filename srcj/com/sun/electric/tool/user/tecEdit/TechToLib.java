@@ -503,7 +503,11 @@ public class TechToLib
 				if (first) continue;
 
 				// create the highlight node
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, pos[e], xsc[e], ysc[e], nNp);
+				xS = pnp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+				yS = pnp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+				Point2D loc = new Point2D.Double(pos[e].getX() + (so.getLowXOffset() - so.getHighXOffset())/2,
+					pos[e].getY() + (so.getLowYOffset() - so.getHighYOffset())/2);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, loc, xsc[e], ysc[e], nNp);
 				if (ni == null) return null;
 				ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));

@@ -317,7 +317,11 @@ public class LibToTech
 				LayerInfo li = nd[j].layer;
 				Layer lay = li.generated;
 				Technology.TechPoint [] points = nd[j].values;
-				if (nList[i].specialType == PrimitiveNode.SERPTRANS)
+				if (nd[j].representation == Technology.NodeLayer.MULTICUTBOX)
+				{
+					nodeLayers[j] = Technology.NodeLayer.makeMulticut(lay, nd[j].portIndex, nd[j].style, points,
+						nd[j].multiXS, nd[j].multiYS, nd[j].multiSep, nd[j].multiSep2D);
+				} else if (nList[i].specialType == PrimitiveNode.SERPTRANS)
 				{
 					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
 						nd[j].lWidth, nd[j].rWidth, nd[j].extendB, nd[j].extendT);
@@ -955,7 +959,7 @@ public class LibToTech
 				return null;
 			}
 
-//			// handle multicut layers
+			// handle multicut layers
 //			for(int i=0; i<nIn.nodeLayers.length; i++)
 //			{
 //				NodeInfo.LayerDetails nld = nIn.nodeLayers[i];
@@ -1768,7 +1772,6 @@ public class LibToTech
 			Point2D [] pointList = null;
 			int [] pointFactor = null;
 			Point2D [] points = null;
-//			Variable var = null;
 			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
 				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
 				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
@@ -1869,7 +1872,8 @@ public class LibToTech
 			nodeLayers[count].ns = ns;
 			nodeLayers[count].style = getStyle(ns.node);
 			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			if (ns.values.length == 2)
+			nodeLayers[count].values = fixValues(np, ns.values);
+			if (nodeLayers[count].values.length == 2)
 			{
 				if (nodeLayers[count].style == Poly.Type.CROSSED ||
 					nodeLayers[count].style == Poly.Type.FILLED ||
@@ -1880,12 +1884,39 @@ public class LibToTech
 					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
 				}
 			}
-			nodeLayers[count].values = ns.values;
 			count++;
 		}
 		return nodeLayers;
 	}
 
+	private static Technology.TechPoint [] fixValues(NodeProto np, Technology.TechPoint [] currentList)
+	{
+		EdgeH h1 = null, h2 = null, h3 = null;
+		EdgeV v1 = null, v2 = null, v3 = null;
+		for(int p=0; p<currentList.length; p++)
+		{
+			EdgeH h = currentList[p].getX();
+			if (h.equals(h1) || h.equals(h2) || h.equals(h3)) continue;
+			if (h1 == null) h1 = h; else
+				if (h2 == null) h2 = h; else
+					h3 = h;	
+			EdgeV v = currentList[p].getY();
+			if (v.equals(v1) || v.equals(v2) || v.equals(v3)) continue;
+			if (v1 == null) v1 = v; else
+				if (v2 == null) v2 = v; else
+					v3 = v;				
+		}
+		if (h1 != null && h2 != null && h3 == null &&
+			v1 != null && v2 != null && v3 == null)
+		{
+			// reduce to a box with two points
+			currentList = new Technology.TechPoint[2];
+			currentList[0] = new Technology.TechPoint(h1, v1);
+			currentList[1] = new Technology.TechPoint(h2, v2);
+		}
+		return currentList;
+	}
+	
 	private static NodeInfo.LayerDetails [] makePrimitiveNodeLayers(Example neList, Cell np, LayerInfo [] lis)
 	{
 		// if there is only one example: make sample scale with edge
@@ -1906,7 +1937,7 @@ public class LibToTech
 
 		// look at every sample "ns" in the main example "neList"
 		for(Sample ns : neList.samples)
-		{			
+		{
 			// ignore grab point specification
 			if (ns.layer == Generic.tech.cellCenterNode) continue;
 			AffineTransform trans = ns.node.rotateOut();
@@ -2243,7 +2274,8 @@ public class LibToTech
 			nodeLayers[count].ns = ns;
 			nodeLayers[count].style = getStyle(ns.node);
 			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			if (ns.values.length == 2)
+			nodeLayers[count].values = fixValues(np, ns.values);
+			if (nodeLayers[count].values.length == 2)
 			{
 				if (nodeLayers[count].style == Poly.Type.CROSSED ||
 					nodeLayers[count].style == Poly.Type.FILLED ||
@@ -2254,7 +2286,6 @@ public class LibToTech
 						nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
 				}
 			}
-			nodeLayers[count].values = ns.values;
 			count++;
 		}
 		if (count != nodeLayers.length)
@@ -2490,8 +2521,9 @@ public class LibToTech
 				}
 			}
 		}
-		double multiSep = xSep - multiXS;
-		if (multiSep != ySep - multiYS)
+		double multiSepX = xSep - multiXS;
+		double multiSepY = ySep - multiYS;
+		if (multiSepX != multiSepY)
 		{
 			pointOutError(null, np);
 			System.out.println("Multiple contact cut X and Y spacing must be the same in " + np);
@@ -2519,7 +2551,8 @@ public class LibToTech
 		multiDetails.multiXS = multiXS;
 		multiDetails.multiYS = multiYS;
 		multiDetails.multiIndent = multiIndent;
-		multiDetails.multiSep = multiSep;
+		multiDetails.multiSep = multiSepX;
+		multiDetails.multiSep2D = multiSepX;
 		return multiDetails;
 	}
 

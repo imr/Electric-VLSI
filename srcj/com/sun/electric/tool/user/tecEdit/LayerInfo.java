@@ -416,7 +416,7 @@ public class LayerInfo extends Info
 
 	static String makeLayerFunctionName(Layer.Function fun, int extraBits)
 	{
-		String str = fun.toString();
+		String str = fun.getName();
 		int [] allExtraBits = Layer.Function.getFunctionExtras();
 		for(int j=0; j<allExtraBits.length; j++)
 		{
