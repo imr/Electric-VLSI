@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+IMP: (5/9/07, GVG) Cleaning pseudo references in XML DRC decks.
+
 BUG: (5/8/07, DN) DRCTemplate writer writes DRCMode "M3" as "M3|M23".
 FIX: Reorder DRCMode values and modify writing algorithm.
 

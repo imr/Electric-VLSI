@@ -11,8 +11,8 @@
 <DRCRules>
     <Foundry name="MOSIS">
     <!-- Well rules -->
-        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="MINWID" when="DE|SU" value="12"/>
-        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well, Pseudo-P-Well, Pseudo-N-Well" type="MINWID" when="SC" value="10"/>
+        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well" type="MINWID" when="DE|SU" value="12"/>
+        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well" type="MINWID" when="SC" value="10"/>
         <LayersRule ruleName="1.2 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="UCONSPA" when="DE|SU" value="18"/>
         <LayersRule ruleName="1.2 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="UCONSPA" when="SC" value="9"/>
         <LayersRule ruleName="1.3 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="CONSPA" when="ALL" value="6"/>
@@ -76,9 +76,9 @@
         <NodeLayersRule ruleName="4.2 Mosis" layerNames="{P-Select, P-Active-Well}" type="SURROUND" when="ALL" value="2" nodeName="Metal-1-P-Well-Con"/>
         <NodeLayersRule ruleName="4.2 Mosis" layerNames="{N-Select, N-Active}" type="SURROUND" when="ALL" value="2" nodeName="Metal-1-N-Active-Con, N-Transistor, Metal-1-N-Well-Con"/>
 
-        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select, Pseudo-P-Select, Pseudo-N-Select" type="MINWID" when="DE" value="4" />
+        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select" type="MINWID" when="DE" value="4" />
         <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, P-Select}, {N-Select, N-Select}" type="SPACING" when="DE" value="4"/>
-        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select, Pseudo-P-Select, Pseudo-N-Select" type="MINWID" when="SU|SC" value="2" />
+        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select" type="MINWID" when="SU|SC" value="2" />
         <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, P-Select}, {N-Select, N-Select}" type="SPACING" when="SU|SC" value="2"/>
 
         <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, N-Select}" type="SPACING" when="ALL" value="0"/>
