@@ -2614,8 +2614,8 @@ public class MoCMOS extends Technology
 		findArcProto("Active").setNotUsed(true);
         if (npnTransistorNode != null)
             npnTransistorNode.setNotUsed(!isAnalog());
-        if (pBaseLayer != null)
-            pBaseLayer.getPureLayerNode().setNotUsed(!isAnalog());
+//        if (pBaseLayer != null)
+//            pBaseLayer.getPureLayerNode().setNotUsed(!isAnalog());
 
 		// set rules
         cachedRules = getFactoryDesignRules();
