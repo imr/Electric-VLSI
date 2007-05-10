@@ -166,9 +166,20 @@ public class GenMath
         public void setValue(int value) { this.value = value; }
 
         /**
+         * Method to add the value of this MutableInteger.
+         * @param value the value to add.
+         */
+        public void addValue(int value) { this.value += value; }
+
+        /**
          * Method to increment this MutableInteger by 1.
          */
         public void increment() { value++; }
+
+        /**
+         * Method to increment this MutableInteger by 1.
+         */
+        public void decrement() { value--; }
 
         /**
          * Method to return the value of this MutableInteger.
