@@ -110,7 +110,7 @@ public class MoCMOS extends Technology
     /** M1M2 -> M5M6 contacts */				protected PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            protected PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 //	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
-	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
+//	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
 
     // for dynamically modifying the transistor geometry
 	protected Technology.NodeLayer[] transistorPolyLayers = new Technology.NodeLayer[2];
@@ -2467,7 +2467,7 @@ public class MoCMOS extends Technology
     }
     
     protected void initFoundryMOSIS() {
-        newFoundry(Foundry.Type.MOSIS, MoCMOS.class.getResource("utils/Mosis180.xml"),
+        newFoundry(Foundry.Type.MOSIS, MoCMOS.class.getResource("utils/Mosis180DRCDeck.xml"),
                 // The GDS names for MOSIS
                 "Metal-1 49, 80p, 80t",
                 "Metal-2 51, 82p, 82t",
