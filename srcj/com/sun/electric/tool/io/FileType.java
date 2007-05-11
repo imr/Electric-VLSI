@@ -175,13 +175,13 @@ public class FileType implements Serializable {
 
     private static class FileTypeGroup implements Serializable
     {
-        /** preferences for all FileTypes */					private static Pref.Group prefs = null;
+//        /** preferences for all FileTypes */					private static Pref.Group prefs = null;
         private static HashMap<FileTypeGroup,Pref> groupPrefs = new HashMap<FileTypeGroup,Pref>();
 
         String groupName;
         FileTypeGroup(String grpName, String factory)
         {
-            if (prefs == null) prefs = Pref.groupForPackage(FileType.class);
+//            if (prefs == null) prefs = Pref.groupForPackage(FileType.class);
             groupName = grpName;
             Pref path = Pref.makeStringPref("FileTypeGroup"+groupName, IOTool.getIOTool().prefs, factory);
             groupPrefs.put(this, path);
@@ -190,7 +190,7 @@ public class FileType implements Serializable {
         public String toString()
         {
             return groupName;
-        }
+        }                         
 
         void setPath(String p)
         {
