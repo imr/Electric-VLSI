@@ -379,14 +379,19 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private void ignoreUntilEndOfStatement() throws IOException
+    /**
+     * Method to ignore certain amount of lines. Useful for begin/end blocks and tables
+     * @param endString
+     * @throws IOException
+     */
+    private void ignoreUntilEndOfStatement(String endString) throws IOException
     {
-        String key = ";";
+        String key = (endString != null) ? endString : ";";  // endString != null for table for example
 
         for (;;)
         {
             String input = getRestOfLine();
-            if (input.contains("begin"))
+            if (endString == null && input.contains("begin")) // swtch to end only if it is not a table
                 key = "end";
             if (input.contains(key))
                 return; // finish
@@ -510,7 +515,7 @@ public class VerilogReader extends Input
                 continue;
             }
 
-            if (key.equals("endmodule"))
+            if (key.startsWith("endmodule") || key.startsWith("endprimitive"))
             {
                 // done with this cell
                 return null;
@@ -548,11 +553,17 @@ public class VerilogReader extends Input
             }
 
             // ignoring some elements
-            if (key.equals("assign") || key.startsWith("always") || key.startsWith("initial") || key.startsWith("reg"))
+            if (key.equals("assign") || key.startsWith("always") || key.startsWith("initial")
+                    || key.startsWith("reg") || key.startsWith("table") || key.startsWith("specify"))
             {
                 if (Job.getDebug())
                     System.out.println("Ignoring " + key);
-                ignoreUntilEndOfStatement(); // either ; or end
+                String endStatement = null;
+                if (key.startsWith("table"))
+                    endStatement = "endtable";
+                else if (key.startsWith("specify"))
+                    endStatement = "endspecify";
+                ignoreUntilEndOfStatement(endStatement); // either ; or end
                 continue;
             }
 
@@ -822,7 +833,7 @@ public class VerilogReader extends Input
                     getRestOfLine();
                     continue; // comments
                 }
-                if (key.equals("module"))
+                if (key.equals("module") || key.equals("primitive"))
                 {
                     nextToken = readCell(verilogData);
                 }

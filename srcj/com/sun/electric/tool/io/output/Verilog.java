@@ -1380,11 +1380,17 @@ public class Verilog extends Topology
     private boolean checkIncludedData(VerilogData data, Cell cell, String includeFile) {
         // make sure there is module for current cell
         Collection<VerilogData.VerilogModule> modules = data.getModules();
-        VerilogData.VerilogModule main = null;
+        VerilogData.VerilogModule main = null, alternative = null;
         for (VerilogData.VerilogModule mod : modules) {
             if (mod.getName().equals(getVerilogName(cell)))
                 main = mod;
+            else {
+                Cell.CellGroup grp = cell.getCellGroup(); // if cell group is available
+                if (grp != null && mod.getName().equals(grp.getName()))
+                    alternative = mod;
+            }
         }
+        if (main == null) main = alternative;
         if (main == null) {
             System.out.println("Error! Expected Verilog module definition '"+getVerilogName(cell)+
             " in Verilog View: "+cell.libDescribe());

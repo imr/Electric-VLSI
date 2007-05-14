@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+IMP: (5/14/07, GVG) Adding primitive/specify/table keys to Verilog Reader (reported by Bill).
+
+IMP: (5/14/07, GVG) Allowing to find Verilog view based on the cell group (reported by Bill).
+
 IMP: (5/10/07, GVG) Added layer PLDMY (GDS 124/0) to CMOS90 (Bug#1310)
 
 IMP: (5/10/07, GVG) Renaming of XML DRC deck files to avoid name conflicts on MacOSX and Windows.
