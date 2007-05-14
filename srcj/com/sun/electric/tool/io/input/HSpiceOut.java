@@ -491,19 +491,24 @@ public class HSpiceOut extends Simulate
 			System.out.println("Warning: may not be able to read HSpice files of type " + version);
 
 		// ignore the unused/title information (4+72 characters over line break)
+		line = new StringBuffer();
 		for(int j=0; j<76; j++)
 		{
 			int k = getByteFromFile();
+			line.append((char)k);
 			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
 		// ignore the date/time information (16 characters)
-		for(int j=0; j<16; j++) getByteFromFile();
+		line = new StringBuffer();
+		for(int j=0; j<16; j++) line.append((char)getByteFromFile());
 
 		// ignore the copywrite information (72 characters over line break)
+		line = new StringBuffer();
 		for(int j=0; j<72; j++)
 		{
 			int k = getByteFromFile();
+			line.append((char)k);
 			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
@@ -512,9 +517,11 @@ public class HSpiceOut extends Simulate
 		if (cndcnt == 0) sweepcnt = 0;
 
 		// ignore the Monte Carlo information (76 characters over line break)
+		line = new StringBuffer();
 		for(int j=0; j<76; j++)
 		{
 			int k = getByteFromFile();
+			line.append((char)k);
 			if (!isTRACDCBinary && k == '\n') j--;
 		}
 
@@ -533,7 +540,8 @@ public class HSpiceOut extends Simulate
 			if (k == 0) continue;
 			int l = k - nodcnt;
 			if (k < nodcnt) l = k + numnoi - 1;
-			signalTypes[l] = TextUtils.atoi(line.toString(), 0, 10);
+			String lineStr = line.toString().trim();
+			signalTypes[l] = TextUtils.atoi(lineStr, 0, 10);
 		}
 		boolean paMissingWarned = false;
 		for(int k=0; k<=numSignals; k++)
@@ -560,6 +568,13 @@ public class HSpiceOut extends Simulate
 				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
 			}
 			if (k == 0) continue;
+
+			// ignore blank names
+			if (line.toString().trim().length() == 0)
+			{
+				k--;
+				continue;
+			}
 
 			// convert name if there is a colon in it
 			int startPos = 0;
