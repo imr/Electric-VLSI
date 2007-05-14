@@ -239,7 +239,6 @@ public class Input
 
     protected boolean openStringsInput(String[] lines)
     {
-//        ByteArrayOutputStream out = new ByteArrayOutputStream();
         StringBuffer buffer = new StringBuffer();
 
         try
@@ -247,19 +246,15 @@ public class Input
             for (String l : lines)
             {
                 String s = l + "\n";
-//                out.write(s.getBytes());
                 buffer.append(s);
             }
-//            out.close();
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-//        inputStream = new ByteArrayInputStream(out.toByteArray());
         fileLength = lines.length;
         StringReader reader = new StringReader(buffer.toString());
-//        InputStreamReader is = new InputStreamReader(inputStream);
         lineReader = new LineNumberReader(reader);
         return false;
     }
