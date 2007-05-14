@@ -1729,8 +1729,10 @@ public class Manipulate
 		if (choice == null) return;
 
 		// save the results
-		String [] fieldValues = new String[allArcs.size()];
-		for(int i=0; i<allArcs.size(); i++)
+//		String [] fieldValues = new String[allArcs.size()];
+//		for(int i=0; i<allArcs.size(); i++)
+		String [] fieldValues = new String[fields.length];
+		for(int i=0; i<fields.length; i++)
 		{
 			fieldValues[i] = (String)fields[i].getFinal();
 		}
@@ -1763,12 +1765,12 @@ public class Manipulate
 				String answer = fieldValues[i];
 				if (answer.equals("Allowed")) numConnects++;
 			}
-			Cell [] newConnects = new Cell[numConnects];
+			CellId [] newConnects = new CellId[numConnects];
 			int k = 0;
 			for(int i=0; i<allArcs.size(); i++)
 			{
 				String answer = fieldValues[i];
-				if (answer.equals("Allowed")) newConnects[k++] = allArcs.get(i);
+				if (answer.equals("Allowed")) newConnects[k++] = allArcs.get(i).getId();
 			}
 			ni.newVar(Info.CONNECTION_KEY, newConnects);
 
