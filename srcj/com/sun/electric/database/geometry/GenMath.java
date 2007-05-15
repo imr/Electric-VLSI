@@ -377,6 +377,10 @@ public class GenMath
         {
             if (firstValue == secondValue) return true;
         }
+        if (firstNumeric && second instanceof Boolean)
+        	return ((Boolean)second).booleanValue() == (firstValue != 0);
+        if (secondNumeric && first instanceof Boolean)
+        	return ((Boolean)first).booleanValue() == (secondValue != 0);
         return false;
     }
 

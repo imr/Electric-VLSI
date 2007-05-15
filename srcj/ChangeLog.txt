@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+BUG: (5/15/07, SMR) Project setting reconciliation sometimes asks about boolean values
+     that are equal.
+FIX: In GenMath.objectsReallyEqual() also handle comparison between Boolean and integer.
+
 BUG: (5/15/07, SMR) Measurements in the waveform window don't scale with the window (Bug #1309).
 FIX: In Panel.java, store measurements in waveform space, not screen space.
 
