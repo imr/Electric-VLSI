@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+IMP: (5/15/07, SMR) HSpice reader now ignores the "V()" wrapper around signal names
+     for better cross-probing.
+
 BUG: (5/15/07, DN) Electric hangs (and consumes vast amounts of memory) writing JELIB.
 FIX: In ImmutableNodeInst.PortInstIterator advance "chronIndex". 
 

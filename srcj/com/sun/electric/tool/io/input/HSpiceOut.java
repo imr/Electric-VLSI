@@ -623,13 +623,29 @@ public class HSpiceOut extends Simulate
 			openPos = line.indexOf("(");
 			if (openPos >= 0)
 			{
+				String parenPrefix = line.substring(0, openPos+1);
 				int lastDot = line.lastIndexOf(".");
 				if (lastDot >= 0)
 				{
 					StringBuffer newSB = new StringBuffer();
-					newSB.append(line.substring(openPos+1, lastDot+1));
-					newSB.append(line.substring(0, openPos+1));
-					newSB.append(line.substring(lastDot+1));
+					if (parenPrefix.equalsIgnoreCase("v("))
+					{
+						// just ignore the V()
+						newSB.append(line.substring(openPos+1, lastDot+1));
+						newSB.append(line.substring(lastDot+1, line.length()-1));
+					} else
+					{
+						// move the parenthetical wrapper to the last dotted piece
+						newSB.append(line.substring(openPos+1, lastDot+1));
+						newSB.append(parenPrefix);
+						newSB.append(line.substring(lastDot+1));
+					}
+					line = newSB;
+				} else if (parenPrefix.equalsIgnoreCase("v("))
+				{
+					StringBuffer newSB = new StringBuffer();
+					// just ignore the V()
+					newSB.append(line.substring(openPos+1, line.length()-1));
 					line = newSB;
 				}
 			}
@@ -785,8 +801,9 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to read the next block of tr, sw, or ac data.  Skips the first byte if "firstbyteread"
-	 * is true.  Returns true on EOF.
+	 * Method to read the next block of tr, sw, or ac data.
+	 * @param firstbyteread true to skip the first byte.
+	 * @return true on EOF.
 	 */
 	private boolean readBinaryTRACDCBlock(boolean firstbyteread)
 		throws IOException
@@ -856,8 +873,8 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to get the next character from the simulator (file or pipe).
-	 * Returns EOF at end of file.
+	 * Method to get the next character from the simulator.
+	 * @return the next character (EOF at end of file).
 	 */
 	private int getByteFromFile()
 		throws IOException
@@ -897,6 +914,10 @@ public class HSpiceOut extends Simulate
 		return i;
 	}
 
+	/**
+	 * Method to get the next 4-byte integer from the simulator.
+	 * @return the next integer.
+	 */
 	private int getHSpiceInt()
 		throws IOException
 	{
@@ -906,8 +927,8 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to read the next floating point number from the HSpice file into "val".
-	 * Returns positive on error, negative on EOF, zero if OK.
+	 * Method to read the next floating point number from the HSpice file.
+	 * @return the next number.  Sets the global "eofReached" true on EOF.
 	 */
 	private float getHSpiceFloat()
 		throws IOException
