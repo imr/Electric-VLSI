@@ -560,7 +560,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             PortProtoId next = null;
             for (; chronIndex < ports.length; chronIndex++) {
                 if (ports[chronIndex] != ImmutablePortInst.EMPTY) {
-                    next = protoId.getPortId(chronIndex);
+                    next = protoId.getPortId(chronIndex++);
                     break;
                 }
             }
