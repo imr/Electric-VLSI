@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05l: *********************************
 
+BUG: (5/16/07, SMR) PostScript output doesn't handle exports on mirrored nodes.
+FIX: In PostScript.recurseCircuitLevel() use Poly.rotateType() to adjust the
+     style of export text.
+
 BUG: (5/15/07, SMR) Project setting reconciliation sometimes asks about boolean values
      that are equal.
 FIX: In GenMath.objectsReallyEqual() also handle comparison between Boolean and integer.

@@ -59,8 +59,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-
-
 /**
  * This class writes files in PostScript format.
  */
@@ -85,8 +83,8 @@ public class PostScript extends Output
 	/** true to generate color PostScript. */							private boolean psUseColor;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
-    private Rectangle2D printBounds;
-    /** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
+	private Rectangle2D printBounds;
+	/** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
 	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
@@ -100,7 +98,7 @@ public class PostScript extends Output
 
 	/**
 	 * Main entry point for PostScript output.
-     * @param cell the top-level cell to write.
+	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
 	 * @param override a list of overriding polygons to write.
 	 */
@@ -115,7 +113,7 @@ public class PostScript extends Output
 		boolean error = false;
 		PostScript out = new PostScript(cell, override);
 		if (out.openTextOutputStream(filePath)) error = true; else
-        {
+		{
 			// write out the cell
 			if (cell.getView().isTextView())
 			{
@@ -140,15 +138,15 @@ public class PostScript extends Output
 			} else
 			{
 				// layout/schematics cell
-	            if (out.start())
-	            {
-		            out.scanCircuit();
-		            out.done();
-	            }
+				if (out.start())
+				{
+					out.scanCircuit();
+					out.done();
+				}
 			}
 
-            if (out.closeTextOutputStream()) error = true;
-        }
+			if (out.closeTextOutputStream()) error = true;
+		}
 		if (!error)
 		{
 			System.out.println(filePath + " written");
@@ -159,8 +157,8 @@ public class PostScript extends Output
 	/** Creates a new instance of PostScript */
 	private PostScript(Cell cell, List<PolyBase> override)
 	{
-        this.cell = cell;
-        this.override = override;
+		this.cell = cell;
+		this.override = override;
 	}
 
 	/**
@@ -421,7 +419,6 @@ public class PostScript extends Output
 			}
 		}
 
-
 		// initialize list of EGraphics modules that have been put out
 		patternsEmitted = new HashMap<EGraphics,Integer>();
 		psNumPatternsEmitted = 0;
@@ -565,15 +562,15 @@ public class PostScript extends Output
 	{
 		lastColor = -1;
 
-        if (override != null)
-        {
+		if (override != null)
+		{
 			for (PolyBase poly : override)
 			{
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
 					pts[i].setLocation(pts[i].getX(), printBounds.getHeight() - pts[i].getY());
 			}
-        }
+		}
 		if (psUseColor)
 		{
 			// color: plot layers in proper order
@@ -595,16 +592,16 @@ public class PostScript extends Output
 
 	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel)
 	{
-        if (override != null)
-        {
+		if (override != null)
+		{
 			for (PolyBase poly : override)
 			{
 				psPoly(poly);
 			}
 			return;
-        }
+		}
 
-        // write the cells
+		// write the cells
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -643,14 +640,14 @@ public class PostScript extends Output
 					poly.setLayer(blackLayer);
 					psPoly(poly);
 
-                    // Only when the instance names flag is on
-                    if (User.isTextVisibilityOnInstance())
-                    {
-                        poly.setStyle(Poly.Type.TEXTBOX);
-                        TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
-                        poly.setTextDescriptor(td);
-                        poly.setString(ni.getProto().describe(false));
-                    }
+					// Only when the instance names flag is on
+					if (User.isTextVisibilityOnInstance())
+					{
+						poly.setStyle(Poly.Type.TEXTBOX);
+						TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
+						poly.setTextDescriptor(td);
+						poly.setString(ni.getProto().describe(false));
+					}
 					psPoly(poly);
 					showCellPorts(ni, trans, null);
 				} else
@@ -692,16 +689,23 @@ public class PostScript extends Output
 							String portName = e.getShortName();
 							poly.setString(portName);
 						}
+
+						// rotate the descriptor
+						TextDescriptor descript = poly.getTextDescriptor();
+						Poly.Type style = descript.getPos().getPolyType();
+						style = Poly.rotateType(style, ni);
+						poly.setStyle(style);
+
 						psPoly(poly);
 					}
 
 					// draw variables on the export
-                    Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-                    Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
-                    for (int i=0; i<polys.length; i++)
-                    {
-                        psPoly(polys[i]);
-                    }
+					Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
+					Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
+					for (int i=0; i<polys.length; i++)
+					{
+						psPoly(polys[i]);
+					}
 				}
 			}
 		}
@@ -709,7 +713,7 @@ public class PostScript extends Output
 		// write the arcs
 		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 		{
-    		ArcInst ai = it.next();
+			ArcInst ai = it.next();
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
 			Poly[] polys = tech.getShapeOfArc(ai);
@@ -718,13 +722,13 @@ public class PostScript extends Output
 				polys[i].transform(trans);
 				psPoly(polys[i]);
 			}
-            Poly[] textPolys = ai.getDisplayableVariables(wnd);
+			Poly[] textPolys = ai.getDisplayableVariables(wnd);
 			for (int i=0; i<textPolys.length; i++)
 			{
 				polys[i].transform(trans);
 				psPoly(polys[i]);
 			}
-        }
+		}
 
 		// show cell variables if at the top level
 		if (topLevel && User.isTextVisibilityOnCell())
@@ -761,7 +765,7 @@ public class PostScript extends Output
 		{
 			if (shownPorts[i]) continue;
 			Export pp = (Export)ni.getProto().getPort(i);
-	
+
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
 			portPoly.transform(trans);
@@ -874,7 +878,7 @@ public class PostScript extends Output
 			System.out.println("No PostScript files needed to be written");
 		return false;
 	}
-	
+
 	/****************************** WRITE POLYGON ******************************/
 
 	private void setColor(Color col)
@@ -1223,7 +1227,6 @@ public class PostScript extends Output
 		double cY = (psL.getY() + psH.getY()) / 2;
 		double sX = Math.abs(psH.getX() - psL.getX());
 		double sY = Math.abs(psH.getY() - psL.getY());
-//System.out.println("FOR STRING '"+text+"' CENTER IS ("+poly.getCenterX()+","+poly.getCenterY()+") SIZE IS "+poly.getBounds2D().getWidth()+"x"+poly.getBounds2D().getHeight());
 		putPSHeader(HEADERSTRING);
 
 		boolean changedFont = false;
