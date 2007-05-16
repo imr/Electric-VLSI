@@ -1525,7 +1525,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (i == openedPanelIndex)
 				{
 					openedPanelHeightIndex = validPanels;
-					rowHeights[validPanels++] = 50;
+					int height = getPanelSizeDigital();
+					if (sd.isAnalog()) height = getPanelSizeAnalog();
+					rowHeights[validPanels++] = height;
 					continue;
 				}
 				if (wavePanels.get(i).isHidden()) continue;

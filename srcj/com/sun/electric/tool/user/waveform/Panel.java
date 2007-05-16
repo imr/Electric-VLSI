@@ -43,6 +43,7 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.waveform.WaveformWindow.OnePanel;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -100,7 +101,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 /**
  * This class defines a single panel of WaveSignals with an associated list of signal names.
@@ -137,9 +140,8 @@ public class Panel extends JPanel
 	/** true if the horizontal ruler is logarithmic */		private boolean horizRulerPanelLogarithmic;
 	/** true if this panel is logarithmic in Y */			private boolean vertPanelLogarithmic;
 	/** the number of this panel. */						private int panelNumber;
-	/** all panels that the "measure" tool crosses into */	private HashSet<Panel> measureWindows;
-	/** extent of area dragged-out by cursor */				private int dragStartX, dragStartY;
-	/** extent of area dragged-out by cursor */				private int dragEndX, dragEndY;
+	/** extent of area dragged-out by cursor */				private double dragStartXD, dragStartYD;
+	/** extent of area dragged-out by cursor */				private double dragEndXD, dragEndYD;
 	/** the location of the Y axis vertical line */			private int vertAxisPos;
 	/** the smallest nonzero X value (for log drawing) */	private double smallestXValue;
 	/** the smallest nonzero Y value (for log drawing) */	private double smallestYValue;
@@ -1031,10 +1033,10 @@ public class Panel extends JPanel
 		if (draggingArea)
 		{
 			offscreenGraphics.setColor(new Color(User.getColorWaveformForeground()));
-			int lowX = Math.min(dragStartX, dragEndX);
-			int highX = Math.max(dragStartX, dragEndX);
-			int lowY = Math.min(dragStartY, dragEndY);
-			int highY = Math.max(dragStartY, dragEndY);
+			int lowX = Math.min(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
+			int highX = Math.max(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
+			int lowY = Math.min(convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
+			int highY = Math.max(convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
 			offscreenGraphics.drawLine(lowX, lowY, lowX, highY);
 			offscreenGraphics.drawLine(lowX, highY, highX, highY);
 			offscreenGraphics.drawLine(highX, highY, highX, lowY);
@@ -1995,11 +1997,9 @@ public class Panel extends JPanel
 		if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 		{
 			pt = snapPoint(pt);
-			measureWindows = new HashSet<Panel>();
-			measureWindows.add(this);
 		}
-		dragEndX = dragStartX = pt.x;
-		dragEndY = dragStartY = pt.y;
+		dragEndXD = dragStartXD = convertXScreenToData(pt.x);
+		dragEndYD = dragStartYD = convertYScreenToData(pt.y);
 	}
 
 	private Point snapPoint(Point pt)
@@ -2084,7 +2084,9 @@ public class Panel extends JPanel
 				ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
 				draggingArea = false;
-				List<WaveSelection> selectedObjects = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
+				List<WaveSelection> selectedObjects = wp.findSignalsInArea(convertXDataToScreen(dragStartXD),
+					convertXDataToScreen(dragEndXD), convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
+				
 				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 				{
 					// standard click: add this as the only trace
@@ -2168,57 +2170,114 @@ public class Panel extends JPanel
 			}
 		} else if (draggingArea)
 		{
-			Point pt = new Point(evt.getX(), evt.getY());
+			Set<Panel> measureWindows = new HashSet<Panel>();
+			Point cPt = new Point();
+			Panel curPanel = this;
+			measureWindows.add(curPanel);
+			if (WaveformWindow.USETABLES)
+			{
+				JTable table = waveWindow.getWaveformTable();
+
+				// find the current Panel
+				int startPanel = 0;
+				for(int i=0; i<table.getRowCount(); i++)
+				{
+					if (this == waveWindow.getPanel(i)) { startPanel = i;   break; }
+				}
+
+				// find the panel with the coordinates
+				int yp = evt.getY();
+				Rectangle bou = evt.getComponent().getBounds();
+				if (yp >= bou.y && yp < bou.y+bou.height)
+				{
+					cPt.setLocation(evt.getX(), evt.getY());
+				} else
+				{
+					int curPanelNum = startPanel;
+					if (yp < bou.y)
+					{
+						while (yp < bou.y)
+						{
+							// negative coordinate: try a previous panel
+							if (curPanelNum <= 0) break;
+							curPanelNum--;
+							measureWindows.add(waveWindow.getPanel(curPanelNum));
+							yp += table.getRowHeight(curPanelNum);
+						}
+					} else if (yp >= bou.y+bou.height)
+					{
+						while (yp >= bou.y+bou.height)
+						{
+							// coordinate too large: try a subsequent panel
+							if (curPanelNum+1 >= table.getRowCount()) break;
+							yp -= table.getRowHeight(curPanelNum);
+							curPanelNum++;
+							measureWindows.add(waveWindow.getPanel(curPanelNum));
+						}
+					}
+					curPanel = waveWindow.getPanel(curPanelNum);
+					cPt.setLocation(evt.getX(), yp);
+				}
+			} else
+			{
+				cPt.setLocation(evt.getX(), evt.getY());
+			}
+
+			// snap to waveform point
+			curPanel.snapPoint(cPt);
+
+			dragEndXD = curPanel.convertXScreenToData(cPt.x);
+			dragEndYD = curPanel.convertYScreenToData(cPt.y);
 			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 			{
-				Rectangle rect = getBounds();
-				Panel curPanel = (Panel)evt.getSource();
-				Point scPt = evt.getComponent().getLocationOnScreen();
-
-				// if not in current window, find out where it crossed into
-				if (!rect.contains(pt))
-				{
-					Point globalPt = new Point(scPt.x+evt.getX(), scPt.y+evt.getY());
-					for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
-					{
-						Panel wp = it.next();
-						Point oPt = wp.getLocationOnScreen();
-						if (globalPt.x < oPt.x) continue;
-						if (globalPt.x > oPt.x + sz.width) continue;
-						if (globalPt.y < oPt.y) continue;
-						if (globalPt.y > oPt.y + sz.height) continue;
-						measureWindows.add(wp);
-						wp.draggingArea = true;
-						curPanel = wp;
-					}
-				}
-
-				// snap to waveform point
-				if (curPanel == this) pt = snapPoint(pt); else
-				{
-					Point oPt = curPanel.getLocationOnScreen();
-					pt.y = pt.y + scPt.y - oPt.y;
-					pt = curPanel.snapPoint(pt);
-					pt.y = pt.y - scPt.y + oPt.y;
-				}
+				// reset all panels
+				for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
+					it.next().draggingArea = false;
 
 				// update all windows the measurement may have crossed over
 				for(Panel wp : measureWindows)
 				{
-					if (wp == this) continue;
-					Point oPt = wp.getLocationOnScreen();
-					wp.dragStartX = dragStartX;
-					wp.dragStartY = dragStartY + scPt.y - oPt.y;
-					wp.dragEndX = pt.x;
-					wp.dragEndY = pt.y + scPt.y - oPt.y;
+					wp.dragStartXD = dragStartXD;
+					wp.dragStartYD = dragStartYD;
+					wp.dragEndXD = dragEndXD;
+					wp.dragEndYD = dragEndYD;
+					wp.draggingArea = true;
 					wp.repaintContents();
 				}
 			}
-			dragEndX = pt.x;
-			dragEndY = pt.y;
 			repaintContents();
 		}
 	}
+
+//	private Point getAbsPositionOnScreen()
+//	{
+//		if (WaveformWindow.USETABLES)
+//		{
+//			JTable table = waveWindow.getWaveformTable();
+//			int height = 0;
+//			int marginSize = 0;
+//			for(int i=0; i<table.getRowCount(); i++)
+//			{
+//				Panel op = waveWindow.getPanel(i);
+//				if (op == this)
+//				{
+//					Point los = table.getLocationOnScreen();
+//					los.y += height + i*table.getRowMargin() + marginSize;
+//					return los;
+////					Rectangle cellRect = table.getCellRect(i, 1, true);
+////					Point oPt = new Point(cellRect.x, cellRect.y);
+////					SwingUtilities.convertPointToScreen(oPt, table);
+////					return oPt;
+//				}
+//				Rectangle cellRect = table.getCellRect(i, 1, true);
+//				height += cellRect.height;
+//				marginSize = cellRect.height - op.getHeight();
+//			}
+//		}
+//
+//		// non-table method
+//		return getLocationOnScreen();
+//	}
 
 	public void mouseMovedSelect(MouseEvent evt)
 	{
@@ -2306,8 +2365,8 @@ public class Panel extends JPanel
 	 */ 
 	public void mousePressedZoom(MouseEvent evt)
 	{
-		dragStartX = evt.getX();
-		dragStartY = evt.getY();
+		dragStartXD = convertXScreenToData(evt.getX());
+		dragStartYD = convertYScreenToData(evt.getY());
 		ZoomAndPanListener.setProperCursor(evt);
 		draggingArea = true;
 	}
@@ -2319,13 +2378,13 @@ public class Panel extends JPanel
 	{
 		ZoomAndPanListener.setProperCursor(evt);
 		draggingArea = false;
-		double lowXValue = convertXScreenToData(Math.min(dragEndX, dragStartX));
-		double highXValue = convertXScreenToData(Math.max(dragEndX, dragStartX));
+		double lowXValue = Math.min(dragEndXD, dragStartXD);
+		double highXValue = Math.max(dragEndXD, dragStartXD);
 		double xRange = highXValue - lowXValue;
 		lowXValue -= xRange / 8;
 		highXValue += xRange / 8;
-		double lowValue = convertYScreenToData(Math.max(dragEndY, dragStartY));
-		double highValue = convertYScreenToData(Math.min(dragEndY, dragStartY));
+		double lowValue = Math.max(dragEndYD, dragStartYD);
+		double highValue = Math.min(dragEndYD, dragStartYD);
 		double valueRange = highValue - lowValue;
 		lowValue -= valueRange / 8;
 		highValue += valueRange / 8;
@@ -2361,8 +2420,8 @@ public class Panel extends JPanel
 //		ZoomAndPanListener.setProperCursor(evt);
 		if (draggingArea)
 		{
-			dragEndX = evt.getX();
-			dragEndY = evt.getY();
+			dragEndXD = convertXScreenToData(evt.getX());
+			dragEndYD = convertYScreenToData(evt.getY());
 			repaintContents();
 		}
 	}
@@ -2377,8 +2436,8 @@ public class Panel extends JPanel
 	 */ 
 	public void mousePressedPan(MouseEvent evt)
 	{
-		dragStartX = evt.getX();
-		dragStartY = evt.getY();
+		dragStartXD = convertXScreenToData(evt.getX());
+		dragStartYD = convertYScreenToData(evt.getY());
 	}
 
 	/**
@@ -2393,15 +2452,11 @@ public class Panel extends JPanel
 	 */ 
 	public void mouseDraggedPan(MouseEvent evt)
 	{
-		dragEndX = evt.getX();
-		double dragEndXData = convertXScreenToData(dragEndX);
-		double dragStartXData = convertXScreenToData(dragStartX);
-		double dXValue = dragEndXData - dragStartXData;
+		dragEndXD = convertXScreenToData(evt.getX());
+		double dXValue = dragEndXD - dragStartXD;
 
-		dragEndY = evt.getY();
-		double dragEndYData = convertYScreenToData(dragEndY);
-		double dragStartYData = convertYScreenToData(dragStartY);
-		double dYValue = dragEndYData - dragStartYData;
+		dragEndYD = convertYScreenToData(evt.getY());
+		double dYValue = dragEndYD - dragStartYD;
 
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
@@ -2412,8 +2467,8 @@ public class Panel extends JPanel
 				setYAxisRange(analogLowValue - dYValue, analogHighValue - dYValue);
 			wp.repaintWithRulers();
 		}
-		dragStartX = dragEndX;
-		dragStartY = dragEndY;
+		dragStartXD = dragEndXD;
+		dragStartYD = dragEndYD;
 	}
 
 	public void mouseMovedPan(MouseEvent evt) {}
