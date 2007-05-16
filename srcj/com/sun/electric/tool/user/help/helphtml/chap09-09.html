@@ -2,11 +2,12 @@
 
 <!-- COMMAND Tool/Logical Effort/Optimize for Equal Gate Delays -->
 <!-- COMMAND Tool/Logical Effort/Optimize for Equal Gate Delays (no caching) -->
-<!-- COMMAND Tool/Logical Effort/Print Info for Selected Node -->
+<!-- COMMAND Tool/Logical Effort/List Info for Selected Node -->
 <!-- COMMAND Tool/Logical Effort/Back Annotate Wire Lengths for Current Cell -->
 <!-- COMMAND Tool/Logical Effort/Clear Sizes on Selected Node(s) -->
 <!-- COMMAND Tool/Logical Effort/Clear Sizes in all Libraries -->
 <!-- COMMAND Tool/Logical Effort/Load Logical Effort Libraries (Purple, Red, and Orange) -->
+<!-- COMMAND Tool/Logical Effort/Estimate Delays -->
 <!-- PROJECTSETTING Logical Effort -->
 
 The Logical Effort tool examines a digital schematic and determines the optimal transistor size to use in order to get maximum speed.
@@ -102,7 +103,7 @@ It is intended that both the caching and non-caching algorithms obtain exactly t
 however due to the difficulty in obtaining and maintaining correctness when it comes to caching,
 the non-caching algorithm is also available.</LI>
 
-<LI><B>Print Info for Selected Node</B>
+<LI><B>List Info for Selected Node</B>
 After running sizing, information about a specific logical effort gate can be found by
 selecting the gate instance and running this command.</LI>
 
@@ -119,6 +120,9 @@ This command deletes saved sizes on a per-node basis.</LI>
 
 <LI><B>Clear Sizes in all Libraries</B>
 This command deletes saved sizes everywhere.</LI>
+
+<LI><B>Estimate Delays</B>
+This command computes load factors for every network in the cell.</LI>
 </UL>
 
 <!-- TRAILER -->
