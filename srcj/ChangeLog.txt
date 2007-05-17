@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/17/07, SMR Visible layers and TechPalette (Bug #1241)
+
 IMP: (5/17/07, SMR) Waveform window allows multiple measurements.  Right-click
      to clear them.  Measurements have an extra digit of precision. (Bug #1308)
 
