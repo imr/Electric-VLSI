@@ -132,6 +132,8 @@ public class Panel extends JPanel
 	/** vertical range displayed in this panel (analog) */	private double analogRange;
 	/** true if an X axis cursor is being dragged */		private boolean draggingMain, draggingExt, draggingVertAxis;
 	/** true if an area is being dragged */					private boolean draggingArea;
+	/** list of measurements being displayed */				private List<Rectangle2D> measurementList;
+	/** current measurement being displayed */				private Rectangle2D curMeasurement;
 	/** true if this waveform panel is selected */			private boolean selected;
 	/** true if this waveform panel is hidden */			private boolean hidden;
 	/** the type of analysis shown in this panel */			private Analysis.AnalysisType analysisType;
@@ -178,6 +180,8 @@ public class Panel extends JPanel
 		vertPanelLogarithmic = false;
 		xAxisSignal = null;
 		waveSignals = new HashMap<JButton,WaveSignal>();
+		measurementList = new ArrayList<Rectangle2D>();
+		curMeasurement = null;
 
 		// setup this panel window
 		int height = waveWindow.getPanelSizeDigital();
@@ -1041,128 +1045,137 @@ public class Panel extends JPanel
 			offscreenGraphics.drawLine(lowX, highY, highX, highY);
 			offscreenGraphics.drawLine(highX, highY, highX, lowY);
 			offscreenGraphics.drawLine(highX, lowY, lowX, lowY);
-			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+		}
+		for(Rectangle2D meas : measurementList)
+		{
+			int lowX = Math.min(convertXDataToScreen(meas.getMinX()), convertXDataToScreen(meas.getMaxX()));
+			int highX = Math.max(convertXDataToScreen(meas.getMinX()), convertXDataToScreen(meas.getMaxX()));
+			int lowY = Math.min(convertYDataToScreen(meas.getMinY()), convertYDataToScreen(meas.getMaxY()));
+			int highY = Math.max(convertYDataToScreen(meas.getMinY()), convertYDataToScreen(meas.getMaxY()));
+			offscreenGraphics.drawLine(lowX, lowY, lowX, highY);
+			offscreenGraphics.drawLine(lowX, highY, highX, highY);
+			offscreenGraphics.drawLine(highX, highY, highX, lowY);
+			offscreenGraphics.drawLine(highX, lowY, lowX, lowY);
+
+			// show dimensions while dragging
+			double lowXValue = convertXScreenToData(lowX);
+			double highXValue = convertXScreenToData(highX);
+			double lowValue = convertYScreenToData(highY);
+			double highValue = convertYScreenToData(lowY);
+			offscreenGraphics.setFont(waveWindow.getFont());
+
+			// show the low X value and arrow
+			String lowXValueString = TextUtils.convertToEngineeringNotation(lowXValue, "s");
+			GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), lowXValueString);
+			Rectangle2D glyphBounds = gv.getLogicalBounds();
+			int textWid = (int)glyphBounds.getWidth();
+			int textHei = (int)glyphBounds.getHeight();
+			int textY = (lowY+highY)/2;
+			offscreenGraphics.drawString(lowXValueString, lowX-textWid-6, textY+textHei/2-10);
+			offscreenGraphics.drawLine(lowX-1, textY, lowX-textWid, textY);
+			offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY+4);
+			offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY-4);
+
+			// show the high X value and arrow
+			String highXValueString = TextUtils.convertToEngineeringNotation(highXValue, "s");
+			gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), highXValueString);
+			glyphBounds = gv.getLogicalBounds();
+			textWid = (int)glyphBounds.getWidth();
+			textHei = (int)glyphBounds.getHeight();
+			int highXValueTextWid = textWid;
+			offscreenGraphics.drawString(highXValueString, highX+6, textY+textHei/2-10);
+			offscreenGraphics.drawLine(highX+1, textY, highX+textWid, textY);
+			offscreenGraphics.drawLine(highX+1, textY, highX+6, textY+4);
+			offscreenGraphics.drawLine(highX+1, textY, highX+6, textY-4);
+
+			// show the difference X value
+			String xDiffString = TextUtils.convertToEngineeringNotation(highXValue-lowXValue, "s");
+			gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), xDiffString);
+			glyphBounds = gv.getLogicalBounds();
+			textWid = (int)glyphBounds.getWidth();
+			textHei = (int)glyphBounds.getHeight();
+			if (textWid + 24 < highX - lowX)
 			{
-				// show dimensions while dragging
-				double lowXValue = convertXScreenToData(lowX);
-				double highXValue = convertXScreenToData(highX);
-				double lowValue = convertYScreenToData(highY);
-				double highValue = convertYScreenToData(lowY);
-				offscreenGraphics.setFont(waveWindow.getFont());
+				// fits inside: draw arrows around text
+				int yPosText = highY + textHei*5;
+				int yPos = yPosText - textHei/2;
+				int xCtr = (highX+lowX)/2;
+				offscreenGraphics.drawString(xDiffString, xCtr - textWid/2, yPosText);
+				offscreenGraphics.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
+				offscreenGraphics.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
+				offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos+4);
+				offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos-4);
+				offscreenGraphics.drawLine(highX, yPos, highX-5, yPos+4);
+				offscreenGraphics.drawLine(highX, yPos, highX-5, yPos-4);
+			} else
+			{
+				// does not fit inside: draw outside of arrows
+				int yPosText = highY + textHei*5;
+				int yPos = yPosText - textHei/2;
+				offscreenGraphics.drawString(xDiffString, highX + 12, yPosText);
+				offscreenGraphics.drawLine(lowX, yPos, lowX-10, yPos);
+				offscreenGraphics.drawLine(highX, yPos, highX+10, yPos);
+				offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos+4);
+				offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos-4);
+				offscreenGraphics.drawLine(highX, yPos, highX+5, yPos+4);
+				offscreenGraphics.drawLine(highX, yPos, highX+5, yPos-4);
+			}
 
-				// show the low X value and arrow
-				String lowXValueString = TextUtils.convertToEngineeringNotation(lowXValue, "s");
-				GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), lowXValueString);
-				Rectangle2D glyphBounds = gv.getLogicalBounds();
-				int textWid = (int)glyphBounds.getWidth();
-				int textHei = (int)glyphBounds.getHeight();
-				int textY = (lowY+highY)/2;
-				offscreenGraphics.drawString(lowXValueString, lowX-textWid-6, textY+textHei/2-10);
-				offscreenGraphics.drawLine(lowX-1, textY, lowX-textWid, textY);
-				offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY+4);
-				offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY-4);
-
-				// show the high X value and arrow
-				String highXValueString = TextUtils.convertToEngineeringNotation(highXValue, "s");
-				gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), highXValueString);
+			if (analog)
+			{
+				// show the low value
+				String lowValueString = TextUtils.convertToEngineeringNotation(highValue, null);
+				gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), lowValueString);
 				glyphBounds = gv.getLogicalBounds();
 				textWid = (int)glyphBounds.getWidth();
 				textHei = (int)glyphBounds.getHeight();
-				int highXValueTextWid = textWid;
-				offscreenGraphics.drawString(highXValueString, highX+6, textY+textHei/2-10);
-				offscreenGraphics.drawLine(highX+1, textY, highX+textWid, textY);
-				offscreenGraphics.drawLine(highX+1, textY, highX+6, textY+4);
-				offscreenGraphics.drawLine(highX+1, textY, highX+6, textY-4);
+				int xP = (lowX+highX)/2;
+				int yText = lowY - 10 - textHei;
+				offscreenGraphics.drawString(lowValueString, xP, yText - 2);
+				offscreenGraphics.drawLine(xP, lowY-1, xP, yText);
+				offscreenGraphics.drawLine(xP, lowY-1, xP+4, lowY-5);
+				offscreenGraphics.drawLine(xP, lowY-1, xP-4, lowY-5);
 
-				// show the difference X value
-				String xDiffString = TextUtils.convertToEngineeringNotation(highXValue-lowXValue, "s");
-				gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), xDiffString);
+				// show the high value
+				String highValueString = TextUtils.convertToEngineeringNotation(lowValue, null);
+				gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), highValueString);
 				glyphBounds = gv.getLogicalBounds();
 				textWid = (int)glyphBounds.getWidth();
 				textHei = (int)glyphBounds.getHeight();
-				if (textWid + 24 < highX - lowX)
+				yText = highY + 10 + textHei;
+				offscreenGraphics.drawString(highValueString, xP, yText + textHei + 2);
+				offscreenGraphics.drawLine(xP, highY+1, xP, yText);
+				offscreenGraphics.drawLine(xP, highY+1, xP+4, highY+5);
+				offscreenGraphics.drawLine(xP, highY+1, xP-4, highY+5);
+
+				// show the value difference
+				String valueDiffString = TextUtils.convertToEngineeringNotation(highValue - lowValue, null);
+				gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valueDiffString);
+				glyphBounds = gv.getLogicalBounds();
+				textWid = (int)glyphBounds.getWidth();
+				textHei = (int)glyphBounds.getHeight();
+				if (textHei + 12 < highY - lowY)
 				{
 					// fits inside: draw arrows around text
-					int yPosText = highY + textHei*5;
-					int yPos = yPosText - textHei/2;
-					int xCtr = (highX+lowX)/2;
-					offscreenGraphics.drawString(xDiffString, xCtr - textWid/2, yPosText);
-					offscreenGraphics.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
-					offscreenGraphics.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
-					offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos+4);
-					offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos-4);
-					offscreenGraphics.drawLine(highX, yPos, highX-5, yPos+4);
-					offscreenGraphics.drawLine(highX, yPos, highX-5, yPos-4);
+					int xPos = highX + highXValueTextWid + 30;
+					int yCtr = (highY+lowY)/2;
+					offscreenGraphics.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
+					offscreenGraphics.drawLine(xPos, lowY, xPos, highY);
+					offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY+5);
+					offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY+5);
+					offscreenGraphics.drawLine(xPos, highY, xPos+4, highY-5);
+					offscreenGraphics.drawLine(xPos, highY, xPos-4, highY-5);
 				} else
 				{
 					// does not fit inside: draw outside of arrows
-					int yPosText = highY + textHei*5;
-					int yPos = yPosText - textHei/2;
-					offscreenGraphics.drawString(xDiffString, highX + 12, yPosText);
-					offscreenGraphics.drawLine(lowX, yPos, lowX-10, yPos);
-					offscreenGraphics.drawLine(highX, yPos, highX+10, yPos);
-					offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos+4);
-					offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos-4);
-					offscreenGraphics.drawLine(highX, yPos, highX+5, yPos+4);
-					offscreenGraphics.drawLine(highX, yPos, highX+5, yPos-4);
-				}
-
-				if (analog)
-				{
-					// show the low value
-					String lowValueString = TextUtils.convertToEngineeringNotation(highValue, null);
-					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), lowValueString);
-					glyphBounds = gv.getLogicalBounds();
-					textWid = (int)glyphBounds.getWidth();
-					textHei = (int)glyphBounds.getHeight();
-					int xP = (lowX+highX)/2;
-					int yText = lowY - 10 - textHei;
-					offscreenGraphics.drawString(lowValueString, xP, yText - 2);
-					offscreenGraphics.drawLine(xP, lowY-1, xP, yText);
-					offscreenGraphics.drawLine(xP, lowY-1, xP+4, lowY-5);
-					offscreenGraphics.drawLine(xP, lowY-1, xP-4, lowY-5);
-
-					// show the high value
-					String highValueString = TextUtils.convertToEngineeringNotation(lowValue, null);
-					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), highValueString);
-					glyphBounds = gv.getLogicalBounds();
-					textWid = (int)glyphBounds.getWidth();
-					textHei = (int)glyphBounds.getHeight();
-					yText = highY + 10 + textHei;
-					offscreenGraphics.drawString(highValueString, xP, yText + textHei + 2);
-					offscreenGraphics.drawLine(xP, highY+1, xP, yText);
-					offscreenGraphics.drawLine(xP, highY+1, xP+4, highY+5);
-					offscreenGraphics.drawLine(xP, highY+1, xP-4, highY+5);
-
-					// show the value difference
-					String valueDiffString = TextUtils.convertToEngineeringNotation(highValue - lowValue, null);
-					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valueDiffString);
-					glyphBounds = gv.getLogicalBounds();
-					textWid = (int)glyphBounds.getWidth();
-					textHei = (int)glyphBounds.getHeight();
-					if (textHei + 12 < highY - lowY)
-					{
-						// fits inside: draw arrows around text
-						int xPos = highX + highXValueTextWid + 30;
-						int yCtr = (highY+lowY)/2;
-						offscreenGraphics.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
-						offscreenGraphics.drawLine(xPos, lowY, xPos, highY);
-						offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY+5);
-						offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY+5);
-						offscreenGraphics.drawLine(xPos, highY, xPos+4, highY-5);
-						offscreenGraphics.drawLine(xPos, highY, xPos-4, highY-5);
-					} else
-					{
-						// does not fit inside: draw outside of arrows
-						int xPos = highX + highXValueTextWid + 30;
-						offscreenGraphics.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
-						offscreenGraphics.drawLine(xPos, lowY, xPos, lowY-10);
-						offscreenGraphics.drawLine(xPos, highY, xPos, highY+10);
-						offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY-5);
-						offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY-5);
-						offscreenGraphics.drawLine(xPos, highY, xPos+4, highY+5);
-						offscreenGraphics.drawLine(xPos, highY, xPos-4, highY+5);
-					}
+					int xPos = highX + highXValueTextWid + 30;
+					offscreenGraphics.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
+					offscreenGraphics.drawLine(xPos, lowY, xPos, lowY-10);
+					offscreenGraphics.drawLine(xPos, highY, xPos, highY+10);
+					offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY-5);
+					offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY-5);
+					offscreenGraphics.drawLine(xPos, highY, xPos+4, highY+5);
+					offscreenGraphics.drawLine(xPos, highY, xPos-4, highY+5);
 				}
 			}
 		}
@@ -1819,6 +1832,8 @@ public class Panel extends JPanel
 				}
 			}
 		}
+		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
+			it.next().curMeasurement = null;
 		if (mode == ToolBar.CursorMode.ZOOM) mousePressedZoom(evt); else
 			if (mode == ToolBar.CursorMode.PAN) mousePressedPan(evt); else
 				mousePressedSelect(evt);
@@ -1832,6 +1847,13 @@ public class Panel extends JPanel
 		if (mode == ToolBar.CursorMode.ZOOM) mouseReleasedZoom(evt); else
 			if (mode == ToolBar.CursorMode.PAN) mouseReleasedPan(evt); else
 				mouseReleasedSelect(evt);
+
+		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
+		{
+			Panel panel = it.next();
+			panel.curMeasurement = null;
+			if (mode == ToolBar.CursorMode.MEASURE) panel.draggingArea = false;
+		}
 	}
 
 	public void mouseClicked(MouseEvent evt) {}
@@ -1967,6 +1989,16 @@ public class Panel extends JPanel
 	}
 
 	/**
+	 * Method to remove all displayed measurements from the panel
+	 */
+	public void clearMeasurements()
+	{
+		measurementList.clear();
+		curMeasurement = null;
+		repaintContents();
+	}
+
+	/**
 	 * Method to implement the Mouse Pressed event for selection.
 	 */ 
 	public void mousePressedSelect(MouseEvent evt)
@@ -1992,14 +2024,27 @@ public class Panel extends JPanel
 		}
 
 		// drag area
-		draggingArea = true;
 		Point pt = new Point(evt.getX(), evt.getY());
 		if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 		{
 			pt = snapPoint(pt);
 		}
-		dragEndXD = dragStartXD = convertXScreenToData(pt.x);
-		dragEndYD = dragStartYD = convertYScreenToData(pt.y);
+		double xV = convertXScreenToData(pt.x);
+		double yV = convertYScreenToData(pt.y);
+		if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+		{
+			if (ClickZoomWireListener.isRightMouse(evt))
+			{
+				measurementList.clear();
+				curMeasurement = null;
+				return;
+			}
+			curMeasurement = new Rectangle2D.Double(xV, yV, 0, 0);
+			measurementList.add(curMeasurement);
+		}
+		dragEndXD = dragStartXD = xV;
+		dragEndYD = dragStartYD = yV;
+		draggingArea = true;
 	}
 
 	private Point snapPoint(Point pt)
@@ -2079,11 +2124,11 @@ public class Panel extends JPanel
 	{
 		if (draggingArea)
 		{
+			draggingArea = false;
 			Panel wp = (Panel)evt.getSource();
 			if (ToolBar.getCursorMode() != ToolBar.CursorMode.MEASURE &&
 				ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
-				draggingArea = false;
 				List<WaveSelection> selectedObjects = wp.findSignalsInArea(convertXDataToScreen(dragStartXD),
 					convertXDataToScreen(dragEndXD), convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
 				
@@ -2228,7 +2273,8 @@ public class Panel extends JPanel
 
 			dragEndXD = curPanel.convertXScreenToData(cPt.x);
 			dragEndYD = curPanel.convertYScreenToData(cPt.y);
-			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE &&
+				!ClickZoomWireListener.isRightMouse(evt))
 			{
 				// reset all panels
 				for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
@@ -2237,6 +2283,12 @@ public class Panel extends JPanel
 				// update all windows the measurement may have crossed over
 				for(Panel wp : measureWindows)
 				{
+					if (wp.curMeasurement == null)
+					{
+						wp.curMeasurement = new Rectangle2D.Double();
+						wp.measurementList.add(wp.curMeasurement);
+					}
+					wp.curMeasurement.setRect(dragStartXD, dragStartYD, dragEndXD-dragStartXD, dragEndYD-dragStartYD);
 					wp.dragStartXD = dragStartXD;
 					wp.dragStartYD = dragStartYD;
 					wp.dragEndXD = dragEndXD;
@@ -2248,36 +2300,6 @@ public class Panel extends JPanel
 			repaintContents();
 		}
 	}
-
-//	private Point getAbsPositionOnScreen()
-//	{
-//		if (WaveformWindow.USETABLES)
-//		{
-//			JTable table = waveWindow.getWaveformTable();
-//			int height = 0;
-//			int marginSize = 0;
-//			for(int i=0; i<table.getRowCount(); i++)
-//			{
-//				Panel op = waveWindow.getPanel(i);
-//				if (op == this)
-//				{
-//					Point los = table.getLocationOnScreen();
-//					los.y += height + i*table.getRowMargin() + marginSize;
-//					return los;
-////					Rectangle cellRect = table.getCellRect(i, 1, true);
-////					Point oPt = new Point(cellRect.x, cellRect.y);
-////					SwingUtilities.convertPointToScreen(oPt, table);
-////					return oPt;
-//				}
-//				Rectangle cellRect = table.getCellRect(i, 1, true);
-//				height += cellRect.height;
-//				marginSize = cellRect.height - op.getHeight();
-//			}
-//		}
-//
-//		// non-table method
-//		return getLocationOnScreen();
-//	}
 
 	public void mouseMovedSelect(MouseEvent evt)
 	{

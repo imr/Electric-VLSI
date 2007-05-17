@@ -510,27 +510,27 @@ public class TextUtils
 		// Although the extremes (yocto and yotta) are defined in the literature,
 		// they aren't common in circuits (at this time) and so they are commented out.
 		// Add them and more as their use in circuitry becomes common.
-//		new ConversionRange("y", -24, 1.0E26),		// yocto
-		new ConversionRange("z", -21, 1.0E23),		// zepto
-		new ConversionRange("a", -18, 1.0E20),		// atto
-		new ConversionRange("f", -15, 1.0E17),		// femto
-		new ConversionRange("p", -12, 1.0E14),		// pico
-		new ConversionRange("n",  -9, 1.0E11),		// nano
-		new ConversionRange("u",  -6, 1.0E8),		// micro
-		new ConversionRange("m",  -3, 1.0E5),		// milli
-		new ConversionRange("",    0, 1.0E2),		// no scale
-		new ConversionRange("k",   3, 1.0E-1),		// kilo
-		new ConversionRange("M",   6, 1.0E-4),		// mega
-		new ConversionRange("G",   9, 1.0E-7),		// giga
-		new ConversionRange("T",  12, 1.0E-10),		// tera
-		new ConversionRange("P",  15, 1.0E-13),		// peta
-		new ConversionRange("E",  18, 1.0E-16),		// exa
-		new ConversionRange("Z",  21, 1.0E-19)		// zetta
-//		new ConversionRange("Y",  24, 1.0E-22)		// yotta
+//		new ConversionRange("y", -24, 1.0E27),		// yocto
+		new ConversionRange("z", -21, 1.0E24),		// zepto
+		new ConversionRange("a", -18, 1.0E21),		// atto
+		new ConversionRange("f", -15, 1.0E18),		// femto
+		new ConversionRange("p", -12, 1.0E15),		// pico
+		new ConversionRange("n",  -9, 1.0E12),		// nano
+		new ConversionRange("u",  -6, 1.0E9),		// micro
+		new ConversionRange("m",  -3, 1.0E6),		// milli
+		new ConversionRange("",    0, 1.0E3),		// no scale
+		new ConversionRange("k",   3, 1.0E0),		// kilo
+		new ConversionRange("M",   6, 1.0E-3),		// mega
+		new ConversionRange("G",   9, 1.0E-6),		// giga
+		new ConversionRange("T",  12, 1.0E-9),		// tera
+		new ConversionRange("P",  15, 1.0E-12),		// peta
+		new ConversionRange("E",  18, 1.0E-15),		// exa
+		new ConversionRange("Z",  21, 1.0E-18)		// zetta
+//		new ConversionRange("Y",  24, 1.0E-21)		// yotta
     };
-	private static final double LOOKS_LIKE_ZERO = 1.0 / (allRanges[0].scale * 1.0E5);
-	private static final double SMALLEST_JUST_PRINT = 1.0 / (allRanges[0].scale * 10.0);
-	private static final double LARGEST_JUST_PRINT = 1.0 / allRanges[allRanges.length-1].scale * 1.0E5;
+	private static final double LOOKS_LIKE_ZERO = 1.0 / (allRanges[0].scale * 1.0E4);
+	private static final double SMALLEST_JUST_PRINT = 1.0 / (allRanges[0].scale * 1.0);
+	private static final double LARGEST_JUST_PRINT = 1.0 / allRanges[allRanges.length-1].scale * 1.0E4;
 
 	public static String convertToEngineeringNotation(double time, String unit, int precpower)
 	{
@@ -559,7 +559,7 @@ public class TextUtils
 		{
 			scaled = time * allRanges[i].scale;
 			intTime = Math.round(scaled);
-			if (i == allRanges.length-1 || (scaled < 200000.0 && intTime < 100000))
+			if (i == allRanges.length-1 || (scaled < 2000000.0 && intTime < 100000))
 			{
 				if (unit == null)
 				{
@@ -574,25 +574,31 @@ public class TextUtils
 
 		if (precpower >= scalePower)
 		{
-			long timeleft = intTime / 100;
-			long timeright = intTime % 100;
+			long timeleft = intTime / 1000;
+			long timeright = intTime % 1000;
 			if (timeright == 0)
 			{
 				return negative + timeleft + secType;
 			} else
 			{
-				if ((timeright%10) == 0)
+				if ((timeright%100) == 0)
 				{
-					return negative + timeleft + "." + timeright/10 + secType;
+					return negative + timeleft + "." + timeright/100 + secType;
+				} else if ((timeright%10) == 0)
+				{
+					String tensDigit = "";
+					if (timeright < 100) tensDigit = "0";
+					return negative + timeleft + "." + tensDigit + timeright/10 + secType;
 				} else
 				{
 					String tensDigit = "";
-					if (timeright < 10) tensDigit = "0";
+					if (timeright < 10) tensDigit = "00"; else
+						if (timeright < 100) tensDigit = "0";
 					return negative + timeleft + "." + tensDigit + timeright + secType;
 				}
 			}
 		}
-		scaled /= 1.0E2;
+		scaled /= 10;
 		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
 		if (numPart.indexOf('.') >= 0)
 		{

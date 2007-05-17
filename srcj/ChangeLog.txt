@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/17/07, SMR) Waveform window allows multiple measurements.  Right-click
+     to clear them.  Measurements have an extra digit of precision. (Bug #1308)
+
 BUG: (5/17/07, GVG) Cannot set "Disallow Stacked Vias" for mocmos technology (Bug #1312)
 FIX: Added SPACINGE to the switch in XMLRules.loadDRCRules().
 

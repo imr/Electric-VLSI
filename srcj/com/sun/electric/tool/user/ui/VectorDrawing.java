@@ -187,7 +187,7 @@ class VectorDrawing
 			VectorCache.VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
             topVD = this;
 			render(topVC, 0, 0, context, 0);
-            drawList(0, 0, topVC.topOnlyShapes, 0);
+            drawList(0, 0, topVC.topOnlyShapes, 0, false);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -218,8 +218,9 @@ class VectorDrawing
      * @param scale edit window scale
      * @param offset the offset factor for this window
      * @param shapes shapes of tech menu
+     * @param forceVisible true to force all layers to be drawn (regardless of user settings)
 	 */
-	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
+	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes, boolean forceVisible)
 	{
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
@@ -248,7 +249,7 @@ class VectorDrawing
 		try
 		{
             List<VectorCache.VectorBase> shapeList = Arrays.asList(shapes);
-            drawList(0, 0, shapeList, 0);
+            drawList(0, 0, shapeList, 0, forceVisible);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -281,8 +282,8 @@ class VectorDrawing
 		throws AbortRenderingException
 	{
 		// render main list of shapes
-		drawList(oX, oY, vc.filledShapes, level);
-		drawList(oX, oY, vc.shapes, level);
+		drawList(oX, oY, vc.filledShapes, level, false);
+		drawList(oX, oY, vc.shapes, level, false);
 
 		// now render subcells
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
@@ -408,8 +409,9 @@ class VectorDrawing
 	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
 	 * @param shapes the List of shapes (VectorBase objects).
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
+     * @param forceVisible true to force all layers to be drawn (regardless of user settings)
 	 */
-	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes, int level)
+	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes, int level, boolean forceVisible)
 		throws AbortRenderingException
 	{
 		// render all shapes in reverse order (because PixelDrawing don't overwrite opaque layers)
@@ -429,8 +431,7 @@ class VectorDrawing
 					Layer.Function fun = layer.getFunction();
 					if (fun.isContact() || fun.isWell() || fun.isSubstrate()) continue;
 				}
-//				if (!forceVisible && !vb.layer.isVisible()) continue;
-				if (!layer.isVisible()) continue;
+				if (!forceVisible && !layer.isVisible()) continue;
 				dimmed = layer.isDimmed();
 			}
 			byte [][] layerBitMap = null;
