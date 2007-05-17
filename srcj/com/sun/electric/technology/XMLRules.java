@@ -857,7 +857,7 @@ public class XMLRules implements DRCRules {
             else if ((when&Foundry.Type.TSMC.mode()) != 0 && foundry.getType() == Foundry.Type.ST)
                 oldValue = false;
             if(oldValue != newValue)
-                System.out.println("H");
+                assert(false); // check this condition and clean the code!
             if (!oldValue)
                 return; // skipping this rule
         }
@@ -962,6 +962,7 @@ public class XMLRules implements DRCRules {
                     addRule(index, theRule);
                 break;
             case SPACING:
+            case SPACINGE:
             case CONSPA:
             case UCONSPA:
             case UCONSPA2D:
@@ -987,9 +988,11 @@ public class XMLRules implements DRCRules {
                 aty.setArcLayerSurroundLayer(lay1, lay2, distance);
                 break;
             default:
-                assert(false);
+            {
                 System.out.println("Rule " +  theRule.ruleName + " type " + theRule.ruleType +
                         " not implemented in " + tech.getTechName());
+                assert(false);
+            }
         }
     }
 
