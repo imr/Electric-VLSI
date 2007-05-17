@@ -96,7 +96,7 @@ public class PostScript extends Output
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
 	/** true to plot date information in the corner. */					private boolean plotDates;
-	/** the number of objects to export (for progress) */				private int numObjects;
+	/** the number of objects to export (for progress) */				private long numObjects;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance("black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -598,7 +598,7 @@ public class PostScript extends Output
 
 			// counted the objects, now write them
 			Job.getUserInterface().setProgressNote("Found " + numObjects + " PostScript objects...");
-			int totalObjects = numObjects;
+			long totalObjects = numObjects;
 			numObjects = 0;
 			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 			Job.getUserInterface().stopProgressDialog();
@@ -613,7 +613,7 @@ public class PostScript extends Output
 	 * @param real true to really write PostScript (false when counting objects for progress display).
 	 * @param progressTotal nonzero to display progress (in which case, this is the total).
 	 */
-	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, int progressTotal)
+	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, long progressTotal)
 	{
 		if (override != null)
 		{
@@ -651,7 +651,6 @@ public class PostScript extends Output
 					{
 						textPolys[i].transform(subRot);
 						psPoly(textPolys[i]);
-						Poly [] foofoo = ni.getDisplayableVariables(wnd);
 					}
 				}
 				numObjects++;
@@ -772,6 +771,17 @@ public class PostScript extends Output
 				{
 					polys[i].transform(trans);
 					psPoly(polys[i]);
+				}
+
+				// draw any displayable variables on the arc
+				if (real && User.isTextVisibilityOnNode())
+				{
+					polys = ai.getDisplayableVariables(wnd);
+					for (int i=0; i<polys.length; i++)
+					{
+						polys[i].transform(trans);
+						psPoly(polys[i]);
+					}
 				}
 			}
 			numObjects++;
