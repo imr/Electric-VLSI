@@ -381,7 +381,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         {
             TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(initialFont);
             if (af != null)
-                font.setSelectedItem(af.getName());
+            {
+            	String fontName = af.getName();
+    			EDialog.ensureComboBoxFont(font, fontName);
+                font.setSelectedItem(fontName);
+            }
         }
 
         // set italic / bold / underline

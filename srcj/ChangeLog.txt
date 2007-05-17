@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/17/07, SMR) PostScript uses different default fonts.
+FIX: In PostScript.java, unify use of "Times" and "Times-Roman".
+
+BUG: (5/17/07, SMR) Unknown fonts do not appear in "Properties" dialogs.
+FIX: Added EDialog.ensureComboBoxFont() to add unknown fonts to the list.
+
 ************************* Version 8.05l: *********************************
 
 BUG: (5/16/07, SMR) PostScript output doesn't handle exports on mirrored nodes.

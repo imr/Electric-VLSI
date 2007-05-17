@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JList;
@@ -125,6 +126,24 @@ public class EDialog extends JDialog
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(0);
     }
+
+	/**
+	 * Method to ensure that a JComboBox of font names contains a given name.
+	 * @param fontBox the JComboBox with font names.
+	 * @param font the name of the font.
+	 * If the name is not in the JComboBox, it is added.
+	 */
+	public static void ensureComboBoxFont(JComboBox fontBox, String font)
+	{
+        int totFonts = fontBox.getItemCount();
+        boolean found = false;
+        for(int i=0; i<totFonts; i++)
+        {
+        	if (font.equals(fontBox.getItemAt(i))) { found = true;   break; }
+        }
+        if (!found)
+        	fontBox.addItem(font);
+	}
 
     /**
      * Sets the cursor to have focus in the specified textComponent, and

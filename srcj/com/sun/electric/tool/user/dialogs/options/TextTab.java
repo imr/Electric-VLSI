@@ -38,6 +38,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
 
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -281,6 +282,7 @@ public class TextTab extends PreferencePanel
 		} else
 		{
 			String fontName = TextDescriptor.ActiveFont.findActiveFont(face).getName();
+			ensureComboBoxFont(textFace, fontName);
 			textFace.setSelectedItem(fontName);
 		}
 	}
