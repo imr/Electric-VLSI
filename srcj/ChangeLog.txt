@@ -4,16 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+************************* Version 8.05l: *********************************
+
 BUG: (5/17/07, SMR) PostScript output takes too long (Bug #1262).
 FIX: Added progress dialog.
 
-BUG: (5/17/07, SMR) PostScript uses different default fonts.
+BUG: (5/17/07, SMR) PostScript uses different default fonts (for Ivan).
 FIX: In PostScript.java, unify use of "Times" and "Times-Roman".
 
-BUG: (5/17/07, SMR) Unknown fonts do not appear in "Properties" dialogs.
+BUG: (5/17/07, SMR) Unknown fonts do not appear in "Properties" dialogs (for Ivan).
 FIX: Added EDialog.ensureComboBoxFont() to add unknown fonts to the list.
-
-************************* Version 8.05l: *********************************
 
 BUG: (5/16/07, SMR) PostScript output doesn't handle exports on mirrored nodes.
 FIX: In PostScript.recurseCircuitLevel() use Poly.rotateType() to adjust the
