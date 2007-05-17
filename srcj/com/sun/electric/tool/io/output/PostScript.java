@@ -68,6 +68,10 @@ public class PostScript extends Output
 //	/** scale factor for PostScript text */			private static final double PSTEXTSCALE    =  0.45;
 	/** scale factor for PostScript text */			private static final double PSTEXTSCALE    =  0.75;
 	/** size of text in the corner */				private static final int    CORNERDATESIZE = 14;
+	/** default text plain font */					private static final String DEFAULTFONT = "Times-Roman";
+	/** default text bold font */					private static final String DEFAULTFONTBOLD = "Times-Bold";
+	/** default text italic font */					private static final String DEFAULTFONTITALIC = "Times-Italic";
+	/** default text bold-italic font */			private static final String DEFAULTFONTBI = "Times-BoldItalic";
 
 	/** write macros for dot drawing */				private static final int HEADERDOT      =  1;
 	/** write macros for line drawing */			private static final int HEADERLINE     =  2;
@@ -92,6 +96,7 @@ public class PostScript extends Output
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
 	/** true to plot date information in the corner. */					private boolean plotDates;
+	/** the number of objects to export (for progress) */				private int numObjects;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance("black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -362,7 +367,7 @@ public class PostScript extends Output
 		 * prevent the edges from being obscured by some drawing tools
 		 */
 		printWriter.println("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1));
-		printWriter.println("%%DocumentFonts: Times-Roman");
+		printWriter.println("%%DocumentFonts: " + DEFAULTFONT);
 		printWriter.println("%%EndComments");
 		if (!epsFormat) printWriter.println("%%Page: 1 1");
 
@@ -395,7 +400,7 @@ public class PostScript extends Output
 		printWriter.println("72 " + PSSCALE*75 + " div 72 " + PSSCALE*75 + " div scale");
 
 		// set the proper typeface
-		printWriter.println("/DefaultFont /Times-Roman def");
+		printWriter.println("/DefaultFont /" + DEFAULTFONT + " def");
 		printWriter.println("/scaleFont {");
 		printWriter.println("    DefaultFont findfont");
 		printWriter.println("    exch scalefont setfont} def");
@@ -578,26 +583,46 @@ public class PostScript extends Output
 			for(Layer layer : layerList)
 			{
 				currentLayer = layer.getIndex() + 1;
-				recurseCircuitLevel(cell, DBMath.MATID, true);
+				recurseCircuitLevel(cell, DBMath.MATID, true, true, 0);
 			}
 			currentLayer = 0;
-			recurseCircuitLevel(cell, DBMath.MATID, true);
+			recurseCircuitLevel(cell, DBMath.MATID, true, true, 0);
 		} else
 		{
 			// gray-scale: just plot it once
 			currentLayer = -1;
-			recurseCircuitLevel(cell, DBMath.MATID, true);
+			numObjects = 0;
+			Job.getUserInterface().startProgressDialog("Writing PostScript", null);
+			Job.getUserInterface().setProgressNote("Counting PostScript objects...");
+			recurseCircuitLevel(cell, DBMath.MATID, true, false, 0);
+
+			// counted the objects, now write them
+			Job.getUserInterface().setProgressNote("Found " + numObjects + " PostScript objects...");
+			int totalObjects = numObjects;
+			numObjects = 0;
+			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
+			Job.getUserInterface().stopProgressDialog();
 		}
 	}
 
-	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel)
+	/**
+	 * Method to recursively write a Cell to the PostScript file.
+	 * @param cell the Cell to write.
+	 * @param trans the transformation matrix from the Cell to the top level.
+	 * @param topLevel true if this is the top level.
+	 * @param real true to really write PostScript (false when counting objects for progress display).
+	 * @param progressTotal nonzero to display progress (in which case, this is the total).
+	 */
+	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, int progressTotal)
 	{
 		if (override != null)
 		{
-			for (PolyBase poly : override)
+			if (real)
 			{
-				psPoly(poly);
+				for (PolyBase poly : override)
+					psPoly(poly);
 			}
+			numObjects += override.size();
 			return;
 		}
 
@@ -611,20 +636,27 @@ public class PostScript extends Output
 			if (!ni.isCellInstance())
 			{
 				if (!topLevel && ni.isVisInside()) continue;
-				PrimitiveNode prim = (PrimitiveNode)ni.getProto();
-				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni);
-				for (int i=0; i<polys.length; i++)
+				if (real)
 				{
-					polys[i].transform(subRot);
-					psPoly(polys[i]);
+					PrimitiveNode prim = (PrimitiveNode)ni.getProto();
+					Technology tech = prim.getTechnology();
+					Poly [] polys = tech.getShapeOfNode(ni);
+					for (int i=0; i<polys.length; i++)
+					{
+						polys[i].transform(subRot);
+						psPoly(polys[i]);
+					}
+					Poly [] textPolys = ni.getDisplayableVariables(wnd);
+					for (int i=0; i<textPolys.length; i++)
+					{
+						textPolys[i].transform(subRot);
+						psPoly(textPolys[i]);
+						Poly [] foofoo = ni.getDisplayableVariables(wnd);
+					}
 				}
-				Poly [] textPolys = ni.getDisplayableVariables(wnd);
-				for (int i=0; i<textPolys.length; i++)
-				{
-					textPolys[i].transform(subRot);
-					psPoly(textPolys[i]);
-				}
+				numObjects++;
+				if (progressTotal != 0 && (numObjects%100) == 0)
+					Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 			} else
 			{
 				// a cell
@@ -633,31 +665,37 @@ public class PostScript extends Output
 				subTrans.preConcatenate(subRot);
 				if (!ni.isExpanded())
 				{
-					Rectangle2D bounds = subCell.getBounds();
-					Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
-					poly.transform(subTrans);
-					poly.setStyle(Poly.Type.CLOSED);
-					poly.setLayer(blackLayer);
-					psPoly(poly);
-
-					// Only when the instance names flag is on
-					if (User.isTextVisibilityOnInstance())
+					if (real)
 					{
-						poly.setStyle(Poly.Type.TEXTBOX);
-						TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
-						poly.setTextDescriptor(td);
-						poly.setString(ni.getProto().describe(false));
+						Rectangle2D bounds = subCell.getBounds();
+						Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+						poly.transform(subTrans);
+						poly.setStyle(Poly.Type.CLOSED);
+						poly.setLayer(blackLayer);
+						psPoly(poly);
+
+						// Only when the instance names flag is on
+						if (User.isTextVisibilityOnInstance())
+						{
+							poly.setStyle(Poly.Type.TEXTBOX);
+							TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
+							poly.setTextDescriptor(td);
+							poly.setString(ni.getProto().describe(false));
+						}
+						psPoly(poly);
+						showCellPorts(ni, trans, null);
 					}
-					psPoly(poly);
-					showCellPorts(ni, trans, null);
+					numObjects++;
+					if (progressTotal != 0 && (numObjects%100) == 0)
+						Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 				} else
 				{
-					recurseCircuitLevel(subCell, subTrans, false);
-					showCellPorts(ni, trans, Color.BLACK);
+					recurseCircuitLevel(subCell, subTrans, false, real, progressTotal);
+					if (real) showCellPorts(ni, trans, Color.BLACK);
 				}
 
 				// draw any displayable variables on the instance
-				if (User.isTextVisibilityOnNode())
+				if (real && User.isTextVisibilityOnNode())
 				{
 					Poly[] polys = ni.getDisplayableVariables(wnd);
 					for (int i=0; i<polys.length; i++)
@@ -675,37 +713,42 @@ public class PostScript extends Output
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
 					Export e = eIt.next();
-					Poly poly = e.getNamePoly();
-					if (exportDisplayLevel == 2)
+					if (real)
 					{
-						// draw port as a cross
-						drawCross(poly.getCenterX(), poly.getCenterY(), false);
-					} else
-					{
-						// draw port as text
-						if (exportDisplayLevel == 1)
+						Poly poly = e.getNamePoly();
+						if (exportDisplayLevel == 2)
 						{
-							// use shorter port name
-							String portName = e.getShortName();
-							poly.setString(portName);
+							// draw port as a cross
+							drawCross(poly.getCenterX(), poly.getCenterY(), false);
+						} else
+						{
+							// draw port as text
+							if (exportDisplayLevel == 1)
+							{
+								// use shorter port name
+								String portName = e.getShortName();
+								poly.setString(portName);
+							}
+
+							// rotate the descriptor
+							TextDescriptor descript = poly.getTextDescriptor();
+							Poly.Type style = descript.getPos().getPolyType();
+							style = Poly.rotateType(style, ni);
+							poly.setStyle(style);
+							psPoly(poly);
 						}
 
-						// rotate the descriptor
-						TextDescriptor descript = poly.getTextDescriptor();
-						Poly.Type style = descript.getPos().getPolyType();
-						style = Poly.rotateType(style, ni);
-						poly.setStyle(style);
-
-						psPoly(poly);
+						// draw variables on the export
+						Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
+						Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
+						for (int i=0; i<polys.length; i++)
+						{
+							psPoly(polys[i]);
+						}
 					}
-
-					// draw variables on the export
-					Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-					Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
-					for (int i=0; i<polys.length; i++)
-					{
-						psPoly(polys[i]);
-					}
+					numObjects++;
+					if (progressTotal != 0 && (numObjects%100) == 0)
+						Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 				}
 			}
 		}
@@ -714,24 +757,30 @@ public class PostScript extends Output
 		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 		{
 			ArcInst ai = it.next();
-			ArcProto ap = ai.getProto();
-			Technology tech = ap.getTechnology();
-			Poly[] polys = tech.getShapeOfArc(ai);
-			for (int i=0; i<polys.length; i++)
+			if (real)
 			{
-				polys[i].transform(trans);
-				psPoly(polys[i]);
+				ArcProto ap = ai.getProto();
+				Technology tech = ap.getTechnology();
+				Poly[] polys = tech.getShapeOfArc(ai);
+				for (int i=0; i<polys.length; i++)
+				{
+					polys[i].transform(trans);
+					psPoly(polys[i]);
+				}
+				Poly[] textPolys = ai.getDisplayableVariables(wnd);
+				for (int i=0; i<textPolys.length; i++)
+				{
+					polys[i].transform(trans);
+					psPoly(polys[i]);
+				}
 			}
-			Poly[] textPolys = ai.getDisplayableVariables(wnd);
-			for (int i=0; i<textPolys.length; i++)
-			{
-				polys[i].transform(trans);
-				psPoly(polys[i]);
-			}
+			numObjects++;
+			if (progressTotal != 0 && (numObjects%100) == 0)
+				Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 		}
 
 		// show cell variables if at the top level
-		if (topLevel && User.isTextVisibilityOnCell())
+		if (real && topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -1200,8 +1249,6 @@ public class PostScript extends Output
 			TextUtils.formatDouble(lx) + " " + TextUtils.formatDouble(ly) + " Filledpolygon");
 	}
 
-	String defaultFontName = "Times";
-
 	/**
 	 * draw text
 	 */
@@ -1248,16 +1295,16 @@ public class PostScript extends Output
 			{
 				if (td.isBold())
 				{
-					printWriter.println("/DefaultFont /" + defaultFontName + "-BoldItalic def");
+					printWriter.println("/DefaultFont /" + DEFAULTFONTBI + " def");
 					changedFont = true;
 				} else
 				{
-					printWriter.println("/DefaultFont /" + defaultFontName + "-Italic def");
+					printWriter.println("/DefaultFont /" + DEFAULTFONTITALIC + " def");
 					changedFont = true;
 				}
 			} else if (td.isBold())
 			{
-				printWriter.println("/DefaultFont /" + defaultFontName + "-Bold def");
+				printWriter.println("/DefaultFont /" + DEFAULTFONTBOLD + " def");
 				changedFont = true;
 			}
 		}
@@ -1364,7 +1411,7 @@ public class PostScript extends Output
 
 		if (changedFont)
 		{
-			printWriter.println("/DefaultFont /" + defaultFontName + " def");
+			printWriter.println("/DefaultFont /" + DEFAULTFONT + " def");
 		}
 	}
 
