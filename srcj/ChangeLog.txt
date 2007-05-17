@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/17/07, DN) JELIB reader crashes on unknown PrimitiveNode.
+FIX: In  input.JELIB.instantiateCellContnts add test "np != null.
+
 ************************* Version 8.05l: *********************************
 
 BUG: (5/17/07, SMR) PostScript output takes too long (Bug #1262).

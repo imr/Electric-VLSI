@@ -857,7 +857,7 @@ public class JELIB extends LibraryFiles
                     flipY = true;
                     hei = -hei;
                 }
-                if (cc.revision >= 3) {
+                if (cc.revision >= 3 && np != null) {
                     SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
                     wid += so.getLowXOffset() + so.getHighXOffset();
                     hei += so.getLowYOffset() + so.getHighYOffset();
