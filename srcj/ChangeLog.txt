@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/17/07, DN) Boolean project settings not read from library (Bug #1313).
+FIX: In LibraryFiles.realizeMeaningPrefs don't skip Booleanvalues.
+
 IMP: (5/17/07, SMR Visible layers and TechPalette (Bug #1241)
 
 IMP: (5/17/07, SMR) Waveform window allows multiple measurements.  Right-click

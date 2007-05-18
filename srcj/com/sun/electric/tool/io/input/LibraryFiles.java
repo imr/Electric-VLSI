@@ -1144,7 +1144,7 @@ public abstract class LibraryFiles extends Input
             if (!(value instanceof String)) {
                 if (value instanceof Short || value instanceof Byte) 
                     value = new Integer(((Number)value).intValue());
-                if (!(value instanceof Number))
+                if (!(value instanceof Number) && !(value instanceof Boolean))
                     continue;
             }
             String prefName = var.getKey().getName();
