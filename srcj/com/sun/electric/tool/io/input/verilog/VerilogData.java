@@ -272,8 +272,9 @@ public class VerilogData
         /**
          * Function to add a given export to the list
          * @param name name of the new export
+         * @param checkClock
          */
-        VerilogPort addPort(String name)
+        VerilogPort addPort(String name, boolean checkClock)
         {
             if (Job.getDebug())
             {
@@ -288,7 +289,9 @@ public class VerilogData
                 def = PortCharacteristic.IN;
             else if (lowerName.startsWith("out"))
                 def = PortCharacteristic.OUT;
-            else if (lowerName.endsWith("clk"))
+            // so far having problems to detect clk signals as input. Only done in case of matching
+            // name from the module input
+            else if (checkClock && lowerName.endsWith("clk"))  //
                 def = PortCharacteristic.CLK;
             VerilogPort export = new VerilogPort(name, def);
             ports.put(name, export);

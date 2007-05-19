@@ -164,7 +164,7 @@ public class VerilogReader extends Input
     {
         if (verilogData != null)
         {
-            VerilogData.VerilogPort supply = module.addPort(name);
+            VerilogData.VerilogPort supply = module.addPort(name, false);
             supply.type = (power) ? PortCharacteristic.PWR : PortCharacteristic.GND;
         }
         else
@@ -256,7 +256,7 @@ public class VerilogReader extends Input
                         if (exp == null)
                         {
 //                            System.out.println("Warning: port " + export + " not found in module " + element.name + " yet");
-                            exp = element.addPort(export);
+                            exp = element.addPort(export, false);
                         }
                         verilogInst.addPortInstance(pin, exp);
                     }
@@ -480,7 +480,7 @@ public class VerilogReader extends Input
             module.setValid(true);
             // adding ports in modules: from 1 -> inputs.size()-1;
             for (int i = 1; i < inputs.size(); i++)
-                module.addPort(inputs.get(i));
+                module.addPort(inputs.get(i), true);
         }
         else
         {
