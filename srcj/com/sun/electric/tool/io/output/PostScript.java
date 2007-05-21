@@ -576,29 +576,35 @@ public class PostScript extends Output
 					pts[i].setLocation(pts[i].getX(), printBounds.getHeight() - pts[i].getY());
 			}
 		}
+
+		// figure out the size of the job for progress display
+		numObjects = 0;
+		Job.getUserInterface().startProgressDialog("Writing PostScript", null);
+		Job.getUserInterface().setProgressNote("Counting PostScript objects...");
+		recurseCircuitLevel(cell, DBMath.MATID, true, false, 0);
+		long totalObjects = numObjects;
+
 		if (psUseColor)
 		{
 			// color: plot layers in proper order
 			List<Layer> layerList = Technology.getCurrent().getLayersSortedByHeight();
 			for(Layer layer : layerList)
 			{
+				if (!layer.isVisible()) continue;
+				Job.getUserInterface().setProgressNote("Writing layer " + layer.getName() + " (" + totalObjects + " objects...");
 				currentLayer = layer.getIndex() + 1;
-				recurseCircuitLevel(cell, DBMath.MATID, true, true, 0);
+				numObjects = 0;
+				recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 			}
 			currentLayer = 0;
-			recurseCircuitLevel(cell, DBMath.MATID, true, true, 0);
+			numObjects = 0;
+			Job.getUserInterface().setProgressNote("Writing cell information (" + totalObjects + " objects...");
+			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 		} else
 		{
 			// gray-scale: just plot it once
 			currentLayer = -1;
-			numObjects = 0;
-			Job.getUserInterface().startProgressDialog("Writing PostScript", null);
-			Job.getUserInterface().setProgressNote("Counting PostScript objects...");
-			recurseCircuitLevel(cell, DBMath.MATID, true, false, 0);
-
-			// counted the objects, now write them
-			Job.getUserInterface().setProgressNote("Found " + numObjects + " PostScript objects...");
-			long totalObjects = numObjects;
+			Job.getUserInterface().setProgressNote("Found " + totalObjects + " PostScript objects...");
 			numObjects = 0;
 			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 			Job.getUserInterface().stopProgressDialog();

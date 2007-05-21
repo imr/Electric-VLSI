@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/17/07, SMR) Added progress dialog to color PostScript output.
+
 BUG: (5/21/07, SMR) HSpice reader still has problems with StarSim output.
 FIX: In HSpiceOut.readTRDCACFile(), fixed name reader.
 
