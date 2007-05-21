@@ -546,17 +546,26 @@ public class HSpiceOut extends Simulate
 		boolean paMissingWarned = false;
 		for(int k=0; k<=numSignals; k++)
 		{
-			int j = 0;
 			line = new StringBuffer();
 			for(;;)
 			{
 				int l = getByteFromFile();
 				if (l == '\n') continue;
-				if (l == ' ') break;
+				if (l == ' ')
+				{
+					if (line.length() != 0) break;
+
+					// if name starts with blank, skip until non-blank
+					for(;;)
+					{
+						l = getByteFromFile();
+						if (l != ' ') break;
+					}
+				}
 				line.append((char)l);
-				j++;
-				if (version == 9007 && j >= 16) break;
+				if (version == 9007 && line.length() >= 16) break;
 			}
+			int j = line.length();
 			int l = (j+16) / 16 * 16 - 1;
 			if (version == 9007)
 			{
@@ -568,13 +577,6 @@ public class HSpiceOut extends Simulate
 				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
 			}
 			if (k == 0) continue;
-
-			// ignore blank names
-			if (line.toString().trim().length() == 0)
-			{
-				k--;
-				continue;
-			}
 
 			// convert name if there is a colon in it
 			int startPos = 0;
@@ -652,6 +654,11 @@ public class HSpiceOut extends Simulate
 
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
 			signalNames[l] = line.toString();
+System.out.println("Signal "+l+" is "+signalNames[l]);
+if (signalNames[l].equals("net@454"))
+{
+	int ww=9;
+}
 		}
 
 		// read (and ignore) condition information
