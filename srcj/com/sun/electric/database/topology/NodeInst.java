@@ -2958,7 +2958,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public TransistorSize getTransistorSize(VarContext context)
 	{
-        if (!isPrimitiveTransistor() || !isFET()) return null;
+        if (!isPrimitiveTransistor() /* || !isFET() */) return null;
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSize(this, context);
 	}
