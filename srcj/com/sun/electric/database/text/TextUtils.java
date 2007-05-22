@@ -1641,7 +1641,10 @@ public class TextUtils
         // Remove possible space character representing as \
         index = n.indexOf("\\");
         if (index != -1)
+        {
+            assert(false); // detect this before
             n = n.substring(index+1);
+        }
         return n;
     }
 

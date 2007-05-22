@@ -40,6 +40,7 @@ public class VerilogReader extends Input
     PrimitiveNode essentialBounds = Generic.tech.findNodeProto("Essential-Bounds");
     Cell topCell = null;
     Map<String, NodeInst> pinsMap = new HashMap<String, NodeInst>();
+    private String typicalSkipStrings = "\t\\"; // strings that should be ignored by the StringTokenizer()
 
     private String readCellHeader(List<String> inputs) throws IOException
     {
@@ -212,26 +213,34 @@ public class VerilogReader extends Input
                 assert(index > 0);
                 String instanceName = line.substring(0, index);
                 line = line.substring(index+1, line.length());
-                StringTokenizer parse = new StringTokenizer(line, ")", false);
+                StringTokenizer parse = new StringTokenizer(line, ")", false);  //typicalSkipStrings can't be used
                 exports.clear(); pins.clear();
 
                 while (parse.hasMoreTokens())
                 {
                     String value = parse.nextToken();
+                    value = value.replaceAll(" ", "");
                     index = value.indexOf("."); // look for first .
-                    int index2 = value.indexOf("("); // look for first (
                     if (index == -1) // end of tokens
                         continue; // or break?
-                    assert(index2 != -1);
+                    int index2 = value.indexOf("("); // look for first (
+                    assert(index2 != -1);                  
                     String n = value.substring(index+1, index2);
-                    int index3 = n.indexOf("\\"); // those \ are a problem!
-                    if (index3 != -1)
-                        n = n.substring(index3+1);
+                    n = TextUtils.correctName(n);
+//                    int index3 = n.indexOf("\\"); // those \ are a problem!
+//                    if (index3 != -1)
+//                        n = n.substring(index3+1);
                     exports.add(n);
-                    pins.add(value.substring(index2+1));
+                    n = value.substring(index2+1);
+                    n = TextUtils.correctName(n);
+                    if (n.contains(" "))
+                        assert(false); // get rid of those empty sapces?
+//                    pins.add(value.substring(index2+1));
+                    pins.add(n);
                 }
 
                 // remove extra white spaces
+                instanceName = TextUtils.correctName(instanceName);
                 instanceName = instanceName.replaceAll(" ", "");
                 CellInstance localCell = new CellInstance(instanceName);
                 VerilogData.VerilogInstance verilogInst = null;
@@ -318,7 +327,7 @@ public class VerilogReader extends Input
                 }
                 if (readWires)   // wires
                 {
-                    StringTokenizer p = new StringTokenizer(net, "\t ", false);
+                    StringTokenizer p = new StringTokenizer(net, typicalSkipStrings+" ", false);
                     values.clear(); // clean reset
                     while (p.hasMoreTokens())
                     {
@@ -801,7 +810,14 @@ public class VerilogReader extends Input
             Library library = Library.newInstance(testName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
             topCell = buildCells(verilogData, library);
-            topCell = library.findNodeProto(topCellName);
+            Cell c = library.findNodeProto(topCellName);
+            if (c == null)
+            {
+                System.out.println("Check this case in readVerilog");  // is it relevant?
+//                assert(false);
+            }
+            else
+                topCell = c;
         }
         return topCell; // still work because VerilogReader remembers the top cell
     }
