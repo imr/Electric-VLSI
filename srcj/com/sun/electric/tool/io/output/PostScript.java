@@ -607,8 +607,8 @@ public class PostScript extends Output
 			Job.getUserInterface().setProgressNote("Found " + totalObjects + " PostScript objects...");
 			numObjects = 0;
 			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
-			Job.getUserInterface().stopProgressDialog();
 		}
+		Job.getUserInterface().stopProgressDialog();
 	}
 
 	/**
