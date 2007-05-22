@@ -885,7 +885,7 @@ public class Clipboard
 				}
 				headP = new EPoint(headPi.getCenter().getX() + headDX, headPi.getCenter().getY() + headDY);
 				tailP = new EPoint(tailPi.getCenter().getX() + tailDX, tailPi.getCenter().getY() + tailDY);
-				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(),
+				ArcInst newAr = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
 					headPi, tailPi, headP, tailP, name, ai.getAngle());
 				if (newAr == null)
 				{

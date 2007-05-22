@@ -1034,7 +1034,7 @@ public class Change extends EDialog implements HighlightListener
 
 				double wid = ap.getDefaultLambdaFullWidth();
 				if (ai.getLambdaFullWidth() > wid) wid = ai.getLambdaFullWidth();
-				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHeadLocation(),
+				ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pi0, pi1, ai.getHeadLocation(),
 				    ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
@@ -1107,7 +1107,7 @@ public class Change extends EDialog implements HighlightListener
 
 				ArcProto typ = contactStackArc[i];
 				double wid = typ.getDefaultLambdaFullWidth();
-				ArcInst newAi = ArcInst.makeInstance(typ, wid, thisPi, retPi);
+				ArcInst newAi = ArcInst.makeInstanceFull(typ, wid, thisPi, retPi);
 				retPi = thisPi;
 				if (newAi == null) return null;
 			}

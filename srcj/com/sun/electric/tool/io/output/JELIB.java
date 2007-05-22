@@ -38,6 +38,7 @@ import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -45,7 +46,6 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -57,7 +57,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -364,8 +363,8 @@ public class JELIB extends Output {
                 double lambdaHeight = n.size.getLambdaY();
                 if (NEW_REVISION && !oldRevision) {
                     SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
-                    lambdaWidth -= so.getLowXOffset() + so.getHighXOffset();
-                    lambdaHeight -= so.getLowYOffset() + so.getHighYOffset();
+                    lambdaWidth = DBMath.round(lambdaWidth - so.getLowXOffset() - so.getHighXOffset());
+                    lambdaHeight = DBMath.round(lambdaHeight - so.getLowYOffset() - so.getHighYOffset());
                 }
                 printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
                 printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));

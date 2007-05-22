@@ -665,7 +665,7 @@ public class Connectivity
 			Point2D tailLocation = new Point2D.Double(0, 0);
 			prevTrans.transform(ai.getHeadLocation(), headLocation);
 			prevTrans.transform(ai.getTailLocation(), tailLocation);
-			ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
+			ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
 				headLocation, tailLocation, ai.getName());
 		}
 	}
@@ -3455,7 +3455,7 @@ public class Connectivity
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
 		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
 	{
-		ArcInst ai = ArcInst.makeInstance(ap, width, pi1, pi2, pt1, pt2, null);
+		ArcInst ai = ArcInst.makeInstanceFull(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);

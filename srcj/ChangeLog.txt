@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/22/07, DN) Can't import ReadableDump.
+FIX: In io.input.ReadableDump and in tool.menus.FileMenu .
+
 IMP: (5/17/07, SMR) Added progress dialog to color PostScript output.
 
 BUG: (5/21/07, SMR) HSpice reader still has problems with StarSim output.

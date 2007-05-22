@@ -164,7 +164,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param tail the tail end PortInst.
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstance(ArcProto type, double fullWidth, PortInst head, PortInst tail)
+	public static ArcInst makeInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail)
 	{
         return newInstance(type, fullWidth, head, tail, null, null, null, 0, type.getDefaultConstraints());
 	}
@@ -195,7 +195,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstance(ArcProto type, double fullWidth, PortInst head, PortInst tail,
+	public static ArcInst makeInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail,
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
 		return newInstance(type, fullWidth, head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
@@ -228,7 +228,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param tail the tail end PortInst.
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(ArcProto type, double fullWidth, PortInst head, PortInst tail)
+	public static ArcInst newInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail)
 	{
 		return newInstance(type, fullWidth, head, tail, null, null, null, 0, ImmutableArcInst.DEFAULT_FLAGS);
 	}
@@ -260,7 +260,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param defAngle default angle in case port points coincide
      * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(ArcProto type, double fullWidth, PortInst head, PortInst tail,
+	public static ArcInst newInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail,
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
         return newInstance(type, fullWidth, head, tail, headPt, tailPt, name, defAngle, ImmutableArcInst.DEFAULT_FLAGS);
@@ -558,7 +558,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		double newwid = getLambdaBaseWidth() + ap.getLambdaWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
+		ArcInst newar = ArcInst.newInstanceFull(ap, newwid, headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace " + this + " with one of type " + ap.getName() +

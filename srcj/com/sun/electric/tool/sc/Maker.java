@@ -1134,7 +1134,7 @@ public class Maker
 			piB = createConnection(piB, xB, yB, layer1Arc);
 		}
 
-		ArcInst inst = ArcInst.makeInstance(layer1Arc, width, piA, piB);
+		ArcInst inst = ArcInst.makeInstanceFull(layer1Arc, width, piA, piB);
 		return inst;
 	}
 
@@ -1177,7 +1177,7 @@ public class Maker
 			piB = createConnection(piB, xB, yB, layer1Arc);
 		}
 
-		ArcInst inst = ArcInst.makeInstance(layer2Arc, width, piA, piB);
+		ArcInst inst = ArcInst.makeInstanceFull(layer2Arc, width, piA, piB);
 		return inst;
 	}
 
@@ -1201,7 +1201,7 @@ public class Maker
 		if (viaNode == null) return null;
 		double wid = arc.getDefaultLambdaFullWidth();
 		PortInst newPi = viaNode.getOnlyPortInst();
-		ArcInst zeroArc = ArcInst.makeInstance(arc, wid, pi, newPi);
+		ArcInst zeroArc = ArcInst.makeInstanceFull(arc, wid, pi, newPi);
 		if (zeroArc == null) return null;
 		return newPi;
 	}

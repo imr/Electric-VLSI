@@ -4029,7 +4029,7 @@ highX -= 64*lambda;
 	{
 		PortInst head = hNI.findPortInstFromProto(hPP);
 		PortInst tail = tNI.findPortInstFromProto(tPP);
-		ArcInst.makeInstance(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
+		ArcInst.makeInstanceFull(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
 	}
 
 	/**

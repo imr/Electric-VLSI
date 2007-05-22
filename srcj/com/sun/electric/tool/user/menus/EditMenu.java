@@ -1450,9 +1450,9 @@ public class EditMenu {
                 int angle = (ai.getAngle() + 900) % 3600;
 
                 // create the new arcs
-                ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, pi, headPt, insert, null);
-                ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
-                ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
+                ArcInst newAi1 = ArcInst.makeInstanceFull(ap, width, headPort, pi, headPt, insert, null);
+                ArcInst newAi2 = ArcInst.makeInstanceFull(ap, width, pi, pi2, insert, insert, null);
+                ArcInst newAi3 = ArcInst.makeInstanceFull(ap, width, pi2, tailPort, insert, tailPt, null);
                 newAi1.setHeadNegated(ai.isHeadNegated());
                 newAi1.setHeadExtended(ai.isHeadExtended());
                 newAi1.setHeadArrowed(ai.isHeadArrowed());

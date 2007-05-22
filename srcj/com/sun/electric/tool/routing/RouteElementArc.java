@@ -358,7 +358,7 @@ public class RouteElementArc extends RouteElement {
             // The arc is zero length so better if arc width is min default width to avoid DRC errors
             if (headPoint.equals(tailPoint))
                 thisWidth = arcProto.getDefaultLambdaFullWidth();
-            ArcInst newAi = ArcInst.makeInstance(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
+            ArcInst newAi = ArcInst.makeInstanceFull(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
 
             // for zero-length arcs, ensure that the angle is sensible

@@ -777,7 +777,7 @@ public class PLA
 //		w = us_widestarcinst(typ, tonodeinst, toportproto);
 //		if (w > wid) wid = w;
 		if (width > wid) wid = width;
-		ArcInst ai = ArcInst.makeInstance(typ, wid, fromPi, toPi);
+		ArcInst ai = ArcInst.makeInstanceFull(typ, wid, fromPi, toPi);
 		if (ai == null)
 		{
 			System.out.println("Unable to run " + typ + " from " + fromNodeInst +

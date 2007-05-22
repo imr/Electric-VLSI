@@ -475,7 +475,7 @@ public class LayoutLib {
 		tY = DBMath.round(tY);
 		width = DBMath.round(width);
 
-		ArcInst ai = ArcInst.newInstance(ap, width, 
+		ArcInst ai = ArcInst.newInstanceFull(ap, width, 
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
 										 null, 0);

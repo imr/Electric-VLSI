@@ -557,7 +557,7 @@ public class Sue extends Input
 							if (nni == null) continue;
 							ppi = nni.getOnlyPortInst();
 						}
-						ArcInst ai = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, pi, ppi);
+						ArcInst ai = ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0, pi, ppi);
 						if (ai == null)
 						{
 							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -1394,7 +1394,7 @@ public class Sue extends Input
 						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell);
 						if (ni == null) break;
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), pi, sw.pi[i]);
+						ArcInst ai = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), pi, sw.pi[i]);
 						if (ai == null)
 						{
 							System.out.println("Error making fake connection");
@@ -1406,7 +1406,7 @@ public class Sue extends Input
 				}
 			}
 
-			ArcInst ai = ArcInst.makeInstance(sw.proto, wid, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
+			ArcInst ai = ArcInst.makeInstanceFull(sw.proto, wid, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
 			if (ai == null)
 			{
 				System.out.println(cell + ": Could not run a wire from " + sw.pi[0].getNodeInst().describe(true) + " to " +
@@ -1461,7 +1461,7 @@ public class Sue extends Input
 					}
 
 					double wid = ap.getDefaultLambdaFullWidth();
-					ArcInst.makeInstance(ap, wid, pi, oPi);
+					ArcInst.makeInstanceFull(ap, wid, pi, oPi);
 					wired = true;
 					break;
 				}

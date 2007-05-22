@@ -820,7 +820,7 @@ public class LEF extends LEFDEF
 			PortInst tail = lp.ni[1].getPortInst(0);
 			Point2D headPt = lp.pt[0];
 			Point2D tailPt = lp.pt[1];
-			ArcInst ai = ArcInst.makeInstance(lp.arc, lp.width, head, tail, headPt, tailPt, null);
+			ArcInst ai = ArcInst.makeInstanceFull(lp.arc, lp.width, head, tail, headPt, tailPt, null);
 			if (ai == null)
 			{
 				System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create arc for PATH");

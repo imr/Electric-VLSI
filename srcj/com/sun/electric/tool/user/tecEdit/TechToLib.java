@@ -588,7 +588,7 @@ public class TechToLib
 						if (nni == null) continue;
 						PortInst head = nni.getOnlyPortInst();
 						PortInst tail = pNi.getOnlyPortInst();
-						ArcInst.newInstance(Generic.tech.universal_arc, 0, head, tail);
+						ArcInst.newInstanceFull(Generic.tech.universal_arc, 0, head, tail);
 						break;
 					}
 				}

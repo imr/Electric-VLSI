@@ -825,7 +825,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 						// special case where the old arc must be deleted first so that the other node can move
 						ai.kill();
 						adjustThisNode.move(dX, dY);
-						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+						ArcInst newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
 							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
 						{
@@ -854,7 +854,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
+				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
                 newAi.copyPropertiesFrom(ai);
@@ -863,7 +863,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //                newAi.copyVarsFrom(ai);
 //                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
-				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
+				ArcInst newAi2 = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
 				        newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi2 == null) return null;
                 newAi2.copyConstraintsFrom(ai);
@@ -876,7 +876,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
                         newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi == null)
 				{

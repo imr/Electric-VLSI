@@ -904,7 +904,7 @@ public class PadGenerator
 													busPinProto.getDefWidth(), busPinProto.getDefHeight(), framecell);
 												pi1 = busPin.getOnlyPortInst();
 												ArcProto busArcProto = Schematics.tech.bus_arc;
-												ArcInst.makeInstance(busArcProto, busArcProto.getDefaultLambdaFullWidth(), pi, pi1);
+												ArcInst.makeInstanceFull(busArcProto, busArcProto.getDefaultLambdaFullWidth(), pi, pi1);
 												trueBusEnd.put(e, pi1);
 											}
 											nameArc = true;
@@ -923,7 +923,7 @@ public class PadGenerator
 							PortInst pi2 = pad.ni.findPortInst(pa.portname);
 							//PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
 							ArcProto ap = Generic.tech.unrouted_arc;
-							ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
+							ArcInst ai = ArcInst.newInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
 							if (nameArc)
 								ai.setName(pa.assocname);
 						}

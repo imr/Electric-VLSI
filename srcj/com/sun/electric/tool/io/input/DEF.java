@@ -905,7 +905,7 @@ public class DEF extends LEFDEF
 			{
 				//do connection
 				ArcProto ap = Generic.tech.unrouted_arc;
-				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastPi);
+				ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi, lastPi);
 				if (ai == null)
 				{
 					reportError("Could not create unrouted arc");
@@ -938,7 +938,7 @@ public class DEF extends LEFDEF
 				{
 					// create a logical net between these two points
 					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), specPi, normalPi);
+					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), specPi, normalPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1012,7 +1012,7 @@ public class DEF extends LEFDEF
 				{
 					//connect logical network and physical network so that DRC passes
 					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
+					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1163,7 +1163,7 @@ public class DEF extends LEFDEF
 						if (lastLogPi != null)
 						{
 							ArcProto ap = Generic.tech.unrouted_arc;
-							ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
+							ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
 							if (ai == null)
 							{
 								reportError("Could not create unrouted arc");
@@ -1188,7 +1188,7 @@ public class DEF extends LEFDEF
 				if (lastLogPi != null && lastPi != null){
 					//connect logical network and physical network so that DRC passes
 					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
+					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1318,7 +1318,7 @@ public class DEF extends LEFDEF
 						Double wid = widthsFromLEF.get(li.arc);
 						if (wid != null) width = wid.doubleValue();
 					}
-					ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
+					ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, lastPi, pi);
 					if (ai == null)
 					{
 						reportError("Unable to create net starting point");
@@ -1431,7 +1431,7 @@ public class DEF extends LEFDEF
 					adjustPinLocPi = false;
 				}
 
-				ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
+				ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, lastPi, pi);
 				if (ai == null)
 				{
 					reportError("Unable to create net path");
@@ -1475,7 +1475,7 @@ public class DEF extends LEFDEF
 						if (wid != null) width = wid.doubleValue();
 					}
 
-					ArcInst ai = ArcInst.makeInstance(li.arc, width, pi, nextPi);
+					ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, pi, nextPi);
 					if (ai == null)
 					{
 						reportError("Unable to create net ending point");

@@ -1149,6 +1149,7 @@ public class ReadableDump extends LibraryFiles
 		ail.arcList = new ArcInst[arcInstCount];
 		ail.arcProto = new ArcProto[arcInstCount];
 		ail.arcInstName = new String[arcInstCount];
+        ail.arcNameDescriptor = new TextDescriptor[arcInstCount];
 		ail.arcWidth = new int[arcInstCount];
 		ail.arcHeadNode = new int[arcInstCount];
 		ail.arcHeadPort = new String[arcInstCount];
@@ -1205,18 +1206,21 @@ public class ReadableDump extends LibraryFiles
 			curNodeInstProto = allCellsArray[TextUtils.atoi(keyWord, openSquare+1)];
 		} else
 		{
-			curNodeInstProto = Cell.findNodeProto(keyWord);
+            int colonPos = keyWord.indexOf(':');
+            Technology tech = Technology.findTechnology(keyWord.substring(0, colonPos));
+            if (tech == null) return;
+            curNodeInstProto = tech.findNodeProto(keyWord.substring(colonPos + 1));
 			if (curNodeInstProto == null)
 			{
 				// get the technology
-				Technology tech = null;
-				int colonPos = keyWord.indexOf(':');
-				if (colonPos >= 0)
-				{
-					tech = Technology.findTechnology(keyWord.substring(0, colonPos));
-				}
-				if (tech != null)
-				{
+//				Technology tech = null;
+//				int colonPos = keyWord.indexOf(':');
+//				if (colonPos >= 0)
+//				{
+//					tech = Technology.findTechnology(keyWord.substring(0, colonPos));
+//				}
+//				if (tech != null)
+//				{
 					// convert "Active-Node" to "P-Active-Node" (MOSIS CMOS)
 					if (keyWord.equals("Active-Node"))
 					{
@@ -1227,7 +1231,7 @@ public class ReadableDump extends LibraryFiles
 							curNodeInstProto = tech.convertOldNodeName(keyWord);
 						}
 					}
-				}
+//				}
 			}
 		}
 		if (curNodeInstProto == null)

@@ -720,7 +720,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
-			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
+			ArcInst toAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
 				ai.getHeadLocation(), ai.getTailLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 

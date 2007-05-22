@@ -729,7 +729,10 @@ public class FileMenu {
 				if (FileMenu.preventLoss(deleteLib, 2)) return;
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
-			new ImportLibrary(fileURL, type, deleteLib);
+            if (type == FileType.ELIB || type == FileType.READABLEDUMP)
+                new ReadLibrary(fileURL, type, deleteLib, null);
+            else
+                new ImportLibrary(fileURL, type, deleteLib);
 		}
 	}
 

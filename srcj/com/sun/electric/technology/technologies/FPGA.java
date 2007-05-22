@@ -2320,7 +2320,7 @@ public class FPGA extends Technology
 				// now create the arc
 				PortInst pi0 = nis[0].findPortInstFromProto(pps[0]);
 				PortInst pi1 = nis[1].findPortInstFromProto(pps[1]);
-				ArcInst ai = ArcInst.makeInstance(tech.wireArc, 0, pi0, pi1);
+				ArcInst ai = ArcInst.makeInstanceFull(tech.wireArc, 0, pi0, pi1);
 				if (ai == null)
 				{
 					System.out.println("Cannot run segment (line " + scanLT.lineNumber + ")");

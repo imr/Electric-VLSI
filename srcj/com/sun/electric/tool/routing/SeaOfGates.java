@@ -1116,7 +1116,7 @@ public class SeaOfGates
 	 */
 	private ArcInst makeArcInst(ArcProto type, double wid, PortInst from, PortInst to, int netID)
 	{
-		ArcInst ai = ArcInst.makeInstance(type, wid, from, to);
+		ArcInst ai = ArcInst.makeInstanceFull(type, wid, from, to);
 		if (ai != null)
 		{
 			PolyBase [] polys = tech.getShapeOfArc(ai);
