@@ -272,7 +272,7 @@ public class EditMenu {
                 new EMenuItem("Edit Text Cell _Externally...") { public void run() {
                     editExternally(); }}),
 
-        // mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
+        // mnemonic keys available: ABCD FGHIJK M O Q  TUVWXYZ
             new EMenu("Clea_nup Cell",
                 new EMenuItem("Cleanup _Pins") { public void run() {
                     CircuitChanges.cleanupPinsCommand(false); }},
@@ -283,7 +283,9 @@ public class EditMenu {
                 new EMenuItem("Show Pure _Layer Nodes") { public void run() {
                     CircuitChanges.showPureLayerCommand(); }},
                 new EMenuItem("_Shorten Selected Arcs") { public void run() {
-                    CircuitChanges.shortenArcsCommand(); }}),
+                    CircuitChanges.shortenArcsCommand(); }},
+                new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
+                    CircuitChanges.showRedundantPureLayerNodes(); }}),
 
         // mnemonic keys available:       GH JK   O QRS UVWXYZ
             new EMenu("Technolo_gy Specific",

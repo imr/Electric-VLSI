@@ -25,7 +25,9 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
@@ -35,10 +37,12 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -64,6 +68,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JOptionPane;
@@ -1072,6 +1077,103 @@ public class CircuitChanges
 		new CircuitChangeJobs.ShortenArcs(cell, MenuCommands.getSelectedArcs());
 	}
 
+	/**
+	 * Method to show all redundant pure-layer nodes in the Cell.
+	 * It works only for rectangular pure-layer nodes that are inside of other
+	 * (possibly nonrectangular) nodes.
+	 * It works on visible layers only.
+	 */
+	public static void showRedundantPureLayerNodes()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		Set<NodeInst> redundantPures = new HashSet<NodeInst>();
+		for(Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext(); )
+		{
+			Layer lay = it.next();
+			if (!lay.isVisible()) continue;
+			PrimitiveNode pNp = lay.getPureLayerNode();
+			if (pNp == null) continue;
+
+			// find all pure-layer nodes in the cell
+			List<NodeInst> allPures = new ArrayList<NodeInst>();
+			Map<NodeInst,Double> pureAreas = new HashMap<NodeInst,Double>();
+			RTNode root = RTNode.makeTopLevel();
+			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = nIt.next();
+				if (ni.getProto() != pNp) continue;
+				allPures.add(ni);
+				Point2D [] points = ni.getTrace();
+				double area;
+				if (points == null) area = ni.getXSize() * ni.getYSize(); else
+					area = GenMath.getAreaOfPoints(points);
+				pureAreas.put(ni, new Double(area));
+				root = RTNode.linkGeom(null, root, ni);
+			}
+
+			// now find the redundant ones
+			for(NodeInst ni : allPures)
+			{
+				Double nodeArea = pureAreas.get(ni);
+				Rectangle2D nodeRect = ni.getBounds();
+				for(RTNode.Search sea = new RTNode.Search(nodeRect, root, false); sea.hasNext(); )
+				{
+					NodeInst neighbor = (NodeInst)sea.next();
+					if (neighbor == ni) continue;
+					Double neighborArea = pureAreas.get(neighbor);
+					if (neighborArea.doubleValue() < nodeArea.doubleValue()) continue;
+					if (redundantPures.contains(neighbor)) continue;
+					PolyBase [] neighborPolys = neighbor.getProto().getTechnology().getShapeOfNode(neighbor);
+					PolyBase neighborPoly = neighborPolys[0];
+					if (neighborPoly.contains(nodeRect))
+					{
+						redundantPures.add(ni);
+						break;
+					}
+				}
+			}
+		}
+
+		// show them
+		wnd.clearHighlighting();
+		for(NodeInst ni : redundantPures)
+			wnd.addElectricObject(ni, cell);
+		wnd.finishedHighlighting();
+		System.out.println("Highlighted " + redundantPures.size() + " redundant pure-layer nodes");
+	}
+
+	/**
+	 * Method to return a Rectangle that describes the orthogonal box in this Poly.
+	 * @return the Rectangle that describes this Poly.
+	 * If the Poly is not an orthogonal box, returns null.
+	 * IT IS NOT PERMITTED TO MODIFY THE RETURNED RECTANGLE
+	 * (because it is taken from the internal bounds of the Poly).
+	 */
+	public static boolean isBox(Point2D [] points)
+	{
+		if (points.length == 4)
+		{
+		} else if (points.length == 5)
+		{
+			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return false;
+		} else return false;
+
+		// make sure the polygon is rectangular and orthogonal
+		if (points[0].getX() == points[1].getX() && points[2].getX() == points[3].getX() &&
+			points[0].getY() == points[3].getY() && points[1].getY() == points[2].getY())
+		{
+			return true;
+		}
+		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
+			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
+		{
+			return true;
+		}
+		return false;
+	}
 	/****************************** MAKE A NEW VERSION OF A CELL ******************************/
 
 	public static void newVersionOfCell(Cell cell)

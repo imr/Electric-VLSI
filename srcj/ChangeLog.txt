@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP/MAN: (5/22/07, SMR) Added "Show Redundant Pure-Layer Nodes" command to
+     Edit / Cleanup Cell menu to eliminate duplication.
+
 BUG: (5/22/07, DN) Can't import ReadableDump.
 FIX: In io.input.ReadableDump and in tool.menus.FileMenu .
 
