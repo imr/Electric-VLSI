@@ -1886,10 +1886,10 @@ public class ROMGenerator
 					vddpos2 = getCStylePortPosition(vdd2, vddport2);
 					
 					// ndiffarc size centers around 12 and goes up by multiples of 2
-					makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport1,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport1,
 										appos1[0], appos1[1], ap2,
 										apport2, appos2[0], appos2[1]);
-					makeCStyleArcInst(ndiffarc, 16*lambda, vdd1, vddport1,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, vdd1, vddport1,
 										vddpos1[0], vddpos1[1], vdd2,
 										vddport2, vddpos2[0], vddpos2[1]);
 	
@@ -2261,10 +2261,10 @@ public class ROMGenerator
 					apposx = getCStylePortPosition(apx, apportx);
 					apposy = getCStylePortPosition(apy, apporty);
 					// pdiffarc size centers around 12 and goes up by multiples of 2
-					makeCStyleArcInst(pdiffarc,16*lambda,ap1,apport1,
+					makeCStyleArcInst(pdiffarc,4/*16*/*lambda,ap1,apport1,
 										appos1[0], appos1[1],apx,
 										apportx,apposx[0],apposx[1]);
-					makeCStyleArcInst(pdiffarc,16*lambda,ap1,apport2,
+					makeCStyleArcInst(pdiffarc,4/*16*/*lambda,ap1,apport2,
 										appos2[0], appos2[1],apy,
 										apporty,apposy[0],apposy[1]);
 				}
@@ -2616,10 +2616,10 @@ public class ROMGenerator
 					apporty = mnacport;
 					apposx = getCStylePortPosition(apx, apportx);
 					apposy = getCStylePortPosition(apy, apporty);
-					makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport1,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport1,
 										appos1[0], appos1[1],
 										apx, apportx, apposx[0], apposx[1]);
-					makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport2,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport2,
 										appos2[0], appos2[1],
 										apy, apporty, apposy[0], apposy[1]);
 				}
@@ -2978,10 +2978,10 @@ public class ROMGenerator
 				apport3 = mnacport;
 				appos3 = getCStylePortPosition(ap3, apport3);
 				// ndiffarc size centers around 12 and goes up by multiples of 2
-				makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport1,
+				makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport1,
 									appos1[0], appos1[1],
 									ap2, apport2, appos2[0], appos2[1]);
-				makeCStyleArcInst(ndiffarc, 16*lambda, ap1, gndport1,
+				makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, gndport1,
 									gndpos1[0], gndpos1[1],
 									ap3, apport3, appos3[0], appos3[1]);
 			}
@@ -3007,10 +3007,10 @@ public class ROMGenerator
 				appos2 = getCStylePortPosition(ap2, apport2);
 				apport3 = mnacport;
 				appos3 = getCStylePortPosition(ap3, apport3);
-				makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport1,
+				makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport1,
 									appos1[0], appos1[1],
 									ap2, apport2, appos2[0], appos2[1]);
-				makeCStyleArcInst(ndiffarc, 16*lambda, ap1, gndport1,
+				makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, gndport1,
 									gndpos1[0], gndpos1[1],
 									ap3, apport3, appos3[0], appos3[1]);
 			}
@@ -3032,10 +3032,10 @@ public class ROMGenerator
 				appos2 = getCStylePortPosition(ap2, apport2);
 				apport3 = mpacport;
 				appos3 = getCStylePortPosition(ap3, apport3);
-				makeCStyleArcInst(pdiffarc, 16*lambda, ap1, apport1,
+				makeCStyleArcInst(pdiffarc, 4/*16*/*lambda, ap1, apport1,
 									appos1[0], appos1[1],
 									ap2, apport2, appos2[0], appos2[1]);
-				makeCStyleArcInst(pdiffarc, 16*lambda, ap1, vddport1,
+				makeCStyleArcInst(pdiffarc, 4/*16*/*lambda, ap1, vddport1,
 									vddpos1[0], vddpos1[1],
 									ap3, apport3, appos3[0], appos3[1]);
 			}
@@ -3062,10 +3062,10 @@ public class ROMGenerator
 				appos2 = getCStylePortPosition(ap2, apport2);
 				apport3 = mpacport;
 				appos3 = getCStylePortPosition(ap3, apport3);
-				makeCStyleArcInst(pdiffarc, 16*lambda, ap1, apport1,
+				makeCStyleArcInst(pdiffarc, 4/*16*/*lambda, ap1, apport1,
 									appos1[0], appos1[1],
 									ap2, apport2, appos2[0], appos2[1]);
-				makeCStyleArcInst(pdiffarc, 16*lambda, ap1, vddport1,
+				makeCStyleArcInst(pdiffarc, 4/*16*/*lambda, ap1, vddport1,
 									vddpos1[0], vddpos1[1],
 									ap3, apport3, appos3[0], appos3[1]);
 			}
@@ -3553,9 +3553,9 @@ highX -= 64*lambda;
 			apport3 = mnacport;
 			appos3 = getCStylePortPosition(ap3, apport3);
 			// ndiffarc size centers around 12 and goes up by multiples of 2
-			makeCStyleArcInst(ndiffarc,16*lambda,ap1,apport1,appos1[0],
+			makeCStyleArcInst(ndiffarc,4/*16*/*lambda,ap1,apport1,appos1[0],
 								appos1[1],ap2,apport2,appos2[0], appos2[1]);
-			makeCStyleArcInst(ndiffarc,16*lambda,ap1,gndport1,gndpos1[0],
+			makeCStyleArcInst(ndiffarc,4/*16*/*lambda,ap1,gndport1,gndpos1[0],
 								gndpos1[1],ap3,apport3,appos3[0], appos3[1]);
 		}
 	
@@ -3574,9 +3574,9 @@ highX -= 64*lambda;
 			apport3 = mpacport;
 			appos3 = getCStylePortPosition(ap3, apport3);
 			// pdiffarc size centers around 12 and goes up by multiples of 2
-			makeCStyleArcInst(pdiffarc,16*lambda,ap1,apport1,appos1[0],
+			makeCStyleArcInst(pdiffarc,4/*16*/*lambda,ap1,apport1,appos1[0],
 								appos1[1],ap2,apport2,appos2[0], appos2[1]);
-			makeCStyleArcInst(pdiffarc,16*lambda,ap1,vddport1,vddpos1[0],
+			makeCStyleArcInst(pdiffarc,4/*16*/*lambda,ap1,vddport1,vddpos1[0],
 								vddpos1[1],ap3,apport3,appos3[0], appos3[1]);
 		}
 	
