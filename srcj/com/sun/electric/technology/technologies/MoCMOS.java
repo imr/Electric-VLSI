@@ -3106,7 +3106,8 @@ public class MoCMOS extends Technology
         // poly arcs
         double width = DBMath.round(polyWid.getValue(0));
         double half = DBMath.round(width/2);
-        polyArcs[0].setDefaultLambdaFullWidth(width);
+        polyArcs[0].setDefaultLambdaBaseWidth(width);
+//        polyArcs[0].setDefaultLambdaFullWidth(width);
         polyPinNodes[0].setDefSize(width, width);
         PrimitivePort polyPort = polyPinNodes[0].getPort(0);
         polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);

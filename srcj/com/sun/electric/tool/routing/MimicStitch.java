@@ -157,7 +157,8 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs == 1)
 		{
 			ArcInst ai = lastActivity.createdArcs[0];
-			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaFullWidth(), ai.getProto(), 0, 0, forced);
+			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaBaseWidth(), ai.getProto(), 0, 0, forced);
+//			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaFullWidth(), ai.getProto(), 0, 0, forced);
 			lastActivity.numCreatedArcs = 0;
 			return;
 		}
@@ -197,8 +198,10 @@ public class MimicStitch
 					if (foundEnds < 2)
 					{
 						ends[foundEnds] = ai.getConnection(e);
-						if (ai.getLambdaFullWidth() > width)
-							width = ai.getLambdaFullWidth();
+						if (ai.getLambdaBaseWidth() > width)
+							width = ai.getLambdaBaseWidth();
+//						if (ai.getLambdaFullWidth() > width)
+//							width = ai.getLambdaFullWidth();
 					}
 					foundEnds++;
 				}

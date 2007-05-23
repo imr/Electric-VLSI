@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -55,7 +56,6 @@ import java.awt.*;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragGestureRecognizer;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
@@ -959,7 +959,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         ArcProto otherAp = it.next();
                         if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                         if (otherAp.isSkipSizeInPalette()) continue;
-                        double wid = otherAp.getDefaultLambdaFullWidth();
+                        double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+//                        double wid = otherAp.getDefaultLambdaFullWidth();
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }
                     
@@ -1007,7 +1008,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); ) {
                             ArcProto otherAp = it.next();
                             if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
-                            double wid = otherAp.getDefaultLambdaFullWidth();
+                            double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+//                            double wid = otherAp.getDefaultLambdaFullWidth();
                             if (wid+8 > largest) largest = wid+8;
                         }
                     }

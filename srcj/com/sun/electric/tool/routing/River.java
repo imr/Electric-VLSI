@@ -1405,7 +1405,8 @@ public class River
 			PortProto rpPort = thePort(defPort, rd, rp);
 			PortInst rpPi = rpNodeInst.findPortInstFromProto(rpPort);
 
-			ArcInst.makeInstanceFull(path.pathType, path.width, prevPi, rpPi);
+			ArcInst.makeInstanceBase(path.pathType, path.width, prevPi, rpPi);
+//			ArcInst.makeInstanceFull(path.pathType, path.width, prevPi, rpPi);
 			prev = rp;   prevPi = rpPi;
 		}
 	}

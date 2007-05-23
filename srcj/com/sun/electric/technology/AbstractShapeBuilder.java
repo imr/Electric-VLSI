@@ -14,7 +14,7 @@
  * Electric(tm) is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License for more details.q
  *
  * You should have received a copy of the GNU General Public License
  * along with Electric(tm); see the file COPYING.  If not, write to
@@ -270,8 +270,10 @@ public abstract class AbstractShapeBuilder {
     public boolean genShapeEasy(ImmutableArcInst a) {
         if (!a.isEasyShape()) return false;
         ArcProto protoType = a.protoType;
-        int gridFullWidth = (int)a.getGridFullWidth();
-        if (gridFullWidth == 0) {
+        int gridExtendOverMin = (int)a.getGridExtendOverMin();
+        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
+        if (minLayerExtend == 0) {
+            assert protoType.getNumArcLayers() == 1;
             Technology.ArcLayer primLayer = protoType.getArcLayer(0);
             Layer layer = primLayer.getLayer();
             if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction())) return true;
@@ -284,8 +286,6 @@ public abstract class AbstractShapeBuilder {
             addIntLine(intCoords, style, primLayer.getLayer());
             return true;
         }
-        if (gridFullWidth <= protoType.getMaxLayerGridOffset())
-            return false;
         boolean tailExtended = false;
         if (a.isTailExtended()) {
             short shrinkT = shrinkage.get(a.tailNodeId);
@@ -307,7 +307,7 @@ public abstract class AbstractShapeBuilder {
             Layer layer = primLayer.getLayer();
             assert primLayer.getStyle() == Poly.Type.FILLED;
             if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction())) continue;
-            a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridFullWidth - (int)primLayer.getGridOffset());
+            a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
             addIntBox(intCoords, layer);
         }
         return true;

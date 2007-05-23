@@ -464,9 +464,10 @@ public class LayoutLib {
 		// Otherwise adjust the user-specified width or height by the 
 		// SizeOffset.
 		if (width==DEF_SIZE) {
-			width = ap.getDefaultLambdaFullWidth();
-		} else {
-			width += ap.getLambdaWidthOffset();
+			width = ap.getDefaultLambdaBaseWidth();
+//			width = ap.getDefaultLambdaFullWidth();
+//		} else {
+//			width += ap.getLambdaWidthOffset();
 		}
 		
 		hX = DBMath.round(hX);
@@ -475,7 +476,8 @@ public class LayoutLib {
 		tY = DBMath.round(tY);
 		width = DBMath.round(width);
 
-		ArcInst ai = ArcInst.newInstanceFull(ap, width, 
+		ArcInst ai = ArcInst.newInstanceBase(ap, width, 
+//		ArcInst ai = ArcInst.newInstanceFull(ap, width, 
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
 										 null, 0);

@@ -397,7 +397,8 @@ public class ViewChanges
 				Export newOPp = newPortMap.get(oPp);
 				if (newPp == null || newOPp == null) continue;
 				ArcProto univ = Generic.tech.universal_arc;
-				ArcInst newAI = ArcInst.makeInstanceFull(univ, univ.getDefaultLambdaFullWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
+				ArcInst newAI = ArcInst.makeInstance(univ, newPp.getOriginalPort(), newOPp.getOriginalPort());
+//				ArcInst newAI = ArcInst.makeInstanceFull(univ, univ.getDefaultLambdaFullWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
 				if (newAI == null)
 				{
 					System.out.println("Could not create connecting arc");
@@ -830,7 +831,8 @@ public class ViewChanges
 			{
 				PortInst head = ni.getOnlyPortInst();
 				PortInst tail = pinNi.getOnlyPortInst();
-				ArcInst ai = ArcInst.makeInstanceFull(wireType, wireType.getDefaultLambdaFullWidth(),
+				ArcInst ai = ArcInst.makeInstance(wireType,
+//				ArcInst ai = ArcInst.makeInstanceFull(wireType, wireType.getDefaultLambdaFullWidth(),
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
 						new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
@@ -1069,7 +1071,8 @@ public class ViewChanges
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
-			ArcInst schemAI = ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
+			ArcInst schemAI = ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
+//			ArcInst schemAI = ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
 			if (schemAI == null) continue;
 			schemAI.setFixedAngle(false);
 			schemAI.setRigid(false);
@@ -1504,7 +1507,8 @@ public class ViewChanges
                                 continue;
                             }
 
-                            ArcInst newAi = ArcInst.makeInstanceFull(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
+                            ArcInst newAi = ArcInst.makeInstanceBase(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
+//                            ArcInst newAi = ArcInst.makeInstanceFull(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
                             if (newAi == null)
                             {
                                 System.out.println("Cell " + newCell.describe(true) + ": can't run " + ratArc + " from " +
@@ -1650,8 +1654,8 @@ public class ViewChanges
                     {
                         double defwid = ai.getProto().getDefaultLambdaBaseWidth();
                         double curwid = ai.getLambdaBaseWidth();
-                        newWid = newAp.getDefaultLambdaBaseWidth() * curwid / defwid + newAp.getLambdaWidthOffset();
-                        if (!(newWid > 0)) newWid = newAp.getDefaultLambdaFullWidth();
+                        newWid = newAp.getDefaultLambdaBaseWidth() * curwid / defwid;
+                        if (!(newWid > 0)) newWid = newAp.getDefaultLambdaBaseWidth();
                     }
 
                     // find the endpoints of the arc
@@ -1682,7 +1686,7 @@ public class ViewChanges
                     }
 
                     // create the new arc
-                    ArcInst newAi = ArcInst.makeInstanceFull(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
+                    ArcInst newAi = ArcInst.makeInstanceBase(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
                     if (newAi == null)
                     {
                         System.out.println("Cell " + newCell.describe(true) + ": can't run " + newAp + " from " +

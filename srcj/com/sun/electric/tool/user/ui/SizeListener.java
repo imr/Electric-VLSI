@@ -436,7 +436,8 @@ public class SizeListener
 				// construct the polygons that describe the basic arc
 				long newGridWidth = DBMath.lambdaToSizeGrid(getNewArcSize(evt));
 				ArcInst ai = (ArcInst)stretchGeom;
-				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth - ai.getProto().getGridWidthOffset(), Poly.Type.CLOSED);
+				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth, Poly.Type.CLOSED);
+//				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth - ai.getProto().getGridWidthOffset(), Poly.Type.CLOSED);
 				if (stretchedPoly == null) return;
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)

@@ -1032,9 +1032,12 @@ public class Change extends EDialog implements HighlightListener
 					if (pi1 == null) return;
 				}
 
-				double wid = ap.getDefaultLambdaFullWidth();
-				if (ai.getLambdaFullWidth() > wid) wid = ai.getLambdaFullWidth();
-				ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pi0, pi1, ai.getHeadLocation(),
+				double wid = ap.getDefaultLambdaBaseWidth();
+				if (ai.getLambdaBaseWidth() > wid) wid = ai.getLambdaBaseWidth();
+				ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pi0, pi1, ai.getHeadLocation(),
+//				double wid = ap.getDefaultLambdaFullWidth();
+//				if (ai.getLambdaFullWidth() > wid) wid = ai.getLambdaFullWidth();
+//				ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pi0, pi1, ai.getHeadLocation(),
 				    ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
@@ -1106,8 +1109,9 @@ public class Change extends EDialog implements HighlightListener
 				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
 
 				ArcProto typ = contactStackArc[i];
-				double wid = typ.getDefaultLambdaFullWidth();
-				ArcInst newAi = ArcInst.makeInstanceFull(typ, wid, thisPi, retPi);
+				ArcInst newAi = ArcInst.makeInstance(typ, thisPi, retPi);
+//				double wid = typ.getDefaultLambdaFullWidth();
+//				ArcInst newAi = ArcInst.makeInstanceFull(typ, wid, thisPi, retPi);
 				retPi = thisPi;
 				if (newAi == null) return null;
 			}

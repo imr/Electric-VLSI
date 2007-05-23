@@ -159,14 +159,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to create a new ArcInst with appropriate defaults, connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
-	 * @param fullWidth the full width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail)
+	public static ArcInst makeInstance(ArcProto type, PortInst head, PortInst tail)
 	{
-        return newInstance(type, fullWidth, head, tail, null, null, null, 0, type.getDefaultConstraints());
+        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(), head, tail, null, null, null, 0, type.getDefaultConstraints());
 	}
 
 	/**
@@ -187,7 +186,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to create a new ArcInst with appropriate defaults, connecting two PortInsts at specified locations.
 	 * This is more general than the version that does not take coordinates.
 	 * @param type the prototype of the new ArcInst.
-	 * @param fullWidth the full width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
 	 * @param headPt the coordinate of the head end PortInst.
@@ -195,10 +193,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail,
+	public static ArcInst makeInstance(ArcProto type, PortInst head, PortInst tail,
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
-		return newInstance(type, fullWidth, head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
+		return newInstanceBase(type, type.getDefaultLambdaBaseWidth(), head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
 	}
 
 	/**
@@ -223,20 +221,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to create a new ArcInst connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
-	 * @param fullWidth the full width of the new ArcInst.  The width must be > 0.
-	 * @param head the head end PortInst.
-	 * @param tail the tail end PortInst.
-	 * @return the newly created ArcInst, or null if there is an error.
-	 */
-	public static ArcInst newInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail)
-	{
-		return newInstance(type, fullWidth, head, tail, null, null, null, 0, ImmutableArcInst.DEFAULT_FLAGS);
-	}
-
-    /**
-	 * Method to create a new ArcInst connecting two PortInsts.
-	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
-	 * @param type the prototype of the new ArcInst.
 	 * @param baseWidth the base width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
@@ -247,25 +231,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return newInstanceBase(type, baseWidth, head, tail, null, null, null, 0, ImmutableArcInst.DEFAULT_FLAGS);
 	}
 
-	/**
-	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
-	 * This is more general than the version that does not take coordinates.
-	 * @param type the prototype of the new ArcInst.
-	 * @param fullWidth the full width of the new ArcInst.  The width must be > 0.
-	 * @param head the head end PortInst.
-	 * @param tail the tail end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param name the name of the new ArcInst
-	 * @param defAngle default angle in case port points coincide
-     * @return the newly created ArcInst, or null if there is an error.
-	 */
-	public static ArcInst newInstanceFull(ArcProto type, double fullWidth, PortInst head, PortInst tail,
-	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
-	{
-        return newInstance(type, fullWidth, head, tail, headPt, tailPt, name, defAngle, ImmutableArcInst.DEFAULT_FLAGS);
-    }
-    
 	/**
 	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
 	 * This is more general than the version that does not take coordinates.
@@ -283,26 +248,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
         return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, defAngle, ImmutableArcInst.DEFAULT_FLAGS);
-    }
-    
-	/**
-	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
-	 * This is more general than the version that does not take coordinates.
-	 * @param type the prototype of the new ArcInst.
-	 * @param fullWidth the full width of the new ArcInst.  The width must be > 0.
-	 * @param head the head end PortInst.
-	 * @param tail the tail end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param name the name of the new ArcInst
-	 * @param defAngle default angle in case port points coincide
-     * @param flags flags of thew new ArcInst
-     * @return the newly created ArcInst, or null if there is an error.
-	 */
-	public static ArcInst newInstance(ArcProto type, double fullWidth, PortInst head, PortInst tail,
-	                                  Point2D headPt, Point2D tailPt, String name, int defAngle, int flags)
-    {
-        return newInstanceBase(type, fullWidth - type.getLambdaWidthOffset(), head, tail, headPt, tailPt, name, defAngle, flags);
     }
     
 	/**
@@ -328,7 +273,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 ////            return null;
 //        }
         
-        long gridBaseWidth = DBMath.lambdaToSizeGrid(baseWidth);
+        long gridExtendOverMin = DBMath.lambdaToGrid(0.5*baseWidth) - type.getGridBaseExtend();
 //		if (gridFullWidth < type.getMaxLayerGridOffset())
 //			gridFullWidth = type.getDefaultGridFullWidth();
         
@@ -370,7 +315,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
         
-        return newInstance(parent, type, name, null, head, tail, headP, tailP, gridBaseWidth, defAngle, flags);
+        return newInstance(parent, type, name, null, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
 	}
 
 	/**
@@ -384,13 +329,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param tailPort the tail end PortInst.
      * @param headPt the coordinate of the head end PortInst.
      * @param tailPt the coordinate of the tail end PortInst.
-     * @param gridBaseWidth the base width of this ArcInst in grid units.
+     * @param gridExtendOverMin the extend of this ArcInst over minimal-width arc of this type in grid units.
      * @param angle angle in tenth-degrees.
      * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
      */
 	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
-        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, long gridBaseWidth, int angle, int flags)
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle, int flags)
 	{
         parent.checkChanging();
         Topology topology = parent.getTopology();
@@ -438,6 +383,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		} else
 		{
 			// adjust the name descriptor for "smart" text placement
+            long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend()); 
 			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
@@ -451,7 +397,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-                gridBaseWidth, angle, flags);
+                gridExtendOverMin, angle, flags);
         ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
@@ -516,7 +462,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	/**
 	 * Method to change the width this ArcInst.
-	 * @param lambdaFullWidth new full with of the ArcInst in lambda units.
+	 * @param lambdaBaseWidth new base width of the ArcInst in lambda units.
 	 */
     public void setLambdaBaseWidth(double lambdaBaseWidth) {
         setGridBaseWidth(DBMath.lambdaToSizeGrid(lambdaBaseWidth));
@@ -524,7 +470,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     
 	/**
 	 * Method to change the width this ArcInst.
-	 * @param gridBaseWidth new base width of the ArcInst in grid units.
+	 * @param gridBaseWidth new base width of the ArcInst in lambda units.
 	 */
     public void setGridBaseWidth(long gridBaseWidth) {
         if (gridBaseWidth == getGridBaseWidth()) return;
@@ -533,7 +479,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst oldD = d;
         
         // change the arc
-         lowLevelModify(d.withGridBaseWidth(gridBaseWidth));
+        lowLevelModify(d.withGridExtendOverMin(gridBaseWidth/2 - d.protoType.getGridBaseExtend()));
         
         // track the change
         Constraints.getCurrent().modifyArcInst(this, oldD);
@@ -554,11 +500,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
 
-		// compute the new width
-		double newwid = getLambdaBaseWidth() + ap.getLambdaWidthOffset();
-
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstanceFull(ap, newwid, headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
+		ArcInst newar = ArcInst.newInstanceBase(ap, getLambdaBaseWidth(), headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace " + this + " with one of type " + ap.getName() +
@@ -666,12 +609,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	}
 
 	/****************************** GRAPHICS ******************************/
-
-	/**
-	 * Method to return the full width of this ArcInst in lambda units.
-	 * @return the full width of this ArcInst in lambda units.
-	 */
-	public double getLambdaFullWidth() { return d.getLambdaFullWidth(); }
 
 	/**
 	 * Method to return the full width of this ArcInst in grid units.

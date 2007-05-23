@@ -97,7 +97,8 @@ public class NewArcsTab extends PreferencePanel
 				pai.initialDirectional = pai.directional = ap.isDirectional();
 				pai.initialEndsExtend = pai.endsExtend = ap.isExtended();
 	
-				pai.initialWid = pai.wid = ap.getDefaultLambdaFullWidth();
+				pai.initialWid = pai.wid = ap.getDefaultLambdaBaseWidth();
+//				pai.initialWid = pai.wid = ap.getDefaultLambdaFullWidth();
 				pai.initialAngleIncrement = pai.angleIncrement = ap.getAngleIncrement();
 				pai.initialPin = pai.pin = ap.findOverridablePinProto();
 	
@@ -269,7 +270,8 @@ public class NewArcsTab extends PreferencePanel
 				if (pai.endsExtend != pai.initialEndsExtend)
 					ap.setExtended(pai.endsExtend);
 				if (pai.wid != pai.initialWid)
-					ap.setDefaultLambdaFullWidth(pai.wid);
+					ap.setDefaultLambdaBaseWidth(pai.wid);
+//					ap.setDefaultLambdaFullWidth(pai.wid);
 				if (pai.angleIncrement != pai.initialAngleIncrement)
 					ap.setAngleIncrement(pai.angleIncrement);
 				if (pai.pin != pai.initialPin)

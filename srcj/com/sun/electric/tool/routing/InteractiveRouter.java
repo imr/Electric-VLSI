@@ -300,8 +300,8 @@ public abstract class InteractiveRouter extends Router {
         // get valid connecting sites for start and end objects based on the objects
         // themselves, the point the user clicked, and the width of the wire that will
         // attach to each
-        Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth - startArc.getLambdaWidthOffset());
-        Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth - endArc.getLambdaWidthOffset());
+        Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth);
+        Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth);
 
         // Now we can figure out where on the start and end objects the connecting
         // arc(s) should connect
@@ -439,7 +439,7 @@ public abstract class InteractiveRouter extends Router {
         if (routeObj instanceof ArcInst) {
             ArcInst ai = (ArcInst)routeObj;
             if (ai.getProto() == ap)
-                return ai.getLambdaFullWidth();
+                return ai.getLambdaBaseWidth();
         }
         if (routeObj instanceof PortInst) {
             width = Router.getArcWidthToUse((PortInst)routeObj, ap);
@@ -730,9 +730,9 @@ public abstract class InteractiveRouter extends Router {
         else
             name2 = arc.getName();
         // add two arcs to rebuild old startArc
-        RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaFullWidth(), headRE, newPinRE,
+        RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), headRE, newPinRE,
                 head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
-        RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaFullWidth(), newPinRE, tailRE,
+        RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), newPinRE, tailRE,
                 bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);

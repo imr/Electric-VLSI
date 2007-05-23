@@ -229,8 +229,11 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 	/** The name of this ArcProto. */							protected final String protoName;
 	/** The technology in which this ArcProto resides. */		protected final Technology tech;
-	/** The offset from width to reported/displayed width. */	protected final int gridWidthOffset;
-    /** The maximum offset among ArcLayers. */                  private int maxLayerGridOffset;
+	/** The full extend of this ArcProto in grid units. */      private final int gridFullExtend;
+	/** The base extend of this ArcProto in lambda units. */    private final double lambdaBaseExtend;
+	/** The base extend of this ArcProto in grid units. */      private final int gridBaseExtend;
+    /** The minimum extend among ArcLayers. */                  private int minLayerGridExtend;
+    /** The minimum extend among ArcLayers. */                  private int maxLayerGridExtend;
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						final Function function;
 	/** Layers in this arc */                                   final Technology.ArcLayer [] layers;
@@ -269,13 +272,17 @@ public class ArcProto implements Comparable<ArcProto>
 		this.protoName = protoName;
 		this.fullName = tech.getTechName() + ":" + protoName;
         assert (gridWidthOffset&1) == 0;
-        this.gridWidthOffset = (int)gridWidthOffset;
 		this.tech = tech;
 		this.userBits = 0;
 		this.function = function;
 		this.layers = layers.clone();
         this.primArcIndex = primArcIndex;
-        computeMaxLayerGridOffset();
+        gridFullExtend = (int)gridWidthOffset/2;
+        gridBaseExtend = 0;
+//        gridFullExtend = (int)DBMath.lambdaToGrid(defaultWidth/2);
+//        gridBaseExtend = gridFullExtend - (int)gridWidthOffset/2;
+        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
+        computeLayerGridExtendRange();
 		setFactoryDefaultLambdaFullWidth(defaultWidth);
 	}
 
@@ -316,7 +323,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 * This is only called from ArcProto during construction.
 	 * @param lambdaWidth the factory-default full width of this ArcProto in lambda units.
 	 */
-	protected void setFactoryDefaultLambdaFullWidth(double lambdaWidth) {
+	private void setFactoryDefaultLambdaFullWidth(double lambdaWidth) {
         long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth);
         if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
             System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
@@ -327,15 +334,14 @@ public class ArcProto implements Comparable<ArcProto>
     }
 
 	/**
-     * Method to set the full default width of this ArcProto in lambda units.
-     * This is the full width, including nonselectable layers such as implants.
-     * For example, diffusion arcs are always accompanied by a surrounding well and select.
-     * This call returns the width of all of these layers.
+     * Method to set the base default width of this ArcProto in lambda units.
+	 * This is the reported/selected width, which means that it does not include the width offset.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
      * @param lambdaWidth the full default width of this ArcProto in lambda units.
      * @return returns true if preference was really changed.
      */
-    public boolean setDefaultLambdaFullWidth(double lambdaWidth) {
-        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth);
+    public boolean setDefaultLambdaBaseWidth(double lambdaWidth) {
+        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth) + 2*(gridFullExtend - gridBaseExtend);
         if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
             System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
             return false;
@@ -358,9 +364,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * @return the full default width of this ArcProto in lambda units.
 	 */
-	public long getDefaultGridFullWidth() {
-        return DBMath.lambdaToSizeGrid(getArcProtoWidthPref(0).getDouble());
-    }
+	public long getDefaultGridFullWidth() { return 2*(getDefaultGridExtendOverMin() + gridFullExtend); }
 
 	/**
 	 * Method to return the default base width of this ArcProto in lambda units.
@@ -378,7 +382,50 @@ public class ArcProto implements Comparable<ArcProto>
 	 * This call returns only the width of the diffusion. 
 	 * @return the default base width of this ArcProto in grid units.
 	 */
-    public long getDefaultGridBaseWidth() { return getDefaultGridFullWidth() - getGridWidthOffset(); }
+    public long getDefaultGridBaseWidth() { return 2*(getDefaultGridExtendOverMin() + gridBaseExtend); }
+
+	/**
+	 * Method to return the default extend of this ArcProto over minimal-width arc in base units.
+	 * This is the half of the difference between default width and minimal width.
+	 * @return the default extend of this ArcProto over minimal-width arc in base units.
+	 */
+    public double getDefaultLambdaExtendOverMin() { return DBMath.gridToLambda(getDefaultGridExtendOverMin()); }
+
+	/**
+	 * Method to return the default extend of this ArcProto over minimal-width arc in grid units.
+	 * This is the half of the difference between default width and minimal width.
+	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
+	 */
+    public long getDefaultGridExtendOverMin() {
+        return DBMath.lambdaToGrid(getArcProtoWidthPref(0).getDouble()*0.5) - gridFullExtend;
+    }
+
+	/**
+	 * Method to return the full width extend of this ArcProto in grid units.
+	 * This is the full width, including nonselectable layers such as implants.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns only the half width of the well of minimal-width arc. 
+	 * @return the default full width extend of this ArcProto in grid units.
+	 */
+	public int getGridFullExtend() { return gridFullExtend; }
+
+	/**
+	 * Method to return the base width extend of this ArcProto in lambda units.
+	 * This is the reported/selected width.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns only the half width of the diffusion of minimal-width arc. 
+	 * @return the default base width extend of this ArcProto in lambda units.
+	 */
+	public double getLambdaBaseExtend() { return lambdaBaseExtend; }
+
+	/**
+	 * Method to return the base width extend of this ArcProto in grid units.
+	 * This is the reported/selected width.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns only the half width of the diffusion of minimal-width arc. 
+	 * @return the default base width extend of this ArcProto in grid units.
+	 */
+	public int getGridBaseExtend() { return gridBaseExtend; }
 
 	/**
 	 * Method to return the width offset of this ArcProto in lambda units.
@@ -396,16 +443,19 @@ public class ArcProto implements Comparable<ArcProto>
 	 * The offset amount is the difference between the diffusion width and the overall width.
 	 * @return the width offset of this ArcProto in grid units.
 	 */
-	public long getGridWidthOffset() { return gridWidthOffset; }
+	public int getGridWidthOffset() { return 2*(gridFullExtend - gridBaseExtend); }
 
 	/**
-	 * Method to return the width offset of this ArcProto in grid units.
-	 * The width offset excludes the surrounding implang material.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * The offset amount is the difference between the diffusion width and the overall width.
-	 * @return the width offset of this ArcProto in grid units.
+	 * Method to return the minimal layer extend of this ArcProto in grid units.
+	 * @return the minimal layer extend of this ArcProto in grid units.
 	 */
-    public int getMaxLayerGridOffset() { return maxLayerGridOffset; }
+    public int getMinLayerGridExtend() { return minLayerGridExtend; }
+    
+	/**
+	 * Method to return the maximal layer extend of this ArcProto in grid units.
+	 * @return the maximal layer extend of this ArcProto in grid units.
+	 */
+    public int getMaxLayerGridExtend() { return maxLayerGridExtend; }
     
     /*
 	private Pref getArcProtoAntennaPref()
@@ -881,7 +931,7 @@ public class ArcProto implements Comparable<ArcProto>
      * @param arcLayerIndex layer index
      * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      */
-    public long getLayerGridExtend(int arcLayerIndex) { return (gridWidthOffset - layers[arcLayerIndex].getGridOffset()) >> 1; }
+    public int getLayerGridExtend(int arcLayerIndex) { return gridFullExtend - (layers[arcLayerIndex].getGridOffset() >>> 1); }
     
     /**
      * Returns the Poly.Style of specified layer that comprise this ArcLayer.
@@ -1027,18 +1077,22 @@ public class ArcProto implements Comparable<ArcProto>
 		// compute the indentation of the outer layer
 		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
         layers[i] = layers[i].withGridOffset(indent);
-        computeMaxLayerGridOffset();
+        computeLayerGridExtendRange();
 	}
     
-    void computeMaxLayerGridOffset() {
-        long max = Long.MIN_VALUE;
+    void computeLayerGridExtendRange() {
+        long min = Long.MAX_VALUE, max = Long.MIN_VALUE;
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer primLayer = layers[i];
             assert indexOf(primLayer.getLayer()) == i; // layers are unique
-            max = Math.max(max, primLayer.getGridOffset());
+            min = Math.min(min, getLayerGridExtend(i));
+            max = Math.max(max, getLayerGridExtend(i));
         }
-        assert 0 <= max && max < Integer.MAX_VALUE;
-        maxLayerGridOffset = (int)max;
+        assert -Integer.MAX_VALUE/8 < min;
+//        assert 0 <= min;
+        assert max < Integer.MAX_VALUE/8 && min <= max;
+        minLayerGridExtend = (int)min;
+        maxLayerGridExtend = (int)max;
     }
 
     /**
@@ -1073,9 +1127,9 @@ public class ArcProto implements Comparable<ArcProto>
 //        Point2D.Double headLocation = new Point2D.Double(lambdaLength/2, 0);
 //        Point2D.Double tailLocation = new Point2D.Double(-lambdaLength/2, 0);
         for (int i = 0; i < layers.length; i++) {
-            Technology.ArcLayer primLayer = layers[i];
-            long gridWidth = getDefaultGridFullWidth() - primLayer.getGridOffset();
-            Poly.Type style = primLayer.getStyle();
+            long gridWidth = 2*(getDefaultGridExtendOverMin() + getLayerGridExtend(i));
+//            long gridWidth = getDefaultGridFullWidth() - primLayer.getGridOffset();
+            Poly.Type style = getLayerStyle(i);
             Point2D.Double[] points;
             if (gridWidth == 0) {
                 points = new Point2D.Double[]{ new Point2D.Double(-l2, 0), new Point2D.Double(l2, 0)};
@@ -1091,7 +1145,7 @@ public class ArcProto implements Comparable<ArcProto>
             Poly poly = new Poly(points);
             poly.gridToLambda();
             poly.setStyle(style);
-            poly.setLayer(primLayer.getLayer());
+            poly.setLayer(getLayer(i));
             polys[i] = poly;
         }
         return polys;
@@ -1166,14 +1220,10 @@ public class ArcProto implements Comparable<ArcProto>
      * @exception AssertionError if invariants are not valid
      */
     void check() {
-        long defaultWidth = getDefaultGridFullWidth();
         for (Technology.ArcLayer primLayer: layers) {
-            long gridOffset = primLayer.getGridOffset();
-            assert 0 <= gridOffset && gridOffset <= maxLayerGridOffset;
-            long width = defaultWidth - gridOffset;
-            if (width < 0)
-                System.out.println(primLayer + " of " + this + " has invalid width");
+            long gridExtend = getLayerGridExtend(primLayer.getLayer());
+            assert minLayerGridExtend <= gridExtend && gridExtend <= maxLayerGridExtend;
         }
-        assert 0 <= gridWidthOffset && gridWidthOffset <= maxLayerGridOffset;
+        assert 0 <= gridBaseExtend && gridBaseExtend <= gridFullExtend && gridBaseExtend <= maxLayerGridExtend;
     }
 }

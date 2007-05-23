@@ -1308,7 +1308,8 @@ class PixelDrawing
 				tinyArcs++;
 				return;
 			}
-			if (ai.getLambdaFullWidth() > 0)
+			if (ai.getGridFullWidth() > 0)
+//			if (ai.getLambdaFullWidth() > 0)
 			{
 				arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
 				if (arcSize < maxObjectSize)

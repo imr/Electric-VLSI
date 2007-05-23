@@ -771,13 +771,15 @@ public class PLA
 			System.out.println("Attempting to wire with unknown arc layer");
 			return;
 		}
-		double wid = typ.getDefaultLambdaFullWidth();
+		double wid = typ.getDefaultLambdaBaseWidth();
+//		double wid = typ.getDefaultLambdaFullWidth();
 //		w = us_widestarcinst(typ, fromnodeinst, fromportproto);
 //		if (w > wid) wid = w;
 //		w = us_widestarcinst(typ, tonodeinst, toportproto);
 //		if (w > wid) wid = w;
 		if (width > wid) wid = width;
-		ArcInst ai = ArcInst.makeInstanceFull(typ, wid, fromPi, toPi);
+		ArcInst ai = ArcInst.makeInstanceBase(typ, wid, fromPi, toPi);
+//		ArcInst ai = ArcInst.makeInstanceFull(typ, wid, fromPi, toPi);
 		if (ai == null)
 		{
 			System.out.println("Unable to run " + typ + " from " + fromNodeInst +

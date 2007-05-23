@@ -543,7 +543,8 @@ public class Spice extends Topology
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
                     ignoreArc = true;
                 double length = ai.getLambdaLength() * scale / 1000;      // length in microns
-                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
+                double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
+//                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
                 double area = length * width;
                 double fringe = length*2;
                 double cap = 0;

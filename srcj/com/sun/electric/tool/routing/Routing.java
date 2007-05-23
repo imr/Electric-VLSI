@@ -336,7 +336,8 @@ public class Routing extends Listener
 			}
 
 			// now create the new unrouted wires
-			double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
+			double wid = Generic.tech.unrouted_arc.getDefaultLambdaBaseWidth();
+//			double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
 			int count = netEnds.size();
 			int [] covered = new int[count];
 			Point2D [] points = new Point2D[count];
@@ -375,7 +376,8 @@ public class Routing extends Listener
 				covered[besti] = covered[bestj] = 1;
 				PortInst head = netEnds.get(besti).getPortInst();
 				PortInst tail = netEnds.get(bestj).getPortInst();
-				ArcInst ai = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, wid, head, tail);
+				ArcInst ai = ArcInst.makeInstanceBase(Generic.tech.unrouted_arc, wid, head, tail);
+//				ArcInst ai = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, wid, head, tail);
 				if (ai == null)
 				{
 					System.out.println("Could not create unrouted arc");
@@ -875,8 +877,9 @@ public class Routing extends Listener
 					Poly poly = pi.getPoly();
 					Point2D lPt = new Point2D.Double(lPoly.getCenterX(), lPoly.getCenterY());
 					Point2D pt = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-					double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
-					ArcInst newAi = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, wid, lastPi, pi, lPt, pt, null);
+					ArcInst newAi = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, pi, lPt, pt, null);
+//					double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
+//					ArcInst newAi = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, wid, lastPi, pi, lPt, pt, null);
 					if (newAi == null) break;
 					wiresMade++;
 				}

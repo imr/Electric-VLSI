@@ -554,12 +554,14 @@ public class AutoStitch
 		boolean headTooWide = true;
 		NodeInst hNi = ai.getHeadPortInst().getNodeInst();
 		if (hNi.isCellInstance()) headTooWide = false; else
-			if (ai.getLambdaFullWidth() <= hNi.getXSize() && ai.getLambdaFullWidth() <= hNi.getYSize()) headTooWide = false;
+			if (ai.getLambdaBaseWidth() <= hNi.getLambdaBaseXSize() && ai.getLambdaBaseWidth() <= hNi.getLambdaBaseYSize()) headTooWide = false;
+//			if (ai.getLambdaFullWidth() <= hNi.getXSize() && ai.getLambdaFullWidth() <= hNi.getYSize()) headTooWide = false;
 
 		boolean tailTooWide = true;
 		NodeInst tNi = ai.getTailPortInst().getNodeInst();
 		if (tNi.isCellInstance()) tailTooWide = false; else
-			if (ai.getLambdaFullWidth() <= tNi.getXSize() && ai.getLambdaFullWidth() <= tNi.getYSize()) tailTooWide = false;
+			if (ai.getLambdaBaseWidth() <= tNi.getLambdaBaseXSize() && ai.getLambdaBaseWidth() <= tNi.getLambdaBaseYSize()) tailTooWide = false;
+//			if (ai.getLambdaFullWidth() <= tNi.getXSize() && ai.getLambdaFullWidth() <= tNi.getYSize()) tailTooWide = false;
 
 		return headTooWide || tailTooWide;
 	}
@@ -1633,7 +1635,8 @@ public class AutoStitch
 			{
 				Connection con = it.next();
 				ArcInst ai = con.getArc();
-				if (ai.getLambdaFullWidth() >= ni.getXSize() && ai.getLambdaFullWidth() >= ni.getYSize() && ai.isHeadExtended() && ai.isTailExtended())
+				if (ai.getLambdaBaseWidth() >= ni.getLambdaBaseXSize() && ai.getLambdaBaseWidth() >= ni.getLambdaBaseYSize() && ai.isHeadExtended() && ai.isTailExtended())
+//				if (ai.getLambdaFullWidth() >= ni.getXSize() && ai.getLambdaFullWidth() >= ni.getYSize() && ai.isHeadExtended() && ai.isTailExtended())
 				{
 					gotOne = true;
 					break;

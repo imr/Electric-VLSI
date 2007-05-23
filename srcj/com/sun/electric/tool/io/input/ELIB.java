@@ -1292,7 +1292,7 @@ public class ELIB extends LibraryFiles
 		{
 			ArcProto ap = arcTypeList[i];
 			String name = arcNameList[i];
-			long gridBaseWidth = DBMath.lambdaToSizeGrid(arcWidthList[i] / lambda) - ap.getGridWidthOffset();
+			long gridExtendOverMin = getSizeCorrector(ap.getTechnology()).getExtendFromDisk(ap, arcWidthList[i] / lambda);
 			double headX = (arcHeadXPosList[i] - xoff) / lambda;
 			double headY = (arcHeadYPosList[i] - yoff) / lambda;
 			double tailX = (arcTailXPosList[i] - xoff) / lambda;
@@ -1371,7 +1371,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             ArcInst ai = ArcInst.newInstance(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
-                    new EPoint(headX, headY), new EPoint(tailX, tailY), gridBaseWidth,
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin,
                     ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;
  			if (ai == null)

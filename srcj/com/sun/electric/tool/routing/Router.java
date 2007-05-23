@@ -170,7 +170,7 @@ public abstract class Router {
 	                    {
 	                    	RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
 	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
-	                                Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), route.getEnd(), newEnd,
+	                                Generic.tech.unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
 	                                route.getEnd().getLocation(), oconn.getLocation(), null,
 	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
 	                        newArc.doAction();
@@ -374,7 +374,7 @@ public abstract class Router {
             if (re instanceof RouteElementArc) {
                 RouteElementArc reArc = (RouteElementArc)re;
                 if (reArc.getArcProto() == ap)
-                    reArc.setArcWidth(width);
+                    reArc.setArcBaseWidth(width);
             }
         }
     }
@@ -387,7 +387,7 @@ public abstract class Router {
      * @return the largest width
      */
     protected static double getArcWidthToUse(Route route, ArcProto ap) {
-        double widest = ap.getDefaultLambdaFullWidth();
+        double widest = ap.getDefaultLambdaBaseWidth();
         for (RouteElement re : route) {
             double width = getArcWidthToUse(re, ap);
             if (width > widest) widest = width;
@@ -409,10 +409,10 @@ public abstract class Router {
      */
     public static double getArcWidthToUse(PortInst pi, ArcProto ap) {
         // if pi null, just return default width of ap
-        if (pi == null) return ap.getDefaultLambdaFullWidth();
+        if (pi == null) return ap.getDefaultLambdaBaseWidth();
 
         // get all ArcInsts on pi, find largest
-        double width = ap.getDefaultLambdaFullWidth();
+        double width = ap.getDefaultLambdaBaseWidth();
         for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
             Connection c = it.next();
             ArcInst ai = c.getArc();
@@ -441,7 +441,7 @@ public abstract class Router {
      * @return the width of the arc to use to connect
      */
     protected static double getArcWidthToUse(RouteElement re, ArcProto ap) {
-        double width = ap.getDefaultLambdaFullWidth();
+        double width = ap.getDefaultLambdaBaseWidth();
         double connectedWidth = width;
         if (re instanceof RouteElementPort) {
             RouteElementPort rePort = (RouteElementPort)re;
@@ -454,7 +454,7 @@ public abstract class Router {
         }
         if (re instanceof RouteElementArc) {
             RouteElementArc reArc = (RouteElementArc)re;
-            connectedWidth = reArc.getOffsetArcWidth();
+            connectedWidth = reArc.getArcBaseWidth();
         }
         if (width > connectedWidth) return width;
         else return connectedWidth;
@@ -483,10 +483,10 @@ public abstract class Router {
         if (re instanceof RouteElementArc) {
             RouteElementArc reArc = (RouteElementArc)re;
             if (reArc.isArcVertical()) {
-                if (reArc.getOffsetArcWidth() > width) width = reArc.getOffsetArcWidth();
+                if (reArc.getArcBaseWidth() > width) width = reArc.getArcBaseWidth();
             }
             if (reArc.isArcHorizontal()) {
-                if (reArc.getOffsetArcWidth() > height) height = reArc.getOffsetArcWidth();
+                if (reArc.getArcBaseWidth() > height) height = reArc.getArcBaseWidth();
             }
         }
 

@@ -488,8 +488,10 @@ public class CellChangeJobs
 					PortInst pinPi = cgn.pin.getOnlyPortInst();
 					PortInst toppinPi = cgn.botPin.getOnlyPortInst();
 					PortInst botPinPi = cgn.topPin.getOnlyPortInst();
-					ArcInst link1 = ArcInst.makeInstanceFull(Generic.tech.invisible_arc, 0, toppinPi, pinPi);
-					ArcInst link2 = ArcInst.makeInstanceFull(Generic.tech.invisible_arc, 0, pinPi, botPinPi);
+					ArcInst link1 = ArcInst.makeInstanceBase(Generic.tech.invisible_arc, 0, toppinPi, pinPi);
+					ArcInst link2 = ArcInst.makeInstanceBase(Generic.tech.invisible_arc, 0, pinPi, botPinPi);
+//					ArcInst link1 = ArcInst.makeInstanceFull(Generic.tech.invisible_arc, 0, toppinPi, pinPi);
+//					ArcInst link2 = ArcInst.makeInstanceFull(Generic.tech.invisible_arc, 0, pinPi, botPinPi);
 					link1.setRigid(true);
 					link2.setRigid(true);
 					link1.setHardSelect(true);
@@ -518,7 +520,8 @@ public class CellChangeJobs
 
 					PortInst firstPi = cgn.pin.getOnlyPortInst();
 //					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
-					ArcInst ai = ArcInst.makeInstanceFull(Artwork.tech.solidArc, 0, firstPi, firstPi);
+					ArcInst ai = ArcInst.makeInstanceBase(Artwork.tech.solidArc, 0, firstPi, firstPi);
+//					ArcInst ai = ArcInst.makeInstanceFull(Artwork.tech.solidArc, 0, firstPi, firstPi);
 					if (ai == null) return false;
 					ai.setRigid(true);
 					ai.setHardSelect(true);
@@ -566,7 +569,8 @@ public class CellChangeJobs
 						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstanceFull(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultLambdaFullWidth(), toppinPi, niBotPi);
+						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, toppinPi, niBotPi);
+//						ArcInst ai = ArcInst.makeInstanceFull(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultLambdaFullWidth(), toppinPi, niBotPi);
 						if (ai == null) return false;
                         ai.setRigid(false);
                         ai.setFixedAngle(false);
@@ -701,7 +705,8 @@ public class CellChangeJobs
 				String name = null;
 				Name oldName = ai.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
-				ArcInst newAi = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ai.getHeadLocation(),
+				ArcInst newAi = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), piHead, piTail, ai.getHeadLocation(),
+//				ArcInst newAi = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ai.getHeadLocation(),
 				        ai.getTailLocation(), name);
 				if (newAi == null) return false;
 				newAi.copyPropertiesFrom(ai);
@@ -833,7 +838,8 @@ public class CellChangeJobs
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
-			ArcInst newAi = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ptHead, ptTail, name);
+			ArcInst newAi = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), piHead, piTail, ptHead, ptTail, name);
+//			ArcInst newAi = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ptHead, ptTail, name);
 			if (newAi == null) return;
 			newAi.copyPropertiesFrom(ai);
 		}
@@ -848,7 +854,8 @@ public class CellChangeJobs
 		for(ArcInst ai : replaceTheseArcs)
 		{
 			ArcProto ap = ai.getProto();
-			double wid = ai.getLambdaFullWidth();
+			double wid = ai.getLambdaBaseWidth();
+//			double wid = ai.getLambdaFullWidth();
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
@@ -868,7 +875,8 @@ public class CellChangeJobs
 			if (pis[0] == null || pis[1] == null) continue;
 
 			ai.kill();
-			ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
+			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
+//			ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
 			if (newAi == null) return;
             newAi.copyPropertiesFrom(ai);
 		}

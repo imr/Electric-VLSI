@@ -55,6 +55,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
@@ -78,19 +79,31 @@ public class JELIB extends LibraryFiles
 {
 	private static class CellContents
 	{
-        int revision;
+        final int revision;
+        final Version version;
 		boolean filledIn;
 		int lineNumber;
         String groupName;
-		List<String> cellStrings;
+		List<String> cellStrings = new ArrayList<String>();
 		String fileName;
+        private HashMap<Technology,SizeCorrector> sizeCorrectors = new HashMap<Technology,SizeCorrector>();
 
-		CellContents(int revision)
+		CellContents(int revision, Version version)
 		{
             this.revision = revision;
+            this.version = version;
 			filledIn = false;
-			cellStrings = new ArrayList<String>();
 		}
+        
+        SizeCorrector getSizeCorrector(Technology tech) {
+            SizeCorrector corrector = sizeCorrectors.get(tech);
+            if (corrector == null) {
+                corrector = tech.getSizeCorrector(version, true);
+                sizeCorrectors.put(tech, corrector);
+            }
+            return corrector;
+        }
+    
 	}
 
 	private static String[] revisions =
@@ -675,7 +688,7 @@ public class JELIB extends LibraryFiles
         realizeVariables(newCell, vars);
 
         // gather the contents of the cell into a list of Strings
-        CellContents cc = new CellContents(revision);
+        CellContents cc = new CellContents(revision, version);
         cc.fileName = filePath;
         cc.lineNumber = lineReader.getLineNumber() + 1;
         cc.groupName = groupName;
@@ -834,14 +847,14 @@ public class JELIB extends LibraryFiles
 				}
 			}
 
-			double wid = 0, hei = 0;
+            EPoint size = EPoint.ORIGIN;
             boolean flipX = false, flipY = false;
 			String orientString;
 			String stateInfo;
 			String textDescriptorInfo = "";
 			if (firstChar == 'N' || cc.revision < 1)
 			{
-				wid = TextUtils.atof(pieces.get(5));
+				double wid = TextUtils.atof(pieces.get(5));
 				if (wid < 0 || wid == 0 && 1/wid < 0) {
                     if (cc.revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -849,7 +862,7 @@ public class JELIB extends LibraryFiles
                     flipX = true;
                     wid = -wid;
                 }
-				hei = TextUtils.atof(pieces.get(6));
+				double hei = TextUtils.atof(pieces.get(6));
 				if (hei < 0 || hei == 0 && 1/hei < 0) {
                     if (cc.revision >= 1)
     					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -857,10 +870,9 @@ public class JELIB extends LibraryFiles
                     flipY = true;
                     hei = -hei;
                 }
-                if (cc.revision >= 3 && np != null) {
-                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
-                    wid += so.getLowXOffset() + so.getHighXOffset();
-                    hei += so.getLowYOffset() + so.getHighYOffset();
+                if (np instanceof PrimitiveNode) {
+                    PrimitiveNode pn = (PrimitiveNode)np;
+                    size = cc.getSizeCorrector(pn.getTechnology()).getSizeFromDisk(pn, wid, hei);
                 }
 				orientString = pieces.get(7);
 				stateInfo = pieces.get(8);
@@ -868,12 +880,6 @@ public class JELIB extends LibraryFiles
 					textDescriptorInfo = pieces.get(9);
 			} else
 			{
-				if (np != null)
-				{
-					Rectangle2D bounds = ((Cell)np).getBounds();
-					wid = bounds.getWidth();
-					hei = bounds.getHeight();
-				}
 				orientString = pieces.get(5);
 				stateInfo = pieces.get(6);
 				textDescriptorInfo = pieces.get(7);
@@ -914,7 +920,7 @@ public class JELIB extends LibraryFiles
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, dummyCell);
+					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), 0, 0, dummyCell);
 				} else
 				{
 					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
@@ -971,7 +977,7 @@ public class JELIB extends LibraryFiles
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, nameTextDescriptor,
-                    new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor, Input.errorLogger);
+                    EPoint.fromLambda(x, y), size, orient, flags, techBits, protoTextDescriptor, Input.errorLogger);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1116,9 +1122,7 @@ public class JELIB extends LibraryFiles
 					if (cc.revision >= 1) arcName = unQuote(cc.revision, arcName);
 				}
 			}
-			long gridBaseWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
-            if (cc.revision < 3)
-                gridBaseWidth -= ap.getGridWidthOffset();
+			long gridExtendOverMin = cc.getSizeCorrector(ap.getTechnology()).getExtendFromDisk(ap, TextUtils.atof(pieces.get(3)));
 
 			String headNodeName = cc.revision >= 1 ? pieces.get(5) : unQuote(cc.revision, pieces.get(5));
 			String headPortName = unQuote(cc.revision, pieces.get(6));
@@ -1202,7 +1206,7 @@ public class JELIB extends LibraryFiles
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridBaseWidth, angle, flags);
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin, angle, flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();

@@ -1298,15 +1298,15 @@ public class ROMGenerator
 					gndpos2 = getCStylePortPosition(gnd2, gndport2);
 					intgndport = diffpinport;
 					intgndpos = getCStylePortPosition(intgnd, intgndport);
-					makeCStyleArcInst(ndiffarc, 16*lambda, ap1, apport1,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, ap1, apport1,
 										appos1[0], appos1[1],
 										ap2, apport2, appos2[0],
 										appos2[1]);
-					makeCStyleArcInst(ndiffarc, 16*lambda, gnd1, gndport1,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, gnd1, gndport1,
 										gndpos1[0], gndpos1[1],
 										intgnd, intgndport, intgndpos[0],
 										intgndpos[1]);
-					makeCStyleArcInst(ndiffarc, 16*lambda, intgnd, intgndport,
+					makeCStyleArcInst(ndiffarc, 4/*16*/*lambda, intgnd, intgndport,
 										intgndpos[0], intgndpos[1],
 										gnd2, gndport2, gndpos2[0],
 										gndpos2[1]);
@@ -1439,9 +1439,9 @@ public class ROMGenerator
 			appos4 = getCStylePortPosition(ap4, apport4);
 			appos2 = getCStylePortPosition(ap2, apport2);
 			appos3 = getCStylePortPosition(ap3, apport3);
-			makeCStyleArcInst(pdiffarc, 15*lambda, ap1, apport1, appos1[0],
+			makeCStyleArcInst(pdiffarc, 3/*15*/*lambda, ap1, apport1, appos1[0],
 								appos1[1], ap2, apport2, appos2[0], appos2[1]);
-			makeCStyleArcInst(pdiffarc, 15*lambda, ap4, apport4, appos4[0],
+			makeCStyleArcInst(pdiffarc, 3/*15*/*lambda, ap4, apport4, appos4[0],
 								appos4[1], ap3, apport3, appos3[0], appos3[1]);
 		}
 			
@@ -4029,7 +4029,8 @@ highX -= 64*lambda;
 	{
 		PortInst head = hNI.findPortInstFromProto(hPP);
 		PortInst tail = tNI.findPortInstFromProto(tPP);
-		ArcInst.makeInstanceFull(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
+		ArcInst.makeInstanceBase(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
+//		ArcInst.makeInstanceFull(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
 	}
 
 	/**

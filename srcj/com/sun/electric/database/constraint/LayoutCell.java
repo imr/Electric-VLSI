@@ -834,7 +834,9 @@ class LayoutCell {
 		PortInst tpi = ai.getTailPortInst();
 //		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
 
-		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getLambdaFullWidth();
+		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();
+        double wid = ai.getLambdaBaseWidth();
+//        double wid = ai.getLambdaFullWidth();
 
 		// figure out what nodeinst proto connects these arcs
 		PrimitiveNode np = ap.findOverridablePinProto();
@@ -874,16 +876,19 @@ class LayoutCell {
 		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
-		ArcInst ar1 = ArcInst.newInstanceFull(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
+		ArcInst ar1 = ArcInst.newInstanceBase(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
+//		ArcInst ar1 = ArcInst.newInstanceFull(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
 		if (ar1 == null) return;
         ar1.copyConstraintsFrom(ai);
 //		ar1.copyStateBits(ai);
 //		if (ai.isHeadNegated()) ar1.setHeadNegated(true);
-		ArcInst ar2 = ArcInst.newInstanceFull(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
+		ArcInst ar2 = ArcInst.newInstanceBase(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
+//		ArcInst ar2 = ArcInst.newInstanceFull(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
 		if (ar2 == null) return;
         ar2.copyPropertiesFrom(ai);
 //		ar2.copyStateBits(ai);
-		ArcInst ar3 = ArcInst.newInstanceFull(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
+		ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
+//		ArcInst ar3 = ArcInst.newInstanceFull(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
 		if (ar3 == null) return;
         ar3.copyConstraintsFrom(ai);
 //		ar3.copyStateBits(ai);

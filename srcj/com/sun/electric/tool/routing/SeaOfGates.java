@@ -954,7 +954,8 @@ public class SeaOfGates
 				SearchVertex v1 = vertices.get(0);
 				SearchVertex v2 = vertices.get(1);
 				ArcProto type = metalArcs[toZ];
-				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
+				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
+//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				PrimitiveNode np = metalArcs[toZ].findPinProto();
 				if (v1.getX() == v2.getX())
 				{
@@ -995,7 +996,8 @@ public class SeaOfGates
 				double hei = Math.max(np.getDefHeight()-yOffset, minWidth) + yOffset;
 				NodeInst ni = makeNodeInst(np, new EPoint(sv.getX(), sv.getY()), wid, hei, orient, cell, netID);
 				ArcProto type = metalArcs[sv.getZ()];
-				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
+				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
+//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				makeArcInst(type, width, lastPort, ni.getOnlyPortInst(), netID);
 				lastPort = ni.getOnlyPortInst();
 				madeContacts = true;
@@ -1018,7 +1020,8 @@ public class SeaOfGates
 						SearchVertex v1 = vertices.get(vertices.size()-2);
 						SearchVertex v2 = vertices.get(vertices.size()-1);
 						ArcProto type = metalArcs[fromZ];
-						double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
+						double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
+//						double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 						if (v1.getX() == v2.getX())
 						{
 							// last line is vertical: run a horizontal bit
@@ -1047,7 +1050,8 @@ public class SeaOfGates
 			if (lastPort != null)
 			{
 				ArcProto type = metalArcs[sv.getZ()];
-				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
+				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
+//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				makeArcInst(type, width, lastPort, pi, netID);
 			}
 			lastPort = pi;
@@ -1116,7 +1120,8 @@ public class SeaOfGates
 	 */
 	private ArcInst makeArcInst(ArcProto type, double wid, PortInst from, PortInst to, int netID)
 	{
-		ArcInst ai = ArcInst.makeInstanceFull(type, wid, from, to);
+		ArcInst ai = ArcInst.makeInstanceBase(type, wid, from, to);
+//		ArcInst ai = ArcInst.makeInstanceFull(type, wid, from, to);
 		if (ai != null)
 		{
 			PolyBase [] polys = tech.getShapeOfArc(ai);

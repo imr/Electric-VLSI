@@ -885,7 +885,8 @@ public class Clipboard
 				}
 				headP = new EPoint(headPi.getCenter().getX() + headDX, headPi.getCenter().getY() + headDY);
 				tailP = new EPoint(tailPi.getCenter().getX() + tailDX, tailPi.getCenter().getY() + tailDY);
-				ArcInst newAr = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
+				ArcInst newAr = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+//				ArcInst newAr = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
 					headPi, tailPi, headP, tailP, name, ai.getAngle());
 				if (newAr == null)
 				{
@@ -1025,7 +1026,7 @@ public class Clipboard
 		}
 
 		// make the widths the same
-		destArc.setGridBaseWidth(srcArc.getGridBaseWidth());
+		destArc.setLambdaBaseWidth(srcArc.getLambdaBaseWidth());
 
 		// remove variables that are not on the pasted object
 		boolean checkAgain = true;

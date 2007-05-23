@@ -44,8 +44,10 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -96,6 +98,7 @@ public abstract class LibraryFiles extends Input
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
 	/** true to scale lambda by 20 */										protected boolean scaleLambdaBy20;
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
+    /** SizeCorrectors for used technologies */                             protected HashMap<Technology,SizeCorrector> sizeCorrectors = new HashMap<Technology,SizeCorrector>();
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
     /** buffer for reading Variables. */                                    ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
@@ -896,6 +899,15 @@ public abstract class LibraryFiles extends Input
         return null;
     }
 
+    SizeCorrector getSizeCorrector(Technology tech) {
+        SizeCorrector corrector = sizeCorrectors.get(tech);
+        if (corrector == null) {
+            corrector = tech.getSizeCorrector(version, false);
+            sizeCorrectors.put(tech, corrector);
+        }
+        return corrector;
+    }
+    
 	String convertCellName(String s)
 	{
 		StringBuffer buf = null;
@@ -969,13 +981,10 @@ public abstract class LibraryFiles extends Input
 		double highX = nil.highX[nodeIndex]-xoff;
 		double highY = nil.highY[nodeIndex]-yoff;
 		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
-		double width = (highX - lowX) / lambda;
-		double height = (highY - lowY) / lambda;
-        if (proto instanceof Cell) {
-            Cell subCell = (Cell)proto;
-			Rectangle2D bounds = subCell.getBounds();
-            width = bounds.getWidth();
-            height = bounds.getHeight();
+        EPoint size = EPoint.ORIGIN;
+        if (proto instanceof PrimitiveNode) {
+            PrimitiveNode pn = (PrimitiveNode)proto;
+            size = getSizeCorrector(pn.getTechnology()).getSizeFromDisk(pn, (highX - lowX) / lambda, (highY - lowY) / lambda);
         }
 
 		int rotation = nil.rotation[nodeIndex];
@@ -987,20 +996,17 @@ public abstract class LibraryFiles extends Input
 			if ((nil.transpose[nodeIndex]&1) != 0)
 			{
                 flipY = true;
-//				height = -height;
 				rotation = (rotation + 900) % 3600;
 			}
 			if ((nil.transpose[nodeIndex]&2) != 0)
 			{
 				// mirror in X
                 flipX = true;
-//				width = -width;
 			}
 			if ((nil.transpose[nodeIndex]&4) != 0)
 			{
 				// mirror in Y
                 flipY = !flipY;
-//				height = -height;
 			}
 		} else
 		{
@@ -1008,7 +1014,6 @@ public abstract class LibraryFiles extends Input
 			if (nil.transpose[nodeIndex] != 0)
 			{
                 flipY = true;
-//				height = -height;
 				rotation = (rotation + 900) % 3600;
 			}
 		}
@@ -1038,7 +1043,7 @@ public abstract class LibraryFiles extends Input
         int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
         int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
-                center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
+                center, size, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
         Variable[] vars = nil.vars[nodeIndex];

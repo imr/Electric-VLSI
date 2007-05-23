@@ -765,7 +765,8 @@ public class CircuitChanges
 			{
 				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
-				double overSize = ai.getLambdaFullWidth() - ai.getProto().getDefaultLambdaFullWidth();
+				double overSize = ai.getLambdaBaseWidth() - ai.getProto().getDefaultLambdaBaseWidth();
+//				double overSize = ai.getLambdaFullWidth() - ai.getProto().getDefaultLambdaFullWidth();
 				if (overSize < 0) overSize = 0;
 				if (overSize > overSizeArc) overSizeArc = overSize;
 			}

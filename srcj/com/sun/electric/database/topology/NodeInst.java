@@ -291,7 +291,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             System.out.println(parent + " already has NodeInst with name \""+name+"\"");
             return null;
         }
-        return newInstance(parent, protoType, name, null, center, width, height, orient, 0, techBits, null, null);
+        EPoint size = protoType instanceof Cell ? EPoint.ORIGIN : EPoint.fromLambda(width, height);
+        return newInstance(parent, protoType, name, null, center, size, orient, 0, techBits, null, null);
 	}
 
 	/**
@@ -301,8 +302,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param name name of new NodeInst
      * @param nameDescriptor TextDescriptor of name of this NodeInst
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst (can't be negative).
-	 * @param height the height of this NodeInst (can't be negative).
+	 * @param size the size of this NodeInst (can't be negative).
 	 * @param orient the orientation of this NodeInst.
      * @param flags flags of this NodeInst.
 	 * @param techBits bits associated to different technologies
@@ -312,7 +312,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
                                        String name, TextDescriptor nameDescriptor,
-                                       Point2D center, double width, double height, Orientation orient,
+                                       Point2D center, EPoint size, Orientation orient,
                                        int flags, int techBits, TextDescriptor protoDescriptor, ErrorLogger errorLogger)
 	{
         if (protoType == null) return null;
@@ -356,7 +356,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         do {
             nodeId = parentId.newNodeId();
         } while (parent.getNodeById(nodeId) != null);
-        EPoint size = protoType instanceof Cell ? EPoint.ORIGIN : EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
                 orient, anchor, size, flags, techBits, protoDescriptor);
 
@@ -825,7 +824,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 						// special case where the old arc must be deleted first so that the other node can move
 						ai.kill();
 						adjustThisNode.move(dX, dY);
-						ArcInst newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+						ArcInst newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+//						ArcInst newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
 							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
 						{
@@ -854,7 +854,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
+				newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
+//				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
                 newAi.copyPropertiesFrom(ai);
@@ -863,7 +864,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //                newAi.copyVarsFrom(ai);
 //                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
-				ArcInst newAi2 = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
+				ArcInst newAi2 = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
+//				ArcInst newAi2 = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
 				        newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi2 == null) return null;
                 newAi2.copyConstraintsFrom(ai);
@@ -876,7 +878,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+				newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+//				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
                         newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi == null)
 				{
@@ -2347,7 +2350,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// must connect to two arcs of the same type and width
 		if (reconAr[0].getProto() != reconAr[1].getProto()) return false;
-		if (reconAr[0].getLambdaFullWidth() != reconAr[1].getLambdaFullWidth()) return false;
+		if (reconAr[0].getLambdaBaseWidth() != reconAr[1].getLambdaBaseWidth()) return false;
+//		if (reconAr[0].getLambdaFullWidth() != reconAr[1].getLambdaFullWidth()) return false;
 
 		// arcs must be along the same angle, and not be curved
 		if (delta[0].getX() != 0 || delta[0].getY() != 0 || delta[1].getX() != 0 || delta[1].getY() != 0)

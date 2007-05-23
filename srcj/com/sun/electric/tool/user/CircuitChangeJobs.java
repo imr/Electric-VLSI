@@ -846,7 +846,8 @@ public class CircuitChangeJobs
 					// wire them
 					PortInst head = niw.getOnlyPortInst();
 					PortInst tail = nib.getOnlyPortInst();
-					ArcInst aiw = ArcInst.makeInstanceFull(apW, apW.getDefaultLambdaFullWidth(), head, tail);
+					ArcInst aiw = ArcInst.makeInstance(apW, head, tail);
+//					ArcInst aiw = ArcInst.makeInstanceFull(apW, apW.getDefaultLambdaFullWidth(), head, tail);
 					if (aiw == null) break;
 					aiw.setName(localStrings[i]);
 
@@ -854,11 +855,13 @@ public class CircuitChangeJobs
 					if (i == 0)
 					{
 						PortInst first = ai.getPortInst(lowEnd);
-						aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), first, tail);
+						aiw = ArcInst.makeInstance(apB, first, tail);
+//						aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), first, tail);
 					} else
 					{
 						PortInst first = niBLast.getOnlyPortInst();
-						aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), first, tail);
+						aiw = ArcInst.makeInstance(apB, first, tail);
+//						aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), first, tail);
 					}
 					if (aiw == null) break;
 
@@ -871,7 +874,8 @@ public class CircuitChangeJobs
 				// wire up the last segment
 				PortInst head = niBLast.getOnlyPortInst();
 				PortInst tail = ai.getPortInst(1-lowEnd);
-				ArcInst aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), head, tail);
+				ArcInst aiw = ArcInst.makeInstance(apB, head, tail);
+//				ArcInst aiw = ArcInst.makeInstanceFull(apB, apB.getDefaultLambdaFullWidth(), head, tail);
 				if (aiw == null) return false;
 				aiw.setName(netName);
 
@@ -1038,7 +1042,8 @@ public class CircuitChangeJobs
 						continue;
 					}
 
-					ArcInst ai1 = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
+					ArcInst ai1 = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+//					ArcInst ai1 = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
 						ai.getTailPortInst(), ni.getOnlyPortInst(), ai.getTailLocation(),
 					        tailPtAdj, newName);
 					if (ai1 == null)
@@ -1060,7 +1065,8 @@ public class CircuitChangeJobs
 						continue;
 					}
 
-					ArcInst ai1 = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), ni.getOnlyPortInst(),
+					ArcInst ai1 = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), ni.getOnlyPortInst(),
+//					ArcInst ai1 = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), ni.getOnlyPortInst(),
 						ai.getHeadPortInst(), headPtAdj, ai.getHeadLocation(), newName);
 					if (ai1 == null)
 					{
@@ -1277,7 +1283,8 @@ public class CircuitChangeJobs
 					// reconnect a piece of hair to a cell instance
 					PrimitiveNode pinNp = ai.getProto().findPinProto();
 					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-					ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), otherPi, pin.getOnlyPortInst(),
+					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, pin.getOnlyPortInst(),
+//					ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), otherPi, pin.getOnlyPortInst(),
 						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 				}
 			}
@@ -2155,7 +2162,8 @@ public class CircuitChangeJobs
             if (!allowdiffs)
             {
                 // verify that the two arcs to merge have the same width
-                if (ai1.getLambdaFullWidth() != ai2.getLambdaFullWidth()) return null;
+                if (ai1.getLambdaBaseWidth() != ai2.getLambdaBaseWidth()) return null;
+//                if (ai1.getLambdaFullWidth() != ai2.getLambdaFullWidth()) return null;
 
                 // verify that the two arcs have the same slope
                 if ((delta[1].getX()*delta[0].getY()) != (delta[0].getX()*delta[1].getY())) return null;
@@ -2182,7 +2190,8 @@ public class CircuitChangeJobs
             }
 
             // ok to connect arcs
-            ra.wid = ai1.getLambdaFullWidth();
+            ra.wid = ai1.getLambdaBaseWidth();
+//            ra.wid = ai1.getLambdaFullWidth();
 
             ra.directionalHead = ai1.isHeadArrowed();
             ra.directionalTail = ai1.isTailArrowed();
@@ -2218,7 +2227,8 @@ public class CircuitChangeJobs
             for (ReconnectedArc ra : reconnectedArcs)
             {
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
-                ArcInst newAi = ArcInst.makeInstanceFull(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
+                ArcInst newAi = ArcInst.makeInstanceBase(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
+//                ArcInst newAi = ArcInst.makeInstanceFull(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
                 if (newAi == null) continue;
 
                 newAi.setHeadArrowed(ra.directionalHead);

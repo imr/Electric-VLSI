@@ -227,7 +227,7 @@ public class RouteElementPort extends RouteElement {
             if (newArcs == null) return -1;
             for (RouteElementArc re : newArcs) {
                 if (re.getArcProto() == ap) {
-                    if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
+                    if (re.getArcBaseWidth() > width) width = re.getArcBaseWidth();
                 }
             }
         }

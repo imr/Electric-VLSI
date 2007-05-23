@@ -37,6 +37,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -64,7 +65,6 @@ import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -612,6 +612,36 @@ public class Technology implements Comparable<Technology>
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 	}
+    
+    public class SizeCorrector {
+        private boolean oldRevision;
+        
+        private SizeCorrector(Version version, boolean isJelib) {
+            oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
+        }
+        
+        public long getExtendFromDisk(ArcProto ap, double width) {
+			long gridBaseWidth = DBMath.lambdaToGrid(0.5*width);
+            if (oldRevision)
+                gridBaseWidth -= ap.getGridFullExtend();
+            else
+                gridBaseWidth -= ap.getGridBaseExtend();
+            return gridBaseWidth;
+        }
+        
+        public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
+            if (!oldRevision) {
+                SizeOffset so = pn.getProtoSizeOffset();
+                width += so.getLowXOffset() + so.getHighXOffset();
+                height += so.getLowYOffset() + so.getHighYOffset();
+            }
+            return EPoint.fromLambda(width, height);
+        }
+    }
+    
+    public SizeCorrector getSizeCorrector(Version version, boolean isJelib) {
+        return new SizeCorrector(version, isJelib);
+    }
 
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
@@ -956,7 +986,7 @@ public class Technology implements Comparable<Technology>
                 double widthOffset = xap.widthOffset - xal.width.value;
                 ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(widthOffset));
             }
-            ap.computeMaxLayerGridOffset();
+            ap.computeLayerGridExtendRange();
         }
     }
     
@@ -1169,7 +1199,8 @@ public class Technology implements Comparable<Technology>
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			double width = ap.getDefaultLambdaFullWidth();
+			double width = ap.getDefaultLambdaBaseWidth();
+//			double width = ap.getDefaultLambdaFullWidth();
 			arcWidths.put(ap, width); // autoboxing
 		}
 
@@ -1192,8 +1223,10 @@ public class Technology implements Comparable<Technology>
 			ArcProto ap = it.next();
 			Double origWidth = arcWidths.get(ap);
 			if (origWidth == null) continue;
-			double width = ap.getDefaultLambdaFullWidth();
-			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
+			double width = ap.getDefaultLambdaBaseWidth();
+			if (origWidth > width) ap.setDefaultLambdaBaseWidth(origWidth); //autoboxing
+//			double width = ap.getDefaultLambdaFullWidth();
+//			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
 		}
 
 		// now restore node size defaults if they are larger than what is set
@@ -4391,7 +4424,8 @@ public class Technology implements Comparable<Technology>
 
 		boolean hasChanged = false;
 
-        if (ap.getDefaultLambdaFullWidth() != width + ap.getLambdaWidthOffset())
+        if (ap.getDefaultLambdaBaseWidth() != width)
+//        if (ap.getDefaultLambdaFullWidth() != width + ap.getLambdaWidthOffset())
             hasChanged = true;
 
 		// find the arc's pin and set its size and port offset

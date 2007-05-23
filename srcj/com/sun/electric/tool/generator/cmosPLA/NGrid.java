@@ -185,7 +185,7 @@ public class NGrid
 		if (pla.rowList[row][1].lastitem.nodeInst.getProto() != pla.nmosOne)
 			lastColPort = pla.rowList[row][1].lastitem.nodeInst.getProto().getPort(0); else
 				lastColPort = pla.rowList[row][1].lastitem.nodeInst.getProto().findPortProto("GND.d.s");
-		pla.makeWire(pla.aArc, 14, pla.rowList[row][1].lastitem.nodeInst,
+		pla.makeWire(pla.aArc, 3/*14*/, pla.rowList[row][1].lastitem.nodeInst,
 			lastColPort, newItem.nodeInst, nodeColPort, arrayCell);
 
 		// insert into row and column lists
@@ -241,7 +241,7 @@ public class NGrid
 			return true;
 		}
 		nodeColPort = ni.getProto().findPortProto("GND.d.s");
-		pla.makeWire(pla.aArc, 14, pla.rowList[row][1].lastitem.nodeInst, lastColPort, ni, nodeColPort, arrayCell);
+		pla.makeWire(pla.aArc, 3/*14*/, pla.rowList[row][1].lastitem.nodeInst, lastColPort, ni, nodeColPort, arrayCell);
 
 		// connect to last GATE object
 		if (pla.rowList[row][rowPos].lastitem.nodeInst.getProto() != pla.nmosOne)
