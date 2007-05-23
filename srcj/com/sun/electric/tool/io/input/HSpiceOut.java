@@ -654,11 +654,6 @@ public class HSpiceOut extends Simulate
 
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
 			signalNames[l] = line.toString();
-System.out.println("Signal "+l+" is "+signalNames[l]);
-if (signalNames[l].equals("net@454"))
-{
-	int ww=9;
-}
 		}
 
 		// read (and ignore) condition information
