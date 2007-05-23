@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/23/07, SMR) HSpice reader removes leading "x" from signal names.
+FIX: In Simulate.removeLeadingX(), do not remove leading "x" in last part.
+
 IMP/MAN: (5/22/07, SMR) Added "Show Redundant Pure-Layer Nodes" command to
      Edit / Cleanup Cell menu to eliminate duplication.
 

@@ -327,7 +327,7 @@ public class Simulate extends Input
 	{
 		// remove all of the "x" characters at the start of every instance name
 		int dotPos = -1;
-		for(;;)
+		while (name.indexOf('.', dotPos+1) >= 0)
 		{
 			int xPos = dotPos + 1;
 			if (name.length() > xPos && name.charAt(xPos) == 'x')
