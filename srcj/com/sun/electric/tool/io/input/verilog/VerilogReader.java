@@ -942,6 +942,34 @@ public class VerilogReader extends Input
                     portType == PortCharacteristic.CLK ||
                     portType == PortCharacteristic.UNKNOWN) // unknown when modules are read as instances
             {
+                // new code
+//                if (port.busPins!=null)
+//                {
+//                    int pos = port.busPins.indexOf(":");
+//                    int index1 = Integer.parseInt(port.busPins.substring(1, pos)); // first number
+//                    int index2 = Integer.parseInt(port.busPins.substring(pos+1, port.busPins.length()-1)); // second number
+//                    if (index1 > index2)
+//                    {
+//                        int tmp = index1;
+//                        index1 = index2;
+//                        index2 = tmp;
+//                    }
+//                    for (int i = index1; i <= index2; i++)
+//                    {
+//                        PrimitiveNode primitive = Schematics.tech.wirePinNode;
+//                        String thisName = name+"["+i+"]";
+//                        NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+//                                primitiveWidth, primitiveHeight,
+//        //                        primitive.getDefWidth(), primitive.getDefHeight(),
+//                                cell, Orientation.IDENT, thisName, 0);
+//        //                    pinsMap.put(name, ni);
+//                        Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), thisName);
+//                        ex.setCharacteristic(portType);
+//
+//                    }
+//                }
+//                else
+                {
                 PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
                         Schematics.tech.busPinNode;
                 NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
@@ -951,6 +979,7 @@ public class VerilogReader extends Input
 //                    pinsMap.put(name, ni);
                 Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
                 ex.setCharacteristic(portType);
+                }
             }
             else if (portType == PortCharacteristic.PWR ||
                     portType == PortCharacteristic.GND)
