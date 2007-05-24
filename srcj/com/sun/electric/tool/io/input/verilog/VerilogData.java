@@ -65,7 +65,7 @@ public class VerilogData
     /**
      * Covers supplies
      */
-    static class VerilogConnection
+    abstract static class VerilogConnection
     {
         protected String name;
 
@@ -73,6 +73,9 @@ public class VerilogData
         {
             this.name = name;
         }
+
+        abstract List<String> getPinNames();
+        PortCharacteristic getPortType() {return null; } // not valid
     }
 
     /**
@@ -87,6 +90,37 @@ public class VerilogData
         {
             super(name);
             this.type = type;
+        }
+        PortCharacteristic getPortType() {return type; } // not valid
+
+        boolean isBusWire() {return busPins != null;}
+
+        List<String> getPinNames()
+        {
+            List<String> list = new ArrayList<String>();
+
+            if (isBusWire())
+            {
+                int pos = busPins.indexOf(":");
+                int index1 = Integer.parseInt(busPins.substring(1, pos)); // first number
+                int index2 = Integer.parseInt(busPins.substring(pos+1, busPins.length()-1)); // second number
+                if (index1 > index2)
+                {
+                    int tmp = index1;
+                    index1 = index2;
+                    index2 = tmp;
+                }
+                for (int i = index1; i <= index2; i++)
+                {
+                    String thisName = name+"["+i+"]";
+                    list.add(thisName);
+                }
+            } else
+            {
+                list.add(name);
+            }
+
+            return list;
         }
 
         void write()
@@ -106,15 +140,12 @@ public class VerilogData
      */
     public static class VerilogWire extends VerilogConnection
     {
-//        String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
         int start;
         int end;
-//        String rootName; // this could be eliminated if name takes rootName;
 
         public VerilogWire(String name, String busPins)
         {
             super(name);
-//            this.busPins = busPins;
             this.name = name;
 
             if (busPins == null)
@@ -143,6 +174,46 @@ public class VerilogData
         boolean isBusWire()
         {
             return (start != end);
+        }
+
+        List<String> getPinNames()
+        {
+            List<String> list = new ArrayList<String>();
+
+            if (isBusWire())
+            {
+                int index1 = start; // first number
+                int index2 = end; // second number
+                if (index1 > index2)
+                {
+                    int tmp = index1;
+                    index1 = index2;
+                    index2 = tmp;
+                }
+                for (int i = index1; i <= index2; i++)
+                {
+                    String thisName = name+"["+i+"]";
+                    list.add(thisName);
+                }
+            } else
+            {
+                list.add(name);
+            }
+
+            return list;
+        }
+
+        String getWireName()
+        {
+            if (start != -1) // it could be a bus or simple wire
+            {
+                if (isBusWire())
+                    return name + "[" + start + ":" + end + "]";
+                else
+                    return name + "[" + start + "]";
+            }
+            else // simple wire
+                return name;
         }
 
         void write()
@@ -398,8 +469,6 @@ public class VerilogData
                     // check if pins are conse
                     toDelete.addAll(toMerge);
                     w.end = end;
-//                    w.name = w.rootName;
-//                    w.busPins = "["+w.start+":"+w.end+"]"; //dirty
                 }
                 i = j;
             }

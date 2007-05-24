@@ -1623,21 +1623,24 @@ public class TextUtils
     /**
      * Method to replace all special characters in the instance name coming from external files such as"/"..
      * @param n
+     * @param onlyBrackets
      * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
      */
-    public static String correctName(String n)
+    public static String correctName(String n, boolean onlyBrackets)
     {
-        // First replace "/" for "-"
-        int index = n.indexOf("/");
-        if (index != -1)
-            n = n.replaceAll("/", "_");
         // removing brackets only if ] is not the last item in the string
-        index = n.indexOf("]");
+        int index = n.indexOf("]");
         if (index != -1 && index < n.length()-1)
         {
             n = n.replace('[', '-');
             n = n.replace("]", "-");
         }
+        if (onlyBrackets) return n;
+
+        // First replace "/" for "-"
+        index = n.indexOf("/");
+        if (index != -1)
+            n = n.replaceAll("/", "_");
         // Remove possible space character representing as \
         index = n.indexOf("\\");
         if (index != -1)

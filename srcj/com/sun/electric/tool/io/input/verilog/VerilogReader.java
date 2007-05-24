@@ -65,7 +65,7 @@ public class VerilogReader extends Input
 
         CellInstance(String n)
         {
-            this.name = TextUtils.correctName(n);
+            this.name = TextUtils.correctName(n, false);
         }
         static class PortInfo
         {
@@ -76,7 +76,7 @@ public class VerilogReader extends Input
             PortInfo(String local, boolean isBus, PortProto ex)
             {
                 // Doesn't correct name if it is a bus
-                this.local = (isBus) ? local : TextUtils.correctName(local);
+                this.local = (isBus) ? local : TextUtils.correctName(local, false);
                 this.isBus = isBus;
                 this.ex = ex;
             }
@@ -228,13 +228,13 @@ public class VerilogReader extends Input
                     int index2 = value.indexOf("("); // look for first (
                     assert(index2 != -1);                  
                     String n = value.substring(index+1, index2);
-                    n = TextUtils.correctName(n);
+                    n = TextUtils.correctName(n, false);
 //                    int index3 = n.indexOf("\\"); // those \ are a problem!
 //                    if (index3 != -1)
 //                        n = n.substring(index3+1);
                     exports.add(n);
                     n = value.substring(index2+1);
-                    n = TextUtils.correctName(n);
+                    n = TextUtils.correctName(n, false);
                     if (n.contains(" "))
                         assert(false); // get rid of those empty sapces?
 //                    pins.add(value.substring(index2+1));
@@ -242,7 +242,7 @@ public class VerilogReader extends Input
                 }
 
                 // remove extra white spaces
-                instanceName = TextUtils.correctName(instanceName);
+                instanceName = TextUtils.correctName(instanceName, false);
                 instanceName = instanceName.replaceAll(" ", "");
                 CellInstance localCell = new CellInstance(instanceName);
                 VerilogData.VerilogInstance verilogInst = null;
@@ -361,7 +361,7 @@ public class VerilogReader extends Input
                         else
                             System.out.println(net + " is not a bus wire");
                     }
-                    pinName = TextUtils.correctName(pinName);
+                    pinName = TextUtils.correctName(pinName, false);
 
                     if (verilogData != null)
                     {
@@ -382,7 +382,7 @@ public class VerilogReader extends Input
                 {
                     StringTokenizer p = new StringTokenizer(net, "\t ", false);
                     String name = p.nextToken();
-                    name = TextUtils.correctName(name);
+                    name = TextUtils.correctName(name, false);
                     readSupply(cell, verilogData, module, power, name); // supply1 -> vdd, supply0 -> gnd or vss
                 }
             }
@@ -889,6 +889,45 @@ public class VerilogReader extends Input
         return topCell;
     }
 
+    private void addPins(VerilogData.VerilogConnection port, Cell cell, boolean addExport)
+    {
+        String name = port.name;
+        PortCharacteristic portType = port.getPortType();
+
+        List<String> pinNames = port.getPinNames();
+//            int pos = port.busPins.indexOf(":");
+//            int index1 = Integer.parseInt(port.busPins.substring(1, pos)); // first number
+//            int index2 = Integer.parseInt(port.busPins.substring(pos+1, port.busPins.length()-1)); // second number
+//            if (index1 > index2)
+//            {
+//                int tmp = index1;
+//                index1 = index2;
+//                index2 = tmp;
+//            }
+//            for (int i = index1; i <= index2; i++)
+        for (String pinName : pinNames)
+        {
+            PrimitiveNode primitive = Schematics.tech.wirePinNode;
+            NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                    primitiveWidth, primitiveHeight,
+//                        primitive.getDefWidth(), primitive.getDefHeight(),
+                    cell, Orientation.IDENT, pinName, 0);
+            if (addExport)
+            {
+                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName);
+                ex.setCharacteristic(portType);
+            }
+        }
+//            PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
+//                    Schematics.tech.busPinNode;
+//            NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+//                    primitiveWidth, primitiveHeight,
+////                        primitive.getDefWidth(), primitive.getDefHeight(),
+//                    cell, Orientation.IDENT, name, 0);
+//            Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
+//            ex.setCharacteristic(portType);
+    }
+
     /**
      * Function to build cell fro a VerilogModule object
      * @param lib
@@ -912,23 +951,31 @@ public class VerilogReader extends Input
         for (VerilogData.VerilogWire wire : module.wires)
         {
             String pinName = wire.name;
-            NodeInst ni = cell.findNode(pinName);
-
-            if (ni == null)
+            if (wire.isBusWire())
             {
-                PrimitiveNode primitive = (!wire.isBusWire()) ? Schematics.tech.wirePinNode :
-                            Schematics.tech.busPinNode;
-                ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                                    primitiveWidth, primitiveHeight,
-            //                        primitive.getDefWidth(), primitive.getDefHeight(),
-                                    cell, Orientation.IDENT, pinName, 0);
+                addPins(wire, cell, false);
             }
             else
-                System.out.println("Wire " + pinName + " exists");
+            {
+                NodeInst ni = cell.findNode(pinName);
+                NodeInst nia = cell.findNode(wire.getWireName());
+                assert(ni == nia);
 
-            if (ni == null)
-            assert(ni != null);
-//            pinsMap.put(pinName, ni);
+                if (ni == null)
+                {
+                    PrimitiveNode primitive = (!wire.isBusWire()) ? Schematics.tech.wirePinNode :
+                                Schematics.tech.busPinNode;
+                    ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                                        primitiveWidth, primitiveHeight,
+                //                        primitive.getDefWidth(), primitive.getDefHeight(),
+                                        cell, Orientation.IDENT, pinName, 0);
+                }
+                else
+                    System.out.println("Wire " + pinName + " exists");
+
+                if (ni == null)
+                assert(ni != null);
+            }
         }
 
         // inputs/outputs/inouts/supplies
@@ -946,6 +993,7 @@ public class VerilogReader extends Input
                     portType == PortCharacteristic.UNKNOWN) // unknown when modules are read as instances
             {
                 // new code
+                addPins(port, cell, true);
 //                if (port.busPins!=null)
 //                {
 //                    int pos = port.busPins.indexOf(":");
@@ -965,24 +1013,22 @@ public class VerilogReader extends Input
 //                                primitiveWidth, primitiveHeight,
 //        //                        primitive.getDefWidth(), primitive.getDefHeight(),
 //                                cell, Orientation.IDENT, thisName, 0);
-//        //                    pinsMap.put(name, ni);
 //                        Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), thisName);
 //                        ex.setCharacteristic(portType);
 //
 //                    }
 //                }
 //                else
-                {
-                PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
-                        Schematics.tech.busPinNode;
-                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                        primitiveWidth, primitiveHeight,
-//                        primitive.getDefWidth(), primitive.getDefHeight(),
-                        cell, Orientation.IDENT, name, 0);
-//                    pinsMap.put(name, ni);
-                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
-                ex.setCharacteristic(portType);
-                }
+//                {
+//                    PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
+//                            Schematics.tech.busPinNode;
+//                    NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+//                            primitiveWidth, primitiveHeight,
+//    //                        primitive.getDefWidth(), primitive.getDefHeight(),
+//                            cell, Orientation.IDENT, name, 0);
+//                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
+//                    ex.setCharacteristic(portType);
+//                }
             }
             else if (portType == PortCharacteristic.PWR ||
                     portType == PortCharacteristic.GND)
@@ -1003,7 +1049,6 @@ public class VerilogReader extends Input
                 ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0.0,
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
-//                    pinsMap.put(name, ni); // not sure if this is the correct pin
             }
             else
                 System.out.println("Skipping this characteristic?");
@@ -1068,7 +1113,7 @@ public class VerilogReader extends Input
                         if (index != -1)
                         {
                             s = s.substring(0, index);
-                            pin = parent.findNode(s);//pinsMap.get(s);
+                            pin = parent.findNode(s);
                         }
                 }
                 if (pin == null)

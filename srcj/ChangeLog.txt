@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/23/07, GVG) Changes in VerilogReader to deal with busses. This allows better handling in the timing graph.
+It could use more memory though so it has to be tested in big examples (more than 10k nodes).
+
 BUG: (5/23/07, SMR) HSpice reader removes leading "x" from signal names.
 FIX: In Simulate.removeLeadingX(), do not remove leading "x" in last part.
 
