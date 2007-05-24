@@ -1694,7 +1694,7 @@
             <portArc>Pdiff</portArc>
             <portArc>Ndiff</portArc>
         </primitivePort>
-        <polygonal/>
+        <!-- <polygonal/> -->
     </primitiveNode>
 
     <primitiveNode name="Pdiff_Node" fun="UNKNOWN">
@@ -1721,7 +1721,7 @@
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
         </primitivePort>
-        <polygonal/>
+        <!-- <polygonal/> -->
     </primitiveNode>
 
     <menuPalette numColumns="3">
