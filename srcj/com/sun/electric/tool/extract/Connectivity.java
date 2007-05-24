@@ -1340,7 +1340,14 @@ public class Connectivity
 
 				// figure out which of the layers are present at this cut point
 				Rectangle2D cutBox = cut.getBox();
-				if (cutBox == null) { cutList.remove(cut);   continue; }
+				if (cutBox == null)
+				{
+					cutBox = cut.getBounds2D();
+					System.out.println("Cannot extract nonManhattan contact cut at (" +
+						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")");
+					cutList.remove(cut);
+					continue;
+				}
 				Point2D ctr = new Point2D.Double(cutBox.getCenterX(), cutBox.getCenterY());
 				Set<Layer> layersPresent = new HashSet<Layer>();
 				for(Layer l : layersToExamine)
@@ -1458,7 +1465,12 @@ public class Connectivity
 						break;
 					}
 				}
-				if (!foundCut) cutList.remove(cut);
+				if (!foundCut)
+				{
+					System.out.println("Did not extract contact cut at (" +
+						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")");
+					cutList.remove(cut);
+				}
 			}
 		}
 
