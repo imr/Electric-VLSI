@@ -55,11 +55,11 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class JELIB extends LibraryFiles
         String groupName;
 		List<String> cellStrings = new ArrayList<String>();
 		String fileName;
-        private HashMap<Technology,SizeCorrector> sizeCorrectors = new HashMap<Technology,SizeCorrector>();
+        private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 
 		CellContents(int revision, Version version)
 		{
@@ -95,8 +95,8 @@ public class JELIB extends LibraryFiles
 			filledIn = false;
 		}
         
-        SizeCorrector getSizeCorrector(Technology tech) {
-            SizeCorrector corrector = sizeCorrectors.get(tech);
+        Technology.SizeCorrector getSizeCorrector(Technology tech) {
+            Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
             if (corrector == null) {
                 corrector = tech.getSizeCorrector(version, true);
                 sizeCorrectors.put(tech, corrector);
@@ -112,8 +112,6 @@ public class JELIB extends LibraryFiles
 		"8.01aw",
 		// Revision 2
 		"8.04l",
-        // Revison 3
-        "8.05g"
 	};
 
     private static int defaultArcFlags;

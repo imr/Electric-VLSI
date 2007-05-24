@@ -34,6 +34,8 @@
 
     <shortName>Old MOSIS CMOS</shortName>
     <description>MOSIS CMOS (old rules, P-Well, double metal)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="1000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -580,10 +582,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Metal-1" style="FILLED"/>
+        <widthOffset untilVersion="2" value="3.0"/>
+        <arcLayer layer="Metal-1" style="FILLED">
+            <lambda>1.5</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Metal-2" fun="METAL2">
@@ -592,10 +594,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Metal-2" style="FILLED"/>
+        <widthOffset untilVersion="2" value="3.0"/>
+        <arcLayer layer="Metal-2" style="FILLED">
+            <lambda>1.5</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -604,10 +606,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Polysilicon" style="FILLED"/>
+        <widthOffset untilVersion="2" value="2.0"/>
+        <arcLayer layer="Polysilicon" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="S-Active" fun="DIFFP">
@@ -616,13 +618,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
+        <widthOffset untilVersion="1" value="6.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
         <arcLayer layer="S-Active" style="FILLED">
-            <lambda>-4.0</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
-        <arcLayer layer="P-Select" style="FILLED"/>
+        <arcLayer layer="P-Select" style="FILLED">
+            <lambda>3.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="D-Active" fun="DIFFN">
@@ -631,13 +634,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>10.0</lambda>
-        </defaultWidth>
+        <widthOffset untilVersion="1" value="10.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
         <arcLayer layer="D-Active" style="FILLED">
-            <lambda>-8.0</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
-        <arcLayer layer="P-Well" style="FILLED"/>
+        <arcLayer layer="P-Well" style="FILLED">
+            <lambda>5.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Active" fun="DIFF">
@@ -646,11 +650,13 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="D-Active" style="FILLED"/>
-        <arcLayer layer="S-Active" style="FILLED"/>
+        <widthOffset untilVersion="2" value="2.0"/>
+        <arcLayer layer="D-Active" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
+        <arcLayer layer="S-Active" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->

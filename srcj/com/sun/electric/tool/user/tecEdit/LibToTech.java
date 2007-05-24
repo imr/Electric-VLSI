@@ -3522,13 +3522,13 @@ public class LibToTech
             ap.fixedAngle = ai.fixAng;
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
-            ap.widthOffset = ai.widthOffset;
+            ap.widthOffset.put(Integer.valueOf(1), ai.widthOffset);
             ap.defaultWidth.value = DBMath.round(ai.maxWidth - ai.widthOffset);
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;
                 l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
-                l.width.value = DBMath.round(al.width);
+                l.extend.value = DBMath.round(al.width/2);
                 ap.arcLayers.add(l);
             }
             t.arcs.add(ap);

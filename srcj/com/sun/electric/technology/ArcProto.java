@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import bsh.This;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
@@ -265,20 +266,19 @@ public class ArcProto implements Comparable<ArcProto>
 	/**
 	 * The constructor is never called.  Use "Technology.newArcProto" instead.
 	 */
-	ArcProto(Technology tech, String protoName, long gridWidthOffset, double defaultWidth, Function function, Technology.ArcLayer [] layers, int primArcIndex)
+	ArcProto(Technology tech, String protoName, int gridFullExtend, int gridBaseExtend, double defaultWidth, Function function, Technology.ArcLayer [] layers, int primArcIndex)
 	{
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
 		this.protoName = protoName;
 		this.fullName = tech.getTechName() + ":" + protoName;
-        assert (gridWidthOffset&1) == 0;
 		this.tech = tech;
 		this.userBits = 0;
 		this.function = function;
 		this.layers = layers.clone();
         this.primArcIndex = primArcIndex;
-        gridFullExtend = (int)gridWidthOffset/2;
-        gridBaseExtend = 0;
+        this.gridFullExtend = gridFullExtend;
+        this.gridBaseExtend = gridBaseExtend;
 //        gridFullExtend = (int)DBMath.lambdaToGrid(defaultWidth/2);
 //        gridBaseExtend = gridFullExtend - (int)gridWidthOffset/2;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
@@ -1200,8 +1200,9 @@ public class ArcProto implements Comparable<ArcProto>
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
         
-        out.println("\twidthOffset=" + getLambdaWidthOffset());
+        out.println("\tbaseExtend=" + getLambdaBaseExtend());
         Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
+        out.println("\tdefaultExtendOverMin=" + getDefaultLambdaExtendOverMin());
         Technology.printlnPref(out, 1, defaultAnglePrefs.get(this));
         Technology.printlnPref(out, 1, defaultRigidPrefs.get(this));
         Technology.printlnPref(out, 1, defaultFixedAnglePrefs.get(this));

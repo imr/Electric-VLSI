@@ -63,6 +63,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
+
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
@@ -89,6 +90,7 @@ public class ELIB extends Output
 	/** map with "next in cell group" pointers */				private HashMap<CellId,CellId> cellInSameGroup = new HashMap<CellId,CellId>();
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
+    /** size correctors for technologies */                     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
     /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
     /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
     ArrayList<CellBackup> localCells = new ArrayList<CellBackup>();
@@ -925,7 +927,8 @@ public class ELIB extends Output
             
             // write basic arcinst information
             int userBits = a.getElibBits();
-            writeGridCoord(cellBackup, "width: ", a.getGridFullWidth());
+            long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
+            writeGridCoord(cellBackup, "width: ", arcWidth);
             writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellBackup.d.tech)*2/DBMath.GRID));
 //            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
 //            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
@@ -1345,6 +1348,15 @@ public class ELIB extends Output
     
     double getScale(Technology tech) {
         return tech.isScaleRelevant() || tech == Generic.tech ? tech.getScale() : irrelevantScale;
+    }
+    
+    private Technology.SizeCorrector getSizeCorrector(Technology tech) {
+        Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
+        if (corrector == null) {
+            corrector = tech.getSizeCorrector(Version.getVersion(), false);
+            sizeCorrectors.put(tech, corrector);
+        }
+        return corrector;
     }
     
     /**

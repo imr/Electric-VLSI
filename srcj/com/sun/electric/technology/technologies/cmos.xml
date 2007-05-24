@@ -34,6 +34,8 @@
 
     <shortName>Generic CMOS</shortName>
     <description>CMOS (N-Well, Griswold rules)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="1" max="1" default="1"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="NONE"/>
@@ -157,7 +159,7 @@
         </pureLayerNode>
     </layer>
 
-    <layer name="P+" fun="IMPLANTP">
+    <layer name="P-Plus" fun="IMPLANTP">
         <transparentColor transparent="4"/>
         <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
@@ -334,10 +336,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Metal" style="FILLED"/>
+        <widthOffset untilVersion="2" value="3.0"/>
+        <arcLayer layer="Metal" style="FILLED">
+            <lambda>1.5</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -346,10 +348,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Polysilicon" style="FILLED"/>
+        <widthOffset untilVersion="2" value="2.0"/>
+        <arcLayer layer="Polysilicon" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Diffusion-p" fun="DIFFP">
@@ -358,13 +360,13 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <widthOffset>4.0</widthOffset>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Diffusion" style="FILLED"/>
-        <arcLayer layer="P+" style="FILLED">
-            <lambda>4.0</lambda>
+        <widthOffset untilVersion="1" value="6.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
+        <arcLayer layer="Diffusion" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
+        <arcLayer layer="P-Plus" style="FILLED">
+            <lambda>3.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -374,13 +376,13 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <widthOffset>6.0</widthOffset>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Diffusion" style="FILLED"/>
+        <widthOffset untilVersion="1" value="8.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
+        <arcLayer layer="Diffusion" style="FILLED">
+            <lambda>1.0</lambda>
+        </arcLayer>
         <arcLayer layer="P-Well" style="FILLED">
-            <lambda>6.0</lambda>
+            <lambda>4.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -438,7 +440,7 @@
             <lambda>6.0</lambda>
         </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P+" style="CROSSED">
+        <nodeLayer layer="P-Plus" style="CROSSED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -525,7 +527,7 @@
             <lambda>8.0</lambda>
         </defaultHeight>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P+" style="FILLED">
+        <nodeLayer layer="P-Plus" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -611,7 +613,7 @@
             <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
         </nodeLayer>
-        <nodeLayer layer="P+" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Plus" style="FILLED"  portNum="-1">
             <serpbox lWidth="3.0" rWidth="3.0" tExtent="2.0" bExtent="2.0"/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
@@ -728,7 +730,7 @@
             <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="3.0"/>
             <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
-        <nodeLayer layer="P+" style="FILLED">
+        <nodeLayer layer="P-Plus" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="1.5" ym="-0.5" ya="1.5"/>
             <techPoint xm="0.0" xa="0.0" ym="0.5" ya="-1.5"/>
@@ -778,7 +780,7 @@
             <lambda>8.0</lambda>
         </defaultHeight>
         <sizeOffset lx="2.0" hx="0.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P+" style="FILLED">
+        <nodeLayer layer="P-Plus" style="FILLED">
             <box/>
             <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
             <techPoint xm="0.0" xa="1.0" ym="0.5" ya="0.0"/>
@@ -890,11 +892,11 @@
         <LayersRule ruleName="U_0_0" layerNames="{Metal,Metal}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="U_1_1" layerNames="{Polysilicon,Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_1_2" layerNames="{Polysilicon,Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon,P+}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_2_2" layerNames="{Diffusion,Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{Diffusion,P+}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_2_3" layerNames="{Diffusion,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_2_5" layerNames="{Diffusion,Ohmic-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
-        <LayersRule ruleName="U_3_3" layerNames="{P+,P+}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="U_3_3" layerNames="{P-Plus,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_4_8" layerNames="{Contact-Cut,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_5_8" layerNames="{Ohmic-Cut,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_6_6" layerNames="{P-Well,P-Well}" type="UCONSPA" when="ALL" value="2.0"/>

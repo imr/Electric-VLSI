@@ -42,8 +42,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import org.omg.CORBA.COMM_FAILURE;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -61,6 +63,7 @@ public class Xml {
         public String className;
         public String shortTechName;
         public String description;
+        public final List<Version> versions = new ArrayList<Version>();
         public int minNumMetals;
         public int maxNumMetals;
         public int defaultNumMetals;
@@ -114,6 +117,11 @@ public class Xml {
         }
     }
     
+    public static class Version {
+        public int techVersion;
+        public com.sun.electric.database.text.Version electricVersion;
+    }
+    
     public static class Layer {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
@@ -148,7 +156,7 @@ public class Xml {
         public boolean notUsed;
         public boolean skipSizeInPalette;
         
-        public double widthOffset;
+        public final TreeMap<Integer,Double> widthOffset = new TreeMap<Integer,Double>();
         public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
@@ -159,7 +167,7 @@ public class Xml {
     
     public static class ArcLayer {
         public String layer;
-        public final Distance width = new Distance();
+        public final Distance extend = new Distance(); 
         public Poly.Type style;
     }
     
@@ -246,6 +254,7 @@ public class Xml {
         technology,
         shortName(true),
         description(true),
+        version,
         numMetals,
         scale,
         defaultFoundry,
@@ -283,7 +292,7 @@ public class Xml {
         angleIncrement(true),
         antennaRatio(true),
         
-        widthOffset(true),
+        widthOffset,
         defaultWidth,
         arcLayer,
         
@@ -651,6 +660,12 @@ public class Xml {
                     tech.className = a_("class");
 //                    dump = true;
                     break;
+                case version:
+                    Version version = new Version();
+                    version.techVersion = Integer.parseInt(a("tech"));
+                    version.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
+                    tech.versions.add(version);
+                    break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));
                     tech.maxNumMetals = Integer.parseInt(a("max"));
@@ -761,6 +776,9 @@ public class Xml {
                     if (curNode != null)
                         curNode.skipSizeInPalette = true;
                     break;
+                case widthOffset:
+                    curArc.widthOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("value")));
+                    break;
                 case defaultWidth:
                     if (curArc != null)
                         curDistance = curArc.defaultWidth;
@@ -770,7 +788,7 @@ public class Xml {
                 case arcLayer:
                     ArcLayer arcLayer = new ArcLayer();
                     arcLayer.layer = a("layer");
-                    curDistance = arcLayer.width;
+                    curDistance = arcLayer.extend;
                     arcLayer.style = Poly.Type.valueOf(a("style"));
                     curArc.arcLayers.add(arcLayer);
                     break;
@@ -1047,9 +1065,6 @@ public class Xml {
                         if (curNode != null)
                             curNode.oldName = text;
                         break;
-                    case widthOffset:
-                        curArc.widthOffset = Double.parseDouble(text);
-                        break;
                     case extended:
                         curArc.extended = Boolean.parseBoolean(text);
                         break;
@@ -1133,6 +1148,7 @@ public class Xml {
                     curMenuNodeInst = null;
                     break;
                     
+                case version:
                 case spiceHeader:
                 case numMetals:
                 case scale:
@@ -1152,6 +1168,7 @@ public class Xml {
                 case special:
                 case notUsed:
                 case skipSizeInPalette:
+                case widthOffset:
                 case defaultWidth:
                 case arcLayer:
                     
@@ -1420,6 +1437,9 @@ public class Xml {
             
             bcpel(XmlKeyword.shortName, t.shortTechName);
             bcpel(XmlKeyword.description, t.description);
+            for (Version version: t.versions) {
+                b(XmlKeyword.version); a("tech", version.techVersion); a("electric", version.electricVersion); el();
+            }
             b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
             b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", t.scaleRelevant); el();
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
@@ -1562,17 +1582,20 @@ public class Xml {
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
             bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
             
-            if (ai.widthOffset != 0)
-                bcpel(XmlKeyword.widthOffset, ai.widthOffset);
+            for (Map.Entry<Integer,Double> e: ai.widthOffset.entrySet()) {
+                b(XmlKeyword.widthOffset); a("untilVersion", e.getKey()); a("value", e.getValue()); el();
+            }
             
-            bcl(XmlKeyword.defaultWidth);
-            bcpel(XmlKeyword.lambda, ai.defaultWidth.value);
-            el(XmlKeyword.defaultWidth);
+            if (ai.defaultWidth.value != 0) {
+                bcl(XmlKeyword.defaultWidth);
+                bcpel(XmlKeyword.lambda, ai.defaultWidth.value);
+                el(XmlKeyword.defaultWidth);
+            }
             
             for (Xml.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
                 b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
-                double extend = DBMath.round(ai.widthOffset - al.width.value);
+                double extend = al.extend.value;
                 if (extend == 0) {
                     el();
                 } else {

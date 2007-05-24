@@ -57,6 +57,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -78,6 +79,8 @@ import java.util.TreeSet;
 public class JELIB extends Output {
     private static boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.05g")) >= 0;
     private boolean oldRevision;
+    private Version version;
+    private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 //    Snapshot snapshot;
 //    private Map<LibId,URL> libFiles;
     
@@ -93,6 +96,7 @@ public class JELIB extends Output {
      */
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles, boolean oldRevision) {
         this.oldRevision = oldRevision;
+        version = oldRevision ? Version.parseVersion("8.04k") : Version.getVersion();
 //      this.libFiles = libFiles;
         writeTheLibrary(snapshot, libId);
         return false;
@@ -125,7 +129,6 @@ public class JELIB extends Output {
         
         // write header information (library, version)
         printWriter.println("# header information:");
-        Version version = oldRevision ? Version.parseVersion("8.04k") : Version.getVersion();
         printWriter.print("H" + convertString(libBackup.d.libId.libName) + "|" + version);
         printlnVars(libBackup.d);
         
@@ -401,8 +404,11 @@ public class JELIB extends Output {
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(null, a.nameDescriptor));
-            double arcWidth = NEW_REVISION && !oldRevision ? a.getLambdaBaseWidth() : a.getLambdaFullWidth();
-            printWriter.print("|" + TextUtils.formatDouble(arcWidth, 0));
+            long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
+            printWriter.print("|");
+            if (arcWidth != 0)
+                printWriter.print(TextUtils.formatDouble(DBMath.gridToLambda(arcWidth), 0));
+            
             StringBuilder arcBits = new StringBuilder();
             
             if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");
@@ -765,6 +771,15 @@ public class JELIB extends Output {
         }
         ExportId exportId = (ExportId)portId;
         return convertString(exportId.externalId);
+    }
+    
+    private Technology.SizeCorrector getSizeCorrector(Technology tech) {
+        Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
+        if (corrector == null) {
+            corrector = tech.getSizeCorrector(version, true);
+            sizeCorrectors.put(tech, corrector);
+        }
+        return corrector;
     }
     
     /**

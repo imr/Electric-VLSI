@@ -140,7 +140,7 @@ public class Technology implements Comparable<Technology>
 
         private ArcLayer(Layer layer, long gridOffset, Poly.Type style) {
             if (gridOffset < 0 || gridOffset >= Integer.MAX_VALUE/4 || (gridOffset&1) != 0)
-                throw new IllegalArgumentException("geidOffset=" + gridOffset);
+                throw new IllegalArgumentException("gridOffset=" + gridOffset);
             this.layer = layer;
             this.gridOffset = (int)gridOffset;
             this.style = style;
@@ -615,18 +615,43 @@ public class Technology implements Comparable<Technology>
     
     public class SizeCorrector {
         private boolean oldRevision;
+        private final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
         
         private SizeCorrector(Version version, boolean isJelib) {
-            oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
+            if (xmlTech != null) {
+                int techVersion = 0;
+                if (isJelib) {
+                    for (Xml.Version xmlVersion: xmlTech.versions) {
+                        if (version.compareTo(xmlVersion.electricVersion) >= 0 && techVersion < xmlVersion.techVersion)
+                            techVersion = xmlVersion.techVersion;
+                    }
+                }
+                oldRevision = (techVersion == 0);
+                for (Xml.ArcProto xap: xmlTech.arcs) {
+                    ArcProto ap = arcs.get(xap.name);
+                    double correction = 0;
+                    for (Map.Entry<Integer,Double> e: xap.widthOffset.entrySet()) {
+                        if (techVersion < e.getKey()) {
+                            correction = e.getValue();
+                            break;
+                        }
+                    }
+                    arcExtends.put(ap, Integer.valueOf((int)DBMath.lambdaToGrid(0.5*correction)));
+                }
+            } else {
+                oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
+                for (ArcProto ap: arcs.values()) {
+                    arcExtends.put(ap, Integer.valueOf(oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
+                }
+            }
         }
         
         public long getExtendFromDisk(ArcProto ap, double width) {
-			long gridBaseWidth = DBMath.lambdaToGrid(0.5*width);
-            if (oldRevision)
-                gridBaseWidth -= ap.getGridFullExtend();
-            else
-                gridBaseWidth -= ap.getGridBaseExtend();
-            return gridBaseWidth;
+            return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap);
+        }
+        
+        public long getWidthToDisk(ImmutableArcInst a) {
+            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoType));
         }
         
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
@@ -762,6 +787,11 @@ public class Technology implements Comparable<Technology>
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
+        int techVersion = 0;
+        for (Xml.Version xmlVersion: t.versions) {
+            if (Version.getVersion().compareTo(xmlVersion.electricVersion) >= 0 && techVersion < xmlVersion.techVersion)
+                techVersion = xmlVersion.techVersion;
+        }
         setFactoryScale(t.scaleValue, t.scaleRelevant);
         setFactoryParasitics(t.minResistance, t.minCapacitance);
         if (!t.transparentLayers.isEmpty())
@@ -781,13 +811,50 @@ public class Technology implements Comparable<Technology>
         }
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
         for (Xml.ArcProto a: t.arcs) {
+            if (findArcProto(a.name) != null) {
+                System.out.println("Error: technology " + getTechName() + " has multiple arcs named " + a.name);
+                continue;
+            }
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
+            long minGridExtend = Long.MAX_VALUE;
+            long maxGridExtend = Long.MIN_VALUE;
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                double widthOffset = a.widthOffset - al.width.value;
-                arcLayers[i] = new ArcLayer(layers.get(al.layer), widthOffset, al.style);
+                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.value);
+                minGridExtend = Math.min(minGridExtend, gridLayerExtend);
+                maxGridExtend = Math.max(maxGridExtend, gridLayerExtend);
             }
-    		ArcProto ap = newArcProto(a.name, a.widthOffset, a.defaultWidth.value + a.widthOffset, a.function, arcLayers);
+            if (maxGridExtend < 0 || maxGridExtend > Integer.MAX_VALUE/8) {
+                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has invalid width offset " + DBMath.gridToLambda(2*maxGridExtend));
+                continue;
+            }
+            double widthOffset = 0;
+            if (!a.widthOffset.isEmpty())
+                widthOffset = a.widthOffset.values().iterator().next();
+//            for (Map.Entry<Integer,Double> e: a.widthOffset.entrySet()) {
+//                if (e.getKey() <= techVersion)
+//                    widthOffset = e.getValue();
+//            }
+            for (int i = 0; i < arcLayers.length; i++) {
+                Xml.ArcLayer al = a.arcLayers.get(i);
+                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.value);
+                double layerWidthOffset = DBMath.gridToLambda(DBMath.lambdaToSizeGrid(widthOffset) - 2*gridLayerExtend);
+//                double layerWidthOffset = DBMath.gridToLambda(2*(maxGridExtend - gridLayerExtend));
+                arcLayers[i] = new ArcLayer(layers.get(al.layer), layerWidthOffset, al.style);
+            }
+            assert minGridExtend >= 0 && minGridExtend == DBMath.lambdaToGrid(a.arcLayers.get(0).extend.value);
+            double defaultWidth = a.defaultWidth.value + DBMath.gridToLambda(2*maxGridExtend);
+//    		ArcProto ap = newArcProto(a.name, widthOffset, a.defaultWidth.value + widthOffset, a.function, arcLayers);
+            
+            // check the arguments
+            if (defaultWidth < DBMath.gridToLambda(2*maxGridExtend)) {
+                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has negative width");
+                continue;
+            }
+            ArcProto ap = new ArcProto(this, a.name, (int)DBMath.lambdaToSizeGrid(widthOffset)/2, (int)minGridExtend, a.defaultWidth.value + widthOffset, a.function, arcLayers, arcs.size());
+//            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
+            addArcProto(ap);
+            
             if (a.oldName != null)
                 oldArcNames.put(a.oldName, ap);
             arcs.put(a.name, ap);
@@ -977,14 +1044,18 @@ public class Technology implements Comparable<Technology>
         return menuItem.toString();
     }
     
+    public Xml.Technology getXmlTech() { return xmlTech; }
+    
     protected void resizeXml(XMLRules rules) {
         for (Xml.ArcProto xap: xmlTech.arcs) {
             ArcProto ap = findArcProto(xap.name);
             assert xap.arcLayers.size() == ap.layers.length;
+            Double widthOffsetObject = xap.widthOffset.get(Integer.valueOf(0));
+            double widthOffset = widthOffsetObject != null ? widthOffsetObject.doubleValue() : 0;
             for (int i = 0; i < ap.layers.length; i++) {
                 Xml.ArcLayer xal = xap.arcLayers.get(i);
-                double widthOffset = xap.widthOffset - xal.width.value;
-                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(widthOffset));
+                double layerWidthOffset = widthOffset - 2*xal.extend.value;
+                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(layerWidthOffset));
             }
             ap.computeLayerGridExtendRange();
         }
@@ -1741,7 +1812,7 @@ public class Technology implements Comparable<Technology>
 			return null;
 		}
 
-		ArcProto ap = new ArcProto(this, protoName, gridWidthOffset, defaultWidth, function, layers, arcs.size());
+		ArcProto ap = new ArcProto(this, protoName, (int)gridWidthOffset/2, 0, defaultWidth, function, layers, arcs.size());
 		addArcProto(ap);
 		return ap;
 	}

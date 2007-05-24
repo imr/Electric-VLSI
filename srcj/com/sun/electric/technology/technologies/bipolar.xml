@@ -33,6 +33,8 @@
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
     <description>Bipolar (self-aligned, single poly)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -482,10 +484,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Metal1" style="FILLED"/>
+        <widthOffset untilVersion="2" value="3.0"/>
+        <arcLayer layer="Metal1" style="FILLED">
+            <lambda>1.5</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -494,10 +496,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
-        <arcLayer layer="Metal2" style="FILLED"/>
+        <widthOffset untilVersion="2" value="4.0"/>
+        <arcLayer layer="Metal2" style="FILLED">
+            <lambda>2.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="NPPoly" fun="POLY1">
@@ -505,13 +507,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
+        <widthOffset untilVersion="1" value="4.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
         <arcLayer layer="Poly_Definition" style="FILLED">
-            <lambda>-2.0</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
-        <arcLayer layer="NPImplant" style="FILLED"/>
+        <arcLayer layer="NPImplant" style="FILLED">
+            <lambda>2.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <arcProto name="PPPoly" fun="POLY2">
@@ -519,13 +522,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
+        <widthOffset untilVersion="1" value="4.0"/>
+        <widthOffset untilVersion="2" value="2.0"/>
         <arcLayer layer="Poly_Definition" style="FILLED">
-            <lambda>-2.0</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
-        <arcLayer layer="PPImplant" style="FILLED"/>
+        <arcLayer layer="PPImplant" style="FILLED">
+            <lambda>2.0</lambda>
+        </arcLayer>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->

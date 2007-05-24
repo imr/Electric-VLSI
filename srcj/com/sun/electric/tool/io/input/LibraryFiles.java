@@ -47,7 +47,6 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -98,7 +97,7 @@ public abstract class LibraryFiles extends Input
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
 	/** true to scale lambda by 20 */										protected boolean scaleLambdaBy20;
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
-    /** SizeCorrectors for used technologies */                             protected HashMap<Technology,SizeCorrector> sizeCorrectors = new HashMap<Technology,SizeCorrector>();
+    /** SizeCorrectors for used technologies */                             protected HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
     /** buffer for reading Variables. */                                    ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
@@ -899,8 +898,8 @@ public abstract class LibraryFiles extends Input
         return null;
     }
 
-    SizeCorrector getSizeCorrector(Technology tech) {
-        SizeCorrector corrector = sizeCorrectors.get(tech);
+    Technology.SizeCorrector getSizeCorrector(Technology tech) {
+        Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
             corrector = tech.getSizeCorrector(version, false);
             sizeCorrectors.put(tech, corrector);

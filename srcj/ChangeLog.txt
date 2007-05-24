@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/24/07, DN) Xml technology can have versions.
+
 IMP: (5/23/07, GVG) Changes in VerilogReader to deal with busses. This allows better handling in the timing graph.
 It could use more memory though so it has to be tested in big examples (more than 10k nodes).
 
