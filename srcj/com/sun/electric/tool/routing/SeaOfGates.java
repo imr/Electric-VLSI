@@ -396,8 +396,7 @@ public class SeaOfGates
 				// routed: remove the unrouted arcs
 				for(ArcInst aiKill : arcsToDelete)
 					aiKill.kill();
-				for(NodeInst niKill : nodesToDelete)
-					niKill.kill();
+				NodeInst.killMany(nodesToDelete);
 			} else
 			{
 				numFailedRoutes++;

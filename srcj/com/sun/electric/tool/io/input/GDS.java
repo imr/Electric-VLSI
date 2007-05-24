@@ -484,12 +484,7 @@ public class GDS extends Input
                             geomList.add(newNi);
                             errorLogger.logWarning(message, geomList, null, null, null, null, cell, -1);
                             // Deleting now replaced pure primitives
-                            for (NodeInst toDel : toDelete)
-                            {
-                                if (Job.getDebug())
-                                    System.out.println("Deleting " + ni.getName());
-                                toDel.kill();
-                            }
+                            NodeInst.killMany(toDelete);
                         }
                     }
                 }

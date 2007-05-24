@@ -702,10 +702,7 @@ public class Clipboard
 		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
 		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
 			nodesToDelete.add(it.next());
-		for(NodeInst ni : nodesToDelete)
-		{
-			ni.kill();
-		}
+		NodeInst.killMany(nodesToDelete);
 
         // Delete all variables
         for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )

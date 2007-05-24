@@ -2075,6 +2075,7 @@ public class Connectivity
 			Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
 		}
 		Job.getUserInterface().setProgressValue(0);
+		Job.getUserInterface().setProgressNote("Have " + totExtensions + " extensions...");
 
 		soFar = 0;
 		for (Layer layer : extendableLayers)

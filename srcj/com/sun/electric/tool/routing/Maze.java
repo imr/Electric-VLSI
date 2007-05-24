@@ -466,10 +466,7 @@ public class Maze
 		{
 			ai.kill();
 		}
-		for(NodeInst ni : nodesToDelete)
-		{
-			ni.kill();
-		}
+		NodeInst.killMany(nodesToDelete);
 
 		return false;
 	}

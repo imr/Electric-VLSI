@@ -456,10 +456,7 @@ public class LayerCoverageTool extends Tool
                             	}
                             }
                         }
-                        for (NodeInst node : deleteList)
-                        {
-                            node.kill();
-                        }
+                        NodeInst.killMany(deleteList);
                         if (noNewNodes)
                             System.out.println("No new areas added");
                     }
