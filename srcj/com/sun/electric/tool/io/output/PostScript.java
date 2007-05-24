@@ -573,7 +573,7 @@ public class PostScript extends Output
 			{
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
-					pts[i].setLocation(pts[i].getX(), printBounds.getHeight() - pts[i].getY());
+					poly.setPoint(i, pts[i].getX(), printBounds.getHeight() - pts[i].getY());
 			}
 		}
 

@@ -677,7 +677,7 @@ if (--limitLoops <= 0) change = false;
 					Point2D [] points = polys.poly.getPoints();
 					for(int i=0; i<points.length; i++)
 					{
-						points[i].setLocation(points[i].getX() - moveX, points[i].getY() - moveY);
+						polys.poly.setPoint(i, points[i].getX() - moveX, points[i].getY() - moveY);
 					}
 				}
 			}

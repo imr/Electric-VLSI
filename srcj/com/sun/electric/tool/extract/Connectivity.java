@@ -116,6 +116,7 @@ public class Connectivity
 	/** map of export indices in each extracted cell */			private Map<Cell,GenMath.MutableInteger> exportNumbers;
 	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,List<PolyBase>> allCutLayers;
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
+	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
@@ -220,7 +221,9 @@ public class Connectivity
 		convertedCells = new HashMap<Cell,Cell>();
 		exportNumbers = new HashMap<Cell,GenMath.MutableInteger>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
+		bogusContacts = new HashSet<PrimitiveNode>();
 
+		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
 		{
@@ -270,14 +273,12 @@ public class Connectivity
 
 		// find important layers
 		polyLayer = null;
-//		tempLayer1 = null;
 		pActiveLayer = nActiveLayer = null;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
-//			if (fun == Layer.Function.POLY1 && layer.isPseudoLayer()) tempLayer1 = layer;
 			if (unifyActive)
 			{
 				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
@@ -402,7 +403,7 @@ public class Connectivity
 
 		// start by extracting vias
 		initDebugging();
-		startSection("Extracting vias...");		// HAS PROGRESS IN IT
+		startSection("Extracting vias...");
 		extractVias(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
@@ -414,19 +415,19 @@ public class Connectivity
 
 		// extend geometry that sticks out in space
 		initDebugging();
-		startSection("Extracting extensions...");		// HAS PROGRESS IN IT
+		startSection("Extracting extensions...");
 		extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
 		initDebugging();
-		startSection("Extracting wires...");		// HAS PROGRESS IN IT
+		startSection("Extracting wires...");
 		if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
-		startSection("Extracting connections...");		// HAS PROGRESS IN IT
+		startSection("Extracting connections...");
 		extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
@@ -437,7 +438,7 @@ public class Connectivity
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
 		// reexport any that were there before
-		startSection("Adding connecting wires...");		// HAS PROGRESS IN IT
+		startSection("Adding connecting wires...");
 		restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
@@ -605,8 +606,13 @@ public class Connectivity
 				Point2D [] points = poly.getPoints();
 				if (Extract.isGridAlignExtraction())
 				{
+					Point2D hold = new Point2D.Double();
 					for(int i=0; i<points.length; i++)
-						Job.getUserInterface().alignToGrid(points[i]);
+					{
+						hold.setLocation(points[i]);
+						Job.getUserInterface().alignToGrid(hold);
+						poly.setPoint(i, hold.getX(), hold.getY());						
+					}
 				} else
 				{
 					// grow the polygon to account for rounding problems
@@ -620,12 +626,12 @@ public class Connectivity
 							double y = points[i].getY();
 							if (x < polyCtr.getX()) x -= growth; else x += growth;
 							if (y < polyCtr.getY()) y -= growth; else y += growth;
-							points[i].setLocation(x, y);
+							poly.setPoint(i, x, y);
 						}
 					}
 				}
 				for(int i=0; i<points.length; i++)
-					points[i].setLocation(scaleUp(points[i].getX()), scaleUp(points[i].getY()));
+					poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 				if (layer.getFunction().isContact())
 				{
 					// cut layers are stored in lists because merging them is too expensive and pointless
@@ -666,7 +672,6 @@ public class Connectivity
 			prevTrans.transform(ai.getHeadLocation(), headLocation);
 			prevTrans.transform(ai.getTailLocation(), tailLocation);
 			ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pi1, pi2,
-//			ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
 				headLocation, tailLocation, ai.getName());
 		}
 	}
@@ -744,7 +749,6 @@ public class Connectivity
 				// reduce the geometry to a skeleton of centerlines
 				double minWidth = 1;
 				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultLambdaBaseWidth());
-//				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultLambdaFullWidth());
 				List<Centerline> lines = findCenterlines(poly, layer, minWidth, merge, originalMerge);
 
 				// now realize the wires
@@ -768,7 +772,6 @@ public class Connectivity
 
 					// create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
-//					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR + ap.getLambdaWidthOffset(),
 						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					if (ai == null)
 					{
@@ -811,7 +814,6 @@ public class Connectivity
 				PortInst pi1 = wantConnectingNodeAt(loc1, ap, width / SCALEFACTOR, newCell);
 				PortInst pi2 = wantConnectingNodeAt(loc2, ap, width / SCALEFACTOR, newCell);
 				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR, false, false, merge);
-//				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR + ap.getLambdaWidthOffset(), false, false, merge);
 			}
 		}
 		return false;
@@ -906,6 +908,30 @@ public class Connectivity
 		}
 		NodeInst ni = createNode(ap.findPinProto(), pt, size, size, null, newCell);
 		return ni.getOnlyPortInst();
+	}
+
+	/**
+	 * Method to locate a node at a specific point with a specific type.
+	 * @param pt the center location of the desired node.
+	 * @param pin the type of the desired node.
+	 * @param size the size of the node (if it must be created).
+	 * @param newCell the cell in which to locate or place the node.
+	 * @return a node of that type at that location.
+	 * If there is none there, it is created.
+	 */
+	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
+	{
+		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
+		{
+			RTBounds geom = it.next();
+			if (!(geom instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)geom;
+			if (ni.getProto() != pin) continue;
+			if (ni.getAnchorCenter().equals(pt)) return ni;
+		}
+		NodeInst ni = createNode(pin, pt, size, size, null, newCell);
+		return ni;
 	}
 
 	/**
@@ -1083,30 +1109,6 @@ public class Connectivity
 			}
 		}
 		return piRet;
-	}
-
-	/**
-	 * Method to locate a node at a specific point with a specific type.
-	 * @param pt the center location of the desired node.
-	 * @param pin the type of the desired node.
-	 * @param size the size of the node (if it must be created).
-	 * @param newCell the cell in which to locate or place the node.
-	 * @return a node of that type at that location.
-	 * If there is none there, it is created.
-	 */
-	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
-	{
-		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
-		{
-			RTBounds geom = it.next();
-			if (!(geom instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)geom;
-			if (ni.getProto() != pin) continue;
-			if (ni.getAnchorCenter().equals(pt)) return ni;
-		}
-		NodeInst ni = createNode(pin, pt, size, size, null, newCell);
-		return ni;
 	}
 
 	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell, ArcProto ap)
@@ -1338,13 +1340,13 @@ public class Connectivity
 
 				// figure out which of the layers are present at this cut point
 				Rectangle2D cutBox = cut.getBox();
-				if (cutBox == null) continue;
+				if (cutBox == null) { cutList.remove(cut);   continue; }
 				Point2D ctr = new Point2D.Double(cutBox.getCenterX(), cutBox.getCenterY());
 				Set<Layer> layersPresent = new HashSet<Layer>();
 				for(Layer l : layersToExamine)
 				{
-					if (originalMerge.contains(l, ctr))
-						layersPresent.add(geometricLayer(l));
+					boolean layerAtPoint = originalMerge.contains(l, ctr);
+					if (layerAtPoint) layersPresent.add(geometricLayer(l));
 				}
 				boolean ignorePWell = false, ignoreNWell = false;
 				if (pWellProcess)
@@ -1368,6 +1370,7 @@ public class Connectivity
 					if (!foundPWell) ignoreNWell = true;
 				}
 
+				boolean foundCut = false;
 				for(PossibleVia pv : possibleVias)
 				{
 					// quick test to see if this via could possibly exist
@@ -1378,6 +1381,12 @@ public class Connectivity
 						{
 							if (ignorePWell && pv.layers[i].getFunction() == Layer.Function.WELLP) continue;
 							if (ignoreNWell && pv.layers[i].getFunction() == Layer.Function.WELLN) continue;
+//String cutName = pv.pNp.describe(false);
+//if (cutName.equals("Metal-1-N-Active-Con"))
+//{
+//	System.out.println("For contact "+cutName+" at ("+(ctr.getX()/SCALEFACTOR)+","+(ctr.getY()/SCALEFACTOR)+"), layer "+pv.layers[i].getName()+" is missing");
+//	System.out.print("  Have layers:"); for(Layer l : layersPresent) System.out.print(" "+l.getName()); System.out.println();
+//}
 							someLayersMissing = true;
 							break;
 						}
@@ -1431,6 +1440,8 @@ public class Connectivity
 								pv.rotation*10, null, merge, newCell, contactNodes);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
+							soFar += cutsInArea.size() - 1;
+							foundCut = true;
 							break;
 						}
 					}
@@ -1443,9 +1454,11 @@ public class Connectivity
 						realizeNode(pv.pNp, cutLoc.getCenterX(), cutLoc.getCenterY(), cutLoc.getWidth(), cutLoc.getHeight(),
 							pv.rotation*10, null, merge, newCell, contactNodes);
 						cutList.remove(cut);
+						foundCut = true;
 						break;
 					}
 				}
+				if (!foundCut) cutList.remove(cut);
 			}
 		}
 
@@ -1511,7 +1524,7 @@ public class Connectivity
 					poly.transform(trans);
 					Point2D [] points = poly.getPoints();
 					for(int k=0; k<points.length; k++)
-						points[k].setLocation(scaleUp(points[k].getX()), scaleUp(points[k].getY()));
+						poly.setPoint(k, scaleUp(points[k].getX()), scaleUp(points[k].getY()));
 					poly.roundPoints();
 					subtractMerge.add(layer, poly);
 				}
@@ -1568,15 +1581,23 @@ public class Connectivity
 
 			// load the layer information
 			Technology.NodeLayer cutNodeLayer = null;
+			Technology.NodeLayer m1Layer = null;
+			Technology.NodeLayer m2Layer = null;
+			boolean hasPolyActive = false;
 			List<Technology.NodeLayer> pvLayers = new ArrayList<Technology.NodeLayer>();
 			for(int i=0; i<nLayers.length; i++)
 			{
 				// examine one layer of the primitive node
 				Technology.NodeLayer nLay = nLayers[i];
 				Layer nLayer = nLay.getLayer();
+				Layer.Function lFun = nLayer.getFunction();
+				if (lFun.isMetal())
+				{
+					if (m1Layer == null) m1Layer = nLay; else
+						if (m2Layer == null) m2Layer = nLay;
+				} else if (lFun.isDiff() || lFun.isPoly()) hasPolyActive = true;
 
 				// ignore well layers if the process doesn't have them
-//				Layer.Function lFun = nLayer.getFunction();
 //				if (lFun == Layer.Function.WELLP && pWellProcess) continue;
 //				if (lFun == Layer.Function.WELLN && nWellProcess) continue;
 
@@ -1596,6 +1617,28 @@ public class Connectivity
 				}
 			}
 			if (cutNodeLayer == null) continue;
+
+			// make sure via contacts connect exactly two layers of metal, next to each other
+			if (!hasPolyActive && fun == PrimitiveNode.Function.CONTACT)
+			{
+				boolean badContact = false;
+				if (m1Layer == null || m2Layer == null) badContact = true; else
+				{
+					int lowMetal = m1Layer.getLayer().getFunction().getLevel();
+					int highMetal = m2Layer.getLayer().getFunction().getLevel();
+					if (lowMetal > highMetal) { int s = lowMetal;   lowMetal = highMetal;   highMetal = s; }
+					if (lowMetal != highMetal-1) badContact = true;
+				}
+				if (badContact)
+				{
+					if (!bogusContacts.contains(pNp))
+					{
+						bogusContacts.add(pNp);
+						System.out.println("Not extracting unusual via contact: " + pNp.describe(false));
+					}
+					continue;
+				}
+			}
 
 			// create a PossibleVia object to test for them
 			PossibleVia pv = new PossibleVia(pNp, pvLayers.size());
@@ -1816,6 +1859,19 @@ public class Connectivity
 			originalMerge.intersectLayers(layer, tempLayer1, tempLayer1);
 		}
 
+		// figure out which way the poly runs in the desired transistor
+		NodeInst dni = NodeInst.makeDummyInstance(transistor);
+		Poly [] polys = transistor.getTechnology().getShapeOfNode(dni);
+		double widestPoly = 0, widestActive = 0;
+		for(int i=0; i<polys.length; i++)
+		{
+			Poly poly = polys[i];
+			Rectangle2D bounds = poly.getBounds2D();
+			if (poly.getLayer().getFunction().isPoly()) widestPoly = Math.max(widestPoly, bounds.getWidth());
+			if (poly.getLayer().getFunction().isDiff()) widestActive = Math.max(widestActive, bounds.getWidth());
+		}
+		boolean polyVertical = widestPoly < widestActive;
+		
 		// look at all of the pieces of this layer
 		List<PolyBase> polyList = getMergePolys(originalMerge, tempLayer1);
 		if (polyList == null) return;
@@ -1829,6 +1885,10 @@ public class Connectivity
 				Point2D right = new Point2D.Double(transBox.getMaxX() + 1, transBox.getCenterY());
 				Point2D bottom = new Point2D.Double(transBox.getCenterX(), transBox.getMinY() - 1);
 				Point2D top = new Point2D.Double(transBox.getCenterX(), transBox.getMaxY() + 1);
+				if (polyVertical)
+				{
+					Point2D swap = left;   left = top;   top = right;   right = bottom;   bottom = swap;
+				}
 				int angle = 0;
 				double wid = transBox.getWidth();
 				double hei = transBox.getHeight();
@@ -1843,7 +1903,8 @@ public class Connectivity
 					hei = transBox.getWidth();
 				} else
 				{
-					System.out.println("Transistor doesn't have proper tabs...ignored");
+					System.out.println("Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
+						") doesn't have proper tabs...ignored");
 					continue;
 				}
 				SizeOffset so = transistor.getProtoSizeOffset();
@@ -2009,7 +2070,6 @@ public class Connectivity
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaBaseWidth();
-//			double wid = ap.getDefaultLambdaFullWidth();
             double arcLayerWidth = 2*(ap.getDefaultLambdaExtendOverMin() + ap.getLayerLambdaExtend(layer));
 
 			List<PolyBase> polyList = geomToExtend.get(layer);
@@ -2182,16 +2242,13 @@ public class Connectivity
 				Point2D pinPt2 = new Point2D.Double((polyBounds.getMinX() + endExtension) / SCALEFACTOR,
 					polyCtr.getY() / SCALEFACTOR);
 				Point2D objPt = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
-				NodeInst ni1 = createNode(np, pinPt1, polyBounds.getHeight() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, null, newCell);
-				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getHeight() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, null, newCell);
+				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+				NodeInst ni1 = createNode(np, pinPt1, size, size, null, newCell);
+				NodeInst ni2 = createNode(np, pinPt2, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
 					polyBounds.getHeight() / SCALEFACTOR, false, false, merge);
-//					(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
 					polyBounds.getHeight() / SCALEFACTOR, false, false, merge);
-//					(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 			} else
 			{
 				// taller area, make vertical arcs
@@ -2201,16 +2258,13 @@ public class Connectivity
 				Point2D pinPt2 = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
 					(polyBounds.getMinY() + endExtension) / SCALEFACTOR);
 				Point2D objPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
-				NodeInst ni1 = createNode(np, pinPt1, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getWidth() / SCALEFACTOR, null, newCell);
-				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getWidth() / SCALEFACTOR, null, newCell);
+				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+				NodeInst ni1 = createNode(np, pinPt1, size, size, null, newCell);
+				NodeInst ni2 = createNode(np, pinPt2, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
 					polyBounds.getWidth() / SCALEFACTOR, false, false, merge);
-//					(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
 					polyBounds.getWidth() / SCALEFACTOR, false, false, merge);
-//					(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 			}
 			return;
 		}
@@ -2245,15 +2299,13 @@ public class Connectivity
 					(polyBounds.getMinY() + endExtension) / SCALEFACTOR);
 			}
 
-			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getWidth() / SCALEFACTOR,
-				polyBounds.getWidth() / SCALEFACTOR, null, newCell);
+			double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+			NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
 
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getWidth();
-//			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
 			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, wid / SCALEFACTOR,
-//			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, fullWid,
 				!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 			return;
 		}
@@ -2287,15 +2339,13 @@ public class Connectivity
 				pinPtNormal = new Point2D.Double((polyBounds.getMinX() + endExtension) / SCALEFACTOR,
 					polyCtr.getY() / SCALEFACTOR);
 			}
-			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getHeight() / SCALEFACTOR,
-				polyBounds.getHeight() / SCALEFACTOR, null, newCell);
+			double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+			NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getHeight();
-//			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
 			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
 				wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
-//				fullWid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 		}
 	}
 
@@ -2960,7 +3010,6 @@ public class Connectivity
 		return poly;
 	}
 
-
 	/**
 	 * Class to sort Centerline objects by their width (and within that, by their length).
 	 */
@@ -2994,106 +3043,6 @@ public class Connectivity
 			return 0;
 		}
 	}
-
-//	/**
-//	 * Method to determine whether two Centerline objects are colinear.
-//	 * @param cl the first Centerline object.
-//	 * @param oCl the second Centerline object.
-//	 * @return true if they are colinear.  Also modifies the first one (c1) to contain the overall line.
-//	 */
-//	private boolean isColinear(Centerline cl, Centerline oCl)
-//	{
-//		// get information about the other line
-//		double fx = cl.start.getX();
-//		double fy = cl.start.getY();
-//		double tx = cl.end.getX();
-//		double ty = cl.end.getY();
-//		double oFx = oCl.start.getX();
-//		double oFy = oCl.start.getY();
-//		double oTx = oCl.end.getX();
-//		double oTy = oCl.end.getY();
-//		if (oFx == oTx && oFy == oTy) return false;
-//
-//		// see if they are colinear
-//		double lowX = Math.min(fx, tx);
-//		double highX = Math.max(fx, tx);
-//		double lowY = Math.min(fy, ty);
-//		double highY = Math.max(fy, ty);
-//		if (fx == tx)
-//		{
-//			// vertical line
-//			double oLow = Math.min(oFy, oTy);
-//			double oHigh = Math.max(oFy, oTy);
-//			if (oFx != fx || oTx != fx) return false;
-//			if (lowY > oHigh || highY < oLow) return false;
-//			cl.setStart(tx, Math.min(lowY, oLow));
-//			cl.setEnd(tx, Math.max(highY, oHigh));
-//			return true;
-//		}
-//		if (fy == ty)
-//		{
-//			// horizontal line
-//			double oLow = Math.min(oFx, oTx);
-//			double oHigh = Math.max(oFx, oTx);
-//			if (oFy != fy || oTy != fy) return false;
-//			if (lowX > oHigh || highX < oLow) return false;
-//			cl.setStart(Math.min(lowX, oLow), ty);
-//			cl.setEnd(Math.max(highX, oHigh), ty);
-//			return true;
-//		}
-//
-//		// general case
-//		int ang = GenMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
-//		int oAng = GenMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
-//		if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
-//		if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
-//		if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
-//		double oLow = Math.min(oFy, oTy);
-//		double oHigh = Math.max(oFy, oTy);
-//		if (lowY >= oHigh || highY <= oLow) return false;
-//		oLow = Math.min(oFx, oTx);
-//		oHigh = Math.max(oFx, oTx);
-//		if (lowX >= oHigh || highX <= oLow) return false;
-//
-//		// find the extreme points
-//		Point2D [] points = new Point2D[4];
-//		points[0] = cl.start;
-//		points[1] = cl.end;
-//		points[2] = oCl.start;
-//		points[3] = oCl.end;
-//		double bestDist = 0;
-//		int bestEnd = -1;
-//		for(int i=1; i<3; i++)
-//		{
-//			double dist = points[0].distance(points[i]);
-//			if (dist > bestDist)
-//			{
-//				bestDist = dist;
-//				bestEnd = i;
-//			}
-//		}
-//		if (bestEnd < 0) return false;
-//		bestDist = 0;
-//		int bestOtherEnd = -1;
-//		for(int i=0; i<4; i++)
-//		{
-//			if (i == bestEnd) continue;
-//			double dist = points[bestEnd].distance(points[i]);
-//			if (dist > bestDist)
-//			{
-//				bestDist = dist;
-//				bestOtherEnd = i;
-//			}
-//		}
-//		double newEndAX = points[bestEnd].getX();
-//		double newEndAY = points[bestEnd].getY();
-//		double newEndBX = points[bestOtherEnd].getX();
-//		double newEndBY = points[bestOtherEnd].getY();
-//
-//		cl.setStart(newEndAX, newEndAY);
-//		cl.setEnd(newEndBX, newEndBY);
-//		return true;
-//	}
 
 	/**
 	 * Method to scan the geometric information and convert it all to pure layer nodes in the new cell.
@@ -3181,7 +3130,6 @@ public class Connectivity
 								NodeInst ni1 = createNode(np, end1, height, height, null, newCell);
 								NodeInst ni2 = createNode(np, end2, height, height, null, newCell);
 								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height,
-//								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							} else
 							{
@@ -3191,7 +3139,6 @@ public class Connectivity
 								NodeInst ni1 = createNode(np, end1, width, width, null, newCell);
 								NodeInst ni2 = createNode(np, end2, width, width, null, newCell);
 								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width,
-//								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							}
 							continue;
@@ -3469,7 +3416,6 @@ public class Connectivity
 		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
 	{
 		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
-//		ArcInst ai = ArcInst.makeInstanceFull(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
@@ -3500,7 +3446,7 @@ public class Connectivity
 	{
 		Point2D [] points = poly.getPoints();
 		for(int i=0; i<points.length; i++)
-			points[i].setLocation(scaleUp(points[i].getX()), scaleUp(points[i].getY()));
+			poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 		poly.roundPoints();
 		merge.subtract(layer, poly);
 	}

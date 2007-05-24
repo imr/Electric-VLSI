@@ -1486,6 +1486,18 @@ public class PolyBase implements Shape, PolyNodeMerge
 		return new Rectangle((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight());
 	}
 
+	/**
+	 * Method to change the value of a point in the PolyBase.
+	 * @param pt the index of the point to change.
+	 * @param x the new X value.
+	 * @param y the new Y value.
+	 */
+	public void setPoint(int pt, double x, double y)
+	{
+		points[pt].setLocation(x, y);
+		bounds = null;
+	}
+
 	private void calcBounds()
 	{
 		bounds = null;

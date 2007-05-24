@@ -1979,7 +1979,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
 				{
-					pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+					poly.setPoint(i, pts[i].getX(), pts[i].getY() + offY);
 				}
 				override.add(poly);
 			}
@@ -1998,7 +1998,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Point2D [] pts = poly.getPoints();
 					for(int i=0; i<pts.length; i++)
 					{
-						pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+						poly.setPoint(i, pts[i].getX(), pts[i].getY() + offY);
 					}
 					override.add(poly);
 				}
@@ -2010,7 +2010,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
 				{
-					pts[i].setLocation(pts[i].getX(), pts[i].getY() + offY);
+					poly.setPoint(i, pts[i].getX(), pts[i].getY() + offY);
 				}
 				override.add(poly);
 			}

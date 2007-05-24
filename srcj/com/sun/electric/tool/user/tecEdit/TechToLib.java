@@ -335,7 +335,7 @@ public class TechToLib
 				// scale the arc geometry appropriately
 				Point2D [] points = poly.getPoints();
 				for(int k=0; k<points.length; k++)
-					points[k] = new Point2D.Double(points[k].getX() - xOff - 20, points[k].getY() - 5);
+					poly.setPoint(k, points[k].getX() - xOff - 20, points[k].getY() - 5);
 
 				// create the node to describe this layer
 				NodeInst ni = placeGeometry(poly, aNp);
