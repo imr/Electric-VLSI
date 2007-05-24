@@ -2405,8 +2405,8 @@ public class Panel extends JPanel
 		double xRange = highXValue - lowXValue;
 		lowXValue -= xRange / 8;
 		highXValue += xRange / 8;
-		double lowValue = Math.max(dragEndYD, dragStartYD);
-		double highValue = Math.min(dragEndYD, dragStartYD);
+		double lowValue = Math.min(dragEndYD, dragStartYD);
+		double highValue = Math.max(dragEndYD, dragStartYD);
 		double valueRange = highValue - lowValue;
 		lowValue -= valueRange / 8;
 		highValue += valueRange / 8;
