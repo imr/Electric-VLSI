@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+BUG: (5/25/07, DN) Flatten hierarchy is too slow (Bug #1243).
+IMP: CellChangeJobs.ExtractCellInstances.doIt works in a little more bulky mode.
+
 IMP: (5/24/07, SMR) Created Cell.killNodes() to delete many nodes at once
      (improves speed of deleting significantly...46,000 deletions took 3 hours,
      now take 6 minutes).

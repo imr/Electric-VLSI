@@ -57,11 +57,13 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class for Jobs that make changes to the cells.
@@ -713,12 +715,14 @@ public class CellChangeJobs
 	 */
 	public static class ExtractCellInstances extends Job
 	{
+        private Cell cell;
         private List<NodeInst> nodes;
         private boolean copyExports;
 
-        public ExtractCellInstances(List<NodeInst> highlighted, boolean copyExports, boolean startNow)
+        public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, boolean copyExports, boolean startNow)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.nodes = highlighted;
             this.copyExports = copyExports;
             if (!startNow)
@@ -740,23 +744,27 @@ public class CellChangeJobs
 				return false;
 			}
 	        Job.getUserInterface().startProgressDialog("Extracting " + cellsToExtract + " cells", null);
+            HashMap<NodeInst,HashMap<NodeInst,NodeInst>> newNodes = new HashMap<NodeInst,HashMap<NodeInst,NodeInst>>();
 			int done = 0;
 			for(NodeInst ni : nodes)
 			{
 				if (!ni.isCellInstance()) continue;
-				extractOneNode(ni, copyExports);
+				newNodes.put(ni, extractOneNode(ni, copyExports));
 				done++;
 				if ((done%10) == 0)
 				{
 			        Job.getUserInterface().setProgressValue(done * 100 / cellsToExtract);
 				}
 			}
+            // replace arcs to the cell and exports on the cell
+            replaceArcsAndExports(cell, newNodes);
+        
 	        Job.getUserInterface().stopProgressDialog();
 			return true;
 		}
 	}
 
-	private static void extractOneNode(NodeInst topno, boolean copyExports)
+	private static HashMap<NodeInst,NodeInst> extractOneNode(NodeInst topno, boolean copyExports)
 	{
 		// make transformation matrix for this cell
 		Cell cell = topno.getParent();
@@ -765,14 +773,16 @@ public class CellChangeJobs
 		localTrans.preConcatenate(topno.rotateOut());
 
 		// build a list of nodes to copy
-		List<NodeInst> nodes = new ArrayList<NodeInst>();
+		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
-			nodes.add(it.next());
+			newNodes.put(it.next(), null);
 
 		// copy the nodes
-		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-		for(NodeInst ni : nodes)
+		for (Map.Entry<NodeInst,NodeInst> e: newNodes.entrySet())
 		{
+            NodeInst ni = e.getKey();
+            assert e.getValue() == null;
+            
 			// do not extract "cell center" or "essential bounds" primitives
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
@@ -785,9 +795,9 @@ public class CellChangeJobs
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false);
             Orientation orient = topno.getOrient().concatenate(ni.getOrient());
 			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
-			if (newNi == null) return;
+			if (newNi == null) continue;
 
-			newNodes.put(ni, newNi);
+			e.setValue(newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyStateBits(ni);
 			newNi.copyVarsFrom(ni);
@@ -831,57 +841,8 @@ public class CellChangeJobs
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
 			ArcInst newAi = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), piHead, piTail, ptHead, ptTail, name);
-			if (newAi == null) return;
-			newAi.copyPropertiesFrom(ai);
-		}
-
-		// replace arcs to the cell
-		List<ArcInst> replaceTheseArcs = new ArrayList<ArcInst>();
-		for(Iterator<Connection> it = topno.getConnections(); it.hasNext(); )
-		{
-			Connection con = it.next();
-			replaceTheseArcs.add(con.getArc());
-		}
-		for(ArcInst ai : replaceTheseArcs)
-		{
-			ArcProto ap = ai.getProto();
-			double wid = ai.getLambdaBaseWidth();
-			String name = null;
-			if (ai.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
-			PortInst [] pis = new PortInst[2];
-			Point2D [] pts = new Point2D[2];
-			for(int i=0; i<2; i++)
-			{
-				pis[i] = ai.getPortInst(i);
-				pts[i] = ai.getLocation(i);
-				if (pis[i].getNodeInst() != topno) continue;
-				Export pp = (Export)pis[i].getPortProto();
-				NodeInst subNi = pp.getOriginalPort().getNodeInst();
-				NodeInst newNi = newNodes.get(subNi);
-				if (newNi == null) continue;
-				pis[i] = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-			}
-			if (pis[0] == null || pis[1] == null) continue;
-
-			ai.kill();
-			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
-			if (newAi == null) return;
-            newAi.copyPropertiesFrom(ai);
-		}
-
-		// replace the exports
-		List<Export> existingExports = new ArrayList<Export>();
-		for(Iterator<Export> it = topno.getExports(); it.hasNext(); )
-			existingExports.add(it.next());
-		for(Export pp : existingExports)
-		{
-			Export subPp = (Export)pp.getOriginalPort().getPortProto();
-			NodeInst subNi = subPp.getOriginalPort().getNodeInst();
-			NodeInst newNi = newNodes.get(subNi);
-			if (newNi == null) continue;
-			PortInst pi = newNi.findPortInstFromProto(subPp.getOriginalPort().getPortProto());
-			pp.move(pi);
+			if (newAi != null)
+                newAi.copyPropertiesFrom(ai);
 		}
 
 		// copy the exports if requested
@@ -921,9 +882,72 @@ public class CellChangeJobs
 			}
 		}
 
-		// delete the cell instance
-		topno.kill();
+        return newNodes;
 	}
+    
+    private static void replaceArcsAndExports(Cell cell, HashMap<NodeInst,HashMap<NodeInst,NodeInst>> newNodes) {
+		// replace arcs to expanded subCells
+        ArrayList<ArcInst> arcsCopy = new ArrayList<ArcInst>();
+        for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            arcsCopy.add(it.next());
+        
+        PortInst[] pis = new PortInst[2];
+		Point2D [] pts = new Point2D[2];
+		for(ArcInst ai : arcsCopy)
+		{
+            boolean needToCopy = false;
+            for (int i = 0; i < 2; i++) {
+				pts[i] = ai.getLocation(i);
+                PortInst pi = ai.getPortInst(i);
+                HashMap<NodeInst,NodeInst> newNodesForSubcell = newNodes.get(pi.getNodeInst());
+                if (newNodesForSubcell != null) {
+                    Export pp = (Export)pi.getPortProto();
+                    NodeInst subNi = pp.getOriginalPort().getNodeInst();
+                    NodeInst newNi = newNodesForSubcell.get(subNi);
+                    pi = newNi != null ? newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto()) : null;
+                    needToCopy = true;
+                }
+                pis[i] = pi;
+            }
+            if (!needToCopy) continue;
+            
+			ArcProto ap = ai.getProto();
+			double wid = ai.getLambdaBaseWidth();
+			String name = null;
+			if (ai.isUsernamed())
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
+
+			ai.kill();
+			if (pis[0] == null || pis[1] == null) continue;
+			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
+			if (newAi != null)
+                newAi.copyPropertiesFrom(ai);
+		}
+        
+		// replace the exports
+        ArrayList<Export> exportsCopy = new ArrayList<Export>();
+        for (Iterator<Export> it = cell.getExports(); it.hasNext(); )
+            exportsCopy.add(it.next());
+        
+        for(Export pp : exportsCopy) {
+            PortInst oldPi = pp.getOriginalPort();
+            HashMap<NodeInst,NodeInst> newNodesForSubcell = newNodes.get(oldPi.getNodeInst());
+            if (newNodesForSubcell == null) continue;
+            Export subPp = (Export)oldPi.getPortProto();
+            NodeInst subNi = subPp.getOriginalPort().getNodeInst();
+            NodeInst newNi = newNodesForSubcell.get(subNi);
+            if (newNi == null) {
+                pp.kill();
+                continue;
+            }
+            PortInst newPi = newNi.findPortInstFromProto(subPp.getOriginalPort().getPortProto());
+            pp.move(newPi);
+        }
+        
+		// delete the cell instance
+        cell.killNodes(newNodes.keySet());
+    }
+
 
 	/****************************** MAKE A NEW VERSION OF A CELL ******************************/
 
