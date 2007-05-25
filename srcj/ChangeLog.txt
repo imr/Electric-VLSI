@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
-IMP: (5/24/07, SMR) Created NodeInst.killMany() to delete many nodes at once
+IMP: (5/24/07, SMR) Created Cell.killNodes() to delete many nodes at once
      (improves speed of deleting significantly...46,000 deletions took 3 hours,
      now take 6 minutes).
 

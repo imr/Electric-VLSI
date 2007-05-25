@@ -73,8 +73,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -422,80 +421,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			System.out.println("NodeInst already killed");
 			return;
 		}
-
-		// kill the arcs attached to the connections.  This will also remove the connections themselves
-		if (hasConnections())
-		{
-	        ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
-	        for(Iterator<Connection> it = getConnections(); it.hasNext(); )
-	        	arcsToKill.add(it.next().getArc());
-	        for (ArcInst ai: arcsToKill)
-	            ai.kill();
-		}
-
-		// remove any exports
-		if (hasExports())
-		{
-	        HashSet<Export> exportsToKill = new HashSet<Export>();
-	        for(Iterator<Export> it = getExports(); it.hasNext(); )
-	        	exportsToKill.add(it.next());
-	        parent.killExports(exportsToKill);
-		}
-
-		// remove this node from the cell
-		parent.removeNode(this);
-
-		// handle change control, constraint, and broadcast
-		Constraints.getCurrent().killObject(this);
+        parent.killNodes(Collections.singleton(this));
 	}
     
-	/**
-	 * Method to delete this NodeInst.  This is much more efficient
-	 * than individual calls to NodeInst.kill().
-	 */
-	public static void killMany(Collection<NodeInst> niList)
-	{
-        Set<ArcInst> arcsToKill = new HashSet<ArcInst>();
-        Set<Export> exportsToKill = new HashSet<Export>();
-        Cell parent = null;
-		for(NodeInst ni : niList)
-		{
-			if (!ni.isLinked())
-			{
-				System.out.println("NodeInst already killed");
-				continue;
-			}
-			parent = ni.parent;
-	
-			// kill the arcs attached to the connections.  This will also remove the connections themselves
-			if (ni.hasConnections())
-			{
-		        for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-		        	arcsToKill.add(it.next().getArc());
-			}
-	
-			// remove any exports
-			if (ni.hasExports())
-			{
-		        for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
-		        	exportsToKill.add(it.next());
-			}
-		}
-
-        for (ArcInst ai: arcsToKill)
-            ai.kill();
-        if (parent != null) parent.killExports(exportsToKill);
-
-		for(NodeInst ni : niList)
-		{
-			// remove this node from the cell
-			ni.parent.removeNode(ni);
-
-			// handle change control, constraint, and broadcast
-			Constraints.getCurrent().killObject(ni);
-		}
-	}
-
 	/**
 	 * Method to move this NodeInst.
 	 * @param dX the amount to move the NodeInst in X.

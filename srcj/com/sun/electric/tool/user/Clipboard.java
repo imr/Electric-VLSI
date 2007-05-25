@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -699,10 +700,11 @@ public class Clipboard
         clipCell.killExports(exportsToDelete);
 
 		// delete all nodes in the clipboard
-		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
+		Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
 		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
 			nodesToDelete.add(it.next());
-		NodeInst.killMany(nodesToDelete);
+		clipCell.killNodes(nodesToDelete);
+//		NodeInst.killMany(nodesToDelete);
 
         // Delete all variables
         for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )

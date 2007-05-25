@@ -484,7 +484,8 @@ public class GDS extends Input
                             geomList.add(newNi);
                             errorLogger.logWarning(message, geomList, null, null, null, null, cell, -1);
                             // Deleting now replaced pure primitives
-                            NodeInst.killMany(toDelete);
+                            cell.killNodes(toDelete);
+//                            NodeInst.killMany(toDelete);
                         }
                     }
                 }

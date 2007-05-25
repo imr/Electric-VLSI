@@ -448,7 +448,7 @@ public class AutoStitch
 		}
 		if (pinsToPassThrough.size() > 0)
 		{
-			CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
+			CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, Collections.<NodeInst>emptySet(),
 				pinsToPassThrough, new HashMap<NodeInst,EPoint>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
 			try
 			{

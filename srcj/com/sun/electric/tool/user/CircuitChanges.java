@@ -696,7 +696,7 @@ public class CircuitChanges
 	private static boolean cleanupCell(Cell cell, boolean justThis, Highlighter highlighter)
 	{
 		// look for unused pins that can be deleted
-		List<NodeInst> pinsToRemove = new ArrayList<NodeInst>();
+		Set<NodeInst> pinsToRemove = new HashSet<NodeInst>();
 		List<CircuitChangeJobs.Reconnect> pinsToPassThrough = CircuitChangeJobs.getPinsToPassThrough(cell);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{

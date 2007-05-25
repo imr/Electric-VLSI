@@ -340,7 +340,7 @@ public class LayerCoverageTool extends Tool
         {
             GeometryHandler tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
             HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
-            List<NodeInst> deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
+            Set<NodeInst> nodesToDelete = new HashSet<NodeInst>(); // should only be used by IMPLANT
             Set<Network> netSet = null;
             Layer onlyThisLayer = null;
 
@@ -350,7 +350,7 @@ public class LayerCoverageTool extends Tool
                 onlyThisLayer = geoms.onlyThisLayer;
             }
             // enumerate the hierarchy below here
-            LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
+            LayerVisitor visitor = new LayerVisitor(parentJob, tree, nodesToDelete, function,
                     originalPolygons, netSet, bBox, onlyThisLayer, geoms);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor);
             tree.postProcess(true);
@@ -456,7 +456,8 @@ public class LayerCoverageTool extends Tool
                             	}
                             }
                         }
-                        NodeInst.killMany(deleteList);
+                        curCell.killNodes(nodesToDelete);
+//                        NodeInst.killMany(nodesToDelete);
                         if (noNewNodes)
                             System.out.println("No new areas added");
                     }
@@ -671,17 +672,17 @@ public class LayerCoverageTool extends Tool
 	{
         private Job parentJob;
 		private GeometryHandler tree;
-		private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+		private Set<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 		private final LCMode function;
 		private HashMap<Layer,Set<PolyBase>> originalPolygons;
-		private Set netSet; // For network type, rest is null
+		private Set<Network> netSet; // For network type, rest is null
         private Rectangle2D origBBox;
         private Area origBBoxArea;   // Area is always in coordinates of top cell
         private Layer onlyThisLayer;
         private GeometryOnNetwork geoms;
 
-		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func,
-			HashMap<Layer, Set<PolyBase>> original, Set netSet, Rectangle2D bBox, Layer onlyThisLayer, GeometryOnNetwork geoms)
+		public LayerVisitor(Job job, GeometryHandler t, Set<NodeInst> delList, LCMode func,
+			HashMap<Layer, Set<PolyBase>> original, Set<Network> netSet, Rectangle2D bBox, Layer onlyThisLayer, GeometryOnNetwork geoms)
 		{
             this.parentJob = job;
 			this.tree = t;

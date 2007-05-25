@@ -466,7 +466,8 @@ public class Maze
 		{
 			ai.kill();
 		}
-		NodeInst.killMany(nodesToDelete);
+        cell.killNodes(nodesToDelete);
+//		NodeInst.killMany(nodesToDelete);
 
 		return false;
 	}

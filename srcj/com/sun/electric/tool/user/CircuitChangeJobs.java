@@ -1073,7 +1073,7 @@ public class CircuitChangeJobs
 			}
 
 			// now remove nodes in the area
-			List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();
+			Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
 			for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 			{
 				NodeInst ni = nIt.next();
@@ -1154,7 +1154,8 @@ public class CircuitChangeJobs
 			}
 
 			// delete the nodes
-			NodeInst.killMany(nodesToDelete);
+			cell.killNodes(nodesToDelete);
+//			NodeInst.killMany(nodesToDelete);
 			return true;
 		}
 	}
@@ -1274,7 +1275,7 @@ public class CircuitChangeJobs
 					// reconnect a piece of hair to a cell instance
 					PrimitiveNode pinNp = ai.getProto().findPinProto();
 					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, pin.getOnlyPortInst(),//					ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), otherPi, pin.getOnlyPortInst(),
+					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, pin.getOnlyPortInst(),
 						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 				}
 			}
@@ -1295,10 +1296,11 @@ public class CircuitChangeJobs
 		}
 
 		// next kill all of the nodes
-		NodeInst.killMany(nodesToDelete);
+		cell.killNodes(nodesToDelete);
+//		NodeInst.killMany(nodesToDelete);
 
 		// kill all pin nodes that touched an arc and no longer do
-		List<NodeInst> deleteTheseNodes = new ArrayList<NodeInst>();
+		Set<NodeInst> deleteTheseNodes = new HashSet<NodeInst>();
 		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
 			if (!ni.isCellInstance())
@@ -1308,7 +1310,8 @@ public class CircuitChangeJobs
 				deleteTheseNodes.add(ni);
 			}
 		}
-		NodeInst.killMany(deleteTheseNodes);
+		cell.killNodes(deleteTheseNodes);
+//		NodeInst.killMany(deleteTheseNodes);
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
 		List<NodeInst> nodesToPassThru = new ArrayList<NodeInst>();
@@ -1358,14 +1361,14 @@ public class CircuitChangeJobs
 	{
 		private Cell cell;
 		private boolean justThis;
-		private List<NodeInst> pinsToRemove;
+		private Set<NodeInst> pinsToRemove;
 		private List<Reconnect> pinsToPassThrough;
 		private HashMap<NodeInst,EPoint> pinsToScale;
 		private List<NodeInst> textToMove;
 		private HashSet<ArcInst> arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
-		public CleanupChanges(Cell cell, boolean justThis, List<NodeInst> pinsToRemove, List<Reconnect> pinsToPassThrough,
+		public CleanupChanges(Cell cell, boolean justThis, Set<NodeInst> pinsToRemove, List<Reconnect> pinsToPassThrough,
             HashMap<NodeInst,EPoint> pinsToScale, List<NodeInst> textToMove, HashSet<ArcInst> arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
@@ -1389,7 +1392,8 @@ public class CircuitChangeJobs
 			if (cantEdit(cell, null, true, false, true) != 0) return false;
 
 			// do the queued operations
-			NodeInst.killMany(pinsToRemove);
+			cell.killNodes(pinsToRemove);
+//			NodeInst.killMany(pinsToRemove);
             int pinsPassedThrough = 0;
             for(;;)
             {

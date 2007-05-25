@@ -2006,6 +2006,44 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		return nodeIndex >= 0 ? nodes.get(nodeIndex) : null;
 	}
 
+	/**
+	 * Method to unlink a set of these NodeInsts from this Cell.
+     * @param killedNodes a set of NodeInsts to kill.
+	 */
+	public void killNodes(Set<NodeInst> killedNodes) {
+        if (killedNodes.isEmpty()) return;
+		for(NodeInst ni : killedNodes) {
+            if (ni.getParent() != this)
+                throw new IllegalArgumentException("parent");
+		}
+        Set<ArcInst> arcsToKill = new HashSet<ArcInst>();
+        for (Iterator<ArcInst> it = getArcs(); it.hasNext(); ) {
+            ArcInst ai = it.next();
+            if (killedNodes.contains(ai.getTailPortInst().getNodeInst()) || killedNodes.contains(ai.getHeadPortInst().getNodeInst()))
+                arcsToKill.add(ai);
+            
+        }
+        Set<Export> exportsToKill = new HashSet<Export>();
+        for (Iterator<Export> it = getExports(); it.hasNext(); ) {
+            Export export = it.next();
+            if (killedNodes.contains(export.getOriginalPort().getNodeInst()))
+                exportsToKill.add(export);
+        }
+        
+        for (ArcInst ai: arcsToKill)
+            ai.kill();
+        killExports(exportsToKill);
+
+		for(NodeInst ni : killedNodes)
+		{
+			// remove this node from the cell
+			removeNode(ni);
+
+			// handle change control, constraint, and broadcast
+			Constraints.getCurrent().killObject(ni);
+		}
+    }
+    
 	private static boolean allowCirDep = false;
 
 	/**
@@ -2151,7 +2189,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to remove an NodeInst from the cell.
 	 * @param ni the NodeInst to be removed from the cell.
 	 */
-	public void removeNode(NodeInst ni)
+	private void removeNode(NodeInst ni)
 	{
 		checkChanging();
 		assert ni.isLinked();
@@ -2414,8 +2452,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void killExports(Set<Export> killedExports) {
 		checkChanging();
         if (killedExports.isEmpty()) return;
+        for (Export export: killedExports) {
+            if (export.getParent() != this)
+                throw new IllegalArgumentException("parent");
+        }
 
-        Export[] killedExportsArray = killedExports.toArray(Export.NULL_ARRAY);
+        Export[] killedExportsArray = killedExports.toArray(new Export[killedExports.size()]);
         for (Iterator<CellUsage> uit = getUsagesOf(); uit.hasNext(); ) {
             CellUsage u = uit.next();
             Cell higherCell = database.getCell(u.parentId);
