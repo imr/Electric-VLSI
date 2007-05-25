@@ -7,6 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 IMP: (5/25/07, GVG) Getting 64bit adder working. TimingGraph.updateLoadConstraint(node) disconnected with LOAD.
 Changes in TimingReport so precision can be set (set_option precision <double>).
 Constraints parser allows to upload all inputs/outputs if no ports are specified.
+Using TimingAction to control sequence of calls.
 
 BUG: (5/25/07, DN) Flatten hierarchy is too slow (Bug #1243).
 IMP: CellChangeJobs.ExtractCellInstances.doIt works in a little more bulky mode.
