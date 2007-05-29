@@ -40,12 +40,18 @@ import java.util.StringTokenizer;
  * <P>
  * If Details are omitted, then this is a full release of Electric.
  * If Details are present, then this is an interim release.
- * The Details can take two forms: letters or numbers with a dot in front.
+ * The Details can take two forms: letters (for prereleases)
+ * or numbers with a dot in front (for postrelease updates).
  * <P>
- * Examples:
- *  6.03a
- *  7.04.1
- *  8.00
+ * For example:
+ *    "8.00"      major=8, minor=0, detail=999     (a Release)
+ *    "8.01a"     major=8, minor=1, detail=1       (a Prerelease)
+ *    "8.01z"     major=8, minor=1, detail=26      (a Prerelease)
+ *    "8.01aa"    major=8, minor=1, detail=27      (a Prerelease)
+ *    "8.01az"    major=8, minor=1, detail=52      (a Prerelease)
+ *    "8.01ba"    major=8, minor=1, detail=53      (a Prerelease)
+ *    "8.01"      major=8, minor=1, detail=999     (a Release)
+ *    "8.01.1"    major=8, minor=1, detail=1001    (a PostRelease update)
  */
 public class Version implements Comparable<Version>
 {
@@ -67,16 +73,7 @@ public class Version implements Comparable<Version>
 	 * Routine to parse the version of Electric in "version" into three fields:
 	 * the major version number, minor version, and a detail version number.
 	 * The detail version number can be letters.  If it is omitted, it is
-	 * assumed to be 999.  If it is a number, it is beyond 1000.  For example:
-	 *    "8"         major=8, minor=0, detail=0       (boundary between 7 and 8)
-	 *    "8.00"      major=8, minor=0, detail=999     (a Release)
-	 *    "8.01a"     major=8, minor=1, detail=1       (a Prerelease)
-	 *    "8.01z"     major=8, minor=1, detail=26      (a Prerelease)
-	 *    "8.01aa"    major=8, minor=1, detail=27      (a Prerelease)
-	 *    "8.01az"    major=8, minor=1, detail=52      (a Prerelease)
-	 *    "8.01ba"    major=8, minor=1, detail=53      (a Prerelease)
-	 *    "8.01"      major=8, minor=1, detail=999     (a Release)
-	 *    "8.01.1"    major=8, minor=1, detail=1001    (a PostRelease, update)
+	 * assumed to be 999.  If it is a number, it is beyond 1000.
 	 */
 	private Version(String version)
 	{
