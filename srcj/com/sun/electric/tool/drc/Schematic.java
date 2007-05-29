@@ -23,12 +23,13 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -42,13 +43,11 @@ import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
 
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -73,7 +72,6 @@ public class Schematic
 		nodesChecked.clear();
         newVariables.clear();
 
-//		errorLogger = ErrorLogger.newInstance("Schematic DRC");
         errorLogger = errorLog;
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
@@ -115,19 +113,7 @@ public class Schematic
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = it.next();
-
                 Cell contentsCell = isACellToCheck(ni);
-
-//                // ignore documentation icon
-//                if (ni.isIconOfParent()) continue;
-//
-//                if (!ni.isCellInstance()) continue;
-//                Cell subCell = (Cell)ni.getProto();
-//
-//                Cell contentsCell = subCell.contentsView();
-//                if (contentsCell == null) contentsCell = subCell;
-//                if (cellsChecked.contains(contentsCell)) continue;
-
                 if (contentsCell != null)
                     checkSchematicCellRecursively(contentsCell, geomsToCheck);
             }
@@ -150,7 +136,6 @@ public class Schematic
 
 	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck)
 	{
-//		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
 
@@ -187,8 +172,6 @@ public class Schematic
 
     /**
      * Method to add all variables of a given NodeInst that must be added after Schematics DRC job is done.
-     * @param ni
-     * @param var
      */
     private static void addVariable(NodeInst ni, Variable var)
     {
@@ -223,7 +206,6 @@ public class Schematic
 			{
 				// proceed only if it has no exports on it
 				if (!ni.hasExports())
-//				if (ni.getNumExports() == 0)
 				{
 					// must not connect to any bus arcs
 					boolean found = false;
@@ -266,7 +248,6 @@ public class Schematic
 			{
 				// may be stranded if there are no exports or arcs
 				if (!ni.hasExports() && !ni.hasConnections())
-//				if (ni.getNumExports() == 0 && ni.getNumConnections() == 0)
 				{
 					// see if the pin has displayable variables on it
 					boolean found = false;
@@ -327,7 +308,6 @@ public class Schematic
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
 						errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
-//							" is invalid and has been deleted", geom, true, cell, null, 0);
 							" is invalid", geom, cell, null, 0);
 
 						// this is broken:
@@ -341,7 +321,6 @@ public class Schematic
 							String trueVarName = var.getTrueName();
 							errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 								" had incorrect units (now fixed)", geom, cell, null, 0);
-//							ni.addVar(var.withUnit(foundVar.getUnit()));
                             addVariable(ni, var.withUnit(foundVar.getUnit()));
 						}
 
@@ -353,7 +332,6 @@ public class Schematic
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should not be visible (now fixed)", geom, cell, null, 0);
-//                                ni.addVar(var.withDisplay(false));
                                 addVariable(ni, var.withDisplay(false));
 							}
 						} else
@@ -363,13 +341,15 @@ public class Schematic
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should be visible (now fixed)", geom, cell, null, 0);
-//                                ni.addVar(var.withDisplay(true));
                                 addVariable(ni, var.withDisplay(true));
 							}
 						}
 					}
 				}
 			}
+
+			// check for port overlap
+			checkPortOverlap(netlist, ni);
 		} else
 		{
 			ArcInst ai = (ArcInst)geom;
@@ -403,7 +383,6 @@ public class Schematic
 
 					// OK if it has exports on it
 					if (ni.hasExports()) continue;
-//					if (ni.getNumExports() != 0) continue;
 
 					// OK if it connects to more than 1 arc
 					if (ni.getNumConnections() != 1) continue;
@@ -454,415 +433,51 @@ public class Schematic
 				}
 			}
 		}
-
-		// check for overlap
-		// this checks to make sure no graphics overlaps another that it is not connected to.
-		// Designers don't want this check
-		// checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
 	}
 
-//	/**
-//	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
-//	 */
-//	private static void checkObjectVicinity(Netlist netlist, Geometric topGeom, Geometric geom, AffineTransform trans)
-//	{
-//		if (geom instanceof NodeInst)
-//		{
-//			NodeInst ni = (NodeInst)geom;
-//			NodeProto np = ni.getProto();
-//			AffineTransform localTrans = ni.rotateOut();
-//			localTrans.preConcatenate(trans);
-//			if (ni.isCellInstance())
-//			{
-//				if (ni.isExpanded())
-//				{
-//					// expand the instance
-//					AffineTransform subRot = ni.translateOut();
-//					subRot.preConcatenate(localTrans);
-//					Cell subCell = (Cell)np;
-//					for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
-//					{
-//						NodeInst subNi = it.next();
-//						checkObjectVicinity(netlist, topGeom, subNi, subRot); 
-//					}
-//					for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
-//					{
-//						ArcInst subAi = it.next();
-//						checkObjectVicinity(netlist, topGeom, subAi, subRot); 
-//					}
-//				}
-//			} else
-//			{
-//				// primitive
-//				Technology tech = np.getTechnology();
-//				Poly [] polyList = tech.getShapeOfNode(ni);
-//				int total = polyList.length;
-//				for(int i=0; i<total; i++)
-//				{
-//					Poly poly = polyList[i];
-//					poly.transform(localTrans);
-//					checkPolygonVicinity(netlist, topGeom, poly);
-//				}
-//			}
-//		} else
-//		{
-//			ArcInst ai = (ArcInst)geom;
-//			Technology tech = ai.getProto().getTechnology();
-//			Poly [] polyList = tech.getShapeOfArc(ai);
-//			int total = polyList.length;
-//			for(int i=0; i<total; i++)
-//			{
-//				Poly poly = polyList[i];
-//				poly.transform(trans);
-//				checkPolygonVicinity(netlist, topGeom, poly);
-//			}
-//		}
-//	}
-
 	/**
-	 * Method to check whether polygon "poly" from object "geom" has a DRC violation
-	 * with a neighboring object.  Returns TRUE if an error was found.
+	 * Method to check whether any port on a node overlaps others without connecting.
 	 */
-	private static boolean checkPolygonVicinity(Netlist netlist, Geometric geom, Poly poly)
+	private static void checkPortOverlap(Netlist netlist, NodeInst ni)
 	{
-		// don't check text
-		Poly.Type style = poly.getStyle();
-		if (style.isText()) return false;
-
-		Cell cell = geom.getParent();
-		NodeInst ni = null;
-		ArcInst ai = null;
-		if (geom instanceof NodeInst) ni = (NodeInst)geom; else ai = (ArcInst)geom;
-		Rectangle2D bounds = geom.getBounds();
-		for(Iterator<RTBounds> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
+		if (ni.getProto().getTechnology() == Generic.tech) return;
+		Cell cell = ni.getParent();
+		for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 		{
-			Geometric oGeom = (Geometric)sIt.next();
-
-			// canonicalize so that errors are found only once
-//			if ((INTBIG)geom <= (INTBIG)oGeom) continue;
-			if (geom == oGeom) continue;
-
-			// what type of object was found in area
-			if (oGeom instanceof NodeInst)
+			PortInst pi = it.next();
+			Network net = netlist.getNetwork(pi);
+			Rectangle2D bounds = pi.getPoly().getBounds2D();
+			for(Iterator<RTBounds> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				// found node nearby
+				Geometric oGeom = (Geometric)sIt.next();
+				if (!(oGeom instanceof NodeInst)) continue;
 				NodeInst oNi = (NodeInst)oGeom;
-				if (!oNi.isCellInstance() &&
-					oNi.getProto().getTechnology() == Generic.tech) continue;
-				if (geom instanceof NodeInst)
+				if (ni == oNi) continue;
+				if (ni.getNodeIndex() > oNi.getNodeIndex()) continue;
+				if (oNi.getProto().getTechnology() == Generic.tech) continue;
+	
+				// see if ports touch
+				for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )
 				{
-					// this is node, nearby is node: see if two nodes touch
-					boolean found = false;
-					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-					{
-						Connection con = it.next();
-						for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
-						{
-							Connection oCon = oIt.next();
-							if (netlist.sameNetwork(con.getArc(), oCon.getArc()))
-							{
-								found = true;
-								break;
-							}
-						}
-						if (found) break;
-					}
-					if (found) continue;
-				} else
-				{			
-					// this is arc, nearby is node: see if electrically connected
-					boolean found = false;
-					for(Iterator<Connection> oIt = oNi.getConnections(); oIt.hasNext(); )
-					{
-						Connection oCon = oIt.next();
-						if (netlist.sameNetwork(ai, oCon.getArc()))
-						{
-							found = true;
-							break;
-						}
-					}
-					if (found) continue;
-				}
+					PortInst oPi = pIt.next();
+					Rectangle2D oBounds = oPi.getPoly().getBounds2D();
+					if (bounds.getMaxX() < oBounds.getMinX()) continue;
+					if (bounds.getMinX() > oBounds.getMaxX()) continue;
+					if (bounds.getMaxY() < oBounds.getMinY()) continue;
+					if (bounds.getMinY() > oBounds.getMaxY()) continue;
 
-				// no connection: check for touching another
-				if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))
-				{
-					return true;
-				}
-			} else
-			{
-				// found arc nearby
-				ArcInst oAi = (ArcInst)oGeom;
-				if (geom instanceof NodeInst)
-				{
-					// this is node, nearby is arc: see if electrically connected
-					boolean found = false;
-					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-					{
-						Connection con = it.next();
-						if (netlist.sameNetwork(oAi, con.getArc()))
-						{
-							found = true;
-							break;
-						}
-					}
-					if (found) continue;
+					// see if they are connected
+					if (net == netlist.getNetwork(oPi)) continue;
 
-					if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))
-					{
-						return true;
-					}
-				} else
-				{
-					// this is arc, nearby is arc: check for colinearity
-					if (checkColinear(ai, oAi))
-					{
-						return true;
-					}
-
-					// if not connected, check to see if they touch
-					boolean connected = false;
-					if (netlist.sameNetwork(ai, oAi)) connected = true; else
-					{
-						int aiBusWidth = netlist.getBusWidth(ai);
-						int oAiBusWidth = netlist.getBusWidth(oAi);
-						if (aiBusWidth > 1 && oAiBusWidth <= 1)
-						{
-							for(int i=0; i<aiBusWidth; i++)
-							{
-								if (netlist.getNetwork(ai, i) == netlist.getNetwork(oAi, 0)) { connected = true;   break; }
-							}
-						} else if (oAiBusWidth > 1 && aiBusWidth <= 1)
-						{
-							for(int i=0; i<oAiBusWidth; i++)
-							{
-								if (netlist.getNetwork(oAi, i) == netlist.getNetwork(ai, 0)) { connected = true;   break; }
-							}
-						}
-					}
-					if (!connected)
-					{
-						// if the arcs connect at a WireCon, they are connected
-						NodeInst headNi = ai.getHeadPortInst().getNodeInst();
-						NodeInst tailNi = ai.getTailPortInst().getNodeInst();
-						if (headNi.getProto() != Schematics.tech.wireConNode) headNi = null;
-						if (tailNi.getProto() != Schematics.tech.wireConNode) tailNi = null;
-						NodeInst oHeadNi = oAi.getHeadPortInst().getNodeInst();
-						NodeInst oTailNi = oAi.getTailPortInst().getNodeInst();
-						if (headNi == oHeadNi || headNi == oTailNi || tailNi == oHeadNi || tailNi == oTailNi) connected = true;
-					}
-					if (!connected)
-					{
-						// the last parameter was "false", changed it to "true" for bug #376
-						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, true))
-						{
-							return true;
-						}
-					}
+					// report the error
+					List<Geometric> geomList = new ArrayList<Geometric>();
+					geomList.add(ni);
+					geomList.add(oNi);
+					errorLogger.logError("Nodes '" + ni + "' '" + oNi + "' have touching ports that are not connected",
+						geomList, null, cell, 0);
+					return;
 				}
 			}
 		}
-		return true;
-	}
-
-	/**
-	 * Check polygon "poly" from object "geom" against
-	 * geom "oGeom" transformed by "otrans" (and really on top-level object "oTopGeom").
-	 * Returns TRUE if an error was found.
-	 */
-	private static boolean checkPoly(Geometric geom, Poly poly, Geometric oTopGeom, Geometric oGeom, AffineTransform oTrans,
-		boolean canCross)
-	{
-		if (oGeom instanceof NodeInst)
-		{
-			if (geom instanceof ArcInst) return false;
-			NodeInst ni = (NodeInst)oGeom;
-			NodeProto np = ni.getProto();
-			AffineTransform thisTrans = ni.rotateOut();
-			thisTrans.preConcatenate(oTrans);
-			if (ni.isCellInstance())
-			{
-				AffineTransform subRot = ni.translateOut();
-				subRot.preConcatenate(thisTrans);
-				Cell subCell = (Cell)np;
-				for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
-				{
-					NodeInst subNi = it.next();
-					if (checkPoly(geom, poly, oTopGeom, subNi, subRot, canCross))
-						return true;
-				}
-				for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
-				{
-					ArcInst subAi = it.next();
-					if (checkPoly(geom, poly, oTopGeom, subAi, subRot, canCross))
-						return true;
-				}
-			} else
-			{
-				Technology tech = np.getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni);
-				int total = polyList.length;
-				for(int i=0; i<total; i++)
-				{
-					Poly nodePoly = polyList[i];
-					nodePoly.transform(thisTrans);
-					if (checkPolyAgainstPoly(geom, poly, oTopGeom, nodePoly, canCross))
-						return true;
-				}
-			}
-		} else
-		{
-			if (geom instanceof NodeInst) return false;
-			ArcInst ai = (ArcInst)geom;
-			ArcInst oAi = (ArcInst)oGeom;
-			Technology tech = oAi.getProto().getTechnology();
-			Poly [] polyList = tech.getShapeOfArc(oAi);
-			int total = polyList.length;
-			if ((oAi.getProto() == Schematics.tech.bus_arc && ai.getProto() == Schematics.tech.wire_arc) ||
-				(oAi.getProto() == Schematics.tech.wire_arc && ai.getProto() == Schematics.tech.bus_arc)) canCross = true;
-			for(int i=0; i<total; i++)
-			{
-				Poly oPoly = polyList[i];
-				oPoly.transform(oTrans);
-				if (checkPolyAgainstPoly(geom, poly, oTopGeom, oPoly, canCross))
-					return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Check polygon "poly" from object "geom" against
-	 * polygon "opoly" from object "oGeom".
-	 * If "canCross" is TRUE, they can cross each other (but an endpoint cannot touch).
-	 * Returns TRUE if an error was found.
-	 */
-	private static boolean checkPolyAgainstPoly(Geometric geom, Poly poly, Geometric oGeom, Poly opoly, boolean canCross)
-	{
-		if (canCross)
-		{
-			Point2D [] pointList = poly.getPoints();
-			Rectangle2D pointRect = new Rectangle2D.Double();
-			boolean found = false;
-			for(int i=0; i<pointList.length; i++)
-			{
-				pointRect.setRect(pointList[i].getX(), pointList[i].getY(), 0, 0);
-				if (opoly.polyDistance(pointRect) <= 0) { found = true;   break; }
-			}
-			if (!found)
-			{
-				// none in "poly" touched one in "opoly", try other way
-				pointList = opoly.getPoints();
-				found = false;
-				for(int i=0; i<pointList.length; i++)
-				{
-					pointRect.setRect(pointList[i].getX(), pointList[i].getY(), 0, 0);
-					if (poly.polyDistance(pointRect) <= 0) { found = true;   break; }
-				}
-				if (!found) return false;
-			}
-		} else
-		{
-			if (!poly.intersects(opoly)) return false;
-		}
-
-		// report the error
-		List<Geometric> geomList = new ArrayList<Geometric>();
-		geomList.add(geom);
-		geomList.add(oGeom);
-		errorLogger.logError("Objects '" + geom + "' '" + oGeom + "' touch", geomList, null, geom.getParent(), 0);
-		return true;
-	}
-
-	/**
-	 * Method to check whether arc "ai" is colinear with another.
-	 * Returns TRUE if an error was found.
-	 */
-	private static boolean checkColinear(ArcInst ai, ArcInst oAi)
-	{
-		// get information about the other line
-		double fx = ai.getHeadLocation().getX();
-		double fy = ai.getHeadLocation().getY();
-		double tx = ai.getTailLocation().getX();
-		double ty = ai.getTailLocation().getY();
-		double oFx = oAi.getHeadLocation().getX();
-		double oFy = oAi.getHeadLocation().getY();
-		double oTx = oAi.getTailLocation().getX();
-		double oTy = oAi.getTailLocation().getY();
-		if (oFx == oTx && oFy == oTy) return false;
-
-		// see if they are colinear
-		double lowX = Math.min(fx, tx);
-		double highX = Math.max(fx, tx);
-		double lowY = Math.min(fy, ty);
-		double highY = Math.max(fy, ty);
-		int ang = 0;
-		if (fx == tx)
-		{
-			// vertical line
-			double oLow = Math.min(oFy, oTy);
-			double oHigh = Math.max(oFy, oTy);
-			if (oFx != fx || oTx != fx) return false;
-			if (lowY >= oHigh || highY <= oLow) return false;
-			ang = 900;
-		} else if (fy == ty)
-		{
-			// horizontal line
-			double oLow = Math.min(oFx, oTx);
-			double oHigh = Math.max(oFx, oTx);
-			if (oFy != fy || oTy != fy) return false;
-			if (lowX >= oHigh || highX <= oLow) return false;
-			ang = 0;
-		} else
-		{
-			// general case
-			ang = DBMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
-			int oAng = DBMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
-			if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
-			if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
-			if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
-			double oLow = Math.min(oFy, oTy);
-			double oHigh = Math.max(oFy, oTy);
-			if (lowY >= oHigh || highY <= oLow) return false;
-			oLow = Math.min(oFx, oTx);
-			oHigh = Math.max(oFx, oTx);
-			if (lowX >= oHigh || highX <= oLow) return false;
-		}
-        Cell cell = ai.getParent();
-		List<Geometric> geomList = new ArrayList<Geometric>();
-		List<EPoint> ptList = new ArrayList<EPoint>();
-		geomList.add(ai);
-		geomList.add(oAi);
-
-		// add information that shows the arcs
-		ang = (ang + 900) % 3600;
-		double dist = 2;
-		double gDist = dist / 2;
-		double ca = Math.cos(ang);   double sa = Math.sin(ang);
-		double frX = fx + dist * ca;
-		double frY = fy + dist * sa;
-		double toX = tx + dist * ca;
-		double toY = ty + dist * sa;
-		fx = fx + gDist * ca;
-		fy = fy + gDist * sa;
-		tx = tx + gDist * ca;
-		ty = ty + gDist * sa;
-		ptList.add(new EPoint(frX, frY));   ptList.add(new EPoint(toX, toY));
-		ptList.add(new EPoint(frX, frY));   ptList.add(new EPoint(fx, fy));
-		ptList.add(new EPoint(tx, ty));     ptList.add(new EPoint(toX, toY));
-
-		frX = oFx - dist * ca;
-		frY = oFy - dist * sa;
-		toX = oTx - dist * ca;
-		toY = oTy - dist * sa;
-		oFx = oFx - gDist * ca;
-		oFy = oFy - gDist * sa;
-		oTx = oTx - gDist * ca;
-		oTy = oTy - gDist * sa;
-		ptList.add(new EPoint(frX, frY));   ptList.add(new EPoint(toX, toY));
-		ptList.add(new EPoint(frX, frY));   ptList.add(new EPoint(oFx, oFy));
-		ptList.add(new EPoint(oTx, oTy));   ptList.add(new EPoint(toX, toY));
-		errorLogger.logError("Arcs overlap", geomList, null, ptList, null, null, cell, 0);
-		return true;
 	}
 }

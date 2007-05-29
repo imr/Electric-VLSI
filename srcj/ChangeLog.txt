@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
+IMP: (5/29/07, SMR) Schematic DRC now flags nodes that have touching but
+     unconnected ports.
+
 IMP: (5/25/07, GVG) Getting 64bit adder working.
      TimingGraph.updateLoadConstraint(node) disconnected with LOAD.
      Changes in TimingReport so precision can be set (set_option precision
@@ -46,7 +49,7 @@ FIX: In NodeInst.getTransistorSize(), do not exclude non-FET transistors.
 BUG: (5/17/07, DN) Boolean project settings not read from library (Bug #1313).
 FIX: In LibraryFiles.realizeMeaningPrefs don't skip Boolean values.
 
-IMP: (5/17/07, SMR Visible layers and TechPalette (Bug #1241)
+IMP: (5/17/07, SMR) Visible layers and TechPalette (Bug #1241)
 
 IMP: (5/17/07, SMR) Waveform window allows multiple measurements.  Right-click
      to clear them.  Measurements have an extra digit of precision. (Bug #1308)
