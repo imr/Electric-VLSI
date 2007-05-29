@@ -427,7 +427,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <widthOffset untilVersion="2" value="3.0"/>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -439,7 +439,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <widthOffset untilVersion="2" value="2.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Polysilicon" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -451,7 +451,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <widthOffset untilVersion="2" value="2.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Diffusion" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -460,275 +460,268 @@
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-Pin" fun="PIN">
         <shrinkArcs/>
-        <defaultWidth>
-            <lambda>3.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>3.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <nodeLayer layer="Metal" style="CROSSED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
+            </box>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="-1.5"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="1.5"/>
         </nodeLayer>
         <primitivePort name="metal">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.5" ym="-0.5" ya="1.5"/>
-            <techPoint xm="0.5" xa="-1.5" ym="0.5" ya="-1.5"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
             <portArc>Metal</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Polysilicon-Pin" fun="PIN">
         <shrinkArcs/>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Polysilicon" style="CROSSED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="polysilicon">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Diffusion-Pin" fun="PIN">
         <shrinkArcs/>
-        <defaultWidth>
-            <lambda>2.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>2.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Diffusion" style="CROSSED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="diffusion">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Metal" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
             <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
         </nodeLayer>
         <primitivePort name="metal-poly">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
             <portArc>Metal</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Metal-Diffusion-Con" fun="CONTACT">
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Metal" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
             <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
         </nodeLayer>
         <primitivePort name="metal-diff">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
             <portArc>Diffusion</portArc>
             <portArc>Metal</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Butting-Con" fun="CONNECT">
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="0.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-3.0" hx="1.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Metal" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
-            <techPoint xm="0.0" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="0.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="0.0" hx="3.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="0.0" xa="0.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
-            <box/>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="but-diff">
             <portAngle primary="180" range="90"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="1.0"/>
             <portArc>Diffusion</portArc>
             <portArc>Metal</portArc>
         </primitivePort>
         <primitivePort name="but-poly">
             <portAngle primary="0" range="90"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.5" xa="-2.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
             <portArc>Metal</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross" fun="CONNECT">
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="2">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-right">
             <portAngle primary="0" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-bottom">
             <portAngle primary="270" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="-0.5" ya="-1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-top">
             <portAngle primary="90" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Transistor" fun="TRANMOS">
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>6.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-2.0"/>
+            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-1.0" hy="1.0"/>
+            </serpbox>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
+            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-3.0" hy="3.0"/>
+            </serpbox>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-3.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <primitivePort name="trans-poly-left">
             <portAngle primary="180" range="85"/>
             <portTopology>1</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="trans-diff-top">
             <portAngle primary="90" range="85"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="2.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="trans-poly-right">
             <portAngle primary="0" range="85"/>
             <portTopology>1</portTopology>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="trans-diff-bottom">
             <portAngle primary="270" range="85"/>
             <portTopology>3</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="-0.5" ya="-2.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <serpTrans>
@@ -742,54 +735,56 @@
     </primitiveNode>
 
     <primitiveNode name="Implant-Transistor" fun="TRADMOS">
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>6.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-2.0"/>
+            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-1.0" hy="1.0"/>
+            </serpbox>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Implant" style="FILLED"  portNum="-1">
-            <serpbox lWidth="2.5" rWidth="2.5" tExtent="1.5" bExtent="1.5"/>
-            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="0.5"/>
-            <techPoint xm="0.5" xa="-0.5" ym="0.5" ya="-0.5"/>
+            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="2.5" rWidth="2.5" tExtent="1.5" bExtent="1.5">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
+            </serpbox>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.5"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.5"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0"/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
+            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-3.0" hy="3.0"/>
+            </serpbox>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-3.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <primitivePort name="imp-trans-poly-left">
             <portAngle primary="180" range="85"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="imp-trans-diff-top">
             <portAngle primary="90" range="85"/>
             <portTopology>2</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="2.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="imp-trans-poly-right">
             <portAngle primary="0" range="85"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="imp-trans-diff-bottom">
             <portAngle primary="270" range="85"/>
             <portTopology>3</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="-0.5" ya="-2.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <serpTrans>
@@ -803,288 +798,288 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-S" fun="CONNECT">
-        <defaultWidth>
-            <lambda>4.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="0.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.0" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-bottom">
             <portAngle primary="270" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="-0.5" ya="-1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-top">
             <portAngle primary="90" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-end-right">
             <portAngle primary="0" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-T" fun="CONNECT">
-        <defaultWidth>
-            <lambda>5.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Polysilicon" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-0.5" hx="1.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="bur-poly-top">
             <portAngle primary="90" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="0.5" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-bottom">
             <portAngle primary="270" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="0.5" ym="-0.5" ya="-1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Polysurr" fun="CONNECT">
-        <defaultWidth>
-            <lambda>5.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-0.5" hx="2.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="1.5" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-3">
             <portAngle primary="0" range="135"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-1">
             <portAngle primary="0" range="135"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-2">
             <portAngle primary="0" range="135"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-I" fun="CONNECT">
-        <defaultWidth>
-            <lambda>5.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-1.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-0.5" hx="2.5" ly="-1.0" hy="1.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
             <points/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-2.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="2.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="-1.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="0.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-right">
             <portAngle primary="0" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="-0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="0.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-T" fun="CONNECT">
-        <defaultWidth>
-            <lambda>6.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
             <points/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-3.0" ym="0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="0.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="-0.5" ya="-2.0"/>
         </nodeLayer>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-2.0" ym="0.5" ya="-1.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-top">
             <portAngle primary="90" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-3.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="bur-diff-right">
             <portAngle primary="0" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.5" xa="-1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="-1.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-L" fun="CONNECT">
-        <defaultWidth>
-            <lambda>5.0</lambda>
-        </defaultWidth>
-        <defaultHeight>
-            <lambda>4.0</lambda>
-        </defaultHeight>
+        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
         <nodeLayer layer="Buried-Contact" style="FILLED">
-            <box/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Polysilicon" style="FILLED"  portNum="1">
-            <box/>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-1.0" ym="0.5" ya="0.0"/>
+            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
+                <lambdaBox lx="-0.5" hx="1.5" ly="-1.0" hy="2.0"/>
+            </box>
+            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="0.5" xa="1.5" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
             <points/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-2.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="-0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-2.5" ym="-0.5" ya="-2.0"/>
+            <techPoint xm="-0.5" xa="-2.5" ym="0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="0.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="2.5" ym="-0.5" ya="-2.0"/>
         </nodeLayer>
         <primitivePort name="bur-diff-left">
             <portAngle primary="180" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="-0.5" xa="1.0" ym="0.5" ya="-3.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="-0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="-1.5" ym="0.5" ya="-1.0"/>
             <portArc>Diffusion</portArc>
         </primitivePort>
         <primitivePort name="bur-poly-top">
             <portAngle primary="90" range="45"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="3.0" ym="0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-2.0" ym="0.5" ya="-1.0"/>
+            <techPoint xm="-0.5" xa="0.5" ym="0.5" ya="1.0"/>
+            <techPoint xm="0.5" xa="0.5" ym="0.5" ya="1.0"/>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>

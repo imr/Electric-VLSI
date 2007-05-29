@@ -77,7 +77,6 @@ import java.util.TreeSet;
  * Class to write a library to disk in new Electric-Library format.
  */
 public class JELIB extends Output {
-    private static boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.05g")) >= 0;
     private boolean oldRevision;
     private Version version;
     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
@@ -362,15 +361,20 @@ public class JELIB extends Output {
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
-                double lambdaWidth = n.size.getLambdaX();
-                double lambdaHeight = n.size.getLambdaY();
-                if (NEW_REVISION && !oldRevision) {
-                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
-                    lambdaWidth = DBMath.round(lambdaWidth - so.getLowXOffset() - so.getHighXOffset());
-                    lambdaHeight = DBMath.round(lambdaHeight - so.getLowYOffset() - so.getHighYOffset());
-                }
+                EPoint size = getSizeCorrector(((PrimitiveNode)np).getTechnology()).getSizeToDisk(n);
+                double lambdaWidth = size.getLambdaX();
+                double lambdaHeight = size.getLambdaY();
                 printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
                 printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));
+//                double lambdaWidth = n.size.getLambdaX();
+//                double lambdaHeight = n.size.getLambdaY();
+//                if (NEW_REVISION && !oldRevision) {
+//                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
+//                    lambdaWidth = DBMath.round(lambdaWidth - so.getLowXOffset() - so.getHighXOffset());
+//                    lambdaHeight = DBMath.round(lambdaHeight - so.getLowYOffset() - so.getHighYOffset());
+//                }
+//                printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
+//                printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));
             }
             printWriter.print('|');
             if (n.orient.isXMirrored()) printWriter.print('X');

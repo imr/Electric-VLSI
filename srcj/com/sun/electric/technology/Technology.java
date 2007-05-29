@@ -614,8 +614,8 @@ public class Technology implements Comparable<Technology>
 	}
     
     public class SizeCorrector {
-        private boolean oldRevision;
         private final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
+        private final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
         
         private SizeCorrector(Version version, boolean isJelib) {
             if (xmlTech != null) {
@@ -626,22 +626,50 @@ public class Technology implements Comparable<Technology>
                             techVersion = xmlVersion.techVersion;
                     }
                 }
-                oldRevision = (techVersion == 0);
                 for (Xml.ArcProto xap: xmlTech.arcs) {
                     ArcProto ap = arcs.get(xap.name);
                     double correction = 0;
-                    for (Map.Entry<Integer,Double> e: xap.widthOffset.entrySet()) {
+                    for (Map.Entry<Integer,Double> e: xap.diskOffset.entrySet()) {
                         if (techVersion < e.getKey()) {
                             correction = e.getValue();
                             break;
                         }
                     }
-                    arcExtends.put(ap, Integer.valueOf((int)DBMath.lambdaToGrid(0.5*correction)));
+                    arcExtends.put(ap, Integer.valueOf((int)DBMath.lambdaToGrid(correction)));
+                }
+                for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
+                    PrimitiveNode pn = nodes.get(xpn.name);
+                    EPoint elibCorrection = null;
+                    EPoint correction = EPoint.ORIGIN;
+                    if (!xpn.diskOffset.isEmpty()) {
+                        elibCorrection = xpn.diskOffset.values().iterator().next();
+                        for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
+                            if (techVersion < e.getKey()) {
+                                correction = e.getValue();
+                                break;
+                            }
+                        }
+                        correction = EPoint.fromGrid(correction.getGridX() - elibCorrection.getGridX(), correction.getGridY() - elibCorrection.getGridY());
+                    }
+                    nodeExtends.put(pn, correction);
+                }
+                for (Xml.Layer l: xmlTech.layers) {
+                    if (l.pureLayerNode == null) continue;
+                    PrimitiveNode pn = nodes.get(l.pureLayerNode.name);
+                    nodeExtends.put(pn, EPoint.ORIGIN);
                 }
             } else {
-                oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
+                boolean oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
                 for (ArcProto ap: arcs.values()) {
                     arcExtends.put(ap, Integer.valueOf(oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
+                }
+                for (PrimitiveNode pn: nodes.values()) {
+                    EPoint correction = EPoint.ORIGIN;
+                    if (!oldRevision) {
+                        SizeOffset so = pn.getProtoSizeOffset();
+                        correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()), -0.5*(so.getLowYOffset() + so.getHighYOffset()));
+                    }
+                    nodeExtends.put(pn, correction);
                 }
             }
         }
@@ -655,12 +683,17 @@ public class Technology implements Comparable<Technology>
         }
         
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
-            if (!oldRevision) {
-                SizeOffset so = pn.getProtoSizeOffset();
-                width += so.getLowXOffset() + so.getHighXOffset();
-                height += so.getLowYOffset() + so.getHighYOffset();
+            EPoint correction = nodeExtends.get(pn);
+            return EPoint.fromLambda(width - 2*correction.getLambdaX(), height - 2*correction.getLambdaY());
+        }
+        
+        public EPoint getSizeToDisk(ImmutableNodeInst n) {
+            EPoint size = n.size;
+            EPoint correction = nodeExtends.get((PrimitiveNode)n.protoId);
+            if (!correction.equals(EPoint.ORIGIN)) {
+                size = EPoint.fromLambda(size.getLambdaX() + 2*correction.getLambdaX(), size.getLambdaY() + 2*correction.getLambdaY());
             }
-            return EPoint.fromLambda(width, height);
+            return size;
         }
     }
     
@@ -829,8 +862,8 @@ public class Technology implements Comparable<Technology>
                 continue;
             }
             double widthOffset = 0;
-            if (!a.widthOffset.isEmpty())
-                widthOffset = a.widthOffset.values().iterator().next();
+            if (!a.diskOffset.isEmpty())
+                widthOffset = a.diskOffset.values().iterator().next()*2;
 //            for (Map.Entry<Integer,Double> e: a.widthOffset.entrySet()) {
 //                if (e.getKey() <= techVersion)
 //                    widthOffset = e.getValue();
@@ -875,12 +908,17 @@ public class Technology implements Comparable<Technology>
         }
         setNoNegatedArcs();
         for (Xml.PrimitiveNode n: t.nodes) {
+            EPoint correction = EPoint.ORIGIN;
+            if (!n.diskOffset.isEmpty())
+                correction = n.diskOffset.values().iterator().next();
             boolean needElectricalLayers = false;
             ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
             ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
             for (int i = 0; i < n.nodeLayers.size(); i++) {
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
                 TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
+                for (int j = 0; j < techPoints.length; j++)
+                    techPoints[j] = makeTechPoint(techPoints[j], correction);
                 NodeLayer nodeLayer;
                 Layer layer = layers.get(nl.layer);
                 if (n.shrinkArcs) {
@@ -901,7 +939,8 @@ public class Technology implements Comparable<Technology>
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
             }
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, n.defaultWidth.value, n.defaultHeight.value, n.sizeOffset,
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this,
+                    DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()), DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), n.sizeOffset,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
                 oldNodeNames.put(n.oldName, pnp);
@@ -942,11 +981,13 @@ public class Technology implements Comparable<Technology>
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
+                TechPoint p0 = makeTechPoint(p.p0, correction);
+                TechPoint p1 = makeTechPoint(p.p1, correction);
                 ArcProto[] connections = new ArcProto[p.portArcs.size()];
                 for (int j = 0; j < connections.length; j++)
                     connections[j] = arcs.get(p.portArcs.get(j));
                 ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
-                        PortCharacteristic.UNKNOWN, p.p0.getX(), p.p0.getY(), p.p1.getX(), p.p1.getY());
+                        PortCharacteristic.UNKNOWN, p0.getX(), p0.getY(), p1.getX(), p1.getY());
             }
             pnp.addPrimitivePorts(ports);
             pnp.setSpecialType(n.specialType);
@@ -1032,6 +1073,14 @@ public class Technology implements Comparable<Technology>
         setup();
     }
     
+    private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
+        EdgeH h = p.getX();
+        EdgeV v = p.getY();
+        h = new EdgeH(h.getMultiplier(), h.getAdder() - correction.getLambdaX()*h.getMultiplier()*2);
+        v = new EdgeV(v.getMultiplier(), v.getAdder() - correction.getLambdaY()*v.getMultiplier()*2);
+        return new TechPoint(h, v);
+    }
+    
     private Object convertMenuItem(Object menuItem) {
         if (menuItem instanceof Xml.ArcProto)
             return findArcProto(((Xml.ArcProto)menuItem).name);
@@ -1047,18 +1096,18 @@ public class Technology implements Comparable<Technology>
     public Xml.Technology getXmlTech() { return xmlTech; }
     
     protected void resizeXml(XMLRules rules) {
-        for (Xml.ArcProto xap: xmlTech.arcs) {
-            ArcProto ap = findArcProto(xap.name);
-            assert xap.arcLayers.size() == ap.layers.length;
-            Double widthOffsetObject = xap.widthOffset.get(Integer.valueOf(0));
-            double widthOffset = widthOffsetObject != null ? widthOffsetObject.doubleValue() : 0;
-            for (int i = 0; i < ap.layers.length; i++) {
-                Xml.ArcLayer xal = xap.arcLayers.get(i);
-                double layerWidthOffset = widthOffset - 2*xal.extend.value;
-                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(layerWidthOffset));
-            }
-            ap.computeLayerGridExtendRange();
-        }
+//        for (Xml.ArcProto xap: xmlTech.arcs) {
+//            ArcProto ap = findArcProto(xap.name);
+//            assert xap.arcLayers.size() == ap.layers.length;
+//            Double widthOffsetObject = xap.widthOffset.get(Integer.valueOf(0))*2;
+//            double widthOffset = widthOffsetObject != null ? widthOffsetObject.doubleValue() : 0;
+//            for (int i = 0; i < ap.layers.length; i++) {
+//                Xml.ArcLayer xal = xap.arcLayers.get(i);
+//                double layerWidthOffset = widthOffset - 2*xal.extend.value;
+//                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(layerWidthOffset));
+//            }
+//            ap.computeLayerGridExtendRange();
+//        }
     }
     
 	/**

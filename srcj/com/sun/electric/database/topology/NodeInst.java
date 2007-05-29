@@ -1098,10 +1098,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getXSizeWithoutOffset()
     {
-        SizeOffset so = getSizeOffset();
-        if (GenMath.isNinetyDegreeRotation(getAngle()))
-            return getYSize() - so.getLowYOffset() - so.getHighYOffset();
-        return getXSize() - so.getLowXOffset() - so.getHighXOffset();
+        return GenMath.isNinetyDegreeRotation(getAngle()) ? getLambdaBaseYSize() : getLambdaBaseXSize();
     }
 
 	/**
@@ -1126,10 +1123,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getYSizeWithoutOffset()
     {
-        SizeOffset so = getSizeOffset();
-        if (GenMath.isNinetyDegreeRotation(getAngle()))
-            return getXSize() - so.getLowXOffset() - so.getHighXOffset();
-        return getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        return GenMath.isNinetyDegreeRotation(getAngle()) ? getLambdaBaseXSize() : getLambdaBaseYSize();
     }
 
 	/**

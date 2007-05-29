@@ -3522,7 +3522,7 @@ public class LibToTech
             ap.fixedAngle = ai.fixAng;
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
-            ap.widthOffset.put(Integer.valueOf(1), ai.widthOffset);
+            ap.diskOffset.put(Integer.valueOf(1), 0.5*ai.widthOffset);
             ap.defaultWidth.value = DBMath.round(ai.maxWidth - ai.widthOffset);
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();

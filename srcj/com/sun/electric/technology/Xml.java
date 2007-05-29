@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 
@@ -43,9 +44,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.omg.CORBA.COMM_FAILURE;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -156,7 +157,7 @@ public class Xml {
         public boolean notUsed;
         public boolean skipSizeInPalette;
         
-        public final TreeMap<Integer,Double> widthOffset = new TreeMap<Integer,Double>();
+        public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
         public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
@@ -190,6 +191,7 @@ public class Xml {
         public boolean od33;
         
         public com.sun.electric.technology.PrimitiveNode.Function function;
+        public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
         public SizeOffset sizeOffset;
@@ -207,6 +209,10 @@ public class Xml {
         public boolean inLayers;
         public boolean inElectricalLayers;
         public int representation;
+        public final Distance lx = new Distance();
+        public final Distance hx = new Distance();
+        public final Distance ly = new Distance();
+        public final Distance hy = new Distance();
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
         public double lWidth, rWidth, tExtent, bExtent;
@@ -239,6 +245,7 @@ public class Xml {
     }
     
     public static class Distance {
+        public double k;
         public double value;
     }
     
@@ -292,7 +299,7 @@ public class Xml {
         angleIncrement(true),
         antennaRatio(true),
         
-        widthOffset,
+        diskOffset,
         defaultWidth,
         arcLayer,
         
@@ -320,6 +327,7 @@ public class Xml {
         minbox,
         multicutbox,
         serpbox,
+        lambdaBox,
         points,
         techPoint,
         primitivePort,
@@ -776,8 +784,11 @@ public class Xml {
                     if (curNode != null)
                         curNode.skipSizeInPalette = true;
                     break;
-                case widthOffset:
-                    curArc.widthOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("value")));
+                case diskOffset:
+                    if (curArc != null)
+                        curArc.diskOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("width")));
+                    if (curNode != null)
+                        curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
                 case defaultWidth:
                     if (curArc != null)
@@ -882,6 +893,8 @@ public class Xml {
                     curNodeLayer.rWidth = Double.parseDouble(a("rWidth"));
                     curNodeLayer.tExtent = Double.parseDouble(a("tExtent"));
                     curNodeLayer.bExtent = Double.parseDouble(a("bExtent"));
+                    break;
+                case lambdaBox:
                     break;
                 case techPoint:
                     double xm = Double.parseDouble(a("xm"));
@@ -1168,7 +1181,7 @@ public class Xml {
                 case special:
                 case notUsed:
                 case skipSizeInPalette:
-                case widthOffset:
+                case diskOffset:
                 case defaultWidth:
                 case arcLayer:
                     
@@ -1192,6 +1205,7 @@ public class Xml {
                 case points:
                 case multicutbox:
                 case serpbox:
+                case lambdaBox:
                 case techPoint:
                 case portAngle:
                 case polygonal:
@@ -1582,8 +1596,8 @@ public class Xml {
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
             bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
             
-            for (Map.Entry<Integer,Double> e: ai.widthOffset.entrySet()) {
-                b(XmlKeyword.widthOffset); a("untilVersion", e.getKey()); a("value", e.getValue()); el();
+            for (Map.Entry<Integer,Double> e: ai.diskOffset.entrySet()) {
+                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("width", e.getValue()); el();
             }
             
             if (ai.defaultWidth.value != 0) {
@@ -1640,13 +1654,23 @@ public class Xml {
             if (ni.od33)
                 bel(XmlKeyword.od33);
             
-            bcl(XmlKeyword.defaultWidth);
-            bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultWidth.value));
-            el(XmlKeyword.defaultWidth);
+            for (Map.Entry<Integer,EPoint> e: ni.diskOffset.entrySet()) {
+                EPoint p = e.getValue();
+                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("x", p.getLambdaX()); a("y", p.getLambdaY()); el();
+            }
             
-            bcl(XmlKeyword.defaultHeight);
-            bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultHeight.value));
-            el(XmlKeyword.defaultHeight);
+            if (ni.defaultWidth.value != 0) {
+                bcl(XmlKeyword.defaultWidth);
+                bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultWidth.value));
+                el(XmlKeyword.defaultWidth);
+            }
+            
+            if (ni.defaultHeight.value != 0) {
+                bcl(XmlKeyword.defaultHeight);
+                bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultHeight.value));
+                el(XmlKeyword.defaultHeight);
+            }
+            
             if (ni.sizeOffset != null) {
                 double lx = ni.sizeOffset.getLowXOffset();
                 double hx = ni.sizeOffset.getHighXOffset();
@@ -1665,9 +1689,14 @@ public class Xml {
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
                         if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
-                            b(XmlKeyword.serpbox); a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); el();
+                            b(XmlKeyword.serpbox); a("lx", nl.lx.k); a("hx", nl.hx.k); a("ly", nl.ly.k); a("hy", nl.hy.k);
+                            a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); cl();
+                            b(XmlKeyword.lambdaBox); a("lx", nl.lx.value); a("hx", nl.hx.value); a("ly", nl.ly.value); a("hy", nl.hy.value); el();
+                            el(XmlKeyword.serpbox);
                         } else {
-                            b(XmlKeyword.box); el();
+                            b(XmlKeyword.box); a("lx", nl.lx.k); a("hx", nl.hx.k); a("ly", nl.ly.k); a("hy", nl.hy.k); cl();
+                            b(XmlKeyword.lambdaBox); a("lx", nl.lx.value); a("hx", nl.hx.value); a("ly", nl.ly.value); a("hy", nl.hy.value); el();
+                            el(XmlKeyword.box);
                         }
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MINBOX:

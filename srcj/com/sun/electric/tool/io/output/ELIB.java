@@ -817,10 +817,12 @@ public class ELIB extends Output
 //                lowY = (int)Math.round((trueCenterY - ySize/2) * tech.getScale()*2);
 //                highY = (int)Math.round((trueCenterY + ySize/2) * tech.getScale()*2);
             } else {
+                PrimitiveNode pn = (PrimitiveNode)protoId;
                 trueCenterX = n.anchor.getGridX();
                 trueCenterY = n.anchor.getGridY();
-                xSize = n.size.getGridX();
-                ySize = n.size.getGridY();
+                EPoint size = getSizeCorrector(pn.getTechnology()).getSizeToDisk(n);
+                xSize = size.getGridX();
+                ySize = size.getGridY();
                 writeTxt("type: " + ((PrimitiveNode)protoId).getFullName());
 //                lowX = (int)Math.round((n.anchor.getLambdaX() - n.size.getLambdaX()/2) * tech.getScale()*2);
 //                highX = (int)Math.round((n.anchor.getLambdaX() + n.size.getLambdaX()/2) * tech.getScale()*2);
