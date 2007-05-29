@@ -4,10 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05m: *********************************
 
-IMP: (5/25/07, GVG) Getting 64bit adder working. TimingGraph.updateLoadConstraint(node) disconnected with LOAD.
-Changes in TimingReport so precision can be set (set_option precision <double>).
-Constraints parser allows to upload all inputs/outputs if no ports are specified.
-Using TimingAction to control sequence of calls.
+IMP: (5/25/07, GVG) Getting 64bit adder working.
+     TimingGraph.updateLoadConstraint(node) disconnected with LOAD.
+     Changes in TimingReport so precision can be set (set_option precision
+     <double>).  Constraints parser allows to upload all inputs/outputs if no
+     ports are specified.  Using TimingAction to control sequence of calls.
 
 BUG: (5/25/07, DN) Flatten hierarchy is too slow (Bug #1243).
 IMP: CellChangeJobs.ExtractCellInstances.doIt works in a little more bulky mode.
@@ -21,13 +22,14 @@ FIX: In Panel.mouseReleasedZoom(), compute min/max Y values properly.
 
 IMP: (5/24/07, DN) Xml technology can have versions.
 
-IMP: (5/23/07, GVG) Changes in VerilogReader to deal with busses. This allows better handling in the timing graph.
-It could use more memory though so it has to be tested in big examples (more than 10k nodes).
+IMP: (5/23/07, GVG) Changes in VerilogReader to deal with busses. This allows
+     better handling in the timing graph.  It could use more memory though so it
+     has to be tested in big examples (more than 10k nodes).
 
 BUG: (5/23/07, SMR) HSpice reader removes leading "x" from signal names.
 FIX: In Simulate.removeLeadingX(), do not remove leading "x" in last part.
 
-IMP/MAN: (5/22/07, SMR) Added "Show Redundant Pure-Layer Nodes" command to
+IMP: (5/22/07, SMR) Added "Show Redundant Pure-Layer Nodes" command to
      Edit / Cleanup Cell menu to eliminate duplication.
 
 BUG: (5/22/07, DN) Can't import ReadableDump.
@@ -42,18 +44,19 @@ BUG: (5/21/07, SMR) Spice output does not write NPN transistor area.
 FIX: In NodeInst.getTransistorSize(), do not exclude non-FET transistors.
 
 BUG: (5/17/07, DN) Boolean project settings not read from library (Bug #1313).
-FIX: In LibraryFiles.realizeMeaningPrefs don't skip Booleanvalues.
+FIX: In LibraryFiles.realizeMeaningPrefs don't skip Boolean values.
 
 IMP: (5/17/07, SMR Visible layers and TechPalette (Bug #1241)
 
 IMP: (5/17/07, SMR) Waveform window allows multiple measurements.  Right-click
      to clear them.  Measurements have an extra digit of precision. (Bug #1308)
 
-BUG: (5/17/07, GVG) Cannot set "Disallow Stacked Vias" for mocmos technology (Bug #1312)
+BUG: (5/17/07, GVG) Cannot set "Disallow Stacked Vias" for mocmos technology (Bug
+     #1312)
 FIX: Added SPACINGE to the switch in XMLRules.loadDRCRules().
 
 BUG: (5/17/07, DN) JELIB reader crashes on unknown PrimitiveNode.
-FIX: In  input.JELIB.instantiateCellContnts add test "np != null.
+FIX: In input.JELIB.instantiateCellContnts add test "np != null.
 
 ************************* Version 8.05l: *********************************
 
@@ -63,36 +66,41 @@ FIX: Added progress dialog.
 BUG: (5/17/07, SMR) PostScript uses different default fonts (for Ivan).
 FIX: In PostScript.java, unify use of "Times" and "Times-Roman".
 
-BUG: (5/17/07, SMR) Unknown fonts do not appear in "Properties" dialogs (for Ivan).
+BUG: (5/17/07, SMR) Unknown fonts do not appear in "Properties" dialogs.
 FIX: Added EDialog.ensureComboBoxFont() to add unknown fonts to the list.
 
 BUG: (5/16/07, SMR) PostScript output doesn't handle exports on mirrored nodes.
 FIX: In PostScript.recurseCircuitLevel() use Poly.rotateType() to adjust the
      style of export text.
 
-BUG: (5/15/07, SMR) Project setting reconciliation sometimes asks about boolean values
-     that are equal.
-FIX: In GenMath.objectsReallyEqual() also handle comparison between Boolean and integer.
+BUG: (5/15/07, SMR) Project setting reconciliation sometimes asks about Boolean
+     values that are equal.
+FIX: In GenMath.objectsReallyEqual() also handle comparison between Boolean and
+     integer.
 
-BUG: (5/15/07, SMR) Measurements in the waveform window don't scale with the window (Bug #1309).
+BUG: (5/15/07, SMR) Measurements in the waveform window don't scale with the
+     window (Bug #1309).
 FIX: In Panel.java, store measurements in waveform space, not screen space.
 
-IMP: (5/15/07, SMR) HSpice reader now ignores the "V()" wrapper around signal names
-     for better cross-probing.
+IMP: (5/15/07, SMR) HSpice reader now ignores the "V()" wrapper around signal
+     names for better cross-probing.
 
-BUG: (5/15/07, DN) Electric hangs (and consumes vast amounts of memory) writing JELIB.
+BUG: (5/15/07, DN) Electric hangs (and consumes vast amounts of memory) writing
+     JELIB.
 FIX: In ImmutableNodeInst.PortInstIterator advance "chronIndex". 
 
 BUG: (5/14/07, SMR) Improved HSpice reader (for Ian).
 
-IMP: (5/14/07, GVG) Adding primitive/specify/table keys to Verilog Reader (reported by Bill).
+IMP: (5/14/07, GVG) Adding primitive/specify/table keys to Verilog Reader
+     (reported by Bill).
 
-IMP: (5/14/07, GVG) Allowing to find Verilog view based on the cell group (reported by Bill).
+IMP: (5/14/07, GVG) Allowing to find Verilog view based on the cell group
+     (reported by Bill).
 
 IMP: (5/10/07, GVG) Added layer PLDMY (GDS 124/0) to CMOS90 (Bug#1310)
 
-IMP: (5/10/07, GVG) Renaming of XML DRC deck files to avoid name conflicts on MacOSX and Windows.
-As of today, they are named <techName>DRCDeck.xml.
+IMP: (5/10/07, GVG) Renaming of XML DRC deck files to avoid name conflicts on
+     MacOSX and Windows. As of today, they are named <techName>DRCDeck.xml.
 
 IMP: (5/9/07, SMR) Added Technology Edit to the Tests menu.
 
@@ -101,15 +109,15 @@ IMP: (5/9/07, GVG) Cleaning pseudo references in XML DRC decks.
 BUG: (5/8/07, DN) DRCTemplate writer writes DRCMode "M3" as "M3|M23".
 FIX: Reorder DRCMode values and modify writing algorithm.
 
-(5/7/07, DN) Temporarily rollback Xml description of "tsmc180" and "cmos90".
+FIX: (5/7/07, DN) Temporarily rollback Xml description of "tsmc180" and "cmos90".
 
--IMP: (5/6/07, DN) Xml description for technology "tsmc90".
+IMP: (5/6/07, DN) Xml description for technology "tsmc90".
 
 BUG: (5/6/07, DN) DRCTemplate writer skips some DRCRuleTypes.
 FIX: Write FORBDEN and EXTENSIONGATE rules, comment CUTSURX and CUTSURY rules,
-    assert on SLOTSIZE rule.
+     assert on SLOTSIZE rule.
 
--IMP: (5/5/07, DN) Xml description for technology "cmos90".
+IMP: (5/5/07, DN) Xml description for technology "cmos90".
 
 IMP: (5/5/07, DN) Rename some nodes in "cmos90" to fit Xml syntax restrictions:
         "cmos90:X Metal-1-Metal-2-Con" -> "cmos90:X-Metal-1-Metal-2-Con"
@@ -123,29 +131,32 @@ IMP: (5/5/07, DN) Rename some nodes in "cmos90" to fit Xml syntax restrictions:
         "cmos90:X Metal-4-Metal-7-Con" -> "cmos90:X-Metal-4-Metal-7-Con"
 
 IMP: (5/4/07, DN) Pseudo-layers are hidden:
-    1) They are not mentioned in technology Xml files;
-    2) Tecnology.getLayers() doesn't contain them;
-    3) Technology.NodeLayer.getLayer() always returns non-pseudo layers;
-    4) Poly.getLayer() always returns non pseudo-lauer;
+     1) They are not mentioned in technology Xml files;
+     2) Tecnology.getLayers() doesn't contain them;
+     3) Technology.NodeLayer.getLayer() always returns non-pseudo layers;
+     4) Poly.getLayer() always returns non pseudo-lauer;
     How to access pseudo-layers:
-    1) They are implicitely created for nodes with <shrinkArcs/> flags.
-    2) masterLayer.getPseudoLayer();
-    3) Technology.NodeLayer.getLayerOrPseudoLayer();
-    4) Poly.getLayerOrPseudoLayer();
+     1) They are implicitely created for nodes with <shrinkArcs/> flags.
+     2) masterLayer.getPseudoLayer();
+     3) Technology.NodeLayer.getLayerOrPseudoLayer();
+     4) Poly.getLayerOrPseudoLayer();
     How to test for pseudo-layer:
-    3) Technology.NodeLayer.isPseudoLayer();
-    4) Poly.isPseudoLayer();
+     3) Technology.NodeLayer.isPseudoLayer();
+     4) Poly.isPseudoLayer();
      
 ************************* Version 8.05k: *********************************
 
 IMP: (5/4/07, SMR) Improved EDIF reading of unusual schematics.
 
-IMP: (5/4/07, DN) Xml description for technologies: bicmos, bipolar, cmos, mocmosold, mocmossub, nmos .
+IMP: (5/4/07, DN) Xml description for technologies: bicmos, bipolar, cmos,
+     mocmosold, mocmossub, nmos.
 
 IMP: (5/3/07, GVG) Assigning sink-cap parasitics to missing driver nodes. Added
-set_input_transition, set_clock_transition and code to deal with set_driving_cell.
+     set_input_transition, set_clock_transition and code to deal with
+     set_driving_cell.
 
-IMP: (5/3/07, SMR) No longer shows blue "prehighlight" when in area-selection mode.
+IMP: (5/3/07, SMR) No longer shows blue "prehighlight" when in area-selection
+     mode.
 
 BUG: (5/3/07, SMR) Interactively sizing a rotated polygonally-defined node fails.
 FIX: In SizeListener.ScaleNode.doIt(), calculate new points correctly.
@@ -156,60 +167,66 @@ IMP: (5/3/07, SMR) Area delete (when area-selection is deleted) now splits
 IMP: (5/3/07, SMR) Auto-stitcher now creates only as many arcs as are necessary
      to connect many nodes in a tight area.
 
-BUG: (5/3/07, DN) Some layers in cmos90 technology have patterns wider than 16 bits.
-FIX: Mask the patterns by 0xFFFF .
+BUG: (5/3/07, DN) Some layers in cmos90 technology have patterns wider than 16
+     bits.
+FIX: Mask the patterns by 0xFFFF.
 
 BUG: (5/1/07, GVG) Exception while reading noname library (Bug #1306)
 FIX: Prevent the exception when the input library is named noname.
 
-BUG: (5/1/07, SMR) "Delete Old Unused Versions" works only in the current library.
+BUG: (5/1/07, SMR) "Delete Old Unused Versions" works only in the current
+     library.
 FIX: Now looks everywhere and prompts user to delete from non-current libraries.
 
-BUG: (4/30/07, GVG) Transistors in MoCMOS-Mosis too tinny in the palette (Bug #1304)
+BUG: (4/30/07, GVG) Transistors in MoCMOS-Mosis too tiny in the palette (Bug
+     #1304)
 FIX: npnTransistorNode.setSkipSizeInPalette(); 
 
 IMP: (4/30/07, GVG) Removing Highlight from CVS (old version of Highlight2)
 
-IMP: (4/30/07, GVG) New layers in CMOS90: DEXCL-RDL, SDI, ESD1DMY, ESD2DMY, ESD3, DIODMY (Bug #1305)
+IMP: (4/30/07, GVG) New layers in CMOS90: DEXCL-RDL, SDI, ESD1DMY, ESD2DMY, ESD3,
+     DIODMY (Bug #1305)
 
-BUG: (4/30/07, SMR) Waveform window gives error if cross-probing to wrong cell (Bug #1303).
-FIX: In WaveformWindow.crossProbeWaveformToEditWindow(), do not call hl.addNetwork()
-     if the cell does not match.
+BUG: (4/30/07, SMR) Waveform window gives error if cross-probing to wrong cell
+     (Bug #1303).
+FIX: In WaveformWindow.crossProbeWaveformToEditWindow(), do not call
+     hl.addNetwork() if the cell does not match.
 
-IMP/MAN: (4/26/07, SMR) Added "Analog" checkbox to Technology Project Settings.
+IMP: (4/26/07, SMR) Added "Analog" checkbox to Technology Project Settings.
 
-IMP/MAN: (4/26,07, DN) Parameter "Analog" was added to "mocmos" technology, which is off by default.
-    If it is enabled, then a layer "mocmos:P-Base" and nodes "mocmos:NPN-Transistor" and "mocmos:P-Base-Node" appear.
-    A new "when" "AN" was added to DRC template. A few rules are added to "Mosis180.xml".
+IMP: (4/26,07, DN) Parameter "Analog" was added to "mocmos" technology, which is
+     off by default. If it is enabled, then a layer "mocmos:P-Base" and nodes
+     "mocmos:NPN-Transistor" and "mocmos:P-Base-Node" appear. A new "when" "AN"
+     was added to DRC template. A few rules are added to "Mosis180.xml".
 
 IMP: (4/25/07, DN) TechnologyTest added to regressions.
 
 BUG: (4/24/07, DN) Some pure layer node have strange connections.
 FIX: Remove connections:
-   mocmos:Thick-Active-Node  Polysilicon-1 arc
-   tsmc180:Thick-Active-Node Polysilicon-1 arc
-   tsmc180:BJTDUMMY-Node     Polysilicon-1 arc
-   tsmc180:DIODUMMY-Node     Polysilicon-1 arc
-   tsmc180:RWDUMMY-Node      Polysilicon-1 arc
-   tsmc180:ESD2DMY-Node      Polysilicon-1 arc
-   tsmc180:sdiDMY-Node       Polysilicon-1 arc
+     mocmos:Thick-Active-Node  Polysilicon-1 arc
+     tsmc180:Thick-Active-Node Polysilicon-1 arc
+     tsmc180:BJTDUMMY-Node     Polysilicon-1 arc
+     tsmc180:DIODUMMY-Node     Polysilicon-1 arc
+     tsmc180:RWDUMMY-Node      Polysilicon-1 arc
+     tsmc180:ESD2DMY-Node      Polysilicon-1 arc
+     tsmc180:sdiDMY-Node       Polysilicon-1 arc
 
 BUG: (4/24/07, DN) Some pure layer nodes have non-zero port indent.
-FIX: Set zero port indenet for pure layer nodes:
-    rcmos:Metal-1-Node
-    rcmos:Metal-2-Node
-    rcmos:Polysilicon-Node
-    rcmos:Active-Node
-    rcmos:D-Active-Node
-    rcmos:Select-Node
-    rcmos:Cut-Node
-    rcmos:Poly-Cut-Node
-    rcmos:Active-Cut-Node
-    rcmos:Via-Node
-    rcmos:Well-Node
-    rcmos:Passivation-Node
-    generic:DRC-Node
-    generic:AFG-Node
+FIX: Set zero port indent for pure layer nodes:
+     rcmos:Metal-1-Node
+     rcmos:Metal-2-Node
+     rcmos:Polysilicon-Node
+     rcmos:Active-Node
+     rcmos:D-Active-Node
+     rcmos:Select-Node
+     rcmos:Cut-Node
+     rcmos:Poly-Cut-Node
+     rcmos:Active-Cut-Node
+     rcmos:Via-Node
+     rcmos:Well-Node
+     rcmos:Passivation-Node
+     generic:DRC-Node
+     generic:AFG-Node
 
 BUG: (4/24/07, DN) CIF writer writes pseudo-layer pins.
 FIX: In output.CIF.writeLayer() return false on pseudo-layers.
@@ -217,185 +234,222 @@ FIX: In output.CIF.writeLayer() return false on pseudo-layers.
 BUG: (4/23/07, DN) Spice writer tries get capacitance of pseudo-layers.
 FIX: In output.Spice insert checks for pseudo-layers.
 
-BUG: (4/20/07, DN) Sometimes properties of pseudo-layer don't match master layer. For example:
-    "tsmc180:Pseudo-NT-N" has function "DIFFN", though tsmc180:NT-N" has function "IMPLANTN";
-    "cmos90:Pseudo-OD18", "cmos90:Pseudo-OD25", "cmos90-Pseudo-OD33" haven't extra function "THICK"
-    while "cmos90:OD18", "cmos90:OD25", "cmos90:OD33" have it.
+BUG: (4/20/07, DN) Sometimes properties of pseudo-layer don't match master layer.
+     For example: "tsmc180:Pseudo-NT-N" has function "DIFFN", though
+     tsmc180:NT-N" has function "IMPLANTN"; "cmos90:Pseudo-OD18",
+     "cmos90:Pseudo-OD25", "cmos90-Pseudo-OD33" haven't extra function "THICK"
+     while "cmos90:OD18", "cmos90:OD25", "cmos90:OD33" have it.
 FIX: Add method Layer.makePseudo() and use it everywhere.
 
-BUG: (4/20/07, DN) There are pseudo-layers without master layer, though they are not used.
+BUG: (4/20/07, DN) There are pseudo-layers without master layer, though they are
+     not used.
 FIX: Don't set "PSEDO" extra function to layers:
-    nmos:Transistor, cmos:Transistor, bicmos:Transistro, mocmosold:Transistro, mocmossub:Transistor .
+     nmos:Transistor, cmos:Transistor, bicmos:Transistro, mocmosold:Transistor,
+     mocmossub:Transistor .
 
 BUG: (4/19/07, GVG) CsaClient.computeTestVar returns wrong
 FIX: signature change CsaOpVariable.
 
-IMP: (4/19/07, GVG) Latest changes to get running required in both early/late graphs.
+IMP: (4/19/07, GVG) Latest changes to get running required in both early/late
+     graphs.
 
-BUG: (4/19/07, SMR) Signals in waveform window change color when dragged to a new panel (Bug #1301).
-FIX: In WaveformWindow.WaveFormDropTarget.drop(), pass the new color to WaveSignal.addSignalToPanel().
+BUG: (4/19/07, SMR) Signals in waveform window change color when dragged to a new
+     panel (Bug #1301).
+FIX: In WaveformWindow.WaveFormDropTarget.drop(), pass the new color to
+     WaveSignal.addSignalToPanel().
 
-IMP: (4/18/07, GVG) Preparing code to get rid of Highlight and leave only Highlight2.
+IMP: (4/18/07, GVG) Preparing code to get rid of Highlight and leave only
+     Highlight2.
 
-BUG: (4/18/07, DN) Infinite loop of exception in HighlightText.describe (Bug #1300).
-FIX: Make "HighlightText.eobj" final and don't modify it at "HighlightText.getGeometric".
+BUG: (4/18/07, DN) Infinite loop of exception in HighlightText.describe (Bug
+     #1300).
+FIX: Make "HighlightText.eobj" final and don't modify it at
+     "HighlightText.getGeometric".
 
 IMP: (4/17/07, DN) Numbers in MoCMOS:Metal-5-Metal-6-Con primitive are updated to
-    described default SCMOS 6-metal sizes.
+     described default SCMOS 6-metal sizes.
 
-IMP: (4/17/07, DN) NodeLayer has MULTICUTBOX representation. Its two tech points define
-    a rectangular region where cut centers are located. The NodeLayer also have
-    cutSizeX, cutSizeY, cutSep1D, cutSep2D special values. The zero-sized region can
-    contain only one cut. Large regions can have as many cuts as allowed by special values.
-    PrimitiveNode can have a few NodeLayers with MULTICUTBOX representation, this resistor
-    primitives are described in regular way, and we don't have to override "Technology.getShapeOfNode"
-    methods to handle their shapes.
+IMP: (4/17/07, DN) NodeLayer has MULTICUTBOX representation. Its two tech points
+     define a rectangular region where cut centers are located. The NodeLayer
+     also have cutSizeX, cutSizeY, cutSep1D, cutSep2D special values. The zero-
+     sized region can contain only one cut. Large regions can have as many cuts
+     as allowed by special values. PrimitiveNode can have a few NodeLayers with
+     MULTICUTBOX representation, this resistor primitives are described in
+     regular way, and we don't have to override "Technology.getShapeOfNode"
+     methods to handle their shapes.
 
 BUG: (4/17/07, DN) ELIB reader crashes.
 FIX: In ELIB.readNodeProto restore "ignore the cell bounding box" code.
 
-BUG: (4/16/07, GVG) contact spacing incorrect for large contacts in tsmc180 (Bug#1298)
-FIX: This bug was most probably introduced around 8.04x. From now, multi-cut spacings in poly contacts (nxm)
-is dictated by CO.S.2.
+BUG: (4/16/07, GVG) contact spacing incorrect for large contacts in tsmc180
+     (Bug#1298)
+FIX: This bug was most probably introduced around 8.04x. From now, multi-cut
+     spacings in poly contacts (nxm) is dictated by CO.S.2.
 
-IMP: (4/13/07, GVG) Threading late/early modes in Oyster. More decent results for arrivals.
+IMP: (4/13/07, GVG) Threading late/early modes in Oyster. More decent results for
+     arrivals.
 
-BUG: (4/11/07, DN) Re-exporting a large number of ports takes a long time (Bug #1296).
+BUG: (4/11/07, DN) Re-exporting a large number of ports takes a long time (Bug
+     #1296).
 FIX: In ExportChanges.reExportPorts remove unused "acquireUserNetlist".
 
-BUG: (4/10/07, DN) DELIB reader gets invalid sizes of primitives when versions of header file and cell file are different.
-FIX: Add field revision to JELIB.CellContents and use it in realizeCellContent method.
+BUG: (4/10/07, DN) DELIB reader gets invalid sizes of primitives when versions of
+     header file and cell file are different.
+FIX: Add field revision to JELIB.CellContents and use it in realizeCellContent
+     method.
 
-IMP: (4/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case the PrefFoundry is not available
-and the first one defined in the list is used. This is mainly to explain results in DRC primitives regression.
+IMP: (4/9/07, GVG) Added warning message in Technology.getSelectedFoundry in case
+     the PrefFoundry is not available and the first one defined in the list is
+     used. This is mainly to explain results in DRC primitives regression.
 
-BUG: (4/6/07, GVG) Wrong numbers of expected results in DRCToolTest.primitiveTechTest due to change in
-TSMC180 tech.
+BUG: (4/6/07, GVG) Wrong numbers of expected results in
+     DRCToolTest.primitiveTechTest due to change in TSMC180 tech.
 FIX: Expected numbers fixed.
 
 BUG: (4/6/07, GVG) Error in CSA GateTimModelWrap constructor.
 FIX: Set correct condition for second switch statement.
 
 BUG: (4/6/07, GVG) Precision issue in awe.awe_LUFactor(). 
-FIX: Added extra isZero condition. It might need to be used in other part of the code.
-Other issue related to wrong pointer increment done in Rice.
+FIX: Added extra isZero condition. It might need to be used in other part of the
+     code. Other issue related to wrong pointer increment done in Rice.
 
-IMP: (4/5/07, GVG) Changes in build.xml to automatically calculate the version in the MacOS package (plist file).
+IMP: (4/5/07, GVG) Changes in build.xml to automatically calculate the version in
+     the MacOS package (plist file).
 
 BUG: (4/5/07, DN) Some pure layer nodes have no POLYGONAL special type.
 FIX: Set POLYGONAL special type to "generic:DRC-Node" and "generic:AFG-Node".
 
 BUG: (4/5/07. DN) Some pure layer nodes have non-zero port indent.
-FIX: Set zero port indenet for pure layer nodes:
-    tsmc180:NT-N-Node
-    cmos90:VTH-N-Node
-    cmos90:VTH-P-Node
-    cmos90:VTL-N-Node
-    cmos90:VTL-P-Node
-    cmos90:OD18-Node
-    cmos90:OD25-Node
-    cmos90:OD33-Node
-    cmos90:NT-N-Node
-    cmos90:Metal-1-Node
-    cmos90:Metal-2-Node
-    cmos90:Metal-3-Node
-    cmos90:Metal-4-Node
-    cmos90:Metal-5-Node
-    cmos90:Metal-6-Node
-    cmos90:Metal-7-Node
-    cmos90:Metal-8-Node
-    cmos90:Metal-9-Node
-    cmos90:Polysilicon-Node
-    cmos90:N-Active-Node
-    cmos90:P-Active-Node
-    cmos90:N-Well-Node
-    cmos90:P-Well-Node
-    cmos90:Transistor-Poly-Node
+FIX: Set zero port indent for pure layer nodes:
+     tsmc180:NT-N-Node
+     cmos90:VTH-N-Node
+     cmos90:VTH-P-Node
+     cmos90:VTL-N-Node
+     cmos90:VTL-P-Node
+     cmos90:OD18-Node
+     cmos90:OD25-Node
+     cmos90:OD33-Node
+     cmos90:NT-N-Node
+     cmos90:Metal-1-Node
+     cmos90:Metal-2-Node
+     cmos90:Metal-3-Node
+     cmos90:Metal-4-Node
+     cmos90:Metal-5-Node
+     cmos90:Metal-6-Node
+     cmos90:Metal-7-Node
+     cmos90:Metal-8-Node
+     cmos90:Metal-9-Node
+     cmos90:Polysilicon-Node
+     cmos90:N-Active-Node
+     cmos90:P-Active-Node
+     cmos90:N-Well-Node
+     cmos90:P-Well-Node
+     cmos90:Transistor-Poly-Node
 
-BUG: (4/5/07, SMR) Modeless dialogs are not brought to the front when created (Bug #949).
+BUG: (4/5/07, SMR) Modeless dialogs are not brought to the front when created
+     (Bug #949).
 FIX: Added "toFront()" call after creating modeless dialogs.
 
-BUG: (4/5/07, SMR) Keyboard input lost when Text Properties dialog appears (Bug #945).
+BUG: (4/5/07, SMR) Keyboard input lost when Text Properties dialog appears (Bug
+     #945).
 FIX: In GetInfoText.loadTextInfo() do not call "theText.setEnabled(false)"
 
 IMP: (4/5/07, DN) PortCharacteristic class converted to enum.
 
 IMP: (4/5/07, DN) Removed isHoldsOutline from "generic:Universal-Pin" node.
 
-IMP/MAN: (4/5/07, SMR) Removed foundry selection from "mocmos" section of Technology Project Settings.
+IMP: (4/5/07, SMR) Removed foundry selection from "mocmos" section of Technology
+     Project Settings.
 
 IMP: (4/5/07, DN) [NP]-Transistor-Scalable are excluded from TSMC180 technology.
 
-IMP: (4/5/07, DN) Second polysilicon (if available) is shown in "mocmos" and "tsmc180" tech palettes.
+IMP: (4/5/07, DN) Second polysilicon (if available) is shown in "mocmos" and
+     "tsmc180" tech palettes.
 
-IMP: (4/5/07, DN) Technology name is not uppercased in a name of "xxxSecondPolysilicon" preferences.
+IMP: (4/5/07, DN) Technology name is not uppercased in a name of
+     "xxxSecondPolysilicon" preferences.
 
 IMP: (4/4/07, DN) MoCMOS technology doesn't have TSMC foundry anymore.
 
 BUG: (4/4/07, SMR) Dummy NodeInsts are always at the origin.
 FIX: In NodeInst.makeDummyInstance(), use the "center" parameter.
 
-BUG: (4/03/07, DN) Nodes "bicmos:Ndiff_Node" and "bicmos:Ndiff_Node" are marked as pure layer nodes,
-    but the have more than one NodeLayer.
+BUG: (4/03/07, DN) Nodes "bicmos:Ndiff_Node" and "bicmos:Ndiff_Node" are marked
+     as pure layer nodes, but the have more than one NodeLayer.
 FIX: Set their function to PrimitiveNode.Function.UNKNOWN .
 
 BUG: (4/03/07, DN) Some layout layers have not pure layer nodes.
 FIX: Create pure layer nodes according with the following table:
-    tsmc180:sdiDMY           tsmc180:sdiDMY-Node
-    mocmosold:N-Select       mocmosold:N-Select-Node
-    mocmosold:N-Well         mocmosold:N-Well-Node
-    mocmosold:S-Active-Well  mocmosold:S-Active-Well-Node
-    rcmos:D-Active           rcmos:D-Active-Node
+     tsmc180:sdiDMY           tsmc180:sdiDMY-Node
+     mocmosold:N-Select       mocmosold:N-Select-Node
+     mocmosold:N-Well         mocmosold:N-Well-Node
+     mocmosold:S-Active-Well  mocmosold:S-Active-Well-Node
+     rcmos:D-Active           rcmos:D-Active-Node
 
 BUG: (4/03/07, DN) "tsmc180:NT-N" layer hasn't pure layer node.
 FIX: Use "NT-N-Node" as pure layer node for this layer.
 
-BUG: (4/03/07, DN) "mocmossub:Pad-Frame" layer has "Passivation-Node" as its pure layer node.
+BUG: (4/03/07, DN) "mocmossub:Pad-Frame" layer has "Passivation-Node" as its pure
+     layer node.
 FIX: Change pure layer node of this layer to "Pad-Frame-Node".
 
-BUG: (4/03/07, DN) "cmos90:VTL-N-Node" and "cmos90:VTL-P-Node" have polygons of layer "VTH-N" and "VTH-P".
+BUG: (4/03/07, DN) "cmos90:VTL-N-Node" and "cmos90:VTL-P-Node" have polygons of
+     layer "VTH-N" and "VTH-P".
 FIX: Set layers to "VTL-N" and "VTL-P". 
 
-BUG: (4/03/07, DN) Layer with name "cmos90:pseudo-RDL" layer has not PSEUDO extra function.
-FIX: Set its function by "pseudoRdlLayer.setFunction(Layer.Function.METAL10, Layer.Function.PSEUDO);".
+BUG: (4/03/07, DN) Layer with name "cmos90:pseudo-RDL" layer has not PSEUDO extra
+     function.
+FIX: Set its function by "pseudoRdlLayer.setFunction(Layer.Function.METAL10,
+     Layer.Function.PSEUDO);".
 
-IMP: (4/02/07, DN) In MoCMOSOld, MoCMOSSub, nMOS use double constants instead of floats
-    for foundry values of parasistics.
+IMP: (4/02/07, DN) In MoCMOSOld, MoCMOSSub, nMOS use double constants instead of
+     floats for foundry values of parasistics.
 
 ************************* Version 8.05j: *********************************
 
-IMP: (3/29/07, SMR) When variable names are similar, examples are given (Bug #1211).
+IMP: (3/29/07, SMR) When variable names are similar, examples are given (Bug
+     #1211).
 
-BUG: (3/29/07, SMR) Wiring schematics at 30 or 45 degrees doesn't work (Bug #1251)
+BUG: (3/29/07, SMR) Wiring schematics at 30 or 45 degrees doesn't work (Bug
+     #1251)
 FIX: Improved SimpleWirer.planRoute() to handle direct arcs where appropriate.
 
-BUG: (3/29/07, SMR) Wiring from unrouted arc no longer moves the unrouted arc (Bug #1290).
+BUG: (3/29/07, SMR) Wiring from unrouted arc no longer moves the unrouted arc
+     (Bug #1290).
 FIX: In Router.createRouteNoJob(), fixed computation of other end of arc.
 
-BUG: (3/29/07, SMR) Text Properties dialog has inconsistent focus rules (Bug #945).
+BUG: (3/29/07, SMR) Text Properties dialog has inconsistent focus rules (Bug
+     #945).
 FIX: In GetInfoText, do not request focus for text area until dialog gets focus.
 
-BUG: (3/29/07, DN) Reading ELIB libraries is slow in NFS because "TextUtils.getFileNameWithoutExtension(URL fileURL);"
-    is called on each external NodeInst, and this methods requests NFS to resolve absolute path (200 msec from
-    St.Petersburg).
+BUG: (3/29/07, DN) Reading ELIB libraries is slow in NFS because
+     "TextUtils.getFileNameWithoutExtension(URL fileURL);" is called on each
+     external NodeInst, and this methods requests NFS to resolve absolute path
+     (200 msec from St.Petersburg).
 FIX: Use new method "TextUtils.getFileNameWithoutExtension(Strign filePath);"
 
-IMP: (3/28/07, GVG) Adding Poly-Active spacing rule to ST/TSMC 90nm DRC decks (bug#1287)
+IMP: (3/28/07, GVG) Adding Poly-Active spacing rule to ST/TSMC 90nm DRC decks
+     (Bug #1287)
 
-IMP: (3/26/07, DN) ELIB/ReadableDump writers don't modify scale settings of irrelevant technologies.
+IMP: (3/26/07, DN) ELIB/ReadableDump writers don't modify scale settings of
+     irrelevant technologies.
 
-BUG: (3/23/07, DN) When libraries are specified in a command-line, project settings may be read from
-    directory other than libraries.
-FIX: In FileMenu use "TextUtils.getFilePath(fileURL)" instead of "User.getWorkingDirectory()".
+BUG: (3/23/07, DN) When libraries are specified in a command-line, project
+     settings may be read from directory other than libraries.
+FIX: In FileMenu use "TextUtils.getFilePath(fileURL)" instead of
+     "User.getWorkingDirectory()".
 
-BUG: (3/23/07, DN) Reading Spice, SiliconCompiler, PLA, PAD libraries changes all project settings.
+BUG: (3/23/07, DN) Reading Spice, SiliconCompiler, PLA, PAD libraries changes all
+     project settings.
 FIX: In LibraryReader.readLibrary don't change project settings.
 
-IMP: (3/23/07, DN) Project settings are reset before each AbstractTest and restored after it.
+IMP: (3/23/07, DN) Project settings are reset before each AbstractTest and
+     restored after it.
 
-IMP: (3/22/07, DN) ProjSettings.exportSettings writes all Settings (even with default values).
+IMP: (3/22/07, DN) ProjSettings.exportSettings writes all Settings (even with
+     default values).
 
-IMP/MAN: (3/21/07, SMR) Default state of "icon technology" is now schematic,
+IMP: (3/21/07, SMR) Default state of "icon technology" is now schematic,
      not universal (Bug #1295).
 
 IMP: (3/21/07, SMR) Improved sea-of-gates router.
@@ -404,26 +458,27 @@ IMP: (3/21/07, SMR) Restored CRC checksum reporting to CIF export.
 
 IMP: (3/21/07, SMR, from Bob Reese) Improved DEF import.
 
-IMP/MAN: (3/17/07, DN) "importPrefs" command doesn't change project settings.
+IMP: (3/17/07, DN) "importPrefs" command doesn't change project settings.
 
 BUG: (3/17/07, DN) GDS layers settings are not initialized to factory values.
 FIX: In Technology.newFoundry() method pass "gdsLayers" to Foundry constructor.
 
-IMP: (3/16/07, GVG) Patching XMLRules so they can still be loaded even if project settings are inconsistent.
-This is related to Bug#1294.
+IMP: (3/16/07, GVG) Patching XMLRules so they can still be loaded even if project
+     settings are inconsistent.  This is related to Bug#1294.
 
 IMP: (3/16/07, DN) Added project setting "tsmc180.UseSecondPolysilicon".
 
 IMP: (3/16/07, SMR) Added "tsmc180" technology project settings.
 
-IMP: (3/16/07, DN) Actual changing of project settings is performed in Change Jobs.
-    Project setting dialog submit jobs to change project settings.
+IMP: (3/16/07, DN) Actual changing of project settings is performed in Change
+     Jobs. Project setting dialog submit jobs to change project settings.
 
 BUG: (3/16/07, DN) Database JUnit regressions loads AWT classes.
 FIX: Move ImageIcon stuff from EGraphics.Outline to ColorPatternPanel.
 
 BUG: (3/16/07, DN) Database JUnit regressions crash in Setting initialization.
-FIX: Add "EDatabase.theDatabase.lowLevelBeginChanging(null);" to JUnit "setUp()" methods.
+FIX: Add "EDatabase.theDatabase.lowLevelBeginChanging(null);" to JUnit "setUp()"
+     methods.
 
 IMP: (3/15/07, DN) Technology.getTSMC180Technology() and TechType.TSMC180 link to
      TSMC180 technology instead of TSMC foundry of MOCMOS technology.
@@ -431,7 +486,7 @@ IMP: (3/15/07, DN) Technology.getTSMC180Technology() and TechType.TSMC180 link t
 BUG: (3/15/07, DN) Setting don't change when new value is factory value.
 FIX: In Setting.set compare new value with getValue() instead of factoryObj.
 
-BUG: (3/15/07, DN) Sturtup fails in MDI mode.
+BUG: (3/15/07, DN) Startup fails in MDI mode.
 FIX: In TopLevel move MDI initialization from OSInitialize to InitializeWindows,
      so that it is executed after technology initialization.
 
@@ -443,44 +498,53 @@ FIX: In TSMC180.getNumMetal distinguish what technology isthis.
 
 IMP: (3/15/07, DN) Added project setting "tsmc180.NumMetalLayers".
 
-BUG: (3/15/07, DN) Factory values of Technology.Foundry setting should be one of supported foundries.
-FIX: In BiCMOS, Bipolar, MoCMOSOld, MoCMOSSub define factory value of Foundry as MOSIS.
+BUG: (3/15/07, DN) Factory values of Technology.Foundry setting should be one of
+     supported foundries.
+FIX: In BiCMOS, Bipolar, MoCMOSOld, MoCMOSSub define factory value of Foundry as
+     MOSIS.
 
 BUG: (3/15/07, DN) Crash entering GDS tab in project settings dialog.
-FIX: In Foundry.finish use "gdsLayerSettings[layerIndex] != null" instead of "gdsLayerSettings != null".
+FIX: In Foundry.finish use "gdsLayerSettings[layerIndex] != null" instead of
+     "gdsLayerSettings != null".
 
-IMP: (3/14/07, DN) Reader of "projsettings.xml" resets project Settings value to factory default,
-   it this Setting  was not encountered in ".xml" file.
+IMP: (3/14/07, DN) Reader of "projsettings.xml" resets project Settings value to
+     factory default, it this Setting  was not encountered in ".xml" file.
 
 BUG: (3/13/07, GVG) Min area issues reported by Misook (Bug#1244, 1240)
-FIX: Special treatment of active in transistors so they will be added to left and right networks.
-DRC regression has new minArea test.
+FIX: Special treatment of active in transistors so they will be added to left and
+     right networks. DRC regression has new minArea test.
 
 ************************* Version 8.05i: *********************************
 
-BUG: (3/12/07, DN) Electric doesn't start when User.getDefaultTechnology is artwork.
+BUG: (3/12/07, DN) Electric doesn't start when User.getDefaultTechnology is
+     artwork.
 FIX: In Technology.initAllTechnology set "curLayoutTech = MoCMOS.tech".
 
 BUG: (3/12/07, GVG) DRC minArea and active arcs between transistors (Bug #1288)
-FIX: Not to stop searching of the valid bucket after the first instance is found in QuickAreaEnumerator.visitNodeInst
+FIX: Not to stop searching of the valid bucket after the first instance is found
+     in QuickAreaEnumerator.visitNodeInst
 
-BUG: (3/12/07, DN) Renaming libraries causes icons to become unexpanded (Bug #1289).
+BUG: (3/12/07, DN) Renaming libraries causes icons to become unexpanded (Bug
+     #1289).
 FIX: In Cell.update update "expandedNodes".
 
-IMP/MAN: (3/7/07, SMR) Added new Display preference to control the MDI/SDI style (Bug #1277).
+IMP: (3/7/07, SMR) Added new Display preference to control the MDI/SDI style
+     (Bug #1277).
 
 IMP: (3/7/07, SMR) Sea of gates router now handles vias properly.
 
 IMP: (3/7/07, SMR) Improved "Estimate Delays" calculations.
 
-IMP/MAN: (3/6/07, SMR) Sea of gates router has parameters in "Routing preferences".
+IMP: (3/6/07, SMR) Sea of gates router has parameters in "Routing preferences".
 
-BUG: (3/05/07, DN) "Easy shape" bit of ImmutableArcInst can become invalid after foundry change.
-FIX: Remove check "gridFullWidth <= protoType.getMaxLayerGridOffset()" from definition of "Easy shape" bit,
-     to "AbstractShapeBuilder.genShapeEasy" and "ImmutableArcInst.genBoundsEassy".
+BUG: (3/05/07, DN) "Easy shape" bit of ImmutableArcInst can become invalid after
+     foundry change.
+FIX: Remove check "gridFullWidth <= protoType.getMaxLayerGridOffset()" from
+     definition of "Easy shape" bit, to "AbstractShapeBuilder.genShapeEasy" and
+     "ImmutableArcInst.genBoundsEassy".
 
-IMP: (2/28/07, GVG) Poly ports in CMOS90 transistors are zero size for the default sizes.
-Requested by JonG.
+IMP: (2/28/07, GVG) Poly ports in CMOS90 transistors are zero size for the
+     default sizes. Requested by JonG.
 
 BUG: (2/28/07, SMR) New cell attributes all appear at (0,0) (Bug #1282).
 FIX: Created Cell.newVarOffset() and use it in Attributes.CreateAttribute.doIt()
@@ -490,60 +554,67 @@ FIX: Created Cell.newVarOffset() and use it in Attributes.CreateAttribute.doIt()
 
 IMP: (2/27/07, SMR) Sea-of-gates router runs faster.
 
-IMP/MAN: (2/26/07, SMR) In the "Tool / Logical Effort" menu, renamed
+IMP: (2/26/07, SMR) In the "Tool / Logical Effort" menu, renamed
      "Print Info for Selected Node" to "List Info for Selected Node" to be
      consistent (print means to the printer).
 
 BUG: (2/26/07, SMR) Reloading a text cell marks the library "dirty" (bug #1280).
 FIX: In TextWindow.java, when reloading, prevent change detection.
 
-IMP/MAN: (2/23/07, GVG) FillGenerator for CMOS90 enabled. Only working
-the tiles generator wihtout caps. The rest of the code not ported yet.
+IMP: (2/23/07, GVG) FillGenerator for CMOS90 enabled. Only working
+     the tiles generator without caps. The rest of the code not ported yet.
 
 BUG: (2/23/07, GVG) Fill generator crashing in CapLayer (bug#1278)
 FIX: Correct detection of templates job in FillCellGenJob
 
-IMP: (2/21/07, GVG) LayerCoverageTool test repaired after changes in code to get 
-electrical layers during NetworkCoverage calculation. ExtractionTest removed as
-it is a duplicate of LayerCoverageTool.
+IMP: (2/21/07, GVG) LayerCoverageTool test repaired after changes in code to get
+     electrical layers during NetworkCoverage calculation. ExtractionTest removed
+     as it is a duplicate of LayerCoverageTool.
 
-IMP/MAN: (2/21/07, SMR) Added command "Tool / Logical Effort / Estimate Delays"
+IMP: (2/21/07, SMR) Added command "Tool / Logical Effort / Estimate Delays"
      to do a simple Logical Effort calculation.
 
-BUG: (2/21/07, SMR) Java 1.6 prints error when initializing the explorer tree (Bug #1276).
+BUG: (2/21/07, SMR) Java 1.6 prints error when initializing the explorer tree
+     (Bug #1276).
 FIX: In ExplorerTree.setUI(), ignore the ClassNotFoundException.
 
 ************************* Version 8.05g: *********************************
 
-IMP/MAN: CMOS90 Dummy CrossM5M8Node disabled in CMOS90 tech.
+IMP: CMOS90 Dummy CrossM5M8Node disabled in CMOS90 tech.
 
-IMP/MAN: (2/17/07, GVG) New RDL-related arc,pin,contact in CMOS90/TSMC.
-including some DRC rules. Not available for ST.
+IMP: (2/17/07, GVG) New RDL-related arc, pin, contact in CMOS90/TSMC.
+     including some DRC rules. Not available for ST.
 
-BUG: (2/17/07, GVG) GateGenerationTest not working from Test menu due bad renaming
-of classes after refactorization.
+BUG: (2/17/07, GVG) GateGenerationTest not working from Test menu due bad
+     Renaming of classes after refactorization.
 FIX: Class name fixed.
 
 IMP: (2/17/07, GVG) Removing scale factor to compose MoCMOS tech name.
 
-BUG: (2/16/07, GVG) Test -> GenerationGateTest -> * were not working since last refactorization
-FIX: Calling the correct constructor, GenerationGateTest instead of GenerationTest
+BUG: (2/16/07, GVG) Test -> GenerationGateTest -> * were not working since last
+     refactorization
+FIX: Calling the correct constructor, GenerationGateTest instead of
+     GenerationTest
 
 BUG: (2/15/07, SMR, from Bob Reese) Prefuse does not compile under Java 1.6
 FIX: In ExpandedFilter.getAllDepths(), added "false" as second parameter to
      m_bfs_whole.next() call.
 
-BUG: (2/15/07, SMR) Pad frame generator doesn't handle schematic cores with bus ports.
+BUG: (2/15/07, SMR) Pad frame generator doesn't handle schematic cores with bus
+     ports.
 FIX: In PadGenerator.createPadFrame() handle export wiring better.
 
 BUG: (2/15/07, SMR, from Bob Reese) Crash during save after DRC on Java 1.6.
-FIX: In output.ELIB.putOutVar(), the "Long" case should cast to "Long", not "Integer".
+FIX: In output.ELIB.putOutVar(), the "Long" case should cast to "Long", not
+     "Integer".
 
 IMP: (2/14/07, SMR) Converting to "alternate layout view" improved to handle
      conversion from mosis/tsmc to tsmc technology.  Now prompts for new library.
 
-BUG: (2/14/07, SMR) Simulating cells with reserved VHDL names (i.e. "nand") crashes.
-FIX: In GenerateVHDL.addString(), append "_" to end instead of start when a keyword.
+BUG: (2/14/07, SMR) Simulating cells with reserved VHDL names (i.e. "nand")
+     crashes.
+FIX: In GenerateVHDL.addString(), append "_" to end instead of start when a
+     keyword.
 
 BUG: (2/14/07, SMR) VHDL cannot be generated from layout.
 FIX: In ToolMenu.makeVHDL(), ignore schematics restriction.
@@ -552,16 +623,17 @@ BUG: (2/14/07, SMR) Implant coverage tool deletes lower-level implants.
 FIX: In LayerCoverageTool.LayerVisitor.visitNodeInst(), only add implant
      regions to delete list when in the top-level.
 
-IMP/MAN: (2/14/07, DN) Technology "tsmc90" was renamed to "cmos90" with same foundries (TSMS and ST).
-    JELIB reader treats "tsmc90" as alias of "cmos90". It also patches names of meaning preferences.
-    However, I didn't change reader of ProjectSettings.
-    Also, a technology "tsmc180" was added with a single foundry (TSMC).
-    "mocmos" technology still contains both foundries (MOSIS and TSMC) for some time period
-    necessary to migrate projecs from "mocmos/tsmc" to "tsmc180/tsmc". 
+IMP: (2/14/07, DN) Technology "tsmc90" was renamed to "cmos90" with same
+     foundries (TSMS and ST). JELIB reader treats "tsmc90" as alias of "cmos90".
+     It also patches names of meaning preferences. However, I didn't change
+     reader of ProjectSettings. Also, a technology "tsmc180" was added with a
+     single foundry (TSMC). "mocmos" technology still contains both foundries
+     (MOSIS and TSMC) for some time period necessary to migrate projects from
+     "mocmos/tsmc" to "tsmc180/tsmc". 
 
-IMP/MAN: (2/13/07, GVG) Detecting if user has write permission for temporary 
-file in Edit Text Cell Externally otherwise, it doesn't work. Bring up a message
-in case of error.
+IMP: (2/13/07, GVG) Detecting if user has write permission for temporary
+    file in Edit Text Cell Externally otherwise, it doesn't work. Bring up a
+    message in case of error.
 
 BUG: (2/13/07, GVG) Edit Text Cell Externally not working on MacOSX
 FIX: Detecting correct path for MacOSX application.
@@ -580,9 +652,9 @@ BUG: (2/12/07, SMR) Verilog netlists MOS transistors incorrectly
 FIX: In Verilog.writeCellTopology(), prevent both gates of the
      transitor from being written.
 
-IMP/MAN: (2/12/07, SMR) Added the command "Edit / Text / Edit Text Cell Externally..."
-     to edit the current textual cell in an external editor.  The editor is chosen
-     in the Display / Text Preferences.
+IMP: (2/12/07, SMR) Added the command "Edit / Text / Edit Text Cell
+     Externally..." to edit the current textual cell in an external editor.
+     The editor is chosen in the Display / Text Preferences.
 
 BUG: (2/8/07, SMR) When switching layers with a digit key, new contact
      is not highlighted (Bug #1274).
@@ -601,33 +673,39 @@ IMP: (2/7/07, SMR) Text windows now print.
 
 IMP: (2/6/07, SMR) Exporting from an arrayed node now creates an arrayed export.
 
-BUG: (1/31/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
-FIX: Remove messages about connections on Artwork.tech.pinNode from DRC.checkNetworks .
+BUG: (1/31/07, DN) Get rid of those "has connections on port
+     'generic:Port[].center" messages (Bug #829).
+FIX: Remove messages about connections on Artwork.tech.pinNode from
+     DRC.checkNetworks.
 
 IMP: (2/5/07, RK) Add simple layout generation example for Ivan.
 
 BUG: (2/5/07, SMR) Implant coverage generation leaves notch errors (Bug #1272).
 FIX: In LayerCoverageTool.LayerCoverageData.doIt(), merge close implants.
 
-BUG: (2/5/07, GVG) Schematic DRC should not complain about artwork elememts (Bug#1273)
+BUG: (2/5/07, GVG) Schematic DRC should not complain about artwork elements
+     (Bug#1273)
 FIX: Artwork arcs are not checked in Schematic.schematicDoCheck()
 
 IMP: (2/2/07, DN) Using BaseSizes of primitives in JELIB.
 
 BUG: (2/2/07, DN) Stack overflow in NCC GUI on JDK 1.6.
-FIX: Workaround fo bug in JDK - use separate class for CellTreeRenderer.
+FIX: Workaround for bug in JDK - use separate class for CellTreeRenderer.
 
-IMP/MAN: (2/1/07, SMR) Waveform window now lets you drag the divider between panels
+IMP: (2/1/07, SMR) Waveform window now lets you drag the divider between panels
      to individually change the size of any panel (Bug #951).
 
-IMP/MAN: (1/31/07, SMR) Improvements to LEF output and DEF input from Bob Reese.
+IMP: (1/31/07, SMR) Improvements to LEF output and DEF input from Bob Reese.
      Now have "File / Import / DEF (Design Exchange Format) to current cell..."
 
-BUG: (1/31/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
-FIX: They are transfered to DRC.
+BUG: (1/31/07, DN) Get rid of those "has connections on port
+     'generic:Port[].center" messages (Bug #829).
+FIX: They are transferred to DRC.
 
-BUG: (1/27/07, DN) Some regression tests failed on JDK 1.6 because of HashSet order.
-FIX: In PAL, TEGAS and LENetlister1 use TreeSet instead of HashSet. Regression results updated.
+BUG: (1/27/07, DN) Some regression tests failed on JDK 1.6 because of HashSet
+     order.
+FIX: In PAL, TEGAS and LENetlister1 use TreeSet instead of HashSet. Regression
+     results updated.
 
 BUG: (1/25/07, SMR) Outline information is no longer specified relative to node.
      Cleaned up EDIF, CIF, DXF, GDS, Sue input.
@@ -639,16 +717,18 @@ IMP: (1/24/07, SMR) First working version of Sea-Of-Gates router.
 BUG: (1/23/07, SMR) Text cell I/O should give proper warnings (Bug #1271).
 FIX: In TextWindow.java, added error messages and valid file checks.
 
-IMP/MAN: (1/19/07, GVG) Import of Verilog files in FileMenu
+IMP: (1/19/07, GVG) Import of Verilog files in FileMenu
 
-BUG: (1/19/07, DN) Cell.isInUse() returns false for schematics cells regardless if icon is an instance elsewhere (Bug #511).
+BUG: (1/19/07, DN) Cell.isInUse() returns false for schematics cells regardless
+     if icon is an instance elsewhere (Bug #511).
 FIX: Check icon cells also in Cell.isInUse().
 
-IMP/MAN: (1/17/07, SMR) Initial code for Sea-of-Gates router.
+IMP: (1/17/07, SMR) Initial code for Sea-of-Gates router.
 
 IMP: (1/17/07, SMR) Generalized RTNode to handle a RTBounds object.
 
-BUG: (1/8/07, SMR) Explorer tree forgets the expanded state of cell groups (Bug #1246).
+BUG: (1/8/07, SMR) Explorer tree forgets the expanded state of cell groups (Bug
+     #1246).
 FIX: Added an "equals" method to CellGroup so that it could compare these
      temporary objects by name.
 
@@ -659,22 +739,29 @@ IMP: (1/5/07, SMR) Improved "copy topology" routing command to handle busses.
 
 IMP: (1/3/07, SMR) Compaction tests (from the test menu) work now.
 
-BUG/MAN: (1/3/07, SMR) Cannot drag multiple signals from explorer tree to waveform window.
+BUG: (1/3/07, SMR) Cannot drag multiple signals from explorer tree to waveform
+     window.
 FIX: In ExplorerTree.java, redid implementation of drag-and-drop from the tree.
-     This has the side-effect of disabling the right-click-drag of cells from one library
-     to another (which used to cause the entire tree to be copied, see bug #630).
+     This has the side-effect of disabling the right-click-drag of cells from one
+     library to another (which used to cause the entire tree to be copied, see
+     Bug #630).
 
-BUG: (12/11/06, DN) Null exception while accesing artwork in palette components (Bug #1270)
-FIX: Detecting if parent is null before calling Constraints.getCurrent().modifyNodeInst(this, oldD)
-in NodeInst.modifyInstance()
+BUG: (12/11/06, DN) Null exception while accessing artwork in palette components
+     (Bug #1270)
+FIX: Detecting if parent is null before calling
+     Constraints.getCurrent().modifyNodeInst(this, oldD) in
+     NodeInst.modifyInstance()
 
-IMP: (12/6/06, DN) Removed invariant "LibId/CellId/ExportId" values of variables must be in the Snapshot.
-    Such variables are almost not used, but the maintanence of this invariant took time.
+IMP: (12/6/06, DN) Removed invariant "LibId/CellId/ExportId" values of variables
+     must be in the Snapshot. Such variables are almost not used, but the
+     maintenance of this invariant took time.
 
-IMP: (12/5/06, RK) Move information from Tech.java into TechTypeMoCMOS, TechTypeCMOS90, and TechTypeTSMC180.
+IMP: (12/5/06, RK) Move information from Tech.java into TechTypeMoCMOS,
+     TechTypeCMOS90, and TechTypeTSMC180.
 
-IMP: (12/5/06, GVG) Changes to get Generation test working after recent modifications. Some changes
-to get Routing tests to run from regression. Small changes in VerilogReader.
+IMP: (12/5/06, GVG) Changes to get Generation test working after recent
+     modifications. Some changes to get Routing tests to run from regression.
+     Small changes in VerilogReader.
 
 IMP: (12/5/06, SMR) Made "Routing" test menu work.
 
@@ -688,41 +775,48 @@ BUG: (12/4/06, SMR) Closing a library causes a crash (Bug #1267).
 FIX: In Cell.getName(), test for null "groupName" field.
 
 BUG: (12/4/06, GVG) PWLSignal.java: missing initalization of vPoints.
-Gate.java: Wrong location of the Point constructor in computePWLOutput.
-New timing conditions in DTimViewAnData Liberty parser.
-gate_inv_16x_25ff_hiR passes.
+     Gate.java: Wrong location of the Point constructor in computePWLOutput.
+     New timing conditions in DTimViewAnData Liberty parser.
+     gate_inv_16x_25ff_hiR passes.
 
-BUG: (12/1/06, DN) CellBackup.cellUsages invariant is not valid after rename (Bug #1235).
+BUG: (12/1/06, DN) CellBackup.cellUsages invariant is not valid after rename (Bug
+     #1235).
 FIX: In "CellBackup.with" check if "this.d.cellId != d.cellId".
 
 BUG: (12/1/06, DN) Exception checking database invariants (Bug #1266).
 FIX: In ArcInst.check snap polygon bounds to database grid.
 
-BUG/IMP: (12/1/06, GVG) Drag-n-dropping a cell group onto a cell produces a NPE (bug #1265).
-FIX: Exception avoided. Improvements: if you drag a group on a layout cell, it will create an instance
-of the first layout found. If you drag it on a schematic cell, it will add the first icon found.
+BUG: (12/1/06, GVG) Drag-n-dropping a cell group onto a cell produces a NPE (Bug
+     #1265).
+FIX: Exception avoided. Improvements: if you drag a group on a layout cell, it
+     will create an instance of the first layout found. If you drag it on a
+     schematic cell, it will add the first icon found.
 
 ************************* Version 8.05c: *********************************
 
-IMP: (12/1/06, GVG) completePWLResponse had swapped signature fields. net_dir_non_const_transfunction passes now.
+IMP: (12/1/06, GVG) completePWLResponse had swapped signature fields.
+     net_dir_non_const_transfunction passes now.
 
 BUG: (11/30/06, SMR) When "Node Moves With Text" is selected, deleting an
      export also deletes the node (Bug #1255).
 FIX: In CircuitChanges.deleteSelected(), temporarily disable the moves-with-text
      state when deleting.
 
-IMP: (11/29/06, RK) Change Tech.java so its interface consists of methods rather than data members
+IMP: (11/29/06, RK) Change Tech.java so its interface consists of methods rather
+     than data members
 
-BUG: (11/29/06, SMR) New cell creation crashes if there is no library (Bug #1264).
+BUG: (11/29/06, SMR) New cell creation crashes if there is no library (Bug
+     #1264).
 FIX: In NewCell.ok() check for valid library.
 
-IMP/MAN: (11/29/06, SMR) Bus parameters allowed on nodes; may use simple arithmetic operators.
+IMP: (11/29/06, SMR) Bus parameters allowed on nodes; may use simple arithmetic
+     operators.
 
 BUG: (11/29/06, DN) Assertion changing arc width (Bug #1261).
 FIX: In ImmutableArcInst.withGridSize update "easyShape" flag properly.
 
 IMP: (11/28/06, GVG) CSA regresssion run_gate_instNetList working (very simple).
-Getting rid of "unknown signal" in VerilogReader for vss.
+     Getting rid of "unknown signal" in VerilogReader for vss.
 
 IMP: (11/28/06, SMR) When replacing pure-layer nodes, do not adjust sizes.
 
@@ -733,7 +827,8 @@ IMP: (11/28/06, GVG) CSA regression gate_basic_load half working.
 
 IMP: (11/27/06, GVG) Well contacts in TSMC180 can connect to well arcs.
 
-IMP: (11/22/06, GVG) First version of Lib/Verilog readers working with CSA regression det_msff_12x_testvalue.
+IMP: (11/22/06, GVG) First version of Lib/Verilog readers working with CSA
+     regression det_msff_12x_testvalue.
 
 BUG: (11/21/06, SMR) Electrical layers for TSMC180 transistors is wrong.
 FIX: In MoCMOS.resizeNodes(), fix poly overhang calculation.
@@ -748,8 +843,8 @@ BUG: (11/21/06, SMR) Wiring fails some L-shaped situations.
 FIX: In SimpleWirer.planRoute(), treat ArcProto.getAngleIncrement() as degrees,
      not tenths-of-a-degree.
 
-IMP/MAN: (11/20/06, SMR) Extractor now has options to unify Active and control minimum
-     polygon size.
+IMP: (11/20/06, SMR) Extractor now has options to unify Active and control
+     minimum polygon size.
 
 BUG: (11/16/06, SMR) Slow startup.
 FIX: In Technology.initAllTechnologies(), batch Preference changes.
@@ -767,76 +862,83 @@ IMP: (11/14/06, GVG) Well arcs added in TSMC180.
 
 IMP: (11/14/06, GVG) Adding corner butted well contacts in TSMC180.
 
-IMP: (11/14/06, DN) All library writers (ELIB, ReadableDump) work on immutable objects only.
-    ImmutbaleArcInst.gridLength removed. Null elements in Variables are forbidden.
+IMP: (11/14/06, DN) All library writers (ELIB, ReadableDump) work on immutable
+     objects only. ImmutbaleArcInst.gridLength removed. Null elements in
+     Variables are forbidden.
 
 BUG: (11/10/06, GVG) DRC exclusion regions not working hierarchically (bug#1257)
-FIX: Check exclusion at the layer level instead of geometry level or report level.
-Note: it could slow down the code.
+FIX: Check exclusion at the layer level instead of geometry level or report
+     level. Note: it could slow down the code.
 
 IMP: (11/8/06, GVG) Adding corner butted active contacts in TSMC180
 
-BUG/TEC: (11/8/06, SMR) Auto-stitching serpentine transistors fails.
-FIX: The problem is that the MOCMOS serpentine transistors are incorrectly specified.
-     In "MoCMOS.java", fixed the loading of "transistorPolyLLayers",
-     "transistorPolyRLayers", "transistorActiveTLayers", and "transistorActiveBLayers".
-     In Technology.SerpentineTrans, added the appropriate list of NodeLayers to the
-     constructor so that Electrical layers can be specified.  Also, in
-     MoCMOS.resizeNodes(), resize the serpentine factors.
+TEC: (11/8/06, SMR) Auto-stitching serpentine transistors fails.
+FIX: The problem is that the MOCMOS serpentine transistors are incorrectly
+     specified. In "MoCMOS.java", fixed the loading of "transistorPolyLLayers",
+     "transistorPolyRLayers", "transistorActiveTLayers", and
+     "transistorActiveBLayers". In Technology.SerpentineTrans, added the
+     appropriate list of NodeLayers to the constructor so that Electrical layers
+     can be specified.  Also, in MoCMOS.resizeNodes(), resize the serpentine
+     factors.
 
-IMP: (11/8/06, SMR) Moved test menus (make fake circuitry, make fake waveform window)
-     from "Help" menu to "Steve" menu.
+IMP: (11/8/06, SMR) Moved test menus (make fake circuitry, make fake waveform
+     window) from "Help" menu to "Steve" menu.
 
-BUG: (11/7/06, DN) tool.generator.LayoutLib.widestWireWidth doesn't return DEF_WIDTH when no wire is attached to port.
+BUG: (11/7/06, DN) tool.generator.LayoutLib.widestWireWidth doesn't return
+     DEF_WIDTH when no wire is attached to port.
 FIX: Test if maxWid < 0.
 
 BUG: (11/7/06, DN) Some arcs has improper functions.
-FIX: BiCMOS.Active_ARC (METAL5->DIFF), RCMOS.metal2_arc (METAL1->METAL2), RCMOS.polysilicon_arc (METAL1->POLY1).
+FIX: BiCMOS.Active_ARC (METAL5->DIFF), RCMOS.metal2_arc (METAL1->METAL2),
+     RCMOS.polysilicon_arc (METAL1->POLY1).
 
-IMP: (11/7/06, DN) Technology.ArcLayer is immutable. Some field of ArcProto are final.
+IMP: (11/7/06, DN) Technology.ArcLayer is immutable. Some field of ArcProto are
+     final.
 
-IMP/MAN: (11/7/06, SMR) Mimic router now has option to create arcs even if
+IMP: (11/7/06, SMR) Mimic router now has option to create arcs even if
      they already exist topologically.
 
-IMP/MAN: (11/7/06, SMR) Node extraction no longer has option to force exact cut
+IMP: (11/7/06, SMR) Node extraction no longer has option to force exact cut
      placement (it does it always).
 
 IMP: (11/6/06, GVG) Added DSPF and LIB as FileTypes
 
 BUG: (11/2/06, GVG) Scalable transistors not available under Mosis foundry
-FIX: wrong setup of setNotUsed
+FIX: Wrong setup of setNotUsed
 
 IMP: (11/2/06, GVG) Butted active/well contacts (only top edge).
 
-BUG: (11/2/06, SMR) HSpice output reader fails with multiple conditions (Bug #1254).
+BUG: (11/2/06, SMR) HSpice output reader fails with multiple conditions (Bug
+     #1254).
 FIX: In HSpiceOut.readTRDCACFile(), read two-value sweep header when more
      than 1 condition.
 
-BUG: (11/2/06, GVG) Crash in TechPalette:mouseReleased if obj is null (no Bugzilla)
+BUG: (11/2/06, GVG) Crash in TechPalette:mouseReleased if obj is null (no
+     Bugzilla)
 FIX: Case detected
 
 BUG: (11/2/06, SMR) MutableBoolean used everywhere but located in SunRouter.
 FIX: Refactored to GenMath.
 
 IMP: (11/2/06, DN) getShapOf* methods don't generate text Polys,
-   so they don't depend on "EditWindow" and "VarContext".
+     so they don't depend on "EditWindow" and "VarContext".
 
 BUG: (11/1/06, DN) Stack overflow in NetworkTool.
 FIX: Implement NetCell.addToDrawn without recursion.
 
 IMP: (10/31/06, DN) New methods in Geometric class was extended by:
-    "Iterator<Poly> getShape(Poly.Builder polyBuilder)"
-    "Rectangle2D getLambdaBounds(Rectangle2D r)"
-    "Rectangle2D getGridBounds(Rectangle2D r)"
+     "Iterator<Poly> getShape(Poly.Builder polyBuilder)"
+     "Rectangle2D getLambdaBounds(Rectangle2D r)"
+     "Rectangle2D getGridBounds(Rectangle2D r)"
 
 IMP: (10/30/06, DN) Points in ArcInst.getPoly() are aligned to GRID.
-   Four variants of arc.getWidth:
-     getLambdaFullWidth  - full width in lambda units (same as old getWidth()
-     getGridFullWidth - full width in grid units
-     getLambdaBaseWidth - base width (GUI selection width) in lambda units.
-                          Usually same as full width except for diffusion arcs.
-     getGridBaseWidth - base width in grid units.
-   Results of GeometryOnNetwork test were updated.
+     Four variants of arc.getWidth:
+       getLambdaFullWidth  - full width in lambda units (same as old getWidth()
+       getGridFullWidth - full width in grid units
+       getLambdaBaseWidth - base width (GUI selection width) in lambda units.
+                            Usually same as full width except for diffusion arcs.
+       getGridBaseWidth - base width in grid units.
+     Results of GeometryOnNetwork test were updated.
 
 ************************* Version 8.05b: *********************************
 
@@ -845,9 +947,10 @@ IMP: (10/30/06, GVG) DIODUMMY layer (gds=56) added into TSMC180.
 BUG: (10/28/06, DN) RTree is not fresh after undo (Bug #1252).
 FIX: In Cell.update and Cell.updateSubCells add call of "topology.refreshRTree".
 
-BUG: (10/27/06, DN) Constraint system having problems with angled arcs (Bug #1253).
-FIX: In "LayoutCell.nonOrthogFixAng" search "bestAI" among arcs connected to the same port
-    as other end of "ai".
+BUG: (10/27/06, DN) Constraint system having problems with angled arcs (Bug
+     #1253).
+FIX: In "LayoutCell.nonOrthogFixAng" search "bestAI" among arcs connected to the
+     same port as other end of "ai".
 
 IMP: (10/25/06, DN) GridWidth of ImmutableArcInst is always even.
 
@@ -856,45 +959,57 @@ FIX: Call unfreshRTree after arc changes. Rollback lazy RTree creation for now.
 
 IMP: (10/25/06, RK) Non-functional layout generator project settings tab.
 
-IMP: (10/25/06, DN) Layer.Function is enum. Layer.Function.Set is implemented and used in
-    Technology.getShapeOfNodes/Arcs methods.
+IMP: (10/25/06, DN) Layer.Function is enum. Layer.Function.Set is implemented and
+     used in Technology.getShapeOfNodes/Arcs methods.
 
-IMP: (10/24/06, DN) Extended API of immutable classes EPoint, ERectangle, ImmutableArcInst.
-    They have getters and factory methods in double lambda units and in long grid units.
-    Grid units are long in API, but they are restricted to "int" range in current implementation.
-    Additional memory cost is 8 bytes per EPoint. Alternative ECoord implementation is possible,
-    which is more memory efficient, but a little slower.
+IMP: (10/24/06, DN) Extended API of immutable classes EPoint, ERectangle,
+     ImmutableArcInst. They have getters and factory methods in double lambda
+     units and in long grid units. Grid units are long in API, but they are
+     restricted to "int" range in current implementation. Additional memory cost
+     is 8 bytes per EPoint. Alternative ECoord implementation is possible, which
+     is more memory efficient, but a little slower.
 
 BUG: (10/23/06, DN) Short arcs in TechPalette (Bug #1250).
-FIX: In ArcProto.getShapeOfDummyArc swap end cooridantes, so that arc's angle is 0.
+FIX: In ArcProto.getShapeOfDummyArc swap end coordinates, so that arc's angle is
+     0.
 
-BUG: (10/23/06, GVG) Problems with alternate poly rules in 180nm (bug#1249, reported by David Harris)
-FIX: Poly and active nodes in primitives were not properly resized after major XML changes done.
+BUG: (10/23/06, GVG) Problems with alternate poly rules in 180nm (Bug #1249,
+     reported by David Harris)
+FIX: Poly and active nodes in primitives were not properly resized after major
+     XML changes done.
 
 BUG: (10/21/06, DN) Cannot select horizontal arcs (Bug #1248).
-FIX: In EDatabase.getBackup() call ai.getBounds() for each arcs to precompute arc bounds.
+FIX: In EDatabase.getBackup() call ai.getBounds() for each arcs to precompute arc
+     bounds.
 
-BUG: (10/20/06, GVG) [Bug 1245] FIle->Project Settings->Technology page is confusing/inconsistent (Bug# 1245)
-FIX: Technology tab in project preferences was re-organized. For MoCMOS tech, the feature size is included as
-part of the panel title.
+BUG: (10/20/06, GVG) [Bug 1245] File->Project Settings->Technology page is
+     confusing/inconsistent (Bug# 1245)
+FIX: Technology tab in project preferences was re-organized. For MoCMOS tech, the
+     feature size is included as part of the panel title.
 
-BUG: (10/20/06, GVG) Exception in TechPalette if Mosis is chosen and you select min or aligned primitives (TSMC180)
+BUG: (10/20/06, GVG) Exception in TechPalette if Mosis is chosen and you select
+     min or aligned primitives (TSMC180)
 FIX: More checking for unused elements.
 
-IMP: (10/18/06, DN) Added class topology.Topology to manage graph of nodes and arcs.
-    Classes Geometry and RTNode are moved to database.topology package.
+IMP: (10/18/06, DN) Added class topology.Topology to manage graph of nodes and
+     arcs. Classes Geometry and RTNode are moved to database.topology package.
 
 IMP: (10/17/06, DN) ImmutableArcInst can compute its bounds without real ArcInst.
 
-IMP: (10/17/06, GVG) Refactoring spicenetlist so some classes can be reused in DSPF reader.
+IMP: (10/17/06, GVG) Refactoring spicenetlist so some classes can be reused in
+     DSPF reader.
 
-IMP/MAN: (10/17/06, GVG) Import of Cadence colors moved to WindowMenu -> Colors. Action is in a job now.
+IMP: (10/17/06, GVG) Import of Cadence colors moved to WindowMenu -> Colors.
+     Action is in a job now.
 
-IMP/MAN: (10/17/06, SMR) Added Cell expansion controls to Network / Node Extraction Preferences.
+IMP: (10/17/06, SMR) Added Cell expansion controls to Network / Node Extraction
+     Preferences.
 
-BUG: (10/17/06, DN) Zero-length arcs with angles 0 and 90 generates Polys with swapped head and tail extension.
+BUG: (10/17/06, DN) Zero-length arcs with angles 0 and 90 generates Polys with
+     swapped head and tail extension.
 FIX: In Poly.makeEndPointPoly use "angle == 0" and "angle == 900" conditions.
-     In debug menu "Dima|Find error-prone arcs" command show such arcs in all loaded libraries.
+     In debug menu "Dima|Find error-prone arcs" command show such arcs in all
+     loaded libraries.
 
 BUG: (10/16/06, DN) API allows to create negated layout arcs.
 FIX:  Negated arc end is always connected to PrimitivePort which "isNegatable". 
@@ -905,9 +1020,10 @@ FIX: Keep info about expanded nodes on a Cell.
 IMP: (10/16/06, GVG) Skeleton to read DSPF
 
 IMP: (10/16/06, DN) Connectivity index was moved to immutable CellBackup.
-    Now database has less memory size, because it doesn't keep Connection.
-    However, "ArcInst.getConnection", "NodeInst.getConnections", "PortInst.getConnections"
-    are slower, because they allocate temporary Connections.
+     Now database has less memory size, because it doesn't keep Connection.
+     However, "ArcInst.getConnection", "NodeInst.getConnections",
+     "PortInst.getConnections" are slower, because they allocate temporary
+     Connections.
 
 BUG: (10/12/06, SMR) Wiring a port to itself crashes (Bug #1242).
 FIX: In Router.createRouteNoJob(), make sure route.getStart() is valid.
@@ -915,15 +1031,16 @@ FIX: In Router.createRouteNoJob(), make sure route.getStart() is valid.
 IMP: (10/11/06, GVG) More min contact primitives for node extraction.
 
 IMP: (10/11/06, DN) "CellBackup" has index of exports sorted by original node.
-    It will be used in Geometry calculations in immuable data base.
-    "NodeInst.exports" field is no more necessary.
+     It will be used in Geometry calculations in immutable data base.
+     "NodeInst.exports" field is no more necessary.
 
 IMP: (10/10/06, DN) Lazy computation of Cell's RTree.
 
 BUG: (10/9/06, DN) Random ExportIds are created too often.
 FIX: Create them only when there is another export with the same externalId.
 
-BUG: (10/6/06, SMR) Variables on exports on rotated nodes don't move right (Bug #1232).
+BUG: (10/6/06, SMR) Variables on exports on rotated nodes don't move right (Bug
+     #1232).
 FIX: In CircuitChangeJobs.ManyMove.moveSelectedText(), only transform Export text
      if it is the export name.
 
@@ -932,45 +1049,49 @@ IMP: (10/6/06, SMR) Generalized routing to handle individual end extension.
 BUG: (10/4/06, SMR) Narrow non-manhattan polygons not detected by DRC.
 FIX: Fixed GenMath.intersectRadians() and Quick.checkMinWidth().
 
-IMP/MAN: (10/4/06, SMR) Added "Window / Waveform Window / Export Simulation Data" to
+IMP: (10/4/06, SMR) Added "Window / Waveform Window / Export Simulation Data" to
      write tab-separated file of simulation data.
 
-IMP/MAN: (10/3/06, SMR) Moved "Plot Date In Corner" to the PostScript
+IMP: (10/3/06, SMR) Moved "Plot Date In Corner" to the PostScript
      section of the Printing Preferences.
 
 BUG: (10/3/06, SMR) Routing node to arc may crash.  Reporting sometimes bad.
-FIX: Moved reporting from Routing.createRouteNoJob() to Routing.reportRoutingResults().
+FIX: Moved reporting from Routing.createRouteNoJob() to
+     Routing.reportRoutingResults().
 
 ************************* Version 8.05a: *********************************
 
 BUG: (10/03/06, DN) Ports disappearing with wire deletion (Bug #1236).
 FIX: In NodeInst.kill mark for deletion only exports connected to this NodeInst.
 
-IMP/MAN: (10/02/06, GVG) Adding nodes that meet min rules in TSMC180.
+IMP: (10/02/06, GVG) Adding nodes that meet min rules in TSMC180.
 
-IMP/MAN: (9/28/06, GVG) Warning if you try to bring a 3D view from technologies without 3D factory
-values.
+IMP: (9/28/06, GVG) Warning if you try to bring a 3D view from technologies
+     without 3D factory values.
 
-BUG: (9/28/06, DN) Exception in cellGroup.contains(Cell) in duplicateGroupAction (Bug #1234).
+BUG: (9/28/06, DN) Exception in cellGroup.contains(Cell) in duplicateGroupAction
+     (Bug #1234).
 FIX: cellGroup.contains(Cell) returns false when Cell argument is null.
 
 BUG: (9/28/06, DN) ExportChanges.DeleteExports job calls GUI in doIt.
 FIX: Move cantEdit calls out of ExportChanges.DeleteExports.doIt.
 
-IMP: (9/28/06, DN) Remove some calls of "NodeInst.hasExports()", "NodeInst.getNumExports()", "NodeInst.getExports()" out
-   of crytical database modification loops. Future refactoring for memory saving will make these methods slower when called after
-   Cell modification.
+IMP: (9/28/06, DN) Remove some calls of "NodeInst.hasExports()",
+     "NodeInst.getNumExports()", "NodeInst.getExports()" out of critical database
+     modification loops. Future refactoring for memory saving will make these
+     methods slower when called after Cell modification.
 
-IMP/MAN: (9/28/06, GVG) Enable zoom via selection area (bug #135). Indeed, entire tool bar was disabled
-because the scenegraph is displayed in its own frame and it is not worth it to hack it.
-Solution only valid for SDI mode.
+IMP: (9/28/06, GVG) Enable zoom via selection area (Bug #135). Indeed, entire
+     tool bar was disabled because the scenegraph is displayed in its own frame
+     and it is not worth it to hack it.  Solution only valid for SDI mode.
 
 BUG: (9/28/06, DN) NCC regressions fail when cell group has multiple schematics.
 FIX: In Cell.CellGroup.setMainSchematic use first schematic cell.
      In Cell.checkAndRepair issue warnings about extraneous schematic cells.
 
 BUG: (9/28/06, DN) A lot of warnings during Nodable deserialization.
-FIX: In EObjectOutputStream.ENodable.readResolve use getNetlist() instead of getUserNetlist().
+FIX: In EObjectOutputStream.ENodable.readResolve use getNetlist() instead of
+     getUserNetlist().
 
 BUG: (9/27/06, SMR) When "Node Moves With Export" is selected, all export
      text moves the export (Bug #1232).
@@ -980,20 +1101,25 @@ BUG: (9/27/06, SMR) IRSIM "vector" and "set" commands don't work.
 FIX: In Analyzer.setIn(), add "case '1':" after "case 'h':" and add
      "case '0':" after "case 'l':".
 
-BUG: (9/27/06, GVG) Cropping of poly arcs over transistor poly not working (Bug #501)
+BUG: (9/27/06, GVG) Cropping of poly arcs over transistor poly not working (Bug
+     #501)
 FIX: The order in which arcs and nodes are cropped is important.
 
-IMP: (9/27/06, GVG) Cleaning XML DRC according to memo published. One 180nm wide spacing rule fixed.
+IMP: (9/27/06, GVG) Cleaning XML DRC according to memo published. One 180nm wide
+     spacing rule fixed.
 
-IMP: (9/27/06, DN) LibId/CellId/ExportId contains "external" names. IdManager maintains
-    uniqueness of these names. This will be used for reading isolated CellBackups for DELIB library/cell updates.
-    Artifact: Renamed cells and cells of renamed libraries are not linked to the database. New objects are created instead.
+IMP: (9/27/06, DN) LibId/CellId/ExportId contains "external" names. IdManager
+     maintains uniqueness of these names. This will be used for reading isolated
+     CellBackups for DELIB library/cell updates. Artifact: Renamed cells and
+     cells of renamed libraries are not linked to the database. New objects are
+     created instead.
 
 BUG: (9/26/06, SMR) Rotated nodes with text on them select badly (Bug #1202).
 FIX: In Highlighter.findAllInArea(), use same code to select as to display.
 
-IMP: (9/25/06, GVG) Reporting number of layer instances whose geometries are identical in Document Current Technology.
-Using DocColumn class to handle the printing on standard output.
+IMP: (9/25/06, GVG) Reporting number of layer instances whose geometries are
+     identical in Document Current Technology.  Using DocColumn class to handle
+     the printing on standard output.
 
 IMP: (9/22/06, GVG) Not printing NotInUsed nodes in Document Current Technology".
 
@@ -1012,30 +1138,35 @@ FIX: In Manipulate.describeTechnology(), remove the lines:
 		Rectangle2D bounds = poly.getBounds2D();
 		double area = Math.min(bounds.getWidth(), bounds.getHeight());
 
-IMP: (9/22/06, GVG) Detecting if zero length arc is covered by other polygon of the same layer and
-avoid DRC warning (Bug#1174). Regression data updated.
+IMP: (9/22/06, GVG) Detecting if zero length arc is covered by other polygon of
+     the same layer and avoid DRC warning (Bug #1174). Regression data updated.
 
 IMP: (9/22/06, GVG) default M4 arc width = 3(old=4) and M6 arc width = 5(old=4).
 
-IMP/MAN: (9/22/06, SMR) Added control for legacy blending.
+IMP: (9/22/06, SMR) Added control for legacy blending.
 
-BUG: (9/22/06, DN) Drawing in the TechPalette doesn't match the actual primitives in the EditWindow (Bug #1213).
-FIX: TechPalette.drawShapes uses either VectorDrawing or LayerDrawing depending on preferences.
+BUG: (9/22/06, DN) Drawing in the TechPalette doesn't match the actual primitives
+     in the EditWindow (Bug #1213).
+FIX: TechPalette.drawShapes uses either VectorDrawing or LayerDrawing depending
+     on preferences.
 
 IMP: (9/21/06, SMR) Added copyright notices.
 
-BUG: (9/21/06, GVG) Null Exception in Color Pattern dialog after unselecting highlighted object (Bug#1230).
-FIX: PatternView.Info is null if you unselect an object and leaving the ColorPattern dialog open.
+BUG: (9/21/06, GVG) Null Exception in Color Pattern dialog after unselecting
+     highlighted object (Bug #1230).
+FIX: PatternView.Info is null if you unselect an object and leaving the
+     ColorPattern dialog open.
 
 IMP: (9/21/06, SMR) Made "Describe This Technology" more readable.
 
-IMP/MAN: (9/21/06, SMR) Removed text input field from bottom of messages window.
+IMP: (9/21/06, SMR) Removed text input field from bottom of messages window.
 
 IMP: (9/21/06, SMR) Using Math.hypot() where appropriate.
 
 BUG: (9/21/06, SMR) Default arc end-extension not always used.
-FIX: In VerticalRoute.buildRoute(), use proper extension in calls to RouteElementArc.newArc().
-     In InteractiveRouter.planRoute(), compute extension properly.
+FIX: In VerticalRoute.buildRoute(), use proper extension in calls to
+     RouteElementArc.newArc(). In InteractiveRouter.planRoute(), compute
+     extension properly.
 
 BUG: (9/21/06, SMR) HSpice output with multiple conditions read badly.
 FIX: In HSpiceOut.readTRDCACFile(), read a name for every "cndcnt".
@@ -1069,7 +1200,8 @@ FIX: In ColorPatternPanel.setColorPattern(), before:
      insert:
 		if (li.transparentLayer < transparentLayer.getItemCount())
 
-IMP: (9/20/06, GVG) Detecting if format of measurement files is wrong and printing an error message (Bug #1228)
+IMP: (9/20/06, GVG) Detecting if format of measurement files is wrong and
+     printing an error message (Bug #1228)
 
 ************************* Everything below here was announced in the 8.04 release *********************************
 
