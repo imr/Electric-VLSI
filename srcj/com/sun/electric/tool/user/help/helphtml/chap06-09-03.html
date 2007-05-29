@@ -19,14 +19,16 @@ The indices can ascend or descend.</LI>
 <LI><B>Array index lists and ranges</B> Arrayed bus names can have lists of values (separated by commas)
 or ranges of values (using the colon).
 For example, the bus "b[0],c[3,5],d[1:2],e[8:6]" is an 8-wide bus with signals in this order:
-b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].</LI>
+b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
+</LI>
 
 <LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
 (for example "b[1:2][100,102]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
 You can have any number of dimensions in an array.</LI>
 
 <LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
-(for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).</LI>
+(for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).
+</LI>
 </UL>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
@@ -59,7 +61,7 @@ Electric maintains a list of global parameters, and these can be manipulated wit
 You can create and delete parameters, and can set values for each.
 </TD><TD><CENTER><IMG SRC="fig06-25.png" ALT="Figure 6.25"></CENTER></TD></TR></TABLE>
 <P>
-To use these parameters, you must add a template to an arc name or export name.
+To use these parameters, you must add a template to an arc, node, or export name.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig06-26.png" ALT="Figure 6.26"></CENTER></TD><TD>
 This figure shows an export called "in", and an arc called "internal".
@@ -68,12 +70,15 @@ Both the export name and the arc name were selected, and the command
 </TD></TR></TABLE>
 <P>
 The templates are then shown near the original names.
+Arrayed nodes can also have their names parameterized.
 <P>
 You may type any text into the template.
-Wherever they string <CODE>$(par)</CODE> appears, it will be replaced
+Wherever the string <CODE>$(par)</CODE> appears, it will be replaced
 with the parameter <CODE>par</CODE>.
 In this example, the parameter <CODE>x</CODE> has the value 7.
+You can also use simple arithmetic operators (just "+", "-", "*", and "/"),
+for example <CODE>in[0:$(x)-1]</CODE> defines a bus that runs from 0 to one minus the value of "x".
 When parameter values change, click the "Update All Templates" button to
-reevaluate all export and arc names.
+reevaluate all node, arc, and export names.
 
 <!-- TRAILER -->
