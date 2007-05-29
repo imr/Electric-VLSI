@@ -37,7 +37,14 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -62,13 +69,6 @@ import javax.swing.JOptionPane;
  */
 public class TechToLib
 {
-//    public static String makeLibFromTechnology(Technology tech)
-//    {
-//		LibFromTechJob job = new LibFromTechJob(tech, true);
-//        job.doIt();
-//        return job.getLibraryName();
-//    }
-
 	/**
 	 * Method to convert the current technology into a library.
 	 */
@@ -589,7 +589,6 @@ public class TechToLib
 						PortInst head = nni.getOnlyPortInst();
 						PortInst tail = pNi.getOnlyPortInst();
 						ArcInst.newInstanceBase(Generic.tech.universal_arc, 0, head, tail);
-//						ArcInst.newInstanceFull(Generic.tech.universal_arc, 0, head, tail);
 						break;
 					}
 				}
@@ -746,15 +745,16 @@ public class TechToLib
             }
         }
         
-        String techName = tech.getTechName();
-        LibToTech.writeXml(techName + ".xml", techName, gi, lList, nList, aList);
+//        String techName = tech.getTechName();
+//        LibToTech.writeXml(techName + ".xml", techName, gi, lList, nList, aList);
 
 		// clean up
 		System.out.println("Done.");
 		return(lib);
 	}
 
-    private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList) {
+    private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList)
+    {
         ArcInfo aIn = new ArcInfo();
         aIn.name = ap.getName();
         aIn.func = ap.getFunction();
@@ -1012,12 +1012,6 @@ public class TechToLib
 				bounds.getWidth(), bounds.getHeight(), cell);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.CENT));
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setPos(TextDescriptor.Position.CENT);
-//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOTLEFT)
@@ -1026,12 +1020,6 @@ public class TechToLib
 				bounds.getWidth(), bounds.getHeight(), cell);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.UPRIGHT));
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setPos(TextDescriptor.Position.UPRIGHT);
-//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOTRIGHT)
@@ -1040,12 +1028,6 @@ public class TechToLib
 				bounds.getWidth(), bounds.getHeight(), cell);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.UPLEFT));
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setPos(TextDescriptor.Position.UPLEFT);
-//			}
 			return ni;
 		}
 		if (style == Poly.Type.TEXTBOX)
@@ -1054,12 +1036,6 @@ public class TechToLib
 				bounds.getWidth(), bounds.getHeight(), cell);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_MESSAGE, poly.getString(), TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.BOXED));
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setPos(TextDescriptor.Position.BOXED);
-//			}
 			return ni;
 		}
 		return(null);
