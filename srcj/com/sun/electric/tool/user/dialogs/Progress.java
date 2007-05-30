@@ -97,19 +97,23 @@ public class Progress
 	 */
 	public void close()
 	{
-//		if (progressBar == null) return;
+		if (progressBar == null) return;
+		progressBar = null;
 
 		if (TopLevel.isMDIMode())
 		{
 			Point pt = jif.getLocation();
 			xPos = pt.x;
 			yPos = pt.y;
+            TopLevel.removeFromDesktop(jif);
+			jif.setVisible(false);
 			jif.dispose();
 		} else
 		{
 			Point pt = jf.getLocation();
 			xPos = pt.x;
 			yPos = pt.y;
+			jf.setVisible(false);
 			jf.dispose();
 		}	
 	}
