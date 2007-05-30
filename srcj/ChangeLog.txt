@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (5/29/07, DN) Library readers gives errors on arcs and nodes with sizes less than minimal.
+
+IMP: (5/29/07, DN) Xml description for technology "tsmc90".
+
 ************************* Version 8.05m: *********************************
 
 IMP: (5/29/07, SMR) Schematic DRC now flags nodes that have touching but
@@ -114,9 +118,7 @@ IMP: (5/9/07, GVG) Cleaning pseudo references in XML DRC decks.
 BUG: (5/8/07, DN) DRCTemplate writer writes DRCMode "M3" as "M3|M23".
 FIX: Reorder DRCMode values and modify writing algorithm.
 
-FIX: (5/7/07, DN) Temporarily rollback Xml description of "tsmc180" and "cmos90".
-
-IMP: (5/6/07, DN) Xml description for technology "tsmc90".
+FIX: (5/7/07, DN) Temporarily rollback Xml description of "cmos90".
 
 BUG: (5/6/07, DN) DRCTemplate writer skips some DRCRuleTypes.
 FIX: Write FORBDEN and EXTENSIONGATE rules, comment CUTSURX and CUTSURY rules,

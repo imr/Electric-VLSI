@@ -632,7 +632,7 @@ public class ReadableDump extends LibraryFiles
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, ail.arcNameDescriptor[j],
-                    headPortInst, tailPortInst, headPt, tailPt, gridExtendOverMin,
+                    headPortInst, tailPortInst, headPt, tailPt, Math.max(gridExtendOverMin, 0),
                     ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;
 //            ELIBConstants.applyELIBArcBits(ai, userBits);
@@ -643,6 +643,11 @@ public class ReadableDump extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
+            if (gridExtendOverMin < 0) {
+				String msg = "ERROR: "+cell + ": arc " + name + " width was less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin);
+                System.out.println(msg);
+				Input.errorLogger.logError(msg, ai, cell, null, 2);
+            }
             realizeVariables(ai, ail.arcVars[j]);
  		}
 	}

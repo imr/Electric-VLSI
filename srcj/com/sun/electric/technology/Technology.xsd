@@ -604,20 +604,31 @@
                                                             </xsd:complexType>
                                                         </xsd:element>    
                                                     </xsd:sequence>
-                                                    <xsd:attribute name="klx" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="khx" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="kly" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="khy" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="klx" type="xsd:double"/>
+                                                    <xsd:attribute name="khx" type="xsd:double"/>
+                                                    <xsd:attribute name="kly" type="xsd:double"/>
+                                                    <xsd:attribute name="khy" type="xsd:double"/>
                                                 </xsd:complexType>
-                                            </xsd:element>
-                                            <xsd:element name="minbox">
-                                                <xsd:complexType></xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="points">
                                                 <xsd:complexType></xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="multicutbox">
                                                 <xsd:complexType>
+                                                    <xsd:sequence>
+                                                        <xsd:element name="lambdaBox" minOccurs="0">
+                                                            <xsd:complexType>
+                                                                <xsd:attribute name="klx" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="khx" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="kly" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="khy" type="xsd:double" use="required"/>
+                                                            </xsd:complexType>
+                                                        </xsd:element>    
+                                                    </xsd:sequence>
+                                                    <xsd:attribute name="klx" type="xsd:double"/>
+                                                    <xsd:attribute name="khx" type="xsd:double"/>
+                                                    <xsd:attribute name="kly" type="xsd:double"/>
+                                                    <xsd:attribute name="khy" type="xsd:double"/>
                                                     <xsd:attribute name="sizex" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="sizey" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
@@ -626,6 +637,20 @@
                                             </xsd:element>
                                             <xsd:element name="serpbox">
                                                 <xsd:complexType>
+                                                    <xsd:sequence>
+                                                        <xsd:element name="lambdaBox" minOccurs="0">
+                                                            <xsd:complexType>
+                                                                <xsd:attribute name="klx" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="khx" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="kly" type="xsd:double" use="required"/>
+                                                                <xsd:attribute name="khy" type="xsd:double" use="required"/>
+                                                            </xsd:complexType>
+                                                        </xsd:element>    
+                                                    </xsd:sequence>
+                                                    <xsd:attribute name="klx" type="xsd:double"/>
+                                                    <xsd:attribute name="khx" type="xsd:double"/>
+                                                    <xsd:attribute name="kly" type="xsd:double"/>
+                                                    <xsd:attribute name="khy" type="xsd:double"/>
                                                     <xsd:attribute name="lWidth" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="rWidth" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="tExtent" type="xsd:double" use="required"/>
@@ -651,7 +676,24 @@
                                             </xsd:complexType>
                                         </xsd:element>
                                         <xsd:element name="portTopology" type="xsd:integer"></xsd:element>
-                                        <xsd:element name="techPoint" type="tns:TechPoint" maxOccurs="2" minOccurs="2"></xsd:element>
+                                        <xsd:element name="box">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="lambdaBox" minOccurs="0">
+                                                        <xsd:complexType>
+                                                            <xsd:attribute name="klx" type="xsd:double" use="required"/>
+                                                            <xsd:attribute name="khx" type="xsd:double" use="required"/>
+                                                            <xsd:attribute name="kly" type="xsd:double" use="required"/>
+                                                            <xsd:attribute name="khy" type="xsd:double" use="required"/>
+                                                        </xsd:complexType>
+                                                    </xsd:element>    
+                                                </xsd:sequence>
+                                                <xsd:attribute name="klx" type="xsd:double"/>
+                                                <xsd:attribute name="khx" type="xsd:double"/>
+                                                <xsd:attribute name="kly" type="xsd:double"/>
+                                                <xsd:attribute name="khy" type="xsd:double"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
                                         <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="name" type="xsd:NCName" use="required"/>

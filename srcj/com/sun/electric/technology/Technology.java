@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -334,13 +335,13 @@ public class Technology implements Comparable<Technology>
 		 */
 		public static final int BOX = 1;
 
-		/**
-		 * Indicates that the "points" list defines a minimum sized rectangle.
-		 * It contains two diagonally opposite points, like BOX,
-		 * and also contains a minimum box size beyond which the polygon will not shrink
-		 * (again, two diagonally opposite points).
-		 */
-		public static final int MINBOX = 2;
+//		/**
+//		 * Indicates that the "points" list defines a minimum sized rectangle.
+//		 * It contains two diagonally opposite points, like BOX,
+//		 * and also contains a minimum box size beyond which the polygon will not shrink
+//		 * (again, two diagonally opposite points).
+//		 */
+//		public static final int MINBOX = 2;
 
 		/**
 		 * Indicates that the "points" list defines a rectangle,
@@ -355,7 +356,7 @@ public class Technology implements Comparable<Technology>
 		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
 		 * A negative value indicates that this layer is not connected to an electrical layer.
 		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
-		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MINBOX.
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MULTICUTBOX.
 		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
 		 */
 		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points)
@@ -377,7 +378,7 @@ public class Technology implements Comparable<Technology>
 		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
 		 * A negative value indicates that this layer is not connected to an electrical layer.
 		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
-		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MINBOX.
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MULTICUTBIX.
 		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
 		 * @param lWidth the left extension of this layer, measured from the <I>centerline</I>.
 		 * The centerline is the path that the serpentine transistor follows (it defines the path of the
@@ -475,7 +476,7 @@ public class Technology implements Comparable<Technology>
 		{
 			if (rep == POINTS) return "points";
 			if (rep == BOX) return "box";
-			if (rep == MINBOX) return "min-box";
+//			if (rep == MINBOX) return "min-box";
 			if (rep == MULTICUTBOX) return "multi-cut-box";
 			return "?";
 		}
@@ -710,7 +711,8 @@ public class Technology implements Comparable<Technology>
 
 	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
-	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyTechnologies = new TreeMap<String,String>();
+	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
+	/** static list of xml Technologies in Electric */		private static TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -811,11 +813,11 @@ public class Technology implements Comparable<Technology>
 		technologies.put(techName, this);
 	}
 
-    protected Technology(URL urlXml, boolean full) {
-        this(Xml.parseTechnology(urlXml), full);
-    }
-    
-    private Technology(Xml.Technology t, boolean full) {
+//    protected Technology(URL urlXml, boolean full) {
+//        this(Xml.parseTechnology(urlXml), full);
+//    }
+//    
+    public Technology(Xml.Technology t) {
         this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
         setTechShortName(t.shortTechName);
@@ -916,9 +918,16 @@ public class Technology implements Comparable<Technology>
             ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
             for (int i = 0; i < n.nodeLayers.size(); i++) {
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
-                TechPoint[] techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
-                for (int j = 0; j < techPoints.length; j++)
-                    techPoints[j] = makeTechPoint(techPoints[j], correction);
+                TechPoint[] techPoints;
+                if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
+                    techPoints = new TechPoint[2];
+                    techPoints[0] = makeTechPoint(nl.lx, nl.ly, correction);
+                    techPoints[1] = makeTechPoint(nl.hx, nl.hy, correction);
+                } else {
+                    techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
+                    for (int j = 0; j < techPoints.length; j++)
+                        techPoints[j] = makeTechPoint(techPoints[j], correction);
+                }
                 NodeLayer nodeLayer;
                 Layer layer = layers.get(nl.layer);
                 if (n.shrinkArcs) {
@@ -981,13 +990,14 @@ public class Technology implements Comparable<Technology>
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
-                TechPoint p0 = makeTechPoint(p.p0, correction);
-                TechPoint p1 = makeTechPoint(p.p1, correction);
+//                TechPoint p0 = makeTechPoint(p.p0, correction);
+//                TechPoint p1 = makeTechPoint(p.p1, correction);
                 ArcProto[] connections = new ArcProto[p.portArcs.size()];
                 for (int j = 0; j < connections.length; j++)
                     connections[j] = arcs.get(p.portArcs.get(j));
                 ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
-                        PortCharacteristic.UNKNOWN, p0.getX(), p0.getY(), p1.getX(), p1.getY());
+                        PortCharacteristic.UNKNOWN, makeEdgeH(p.lx, correction), makeEdgeV(p.ly, correction), makeEdgeH(p.hx, correction), makeEdgeV(p.hy, correction));
+//                        PortCharacteristic.UNKNOWN, p0.getX(), p0.getY(), p1.getX(), p1.getY());
             }
             pnp.addPrimitivePorts(ports);
             pnp.setSpecialType(n.specialType);
@@ -1022,7 +1032,6 @@ public class Technology implements Comparable<Technology>
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
-        if (!full) return;
         if (t.menuPalette != null) {
             int numColumns = t.menuPalette.numColumns;
             ArrayList<Object[]> rows = new ArrayList<Object[]>();
@@ -1070,7 +1079,6 @@ public class Technology implements Comparable<Technology>
             Foundry foundry = new Foundry(this, Foundry.Type.valueOf(f.name), f.rules, gdsLayers.toArray(new String[gdsLayers.size()]));
             foundries.add(foundry);
         }
-        setup();
     }
     
     private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
@@ -1079,6 +1087,18 @@ public class Technology implements Comparable<Technology>
         h = new EdgeH(h.getMultiplier(), h.getAdder() - correction.getLambdaX()*h.getMultiplier()*2);
         v = new EdgeV(v.getMultiplier(), v.getAdder() - correction.getLambdaY()*v.getMultiplier()*2);
         return new TechPoint(h, v);
+    }
+    
+    private TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, EPoint correction) {
+        return new TechPoint(makeEdgeH(x, correction), makeEdgeV(y, correction));
+    }
+    
+    private EdgeH makeEdgeH(Xml.Distance x, EPoint correction) {
+        return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
+    }
+    
+    private EdgeV makeEdgeV(Xml.Distance y, EPoint correction) {
+        return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
     
     private Object convertMenuItem(Object menuItem) {
@@ -1122,21 +1142,12 @@ public class Technology implements Comparable<Technology>
 		Pref.delayPrefFlushing();
 
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Artwork.tech.setup();
-//		BiCMOS.tech.setup();
-//		Bipolar.tech.setup();
-//		CMOS.tech.setup();
-//		EFIDO.tech.setup();
-		FPGA.tech.setup();
-//		GEM.tech.setup();
-		MoCMOS.tech.setup();
-//		MoCMOSOld.tech.setup();
-//		MoCMOSSub.tech.setup();
-//		nMOS.tech.setup();
-//		PCB.tech.setup();
-//		RCMOS.tech.setup();
-		Schematics.tech.setup();
 		Generic.tech.setup();
+		Artwork.tech.setup();
+		FPGA.tech.setup();
+		Schematics.tech.setup();
+
+		MoCMOS.tech.setup();
 
 		// finished batching preferences
 		Pref.resumePrefFlushing();
@@ -1144,25 +1155,36 @@ public class Technology implements Comparable<Technology>
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
         
-        new Technology(Technology.class.getResource("technologies/bicmos.xml"), true);
-        new Technology(Technology.class.getResource("technologies/bipolar.xml"), true);
-        new Technology(Technology.class.getResource("technologies/cmos.xml"), true);
-        new Technology(Technology.class.getResource("technologies/mocmosold.xml"), true);
-        new Technology(Technology.class.getResource("technologies/mocmossub.xml"), true);
-        new Technology(Technology.class.getResource("technologies/nmos.xml"), true);
-        
-        lazyTechnologies.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
-        lazyTechnologies.put("gem",       "com.sun.electric.technology.technologies.GEM");
-        lazyTechnologies.put("pcb",       "com.sun.electric.technology.technologies.PCB");
-        lazyTechnologies.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
-        
-        lazyTechnologies.put("tsmc180",   "com.sun.electric.plugins.tsmc.TSMC180");
-        lazyTechnologies.put("cmos90",    "com.sun.electric.plugins.tsmc.CMOS90");
+        lazyUrls.put("bicmos",       Technology.class.getResource("technologies/bicmos.xml"));
+        lazyUrls.put("bipolar",      Technology.class.getResource("technologies/bipolar.xml"));
+        lazyUrls.put("cmos",         Technology.class.getResource("technologies/cmos.xml"));
+        lazyClasses.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
+        lazyClasses.put("gem",       "com.sun.electric.technology.technologies.GEM");
+        lazyClasses.put("pcb",       "com.sun.electric.technology.technologies.PCB");
+        lazyClasses.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
+        if (true) {
+            lazyClasses.put("mocmos", "com.sun.electric.technology.technologies.MoCMOS");
+//            (new MoCMOS()).setup();
+        } else {
+            lazyUrls.put("mocmos",   Technology.class.getResource("technologies/mocmos.xml"));
+        }
+        lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
+        lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
+        lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
+        lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
+        if (true) {
+            lazyClasses.put("cmos90", "com.sun.electric.plugins.tsmc.CMOS90");
+        } else {
+            lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));
+        }
         
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present
-            for(String techClassName: lazyTechnologies.values()) {
+            for(String techClassName: lazyClasses.values()) {
                 setupTechnology(techClassName);
+            }
+            for(URL techUrl: lazyUrls.values()) {
+                setupTechnology(techUrl);
             }
         }
 
@@ -1179,6 +1201,28 @@ public class Technology implements Comparable<Technology>
         try {
             Class<?> techClass = Class.forName(techClassName);
             Technology tech = (Technology)techClass.getField("tech").get(null);
+            tech.setup();
+            Generic.tech.makeUnivList();
+        } catch (ClassNotFoundException e) {
+            if (Job.getDebug())
+                System.out.println("GNU Release can't find extra technologies");
+            
+        } catch (Exception e) {
+            System.out.println("Exceptions while importing extra technologies");
+            ActivityLogger.logException(e);
+        } finally {
+            Pref.resumePrefFlushing();
+        }
+    }
+    
+    private static void setupTechnology(URL urlXml) {
+        Pref.delayPrefFlushing();
+        try {
+            Xml.Technology t = Xml.parseTechnology(urlXml);
+            Class<?> techClass = Technology.class;
+            if (t.className != null)
+                techClass = Class.forName(t.className);
+            Technology tech = (Technology)techClass.getConstructor(Xml.Technology.class).newInstance(t);
             tech.setup();
             Generic.tech.makeUnivList();
         } catch (ClassNotFoundException e) {
@@ -1757,7 +1801,10 @@ public class Technology implements Comparable<Technology>
 	 */
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
-		return layer1 == layer2;
+		if (layer1 == layer2) return true;
+		if (layer1.getFunction() == Layer.Function.POLY1 && layer2.getFunction() == Layer.Function.GATE) return true;
+		if (layer2.getFunction() == Layer.Function.POLY1 && layer1.getFunction() == Layer.Function.GATE) return true;
+		return false;
 	}
 
 	/**
@@ -2578,7 +2625,7 @@ public class Technology implements Comparable<Technology>
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
 			int representation = primLayer.getRepresentation();
-			if (representation == Technology.NodeLayer.BOX || representation == Technology.NodeLayer.MINBOX)
+			if (representation == Technology.NodeLayer.BOX)
 			{
 				EdgeH leftEdge = primLayer.getLeftEdge();
 				EdgeH rightEdge = primLayer.getRightEdge();
@@ -4233,8 +4280,14 @@ public class Technology implements Comparable<Technology>
 
         // load the DRC tables from the explanation table
         if (rulesList != null) {
-            for(DRCTemplate theRule : rulesList)
-                rules.loadDRCRules(this, foundry, theRule);
+            for(DRCTemplate rule : rulesList) {
+                if (rule.ruleType != DRCTemplate.DRCRuleType.NODSIZ)
+                    rules.loadDRCRules(this, foundry, rule);
+            }
+            for(DRCTemplate rule : rulesList) {
+                if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)
+                    rules.loadDRCRules(this, foundry, rule);
+            }
         }
         
         if (xmlTech != null)

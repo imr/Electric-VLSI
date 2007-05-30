@@ -3382,32 +3382,6 @@ public class MoCMOS extends Technology
 //		transistorWellLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
 //	}
 
-    /******************** OVERRIDES ********************/
-
-	/**
-	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
-	 */
-    @Override
-	public boolean sameLayer(Layer layer1, Layer layer2)
-	{
-		if (layer1 == layer2) return true;
-		if (layer1 == poly1Layer && layer2 == transistorPolyLayer) return true;
-		if (layer2 == poly1Layer && layer1 == transistorPolyLayer) return true;
-		return false;
-	}
-
-//	/**
-//	 * Method to convert old primitive names to their proper NodeProtos.
-//	 * @param name the name of the old primitive.
-//	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-//	 */
-//	public PrimitiveNode convertOldNodeName(String name)
-//	{
-//		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
-//		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
-//		return null;
-//	}
-
 	/******************** OPTIONS ********************/
 
     private static final Setting cacheRuleSet = TechSetting.makeIntSetting(tech, "MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",

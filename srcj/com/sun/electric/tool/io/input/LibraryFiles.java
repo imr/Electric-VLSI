@@ -44,7 +44,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
@@ -1044,6 +1043,14 @@ public abstract class LibraryFiles extends Input
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
                 center, size, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
         nil.theNode[nodeIndex] = ni;
+        if (proto instanceof PrimitiveNode) {
+            PrimitiveNode pn = (PrimitiveNode)proto;
+            PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
+            if (nodeSizeRule != null && (size.getLambdaX() < nodeSizeRule.getWidth() || size.getLambdaY() < nodeSizeRule.getHeight())) {
+                Input.errorLogger.logError(" (" + parent + ") node size was less than minimum by " +
+                        (nodeSizeRule.getWidth() - size.getLambdaX()) + "x" + (nodeSizeRule.getHeight() - size.getLambdaY()), ni, parent, null, 2);
+            }
+        }
         if (ni == null) return;
         Variable[] vars = nil.vars[nodeIndex];
         if (vars != null) {

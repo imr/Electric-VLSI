@@ -53,7 +53,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
@@ -982,6 +981,14 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
+            if (np instanceof PrimitiveNode) {
+                PrimitiveNode pn = (PrimitiveNode)np;
+                PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
+                if (nodeSizeRule != null && (size.getLambdaX() < nodeSizeRule.getWidth() || size.getLambdaY() < nodeSizeRule.getHeight())) {
+                    Input.errorLogger.logError(" (" + cell + ") node size was less than minimum by " +
+                            (nodeSizeRule.getWidth() - size.getLambdaX()) + "x" + (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
+                }
+            }
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
@@ -1204,16 +1211,19 @@ public class JELIB extends LibraryFiles
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin, angle, flags);
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), Math.max(gridExtendOverMin, 0), angle, flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();
 				geomList.add(headPI.getNodeInst());
 				geomList.add(tailPI.getNodeInst());
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create arc " + protoName, geomList, null, cell, -1);
+					" (" + cell + ") cannot create arc " + protoName, geomList, null, cell, 2);
 				continue;
 			}
+            if (gridExtendOverMin < 0) {
+				Input.errorLogger.logError(" (" + cell + ") arc width was less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
+            }
 
 			// add variables in fields 13 and up
 			Variable[] vars = readVariables(cc.revision, ai, pieces, 13, cc.fileName, cc.lineNumber + line);

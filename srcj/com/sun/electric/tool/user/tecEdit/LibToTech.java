@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -52,6 +53,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Xml.ArcLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -1880,8 +1882,8 @@ public class LibToTech
 					nodeLayers[count].style == Poly.Type.CLOSED)
 				{
 					nodeLayers[count].representation = Technology.NodeLayer.BOX;
-					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+//					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
+//					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
 				}
 			}
 			count++;
@@ -2040,11 +2042,11 @@ public class LibToTech
 					angles = ns.node.getArcDegrees();
 					if (angles[0] == 0 && angles[1] == 0) angles = null;
 				}
-				if (angles == null)
-				{
-					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-					if (var2 != null) minFactor = 2;
-				}
+//				if (angles == null)
+//				{
+//					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
+//					if (var2 != null) minFactor = 2;
+//				}
 
 				// set sample description
 				if (angles != null)
@@ -2076,11 +2078,11 @@ public class LibToTech
 					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
 					trueCount = 2;
 				}
-				if (minFactor > 1)
-				{
-					pointList[2] = new Point2D.Double(pointList[0].getX(),pointList[0].getY());
-					pointList[3] = new Point2D.Double(pointList[1].getX(),pointList[1].getY());
-				}
+//				if (minFactor > 1)
+//				{
+//					pointList[2] = new Point2D.Double(pointList[0].getX(),pointList[0].getY());
+//					pointList[3] = new Point2D.Double(pointList[1].getX(),pointList[1].getY());
+//				}
 			}
 
 			double [] pointLeftDist = new double[pointFactor.length];
@@ -2282,8 +2284,8 @@ public class LibToTech
 					nodeLayers[count].style == Poly.Type.CLOSED)
 				{
 					nodeLayers[count].representation = Technology.NodeLayer.BOX;
-					if (minFactor != 0)
-						nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+//					if (minFactor != 0)
+//						nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
 				}
 			}
 			count++;
@@ -2541,8 +2543,8 @@ public class LibToTech
 			multiDetails.style == Poly.Type.CLOSED)
 		{
 			multiDetails.representation = Technology.NodeLayer.BOX;
-			Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-			if (var2 != null) multiDetails.representation = Technology.NodeLayer.MINBOX;
+//			Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
+//			if (var2 != null) multiDetails.representation = Technology.NodeLayer.MINBOX;
 		}
 		multiDetails.values = ns.values;
 		multiDetails.ns = ns;
@@ -3576,6 +3578,7 @@ public class LibToTech
                     l.techPoints.add(tp);
                 pn.nodeLayers.add(l);
             }
+            EPoint p1 = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
             for (int j = 0; j < ni.nodePortDetails.length; j++) {
                 NodeInfo.PortDetails pd = ni.nodePortDetails[j];
                 Xml.PrimitivePort pp = new Xml.PrimitivePort();
@@ -3583,8 +3586,23 @@ public class LibToTech
                 pp.portAngle = pd.angle;
                 pp.portRange = pd.range;
                 pp.portTopology = pd.netIndex;
-                pp.p0 = pd.values[0];
-                pp.p1 = pd.values[1];
+                
+                EdgeH left = pd.values[0].getX();
+                EdgeH right = pd.values[1].getX();
+                EdgeV bottom = pd.values[0].getY();
+                EdgeV top = pd.values[1].getY();
+                
+                pp.lx.k = left.getMultiplier()*2;
+                pp.lx.value = left.getAdder() + p1.getLambdaX()*left.getMultiplier()*2;
+                pp.hx.k = right.getMultiplier()*2;
+                pp.hx.value = right.getAdder() + p1.getLambdaX()*right.getMultiplier()*2;
+                pp.ly.k = bottom.getMultiplier()*2;
+                pp.ly.value = bottom.getAdder() + p1.getLambdaY()*bottom.getMultiplier()*2;
+                pp.hy.k = top.getMultiplier()*2;
+                pp.hy.value = top.getAdder() + p1.getLambdaY()*top.getMultiplier()*2;
+                
+//                pp.p0 = pd.values[0];
+//                pp.p1 = pd.values[1];
                 for (ArcInfo a: pd.connections)
                     pp.portArcs.add(a.name);
                 pn.ports.add(pp);

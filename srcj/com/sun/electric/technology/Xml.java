@@ -223,7 +223,10 @@ public class Xml {
         public int portAngle;
         public int portRange;
         public int portTopology;
-        public TechPoint p0, p1;
+        public final Distance lx = new Distance();
+        public final Distance hx = new Distance();
+        public final Distance ly = new Distance();
+        public final Distance hy = new Distance();
         public final List<String> portArcs = new ArrayList<String>();
     }
     
@@ -324,7 +327,6 @@ public class Xml {
         sizeOffset,
         nodeLayer,
         box,
-        minbox,
         multicutbox,
         serpbox,
         lambdaBox,
@@ -872,16 +874,29 @@ public class Xml {
                     }
                     break;
                 case box:
-                    curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
-                    break;
-                case minbox:
-                    curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.MINBOX;
+                    if (curNodeLayer != null) {
+                        curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
+                        curNodeLayer.lx.k = da_("klx", -1);
+                        curNodeLayer.hx.k = da_("khx", 1);
+                        curNodeLayer.ly.k = da_("kly", -1);
+                        curNodeLayer.hy.k = da_("khy", 1);
+                    }
+                    if (curPort != null) {
+                        curPort.lx.k = da_("klx", -1);
+                        curPort.hx.k = da_("khx", 1);
+                        curPort.ly.k = da_("kly", -1);
+                        curPort.hy.k = da_("khy", 1);
+                    }
                     break;
                 case points:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.POINTS;
                     break;
                 case multicutbox:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX;
+                    curNodeLayer.lx.k = da_("klx", -1);
+                    curNodeLayer.hx.k = da_("khx", 1);
+                    curNodeLayer.ly.k = da_("kly", -1);
+                    curNodeLayer.hy.k = da_("khy", 1);
                     curNodeLayer.sizex = Double.parseDouble(a("sizex"));
                     curNodeLayer.sizey = Double.parseDouble(a("sizey"));
                     curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
@@ -889,12 +904,28 @@ public class Xml {
                     break;
                 case serpbox:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
+                    curNodeLayer.lx.k = da_("klx", -1);
+                    curNodeLayer.hx.k = da_("khx", 1);
+                    curNodeLayer.ly.k = da_("kly", -1);
+                    curNodeLayer.hy.k = da_("khy", 1);
                     curNodeLayer.lWidth = Double.parseDouble(a("lWidth"));
                     curNodeLayer.rWidth = Double.parseDouble(a("rWidth"));
                     curNodeLayer.tExtent = Double.parseDouble(a("tExtent"));
                     curNodeLayer.bExtent = Double.parseDouble(a("bExtent"));
                     break;
                 case lambdaBox:
+                    if (curNodeLayer != null) {
+                        curNodeLayer.lx.value = Double.parseDouble(a("klx"));
+                        curNodeLayer.hx.value = Double.parseDouble(a("khx"));
+                        curNodeLayer.ly.value = Double.parseDouble(a("kly"));
+                        curNodeLayer.hy.value = Double.parseDouble(a("khy"));
+                    }
+                    if (curPort != null) {
+                        curPort.lx.value = Double.parseDouble(a("klx"));
+                        curPort.hx.value = Double.parseDouble(a("khx"));
+                        curPort.ly.value = Double.parseDouble(a("kly"));
+                        curPort.hy.value = Double.parseDouble(a("khy"));
+                    }
                     break;
                 case techPoint:
                     double xm = Double.parseDouble(a("xm"));
@@ -904,12 +935,6 @@ public class Xml {
                     TechPoint p = new TechPoint(new EdgeH(xm, xa), new EdgeV(ym, ya));
                     if (curNodeLayer != null)
                         curNodeLayer.techPoints.add(p);
-                    if (curPort != null) {
-                        if (curPort.p0 == null)
-                            curPort.p0 = p;
-                        else
-                            curPort.p1 = p;
-                    }
                     break;
                 case primitivePort:
                     curPort = new PrimitivePort();
@@ -988,6 +1013,11 @@ public class Xml {
                             " type=" + attributes.getType(i) + " value=<" + attributes.getValue(i) + ">");
                 }
             }
+        }
+        
+        private double da_(String attrName, double defaultValue) {
+            String s = a_(attrName);
+            return s != null ? Double.parseDouble(s) : defaultValue;
         }
         
         private String a(String attrName) {
@@ -1201,7 +1231,6 @@ public class Xml {
                 case defaultHeight:
                 case sizeOffset:
                 case box:
-                case minbox:
                 case points:
                 case multicutbox:
                 case serpbox:
@@ -1689,24 +1718,24 @@ public class Xml {
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
                         if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
-                            b(XmlKeyword.serpbox); a("lx", nl.lx.k); a("hx", nl.hx.k); a("ly", nl.ly.k); a("hy", nl.hy.k);
+                            writeBox(XmlKeyword.serpbox, nl.lx, nl.hx, nl.ly, nl.hy);
                             a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); cl();
-                            b(XmlKeyword.lambdaBox); a("lx", nl.lx.value); a("hx", nl.hx.value); a("ly", nl.ly.value); a("hy", nl.hy.value); el();
+                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
                             el(XmlKeyword.serpbox);
                         } else {
-                            b(XmlKeyword.box); a("lx", nl.lx.k); a("hx", nl.hx.k); a("ly", nl.ly.k); a("hy", nl.hy.k); cl();
-                            b(XmlKeyword.lambdaBox); a("lx", nl.lx.value); a("hx", nl.hx.value); a("ly", nl.ly.value); a("hy", nl.hy.value); el();
+                            writeBox(XmlKeyword.box, nl.lx, nl.hx, nl.ly, nl.hy); cl();
+                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
                             el(XmlKeyword.box);
                         }
-                        break;
-                    case com.sun.electric.technology.Technology.NodeLayer.MINBOX:
-                        b(XmlKeyword.minbox); el();
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.POINTS:
                         b(XmlKeyword.points); el();
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
-                        b(XmlKeyword.multicutbox); a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); el();
+                        writeBox(XmlKeyword.multicutbox, nl.lx, nl.hx, nl.ly, nl.hy);
+                        a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); cl();
+                        b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
+                        el(XmlKeyword.multicutbox);
                         break;
                 }
                 for (TechPoint tp: nl.techPoints) {
@@ -1723,14 +1752,11 @@ public class Xml {
                 b(XmlKeyword.primitivePort); a("name", pd.name); cl();
                 b(XmlKeyword.portAngle); a("primary", pd.portAngle); a("range", pd.portRange); el();
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
-                for (int k = 0; k < 2; k++) {
-                    TechPoint p = k == 0 ? pd.p0 : pd.p1;
-                    double xm = p.getX().getMultiplier();
-                    double xa = p.getX().getAdder();
-                    double ym = p.getY().getMultiplier();
-                    double ya = p.getY().getAdder();
-                    b(XmlKeyword.techPoint); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
-                }
+                
+                writeBox(XmlKeyword.box, pd.lx, pd.hx, pd.ly, pd.hy); cl();
+                b(XmlKeyword.lambdaBox); a("klx", pd.lx.value); a("khx", pd.hx.value); a("kly", pd.ly.value); a("khy", pd.hy.value); el();
+                el(XmlKeyword.box);
+                
                 for (String portArc: pd.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
                 el(XmlKeyword.primitivePort);
@@ -1753,6 +1779,14 @@ public class Xml {
             }
             
             el(XmlKeyword.primitiveNode);
+        }
+        
+        private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
+            b(keyword);
+            if (lx.k != -1) a("klx", lx.k);
+            if (hx.k != 1) a("khx", hx.k);
+            if (ly.k != -1) a("kly", ly.k);
+            if (hy.k != 1) a("khy", hy.k);
         }
         
         private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {

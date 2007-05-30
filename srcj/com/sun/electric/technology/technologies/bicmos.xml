@@ -726,17 +726,16 @@
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Active" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="active">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
             <portArc>Active</portArc>
             <portArc>Pdiff</portArc>
             <portArc>Ndiff</portArc>
@@ -747,17 +746,16 @@
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="M1" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="metal-1">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-0.5"/>
-            <techPoint xm="0.5" xa="0.5" ym="0.5" ya="0.5"/>
+            <box>
+                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
     </primitiveNode>
@@ -766,17 +764,16 @@
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="M2" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <primitivePort name="metal-2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-0.5"/>
-            <techPoint xm="0.5" xa="0.5" ym="0.5" ya="0.5"/>
+            <box>
+                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+            </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
     </primitiveNode>
@@ -785,17 +782,16 @@
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Poly1" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="polysilicon">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
         </primitivePort>
     </primitiveNode>
@@ -804,17 +800,16 @@
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Poly2" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="p2-pin">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
             <portArc>Polysilicon_2</portArc>
         </primitivePort>
     </primitiveNode>
@@ -825,24 +820,21 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="CLOSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-4.0" hx="4.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <primitivePort name="Ndiff_Pin">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
         </primitivePort>
     </primitiveNode>
 
@@ -852,24 +844,21 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="CLOSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="CROSSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-4.0" hx="4.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <primitivePort name="Pdiff_Pin">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
         </primitivePort>
     </primitiveNode>
 
@@ -878,157 +867,125 @@
         <diskOffset untilVersion="2" x="4.0" y="4.0"/>
         <sizeOffset lx="22.0" hx="16.0" ly="8.0" hy="8.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="12.0" hx="16.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="12.0" khx="16.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="16.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="17.0" ly="-6.0" hy="6.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="17.0" kly="-6.0" khy="6.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-6.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="6.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-10.0" hx="-6.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-10.0" khx="-6.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-10.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="1.0" hx="5.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="1.0" khx="5.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-21.0" hx="23.0" ly="-12.0" hy="12.0"/>
+            <box>
+                <lambdaBox klx="-21.0" khx="23.0" kly="-12.0" khy="12.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-21.0" ym="-0.5" ya="-12.0"/>
-            <techPoint xm="0.5" xa="23.0" ym="0.5" ya="12.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-20.0" hx="-16.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-20.0" khx="-16.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-20.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-21.0" hx="-15.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-21.0" khx="-15.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-21.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="-15.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="13.0" hx="15.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="2.0" hx="4.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-9.0" hx="-7.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-19.0" hx="-17.0" ly="-1.0" hy="1.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="CLOSED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-23.0" hx="-13.0" ly="-5.0" hy="5.0"/>
+            <box>
+                <lambdaBox klx="-23.0" khx="-13.0" kly="-5.0" khy="5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-23.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="-13.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <primitivePort name="B2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="B1">
             <portAngle primary="0" range="180"/>
             <portTopology>1</portTopology>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="E1">
             <portAngle primary="0" range="180"/>
             <portTopology>2</portTopology>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="C1">
             <portAngle primary="0" range="180"/>
             <portTopology>3</portTopology>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
     </primitiveNode>
@@ -1036,297 +993,237 @@
     <primitiveNode name="NPN2_Transistor" fun="TRANPN">
         <diskOffset untilVersion="2" x="23.0" y="18.0"/>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="-9.0" hy="-3.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="-9.0" khy="-3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-9.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="5">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="-10.0" hy="-2.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="-10.0" khy="-2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-10.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="-2.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="2.0" hy="10.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="2.0" khy="10.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="10.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="6">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="12.0" hx="16.0" ly="4.0" hy="8.0"/>
+            <box>
+                <lambdaBox klx="12.0" khx="16.0" kly="4.0" khy="8.0"/>
             </box>
-            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="4.0"/>
-            <techPoint xm="0.5" xa="16.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-10.0" hx="-6.0" ly="-8.0" hy="-4.0"/>
+            <box>
+                <lambdaBox klx="-10.0" khx="-6.0" kly="-8.0" khy="-4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-10.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="-4.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-10.0" hx="-6.0" ly="4.0" hy="8.0"/>
+            <box>
+                <lambdaBox klx="-10.0" khx="-6.0" kly="4.0" khy="8.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-10.0" ym="-0.5" ya="4.0"/>
-            <techPoint xm="0.5" xa="-6.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="3.0" hy="9.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="3.0" khy="9.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="9.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="6">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="3.0" hy="9.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="3.0" khy="9.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="9.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-20.0" hx="-16.0" ly="-8.0" hy="-4.0"/>
+            <box>
+                <lambdaBox klx="-20.0" khx="-16.0" kly="-8.0" khy="-4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-20.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="-4.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="5">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="1.0" hx="5.0" ly="-8.0" hy="-4.0"/>
+            <box>
+                <lambdaBox klx="1.0" khx="5.0" kly="-8.0" khy="-4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="-4.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-21.0" hx="-15.0" ly="-9.0" hy="-3.0"/>
+            <box>
+                <lambdaBox klx="-21.0" khx="-15.0" kly="-9.0" khy="-3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-21.0" ym="-0.5" ya="-9.0"/>
-            <techPoint xm="0.5" xa="-15.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="4">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-21.0" hx="-15.0" ly="3.0" hy="9.0"/>
+            <box>
+                <lambdaBox klx="-21.0" khx="-15.0" kly="3.0" khy="9.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-21.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="-15.0" ym="0.5" ya="9.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="4">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-20.0" hx="-16.0" ly="4.0" hy="8.0"/>
+            <box>
+                <lambdaBox klx="-20.0" khx="-16.0" kly="4.0" khy="8.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-20.0" ym="-0.5" ya="4.0"/>
-            <techPoint xm="0.5" xa="-16.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="1.0" hx="5.0" ly="4.0" hy="8.0"/>
+            <box>
+                <lambdaBox klx="1.0" khx="5.0" kly="4.0" khy="8.0"/>
             </box>
-            <techPoint xm="-0.5" xa="1.0" ym="-0.5" ya="4.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED"  portNum="7">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="12.0" hx="16.0" ly="-8.0" hy="-4.0"/>
+            <box>
+                <lambdaBox klx="12.0" khx="16.0" kly="-8.0" khy="-4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="12.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="16.0" ym="0.5" ya="-4.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED"  portNum="7">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="-9.0" hy="-3.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="-9.0" khy="-3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="-9.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-21.0" hx="23.0" ly="-18.0" hy="18.0"/>
+            <box>
+                <lambdaBox klx="-21.0" khx="23.0" kly="-18.0" khy="18.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-21.0" ym="-0.5" ya="-18.0"/>
-            <techPoint xm="0.5" xa="23.0" ym="0.5" ya="18.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="17.0" ly="-12.0" hy="12.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="17.0" kly="-12.0" khy="12.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-12.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="12.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-9.0" hx="-7.0" ly="-7.0" hy="-5.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="-7.0" khy="-5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="-5.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED"  portNum="6">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="3.0" hy="9.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="3.0" khy="9.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="9.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-19.0" hx="-17.0" ly="-7.0" hy="-5.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="-7.0" khy="-5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="-5.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="-9.0" hy="-3.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="-9.0" khy="-3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="-9.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="4">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-19.0" hx="-17.0" ly="5.0" hy="7.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="5.0" khy="7.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="7.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-9.0" hx="-7.0" ly="5.0" hy="7.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="5.0" khy="7.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="7.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="4">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-23.0" hx="-13.0" ly="1.0" hy="11.0"/>
+            <box>
+                <lambdaBox klx="-23.0" khx="-13.0" kly="1.0" khy="11.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-23.0" ym="-0.5" ya="1.0"/>
-            <techPoint xm="0.5" xa="-13.0" ym="0.5" ya="11.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="3">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-23.0" hx="-13.0" ly="-11.0" hy="-1.0"/>
+            <box>
+                <lambdaBox klx="-23.0" khx="-13.0" kly="-11.0" khy="-1.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-23.0" ym="-0.5" ya="-11.0"/>
-            <techPoint xm="0.5" xa="-13.0" ym="0.5" ya="-1.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="6">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="13.0" hx="15.0" ly="5.0" hy="7.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="5.0" khy="7.0"/>
             </box>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="7.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="5">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="-10.0" hy="-2.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="-10.0" khy="-2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-10.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="-2.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-1.0" hx="7.0" ly="2.0" hy="10.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="7.0" kly="2.0" khy="10.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="2.0"/>
-            <techPoint xm="0.5" xa="7.0" ym="0.5" ya="10.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="2.0" hx="4.0" ly="5.0" hy="7.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="5.0" khy="7.0"/>
             </box>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="7.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="5">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="2.0" hx="4.0" ly="-7.0" hy="-5.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="-7.0" khy="-5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="-5.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED"  portNum="2">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-11.0" hx="-5.0" ly="3.0" hy="9.0"/>
+            <box>
+                <lambdaBox klx="-11.0" khx="-5.0" kly="3.0" khy="9.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-11.0" ym="-0.5" ya="3.0"/>
-            <techPoint xm="0.5" xa="-5.0" ym="0.5" ya="9.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED"  portNum="7">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="11.0" hx="17.0" ly="-9.0" hy="-3.0"/>
+            <box>
+                <lambdaBox klx="11.0" khx="17.0" kly="-9.0" khy="-3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="11.0" ym="-0.5" ya="-9.0"/>
-            <techPoint xm="0.5" xa="17.0" ym="0.5" ya="-3.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED"  portNum="7">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="13.0" hx="15.0" ly="-7.0" hy="-5.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="-7.0" khy="-5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="-5.0"/>
         </nodeLayer>
         <primitivePort name="B1">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="-5.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="-7.0" khy="-5.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="E2">
             <portAngle primary="0" range="180"/>
             <portTopology>1</portTopology>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="7.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="5.0" khy="7.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="B3">
             <portAngle primary="0" range="180"/>
             <portTopology>2</portTopology>
-            <techPoint xm="-0.5" xa="-9.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="-7.0" ym="0.5" ya="7.0"/>
+            <box>
+                <lambdaBox klx="-9.0" khx="-7.0" kly="5.0" khy="7.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="C1">
             <portAngle primary="0" range="180"/>
             <portTopology>3</portTopology>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="-5.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="-7.0" khy="-5.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="C2">
             <portAngle primary="0" range="180"/>
             <portTopology>4</portTopology>
-            <techPoint xm="-0.5" xa="-19.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="-17.0" ym="0.5" ya="7.0"/>
+            <box>
+                <lambdaBox klx="-19.0" khx="-17.0" kly="5.0" khy="7.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="E1">
             <portAngle primary="0" range="180"/>
             <portTopology>5</portTopology>
-            <techPoint xm="-0.5" xa="2.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="-5.0"/>
+            <box>
+                <lambdaBox klx="2.0" khx="4.0" kly="-7.0" khy="-5.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="B4">
             <portAngle primary="0" range="180"/>
             <portTopology>6</portTopology>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="5.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="7.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="5.0" khy="7.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="B2">
             <portAngle primary="0" range="180"/>
             <portTopology>7</portTopology>
-            <techPoint xm="-0.5" xa="13.0" ym="-0.5" ya="-7.0"/>
-            <techPoint xm="0.5" xa="15.0" ym="0.5" ya="-5.0"/>
+            <box>
+                <lambdaBox klx="13.0" khx="15.0" kly="-7.0" khy="-5.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
     </primitiveNode>
@@ -1336,43 +1233,36 @@
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
         <sizeOffset lx="5.0" hx="5.0" ly="5.0" hy="5.0"/>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED">
-            <minbox/>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
-            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
         </nodeLayer>
         <nodeLayer layer="N_Well" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-8.0" hx="8.0" ly="-8.0" hy="8.0"/>
+            <box>
+                <lambdaBox klx="-8.0" khx="8.0" kly="-8.0" khy="8.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-8.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="8.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="CLOSED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-5.0" hx="5.0" ly="-5.0" hy="5.0"/>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-5.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="m1_pdiff">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
             <portArc>Metal_1</portArc>
             <portArc>Pdiff</portArc>
         </primitivePort>
@@ -1383,36 +1273,31 @@
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <minbox/>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
-            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-5.0" hx="5.0" ly="-5.0" hy="5.0"/>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-5.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="M1_Ndiff">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
             <portArc>Metal_1</portArc>
             <portArc>Ndiff</portArc>
         </primitivePort>
@@ -1421,29 +1306,26 @@
     <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <minbox/>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
-            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
         </nodeLayer>
         <nodeLayer layer="Poly1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="Poly1_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
             <portArc>Metal_1</portArc>
         </primitivePort>
@@ -1454,29 +1336,26 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Poly2" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="Poly2_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="M1P2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
             <portArc>Metal_1</portArc>
             <portArc>Polysilicon_2</portArc>
         </primitivePort>
@@ -1487,59 +1366,55 @@
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="5.0" hx="5.0" ly="7.0" hy="7.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-1.0" hy="1.0"/>
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="8.0" rWidth="8.0" tExtent="5.0" bExtent="5.0">
-                <lambdaBox lx="-6.0" hx="6.0" ly="-8.0" hy="8.0"/>
+            <serpbox lWidth="8.0" rWidth="8.0" tExtent="5.0" bExtent="5.0">
+                <lambdaBox klx="-6.0" khx="6.0" kly="-8.0" khy="8.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-6.0" ym="-0.5" ya="-8.0"/>
-            <techPoint xm="0.5" xa="6.0" ym="0.5" ya="8.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-3.0" hy="3.0"/>
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED"  portNum="-1">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-5.0" hy="5.0"/>
+            <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox klx="-3.0" khx="3.0" kly="-5.0" khy="5.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <primitivePort name="pmos_poly_lt">
             <portAngle primary="180" range="90"/>
             <portTopology>1</portTopology>
-            <techPoint xm="-0.5" xa="-3.0" ym="0.0" ya="-1.0"/>
-            <techPoint xm="-0.5" xa="-2.0" ym="0.0" ya="1.0"/>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-3.0" khx="-2.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="pmos_diff_top">
             <portAngle primary="90" range="90"/>
             <portTopology>3</portTopology>
-            <techPoint xm="0.0" xa="-1.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="3.0"/>
+            <box klx="0.0" khx="0.0" kly="1.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="2.0" khy="3.0"/>
+            </box>
             <portArc>Pdiff</portArc>
         </primitivePort>
         <primitivePort name="pmos_poly_rt">
             <portAngle primary="0" range="90"/>
             <portTopology>1</portTopology>
-            <techPoint xm="0.5" xa="2.0" ym="0.0" ya="-1.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.0" ya="1.0"/>
+            <box klx="1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="2.0" khx="3.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="pmos_diff_bot">
             <portAngle primary="270" range="90"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.0" xa="-1.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="-0.5" ya="-2.0"/>
+            <box klx="0.0" khx="0.0" khy="-1.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="-2.0"/>
+            </box>
             <portArc>Pdiff</portArc>
         </primitivePort>
         <serpTrans>
@@ -1555,31 +1430,26 @@
     <primitiveNode name="M1_M2_Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="M2" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Via" style="CLOSED">
-            <box lx="0.0" hx="0.0" ly="0.0" hy="0.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+            <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
-            <techPoint xm="0.0" xa="-1.0" ym="0.0" ya="-1.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="0.0" ya="1.0"/>
         </nodeLayer>
         <primitivePort name="metal-1-metal-2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-0.5" ym="-0.5" ya="-0.5"/>
-            <techPoint xm="0.5" xa="0.5" ym="0.5" ya="0.5"/>
+            <box>
+                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+            </box>
             <portArc>Metal_1</portArc>
             <portArc>Metal_2</portArc>
         </primitivePort>
@@ -1590,43 +1460,36 @@
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="N_Well" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-6.0" hx="6.0" ly="-6.0" hy="6.0"/>
+            <box>
+                <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-6.0" ym="-0.5" ya="-6.0"/>
-            <techPoint xm="0.5" xa="6.0" ym="0.5" ya="6.0"/>
         </nodeLayer>
         <nodeLayer layer="Ohmic_Well" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="M1" style="FILLED">
-            <minbox/>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="-2.0" ym="0.0" ya="-2.0"/>
-            <techPoint xm="0.0" xa="2.0" ym="0.0" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-5.0" hx="5.0" ly="-5.0" hy="5.0"/>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-5.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="metal-1-well">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
             <portArc>Metal_1</portArc>
             <portArc>Active</portArc>
         </primitivePort>
@@ -1635,24 +1498,21 @@
     <primitiveNode name="Poly1_Poly2_Cap" fun="CAPAC">
         <diskOffset untilVersion="2" x="6.0" y="6.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-6.0" hx="6.0" ly="-6.0" hy="6.0"/>
+            <box>
+                <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-6.0" ym="-0.5" ya="-6.0"/>
-            <techPoint xm="0.5" xa="6.0" ym="0.5" ya="6.0"/>
         </nodeLayer>
         <nodeLayer layer="Poly2" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-4.0" hx="4.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <primitivePort name="P1P2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
             <portArc>Polysilicon_2</portArc>
         </primitivePort>
@@ -1663,52 +1523,50 @@
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="4.0" hy="4.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-1.0" hy="1.0"/>
+            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="1.0"/>
         </nodeLayer>
         <nodeLayer layer="Active" style="FILLED">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox lx="-1.0" hx="1.0" ly="-3.0" hy="3.0"/>
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED"  portNum="-1">
-            <serpbox lx="-1.0" hx="1.0" ly="-1.0" hy="1.0" lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-5.0" hy="5.0"/>
+            <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
+                <lambdaBox klx="-3.0" khx="3.0" kly="-5.0" khy="5.0"/>
             </serpbox>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <primitivePort name="nmos_poly_lt">
             <portAngle primary="180" range="90"/>
             <portTopology>1</portTopology>
-            <techPoint xm="-0.5" xa="-3.0" ym="0.0" ya="-1.0"/>
-            <techPoint xm="-0.5" xa="-2.0" ym="0.0" ya="1.0"/>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-3.0" khx="-2.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="nmos_diff_top">
             <portAngle primary="90" range="90"/>
             <portTopology>0</portTopology>
-            <techPoint xm="0.0" xa="-1.0" ym="0.5" ya="2.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="0.5" ya="3.0"/>
+            <box klx="0.0" khx="0.0" kly="1.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="2.0" khy="3.0"/>
+            </box>
             <portArc>Ndiff</portArc>
         </primitivePort>
         <primitivePort name="nmos_poly_rt">
             <portAngle primary="0" range="90"/>
             <portTopology>1</portTopology>
-            <techPoint xm="0.5" xa="2.0" ym="0.0" ya="-1.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.0" ya="1.0"/>
+            <box klx="1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="2.0" khx="3.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Polysilicon</portArc>
         </primitivePort>
         <primitivePort name="nmos_diff_bot">
             <portAngle primary="270" range="90"/>
             <portTopology>3</portTopology>
-            <techPoint xm="0.0" xa="-1.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.0" xa="1.0" ym="-0.5" ya="-2.0"/>
+            <box klx="0.0" khx="0.0" khy="-1.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="-2.0"/>
+            </box>
             <portArc>Ndiff</portArc>
         </primitivePort>
         <serpTrans>
@@ -1726,36 +1584,31 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="Ohmic_Substrate" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-3.0" ym="-0.5" ya="-3.0"/>
-            <techPoint xm="0.5" xa="3.0" ym="0.5" ya="3.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-5.0" hx="5.0" ly="-5.0" hy="5.0"/>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-5.0" ym="-0.5" ya="-5.0"/>
-            <techPoint xm="0.5" xa="5.0" ym="0.5" ya="5.0"/>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0"/>
-            <techPoint xm="-0.5" xa="0.0" ym="-0.5" ya="0.0"/>
-            <techPoint xm="0.5" xa="0.0" ym="0.5" ya="0.0"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="M1_Substrate">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-1.0" ym="-0.5" ya="-1.0"/>
-            <techPoint xm="0.5" xa="1.0" ym="0.5" ya="1.0"/>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
     </primitiveNode>
@@ -1765,24 +1618,21 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-4.0" hx="4.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <primitivePort name="active">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+            </box>
             <portArc>Active</portArc>
             <portArc>Pdiff</portArc>
             <portArc>Ndiff</portArc>
@@ -1794,24 +1644,21 @@
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-2.0" ym="-0.5" ya="-2.0"/>
-            <techPoint xm="0.5" xa="2.0" ym="0.5" ya="2.0"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
-            <box lx="-1.0" hx="1.0" ly="-1.0" hy="1.0">
-                <lambdaBox lx="-4.0" hx="4.0" ly="-4.0" hy="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
         </nodeLayer>
         <primitivePort name="Pdiff">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <techPoint xm="-0.5" xa="-4.0" ym="-0.5" ya="-4.0"/>
-            <techPoint xm="0.5" xa="4.0" ym="0.5" ya="4.0"/>
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+            </box>
         </primitivePort>
     </primitiveNode>
 

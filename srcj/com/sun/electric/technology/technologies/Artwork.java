@@ -383,7 +383,7 @@ public class Artwork extends Technology
 		closedPolygonNode = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.MINBOX, box_1)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_1)
 			});
 		closedPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -398,7 +398,7 @@ public class Artwork extends Technology
 		filledPolygonNode = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_1)
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_1)
 			});
 		filledPolygonNode.addPrimitivePorts(new PrimitivePort[]
 			{

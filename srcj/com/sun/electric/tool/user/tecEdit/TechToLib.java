@@ -490,15 +490,15 @@ public class TechToLib
 					if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 					ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 
-					// set minimum polygon factor on smallest example
-					if (e != 0) continue;
-					if (i < nodeLayers.length)
-					{
-						if (nodeLayers[i].getRepresentation() == Technology.NodeLayer.MINBOX)
-						{
-							ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
-						}
-					}
+// 					// set minimum polygon factor on smallest example
+// 					if (e != 0) continue;
+// 					if (i < nodeLayers.length)
+// 					{
+// 						if (nodeLayers[i].getRepresentation() == Technology.NodeLayer.MINBOX)
+// 						{
+// 							ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
+// 						}
+// 					}
 				}
 				if (first) continue;
 
