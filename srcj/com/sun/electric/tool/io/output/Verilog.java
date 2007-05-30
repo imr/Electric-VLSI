@@ -60,6 +60,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This is the Simulation Interface tool.
@@ -389,7 +390,8 @@ public class Verilog extends Topology
         } */
 
         // prepare arcs to store implicit inverters
-        HashMap<Connection,Integer> implicitInverters = new HashMap<Connection,Integer>();
+        Map<ArcInst,Integer> implicitHeadInverters = new HashMap<ArcInst,Integer>();
+        Map<ArcInst,Integer> implicitTailInverters = new HashMap<ArcInst,Integer>();
         int impInvCount = 0;
         for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
         {
@@ -407,8 +409,8 @@ public class Verilog extends Topology
                 }
 
                 // must create implicit inverter here
-                Connection con = ai.getConnection(e);
-                implicitInverters.put(con, new Integer(impInvCount));
+                if (e == ArcInst.HEADEND) implicitHeadInverters.put(ai, new Integer(impInvCount)); else
+                	implicitTailInverters.put(ai, new Integer(impInvCount));
                 if (ai.getProto() != Schematics.tech.bus_arc) impInvCount++; else
                 {
                     int wid = cni.getNetList().getBusWidth(ai);
@@ -823,16 +825,17 @@ public class Verilog extends Topology
                             CellSignal cs = cni.getCellSignal(net);
                             if (cs == null) continue;
                             String sigName = cs.getName();
-//							boolean negated = false;
                             if (i != 0 && con.isNegated())
                             {
                                 // this input is negated: write the implicit inverter
-                                Integer invIndex = implicitInverters.get(con);
+                                Integer invIndex;
+                                if (con.getEndIndex() == ArcInst.HEADEND) invIndex = implicitHeadInverters.get(ai); else
+                                	invIndex = implicitTailInverters.get(ai);
                                 if (invIndex != null)
                                 {
                                     String invSigName = IMPLICITINVERTERSIGNAME + invIndex.intValue();
                                     printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
-                                            invIndex.intValue() + " (" + invSigName + ", " + sigName + ");\n");
+                                        invIndex.intValue() + " (" + invSigName + ", " + sigName + ");\n");
                                     sigName = invSigName;
                                 }
                             }
@@ -867,14 +870,6 @@ public class Verilog extends Topology
 
                             CellSignal cs = cni.getCellSignal(net);
                             String sigName = cs.getName();
-//							if (i != 0 && pi->conarcinst->temp1 != 0)
-//							{
-//								// this input is negated: write the implicit inverter
-//								String invsigname = IMPLICITINVERTERSIGNAME + (pi->conarcinst->temp1+nindex);
-//								printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
-//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + sigName + ");\n");
-//								sigName = invsigname;
-//							}
                             infstr.append(sigName);
                         }
                     }
