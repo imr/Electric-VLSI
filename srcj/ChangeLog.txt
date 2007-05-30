@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (5/30/07, SMR) Created Job.getUserInterface().getGridAlignment() to get
+     alignment in a universal way.
+
 BUG: (5/30/07, SMR) Progress dialogs sometimes remain on the screen.
 FIX: In UserInterfaceMain.startProgressDialog(), close previous one;
      In Progress.close(), cleanup better.

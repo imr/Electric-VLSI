@@ -199,7 +199,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            double locY = portInst.getPoly().getCenterY();
 	            Rectangle2D iconBounds = icon.getBounds();
 				double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
-                newlocX = DBMath.toNearest(newlocX, User.getAlignmentToGrid());
+                newlocX = DBMath.toNearest(newlocX, Job.getUserInterface().getGridAlignment());
 				double bodyDX = User.getIconGenLeadLength();
 				double distToXEdge = locX - bounds.getMinX();
 				if (locX >= bounds.getCenterX())
@@ -208,7 +208,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 					distToXEdge = bounds.getMaxX() - locX;
 				}
 				double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
-                newlocY = DBMath.toNearest(newlocY, User.getAlignmentToGrid());
+                newlocY = DBMath.toNearest(newlocY, Job.getUserInterface().getGridAlignment());
 				double bodyDY = User.getIconGenLeadLength();
 				double distToYEdge = locY - bounds.getMinY();
 				if (locY >= bounds.getCenterY())

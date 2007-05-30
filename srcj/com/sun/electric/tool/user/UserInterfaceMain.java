@@ -273,6 +273,8 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 	public void alignToGrid(Point2D pt) { EditWindow.gridAlign(pt); }
 
+	public double getGridAlignment() { return User.getAlignmentToGrid(); }
+
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
 
 	public EditWindow_ displayCell(Cell cell)

@@ -98,6 +98,12 @@ public interface UserInterface
 	public void alignToGrid(Point2D pt);
 
 	/**
+	 * Method to get the current grid alignment.
+	 * @return the current grid alignment.
+	 */
+	public double getGridAlignment();
+
+	/**
 	 * Method to return the height of default text (in points).
 	 * @return the height of default text (in points).
 	 */

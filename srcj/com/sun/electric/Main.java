@@ -238,6 +238,7 @@ public final class Main
         }
         public void adjustReferencePoint(Cell cell, double cX, double cY) {};
 		public void alignToGrid(Point2D pt) {}
+		public double getGridAlignment() { return 1; }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }

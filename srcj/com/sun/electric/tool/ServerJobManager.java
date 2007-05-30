@@ -547,6 +547,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public void alignToGrid(Point2D pt) {
             printStackTrace("alignToGrid");
         }
+		public double getGridAlignment() { return 1; }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }

@@ -39,13 +39,11 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -86,7 +84,7 @@ public class PadGenerator
 	public static void makePadFrame(Library destLib, String fileName)
 	{
 		if (fileName == null) return;
-		new MakePadFrame(destLib, fileName, User.getAlignmentToGrid());
+		new MakePadFrame(destLib, fileName, Job.getUserInterface().getGridAlignment());
 	}
 
 	/**
