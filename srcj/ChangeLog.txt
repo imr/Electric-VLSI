@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (5/29/07, SMR) VHDL generation doesn't handle pseudo-inverters right.
+FIX: In GenerateVHDL.java, do not save Connections in maps; use ArcInsts.
+
 IMP: (5/29/07, DN) Library readers gives errors on arcs and nodes with sizes less than minimal.
 
 IMP: (5/29/07, DN) Xml description for technology "tsmc90".
