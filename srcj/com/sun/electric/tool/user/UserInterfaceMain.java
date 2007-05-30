@@ -893,6 +893,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void startProgressDialog(String msg, String filePath)
 	{
+    	stopProgressDialog();
         try{
         	String message;
         	if (filePath == null) message = msg + "..."; else
@@ -910,8 +911,11 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void stopProgressDialog()
 	{
-		progress.close();
-		progress = null;
+    	if (progress != null)
+    	{
+			progress.close();
+			progress = null;
+    	}
 	}
 
     /**

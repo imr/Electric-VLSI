@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (5/30/07, SMR) Progress dialogs sometimes remain on the screen.
+FIX: In UserInterfaceMain.startProgressDialog(), close previous one.
+
 BUG: (5/29/07, SMR) VHDL and Verilog generation don't handle pseudo-inverters right.
 FIX: In GenerateVHDL.java, and in Verilog.writeCellTopology(), do not save Connections
      in maps; use ArcInsts.
