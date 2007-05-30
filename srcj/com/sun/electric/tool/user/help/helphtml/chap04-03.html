@@ -73,6 +73,12 @@ See <A HREF="chap01-07.html#chap01-07">Section 1-7</A> for more on the side bar.
 When panning the window using menu commands, the distance to pan can be controlled with the
 "Panning distance" selection (see <A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A> for more on panning).
 <P>
+The "Display style" controls whether Electric uses the MDI (Multiple Document Interface) or the SDI
+(Single Document Interface) style of interaction.
+MDI (used typically on Windows systems) uses a single large window that has all of the editing windows
+inside of it.
+SDI (used typically on Linux and Macintosh systems) creates a window for every editing window in Electric.
+You can leave the default style for your operating system, or you can override that and force a style.
 <!-- NEED 4in -->
 <H3>Display Algorithms</H3>
 <P>
@@ -88,13 +94,15 @@ In such cases, the algorithm "simplifies" display of the object, usually drawing
 <P>
 Besides simplifying individual nodes and arcs, Electric also simplifies the display of entire cells
 if their contents are all too small to draw.
-Such simplification consists of keeping a small "image" of the cell, which can be quickly scaled and drawn in the proper place.
+Such simplification can consist of rendering the cell with a single "approximating" color,
+or keeping a small image of the cell and using it in the proper place.
 <P>
 There are some controls for the Vector Display Algorithm.
-The first control determines the size at which objects are simplified.
+The first control selects whether cell simplification uses an image of the cell or just an approximating color.
+The next control determines the size at which objects are simplified.
 The default is to "Simplify objects smaller than 3 pixels".
 Making this value smaller will cause more detailled drawing, but take longer.
-The next control determines the threshold for simplifying entire cells.
+The last control determines the threshold for simplifying entire cells.
 Although a cell's contents may be small, the cell may be quite large on the screen, and so should not be simplified
 (this happens to top-level cells in a deep hierarchy).
 The default limit is to "Do not simplify cells greater than 10 percent of the screen".

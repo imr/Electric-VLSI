@@ -33,7 +33,8 @@ be expressed as a set of "high-level" primitives (transistors and contacts) whic
 ways of appearing in the layout.
 Therefore, it is not always possible to extract layout precisely.
 For example, the design rules for a transistor typically require that polysilicon extend beyond
-the gate area by 2 units, so transistor primitives typically have this extra geometry built into them.
+the gate area by 2 units, so transistor primitives typically have this
+ extra geometry built into them.
 But what would happen if the geometry to be extracted extends by 3 units?
 Electric adds an extra 1-unit arc to fill-out the geometry that it finds.
 Worse yet, what would happen if the geometry extends by only 1 unit?
@@ -45,23 +46,28 @@ As an aid in debugging the extraction process, these extra pure-layer nodes are 
 in the resulting cell.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
-Two Network Preferences are available to control the extraction process
+Control of node extraction is done with the Network Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab).
 <P>
-The first is "Force exact cut placement", which requires that the cut (or via) locations
-appear exactly in the same place once extracted.
-Without this preference, Electric will find contact areas and replace them with contact nodes
-regardless of where those nodes place the cuts.
-With this preference selected, Electric will place contact nodes in such a way that the cut
-layers land in the correct original locations.
+"Grid-align geometry before extraction" causes all coordinates to be adjusted so that they are
+on grid units (see xxx).
+This is useful for data that has precision problems.
+<P>
+"Unify N and P active layers" tells the node extractor that the data does not distinguish between the
+two types of active.
+When this is not checked, the extractor assumes that there are two different active layer types,
+and uses this to help with the extraction.
 </TD></TR></TABLE>
+<P>
+"Approximate cut placement" relaxes the requirement that the cut (or via) locations
+appear exactly in the same place, once extracted.
+When this preference is checked, Electric will find contact areas and replace them with contact nodes
+regardless of where those nodes place the cuts.
+Without this preference, Electric will place contact nodes in such a way that the cut
+layers land in the correct original locations.
 <P>
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.
 In multi-cut situations, this may be many more nodes than are necessary.
-<P>
-The other preference is "Grid-align geometry before extraction".
-Doing this makes the extraction process run more smoothly, but may cost slightly in accuracy.
-
 
 <!-- TRAILER -->

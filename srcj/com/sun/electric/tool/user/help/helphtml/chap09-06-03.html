@@ -39,7 +39,7 @@ and present all possible mimic situations for your approval.
 These situations will be organized by the restrictions that apply to them,
 in order of increasingly relaxed acceptance criteria.
 <P>
-The bottommost checkbox is "Keep Pins", which requests that deleted arcs keep their pins
+The "Keep Pins" checkbox requests that deleted arcs keep their pins
 (typically, pins at the ends of deleted arcs are also deleted).
 </TD></TR></TABLE>
 <P>
@@ -53,6 +53,8 @@ and ensures that they match.</LI>
 <LI>"Node types must match" demands that the mimicked connections be on the same type of node.</LI>
 <LI>"Cannot have other arcs in the same direction" prevents arc creation when there are existing arcs
 wired in the same location as the proposed new arcs.</LI>
+<LI>"Ignore if already connected elsewhere" prevents arc creation in situations where the two ports
+are already electrically connected.</LI>
 </UL>
 
 <!-- TRAILER -->

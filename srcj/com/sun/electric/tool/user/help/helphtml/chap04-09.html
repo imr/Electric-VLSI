@@ -26,18 +26,15 @@ Note that when printing the highlighted area,
 a precise selection can be made with Area selection
 (see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>).
 <P>
-The "Plot Date In Corner" option causes additional information to appear in the corner of the plot.
-<P>
 The "Print resolution" is the number of dots-per-inch (DPI) that the printer expects.
 Higher resolutions use more memory for the print image.
 <P>
 <!-- NEED 2in -->
 There are many PostScript options, available in the lower section.
 <UL>
-<LI>
-"Encapsulated" requests that the PostScript output to be insertable in other documents (EPS).
+<LI>"Encapsulated" requests that the PostScript output to be insertable in other documents (EPS).
 </LI>
-<LI>"Color" offers four color choices: "Black&amp;White",
+<LI>"Color" offers four color choices: "Black&amp;White",
 uses stipple patterns for the layers;
 "Color" uses solid colors,
 but does not handle overlap (because PostScript does not handle transparency);
@@ -51,14 +48,19 @@ and "Plotter" for devices that print onto continuous rolls of paper).
 The "Margin" field is the amount of white space to leave on the sides.
 All distances in the "Height", "Width", and "Margin" fields are in inches.
 </LI>
-<LI>"Line Width" controls the width of PostScript lines.  Although they default to 1, this may be too thin
+<LI>"Line Width" controls the width of PostScript lines.  Although they default to 1, this may be too thin
 on some printers.
 </LI>
-<LI>"Rotation" controls rotation of the image by 90 degrees so that it fits better on the page.
+<LI>"Rotation" controls rotation of the image by 90 degrees so that it fits better on the page.
 The default is "No Rotation", but the popup can switch to "Rotate plot 90 degrees" or
 "Auto-rotate plot to fit".
 </LI>
-<LI>"Synchronize to file" requests that PostScript files be synchronized with the current cell.
+<LI>"Plot Date In Corner" requests that additional information appear in the corner of the plot.
+</LI>
+<LI>"EPS Scale" sets the scale factor of the specified cell when it is written as encapsulated PostScript.
+</LI>
+<LI>
+"Synchronize to file" requests that PostScript files be synchronized with the current cell.
 Clicking the "Set" button prompts you for a file name,
 which is stored with the current cell.
 Whenever you write any PostScript,
@@ -66,8 +68,6 @@ Electric checks all synchronized cells to see if they are newer than their assoc
 If they are newer, the files are regenerated.
 Thus, you can specify PostScript files for many different cells in a library,
 and when PostScript is generated, all of the files will be properly updated to reflect the state of the design.
-</LI>
-<LI>"EPS Scale" sets the scale factor of the specified cell when it is written as encapsulated PostScript.
 </LI>
 </UL>
 
