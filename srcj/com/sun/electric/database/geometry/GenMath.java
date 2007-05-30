@@ -1150,7 +1150,6 @@ public class GenMath
      */
     public static boolean doublesEqual(double a, double b)
     {
-//        return (Math.abs(a-b) <= DBL_EPSILON);
         return doublesEqual(a, b, DBL_EPSILON);
     }
 
