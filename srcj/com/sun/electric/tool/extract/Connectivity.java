@@ -61,6 +61,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -611,7 +612,7 @@ public class Connectivity
 					{
 						hold.setLocation(points[i]);
 						Job.getUserInterface().alignToGrid(hold);
-						poly.setPoint(i, hold.getX(), hold.getY());						
+						poly.setPoint(i, hold.getX(), hold.getY());
 					}
 				} else
 				{
@@ -763,12 +764,26 @@ public class Connectivity
 
 					// make sure the wire fits
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
-					if (!originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend))
+					boolean fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+					if (!fits)
 					{
 						// arc does not fit, try reducing width
-						cl.width = 0;
-						if (!originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend)) continue;
+						double wid = cl.width / SCALEFACTOR;
+						double alignment = Job.getUserInterface().getGridAlignment();
+						long x = Math.round(wid / alignment);
+						double gridWid = x * alignment;
+						if (gridWid < wid)
+						{
+							cl.width = scaleUp(gridWid);
+							fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+						}
 					}
+					if (!fits)
+					{
+						cl.width = 0;
+						fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+					}
+					if (!fits) continue;
 
 					// create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
@@ -1015,7 +1030,7 @@ public class Connectivity
 	 * @param loc1 it's location (values returned through this object!)
 	 * @param layer the layer associated with the Centerline.
 	 * @param ap the type of arc to create.
-	 * @param startSide true to 
+	 * @param startSide true to
 	 * @param newCell the Cell in which to find ports.
 	 * @return the PortInst on the Centerline.
 	 */
@@ -1051,7 +1066,7 @@ public class Connectivity
 					{
 						loc1.setLocation(startPoint);
 						piRet = pi;
-						break;						
+						break;
 					}
 					for(int i=0; i<points.length; i++)
 					{
@@ -1161,7 +1176,7 @@ public class Connectivity
 					Layer oLayer = geometricLayer(oPoly.getLayer());
 					if (layer != oLayer) continue;
 					oPoly.transform(trans);
-	
+
 					// do the polys touch?
 					if (oPoly.contains(pt))
 					{
@@ -1499,7 +1514,7 @@ public class Connectivity
 		{
 			this.cut = cut;
 		}
-		
+
 		public Rectangle2D getBounds() { return cut.getBounds2D(); }
 	}
 
@@ -1883,7 +1898,7 @@ public class Connectivity
 			if (poly.getLayer().getFunction().isDiff()) widestActive = Math.max(widestActive, bounds.getWidth());
 		}
 		boolean polyVertical = widestPoly < widestActive;
-		
+
 		// look at all of the pieces of this layer
 		List<PolyBase> polyList = getMergePolys(originalMerge, tempLayer1);
 		if (polyList == null) return;
@@ -2075,7 +2090,8 @@ public class Connectivity
 			Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
 		}
 		Job.getUserInterface().setProgressValue(0);
-		Job.getUserInterface().setProgressNote("Have " + totExtensions + " extensions...");
+		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
+			(justExtend ? " extensions..." : " connections..."));
 
 		soFar = 0;
 		for (Layer layer : extendableLayers)
@@ -2386,7 +2402,7 @@ public class Connectivity
 		if (poly.contains(tailOneSide)) return ai.getTailPortInst();
 		Point2D tailOtherSide = new Point2D.Double(tail.getX() - width * GenMath.cos(angPlus), tail.getY() - width * GenMath.sin(angPlus));
 		if (poly.contains(tailOtherSide)) return ai.getTailPortInst();
-		
+
 		return null;
 	}
 
@@ -2507,7 +2523,7 @@ public class Connectivity
 	 * @param poly the Poly to skeletonize.
 	 * @param layer the layer on which the polygon resides.
 	 * @param minWidth the minimum width of geometry on the layer.
-	 * @param merge 
+	 * @param merge
 	 * @param originalMerge
 	 * @return a List of Centerline objects that describe a single "bone" of the skeleton.
 	 */
@@ -2541,7 +2557,11 @@ public class Connectivity
 					continue;
 				}
 
-//System.out.println("GATHERED:"); for(Centerline cl : centerlines) System.out.println("    "+cl);
+				if (DEBUGCENTERLINES)
+				{
+					System.out.println("GATHERED:");
+					for(Centerline cl : centerlines) System.out.println("    "+cl);
+				}
 				// now pull out the relevant ones
 				double lastWidth = -1;
 				boolean lastWidthNonManhattan = false;
@@ -2613,7 +2633,11 @@ public class Connectivity
 		}
 		merge.deleteLayer(tempLayer1);
 
-//for(int i=0; i<validCenterlines.size(); i++) System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i));
+		if (DEBUGCENTERLINES)
+		{
+			for(int i=0; i<validCenterlines.size(); i++)
+				System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i));
+		}
 
 		// now extend centerlines so they meet
 		Centerline [] both = new Centerline[2];
@@ -2659,7 +2683,7 @@ public class Connectivity
 							betterExtension = newStart.distance(intersect);
 							altNewStart.setLocation(newStart);   altNewEnd.setLocation(intersect);
 							newStart = intersect;
-							extendAltEnd = extendStart = both[b].width / 2;							
+							extendAltEnd = extendStart = both[b].width / 2;
 						} else
 						{
 							betterExtension = newEnd.distance(intersect);
@@ -2696,8 +2720,11 @@ public class Connectivity
 				}
 			}
 		}
-//System.out.println("FINAL CENTERLINE: ");
-//for(Centerline cl : validCenterlines) System.out.println("    "+cl);
+		if (DEBUGCENTERLINES)
+		{
+			System.out.println("FINAL CENTERLINE: ");
+			for(Centerline cl : validCenterlines) System.out.println("    "+cl);
+		}
 		return validCenterlines;
 	}
 
@@ -2733,7 +2760,9 @@ public class Connectivity
 		if (DEBUGCENTERLINES)
 		{
 			System.out.print("POLYGON ON LAYER "+poly.getLayer().getName()+":");
-			for(int i=0; i<points.length; i++) System.out.print(" "+i+"("+TextUtils.formatDouble(points[i].getX())+","+TextUtils.formatDouble(points[i].getY())+")");
+			for(int i=0; i<points.length; i++)
+				System.out.print(" "+i+"("+TextUtils.formatDouble(points[i].getX()/SCALEFACTOR)+","+
+					TextUtils.formatDouble(points[i].getY()/SCALEFACTOR)+")");
 			System.out.println();
 		}
 
@@ -3432,6 +3461,10 @@ public class Connectivity
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
+		EPoint head = ai.getHeadLocation();
+		EPoint tail = ai.getTailLocation();
+		if (head.getX() != tail.getX() && head.getY() != tail.getY())
+			ai.setFixedAngle(false);
 
 		// remember this arc for debugging
 		if (DEBUGSTEPS)
@@ -3649,7 +3682,7 @@ public class Connectivity
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			wnd.clearHighlighting();
 			Cell cell = wnd.getCell();
-			
+
 			// highlight
 			List<ERectangle> rects = addedBatchRectangles.get(batchPosition);
 			for(ERectangle er : rects)
