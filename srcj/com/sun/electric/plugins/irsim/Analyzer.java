@@ -708,7 +708,7 @@ public class Analyzer extends Engine
 					getTargetNodes(targ, 1, sigs, null);
 					for(Signal sig : sigs)
 					{
-						Panel wp = new Panel(ww, false, null);
+						Panel wp = new Panel(ww, false, Analysis.ANALYSIS_SIGNALS);
 						wp.makeSelectedPanel();
 						new WaveSignal(wp, sig);
 					}
