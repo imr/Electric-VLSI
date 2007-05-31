@@ -1240,8 +1240,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		// determine panel's analysis type
 		Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
+		int panelSize = panelSizeDigital;
 		if (sd.isAnalog())
 		{
+			panelSize = panelSizeAnalog;
 			if (sd.getNumAnalyses() > 0)
 				analysisType = sd.getAnalyses().next().getAnalysisType();
 			if (xAxisLocked && xAxisSignalAll != null)
@@ -1273,8 +1275,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (USETABLES)
 		{
 			int rows = table.getRowCount();
-			rowHeights = new int[rows];
+			rowHeights = new int[rows+1];
 			for(int i=0; i<rows; i++) rowHeights[i] = table.getRowHeight(i);
+			rowHeights[rows] = panelSize;
 		}
 
 		// create the new panel
