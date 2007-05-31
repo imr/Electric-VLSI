@@ -46,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
@@ -641,7 +642,12 @@ public class PostScript extends Output
 
 			if (!ni.isCellInstance())
 			{
-				if (!topLevel && ni.isVisInside()) continue;
+				if (!topLevel)
+				{
+					if (ni.isVisInside()) continue;
+					if (ni.getProto() == Generic.tech.essentialBoundsNode ||
+						ni.getProto() == Generic.tech.cellCenterNode) continue;
+				}
 				if (real)
 				{
 					PrimitiveNode prim = (PrimitiveNode)ni.getProto();
@@ -652,11 +658,14 @@ public class PostScript extends Output
 						polys[i].transform(subRot);
 						psPoly(polys[i]);
 					}
-					Poly [] textPolys = ni.getDisplayableVariables(wnd);
-					for (int i=0; i<textPolys.length; i++)
+					if (topLevel && User.isTextVisibilityOnNode())
 					{
-						textPolys[i].transform(subRot);
-						psPoly(textPolys[i]);
+						Poly [] textPolys = ni.getDisplayableVariables(wnd);
+						for (int i=0; i<textPolys.length; i++)
+						{
+							textPolys[i].transform(subRot);
+							psPoly(textPolys[i]);
+						}
 					}
 				}
 				numObjects++;
@@ -686,9 +695,9 @@ public class PostScript extends Output
 							TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
 							poly.setTextDescriptor(td);
 							poly.setString(ni.getProto().describe(false));
+							psPoly(poly);
 						}
-						psPoly(poly);
-						showCellPorts(ni, trans, null);
+						if (topLevel) showCellPorts(ni, trans, null);
 					}
 					numObjects++;
 					if (progressTotal != 0 && (numObjects%100) == 0)
@@ -696,11 +705,11 @@ public class PostScript extends Output
 				} else
 				{
 					recurseCircuitLevel(subCell, subTrans, false, real, progressTotal);
-					if (real) showCellPorts(ni, trans, Color.BLACK);
+					if (topLevel && real) showCellPorts(ni, trans, Color.BLACK);
 				}
 
 				// draw any displayable variables on the instance
-				if (real && User.isTextVisibilityOnNode())
+				if (topLevel && real && User.isTextVisibilityOnNode())
 				{
 					Poly[] polys = ni.getDisplayableVariables(wnd);
 					for (int i=0; i<polys.length; i++)
@@ -772,15 +781,18 @@ public class PostScript extends Output
 					polys[i].transform(trans);
 					psPoly(polys[i]);
 				}
-				Poly[] textPolys = ai.getDisplayableVariables(wnd);
-				for (int i=0; i<textPolys.length; i++)
+				if (topLevel && User.isTextVisibilityOnArc())
 				{
-					polys[i].transform(trans);
-					psPoly(polys[i]);
+					Poly[] textPolys = ai.getDisplayableVariables(wnd);
+					for (int i=0; i<textPolys.length; i++)
+					{
+						polys[i].transform(trans);
+						psPoly(polys[i]);
+					}
 				}
 
 				// draw any displayable variables on the arc
-				if (real && User.isTextVisibilityOnNode())
+				if (topLevel && real && User.isTextVisibilityOnNode())
 				{
 					polys = ai.getDisplayableVariables(wnd);
 					for (int i=0; i<polys.length; i++)
@@ -802,9 +814,7 @@ public class PostScript extends Output
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, wnd, true);
 			for (int i=0; i<polys.length; i++)
-			{
 				psPoly(polys[i]);
-			}
 		}
 	}
 
@@ -1005,9 +1015,14 @@ public class PostScript extends Output
 			{
 				if (polyBox.getWidth() == 0)
 				{
-					if (polyBox.getHeight() == 0) psDot(new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY())); else
+					if (polyBox.getHeight() == 0)
+					{
+						psDot(new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY()));
+					} else
+					{
 						psLine(new Point2D.Double(polyBox.getCenterX(), polyBox.getMinY()),
 							new Point2D.Double(polyBox.getCenterX(), polyBox.getMaxY()), 0);
+					}
 					return;
 				} else if (polyBox.getHeight() == 0)
 				{
