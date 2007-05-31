@@ -4,6 +4,34 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (5/30/07, DN) Some primitive ports have negative polygon.
+FIX: Swap lx and hx in 
+    tsmc180:P-Poly-RPO-Resistor:right-rpo
+    tsmc180:N-Poly-RPO-Resistor:right-rpo
+    tsmc180:P-Well-RPO-Resistor:right-well-resistor
+    tsmc180:N-Well-RPO-Resistor:right-well-resistor
+
+BUG: (5/30/07, DN) Minimal-sized instance of some primitives have negative polygons.
+FIX: Set minSize rule the same as default size for primitives:
+    cmos90:X-Metal-1-Metal-2-Con
+    cmos90:X-Metal-2-Metal-3-Con
+    cmos90:X-Metal-3-Metal-4-Con
+    cmos90:X-Metal-4-Metal-5-Con
+    cmos90:X-Metal-5-Metal-6-Con
+    cmos90:X-Metal-6-Metal-7-Con
+    cmos90:X-Metal-7-Metal-8-Con
+    cmos90:X-Metal-8-Metal-9-Con
+    cmos90:X-Metal-4-Metal-7-Con
+    cmos90:OD18-P-Transistor
+    cmos90:OD25-P-Transistor
+    cmos90:OD33-P-Transistor
+    cmos90:OD18-N-Transistor
+    cmos90:OD25-N-Transistor
+    cmos90:OD33-N-Transistor
+    cmos90:NT-OD18-N-Transistor
+    cmos90:NT-OD25-N-Transistor
+    cmos90:NT-OD33-N-Transistor
+
 BUG: (5/30/07, GVG) NPE if you Cancel ExpandCellInstances->SpecifiedAmount (Bug#1318)
 FIX: Cancel operation returns a null object. Detecting the case now.
 

@@ -79,6 +79,7 @@ import java.util.TreeSet;
 public class JELIB extends Output {
     private boolean oldRevision;
     private Version version;
+    /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 //    Snapshot snapshot;
 //    private Map<LibId,URL> libFiles;
@@ -465,9 +466,6 @@ public class JELIB extends Output {
         TreeMap<String,LibId> sortedLibraries = new TreeMap<String,LibId>(TextUtils.STRING_NUMBER_ORDER);
         for (LibId libId: usedLibs)
             sortedLibraries.put(libId.libName, libId);
-//        String mainLibPath = TextUtils.getFilePath(snapshot.getLib(thisLib).d.libFile);
-//        if (libFiles != null && libFiles.containsKey(thisLib))
-//            mainLibPath = TextUtils.getFilePath(libFiles.get(thisLib));
         for (LibId libId: sortedLibraries.values()) {
             if (libId == thisLib) continue;
             if (!libraryHeaderPrinted) {
@@ -475,37 +473,9 @@ public class JELIB extends Output {
                 printWriter.println("# External Libraries:");
                 libraryHeaderPrinted = true;
             }
-//            URL libUrl = l.d.libFile;
-//            if (libFiles != null && libFiles.containsKey(l.d.libId))
-//                libUrl = libFiles.get(l.d.libId);
             String libFile = libId.libName;
-//            if (libUrl != null) {
-//                String thisLibPath = TextUtils.getFilePath(libUrl);
-//                if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
-//            }
             printWriter.println();
             printWriter.println("L" + convertString(libId.libName) + "|" + convertString(libFile));
-            
-//            TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
-//            for (CellBackup cellBackup: snapshot.cellBackups) {
-//                if (cellBackup == null) continue;
-//                if (cellBackup.d.getLibId() != l.d.libId) continue;
-//                if (usedExports.get(cellBackup.d.cellId) != null)
-//                    sortedCells.put(cellBackup.d.cellId.cellName, cellBackup);
-//            }
-//            for (CellBackup cellBackup: sortedCells.values()) {
-//                CellId cellId = cellBackup.d.cellId;
-//                BitSet exportsUsedInCell = usedExports.get(cellId);
-//                ERectangle bounds = snapshot.getCellBounds(cellId);
-//                printWriter.print("R" + convertString(cellId.cellName.toString()) + "||||");
-//                if (oldRevision)
-//                    printWriter.print("|" + cellBackup.d.creationDate + "|" + cellBackup.revisionDate);
-//                printWriter.println();
-//                for (ImmutableExport e: cellBackup.exports) {
-//                    if (!exportsUsedInCell.get(e.exportId.chronIndex)) continue;
-//                    printWriter.println("F" + convertString(e.exportId.externalId) + "||");
-//                }
-//            }
         }
     }
     
@@ -709,6 +679,7 @@ public class JELIB extends Output {
     private void printlnSettings(List<Setting> settings) {
         for (Setting setting : settings) {
             Object value = setting.getValue();
+            projectSettings.put(setting, value);
             printWriter.print("|" + convertVariableName(setting.getPrefName()) + "()" + makeString(value));
         }
         printWriter.println();
@@ -780,7 +751,7 @@ public class JELIB extends Output {
     private Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(version, true);
+            corrector = tech.getSizeCorrector(version, projectSettings, true);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;

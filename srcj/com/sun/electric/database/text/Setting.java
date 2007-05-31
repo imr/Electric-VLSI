@@ -382,6 +382,13 @@ public class Setting {
     public static Setting getSetting(String xmlPath) { return allSettingsByXmlPath.get(xmlPath); }
     
 	/**
+	 * Method to find the project Setting object by its pref path.
+	 * @param prefPath the pref path of the desired project Setting object.
+	 * @return the project Setting object.
+	 */
+    public static Setting getSettingByPrefPath(String prefPath) { return allSettingsByPrefPath.get(prefPath); }
+    
+	/**
 	 * Method to get a list of projecy Settings assiciatiated with the given owner object.
 	 * @param ownerObj owner object
 	 * @return a list of project Settings
@@ -437,14 +444,12 @@ public class Setting {
 	 * Presents the user with a dialog to help reconcile the difference
 	 * between project settings stored in a library and the original values.
 	 */
-	public static void reconcileSettings(String libName, Map<String,Object> projectSettings)
+	public static void reconcileSettings(String libName, Map<Setting,Object> projectSettings)
 	{
         HashSet<Setting> markedSettings = new HashSet<Setting>();
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-        for (Map.Entry<String,Object> e: projectSettings.entrySet()) {
-            String prefPath = e.getKey();
-            Setting setting = allSettingsByPrefPath.get(prefPath);
-            if (setting == null) continue;
+        for (Map.Entry<Setting,Object> e: projectSettings.entrySet()) {
+            Setting setting = e.getKey();
             Object value = e.getValue();
             markedSettings.add(setting);
             if (DBMath.objectsReallyEqual(value, setting.getValue())) continue;

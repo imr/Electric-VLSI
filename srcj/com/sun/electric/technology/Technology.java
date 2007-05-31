@@ -48,6 +48,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.plugins.tsmc.CMOS90;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
@@ -615,8 +616,8 @@ public class Technology implements Comparable<Technology>
 	}
     
     public class SizeCorrector {
-        private final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
-        private final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
+        public final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
+        public final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
         
         private SizeCorrector(Version version, boolean isJelib) {
             if (xmlTech != null) {
@@ -698,7 +699,7 @@ public class Technology implements Comparable<Technology>
         }
     }
     
-    public SizeCorrector getSizeCorrector(Version version, boolean isJelib) {
+    public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib) {
         return new SizeCorrector(version, isJelib);
     }
 
@@ -921,6 +922,8 @@ public class Technology implements Comparable<Technology>
                 TechPoint[] techPoints;
                 if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
                     techPoints = new TechPoint[2];
+                    if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k || nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
+                        System.out.println("Strange polygon in " + getTechName() + ":" + n.name);
                     techPoints[0] = makeTechPoint(nl.lx, nl.ly, correction);
                     techPoints[1] = makeTechPoint(nl.hx, nl.hy, correction);
                 } else {
@@ -995,6 +998,8 @@ public class Technology implements Comparable<Technology>
                 ArcProto[] connections = new ArcProto[p.portArcs.size()];
                 for (int j = 0; j < connections.length; j++)
                     connections[j] = arcs.get(p.portArcs.get(j));
+                if (p.lx.value > p.hx.value || p.lx.k > p.hx.k || p.ly.value > p.hy.value || p.ly.k > p.hy.k)
+                    System.out.println("Strange polygon in " + getTechName() + ":" + n.name + ":" + p.name);
                 ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
                         PortCharacteristic.UNKNOWN, makeEdgeH(p.lx, correction), makeEdgeV(p.ly, correction), makeEdgeH(p.hx, correction), makeEdgeV(p.hy, correction));
 //                        PortCharacteristic.UNKNOWN, p0.getX(), p0.getY(), p1.getX(), p1.getY());
@@ -1147,7 +1152,7 @@ public class Technology implements Comparable<Technology>
 		FPGA.tech.setup();
 		Schematics.tech.setup();
 
-		MoCMOS.tech.setup();
+//		MoCMOS.tech.setup();
 
 		// finished batching preferences
 		Pref.resumePrefFlushing();
@@ -1163,8 +1168,7 @@ public class Technology implements Comparable<Technology>
         lazyClasses.put("pcb",       "com.sun.electric.technology.technologies.PCB");
         lazyClasses.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
         if (true) {
-            lazyClasses.put("mocmos", "com.sun.electric.technology.technologies.MoCMOS");
-//            (new MoCMOS()).setup();
+            (new MoCMOS()).setup();
         } else {
             lazyUrls.put("mocmos",   Technology.class.getResource("technologies/mocmos.xml"));
         }
@@ -1173,7 +1177,7 @@ public class Technology implements Comparable<Technology>
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
         if (true) {
-            lazyClasses.put("cmos90", "com.sun.electric.plugins.tsmc.CMOS90");
+            (new CMOS90()).setup();
         } else {
             lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
@@ -1470,9 +1474,9 @@ public class Technology implements Comparable<Technology>
 	 * May be overrideen in subclasses.
 	 * @param varName name of variable
 	 * @param value value of variable
-	 * @return map from option names to option values if variable was converted
+	 * @return map from project settings to sitting values if variable was converted
 	 */
-	public Map<String,Object> convertOldVariable(String varName, Object value)
+	public Map<Setting,Object> convertOldVariable(String varName, Object value)
 	{
 		return null;
 	}
@@ -1909,6 +1913,32 @@ public class Technology implements Comparable<Technology>
 		}
 
 		ArcProto ap = new ArcProto(this, protoName, (int)gridWidthOffset/2, 0, defaultWidth, function, layers, arcs.size());
+		addArcProto(ap);
+		return ap;
+	}
+
+	protected ArcProto newArcProto_(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, Technology.ArcLayer... layers)
+	{
+		// check the arguments
+		if (findArcProto(protoName) != null)
+		{
+			System.out.println("Error: technology " + getTechName() + " has multiple arcs named " + protoName);
+			return null;
+		}
+        long gridWidthOffset = DBMath.lambdaToSizeGrid(lambdaWidthOffset);
+		if (gridWidthOffset < 0 || gridWidthOffset > Integer.MAX_VALUE)
+		{
+			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has invalid width offset " + lambdaWidthOffset);
+			return null;
+		}
+		if (defaultWidth < DBMath.gridToLambda(gridWidthOffset))
+		{
+			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has negative width");
+			return null;
+		}
+        long defaultGridWidth = DBMath.lambdaToSizeGrid(defaultWidth);
+
+		ArcProto ap = new ArcProto(this, protoName, (int)defaultGridWidth/2, (int)(defaultGridWidth - gridWidthOffset)/2, defaultWidth, function, layers, arcs.size());
 		addArcProto(ap);
 		return ap;
 	}

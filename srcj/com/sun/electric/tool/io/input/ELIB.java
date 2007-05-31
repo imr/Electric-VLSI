@@ -671,12 +671,9 @@ public class ELIB extends LibraryFiles
 			if (scaleLambdaBy20) lambda *= 20;
 
             techScale.put(tech, Double.valueOf(lambda));
-			if (topLevelLibrary)
-			{
-				String varName = tech.getScaleVariableName();
-                Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
-                realizeMeaningPrefs(tech, new Variable[] { var });
-			}
+            String varName = tech.getScaleVariableName();
+            Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
+            realizeMeaningPrefs(tech, new Variable[] { var });
 		}
 
 		// read the global namespace
@@ -699,7 +696,7 @@ public class ELIB extends LibraryFiles
 		{
 			Tool tool = toolList[i];
             Variable[] vars = readVariables();
-			if (tool != null && topLevelLibrary)
+			if (tool != null)
                 realizeMeaningPrefs(tool, vars);
 		}
 
@@ -708,7 +705,7 @@ public class ELIB extends LibraryFiles
 		{
 			Technology tech = techList[i];
             Variable[] vars = readVariables();
-			if (tech != null && topLevelLibrary)
+			if (tech != null)
                 realizeMeaningPrefs(tech, vars);
 //				getTechList(i);
 		}

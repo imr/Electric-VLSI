@@ -1606,10 +1606,10 @@ public class ReadableDump extends LibraryFiles
                 }
                 break;
             case INVTOOL:				// keyword applies to tools
-               	if (topLevelLibrary) realizeMeaningPrefs(curTool, vars);
+               	realizeMeaningPrefs(curTool, vars);
                 break;
     		case INVTECHNOLOGY:			// keyword applies to technologies
-                if (topLevelLibrary) realizeMeaningPrefs(curTech, vars);
+                realizeMeaningPrefs(curTech, vars);
             	break;
     		case INVLIBRARY:			// keyword applies to library
                 for (int i = 0; i < vars.length; i++) {

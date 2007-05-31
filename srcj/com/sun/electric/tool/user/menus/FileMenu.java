@@ -431,7 +431,7 @@ public class FileMenu {
 				deleteLib = null;
 			}
             // read project settings
-            HashMap<String,Object> projectSettings = new HashMap<String,Object>();
+            HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
             if (settingsDirectory != null) {
                 File projsettings = new File(settingsDirectory, "projsettings.xml");
                 if (projsettings.exists()) {

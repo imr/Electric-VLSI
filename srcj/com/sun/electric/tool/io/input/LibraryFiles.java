@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
@@ -103,7 +104,7 @@ public abstract class LibraryFiles extends Input
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
-    /** Project settings from library file. */                              private static HashMap<String,Object> projectSettings;
+    /** Project settings from library file. */                              HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
 
@@ -161,19 +162,6 @@ public abstract class LibraryFiles extends Input
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
         return readLibrary(fileURL, libName, type, quick, null);
-//        HashMap<String,Object> projectSettings = null;
-//        if (Job.BATCHMODE) 
-//            projectSettings = new HashMap<String,Object>();
-//        Library lib = readLibrary(fileURL, libName, type, quick, projectSettings);
-//
-//        File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
-//        if (projsettings.exists()) {
-//            ProjSettings.readSettings(projsettings, false);
-//        } else {
-//            if (projectSettings != null)
-//                Setting.reconcileSettings(lib.getName(), projectSettings);
-//        }
-//        return lib;
     }
     
 	/**
@@ -187,7 +175,7 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
-            HashMap<String,Object> projectSettings)
+            HashMap<Setting,Object> projectSettings)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -203,7 +191,6 @@ public abstract class LibraryFiles extends Input
 		Library lib = null;
 		boolean formerQuiet = isChangeQuiet();
 		if (!formerQuiet) changesQuiet(true);
-        LibraryFiles.projectSettings = projectSettings; 
 		try {
 			// show progress
 			if (!quick) startProgressDialog("library", fileURL.getFile());
@@ -235,6 +222,12 @@ public abstract class LibraryFiles extends Input
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
 
+            if (projectSettings != null) {
+                for (LibraryFiles reader: libsBeingRead) {
+                    if (reader.topLevelLibrary)
+                        projectSettings.putAll(reader.projectSettings);
+                }
+            }
 			LibraryFiles.cleanupLibraryInput();
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done instantiating data for all libraries");
@@ -243,7 +236,6 @@ public abstract class LibraryFiles extends Input
 			Cell.setAllowCircularLibraryDependences(false);
 		}
 		if (!formerQuiet) changesQuiet(formerQuiet);
-        LibraryFiles.projectSettings = null;
 		if (lib != null && !quick)
 		{
 			long endTime = System.currentTimeMillis();
@@ -900,7 +892,7 @@ public abstract class LibraryFiles extends Input
     Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(version, false);
+            corrector = tech.getSizeCorrector(version, projectSettings, false);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;
@@ -1147,7 +1139,6 @@ public abstract class LibraryFiles extends Input
 	 * @param vars Variables with meaning preferences.
 	 */
     void realizeMeaningPrefs(Object obj, Variable[] vars) {
-        if (projectSettings == null) return;
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;
@@ -1162,19 +1153,22 @@ public abstract class LibraryFiles extends Input
             String prefPath = null;
             if (obj instanceof Technology) {
                 prefPath = Technology.getTechnologyPreferences().absolutePath() + "/";
-                Map<String,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
+                Map<Setting,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
                 if (convertedVars != null) {
-                    for (Map.Entry<String,Object> e: convertedVars.entrySet()) {
-                        prefName = e.getKey();
+                    for (Map.Entry<Setting,Object> e: convertedVars.entrySet()) {
+                        Setting setting = e.getKey();
+                        prefName = setting.getPrefName();
                         value = e.getValue();
-                        projectSettings.put(prefPath + prefName, value);
+                        projectSettings.put(setting, value);
                     }
                     continue;
                 }
             } else if (obj instanceof Tool) {
                 prefPath = ((Tool)obj).prefs.absolutePath() + "/";
             }
-            projectSettings.put(prefPath + prefName, value);
+            Setting setting = Setting.getSettingByPrefPath(prefPath + prefName);
+            if (setting != null)
+                projectSettings.put(setting, value);
         }
 	}
 

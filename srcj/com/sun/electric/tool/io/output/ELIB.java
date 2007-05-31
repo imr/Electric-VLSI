@@ -90,6 +90,7 @@ public class ELIB extends Output
 	/** map with "next in cell group" pointers */				private HashMap<CellId,CellId> cellInSameGroup = new HashMap<CellId,CellId>();
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
+    /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
     /** size correctors for technologies */                     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
     /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
     /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
@@ -1174,12 +1175,14 @@ public class ELIB extends Output
         for (Setting setting : settings) {
             // create the "type" field
             Object varObj = setting.getValue();
+            projectSettings.put(setting, varObj);
             if (varObj instanceof Boolean) varObj = Integer.valueOf(((Boolean)varObj).booleanValue() ? 1 : 0);
             int type = ELIBConstants.getVarType(varObj);
             if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
             writeVariableName(setting.getPrefName());
             writeTextDescriptor(type, null);
             writeVarValue(varObj);
+            projectSettings.put(setting, varObj);
         }
     }
 
@@ -1355,7 +1358,7 @@ public class ELIB extends Output
     private Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(Version.getVersion(), false);
+            corrector = tech.getSizeCorrector(Version.getVersion(), projectSettings, false);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;

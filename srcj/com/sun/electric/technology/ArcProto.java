@@ -230,9 +230,9 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 	/** The name of this ArcProto. */							protected final String protoName;
 	/** The technology in which this ArcProto resides. */		protected final Technology tech;
-	/** The full extend of this ArcProto in grid units. */      private final int gridFullExtend;
-	/** The base extend of this ArcProto in lambda units. */    private final double lambdaBaseExtend;
-	/** The base extend of this ArcProto in grid units. */      private final int gridBaseExtend;
+	/** The full extend of this ArcProto in grid units. */      private int gridFullExtend;
+	/** The base extend of this ArcProto in lambda units. */    private double lambdaBaseExtend;
+	/** The base extend of this ArcProto in grid units. */      private int gridBaseExtend;
     /** The minimum extend among ArcLayers. */                  private int minLayerGridExtend;
     /** The minimum extend among ArcLayers. */                  private int maxLayerGridExtend;
 	/** Flags bits for this ArcProto. */						private int userBits;
@@ -350,6 +350,13 @@ public class ArcProto implements Comparable<ArcProto>
         return getArcProtoWidthPref(0).setDouble(DBMath.gridToLambda(gridWidth));
     }
 
+    public void setExtends(int gridBaseExtend, int gridFullExtend) {
+        this.gridBaseExtend = gridBaseExtend;
+        this.gridFullExtend = gridFullExtend;
+        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
+        computeLayerGridExtendRange();
+    }
+    
 	/**
 	 * Method to return the full default width of this ArcProto in lambda units.
 	 * This is the full width, including nonselectable layers such as implants.

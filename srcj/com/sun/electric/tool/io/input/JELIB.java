@@ -41,6 +41,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -76,10 +77,10 @@ import java.util.Set;
  */
 public class JELIB extends LibraryFiles
 {
-	private static class CellContents
+	private class CellContents
 	{
         final int revision;
-        final Version version;
+        private final Version version;
 		boolean filledIn;
 		int lineNumber;
         String groupName;
@@ -97,7 +98,7 @@ public class JELIB extends LibraryFiles
         Technology.SizeCorrector getSizeCorrector(Technology tech) {
             Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
             if (corrector == null) {
-                corrector = tech.getSizeCorrector(version, true);
+                corrector = tech.getSizeCorrector(version, projectSettings, true);
                 sizeCorrectors.put(tech, corrector);
             }
             return corrector;
@@ -466,8 +467,7 @@ public class JELIB extends LibraryFiles
 
 				// get additional meaning preferences starting at position 1
                 Variable[] vars = readVariables(revision, null, pieces, 1, filePath, lineReader.getLineNumber());
-				if (topLevelLibrary)
-					realizeMeaningPrefs(tool, vars);
+                realizeMeaningPrefs(tool, vars);
 //				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
@@ -511,8 +511,7 @@ public class JELIB extends LibraryFiles
 
 				// get additional meaning preferences  starting at position 1
                 Variable[] vars = readVariables(revision, null, pieces, 1, filePath, lineReader.getLineNumber());
-				if (topLevelLibrary)
-					realizeMeaningPrefs(curTech, vars);
+				realizeMeaningPrefs(curTech, vars);
 //				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
