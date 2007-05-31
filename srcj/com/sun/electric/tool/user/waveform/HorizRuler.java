@@ -245,7 +245,7 @@ public class HorizRuler extends JPanel implements MouseListener
 						}
 					}
 				}
-				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, xAxisPostfix, ss.getStepScale()+1);
+				String xValueVal = TextUtils.convertToEngineeringNotation(xValue, xAxisPostfix, ss.getStepScale()+3);
 				if (polys != null)
 				{
 					Poly poly = new Poly(new Point2D[]{

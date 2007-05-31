@@ -598,7 +598,7 @@ public class TextUtils
 				}
 			}
 		}
-		scaled /= 10;
+		scaled *= 10;
 		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
 		if (numPart.indexOf('.') >= 0)
 		{
