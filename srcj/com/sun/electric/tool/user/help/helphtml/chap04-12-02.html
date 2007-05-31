@@ -6,6 +6,7 @@
 <!-- COMMAND Window/Waveform Window/Save Waveform Window Configuration to Disk... -->
 <!-- COMMAND Window/Waveform Window/Restore Waveform Window Configuration from Disk... -->
 <!-- COMMAND Window/Waveform Window/Refresh Simulation Data -->
+<!-- COMMAND Window/Waveform Window/Export Simulation Data... -->
 
 The waveform window is able to display analog simulation output.
 This simulation output comes from external simulators (such as Spice).
@@ -50,9 +51,9 @@ You can rearrange the order of the waveform panels by clicking on their panel-nu
 You can move signals from one panel to another by dragging their names to their desired panel.
 If you use shift-click to drag signals, they are copied to the new panel.
 <P>
-You can add a signal to the list by double-clicking on its name in the "SIGNALS" area
-(or by dragging that name to the waveform part on the right).
-The signal will be added to the highlighted panel (the one with the bold vertical axis).
+You can add signals to the list by double-clicking on their name in the "SIGNALS" area
+(or by dragging those names to the waveform part on the right).
+The signals will be added to the highlighted panel (the one with the bold vertical axis).
 You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
 (<IMG SRC="fig09-29.png" ALT="Figure 9.29">).
 <P>
@@ -69,6 +70,9 @@ You can also save the configuration of the waveform window with the
 (in menu <B>Window / Waveform Window</B>)
 and you can restore the configuration with the
 <B>Restore Waveform Window Configuration from Disk...</B> command.
+The <B>Export Simulation Data...</B> command (in menu <B>Window / Waveform Window</B>)
+writes a tab-separated file with all simulation data (the signal names and their values).
+This is useful for doing spreadsheet analysis of the data.
 <P>
 
 <H3>Sweeps</H3>
@@ -185,7 +189,8 @@ and making a hidden one reappear.</LI>
 <LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
 These buttons, which show a waveform being stretched or squeezed,
 cause the minimum panel size to change.
-By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.</LI>
+By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.
+Also, the panels can be resized individually by dragging any of the dividers.</LI>
 </UL>
 
 <!-- TRAILER -->

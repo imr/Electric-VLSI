@@ -20,20 +20,23 @@ To check only a selected subset of the current cell, use <B>Check Selection Area
 The schematic design-rule checker looks for issues that make drawing or editing of the cell difficult.
 These are the errors that is finds:
 <OL>
-<LI>Nodes:
-	<UL>
-	<LI>Nodes whose parameters don't match the cell definition (check export names, units, and visibility).</LI>
-	<LI>"Stranded" pins: with no connections, exports, or attached text.</LI>
-	<LI>"Inline" pins: those that sit in a line between two arcs (both of which could be replaced by a single straight arc).</LI>
-	<LI>Invisible pins with text that is offset from the node center (this is an internal consistency check).</LI>
-	</UL></LI>
-<LI>Arcs:
-	<UL>
-	<LI>Unnamed arcs that "dangle": one end is unconnected and unexported (does not apply to busses).</LI>
-	<LI>Bus arcs whose width is inconsistent with its two nodes.</LI>
-	<LI>Bus pins that "float": do not connect to bus arcs and are not exported.</LI>
-	<LI>Bus pins that connect to more than 1 wire.</LI>
-	</UL></LI>
+  <LI>Nodes:
+    <UL>
+      <LI>Nodes whose parameters don't match the cell definition (check export names, units, and visibility).</LI>
+      <LI>"Stranded" pins: with no connections, exports, or attached text.</LI>
+      <LI>"Inline" pins: those that sit in a line between two arcs (both of which could be replaced by a single straight arc).</LI>
+      <LI>Nodes whose ports touch but are not connected.</LI>
+      <LI>Invisible pins with text that is offset from the node center (this is an internal consistency check).</LI>
+    </UL>
+  </LI>
+  <LI>Arcs:
+    <UL>
+      <LI>Unnamed arcs that "dangle": one end is unconnected and unexported (does not apply to busses).</LI>
+      <LI>Bus arcs whose width is inconsistent with its two nodes.</LI>
+      <LI>Bus pins that "float": do not connect to bus arcs and are not exported.</LI>
+      <LI>Bus pins that connect to more than 1 wire.</LI>
+    </UL>
+  </LI>
 </OL>
 <P>
 After analysis of the circuit,

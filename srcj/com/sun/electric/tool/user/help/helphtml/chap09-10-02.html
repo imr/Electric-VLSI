@@ -69,5 +69,17 @@ layers land in the correct original locations.
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.
 In multi-cut situations, this may be many more nodes than are necessary.
+<P>
+"Smallest extracted polygon" limits the size of extracted polygons.
+When unusual geometries are extracted, there can be many tiny polygons needed to fill in gaps.
+By default, any polygon smaller than 1/4 unit in area is ignored.
+<P>
+"Flatten cells whose names match this" is a way to automatically flatten the hierarchy when extracting.
+This is useful in situations where parts of a node are encapsulated in subcells.
+For example, some designers place all via layers into a subcell,
+and construct all contacts with instances of these cells.
+The node extractor does not examine subcells when extracting, and so it will not detect the contacts.
+By placing the subcell names into this field, the extractor will extract those cells and find the contacts.
+Note that wildcards can be used here.
 
 <!-- TRAILER -->

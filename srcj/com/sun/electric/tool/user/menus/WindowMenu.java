@@ -207,7 +207,7 @@ public class WindowMenu {
                 new EMenuItem("Refresh Simulation _Data") { public void run() {
                     WaveformWindow.refreshSimulationData(); }},
                 SEPARATOR,
-                new EMenuItem("_Export Simulation Data") { public void run() {
+                new EMenuItem("_Export Simulation Data...") { public void run() {
                     WaveformWindow.exportSimulationData(); }}
                 ),
 
