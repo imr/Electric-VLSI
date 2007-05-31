@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (5/31/07, SMR) Waveform window numbers may be scaled by 100 (Bug #1315).
+FIX: In TextUtils.convertToEngineeringNotation(), scale number properly.
+
+BUG: (5/31/07, SMR) PostScript output of fully-flattened circuit shows all
+     cell-centers and essential-bounds nodes, cluttering output (Bug #1316).
+FIX: In PostScript.recurseCircuitLevel() skip those nodes at lower levels.
+
 BUG: (5/30/07, DN) Some primitive ports have negative polygon.
 FIX: Swap lx and hx in 
     tsmc180:P-Poly-RPO-Resistor:right-rpo
