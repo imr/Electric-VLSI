@@ -175,7 +175,20 @@ public class IRSIM extends Output
             }
 
             TransistorSize dim = ni.getTransistorSize(info.getContext());
-            if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
+            if (dim != null && (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0))
+            {
+            	if (ni.isFET())
+            	{
+            		double len = dim.getDoubleLength();
+            		double wid = dim.getDoubleWidth();
+            		if (len == 0) len = 2;
+            		if (wid == 0) wid = 2;
+            		dim = new TransistorSize(new Double(wid), new Double(len), dim.getActiveLength());
+                    System.out.println("Warning, cannot evaluate size of transistor " + ni +
+                    	" in cell " + info.getCell() + ", using default sizes");
+            	} else dim = null;
+            }
+            if (dim == null)
             {
                 System.out.println("Warning, ignoring non fet transistor " + ni + " in cell " + info.getCell());
                 return null;

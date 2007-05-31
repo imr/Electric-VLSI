@@ -552,7 +552,7 @@ public class TextUtils
 
 		// get proper time unit to use
 		String secType = "";
-		int scalePower = 0;
+		int rangePos = -1;
 		long intTime = 0;
 		double scaled = 0;
 		for(int i=0; i<allRanges.length; i++)
@@ -564,15 +564,15 @@ public class TextUtils
 				if (unit == null)
 				{
 					if (allRanges[i].power != 0)
-						secType += "e" + allRanges[i].power;
+						secType = "e" + allRanges[i].power;
 				} else
-					secType += allRanges[i].postfix + unitPostfix;
-				scalePower = allRanges[i].power;
+					secType = allRanges[i].postfix + unitPostfix;
+				rangePos = i;
 				break;
 			}			
 		}
 
-		if (precpower >= scalePower)
+		if (precpower >= allRanges[rangePos].power)
 		{
 			long timeleft = intTime / 1000;
 			long timeright = intTime % 1000;
@@ -598,8 +598,24 @@ public class TextUtils
 				}
 			}
 		}
-		scaled *= 10;
-		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
+
+		// does not fit into 3-digit range easily: drop down a factor of 1000 and use bigger numbers
+		int digits = allRanges[rangePos].power - precpower;
+		if (rangePos > 0)
+		{
+			rangePos--;
+			if (unit == null)
+			{
+				if (allRanges[rangePos].power != 0)
+					secType = "e" + allRanges[rangePos].power;
+			} else
+				secType = allRanges[rangePos].postfix + unitPostfix;
+			digits += 3;
+		} else
+		{
+			scaled /= 1000;
+		}
+		String numPart = TextUtils.formatDouble(scaled, digits);
 		if (numPart.indexOf('.') >= 0)
 		{
 			while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
