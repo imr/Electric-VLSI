@@ -1249,7 +1249,7 @@ public class CircuitChanges
 		if (amount < 0)
 		{
 			Object obj = JOptionPane.showInputDialog("Number of levels to " + (unExpand ? "unexpand" : "expand"), "1");
-			amount = TextUtils.atoi((String)obj);
+			if (obj != null) amount = TextUtils.atoi((String)obj);
 			if (amount <= 0) return;
 		}
 

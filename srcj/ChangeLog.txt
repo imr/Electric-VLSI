@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (5/30/07, GVG) NPE if you Cancel ExpandCellInstances->SpecifiedAmount (Bug#1318)
+FIX: Cancel operation returns a null object. Detecting the case now.
+
 IMP: (5/30/07, SMR) Created Job.getUserInterface().getGridAlignment() to get
      alignment in a universal way.
 
