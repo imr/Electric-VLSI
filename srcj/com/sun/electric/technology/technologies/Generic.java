@@ -45,18 +45,30 @@ public class Generic extends Technology
 	/** the Glyph Layer. */					public Layer glyphLay;
 	/** the DRC exclusion Layer. */			public Layer drcLay;
 	/** the AFG exclusion Layer. */			public Layer afgLay;
-	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;
-	/** the Invisible Pin node. */			public PrimitiveNode invisiblePinNode;
-	/** the Unrouted Pin node. */			public PrimitiveNode unroutedPinNode;
-	/** the Cell-Center node. */			public PrimitiveNode cellCenterNode;
-	/** the Port-definition node. */		public PrimitiveNode portNode;
-	/** the DRC exclusion node. */			public PrimitiveNode drcNode;
-	/** the AFG exclusion node. */			public PrimitiveNode afgNode;
-	/** the Essential-bounds node. */		public PrimitiveNode essentialBoundsNode;
-	/** the Simulation-Probe node. */		public PrimitiveNode simProbeNode;
-	/** the Universal arc. */				public ArcProto universal_arc;
-	/** the Invisible arc. */				public ArcProto invisible_arc;
-	/** the Unrouted arc. */				public ArcProto unrouted_arc;
+	/** the Universal Pin node, which connects to every type of arc. */
+		public PrimitiveNode universalPinNode;
+	/** the Invisible Pin node, which connects to every type of arc and produces no layout. */
+		public PrimitiveNode invisiblePinNode;
+	/** the Unrouted Pin node, for making bends in unrouted arc paths. */
+		public PrimitiveNode unroutedPinNode;
+	/** the Cell-Center node, used for defining the origin of the cell's coordinate space. */
+		public PrimitiveNode cellCenterNode;
+	/** the Port-definition node, used in technology editing to define node ports. */
+		public PrimitiveNode portNode;
+	/** the DRC exclusion node, all design-rule errors covered by this node are ignored. */
+		public PrimitiveNode drcNode;
+	/** the AFG exclusion node, tells auto-fill generator to ignore the area. */
+		public PrimitiveNode afgNode;
+	/** the Essential-bounds node, used (in pairs) to define the important area of a cell. */
+		public PrimitiveNode essentialBoundsNode;
+	/** the Simulation-Probe node, used for highlighting the state of a network. */
+		public PrimitiveNode simProbeNode;
+	/** the Universal arc, connects to any node. */
+		public ArcProto universal_arc;
+	/** the Invisible arc, connects to any node and produces no layout. */
+		public ArcProto invisible_arc;
+	/** the Unrouted arc, connects to any node and specifies desired routing topology. */
+		public ArcProto unrouted_arc;
 
 	private PrimitivePort univPinPort, invisPinPort, simProbePort;
 
