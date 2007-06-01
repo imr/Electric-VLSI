@@ -192,8 +192,17 @@ public class CellMenu {
             SEPARATOR,
             new EMenuItem("Packa_ge Into Cell...") { public void run() {
                 CircuitChanges.packageIntoCell(); }},
+
+//        // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
+//            new EMenu("Extract Cell _Instance",
+//                new EMenuItem("_One Level Down") { public void run() {
+//                	CircuitChanges.extractCells(1); }},
+//                new EMenuItem("_All the Way") { public void run() {
+//                    CircuitChanges.extractCells(Integer.MAX_VALUE); }},
+//                new EMenuItem("_Specified Amount...") { public void run() {
+//                    CircuitChanges.extractCells(-1); }}));
             new EMenuItem("Extract Cell _Instance") { public void run() {
-                CircuitChanges.extractCells(); }});
+                CircuitChanges.extractCells(1); }});
     }
 
     /**

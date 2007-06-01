@@ -647,12 +647,23 @@ public class CircuitChanges
 	 * Method to yank the contents of complex node instance "topno" into its
 	 * parent cell.
 	 */
-	public static void extractCells()
+	public static void extractCells(int depth)
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		new CellChangeJobs.ExtractCellInstances(cell, MenuCommands.getSelectedNodes(), User.isExtractCopiesExports(), false);
+		List<NodeInst> selected = MenuCommands.getSelectedNodes();
+		List<NodeInst> instances = new ArrayList<NodeInst>();
+		for(NodeInst ni : selected)
+		{
+			if (ni.isCellInstance()) instances.add(ni);
+		}
+		if (instances.size() == 0)
+		{
+			System.out.println("No cell instances are selected...no extraction done");
+			return;
+		}
+		new CellChangeJobs.ExtractCellInstances(cell, instances, depth, User.isExtractCopiesExports(), false);
 	}
 
 	/****************************** CLEAN-UP ******************************/

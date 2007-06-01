@@ -718,13 +718,15 @@ public class CellChangeJobs
         private Cell cell;
         private List<NodeInst> nodes;
         private boolean copyExports;
+//        private int depth;
 
-        public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, boolean copyExports, boolean startNow)
+        public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports, boolean startNow)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.nodes = highlighted;
             this.copyExports = copyExports;
+//            this.depth = depth;
             if (!startNow)
 			    startJob();
             else
@@ -735,15 +737,7 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			int cellsToExtract = 0;
-			for(NodeInst ni : nodes)
-				if (ni.isCellInstance()) cellsToExtract++;
-			if (cellsToExtract == 0)
-			{
-				System.out.println("Must select cell instances to extract");
-				return false;
-			}
-	        Job.getUserInterface().startProgressDialog("Extracting " + cellsToExtract + " cells", null);
+	        Job.getUserInterface().startProgressDialog("Extracting " + nodes.size() + " cells", null);
             HashMap<NodeInst,HashMap<NodeInst,NodeInst>> newNodes = new HashMap<NodeInst,HashMap<NodeInst,NodeInst>>();
 			int done = 0;
 			for(NodeInst ni : nodes)
@@ -753,10 +747,11 @@ public class CellChangeJobs
 				done++;
 				if ((done%10) == 0)
 				{
-			        Job.getUserInterface().setProgressValue(done * 100 / cellsToExtract);
+			        Job.getUserInterface().setProgressValue(done * 100 / nodes.size());
 				}
 			}
-            // replace arcs to the cell and exports on the cell
+
+			// replace arcs to the cell and exports on the cell
             replaceArcsAndExports(cell, newNodes);
         
 	        Job.getUserInterface().stopProgressDialog();

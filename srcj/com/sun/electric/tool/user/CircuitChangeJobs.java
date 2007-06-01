@@ -1303,6 +1303,7 @@ public class CircuitChangeJobs
 		Set<NodeInst> deleteTheseNodes = new HashSet<NodeInst>();
 		for(NodeInst ni : alsoDeleteTheseNodes)
 		{
+			if (!ni.isLinked()) continue;
 			if (!ni.isCellInstance())
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
