@@ -1215,15 +1215,16 @@ public class PostScript extends Output
 	{
 		Point2D [] points = poly.getPoints();
 		if (points.length == 0) return;
-		// ignore if too small
-		Rectangle2D polyBounds = null;
-		for(int i=0; i<points.length; i++)
-		{
-			Point2D pu = psXform(points[i]);
-			if (polyBounds == null) polyBounds = new Rectangle2D.Double(pu.getX(), pu.getY(), 0, 0); else
-				polyBounds.add(pu);
-		}
-		if (polyBounds.getWidth() < 1 || polyBounds.getHeight() < 1) return;
+
+//		// ignore if too small
+//		Rectangle2D polyBounds = null;
+//		for(int i=0; i<points.length; i++)
+//		{
+//			Point2D pu = psXform(points[i]);
+//			if (polyBounds == null) polyBounds = new Rectangle2D.Double(pu.getX(), pu.getY(), 0, 0); else
+//				polyBounds.add(pu);
+//		}
+//		if (polyBounds.getWidth() < 1 || polyBounds.getHeight() < 1) return;
 
 		EGraphics desc = poly.getLayer().getGraphics();
 
