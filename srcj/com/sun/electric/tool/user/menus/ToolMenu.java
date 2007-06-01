@@ -232,7 +232,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (SPICE)
 
-		// mnemonic keys available: AB  E   IJK  NO QR   VWXYZ
+		// mnemonic keys available: AB      IJK  NO QR   VWXYZ
             new EMenu("Simulation (_Spice)",
 		        new EMenuItem("Write Spice _Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.SPICE, true); }},
@@ -246,8 +246,8 @@ public class ToolMenu {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {
                     addMultiplierCommand(); }},
-                Job.getDebug() ? new EMenuItem("Add flat code") { public void run() {
-                    makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }} : null,
+                new EMenuItem("Add Flat Cod_e") { public void run() {
+                    makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }},
 
                 SEPARATOR,
 
