@@ -54,6 +54,7 @@ import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -187,6 +188,7 @@ public class Verilog extends Topology
     /** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
     /** those cells that have overridden models */	        private HashSet<Cell> modelOverrides = new HashSet<Cell>();
     /** those cells that have modules defined */            private HashMap<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
+    /** those cells that have primitives defined */         private HashMap<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
 
     /**
      * The main entry point for Verilog deck writing.
@@ -713,6 +715,10 @@ public class Verilog extends Topology
                 if (((Cell)niProto).getView() == View.ICON) continue;
 
                 nodeName = parameterizedName(no, context);
+                // cells defined as "primitives" in Verilog View must have implicit port ordering
+                if (definedPrimitives.containsKey((Cell)niProto)) {
+                    implicitPorts = 3;
+                }
             } else
             {
                 // convert 4-port transistors to 3-port
@@ -873,6 +879,34 @@ public class Verilog extends Topology
                             infstr.append(sigName);
                         }
                     }
+                    infstr.append(");");
+                    break;
+                case 3:         // implicit ports ordering for cells defined as primitives in Verilog View
+                    ni = no.getNodeInst();
+                    VerilogData.VerilogModule module = definedPrimitives.get((Cell)niProto);
+                    if (module == null) break;
+                    System.out.print(cell.getName()+" ports: ");
+                    for (VerilogData.VerilogPort port : module.getPorts()) {
+                        List<String> portnames = port.getPinNames();
+                        if (portnames.size() == 0) {
+                            // continue
+                        } else if (portnames.size() > 1) {
+                            // Bill thinks bussed ports are not allowed for primitives
+                            System.out.println("Error: bussed ports not allowed on Verilog primitives: "+niProto.getName());
+                        } else {
+                            String portname = portnames.get(0);
+                            PortInst pi = ni.findPortInst(portname);
+                            Network net = netList.getNetwork(no, pi.getProtoEquivalent(), 0);
+                            CellSignal cs = cni.getCellSignal(net);
+                            String sigName = cs.getName();
+
+                            if (first) first = false; else
+                                infstr.append(", ");
+                            infstr.append(sigName);
+                            System.out.print(portname+" ");
+                        }
+                    }
+                    System.out.println();
                     infstr.append(");");
                     break;
             }
@@ -1391,6 +1425,7 @@ public class Verilog extends Topology
             " in Verilog View: "+cell.libDescribe());
             return false;
         }
+        definedPrimitives.put(cell, main);
 
         String source = includeFile == null ? "Verilog View for "+cell.libDescribe() :
                 "Include file: "+includeFile;

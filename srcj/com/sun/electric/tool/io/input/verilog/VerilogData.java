@@ -22,9 +22,9 @@ public class VerilogData
         this.name = name;
     }
 
-    VerilogModule addModule(String name)
+    VerilogModule addModule(String name, boolean primitive)
     {
-        VerilogModule module = new VerilogModule(name);
+        VerilogModule module = new VerilogModule(name, primitive);
         modules.put(name, module);
         return module;
     }
@@ -95,7 +95,7 @@ public class VerilogData
 
         boolean isBusWire() {return busPins != null;}
 
-        List<String> getPinNames()
+        public List<String> getPinNames()
         {
             List<String> list = new ArrayList<String>();
 
@@ -290,10 +290,11 @@ public class VerilogData
         String name;
         boolean fullInfo; // in case the module information was found in the file
         List<VerilogWire> wires = new ArrayList<VerilogWire>();
-        Map<String,VerilogPort> ports = new HashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements
+        Map<String,VerilogPort> ports = new LinkedHashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements, ordering is important
         List<VerilogInstance> instances = new ArrayList<VerilogInstance>();
+        boolean primitive; // if this is a primitive instead of a module
 
-        VerilogModule(String name)
+        VerilogModule(String name, boolean primitive)
         {
             this.name = name;
             this.fullInfo = false;
@@ -316,6 +317,13 @@ public class VerilogData
          * @return String with name of the module
          */
         public String getName() {return name;}
+
+        /**
+         * Returns true if this was defined as a 'primitive' instead of
+         * a 'module'.
+         * @return true if this module was defined as a primitive
+         */
+        public boolean isPrimitive() { return primitive; }
 
         /**
          * Function to return list of VerilogInstance objects in the module

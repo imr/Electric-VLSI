@@ -473,7 +473,7 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private String readCell(VerilogData verilogData) throws IOException
+    private String readCell(VerilogData verilogData, boolean primitive) throws IOException
     {
         List<String> inputs = new ArrayList<String>(10);
         readCellHeader(inputs);
@@ -487,7 +487,7 @@ public class VerilogReader extends Input
         {
             module = verilogData.getModule(cellName);
             if (module == null)
-                module = verilogData.addModule(cellName);
+                module = verilogData.addModule(cellName, primitive);
             module.setValid(true);
             // adding ports in modules: from 1 -> inputs.size()-1;
             for (int i = 1; i < inputs.size(); i++)
@@ -606,7 +606,7 @@ public class VerilogReader extends Input
                 element = verilogData.getModule(key);
                 if (element == null) // it hasn't been created
                 {
-                    element = verilogData.addModule(key); // assuming latches and other elements are treat as subcells
+                    element = verilogData.addModule(key, false); // assuming latches and other elements are treat as subcells
                 }
             }
             else
@@ -854,7 +854,8 @@ public class VerilogReader extends Input
                 }
                 if (key.equals("module") || key.equals("primitive"))
                 {
-                    nextToken = readCell(verilogData);
+                    boolean primitive = key.equals("primitive");
+                    nextToken = readCell(verilogData, primitive);
                 }
             }
         } catch (IOException e)
