@@ -239,7 +239,8 @@ public class VerilogOut extends Simulate
 					if (currentLine == null) break;
 					char chr = currentLine.charAt(0);
 					String restOfLine = currentLine.substring(1);
-					if (chr == '0' || chr == '1' || chr == 'x' || chr == 'z')
+					if (chr == '0' || chr == '1' || chr == 'x' || chr == 'X' ||
+						chr == 'z' || chr == 'Z')
 					{
 						Object entry = symbolTable.get(restOfLine);
 						if (entry == null)
@@ -256,7 +257,9 @@ public class VerilogOut extends Simulate
 						{
 							case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
 							case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+							case 'X':
 							case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+							case 'Z':
 							case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 						}
 						VerilogStimuli vs = new VerilogStimuli(curTime, state);
@@ -302,7 +305,9 @@ public class VerilogOut extends Simulate
 							{
 								case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
 								case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+								case 'X':
 								case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+								case 'Z':
 								case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
 							}
 							VerilogStimuli vs = new VerilogStimuli(curTime, state);
