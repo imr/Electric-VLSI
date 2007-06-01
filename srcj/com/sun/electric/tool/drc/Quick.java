@@ -4438,7 +4438,7 @@ public class Quick
     {
 		private GeometryHandler otherTypeMerge;
 		private Layer polyLayer;
-        private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.IMPLANTP, Layer.Function.IMPLANTN);
+        private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
         private HashMap<NodeInst,NodeInst> notExportedNodes;
 		private HashMap<NodeInst,NodeInst> checkedNodes;
         private GeometryHandler.GHMode mode; // geometrical merge algorithm
@@ -4871,7 +4871,7 @@ public class Quick
 
             if (isTransistor)
             {
-                Poly [] list = tech.getShapeOfNode(ni, true, true, activeLayers);
+                Poly [] list = tech.getShapeOfNode(ni, false, true, activeLayers);
                 assert(list.length == 1);
                 activePoly = list[0];
             }

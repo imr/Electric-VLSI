@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/1/07, GVG) Assertion running DRC MinArea on thick transistors (Bug# 1319)
+FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active layers were wrongly detected.
+
 BUG: (5/31/07, SMR) Waveform window numbers may be scaled by 100 (Bug #1315).
 FIX: In TextUtils.convertToEngineeringNotation(), scale number properly.
 
