@@ -8,9 +8,11 @@
 The routing tool contains a number of different subsystems for creating wires.
 Two <I>stitching</I> routers can be used in array-based design to connect adjoining cells.
 A maze-router runs individual wires.
-A river-router is also available for running multiple parallel wires.
+A river-router is available for running multiple parallel wires.
+Finally, the sea-of-gates router handles many wires in arbitrary connection situations.
 <P>
-Some of these routers make use of the "Unrouted Arc",
+<TABLE><TR><TD>
+All of the non-stitching routers make use of the "Unrouted Arc",
 a thin-line arc that can connect any two components.
 Creating "rats nests" of these arcs forms a graphical specification that the router can use.
 The unrouted arc is from the Generic Technology
@@ -19,6 +21,7 @@ To create one, use the <B>Get Unrouted Wire</B> command (in menu <B>Tool / Routi
 Then use standard wiring commands to run the unrouted arc.
 Another way to get unrouted wires is to select all or part of an existing route
 (made with any arc) and use the <B>Unroute</B> command.
+</TD><TD><CENTER><IMG SRC="fig09-63.png" ALT="Figure 9.63"></CENTER></TD></TR></TABLE>
 <P>
 Another way to get Unrouted arcs for router input is to use the
 <B>Copy Routing Topology</B> and <B>Paste Routing Topology</B>

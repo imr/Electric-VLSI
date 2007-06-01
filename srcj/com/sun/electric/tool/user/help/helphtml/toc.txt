@@ -224,6 +224,7 @@ Tools
   Mimic Stitching                    =chap09-06-03
   Maze Routing                       =chap09-06-04
   River Routing                      =chap09-06-05
+  Sea-of-Gates Routing               =chap09-06-06
  Network Consistency Checking (NCC)
   NCC Overview                       =chap09-07-01
   NCC Commands                       =chap09-07-02
