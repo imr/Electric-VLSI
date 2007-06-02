@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/1/07, GVG) cInvR,cAdd,cSub,cAddR,cSubR,cMulR in awe.java modified due to reference issue affecting the Java code,
+effect not seen in C. This allowed to get 100% match in 64bitadder example.
+
+IMP: (6/1/07, GVG) Playing with sorted list in CSA code to get deterministic results. To faciliate comparisons
+with Oyster.
+
 BUG: (6/1/07, GVG) Assertion running DRC MinArea on thick transistors (Bug# 1319)
 FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active layers were wrongly detected.
 
