@@ -85,7 +85,7 @@ class AssertionTableModel extends ExportTableModel {
                 text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 if (col == 0) {
                     CellName cellName = failures[row].getCell().getCellName();
-                    text.append(cellName.getName() + " {" + cellName.getView().getAbbreviation() + "}");
+                    text.append(cellName.getName() + " " + cellName.getView().getAbbreviationExtension());
                     cellPrefHeights[row][0] += ExportTable.LINEHEIGHT;
                 } else {
                     appendLinks(text, row);                    

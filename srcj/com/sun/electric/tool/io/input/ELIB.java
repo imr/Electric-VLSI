@@ -1408,7 +1408,7 @@ public class ELIB extends LibraryFiles
         if (!GenMath.doublesClose(scaleX, scaleY)) return subCell;
         double scale = Math.sqrt(scaleX * scaleY);
         String scaledCellName = subCell.getName() + "-SCALED-BY-" + scale +
-                "{" + subCell.getView().getAbbreviation() + "}";
+                subCell.getView().getAbbreviationExtension();
         Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
         if (scaledCell == null) {
             // create a scaled version of the cell
@@ -1603,7 +1603,7 @@ public class ELIB extends LibraryFiles
 			View v = getView(readBigInteger());
 			if (v == null) v = View.UNKNOWN;
 			int version = readBigInteger();
-			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
+			theProtoName += ";" + version + v.getAbbreviationExtension();
             cell = Cell.newInstance(lib, theProtoName);
             if (nextInCell != null)
                 nextInCellGroup.put(cell, nextInCell);
@@ -1768,8 +1768,8 @@ public class ELIB extends LibraryFiles
 		View v = getView(readBigInteger());
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
-		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
-        if (version <= 1) fullCellName = theProtoName + "{" + v.getAbbreviation() + "}";
+		String fullCellName = theProtoName + ";" + version + v.getAbbreviationExtension();
+        if (version <= 1) fullCellName = theProtoName + v.getAbbreviationExtension();
 		Date creationDate = ELIBConstants.secondsToDate(readBigInteger());
 		Date revisionDate = ELIBConstants.secondsToDate(readBigInteger());
 

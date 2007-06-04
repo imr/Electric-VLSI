@@ -315,7 +315,13 @@ public class View implements Comparable<View>
 	 */
 	public String getAbbreviation() { return abbreviation; }
 
-	/**
+    /**
+     * Method to return the string containing the extension to be used for cell names
+     * @return the short name of this View with appropiated parentesis
+     */
+    public String getAbbreviationExtension() { return "{" + getAbbreviation() + "}"; }
+
+    /**
 	 * Method to get the ordering of this View for sorting.
 	 * @return the ordering this View.
 	 */

@@ -24,8 +24,6 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -73,6 +71,9 @@ public class Schematic
         newVariables.clear();
 
         errorLogger = errorLog;
+        // null when it comes from the regression
+        if (errorLogger == null) errorLogger = DRC.getDRCErrorLogger(false, false);
+
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
         DRC.addDRCUpdate(0, null, null, newVariables);

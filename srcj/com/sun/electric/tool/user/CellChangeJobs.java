@@ -36,7 +36,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -57,13 +56,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Class for Jobs that make changes to the cells.
@@ -1012,7 +1009,7 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
         	Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
-			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
+			String newCellName = newName + cell.getView().getAbbreviationExtension();
 			dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {
                 System.out.println("Could not duplicate "+cell);
@@ -1033,7 +1030,7 @@ public class CellChangeJobs
                 // Only when copy an schematic, we should copy the icon if entireGroup == false
         		if (!entireGroup && !(thisView == View.SCHEMATIC && otherCell.getView() == View.ICON)) continue;
                 Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
-                	newName + "{" + otherCell.getView().getAbbreviation() + "}", false);
+                	newName + otherCell.getView().getAbbreviationExtension(), false);
                 if (copyCell == null)
                 {
                     System.out.println("Could not duplicate cell "+otherCell);
@@ -1313,7 +1310,7 @@ public class CellChangeJobs
 		String newName = toName;
 		if (toView.getAbbreviation().length() > 0)
 		{
-			newName = toName + "{" + toView.getAbbreviation() + "}";
+			newName = toName + toView.getAbbreviationExtension();
 		}
         Cell newFromCell;
 //        if (move) {

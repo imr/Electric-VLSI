@@ -325,7 +325,7 @@ public class UpdateJob extends Job
 		for(Iterator<ProjectCell> it = pl.getProjectCells(); it.hasNext(); )
 		{
 			ProjectCell pc = it.next();
-			String cellName = pc.getCellName() + "{" + pc.getView().getAbbreviation() + "}";
+			String cellName = pc.getCellName() + pc.getView().getAbbreviationExtension();
 			ProjectCell pcToGet = versionToGet.get(cellName);
 			if (pcToGet != null)
 			{
@@ -357,7 +357,7 @@ public class UpdateJob extends Job
 
 						oldCell = pl.getLibrary().findNodeProto(pc.describe());
 						Library lib = oldCell.getLibrary();
-						String newName = oldCell.getName() + ";" + pc.getVersion() + "{" + pc.getView().getAbbreviation() + "}";
+						String newName = oldCell.getName() + ";" + pc.getVersion() + pc.getView().getAbbreviationExtension();
 						if (oldCell != null)
 						{
 							Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);

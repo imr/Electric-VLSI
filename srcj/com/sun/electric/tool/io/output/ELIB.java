@@ -736,7 +736,7 @@ public class ELIB extends Output
         CellId cellId = cellBackup.d.cellId;
         
         if (this instanceof ReadableDump) {
-            writeTxt("name: " + cellId.cellName.getName() + "{" + cellId.cellName.getView().getAbbreviation() + "}");
+            writeTxt("name: " + cellId.cellName.getName() + cellId.cellName.getView().getAbbreviationExtension());
         } else {
             if (compatibleWith6) {
                 // write cell index if creating version-6-compatible output

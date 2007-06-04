@@ -638,7 +638,7 @@ public class CircuitChanges
 
 		String newCellName = JOptionPane.showInputDialog("New cell name:", curCell.getName());
 		if (newCellName == null) return;
-		newCellName += "{" + curCell.getView().getAbbreviation() + "}";
+		newCellName += curCell.getView().getAbbreviationExtension();
 
 		new CellChangeJobs.PackageCell(curCell, bounds, newCellName);
 	}

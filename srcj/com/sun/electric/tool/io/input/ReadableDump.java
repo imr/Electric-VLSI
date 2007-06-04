@@ -1074,10 +1074,10 @@ public class ReadableDump extends LibraryFiles
 			//curCellName.setName(curCellName.getName() + "FROM" + elibName);
 			if (curCellName.getVersion() != 0)
 				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
-					";" + curCellName.getVersion() + "{" + curCellName.getView().getAbbreviation() + "}");
+					";" + curCellName.getVersion() + curCellName.getView().getAbbreviationExtension());
 			else
 				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
-					"{" + curCellName.getView().getAbbreviation() + "}");
+					curCellName.getView().getAbbreviationExtension());
 			finishCellInitialization();
 
 			// schedule the cell to have two nodes (cell center and big "X")

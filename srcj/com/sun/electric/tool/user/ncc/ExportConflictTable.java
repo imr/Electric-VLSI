@@ -100,7 +100,7 @@ abstract class ExportConflictTableModel extends ExportTableModel {
                 switch (col) {
                     case 0: 
                     CellName cellName = conflicts[row].getCell().getCellName();
-                    txtBuf.append(cellName.getName() + " {" + cellName.getView().getAbbreviation() + "}");
+                    txtBuf.append(cellName.getName() + " " + cellName.getView().getAbbreviationExtension());
                     break;
                     case 1:
                     txtBuf.append(conflicts[row].getName()); 

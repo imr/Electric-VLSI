@@ -57,7 +57,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -945,7 +944,7 @@ public class ViewChanges
 		String cellName = newCellName;
 		if (newCellView.getAbbreviation().length() > 0)
 		{
-			cellName = newCellName + "{" + newCellView.getAbbreviation() + "}";
+			cellName = newCellName + newCellView.getAbbreviationExtension();
 		}
 		if (lib == null) lib = cell.getLibrary();
 		Cell newCell = Cell.makeInstance(lib, cellName);

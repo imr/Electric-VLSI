@@ -60,7 +60,6 @@ import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Point;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -853,7 +852,7 @@ public class GDS extends Input
 		if (cell == null)
 		{
 			// create the proto
-			cell = Cell.newInstance(theLibrary, tokenString+"{"+View.LAYOUT.getAbbreviation()+"}");
+			cell = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
 			if (cell == null) handleError("Failed to create structure");
 			System.out.println("Reading " + tokenString);
 			if (Job.getUserInterface().getCurrentCell(theLibrary) == null)
@@ -1605,7 +1604,7 @@ public class GDS extends Input
 		if (np == null)
 		{
 			// FILO order, create this nodeproto
-			np = Cell.newInstance(theLibrary, tokenString+"{"+View.LAYOUT.getAbbreviation()+"}");
+			np = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
 			if (np == null) handleError("Failed to create SREF proto");
             setProgressValue(0);
             setProgressNote("Reading " + tokenString);

@@ -117,14 +117,14 @@ public class ProjectCell implements Serializable
 	String describe()
 	{
 		String cn = cellName;
-		if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
+		if (cellView != View.UNKNOWN) cn += cellView.getAbbreviationExtension();
 		return cn;
 	}
 
 	String describeWithVersion()
 	{
 		String cn = cellName + ";" + cellVersion;
-		if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
+		if (cellView != View.UNKNOWN) cn += cellView.getAbbreviationExtension();
 		return cn;
 	}
 }

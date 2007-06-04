@@ -27,9 +27,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
@@ -89,7 +87,7 @@ public class ViewControl extends EDialog
 		List<View> views = View.getOrderedViews();
 		for(View v : views)
 		{
-			listModel.addElement(v.getFullName() + " {" + v.getAbbreviation() + "}");
+			listModel.addElement(v.getFullName() + " " + v.getAbbreviationExtension());
 		}
 		list.setSelectedIndex(0);
 		viewListClick();

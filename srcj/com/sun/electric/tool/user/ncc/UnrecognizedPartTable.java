@@ -72,7 +72,7 @@ class UnrecognizedPartTableModel extends ExportTableModel {
                 text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 if (col == 0) {
                     CellName cellName = moses[row].getCell().getCellName();
-                    text.append(cellName.getName() + " {" + cellName.getView().getAbbreviation() + "}");
+                    text.append(cellName.getName() + " " + cellName.getView().getAbbreviationExtension());
                 } else {
                     text.append(href+ (row*10+col) +"\">"+ moses[row].getName() +"</a>");                    
                 }

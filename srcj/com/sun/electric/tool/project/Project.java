@@ -41,7 +41,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -49,7 +48,6 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -750,7 +748,7 @@ public class Project extends Listener
 	static String describeFullCellName(Cell cell)
 	{
 		String cellName = cell.getName() + ";" + cell.getVersion();
-		if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
+		if (cell.getView() != View.UNKNOWN) cellName += cell.getView().getAbbreviationExtension();
 		return cellName;
 	}
 

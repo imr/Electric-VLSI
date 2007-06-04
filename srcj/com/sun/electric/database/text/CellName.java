@@ -146,9 +146,9 @@ public class CellName implements Comparable<CellName>
 	public String toString()
 	{
 		if (version > 0)
-			return name + ";" + version + "{" + view.getAbbreviation() + "}";
+			return name + ";" + version + view.getAbbreviationExtension();
 		else
-			return name + "{" + view.getAbbreviation() + "}";
+			return name + view.getAbbreviationExtension();
 	}
 
 	/**

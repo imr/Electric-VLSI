@@ -61,7 +61,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.Highlight2;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -369,7 +368,7 @@ public class Connectivity
 		}
 
 		// create the new version of the cell
-		String newCellName = oldCell.getName() + "{" + oldCell.getView().getAbbreviation() + "}";
+		String newCellName = oldCell.getName() + oldCell.getView().getAbbreviationExtension();
 		Cell newCell = Cell.makeInstance(oldCell.getLibrary(), newCellName);
 		if (newCell == null)
 		{

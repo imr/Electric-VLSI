@@ -322,7 +322,7 @@ public class NewCell extends EDialog
 		}
 		String viewName = ((ViewTechOption)viewList.getSelectedValue()).view.getFullName();
 		View v = View.findView(viewName);
-		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
+		if (v != View.UNKNOWN)  name += v.getAbbreviationExtension();
 		String libName = (String)library.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
 		if (lib == null)

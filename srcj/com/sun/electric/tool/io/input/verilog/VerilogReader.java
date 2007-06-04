@@ -495,7 +495,7 @@ public class VerilogReader extends Input
         }
         else
         {
-            cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
+            cellName += View.SCHEMATIC.getAbbreviationExtension();
             lib = Library.getCurrent();
             if (lib == null)
                 lib = Library.newInstance("Verilog", null);
@@ -616,7 +616,7 @@ public class VerilogReader extends Input
 
                 if (noMoreInfo)
                 {
-                    String name = key + "{" + View.SCHEMATIC.getAbbreviation() + "}";
+                    String name = key + View.SCHEMATIC.getAbbreviationExtension();
                     schematics = Cell.makeInstance(lib, name);
                     schematics.setTechnology(Schematics.tech);
                     // Adding essential bounds for now
@@ -936,7 +936,7 @@ public class VerilogReader extends Input
      */
     private Cell buildCellFromModule(VerilogData.VerilogModule module, Library lib)
     {
-        String cellName = module.name + "{" + View.SCHEMATIC.getAbbreviation() + "}";
+        String cellName = module.name + View.SCHEMATIC.getAbbreviationExtension();
         Cell cell = lib.findNodeProto(cellName);
         if (cell != null) return cell; // already created;
 

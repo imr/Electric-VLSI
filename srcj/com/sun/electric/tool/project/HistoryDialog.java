@@ -109,7 +109,7 @@ public class HistoryDialog extends EDialog
 			ProjectLibrary pl = pdb.findProjectLibrary(lib);
 
 			String cellName = cell.getName() + ";" + version;
-			if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
+			if (cell.getView() != View.UNKNOWN) cellName += cell.getView().getAbbreviationExtension();
 			Cell exists = cell.getLibrary().findNodeProto(cellName);
 			if (exists != null)
 			{

@@ -595,8 +595,8 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             rightSplPane.setCellText(0, ndx, html.toString());
 
             CellName cellName = cells[i].getCellName();
-            String name = "  Summary of " + cellName.getName() + " {" 
-                        + cellName.getView().getAbbreviation() + "}";
+            String name = "  Summary of " + cellName.getName() + " " 
+                        + cellName.getView().getAbbreviationExtension();
             rightSplPane.setLabelText(0, ndx, name);
         }
         setRightComponent(rightSplPane);

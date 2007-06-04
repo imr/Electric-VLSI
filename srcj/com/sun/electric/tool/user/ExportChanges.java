@@ -1595,7 +1595,7 @@ public final class ExportChanges
 				if (oldType.getLibrary() == oLib) continue;
 				
 				String nameToFind = oldType.getName();
-				if (oldType.getView() != View.UNKNOWN) nameToFind += "{" + oldType.getView().getAbbreviation() + "}";
+				if (oldType.getView() != View.UNKNOWN) nameToFind += oldType.getView().getAbbreviationExtension();
 				Cell newType = oLib.findNodeProto(nameToFind);
 				if (newType != null)
 				{

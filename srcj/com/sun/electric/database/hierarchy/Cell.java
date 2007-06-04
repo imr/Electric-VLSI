@@ -642,7 +642,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		String cellName = toName;
 		if (toName.indexOf('{') < 0 && fromCell.getView() != View.UNKNOWN)
 		{
-			cellName = toName + "{" + fromCell.getView().getAbbreviation() + "}";
+			cellName = toName + fromCell.getView().getAbbreviationExtension();
 		}
 		Cell newCell = Cell.newInstance(toLib, cellName);
 		if (newCell == null) return(null);
@@ -823,7 +823,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public IdMapper rename(String newName, String newGroupName)
 	{
-		return rename(CellName.parseName(newName + ";" + getVersion() + "{" + getView().getAbbreviation() + "}"), newGroupName);
+		return rename(CellName.parseName(newName + ";" + getVersion() + getView().getAbbreviationExtension()), newGroupName);
 	}
 
 	/**
@@ -2729,7 +2729,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		String name = getName();
 		if (getNewestVersion() != this)
 			name += ";" + getVersion();
-		name += "{" +  getView().getAbbreviation() + "}";
+		name += getView().getAbbreviationExtension();
 		return name;
 	}
 

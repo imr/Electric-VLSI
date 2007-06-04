@@ -103,7 +103,7 @@ public class ReadableDump extends ELIB {
         for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
             View v = it.next();
             if (!objInfo.containsKey(v)) continue;
-            printWriter.println("view: " + v.getFullName() + "{" + v.getAbbreviation() + "}");
+            printWriter.println("view: " + v.getFullName() + v.getAbbreviationExtension());
         }
         printWriter.println("cellcount: " + cellNumber);
         
