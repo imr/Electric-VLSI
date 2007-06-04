@@ -305,15 +305,13 @@ public class JThreeDTab extends ThreeDTab
         currentBoolean = threeDCellBnd.isSelected();
 		if (currentBoolean != J3DUtils.is3DCellBndOn())
 		{
-            J3DAppearance.cellApp.getRenderingAttributes().setVisible(currentBoolean);
+            J3DAppearance.setCellVisibility(currentBoolean);
 			J3DUtils.set3DCellBndOn(currentBoolean);
 		}
         currentBoolean = threeDAxes.isSelected();
 		if (currentBoolean != J3DUtils.is3DAxesOn())
 		{
-            J3DAppearance.axisApps[0].getRenderingAttributes().setVisible(currentBoolean);
-            J3DAppearance.axisApps[1].getRenderingAttributes().setVisible(currentBoolean);
-            J3DAppearance.axisApps[2].getRenderingAttributes().setVisible(currentBoolean);
+            J3DAppearance.setAxesVisibility(currentBoolean);
 			J3DUtils.set3DAxesOn(currentBoolean);
 		}
 

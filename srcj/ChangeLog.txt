@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/3/07, GVG) Null exception in 3D preference due to cell bounding box (Bug #1320)
+FIX: 3D Java appearance associated to the cell bounding box was only initializated if a 3D view was available.
+Initialized now when 3D tab is created. Same happens with axes and it was fixed.
+
 BUG: (6/1/07, GVG) cInvR,cAdd,cSub,cAddR,cSubR,cMulR in awe.java modified due to reference issue affecting the Java code,
 effect not seen in C. This allowed to get 100% match in 64bitadder example.
 

@@ -148,7 +148,20 @@ public class J3DAppearance extends Appearance
      */
     public static void setCellVisibility(boolean value)
     {
+        assert(cellApp != null);
         cellApp.getRenderingAttributes().setVisible(value);
+    }
+
+    /**
+     * Set visibility of appearance assigned to the axes
+     * @param value
+     */
+    public static void setAxesVisibility(boolean value)
+    {
+        for (int i = 0; i < axisApps.length; i++)
+        {
+            axisApps[i].getRenderingAttributes().setVisible(value);
+        }
     }
 
     /**

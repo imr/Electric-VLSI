@@ -92,6 +92,12 @@ public class JThreeDSideView extends JPanel
         // Set global highlight appearance before create the elements
         J3DAppearance.setHighlightedAppearanceValues(this);
 
+        // Set global bounding box appearance before values are set
+        J3DAppearance.setCellAppearanceValues(this);
+
+        // Set global axes before values are set
+        J3DAppearance.setAxisAppearanceValues(this);
+
         // Creating scene
         BranchGroup scene = createSceneGraph(canvas, J3DUtils.infiniteBounds);
 
