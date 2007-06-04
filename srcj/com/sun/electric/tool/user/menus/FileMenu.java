@@ -176,7 +176,7 @@ public class FileMenu {
             new EMenuItem("Save All Libraries in _Format...") { public void run() {
                 if (checkInvariants()) saveAllLibrariesInFormatCommand(); }},
 
-		// mnemonic keys available:    D     J  M   Q   UVW YZ
+		// mnemonic keys available:    D     J  M   Q   UVWVYZ
             new EMenu("_Export",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     exportCommand(FileType.CIF, false); }},
@@ -192,8 +192,6 @@ public class FileMenu {
                     exportCommand(FileType.SKILL, false); }} : null,
                 IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() { 
                     exportCommand(FileType.SKILLEXPORTSONLY, false); }} : null,
-                new EMenuItem("_Verilog...") {	public void run() {
-                    exportCommand(FileType.VERILOG, false); }},
                 SEPARATOR,
                 new EMenuItem("_Eagle...") { public void run() {
                     exportCommand(FileType.EAGLE, false); }},

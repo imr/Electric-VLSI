@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (6/4/07, GVG) Remove Export Verilog from FileMenu
+
 BUG: (6/3/07, GVG) Null exception in 3D preference due to cell bounding box (Bug #1320)
 FIX: 3D Java appearance associated to the cell bounding box was only initializated if a 3D view was available.
 Initialized now when 3D tab is created. Same happens with axes and it was fixed.
@@ -13,6 +15,9 @@ effect not seen in C. This allowed to get 100% match in 64bitadder example.
 
 IMP: (6/1/07, GVG) Playing with sorted list in CSA code to get deterministic results. To faciliate comparisons
 with Oyster.
+
+IMP: (6/1/07, JKG) A 'primitive' module defined in the Verilog View cannot have its ports referenced by name (.name(net)),
+but must be referenced by order. 
 
 BUG: (6/1/07, GVG) Assertion running DRC MinArea on thick transistors (Bug# 1319)
 FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active layers were wrongly detected.
