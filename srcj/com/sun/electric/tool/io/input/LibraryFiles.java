@@ -161,22 +161,6 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
-        return readLibrary(fileURL, libName, type, quick, null);
-    }
-    
-	/**
-	 * Method to read a Library from disk.
-	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-	 * @param fileURL the URL to the disk file.
-	 * @param libName the name to give the library (null to derive it from the file path)
-	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @param quick true to read the library without verbosity (used when reading a library internally).
-     * @param projectSettings project settings for reconcillation are returned to this map.
-	 * @return the read Library, or null if an error occurred.
-	 */
-	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
-            HashMap<Setting,Object> projectSettings)
-	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("Library Read");
@@ -222,12 +206,6 @@ public abstract class LibraryFiles extends Input
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
 
-            if (projectSettings != null) {
-                for (LibraryFiles reader: libsBeingRead) {
-                    if (reader.topLevelLibrary)
-                        projectSettings.putAll(reader.projectSettings);
-                }
-            }
 			LibraryFiles.cleanupLibraryInput();
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done instantiating data for all libraries");
@@ -250,6 +228,86 @@ public abstract class LibraryFiles extends Input
 		errorLogger.termLogging(true);
 
 		return lib;
+	}
+
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @param libName the name to give the library (null to derive it from the file path)
+	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @param quick true to read the library without verbosity (used when reading a library internally).
+     * @param projectSettings project settings for reconcillation are returned to this map.
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static synchronized Map<Setting,Object> readProjectsSettingsFromLibrary(URL fileURL, FileType type)
+	{
+		if (fileURL == null) return null;
+		long startTime = System.currentTimeMillis();
+        errorLogger = ErrorLogger.newInstance("Library Read Project Settings");
+
+		Library lib = null;
+        StringBuffer errmsg = new StringBuffer();
+        boolean exists = TextUtils.URLExists(fileURL, errmsg);
+        if (!exists)
+        {
+            System.out.print(errmsg.toString());
+            // if doesn't have extension, assume DEFAULTLIB as extension
+            String fileName = fileURL.toString();
+            if (fileName.indexOf(".") == -1)
+            {
+                fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
+                System.out.print("Attempting to open " + fileURL+"\n");
+                errmsg.setLength(0);
+                exists = TextUtils.URLExists(fileURL, errmsg);
+                if (!exists) {
+                    System.out.print(errmsg.toString());
+                    return null;
+                }
+            }
+        }
+        // handle different file types
+        LibraryFiles in;
+        if (type == FileType.ELIB)
+        {
+            in = new ELIB();
+            if (in.openBinaryInput(fileURL)) return null;
+        } else if (type == FileType.JELIB)
+        {
+            in = new JELIB();
+            if (in.openTextInput(fileURL)) return null;
+        } else if (type == FileType.READABLEDUMP)
+        {
+            in = new ReadableDump();
+            if (in.openTextInput(fileURL)) return null;
+        } else if (type == FileType.DELIB)
+        {
+            in = new DELIB();
+            if (in.openTextInput(fileURL)) return null;
+        } else
+        {
+            System.out.println("Unknown import type: " + type);
+            return null;
+        }
+
+        // determine whether this is top-level
+        in.topLevelLibrary = true;
+
+        // read the library
+        boolean error = in.readProjectSettings();
+        in.closeInput();
+        if (error)
+        {
+            System.out.println("Error reading " + lib);
+            if (in.topLevelLibrary) mainLibDirectory = null;
+            return null;
+        }
+        long endTime = System.currentTimeMillis();
+        float finalTime = (endTime - startTime) / 1000F;
+        System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
+        errorLogger.termLogging(true);
+
+		return in.projectSettings;
 	}
 
 	/**
@@ -346,7 +404,7 @@ public abstract class LibraryFiles extends Input
         lib = idMapper.get(lib.getId()).inDatabase(EDatabase.serverDatabase());
         lib.setHidden();                // hide the old library
         startProgressDialog("library", name);
-        Library newLib = readLibrary(libFile, name, type, true, null);
+        Library newLib = readLibrary(libFile, name, type, true);
         stopProgressDialog();
 
         // replace all old cells with new cells
@@ -399,7 +457,7 @@ public abstract class LibraryFiles extends Input
         String name = lib.getName();
         URL libFile = lib.getLibFile();
         startProgressDialog("library", name);
-        Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true, null);
+        Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true);
         stopProgressDialog();
         newLib.setHidden();
 
@@ -491,6 +549,14 @@ public abstract class LibraryFiles extends Input
 	 * @return true on error.
 	 */
 	protected boolean readLib() { return true; }
+
+	/**
+	 * Method to read project settings from a Library.
+	 * This method is never called.
+	 * Instead, it is always overridden by the appropriate read subclass.
+	 * @return true on error.
+	 */
+	protected boolean readProjectSettings() { return true; }
 
 	/**
 	 * Method to find the View to use for an old View name.

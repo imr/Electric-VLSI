@@ -161,6 +161,42 @@ public class ReadableDump extends LibraryFiles
 
 	// ----------------------- public methods -------------------------------
 
+    @Override
+    protected boolean readProjectSettings() {
+		try
+		{
+            textLevel = INLIB;
+            for(;;)
+            {
+                // get keyword from file
+                if (getKeyword()) break;
+                String thisKey = keyWord;
+
+                // get argument to keyword
+                if (getKeyword()) break;
+
+                // determine which keyword table to use
+                if (textLevel != INLIB || varPos != 0 && varPos != INVTOOL && varPos != INVTECHNOLOGY) break;
+                if (thisKey.equals("****library:")) {     keywordNewLib();   continue;   }
+                if (thisKey.equals("lambda:")) {          keywordLambda();   continue;   }
+                if (thisKey.equals("version:")) {         keywordVersn();    continue;   }
+                if (thisKey.equals("aids:")) {            keywordLibKno();   continue;   }
+                if (thisKey.equals("aidname:")) {         keywordLibAiN();   continue;   }
+                if (thisKey.equals("aidbits:")) {         keywordLibAiB();   continue;   }
+                if (thisKey.equals("techcount:")) {       keywordLibTe();    continue;   }
+                if (thisKey.equals("techname:")) {        keywordLibTeN();   continue;   }
+                if (thisKey.equals("cellcount:")) {       keywordLibCC();    continue;   }
+                if (thisKey.equals("variables:")) {       keywordGetVar();   continue;   }
+            }
+
+            return false;
+		} catch (IOException e)
+		{
+			System.out.println("End of file reached while reading " + filePath);
+			return true;
+		}
+    }
+    
 	/**
 	 * Method to read a Library in readable-dump (.txt) format.
 	 * @return true on error.

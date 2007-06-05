@@ -57,9 +57,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
     
     public void restoreSavedBindings(boolean initialCall) {;}
-    public void finishSettingReconcilation(String libName, Map<Setting,Object> settingsToReconcile) {
-        Setting.finishSettingReconcilation(settingsToReconcile);
-    }
     
     /**
      * Save current state of highlights and return its ID.

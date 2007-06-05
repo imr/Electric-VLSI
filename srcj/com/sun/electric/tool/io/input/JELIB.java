@@ -172,6 +172,33 @@ public class JELIB extends LibraryFiles
 	 * Method to read a Library in new library file (.jelib) format.
 	 * @return true on error.
 	 */
+    @Override
+    protected boolean readProjectSettings() {
+        try {
+            curLibName = null;
+            version = null;
+            curExternalLibName = "";
+            curExternalCellName = "";
+            curTech = null;
+            curPrim = null;
+            externalCells = new HashMap<String,Rectangle2D>();
+            externalExports = new HashMap<String,Point2D.Double>();
+            curReadFile = filePath;
+            
+            // do all the reading
+            readFromFile(false, true);
+            return false;
+        } catch (IOException e) {
+            Input.errorLogger.logError("End of file reached while reading " + filePath, -1);
+            return true;
+        }
+    }
+
+	/**
+	 * Method to read a Library in new library file (.jelib) format.
+	 * @return true on error.
+	 */
+    @Override
 	protected boolean readLib()
 	{
 		try
@@ -211,7 +238,7 @@ public class JELIB extends LibraryFiles
         curReadFile = filePath;
 
         // do all the reading
-        readFromFile(false);
+        readFromFile(false, false);
 
         // collect the cells by common protoName and by "groupLines" relation
         TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
@@ -309,7 +336,7 @@ public class JELIB extends LibraryFiles
         return false;
     }
 
-    protected void readFromFile(boolean fromDelib) throws IOException {
+    protected void readFromFile(boolean fromDelib, boolean onlyProjectSettings) throws IOException {
 		int revision = revisions.length;
         boolean ignoreCvsMergedContent = false;
 		for(;;)
@@ -340,6 +367,7 @@ public class JELIB extends LibraryFiles
                 continue;
             }
             if (ignoreCvsMergedContent) continue;
+            if (onlyProjectSettings && first != 'H' && first != 'O' && first != 'T') continue;
 
 			if (first == 'C')
 			{
@@ -445,7 +473,7 @@ public class JELIB extends LibraryFiles
 				}
 				Variable[] vars = readVariables(revision, lib, pieces, 2, filePath, lineReader.getLineNumber());
                 
-                if (!fromDelib) {
+                if (!fromDelib && !onlyProjectSettings) {
                     realizeVariables(lib, vars);
                     lib.setVersion(version);
                 }

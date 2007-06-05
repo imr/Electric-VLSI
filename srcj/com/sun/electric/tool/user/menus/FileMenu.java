@@ -70,6 +70,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
@@ -400,7 +401,7 @@ public class FileMenu {
 	{
 		private URL fileURL;
 		private FileType type;
-        private String settingsDirectory;
+        private File projsettings;
 		private Library deleteLib;
         private String cellName; // cell to view once the library is open
         private Library lib;
@@ -414,9 +415,26 @@ public class FileMenu {
 			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
-            this.settingsDirectory = settingsDirectory;
 			this.deleteLib = deleteLib;
             this.cellName = cellName;
+            Map<Setting,Object> projectSettings = null;
+            if (settingsDirectory != null) {
+                projsettings = new File(settingsDirectory, "projsettings.xml");
+                if (!projsettings.exists())
+                    projsettings = null;
+            }
+            if (projsettings == null) {
+                projectSettings = LibraryFiles.readProjectsSettingsFromLibrary(fileURL, type);
+                if (projectSettings != null) {
+                    Map<Setting,Object> settingsToReconcile = Setting.reconcileSettings(projectSettings);
+                    if (!settingsToReconcile.isEmpty()) {
+                        String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+                        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, settingsToReconcile, libName, this);
+                        dialog.setVisible(true);
+                        return; // startJob will be executed by reconcilation dialog
+                    }
+                }
+            }
 			startJob();
 		}
 
@@ -429,21 +447,11 @@ public class FileMenu {
 				deleteLib = null;
 			}
             // read project settings
-            HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-            if (settingsDirectory != null) {
-                File projsettings = new File(settingsDirectory, "projsettings.xml");
-                if (projsettings.exists()) {
-                    projectSettings = null;
-                    ProjSettings.readSettings(projsettings, false);
-                }
-            }
-        	lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
+            if (projsettings != null)
+                ProjSettings.readSettings(projsettings, false);
+            lib = LibraryFiles.readLibrary(fileURL, null, type, false);
             if (lib == null) return false;
             fieldVariableChanged("lib");
-
-            // reconcile project settings if project settings file was not found
-            if (projectSettings != null)
-                Setting.reconcileSettings(lib.getName(), projectSettings);
 
              // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");

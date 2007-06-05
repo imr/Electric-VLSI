@@ -537,13 +537,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         top.getEMenuBar().restoreSavedBindings(false); //trying to cache again
     }
 
-    @Override
-    public void finishSettingReconcilation(String libName, Map<Setting,Object> settingsToReconcile)
-    {
-        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, settingsToReconcile, libName);
-		dialog.setVisible(true);
-    }
-
     /**
      * Save current state of highlights and return its ID.
      */

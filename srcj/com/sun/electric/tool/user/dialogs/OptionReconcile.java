@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.FileMenu.ReadLibrary;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -52,12 +53,14 @@ public class OptionReconcile extends EDialog
     private Map<Setting,Object> settingsThatChanged;
 	private HashMap<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
     private ArrayList<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
+    private ReadLibrary job;
 
 	/** Creates new form Project Settings Reconcile */
-	public OptionReconcile(Frame parent, boolean modal, Map<Setting,Object> settingsThatChanged, String libname)
+	public OptionReconcile(Frame parent, boolean modal, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
 	{
 		super(parent, modal);
         this.settingsThatChanged = settingsThatChanged;
+        this.job = job;
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -212,7 +215,7 @@ public class OptionReconcile extends EDialog
             Setting setting = changedSettings.get(cb);
             settingsToReconcile.put(setting, settingsThatChanged.get(setting));
         }
-        new DoReconciliation(settingsToReconcile);
+        new DoReconciliation(settingsToReconcile, job);
     }
 
 	/**
@@ -221,9 +224,11 @@ public class OptionReconcile extends EDialog
 	private static class DoReconciliation extends Job
 	{
         private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
+        private transient ReadLibrary job;
         
-        private DoReconciliation(Map<Setting,Object> settingsToReconcile) {
+        private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job) {
             super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.job = job;
             for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
                 Setting setting = e.getKey();
                 Object newValue = e.getValue();
@@ -232,6 +237,7 @@ public class OptionReconcile extends EDialog
             startJob();
         }
         
+        @Override
 		public boolean doIt() throws JobException
 		{
             Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
@@ -245,6 +251,11 @@ public class OptionReconcile extends EDialog
             Setting.finishSettingReconcilation(settingsToReconcile);
 			return true;
 		}
+
+        @Override
+        public void terminateOK() {
+            job.startJob();
+        }
 	}
  
 	/** This method is called from within the constructor to

@@ -444,7 +444,7 @@ public class Setting {
 	 * Presents the user with a dialog to help reconcile the difference
 	 * between project settings stored in a library and the original values.
 	 */
-	public static void reconcileSettings(String libName, Map<Setting,Object> projectSettings)
+	public static Map<Setting,Object> reconcileSettings(Map<Setting,Object> projectSettings)
 	{
         HashSet<Setting> markedSettings = new HashSet<Setting>();
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
@@ -465,10 +465,7 @@ public class Setting {
             if (!setting.isValidOption()) continue;
             settingsToReconcile.put(setting, null);
         }
-
-		if (settingsToReconcile.size() == 0) return;
-
-        Job.getExtendedUserInterface().finishSettingReconcilation(libName, settingsToReconcile);
+        return settingsToReconcile;
 	}
 
     /**

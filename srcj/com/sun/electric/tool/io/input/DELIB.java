@@ -130,7 +130,7 @@ public class DELIB extends JELIB {
         lineReader = cellReader;
         curReadFile = cellFD.getAbsolutePath();
         try {
-            readFromFile(true);
+            readFromFile(true, false);
             delibCellFiles.add(curReadFile);
         } finally {
             version = savedVersion;

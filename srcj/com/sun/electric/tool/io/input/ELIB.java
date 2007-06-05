@@ -188,6 +188,18 @@ public class ELIB extends LibraryFiles
 
 	// ----------------------- public methods -------------------------------
 
+    @Override
+    protected boolean readProjectSettings() {
+		try
+		{
+			return readTheLibrary(true);
+		} catch (IOException e)
+		{
+			System.out.println("End of file reached while reading " + filePath);
+			return true;
+		}
+    }
+    
 	/**
 	 * Method to read a Library in binary (.elib) format.
 	 * @return true on error.
@@ -196,7 +208,7 @@ public class ELIB extends LibraryFiles
 	{
 		try
 		{
-			return readTheLibrary();
+			return readTheLibrary(false);
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while reading " + filePath);
@@ -208,7 +220,7 @@ public class ELIB extends LibraryFiles
 	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
-	private boolean readTheLibrary()
+	private boolean readTheLibrary(boolean onlyProjectSettings)
 		throws IOException
 	{
 		// initialize
@@ -294,7 +306,7 @@ public class ELIB extends LibraryFiles
 				{
 					// special conversion from old view names
 					view = findOldViewName(viewName);
-					if (view == null)
+					if (view == null && !onlyProjectSettings)
 					{
 						view = View.newInstance(viewName, viewShortName);
 						if (view == null) return true;
@@ -316,7 +328,8 @@ public class ELIB extends LibraryFiles
 		}
 
 		// erase the current database
-		lib.erase();
+        if (!onlyProjectSettings)
+            lib.erase();
 
 		// allocate pointers for the Technologies
 		techList = new Technology[techCount];
@@ -655,10 +668,12 @@ public class ELIB extends LibraryFiles
 			if (toolBCount >= 1) userBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-		lib.lowLevelSetUserBits(userBits);
-		lib.clearChanged();
-		lib.setFromDisk();
-		lib.setVersion(version);
+        if (!onlyProjectSettings) {
+            lib.lowLevelSetUserBits(userBits);
+            lib.clearChanged();
+            lib.setFromDisk();
+            lib.setVersion(version);
+        }
 
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
@@ -689,7 +704,8 @@ public class ELIB extends LibraryFiles
             setFontNames((String[])value);
             libVars[i] = null;
         }
-		realizeVariables(lib, libVars);
+        if (!onlyProjectSettings)
+		    realizeVariables(lib, libVars);
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
@@ -709,6 +725,8 @@ public class ELIB extends LibraryFiles
                 realizeMeaningPrefs(tech, vars);
 //				getTechList(i);
 		}
+        if (onlyProjectSettings)
+            return false;
 
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
