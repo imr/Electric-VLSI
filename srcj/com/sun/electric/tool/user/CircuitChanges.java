@@ -652,6 +652,13 @@ public class CircuitChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
+		if (depth < 0)
+		{
+			Object obj = JOptionPane.showInputDialog("Number of levels to extract", "1");
+			if (obj != null) depth = TextUtils.atoi((String)obj);
+			if (depth <= 0) return;
+		}
+
 		List<NodeInst> selected = MenuCommands.getSelectedNodes();
 		List<NodeInst> instances = new ArrayList<NodeInst>();
 		for(NodeInst ni : selected)

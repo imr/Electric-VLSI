@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (6/6/07, SMR) Added cell contents extraction commands to go all the way or
+     by an arbitrary amount (Bug #1317).
+
 IMP: (6/5/07, DN) Reconcilation occurs before reading libraries to avvoid resizing.
 
 IMP: (6/4/07, DN) Disk readers emit warning instead of error on too small arc/nodes.
