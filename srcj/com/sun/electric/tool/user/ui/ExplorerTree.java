@@ -59,6 +59,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -2008,12 +2009,10 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		{
 			Library lib = (Library)getCurrentlySelectedObject(0);
 			lib.setCurrent();
-			WindowFrame.wantToRedoTitleNames();
-            WindowFrame.wantToRedoLibraryTree();
-			EditWindow.repaintAll();
+            ChangeCurrentLib.repaintAllAfterCurLibAction();
 		}
 
-		private void renameLibraryAction()
+        private void renameLibraryAction()
 		{
 			Library lib = (Library)getCurrentlySelectedObject(0);
 			CircuitChanges.renameLibrary(lib);

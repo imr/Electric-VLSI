@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -172,7 +173,17 @@ public class ChangeCurrentLib extends EDialog
         pack();
     }//GEN-END:initComponents
 
-	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
+    /**
+     * Method to call all repaint functions after the current library is changed.
+     */
+    public static void repaintAllAfterCurLibAction()
+    {
+        WindowFrame.wantToRedoTitleNames();
+        WindowFrame.wantToRedoLibraryTree();
+        EditWindow.repaintAll();
+    }
+
+    private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
 		// switch the libraries
 		String libName = (String)changeList.getSelectedValue();
@@ -180,7 +191,7 @@ public class ChangeCurrentLib extends EDialog
 		if (lib != null && lib != Library.getCurrent())
 		{
 			lib.setCurrent();
-			EditWindow.repaintAll();
+            repaintAllAfterCurLibAction();
 		}
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed

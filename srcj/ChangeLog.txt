@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/5/07, GVG) Missing refresh in Explorer after changing current library (Bug #1323)
+FIX: ChangeCurrentLib.repaintAllAfterCurLibAction() added.
+
 BUG: (6/5/07, GVG) NPE when setting current library if no one is set (Bug #1322)
 FIX: Not getting library name in dialog box if no current library is set.
 
