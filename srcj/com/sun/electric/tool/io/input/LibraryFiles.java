@@ -1038,9 +1038,13 @@ public abstract class LibraryFiles extends Input
         if (proto instanceof PrimitiveNode) {
             PrimitiveNode pn = (PrimitiveNode)proto;
             PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
-            if (nodeSizeRule != null && (size.getLambdaX() < nodeSizeRule.getWidth() || size.getLambdaY() < nodeSizeRule.getHeight())) {
-                Input.errorLogger.logError(" (" + parent + ") node size was less than minimum by " +
-                        (nodeSizeRule.getWidth() - size.getLambdaX()) + "x" + (nodeSizeRule.getHeight() - size.getLambdaY()), ni, parent, null, 2);
+            if (nodeSizeRule != null) {
+                if (size.getLambdaX() < nodeSizeRule.getWidth())
+                    Input.errorLogger.logError(" (" + parent + ") node " + ni.getName() + " width is less than minimum by " +
+                            (nodeSizeRule.getWidth() - size.getLambdaX()), ni, parent, null, 2);
+                if (size.getLambdaY() < nodeSizeRule.getHeight())
+                    Input.errorLogger.logError(" (" + parent + ") node " + ni.getName() + " height is less than minimum by " +
+                            (nodeSizeRule.getHeight() - size.getLambdaY()), ni, parent, null, 2);
             }
         }
         if (ni == null) return;

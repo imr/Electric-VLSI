@@ -400,6 +400,11 @@ public class ImmutableArcInstTest {
         a4.check();
         assertFalse(a4.isTailNegated());
         assertFalse(a4.is(ImmutableArcInst.TAIL_NEGATED));
+        
+        ImmutableArcInst a5 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 0, pp, n0.anchor, -1, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        a5.check();
+        assertEquals(1800, a5.getAngle());
+        
     }
 
     /**
@@ -511,7 +516,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadExtend1() {
         System.out.println("newInstanceBadExtend1");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, -1, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -519,7 +524,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadExtend2() {
         System.out.println("newInstanceBadExtend2");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(3000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(-3000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -632,14 +637,19 @@ public class ImmutableArcInstTest {
         ImmutableArcInst a1 = a0.withGridExtendOverMin(largeExtendOverMin);
         assertEquals(largeExtendOverMin, a1.getGridExtendOverMin());
         assertTrue(a1.isEasyShape());
+        
+        long smallExtendOverMin = -1;
+        ImmutableArcInst a2 = a0.withGridExtendOverMin(smallExtendOverMin);
+        assertEquals(smallExtendOverMin, a2.getGridExtendOverMin());
+        assertFalse(a2.isEasyShape());
     }
 
-    /**
+   /**
      * Test of withGridExtendOverMin method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test(expected = IllegalArgumentException.class) public void testWithGridExtendOverMinBad1() {
         System.out.println("withGridExtendOverMinBad1");
-        a0.withGridExtendOverMin(-1);
+        a0.withGridExtendOverMin(DBMath.lambdaToGrid(3000000));
     }
     
     /**
@@ -647,10 +657,10 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testWithGridExtendOverMinBad2() {
         System.out.println("withGridExtendOverMinBad2");
-        a0.withGridExtendOverMin(DBMath.lambdaToGrid(3000000));
+        a0.withGridExtendOverMin(DBMath.lambdaToGrid(-3000000));
     }
     
-    /**
+     /**
      * Test of withAngle method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithAngle() {

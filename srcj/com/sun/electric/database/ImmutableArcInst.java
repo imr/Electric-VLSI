@@ -631,7 +631,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
-        if (gridExtendOverMin < 0 || gridExtendOverMin > MAX_EXTEND)
+        if (gridExtendOverMin <= -MAX_EXTEND || gridExtendOverMin >= MAX_EXTEND)
             throw new IllegalArgumentException("gridExtendOverMin");
         int intGridExtendOverMin = (int)gridExtendOverMin;
         angle %= 3600;
@@ -710,7 +710,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
 	public ImmutableArcInst withGridExtendOverMin(long gridExtendOverMin) {
         if (this.gridExtendOverMin == gridExtendOverMin) return this;
-        if (gridExtendOverMin < 0 || gridExtendOverMin > MAX_EXTEND) throw new IllegalArgumentException("gridWidth");
+        if (gridExtendOverMin <= -MAX_EXTEND || gridExtendOverMin >= MAX_EXTEND) throw new IllegalArgumentException("gridWidth");
         int flags = updateEasyShape(this.protoType, (int)gridExtendOverMin, this.tailLocation, this.headLocation, this.angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -1044,7 +1044,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headNodeId >= 0;
         assert headPortId != null;
         assert headLocation != null;
-        assert gridExtendOverMin >= 0 && gridExtendOverMin <= MAX_EXTEND;
+        assert -MAX_EXTEND < gridExtendOverMin && gridExtendOverMin < MAX_EXTEND;
         assert (flags & ~(DATABASE_FLAGS|EASY_MASK)) == 0;
         assert flags == updateEasyShape(protoType, gridExtendOverMin, tailLocation, headLocation, angle, getVars(), flags);
         if (isTailNegated())

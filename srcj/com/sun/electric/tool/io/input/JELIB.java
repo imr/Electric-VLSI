@@ -983,9 +983,15 @@ public class JELIB extends LibraryFiles
             if (np instanceof PrimitiveNode) {
                 PrimitiveNode pn = (PrimitiveNode)np;
                 PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
-                if (nodeSizeRule != null && (size.getLambdaX() < nodeSizeRule.getWidth() || size.getLambdaY() < nodeSizeRule.getHeight())) {
-                    Input.errorLogger.logError(" (" + cell + ") node size was less than minimum by " +
-                            (nodeSizeRule.getWidth() - size.getLambdaX()) + "x" + (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
+                if (nodeSizeRule != null) {
+                    if (size.getLambdaX() < nodeSizeRule.getWidth()) {
+                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " width is less than minimum by " +
+                                (nodeSizeRule.getWidth() - size.getLambdaX()), ni, cell, null, 2);
+                    }
+                    if (size.getLambdaY() < nodeSizeRule.getHeight()) {
+                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " height is less than minimum by " +
+                                (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
+                    }
                 }
             }
 
@@ -1210,7 +1216,7 @@ public class JELIB extends LibraryFiles
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), Math.max(gridExtendOverMin, 0), angle, flags);
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin, angle, flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();
@@ -1221,7 +1227,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
             if (gridExtendOverMin < 0) {
-				Input.errorLogger.logError(" (" + cell + ") arc width was less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
+				Input.errorLogger.logError(" (" + cell + ") arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
             }
 
 			// add variables in fields 13 and up

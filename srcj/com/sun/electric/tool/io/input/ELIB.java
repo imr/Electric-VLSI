@@ -1368,7 +1368,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             ArcInst ai = ArcInst.newInstance(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
-                    new EPoint(headX, headY), new EPoint(tailX, tailY), Math.max(gridExtendOverMin, 0),
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin,
                     ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;
  			if (ai == null)
@@ -1379,7 +1379,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             if (gridExtendOverMin < 0) {
-				String msg = "ERROR: "+cell + ": arc " + name + " width was less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin);
+				String msg = "ERROR: "+cell + ": arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin);
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, ai, cell, null, 2);
             }
