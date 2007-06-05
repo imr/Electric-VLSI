@@ -30,7 +30,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -56,10 +55,14 @@ public class ChangeCurrentLib extends EDialog
 		super(parent, modal);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
+        Library currentLib = Library.getCurrent();
 
-		currentLibrary.setText("Current Library: " + Library.getCurrent().getName());
+        if (currentLib != null)
+            currentLibrary.setText("Current Library: '" + Library.getCurrent().getName() + "'");
+        else
+            currentLibrary.setText("No Current Library Selected");
 
-		changeListModel = new DefaultListModel();
+        changeListModel = new DefaultListModel();
 		changeList = new JList(changeListModel);
 		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		jScrollPane1.setViewportView(changeList);
