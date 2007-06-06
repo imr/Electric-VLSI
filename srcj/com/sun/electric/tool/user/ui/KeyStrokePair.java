@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import java.awt.AWTKeyStroke;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
@@ -45,6 +46,12 @@ public class KeyStrokePair {
         KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
         KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
         KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
         KeyStroke.getKeyStroke('>'),
         KeyStroke.getKeyStroke('<')
     };

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/6/07, SMR) Cannot bind to "[" and other special keys.
+FIX: In the array KeyStrokePair.specialKeyStrokes, added more special cases.
+
 BUG: (6/6/07, SMR) Saving to windows desktop fails (Bug #1325).
 FIX: Made TextUtils.URLtoString() and use it in getFilePath(),
      getFileNameWithoutExtension(), and getExtension().
