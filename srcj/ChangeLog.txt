@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG: (6/6/07, SMR) Saving to windows desktop fails (Bug #1325).
+FIX: Made TextUtils.URLtoString() and use it in getFilePath(),
+     getFileNameWithoutExtension(), and getExtension().
+
 BUG/MAN: (6/5/07, GVG) Assertion in Verilog Import (Bug #1324).
 FIX: Current Verilog parser can't read all expressions. Warnings added. It should be documented.
 

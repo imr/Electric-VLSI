@@ -34,6 +34,8 @@ import com.sun.electric.technology.Technology;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
@@ -1197,7 +1199,25 @@ public class TextUtils
         }
     }
 
-	/**
+    /**
+     * Method to convert a URL to a string.
+     * @param url the URL
+     * @return a String that is the path to that URL.
+     */
+    private static String URLtoString(URL url)
+    {
+		String filePath = url.getFile();
+
+		// use proper URI to ensure valid path name
+		try
+		{
+			URI uri = new URI(filePath);
+			filePath = uri.getPath();
+		} catch (URISyntaxException e) {}
+		return filePath;
+    }
+
+    /**
 	 * Method to return the directory path part of a URL (excluding the file name).
 	 * For example, the URL "file:/users/strubin/gates.elib" has the directory part "/users/strubin/".
 	 * @param url the URL to the file.
@@ -1207,7 +1227,8 @@ public class TextUtils
 	public static String getFilePath(URL url)
 	{
 		if (url == null) return "";
-		String filePath = url.getFile();
+		String filePath = URLtoString(url);
+		
         // special case of .delib files, which are directories, but we want them to appear as files
         File file = new File(filePath);
         if (file.getName().toLowerCase().endsWith(".delib")) {
@@ -1232,7 +1253,7 @@ public class TextUtils
 	 * @return the pure file name.
 	 */
 	public static String getFileNameWithoutExtension(URL url) {
-        return getFileNameWithoutExtension(url.getFile());
+        return getFileNameWithoutExtension(URLtoString(url));
     }
     
 	/**
@@ -1296,7 +1317,7 @@ public class TextUtils
 	public static String getExtension(URL url)
 	{
 		if (url == null) return "";
-		String fileName = url.getFile();
+		String fileName = URLtoString(url);
 		int dotPos = fileName.lastIndexOf('.');
 		if (dotPos < 0) return "";
 		return fileName.substring(dotPos+1);
