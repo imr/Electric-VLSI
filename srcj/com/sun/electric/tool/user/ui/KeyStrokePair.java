@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import java.awt.AWTKeyStroke;
 import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 
@@ -42,18 +43,40 @@ public class KeyStrokePair {
 
     /** cache of defined KeyStrokePairs */  private static HashMap<KeyStrokePair,KeyStrokePair> cache = new HashMap<KeyStrokePair,KeyStrokePair>();
     /** separator for toString() */         private static final String sep = ", ";
-    /** list of special keyStrokes */       private static KeyStroke[] specialKeyStrokes = {
-        KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
-        KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
-        KeyStroke.getKeyStroke('>'),
-        KeyStroke.getKeyStroke('<')
+    /** list of special keyStrokes */       private static int[] specialKeyStrokes = {
+        KeyEvent.VK_AMPERSAND,
+
+        KeyEvent.VK_INSERT,
+        KeyEvent.VK_HOME,
+        KeyEvent.VK_PAGE_UP,
+        KeyEvent.VK_DELETE,
+        KeyEvent.VK_END,
+        KeyEvent.VK_PAGE_DOWN,
+
+        KeyEvent.VK_MINUS,
+        KeyEvent.VK_EQUALS,
+        KeyEvent.VK_BACK_SPACE,
+
+        KeyEvent.VK_OPEN_BRACKET,
+        KeyEvent.VK_CLOSE_BRACKET,
+        KeyEvent.VK_BACK_SLASH,
+
+        KeyEvent.VK_SEMICOLON,
+        KeyEvent.VK_QUOTE,
+        KeyEvent.VK_ENTER,
+
+        KeyEvent.VK_PERIOD,
+        KeyEvent.VK_COMMA,
+        KeyEvent.VK_SLASH,
+        '>',
+        '<',
+
+        KeyEvent.VK_BACK_QUOTE,
+
+        KeyEvent.VK_LEFT,
+        KeyEvent.VK_RIGHT,
+        KeyEvent.VK_UP,
+        KeyEvent.VK_DOWN
     };
 
     private KeyStrokePair() {}
@@ -157,13 +180,18 @@ public class KeyStrokePair {
         KeyStroke key = KeyStroke.getKeyStroke(str);
         if (key == null) // Doesn't seem to handle properly special keyEvent
         {
-            for (KeyStroke k: specialKeyStrokes)
+            for (int i=0; i<specialKeyStrokes.length; i++)
             {
-                if (str.equals(getStringFromKeyStroke(k)))
-                {
-                    key = k;
-                    break; // found
-                }
+            	KeyStroke k = KeyStroke.getKeyStroke(specialKeyStrokes[i], 0);
+                if (str.equals(keyStrokeToString(k))) { key = k;   break; }
+            	k = KeyStroke.getKeyStroke(specialKeyStrokes[i], InputEvent.SHIFT_DOWN_MASK);
+                if (str.equals(keyStrokeToString(k))) { key = k;   break; }
+            	k = KeyStroke.getKeyStroke(specialKeyStrokes[i], InputEvent.CTRL_DOWN_MASK);
+                if (str.equals(keyStrokeToString(k))) { key = k;   break; }
+            	k = KeyStroke.getKeyStroke(specialKeyStrokes[i], InputEvent.META_DOWN_MASK);
+                if (str.equals(keyStrokeToString(k))) { key = k;   break; }
+            	k = KeyStroke.getKeyStroke(specialKeyStrokes[i], InputEvent.ALT_DOWN_MASK);
+                if (str.equals(keyStrokeToString(k))) { key = k;   break; }
             }
         }
         return key;
