@@ -185,7 +185,7 @@ public class WindowMenu {
 
 		    SEPARATOR,
 
-        // mnemonic keys available: A CDEFGHIJKLMNOPQ STUV XYZ
+        // mnemonic keys available: A  DEFGHIJKLMNOPQ STUV XYZ
             new EMenu("_Color Schemes",
                 new EMenuItem("_Restore Default Colors") { public void run() {
                     defaultBackgroundCommand(); }},
@@ -193,7 +193,7 @@ public class WindowMenu {
                     blackBackgroundCommand(); }},
                 new EMenuItem("_White Background Colors") { public void run() {
                     whiteBackgroundCommand(); }},
-                new EMenuItem("Cadence Colors") { public void run() {
+                new EMenuItem("_Cadence Colors and Keystrokes") { public void run() {
                     importCadencePreferences(); }}
                     ),
 
