@@ -1640,16 +1640,23 @@ public class TextUtils
      * Method to replace all special characters in the instance name coming from external files such as"/"..
      * @param n
      * @param onlyBrackets
+     * @param correctBrackets
      * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
      */
-    public static String correctName(String n, boolean onlyBrackets)
+    public static String correctName(String n, boolean onlyBrackets, boolean correctBrackets)
     {
+        int index;
+
         // removing brackets only if ] is not the last item in the string
-        int index = n.indexOf("]");
-        if (index != -1 && index < n.length()-1)
+        // It doesn't correct brackets if {a[1],b[2],c[3]} in VerilogReading
+        if (correctBrackets)
         {
-            n = n.replace('[', '-');
-            n = n.replace("]", "-");
+            index = n.indexOf("]");
+            if (index != -1 && index < n.length()-1)
+            {
+                n = n.replace('[', '-');
+                n = n.replace("]", "-");
+            }
         }
         if (onlyBrackets) return n;
 

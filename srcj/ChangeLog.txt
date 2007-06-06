@@ -4,13 +4,19 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+BUG/MAN: (6/5/07, GVG) Assertion in Verilog Import (Bug #1324).
+FIX: Current Verilog parser can't read all expressions. Warnings added. It should be documented.
+
+IMP: (6/5/07, GVG) Extra code to deal with busses while reading Verilog instances such as
+.root({a[5], a[4], a[3], a[2], c})
+
 BUG: (6/5/07, GVG) Missing refresh in Explorer after changing current library (Bug #1323)
 FIX: ChangeCurrentLib.repaintAllAfterCurLibAction() added.
 
 BUG: (6/5/07, GVG) NPE when setting current library if no one is set (Bug #1322)
 FIX: Not getting library name in dialog box if no current library is set.
 
-IMP: (6/6/07, SMR) Added cell contents extraction commands to go all the way or
+IMP: (6/5/07, SMR) Added cell contents extraction commands to go all the way or
      by an arbitrary amount (Bug #1317).
 
 IMP: (6/5/07, DN) Reconcilation occurs before reading libraries to avvoid resizing.

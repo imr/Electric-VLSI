@@ -65,7 +65,7 @@ public class VerilogReader extends Input
 
         CellInstance(String n)
         {
-            this.name = TextUtils.correctName(n, false);
+            this.name = TextUtils.correctName(n, false, true);
         }
         static class PortInfo
         {
@@ -76,7 +76,7 @@ public class VerilogReader extends Input
             PortInfo(String local, boolean isBus, PortProto ex)
             {
                 // Doesn't correct name if it is a bus
-                this.local = (isBus) ? local : TextUtils.correctName(local, false);
+                this.local = (isBus) ? local : TextUtils.correctName(local, false, true);
                 this.isBus = isBus;
                 this.ex = ex;
             }
@@ -212,7 +212,12 @@ public class VerilogReader extends Input
             {
                 String line = signature.toString();
                 int index = line.indexOf("("); // searching for first (
-                assert(index > 0);
+                if (index <= 0)
+                {
+                    System.out.println("It can't parse line '" + line + "'. Data ignored.");
+                    return null;
+                }
+//                assert(index > 0);
                 String instanceName = line.substring(0, index);
                 line = line.substring(index+1, line.length());
                 StringTokenizer parse = new StringTokenizer(line, ")", false);  //typicalSkipStrings can't be used
@@ -228,13 +233,13 @@ public class VerilogReader extends Input
                     int index2 = value.indexOf("("); // look for first (
                     assert(index2 != -1);                  
                     String n = value.substring(index+1, index2);
-                    n = TextUtils.correctName(n, false);
+                    n = TextUtils.correctName(n, false, true);
 //                    int index3 = n.indexOf("\\"); // those \ are a problem!
 //                    if (index3 != -1)
 //                        n = n.substring(index3+1);
                     exports.add(n);
                     n = value.substring(index2+1);
-                    n = TextUtils.correctName(n, false);
+                    n = TextUtils.correctName(n, false, false);
                     if (n.contains(" "))
                         assert(false); // get rid of those empty sapces?
 //                    pins.add(value.substring(index2+1));
@@ -242,7 +247,7 @@ public class VerilogReader extends Input
                 }
 
                 // remove extra white spaces
-                instanceName = TextUtils.correctName(instanceName, false);
+                instanceName = TextUtils.correctName(instanceName, false, true);
                 instanceName = instanceName.replaceAll(" ", "");
                 CellInstance localCell = new CellInstance(instanceName);
                 VerilogData.VerilogInstance verilogInst = null;
@@ -361,7 +366,7 @@ public class VerilogReader extends Input
                         else
                             System.out.println(net + " is not a bus wire");
                     }
-                    pinName = TextUtils.correctName(pinName, false);
+                    pinName = TextUtils.correctName(pinName, false, true);
 
                     if (verilogData != null)
                     {
@@ -382,7 +387,7 @@ public class VerilogReader extends Input
                 {
                     StringTokenizer p = new StringTokenizer(net, "\t ", false);
                     String name = p.nextToken();
-                    name = TextUtils.correctName(name, false);
+                    name = TextUtils.correctName(name, false, true);
                     readSupply(cell, verilogData, module, power, name); // supply1 -> vdd, supply0 -> gnd or vss
                 }
             }
@@ -450,12 +455,12 @@ public class VerilogReader extends Input
                     assert(export != null);
                     // except for clk!!
                     if (export.type != PortCharacteristic.UNKNOWN && export.type != portType)
-                        System.out.println("Inconsistency in asigning port type. Found " + portType +
+                        System.out.println("Inconsistency in asigning port type in " + name + ". Found " + portType +
                         " and was " + export.type);
 //                    else
                         export.type = portType;
                     if (l.size() == 2)
-                        export.busPins = l.get(0);
+                        export.setBusInformation(l.get(0));
                 }
                 else
                 {
@@ -895,28 +900,30 @@ public class VerilogReader extends Input
         String name = port.name;
         PortCharacteristic portType = port.getPortType();
 
-        List<String> pinNames = port.getPinNames();
-//            int pos = port.busPins.indexOf(":");
-//            int index1 = Integer.parseInt(port.busPins.substring(1, pos)); // first number
-//            int index2 = Integer.parseInt(port.busPins.substring(pos+1, port.busPins.length()-1)); // second number
-//            if (index1 > index2)
-//            {
-//                int tmp = index1;
-//                index1 = index2;
-//                index2 = tmp;
-//            }
-//            for (int i = index1; i <= index2; i++)
+        List<String> pinNames = port.getPinNames(); // This function controls if busses are split into multi pins
+        // or as just one element
+
         for (String pinName : pinNames)
         {
             PrimitiveNode primitive = Schematics.tech.wirePinNode;
-            NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                    primitiveWidth, primitiveHeight,
-//                        primitive.getDefWidth(), primitive.getDefHeight(),
-                    cell, Orientation.IDENT, pinName, 0);
-            if (addExport)
+            NodeInst ni = cell.findNode(pinName);
+
+            if (ni == null)
             {
-                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName);
-                ex.setCharacteristic(portType);
+                ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                        primitiveWidth, primitiveHeight,
+    //                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        cell, Orientation.IDENT, pinName, 0);
+                if (addExport)
+                {
+                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName);
+                    ex.setCharacteristic(portType);
+                }
+            }
+            else
+            {
+                assert(false);
+                 System.out.println("Wire/Input/Output " + pinName + " exists");
             }
         }
 //            PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
@@ -951,32 +958,7 @@ public class VerilogReader extends Input
         // wires first to determine which pins are busses or simple pins
         for (VerilogData.VerilogWire wire : module.wires)
         {
-            String pinName = wire.name;
-            if (wire.isBusWire())
-            {
-                addPins(wire, cell, false);
-            }
-            else
-            {
-                NodeInst ni = cell.findNode(pinName);
-                NodeInst nia = cell.findNode(wire.getWireName());
-                assert(ni == nia);
-
-                if (ni == null)
-                {
-                    PrimitiveNode primitive = (!wire.isBusWire()) ? Schematics.tech.wirePinNode :
-                                Schematics.tech.busPinNode;
-                    ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                                        primitiveWidth, primitiveHeight,
-                //                        primitive.getDefWidth(), primitive.getDefHeight(),
-                                        cell, Orientation.IDENT, pinName, 0);
-                }
-                else
-                    System.out.println("Wire " + pinName + " exists");
-
-                if (ni == null)
-                assert(ni != null);
-            }
+            addPins(wire, cell, false);
         }
 
         // inputs/outputs/inouts/supplies
@@ -995,41 +977,6 @@ public class VerilogReader extends Input
             {
                 // new code
                 addPins(port, cell, true);
-//                if (port.busPins!=null)
-//                {
-//                    int pos = port.busPins.indexOf(":");
-//                    int index1 = Integer.parseInt(port.busPins.substring(1, pos)); // first number
-//                    int index2 = Integer.parseInt(port.busPins.substring(pos+1, port.busPins.length()-1)); // second number
-//                    if (index1 > index2)
-//                    {
-//                        int tmp = index1;
-//                        index1 = index2;
-//                        index2 = tmp;
-//                    }
-//                    for (int i = index1; i <= index2; i++)
-//                    {
-//                        PrimitiveNode primitive = Schematics.tech.wirePinNode;
-//                        String thisName = name+"["+i+"]";
-//                        NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-//                                primitiveWidth, primitiveHeight,
-//        //                        primitive.getDefWidth(), primitive.getDefHeight(),
-//                                cell, Orientation.IDENT, thisName, 0);
-//                        Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), thisName);
-//                        ex.setCharacteristic(portType);
-//
-//                    }
-//                }
-//                else
-//                {
-//                    PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
-//                            Schematics.tech.busPinNode;
-//                    NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-//                            primitiveWidth, primitiveHeight,
-//    //                        primitive.getDefWidth(), primitive.getDefHeight(),
-//                            cell, Orientation.IDENT, name, 0);
-//                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
-//                    ex.setCharacteristic(portType);
-//                }
             }
             else if (portType == PortCharacteristic.PWR ||
                     portType == PortCharacteristic.GND)
@@ -1084,25 +1031,16 @@ public class VerilogReader extends Input
         NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
                 Orientation.IDENT, inst.name, 0);
 
-        List<String> localPorts = new ArrayList<String>();
         for (VerilogData.VerilogPortInst port : inst.ports)
         {
-            String portLocal = port.name;
-            localPorts.clear();
+            List<String> localPorts = port.getPortNames();
 
-             // It is unknown how many pins are coming in the stream
-            if (portLocal.contains("{"))
-            {
-                StringTokenizer parse = new StringTokenizer(portLocal, "{,}", false); // extracting pins
-                while (parse.hasMoreTokens())
-                {
-                    String name = parse.nextToken();
-                    name = name.replaceAll(" ", "");
-                    localPorts.add(name);
-                }
-            }
-            else
-                localPorts.add(portLocal);
+            // Start and end are only valid for bus wires/inputs. The pin numbers should be in the order
+            // they were defined in the port (ascendent or descendent)
+            int startPort = port.port.start;
+            int endPort = port.port.end;
+            int count = startPort;
+            boolean asc = (startPort < endPort);
 
             for (String s : localPorts)
             {
@@ -1122,20 +1060,29 @@ public class VerilogReader extends Input
                     // Still missing vss code?
                      if (Job.getDebug())
                             System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
-                        PrimitiveNode primitive = (port.port.busPins!=null) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
+                        PrimitiveNode primitive = (port.port.isBusConnection()) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
                         pin = NodeInst.newInstance(primitive, getNextLocation(parent),
                                 primitiveWidth, primitiveHeight,
                                 parent, Orientation.IDENT, /*null*/s, 0);  // not sure why it has to be null?
                 }
 
                 ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-                PortInst ex = cellInst.findPortInst(port.port.name);
+                String exportName = port.port.name;
+                if (port.port.isBusConnection())
+                {
+                    // add bit so the pin can be found.
+                    exportName += "[" + count + "]";
+                }
+                PortInst ex = cellInst.findPortInst(exportName);
+                assert(ex != null); // it can't work without export. Check this case if fails
                 ArcInst ai = ArcInst.makeInstanceBase(node, 0.0,
 //                ArcInst ai = ArcInst.makeInstanceFull(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
                         pin.getOnlyPortInst(), ex, null, null, s);
                 if (ai == null)
                     assert(ai != null);
                 ai.setFixedAngle(false);
+                if (asc) count++;
+                else count--;
             }
         }
         return schematics;

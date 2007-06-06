@@ -68,14 +68,43 @@ public class VerilogData
     abstract static class VerilogConnection
     {
         protected String name;
+        int start;
+        int end;
 
         VerilogConnection(String name)
         {
             this.name = name;
         }
 
+        /**
+         * Method to control if busses are converted into single pins or treated as bus in Electric.
+         * For now, busses are converted into single pins. More memory is used though.
+         * @return
+         */
         abstract List<String> getPinNames();
         PortCharacteristic getPortType() {return null; } // not valid
+
+        /**
+         * Function to know if a wire represents a wire
+         * @return true if wire is a bus
+         */
+        boolean isBusConnection()
+        {
+            return (start != end);
+        }
+
+        String getConnectionName()
+        {
+            if (start != -1) // it could be a bus or simple wire
+            {
+                if (isBusConnection())
+                    return name + "[" + start + ":" + end + "]";
+                else
+                    return name + "[" + start + "]";
+            }
+            else // simple wire
+                return name;
+        }
     }
 
     /**
@@ -83,38 +112,37 @@ public class VerilogData
      */
     public class VerilogPort extends VerilogConnection
     {
-        String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
+//        private String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
         PortCharacteristic type;
 
         VerilogPort(String name, PortCharacteristic type)
         {
             super(name);
             this.type = type;
+            start = end = -1;
         }
         PortCharacteristic getPortType() {return type; } // not valid
 
-        boolean isBusWire() {return busPins != null;}
+        void setBusInformation(String s)
+        {
+//            busPins = s;
+            int pos = s.indexOf(":");
+            start = Integer.parseInt(s.substring(1, pos)); // first number
+            end = Integer.parseInt(s.substring(pos+1, s.length()-1)); // second number
+        }
 
         public List<String> getPinNames()
         {
             List<String> list = new ArrayList<String>();
 
-            if (isBusWire())
+            if (isBusConnection())
             {
-                int pos = busPins.indexOf(":");
-                int index1 = Integer.parseInt(busPins.substring(1, pos)); // first number
-                int index2 = Integer.parseInt(busPins.substring(pos+1, busPins.length()-1)); // second number
-                if (index1 > index2)
-                {
-                    int tmp = index1;
-                    index1 = index2;
-                    index2 = tmp;
-                }
-                for (int i = index1; i <= index2; i++)
-                {
-                    String thisName = name+"["+i+"]";
-                    list.add(thisName);
-                }
+//                int pos = busPins.indexOf(":");
+//                int index1 = Integer.parseInt(busPins.substring(1, pos)); // first number
+//                int index2 = Integer.parseInt(busPins.substring(pos+1, busPins.length()-1)); // second number
+//                assert(index1 == start);
+//                assert(index2 == end);
+                extractPinNames(start, end, name, list);
             } else
             {
                 list.add(name);
@@ -131,7 +159,7 @@ public class VerilogData
             else if (type == PortCharacteristic.OUT) typeName = "output";
             else if (type == PortCharacteristic.GND) typeName = "supply0";
             else if (type == PortCharacteristic.PWR) typeName = "supply1";
-            System.out.println("\t" + typeName + " " + ((busPins!=null)?busPins:"") + " " + name + ";");
+            System.out.println("\t" + typeName + " " + ((isBusConnection())?"["+start+":"+end+"]":"") + " " + name + ";");
         }
     }
 
@@ -140,9 +168,6 @@ public class VerilogData
      */
     public static class VerilogWire extends VerilogConnection
     {
-        int start;
-        int end;
-
         public VerilogWire(String name, String busPins)
         {
             super(name);
@@ -167,34 +192,13 @@ public class VerilogData
             }
         }
 
-        /**
-         * Function to know if a wire represents a wire
-         * @return true if wire is a bus
-         */
-        boolean isBusWire()
-        {
-            return (start != end);
-        }
-
         List<String> getPinNames()
         {
             List<String> list = new ArrayList<String>();
 
-            if (isBusWire())
+            if (isBusConnection())
             {
-                int index1 = start; // first number
-                int index2 = end; // second number
-                if (index1 > index2)
-                {
-                    int tmp = index1;
-                    index1 = index2;
-                    index2 = tmp;
-                }
-                for (int i = index1; i <= index2; i++)
-                {
-                    String thisName = name+"["+i+"]";
-                    list.add(thisName);
-                }
+                extractPinNames(start, end, name, list);
             } else
             {
                 list.add(name);
@@ -203,22 +207,29 @@ public class VerilogData
             return list;
         }
 
-        String getWireName()
-        {
-            if (start != -1) // it could be a bus or simple wire
-            {
-                if (isBusWire())
-                    return name + "[" + start + ":" + end + "]";
-                else
-                    return name + "[" + start + "]";
-            }
-            else // simple wire
-                return name;
-        }
-
         void write()
         {
             System.out.println("\twire " + ((start != end)?("["+start+":"+end+"["):"") + " " + name + ";");
+        }
+    }
+
+    private static void extractPinNames(int start, int end, String root, List<String> l)
+    {
+        if (start > end)
+        {
+            for (int i = start; i >= end; i--)
+            {
+                String thisName = root+"["+i+"]";
+                l.add(thisName);
+            }
+        }
+        else
+        {
+            for (int i = start; i <= end; i++)
+            {
+                String thisName = root+"["+i+"]";
+                l.add(thisName);
+            }
         }
     }
 
@@ -231,6 +242,59 @@ public class VerilogData
         {
             this.name = name;
             this.port = port;
+        }
+
+        List<String> getPortNames()
+        {
+            List<String> list = new ArrayList<String>();
+             // It is unknown how many pins are coming in the stream
+            if (name.contains("{"))
+            {
+                StringTokenizer parse = new StringTokenizer(name, "{,}", false); // extracting pins
+                while (parse.hasMoreTokens())
+                {
+                    String name = parse.nextToken();
+                    name = name.replaceAll(" ", "");
+                    list.add(name);
+                    assert(!name.contains(":")); // this case not handled yet!
+                }
+            }
+            else
+                list.add(name);
+            // Now to really extract every individual pin
+            List<String> l = new ArrayList<String>(list.size());
+            for (String s : list)
+            {
+                int pos = s.indexOf(":");
+                if (pos != -1)
+                {
+                    int index1 = s.indexOf("[");
+                    int index2 = s.indexOf("]");
+                    String root = s.substring(0, index1);
+                    int start = Integer.parseInt(s.substring(index1+1, pos)); // first number
+                    int end = Integer.parseInt(s.substring(pos+1, index2)); // second number
+                    extractPinNames(start, end, root, l);
+//                    if (start > end)
+//                    {
+//                        for (int i = start; i >= end; i--)
+//                        {
+//                            String thisName = root+"["+i+"]";
+//                            l.add(thisName);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        for (int i = start; i <= end; i++)
+//                        {
+//                            String thisName = root+"["+i+"]";
+//                            l.add(thisName);
+//                        }
+//                    }
+                }
+                else
+                    l.add(s);
+            }
+            return l;
         }
     }
 
