@@ -6,6 +6,7 @@
 <!-- COMMAND File/Import/LEF (Library Exchange Format)... -->
 <!-- COMMAND File/Import/DEF (Design Exchange Format)... -->
 <!-- COMMAND File/Import/DEF (Design Exchange Format) to current cell... -->
+<!-- COMMAND File/Import/Verilog... -->
 <!-- COMMAND File/Import/ELIB... -->
 <!-- COMMAND File/Import/Readable Dump... -->
 
@@ -80,6 +81,10 @@ The circuitry in SUE files is added to the current library instead of being plac
 (because many SUE files may have to be read to build up a single Electric library).
 Use the SUE Preferences (in menu File / Preferences..., "I/O" section, "SUE" tab) to affect how SUE is read
 (see <A HREF="chap07-03-08.html#chap07-03-08">Section 7-3-8</A>).</LI>
+
+<LI><B>Verilog</B> is a hardware description language used for simulation and fabrication.
+Electric reads the Verilog file and constructs a schematic representation.
+Because there is no placement in Verilog files, the schematic is topologically correct, but visually messy.</LI>
 
 <LI><B>ELIB</B> is an older Electric library format that is in an undocumented binary format.
 </LI>
