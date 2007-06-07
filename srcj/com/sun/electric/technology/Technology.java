@@ -1228,9 +1228,15 @@ public class Technology implements Comparable<Technology>
     }
     
     private static void setupTechnology(URL urlXml) {
+    	if (urlXml == null) return;
         Pref.delayPrefFlushing();
         try {
             Xml.Technology t = Xml.parseTechnology(urlXml);
+            if (t == null)
+            {
+                if (Job.getDebug())
+                    System.out.println("Can't find extra technology: " + urlXml.getFile());
+            }
             Class<?> techClass = Technology.class;
             if (t.className != null)
                 techClass = Class.forName(t.className);
