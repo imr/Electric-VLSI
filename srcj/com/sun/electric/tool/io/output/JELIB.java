@@ -365,8 +365,12 @@ public class JELIB extends Output {
                 EPoint size = getSizeCorrector(((PrimitiveNode)np).getTechnology()).getSizeToDisk(n);
                 double lambdaWidth = size.getLambdaX();
                 double lambdaHeight = size.getLambdaY();
-                printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
-                printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));
+                printWriter.print("|");
+				if (lambdaWidth != 0)
+					printWriter.print(TextUtils.formatDouble(lambdaWidth, 0));
+                printWriter.print("|");
+				if (lambdaHeight != 0)
+					printWriter.print(TextUtils.formatDouble(lambdaHeight, 0));
 //                double lambdaWidth = n.size.getLambdaX();
 //                double lambdaHeight = n.size.getLambdaY();
 //                if (NEW_REVISION && !oldRevision) {

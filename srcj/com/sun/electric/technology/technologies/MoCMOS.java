@@ -1368,179 +1368,189 @@ public class MoCMOS extends Technology
 
 		//**************************************** NODES ****************************************
 
-		/** metal-1-pin */
-		metalPinNodes[0] = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[0].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[0], new ArcProto[] {metalArcs[0]}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[0].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[0].setArcsWipe();
-		metalPinNodes[0].setArcsShrink();
-
-		/** metal-2-pin */
-		metalPinNodes[1] = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[1].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[1], new ArcProto[] {metalArcs[1]}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[1].setArcsWipe();
-		metalPinNodes[1].setArcsShrink();
-
-		/** metal-3-pin */
-		metalPinNodes[2] = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal3_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[2].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[2], new ArcProto[] {metalArcs[2]}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[2].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[2].setArcsWipe();
-		metalPinNodes[2].setArcsShrink();
-
-		/** metal-4-pin */
-		metalPinNodes[3] = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal4_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[3].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[3], new ArcProto[] {metalArcs[3]}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[3].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[3].setArcsWipe();
-		metalPinNodes[3].setArcsShrink();
-
-		/** metal-5-pin */
-		metalPinNodes[4] = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal5_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[4].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[4], new ArcProto[] {metalArcs[4]}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[4].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[4].setArcsWipe();
-		metalPinNodes[4].setArcsShrink();
-//		metalPinNodes[4].setNotUsed(true);
-
-		/** metal-6-pin */
-		metalPinNodes[5] = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoMetal6_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		metalPinNodes[5].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, metalPinNodes[5], new ArcProto[] {metalArcs[5]}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		metalPinNodes[5].setFunction(PrimitiveNode.Function.PIN);
-		metalPinNodes[5].setArcsWipe();
-		metalPinNodes[5].setArcsShrink();
-//		metalPinNodes[5].setNotUsed(true);
-
-		/** polysilicon-1-pin */
-		polyPinNodes[0] = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoPoly1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		polyPinNodes[0].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, polyPinNodes[0], new ArcProto[] {polyArcs[0]}, "polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
-			});
-		polyPinNodes[0].setFunction(PrimitiveNode.Function.PIN);
-		polyPinNodes[0].setArcsWipe();
-		polyPinNodes[0].setArcsShrink();
-
-		/** polysilicon-2-pin */
-		polyPinNodes[1] = PrimitiveNode.newInstance("Polysilicon-2-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoPoly2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		polyPinNodes[1].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, polyPinNodes[1], new ArcProto[] {polyArcs[1]}, "polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		polyPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
-		polyPinNodes[1].setArcsWipe();
-		polyPinNodes[1].setArcsShrink();
-//		polyPinNodes[1].setNotUsed(true);
-
-		/** P-active-pin */
-		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(pseudoWellLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoSelectLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
-			});
-		activePinNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, activePinNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE]}, "p-active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
-			});
-		activePinNodes[P_TYPE].setFunction(PrimitiveNode.Function.PIN);
-		activePinNodes[P_TYPE].setArcsWipe();
-		activePinNodes[P_TYPE].setArcsShrink();
-
-		/** N-active-pin */
-		activePinNodes[N_TYPE] = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(pseudoWellLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoSelectLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
-			});
-		activePinNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, activePinNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
-			});
-		activePinNodes[N_TYPE].setFunction(PrimitiveNode.Function.PIN);
-		activePinNodes[N_TYPE].setArcsWipe();
-		activePinNodes[N_TYPE].setArcsShrink();
-
-		/** General active-pin */
-		PrimitiveNode activeGenPinNode = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		activeGenPinNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, activeGenPinNode, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-			});
-		activeGenPinNode.setFunction(PrimitiveNode.Function.PIN);
-		activeGenPinNode.setArcsWipe();
-		activeGenPinNode.setArcsShrink();
-//        activeGenPinNode.setNotUsed(true);
+        for (int i = 0; i < metalArcs.length; i++) {
+            ArcProto ap = metalArcs[i];
+            metalPinNodes[i] = ap.makeWipablePin("Metal-"+(i+1)+"-Pin", "metal-"+(i+1), 0, 3.0);
+        }
+        polyPinNodes[0] = polyArcs[0].makeWipablePin("Polysilicon-1-Pin", "polysilicon-1", 0, 2.0);
+        polyPinNodes[1] = polyArcs[1].makeWipablePin("Polysilicon-2-Pin", "polysilicon-2", 0, 3.0);
+        activePinNodes[P_TYPE] = activeArcs[P_TYPE].makeWipablePin("P-Active-Pin", "p-active", 6, 15.0);
+        activePinNodes[N_TYPE] = activeArcs[N_TYPE].makeWipablePin("N-Active-Pin", "n-active", 6, 15.0);
+		PrimitiveNode activeGenPinNode = active_arc.makeWipablePin("Active-Pin", "active", 0, 3.0, activeArcs[P_TYPE], activeArcs[N_TYPE]);
+        
+//		/** metal-1-pin */
+//		metalPinNodes[0] = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[0].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[0], new ArcProto[] {metalArcs[0]}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[0].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[0].setArcsWipe();
+//		metalPinNodes[0].setArcsShrink();
+//
+//		/** metal-2-pin */
+//		metalPinNodes[1] = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[1].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[1], new ArcProto[] {metalArcs[1]}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[1].setArcsWipe();
+//		metalPinNodes[1].setArcsShrink();
+//
+//		/** metal-3-pin */
+//		metalPinNodes[2] = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal3_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[2].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[2], new ArcProto[] {metalArcs[2]}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[2].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[2].setArcsWipe();
+//		metalPinNodes[2].setArcsShrink();
+//
+//		/** metal-4-pin */
+//		metalPinNodes[3] = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal4_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[3].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[3], new ArcProto[] {metalArcs[3]}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[3].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[3].setArcsWipe();
+//		metalPinNodes[3].setArcsShrink();
+//
+//		/** metal-5-pin */
+//		metalPinNodes[4] = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal5_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[4].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[4], new ArcProto[] {metalArcs[4]}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[4].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[4].setArcsWipe();
+//		metalPinNodes[4].setArcsShrink();
+////		metalPinNodes[4].setNotUsed(true);
+//
+//		/** metal-6-pin */
+//		metalPinNodes[5] = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoMetal6_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		metalPinNodes[5].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, metalPinNodes[5], new ArcProto[] {metalArcs[5]}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		metalPinNodes[5].setFunction(PrimitiveNode.Function.PIN);
+//		metalPinNodes[5].setArcsWipe();
+//		metalPinNodes[5].setArcsShrink();
+////		metalPinNodes[5].setNotUsed(true);
+//
+//		/** polysilicon-1-pin */
+//		polyPinNodes[0] = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoPoly1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		polyPinNodes[0].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, polyPinNodes[0], new ArcProto[] {polyArcs[0]}, "polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+//			});
+//		polyPinNodes[0].setFunction(PrimitiveNode.Function.PIN);
+//		polyPinNodes[0].setArcsWipe();
+//		polyPinNodes[0].setArcsShrink();
+//
+//		/** polysilicon-2-pin */
+//		polyPinNodes[1] = PrimitiveNode.newInstance("Polysilicon-2-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoPoly2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		polyPinNodes[1].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, polyPinNodes[1], new ArcProto[] {polyArcs[1]}, "polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		polyPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
+//		polyPinNodes[1].setArcsWipe();
+//		polyPinNodes[1].setArcsShrink();
+////		polyPinNodes[1].setNotUsed(true);
+//
+//		/** P-active-pin */
+//		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+//				new Technology.NodeLayer(pseudoWellLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+//				new Technology.NodeLayer(pseudoSelectLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+//			});
+//		activePinNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, activePinNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE]}, "p-active", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
+//			});
+//		activePinNodes[P_TYPE].setFunction(PrimitiveNode.Function.PIN);
+//		activePinNodes[P_TYPE].setArcsWipe();
+//		activePinNodes[P_TYPE].setArcsShrink();
+//
+//		/** N-active-pin */
+//		activePinNodes[N_TYPE] = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+//				new Technology.NodeLayer(pseudoWellLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+//				new Technology.NodeLayer(pseudoSelectLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+//			});
+//		activePinNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, activePinNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-active", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
+//			});
+//		activePinNodes[N_TYPE].setFunction(PrimitiveNode.Function.PIN);
+//		activePinNodes[N_TYPE].setArcsWipe();
+//		activePinNodes[N_TYPE].setArcsShrink();
+//
+//		/** General active-pin */
+//		PrimitiveNode activeGenPinNode = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, null,
+//			new Technology.NodeLayer []
+//			{
+//				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+//				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+//			});
+//		activeGenPinNode.addPrimitivePorts(new PrimitivePort []
+//			{
+//				PrimitivePort.newInstance(this, activeGenPinNode, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+//		activeGenPinNode.setFunction(PrimitiveNode.Function.PIN);
+//		activeGenPinNode.setArcsWipe();
+//		activeGenPinNode.setArcsShrink();
+////        activeGenPinNode.setNotUsed(true);
 
 		/** metal-1-P-active-contact */
 		metalActiveContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),

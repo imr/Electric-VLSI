@@ -1008,6 +1008,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); ) {
                             ArcProto otherAp = it.next();
                             if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
+                            if (otherAp.isSkipSizeInPalette()) continue;
                             double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
 //                            double wid = otherAp.getDefaultLambdaFullWidth();
                             if (wid+8 > largest) largest = wid+8;
