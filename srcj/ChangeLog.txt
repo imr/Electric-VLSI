@@ -14,27 +14,28 @@ IMP: (6/7/07, SMR) Removed unused "Gate Layout Generation" Project Settings pane
 ************************* Version 8.05n: *******************************
 
 IMP: (6/7/07, DN) Pins unification. Their shape is taken from arcs.
-   I tried to preserve the size of pin's port. Affected pins:
-   cmos90:Active-Pin
-   cmos90:N-Active-Pin
-   cmos90:N-OD18-Active-Pin
-   cmos90:N-OD25-Active-Pin
-   cmos90:N-OD33-Active-Pin
-   cmos90:P-Active-Pin
-   cmos90:P-OD18-Active-Pin
-   cmos90:P-OD25-Active-Pin
-   cmos90:P-OD33-Active-Pin
-   cmos90:RDL-Pin
-   mocmos:Metal-6-Pin
-   mocmos:Polysilicon-2-Pin
+     I tried to preserve the size of pin's port. Affected pins:
+     cmos90:Active-Pin
+     cmos90:N-Active-Pin
+     cmos90:N-OD18-Active-Pin
+     cmos90:N-OD25-Active-Pin
+     cmos90:N-OD33-Active-Pin
+     cmos90:P-Active-Pin
+     cmos90:P-OD18-Active-Pin
+     cmos90:P-OD25-Active-Pin
+     cmos90:P-OD33-Active-Pin
+     cmos90:RDL-Pin
+     mocmos:Metal-6-Pin
+     mocmos:Polysilicon-2-Pin
 
-IMP: (6/6/07, DN) Preferences saves not absolute arc/node default size, but differences to
-    "min width" sizes.
+IMP: (6/6/07, DN) Preferences saves not absolute arc/node default size, but
+     differences to "min width" sizes.
 
-IMP: (6/6/07, DN) Preparation for change in JELIB format which occurs since 8.05o .
+IMP: (6/6/07, DN) Preparation for change in JELIB format which occurs since
+     8.05o.
 
 BUG: (6/6/07, DN) TecEdit regressions fails.
-FIX: In LibToTech.makeTech construct new technology using Xml .
+FIX: In LibToTech.makeTech construct new technology using Xml.
 
 BUG: (6/6/07, SMR) Cannot bind to "[" and other special keys.
 FIX: In the array KeyStrokePair.specialKeyStrokes, added more special cases.
@@ -43,13 +44,15 @@ BUG: (6/6/07, SMR) Saving to windows desktop fails (Bug #1325).
 FIX: Made TextUtils.URLtoString() and use it in getFilePath(),
      getFileNameWithoutExtension(), and getExtension().
 
-BUG/MAN: (6/5/07, GVG) Assertion in Verilog Import (Bug #1324).
-FIX: Current Verilog parser can't read all expressions. Warnings added. It should be documented.
+BUG: (6/5/07, GVG) Assertion in Verilog Import (Bug #1324).
+FIX: Current Verilog parser can't read all expressions. Warnings added. It should
+     be documented.
 
-IMP: (6/5/07, GVG) Extra code to deal with busses while reading Verilog instances such as
-.root({a[5], a[4], a[3], a[2], c})
+IMP: (6/5/07, GVG) Extra code to deal with busses while reading Verilog instances
+     such as .root({a[5], a[4], a[3], a[2], c})
 
-BUG: (6/5/07, GVG) Missing refresh in Explorer after changing current library (Bug #1323)
+BUG: (6/5/07, GVG) Missing refresh in Explorer after changing current library
+     (Bug #1323)
 FIX: ChangeCurrentLib.repaintAllAfterCurLibAction() added.
 
 BUG: (6/5/07, GVG) NPE when setting current library if no one is set (Bug #1322)
@@ -58,29 +61,35 @@ FIX: Not getting library name in dialog box if no current library is set.
 IMP: (6/5/07, SMR) Added cell contents extraction commands to go all the way or
      by an arbitrary amount (Bug #1317).
 
-IMP: (6/5/07, DN) Reconcilation occurs before reading libraries to avvoid resizing.
+IMP: (6/5/07, DN) Reconciliation occurs before reading libraries to avoid
+     resizing.
 
-IMP: (6/4/07, DN) Disk readers emit warning instead of error on too small arc/nodes.
+IMP: (6/4/07, DN) Disk readers emit warning instead of error on too small
+     arc/nodes.
 
 IMP: (6/4/07, GVG) DRC Schematics added into the regression
 
 IMP: (6/4/07, GVG) Remove Export Verilog from FileMenu
 
-BUG: (6/3/07, GVG) Null exception in 3D preference due to cell bounding box (Bug #1320)
-FIX: 3D Java appearance associated to the cell bounding box was only initializated if a 3D view was available.
-Initialized now when 3D tab is created. Same happens with axes and it was fixed.
+BUG: (6/3/07, GVG) Null exception in 3D preference due to cell bounding box (Bug
+     #1320)
+FIX: 3D Java appearance associated to the cell bounding box was only
+     initialized if a 3D view was available.  Initialized now when 3D tab is
+     created. Same happens with axes and it was fixed.
 
-BUG: (6/1/07, GVG) cInvR,cAdd,cSub,cAddR,cSubR,cMulR in awe.java modified due to reference issue affecting the Java code,
-effect not seen in C. This allowed to get 100% match in 64bitadder example.
+BUG: (6/1/07, GVG) cInvR,cAdd,cSub,cAddR,cSubR,cMulR in awe.java modified due to
+     reference issue affecting the Java code, effect not seen in C. This allowed
+     to get 100% match in 64bitadder example.
 
-IMP: (6/1/07, GVG) Playing with sorted list in CSA code to get deterministic results. To faciliate comparisons
-with Oyster.
+IMP: (6/1/07, GVG) Playing with sorted list in CSA code to get deterministic
+     results. To facilitate comparisons with Oyster.
 
-IMP: (6/1/07, JKG) A 'primitive' module defined in the Verilog View cannot have its ports referenced by name (.name(net)),
-but must be referenced by order. 
+IMP: (6/1/07, JKG) A 'primitive' module defined in the Verilog View cannot have
+     its ports referenced by name (.name(net)), but must be referenced by order. 
 
 BUG: (6/1/07, GVG) Assertion running DRC MinArea on thick transistors (Bug# 1319)
-FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active layers were wrongly detected.
+FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active
+     layers were wrongly detected.
 
 BUG: (5/31/07, SMR) Waveform window numbers may be scaled by 100 (Bug #1315).
 FIX: In TextUtils.convertToEngineeringNotation(), scale number properly.
@@ -91,33 +100,35 @@ FIX: In PostScript.recurseCircuitLevel() skip those nodes at lower levels.
 
 BUG: (5/30/07, DN) Some primitive ports have negative polygon.
 FIX: Swap lx and hx in 
-    tsmc180:P-Poly-RPO-Resistor:right-rpo
-    tsmc180:N-Poly-RPO-Resistor:right-rpo
-    tsmc180:P-Well-RPO-Resistor:right-well-resistor
-    tsmc180:N-Well-RPO-Resistor:right-well-resistor
+     tsmc180:P-Poly-RPO-Resistor:right-rpo
+     tsmc180:N-Poly-RPO-Resistor:right-rpo
+     tsmc180:P-Well-RPO-Resistor:right-well-resistor
+     tsmc180:N-Well-RPO-Resistor:right-well-resistor
 
-BUG: (5/30/07, DN) Minimal-sized instance of some primitives have negative polygons.
+BUG: (5/30/07, DN) Minimal-sized instance of some primitives have negative
+     polygons.
 FIX: Set minSize rule the same as default size for primitives:
-    cmos90:X-Metal-1-Metal-2-Con
-    cmos90:X-Metal-2-Metal-3-Con
-    cmos90:X-Metal-3-Metal-4-Con
-    cmos90:X-Metal-4-Metal-5-Con
-    cmos90:X-Metal-5-Metal-6-Con
-    cmos90:X-Metal-6-Metal-7-Con
-    cmos90:X-Metal-7-Metal-8-Con
-    cmos90:X-Metal-8-Metal-9-Con
-    cmos90:X-Metal-4-Metal-7-Con
-    cmos90:OD18-P-Transistor
-    cmos90:OD25-P-Transistor
-    cmos90:OD33-P-Transistor
-    cmos90:OD18-N-Transistor
-    cmos90:OD25-N-Transistor
-    cmos90:OD33-N-Transistor
-    cmos90:NT-OD18-N-Transistor
-    cmos90:NT-OD25-N-Transistor
-    cmos90:NT-OD33-N-Transistor
+     cmos90:X-Metal-1-Metal-2-Con
+     cmos90:X-Metal-2-Metal-3-Con
+     cmos90:X-Metal-3-Metal-4-Con
+     cmos90:X-Metal-4-Metal-5-Con
+     cmos90:X-Metal-5-Metal-6-Con
+     cmos90:X-Metal-6-Metal-7-Con
+     cmos90:X-Metal-7-Metal-8-Con
+     cmos90:X-Metal-8-Metal-9-Con
+     cmos90:X-Metal-4-Metal-7-Con
+     cmos90:OD18-P-Transistor
+     cmos90:OD25-P-Transistor
+     cmos90:OD33-P-Transistor
+     cmos90:OD18-N-Transistor
+     cmos90:OD25-N-Transistor
+     cmos90:OD33-N-Transistor
+     cmos90:NT-OD18-N-Transistor
+     cmos90:NT-OD25-N-Transistor
+     cmos90:NT-OD33-N-Transistor
 
-BUG: (5/30/07, GVG) NPE if you Cancel ExpandCellInstances->SpecifiedAmount (Bug#1318)
+BUG: (5/30/07, GVG) NPE if you Cancel ExpandCellInstances->SpecifiedAmount
+     (Bug#1318)
 FIX: Cancel operation returns a null object. Detecting the case now.
 
 IMP: (5/30/07, SMR) Created Job.getUserInterface().getGridAlignment() to get
@@ -127,11 +138,13 @@ BUG: (5/30/07, SMR) Progress dialogs sometimes remain on the screen.
 FIX: In UserInterfaceMain.startProgressDialog(), close previous one;
      In Progress.close(), cleanup better.
 
-BUG: (5/29/07, SMR) VHDL and Verilog generation don't handle pseudo-inverters right.
-FIX: In GenerateVHDL.java, and in Verilog.writeCellTopology(), do not save Connections
-     in maps; use ArcInsts.
+BUG: (5/29/07, SMR) VHDL and Verilog generation don't handle pseudo-inverters
+     right.
+FIX: In GenerateVHDL.java, and in Verilog.writeCellTopology(), do not save
+     Connections in maps; use ArcInsts.
 
-IMP: (5/29/07, DN) Library readers gives errors on arcs and nodes with sizes less than minimal.
+IMP: (5/29/07, DN) Library readers gives errors on arcs and nodes with sizes less
+     than minimal.
 
 IMP: (5/29/07, DN) Xml description for technology "tsmc90".
 
