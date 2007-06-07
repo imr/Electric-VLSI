@@ -127,6 +127,7 @@ public class GeneralInfo extends Info
 					break;
 				case TECHSCALE:
 					gi.scale = TextUtils.atof(str);
+                    gi.scaleRelevant = true;
 					break;
 				case TECHFOUNDRY:
 					gi.defaultFoundry = str;

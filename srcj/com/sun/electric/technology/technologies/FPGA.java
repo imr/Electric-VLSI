@@ -27,6 +27,7 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -284,7 +285,7 @@ public class FPGA extends Technology
 		protected FPGANode(String protoName, Technology tech, double defWidth, double defHeight,
 			SizeOffset offset, Technology.NodeLayer [] layers)
 		{
-			super(protoName, tech, defWidth, defHeight, offset, layers);
+			super(protoName, tech, EPoint.ORIGIN, defWidth, defHeight, offset, layers);
 		}
 
 		int numPorts()

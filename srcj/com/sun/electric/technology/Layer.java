@@ -701,7 +701,7 @@ public class Layer
 	 * @return the Pure Layer PrimitiveNode to use for this Layer.
 	 */
 	public PrimitiveNode makePureLayerNode(String nodeName, double size, Poly.Type style, String portName, ArcProto ... connections) {
-		PrimitiveNode pln = PrimitiveNode.newInstance(nodeName, tech, size, size, null,
+		PrimitiveNode pln = PrimitiveNode.newInstance0(nodeName, tech, size, size, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(this, 0, style, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())

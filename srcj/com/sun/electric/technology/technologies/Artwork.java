@@ -172,7 +172,7 @@ public class Artwork extends Technology
 		//******************** NODES ********************
 
 		/** Pin */
-		pinNode = PrimitiveNode.newInstance("Pin", this, 1, 1, null,
+		pinNode = PrimitiveNode.newInstance0("Pin", this, 1, 1, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
@@ -187,7 +187,7 @@ public class Artwork extends Technology
 		pinNode.setArcsShrink();
 
 		/** Box */
-		boxNode = PrimitiveNode.newInstance("Box", this, 6, 6, null,
+		boxNode = PrimitiveNode.newInstance0("Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
@@ -201,7 +201,7 @@ public class Artwork extends Technology
 		boxNode.setEdgeSelect();
 
 		/** Crossed-Box */
-		crossedBoxNode = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, null,
+		crossedBoxNode = PrimitiveNode.newInstance0("Crossed-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
@@ -214,7 +214,7 @@ public class Artwork extends Technology
 		crossedBoxNode.setFunction(PrimitiveNode.Function.ART);
 
 		/** Filled-Box */
-		filledBoxNode = PrimitiveNode.newInstance("Filled-Box", this, 6, 6, null,
+		filledBoxNode = PrimitiveNode.newInstance0("Filled-Box", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
@@ -228,7 +228,7 @@ public class Artwork extends Technology
 		filledBoxNode.setEdgeSelect();
 
 		/** Circle */
-		circleNode = PrimitiveNode.newInstance("Circle", this, 6, 6, null,
+		circleNode = PrimitiveNode.newInstance0("Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_6)
@@ -242,7 +242,7 @@ public class Artwork extends Technology
 		circleNode.setEdgeSelect();
 
 		/** Filled-Circle */
-		filledCircleNode = PrimitiveNode.newInstance("Filled-Circle", this, 6, 6, null,
+		filledCircleNode = PrimitiveNode.newInstance0("Filled-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
@@ -257,7 +257,7 @@ public class Artwork extends Technology
 		filledCircleNode.setEdgeSelect();
 
 		/** Spline */
-		splineNode = PrimitiveNode.newInstance("Spline", this, 6, 6, null,
+		splineNode = PrimitiveNode.newInstance0("Spline", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
@@ -272,7 +272,7 @@ public class Artwork extends Technology
 		splineNode.setEdgeSelect();
 
 		/** Triangle */
-		triangleNode = PrimitiveNode.newInstance("Triangle", this, 6, 6, null,
+		triangleNode = PrimitiveNode.newInstance0("Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_4)
@@ -286,7 +286,7 @@ public class Artwork extends Technology
 		triangleNode.setEdgeSelect();
 
 		/** Filled-Triangle */
-		filledTriangleNode = PrimitiveNode.newInstance("Filled-Triangle", this, 6, 6, null,
+		filledTriangleNode = PrimitiveNode.newInstance0("Filled-Triangle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_4)
@@ -300,7 +300,7 @@ public class Artwork extends Technology
 		filledTriangleNode.setEdgeSelect();
 
 		/** Arrow */
-		arrowNode = PrimitiveNode.newInstance("Arrow", this, 2, 2, null,
+		arrowNode = PrimitiveNode.newInstance0("Arrow", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
@@ -320,7 +320,7 @@ public class Artwork extends Technology
 		arrowNode.setEdgeSelect();
 
 		/** Opened-Polygon */
-		openedPolygonNode = PrimitiveNode.newInstance("Opened-Polygon", this, 6, 6, null,
+		openedPolygonNode = PrimitiveNode.newInstance0("Opened-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
@@ -335,7 +335,7 @@ public class Artwork extends Technology
 		openedPolygonNode.setEdgeSelect();
 
 		/** Opened-Dotted-Polygon */
-		openedDottedPolygonNode = PrimitiveNode.newInstance("Opened-Dotted-Polygon", this, 6, 6, null,
+		openedDottedPolygonNode = PrimitiveNode.newInstance0("Opened-Dotted-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, box_2)
@@ -350,7 +350,7 @@ public class Artwork extends Technology
 		openedDottedPolygonNode.setEdgeSelect();
 
 		/** Opened-Dashed-Polygon */
-		openedDashedPolygonNode = PrimitiveNode.newInstance("Opened-Dashed-Polygon", this, 6, 6, null,
+		openedDashedPolygonNode = PrimitiveNode.newInstance0("Opened-Dashed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, box_2)
@@ -365,7 +365,7 @@ public class Artwork extends Technology
 		openedDashedPolygonNode.setEdgeSelect();
 
 		/** Opened-Thicker-Polygon */
-		openedThickerPolygonNode = PrimitiveNode.newInstance("Opened-Thicker-Polygon", this, 6, 6, null,
+		openedThickerPolygonNode = PrimitiveNode.newInstance0("Opened-Thicker-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, box_2)
@@ -380,7 +380,7 @@ public class Artwork extends Technology
 		openedThickerPolygonNode.setEdgeSelect();
 
 		/** Closed-Polygon */
-		closedPolygonNode = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, null,
+		closedPolygonNode = PrimitiveNode.newInstance0("Closed-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_1)
@@ -395,7 +395,7 @@ public class Artwork extends Technology
 		closedPolygonNode.setEdgeSelect();
 
 		/** Filled-Polygon */
-		filledPolygonNode = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, null,
+		filledPolygonNode = PrimitiveNode.newInstance0("Filled-Polygon", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_1)
@@ -410,7 +410,7 @@ public class Artwork extends Technology
 		filledPolygonNode.setEdgeSelect();
 
 		/** Thick-Circle */
-		thickCircleNode = PrimitiveNode.newInstance("Thick-Circle", this, 6, 6, null,
+		thickCircleNode = PrimitiveNode.newInstance0("Thick-Circle", this, 6, 6, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.THICKCIRCLE, Technology.NodeLayer.POINTS, box_6)

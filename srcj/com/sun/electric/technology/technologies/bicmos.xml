@@ -744,17 +744,17 @@
 
     <primitiveNode name="M1_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <nodeLayer layer="M1" style="CROSSED">
             <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal-1">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
@@ -762,17 +762,17 @@
 
     <primitiveNode name="M2_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <nodeLayer layer="M2" style="CROSSED">
             <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal-2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
@@ -816,48 +816,48 @@
 
     <primitiveNode name="Ndiff_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="CLOSED">
             <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="CROSSED">
             <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="Ndiff_Pin">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
         </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Pdiff_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="CLOSED">
             <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="CROSSED">
             <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="Pdiff_Pin">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
         </primitivePort>
     </primitiveNode>

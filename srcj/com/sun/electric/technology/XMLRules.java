@@ -1031,7 +1031,7 @@ public class XMLRules implements DRCRules {
 
         DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
         if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
-            contact.setDefSize(totalSurrX, totalSurrY);
+//            contact.setDefSize(totalSurrX, totalSurrY);
             contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
         }
         double minWidth = contact.getMinSizeRule().getWidth();

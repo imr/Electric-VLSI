@@ -535,17 +535,17 @@
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal1_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Metal1" style="CROSSED">
             <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal1">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
@@ -553,17 +553,17 @@
 
     <primitiveNode name="Metal2_Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <nodeLayer layer="Metal2" style="CROSSED">
             <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal2">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>

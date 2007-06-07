@@ -1396,11 +1396,11 @@ public class ELIB extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-            if (gridExtendOverMin < 0) {
-				String msg = "ERROR: "+cell + ": arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin);
-                System.out.println(msg);
-				Input.errorLogger.logError(msg, ai, cell, null, 2);
-            }
+//            if (gridExtendOverMin < 0) {
+//				String msg = "WARNING: "+cell + ": arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin);
+//                System.out.println(msg);
+//				Input.errorLogger.logWarning(msg, ai, cell, null, 2);
+//            }
             realizeVariables(ai, arcVariables[i]);
 		}
 	}

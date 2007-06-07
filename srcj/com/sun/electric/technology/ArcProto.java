@@ -220,7 +220,7 @@ public class ArcProto implements Comparable<ArcProto>
 
 	// ----------------------- private data -------------------------------
 
-	/** Pref map for arc width. */								private static HashMap<ArcProto,Pref> defaultWidthPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc extend over min. */					private static HashMap<ArcProto,Pref> defaultExtendPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc angle increment. */					private static HashMap<ArcProto,Pref> defaultAnglePrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc rigidity. */							private static HashMap<ArcProto,Pref> defaultRigidPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc fixed angle. */						private static HashMap<ArcProto,Pref> defaultFixedAnglePrefs = new HashMap<ArcProto,Pref>();
@@ -266,8 +266,11 @@ public class ArcProto implements Comparable<ArcProto>
 	/**
 	 * The constructor is never called.  Use "Technology.newArcProto" instead.
 	 */
-	ArcProto(Technology tech, String protoName, int gridFullExtend, int gridBaseExtend, double defaultWidth, Function function, Technology.ArcLayer [] layers, int primArcIndex)
+	ArcProto(Technology tech, String protoName, long gridFullExtend, long gridBaseExtend, long gridExtendOverMin, Function function, Technology.ArcLayer [] layers, int primArcIndex)
 	{
+        assert -Integer.MAX_VALUE/8 < gridFullExtend && gridFullExtend < Integer.MAX_VALUE/8;
+        assert -Integer.MAX_VALUE/8 < gridBaseExtend && gridBaseExtend < Integer.MAX_VALUE/8;
+        assert -Integer.MAX_VALUE/8 < gridExtendOverMin && gridExtendOverMin < Integer.MAX_VALUE/8;
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
 		this.protoName = protoName;
@@ -277,13 +280,11 @@ public class ArcProto implements Comparable<ArcProto>
 		this.function = function;
 		this.layers = layers.clone();
         this.primArcIndex = primArcIndex;
-        this.gridFullExtend = gridFullExtend;
-        this.gridBaseExtend = gridBaseExtend;
-//        gridFullExtend = (int)DBMath.lambdaToGrid(defaultWidth/2);
-//        gridBaseExtend = gridFullExtend - (int)gridWidthOffset/2;
+        this.gridFullExtend = (int)gridFullExtend;
+        this.gridBaseExtend = (int)gridBaseExtend;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-		setFactoryDefaultLambdaFullWidth(defaultWidth);
+        getArcProtoExtendPref(DBMath.gridToLambda(gridExtendOverMin));
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -307,31 +308,16 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public Technology getTechnology() { return tech; }
 
-	private Pref getArcProtoWidthPref(double factory)
+	private Pref getArcProtoExtendPref(double factory)
 	{
-		Pref pref = defaultWidthPrefs.get(this);
+		Pref pref = defaultExtendPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			defaultWidthPrefs.put(this, pref);
+			pref = Pref.makeDoublePref("DefaultExtendFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			defaultExtendPrefs.put(this, pref);
 		}
 		return pref;
 	}
-
-	/**
-	 * Method to set the factory-default width of this ArcProto in lambda units.
-	 * This is only called from ArcProto during construction.
-	 * @param lambdaWidth the factory-default full width of this ArcProto in lambda units.
-	 */
-	private void setFactoryDefaultLambdaFullWidth(double lambdaWidth) {
-        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth);
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
-            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
-            return;
-        }
-        assert (gridWidth&1) == 0;
-        getArcProtoWidthPref(DBMath.gridToLambda(gridWidth));
-    }
 
 	/**
      * Method to set the base default width of this ArcProto in lambda units.
@@ -341,13 +327,12 @@ public class ArcProto implements Comparable<ArcProto>
      * @return returns true if preference was really changed.
      */
     public boolean setDefaultLambdaBaseWidth(double lambdaWidth) {
-        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth) + 2*(gridFullExtend - gridBaseExtend);
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
-            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
+        long gridExtendOverMin = DBMath.lambdaToGrid(0.5*lambdaWidth) - gridBaseExtend;
+        if (gridExtendOverMin <= -Integer.MAX_VALUE/8 || gridExtendOverMin >= Integer.MAX_VALUE/8) {
+            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default base width " + lambdaWidth);
             return false;
         }
-        assert (gridWidth&1) == 0;
-        return getArcProtoWidthPref(0).setDouble(DBMath.gridToLambda(gridWidth));
+        return getArcProtoExtendPref(0).setDouble(DBMath.gridToLambda(gridExtendOverMin));
     }
 
     public void setExtends(int gridBaseExtend, int gridFullExtend) {
@@ -404,7 +389,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
 	 */
     public long getDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(getArcProtoWidthPref(0).getDouble()*0.5) - gridFullExtend;
+        return DBMath.lambdaToGrid(getArcProtoExtendPref(0).getDouble());
     }
 
 	/**
@@ -1207,9 +1192,9 @@ public class ArcProto implements Comparable<ArcProto>
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
         
+        Technology.printlnPref(out, 1, defaultExtendPrefs.get(this));
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
-        Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
-        out.println("\tdefaultExtendOverMin=" + getDefaultLambdaExtendOverMin());
+        out.println("\tdefaultLambdaBaseWidth=" + getDefaultLambdaBaseWidth());
         Technology.printlnPref(out, 1, defaultAnglePrefs.get(this));
         Technology.printlnPref(out, 1, defaultRigidPrefs.get(this));
         Technology.printlnPref(out, 1, defaultFixedAnglePrefs.get(this));

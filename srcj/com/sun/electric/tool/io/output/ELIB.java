@@ -1358,7 +1358,7 @@ public class ELIB extends Output
     private Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(Version.getVersion(), projectSettings, false);
+            corrector = tech.getSizeCorrector(Version.getVersion(), projectSettings, false, false);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;

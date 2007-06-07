@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -70,6 +71,8 @@ public class MoCMOS extends Technology
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
 
+    public static final Version changeOfMetal6 =Version.parseVersion("8.02o"); // Fix of bug #357
+            
 	// layers to share with subclasses
     private Layer[] viaLayers = new Layer[5];
 	private Layer poly1Layer, poly2_lay, transistorPolyLayer;
@@ -3097,19 +3100,6 @@ public class MoCMOS extends Technology
 		}
 
         // Resize primitives according to the foundry and existing rules.
-        resizeNodes(rules);
-        // Information for palette
-        buildTechPalette();
-
-        return rules;
-	}
-
-    /**
-     * Method to replace resizeNodes
-     */
-    private void resizeNodes(XMLRules rules)
-    {
-        int numMetals = getNumMetals();
         rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
@@ -3212,15 +3202,26 @@ public class MoCMOS extends Technology
                     lenValMax, lenValMax));
         }
 
-        // poly arcs
-        double width = DBMath.round(polyWid.getValue(0));
-        double half = DBMath.round(width/2);
-        polyArcs[0].setDefaultLambdaBaseWidth(width);
-//        polyArcs[0].setDefaultLambdaFullWidth(width);
-        polyPinNodes[0].setDefSize(width, width);
-        PrimitivePort polyPort = polyPinNodes[0].getPort(0);
-        polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);
-        polyPort.getRight().setAdder(-half); polyPort.getTop().setAdder(-half);
+        // arcs
+        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            DRCTemplate wid = rules.getRule(ap.getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID); // size
+            if (wid == null) continue;
+            double width = DBMath.round(wid.getValue(0));
+            double half = DBMath.round(width/2);
+            int baseExtend = (int)DBMath.lambdaToGrid(width*0.5);
+            ap.setExtends(baseExtend, baseExtend + ap.getGridFullExtend() - ap.getGridBaseExtend());
+        }
+        
+//        // poly arcs
+//        double width = DBMath.round(polyWid.getValue(0));
+//        double half = DBMath.round(width/2);
+//        polyArcs[0].setDefaultLambdaBaseWidth(width);
+////        polyArcs[0].setDefaultLambdaFullWidth(width);
+//        polyPinNodes[0].setDefSize(width, width);
+//        PrimitivePort polyPort = polyPinNodes[0].getPort(0);
+//        polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);
+//        polyPort.getRight().setAdder(-half); polyPort.getTop().setAdder(-half);
 
         // resizing all pure layer nodes
 //        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
@@ -3230,8 +3231,48 @@ public class MoCMOS extends Technology
 //            if (pnp.getFunction() != PrimitiveNode.Function.NODE) continue;
 //            rules.getRule(pnp.getElectricalLayers()[0].getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
 //        }
+        // Information for palette
+        buildTechPalette();
+
+        return rules;
     }
 
+    @Override
+    public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib, boolean keepExtendOverMin) {
+        SizeCorrector sc = super.getSizeCorrector(version, projectSettings, isJelib, keepExtendOverMin);
+        if (!keepExtendOverMin) return sc;
+        boolean newDefaults = version.compareTo(Version.parseVersion("8.04u")) >= 0;
+        int numMetals = newDefaults ? 6 : 4;
+        boolean isSecondPolysilicon = newDefaults ? true : false;
+        int ruleSet = SUBMRULES;
+        
+        Object numMetalsValue = projectSettings.get(getNumMetalsSetting());
+        if (numMetalsValue instanceof Integer)
+            numMetals = ((Integer)numMetalsValue).intValue();
+        
+        Object secondPolysiliconValue = projectSettings.get(getSecondPolysiliconSetting());
+        if (secondPolysiliconValue instanceof Boolean)
+            isSecondPolysilicon = ((Boolean)secondPolysiliconValue).booleanValue();
+        else if (secondPolysiliconValue instanceof Integer)
+            isSecondPolysilicon = ((Integer)secondPolysiliconValue).intValue() != 0;
+        
+        Object ruleSetValue = projectSettings.get(getRuleSetSetting());
+        if (ruleSetValue instanceof Integer)
+            ruleSet = ((Integer)ruleSetValue).intValue();
+        
+        if (numMetals == getNumMetals() && isSecondPolysilicon == isSecondPolysilicon() && ruleSet == getRuleSet() && version.compareTo(changeOfMetal6) >= 0)
+            return sc;
+        
+        setArcCorrection(sc, "Polysilicon-2", ruleSet == SCMOSRULES ? 3 : 7);
+        setArcCorrection(sc, "Metal-3", numMetals <= 3 ? (ruleSet == SCMOSRULES ? 6 : 5) : 3);
+        setArcCorrection(sc, "Metal-4", numMetals <= 4 ? 6 : 3);
+        setArcCorrection(sc, "Metal-5", numMetals <= 5 ? 4 : 3);
+        if (version.compareTo(changeOfMetal6) < 0) // Fix of bug #357
+            setArcCorrection(sc, "Metal-6", 4);
+        
+        return sc;
+    }
+    
 //    /**
 //	 * Method to compare a Rules set with the "factory" set and construct an override string.
 //	 * @param origDRCRules

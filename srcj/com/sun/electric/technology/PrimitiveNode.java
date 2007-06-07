@@ -501,19 +501,20 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** special factors for unusual primitives */	private double[] specialValues;
     /** true if contains MULTICUTBOX layers */      private int numMultiCuts;
     /** minimum width and height rule */            private NodeSizeRule minNodeSize;
+    /** size corrector */                           EPoint sizeCorrector;
 	/** offset from database to user */				private SizeOffset offset;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
-	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultWidthPrefs = new HashMap<PrimitiveNode,Pref>();
-	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultHeightPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
 
 	// ------------------ private and protected methods ----------------------
 
 	/**
 	 * The constructor is never called externally.  Use the factory "newInstance" instead.
 	 */
-	protected PrimitiveNode(String protoName, Technology tech, double defWidth, double defHeight,
+	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, double defWidth, double defHeight,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
@@ -529,6 +530,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
+        this.sizeCorrector = sizeCorrector;
 		setFactoryDefSize(defWidth, defHeight);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
@@ -551,6 +553,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
 	/**
 	 * Method to create a new PrimitiveNode from the parameters.
+     * Size corrector of PrimitiveNode is determined from width and height.
 	 * @param protoName the name of the PrimitiveNode.
 	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
 	 * @param tech the Technology of the PrimitiveNode.
@@ -561,6 +564,42 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * @return the newly created PrimitiveNode.
 	 */
 	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
+		SizeOffset offset, Technology.NodeLayer [] layers)
+	{
+        return newInstance(protoName, tech, EPoint.fromLambda(-0.5*width, -0.5*height), width, height, offset, layers);
+	}
+
+	/**
+	 * Method to create a new PrimitiveNode from the parameters.
+     * PrimitiveNode has zero size corrector.
+	 * @param protoName the name of the PrimitiveNode.
+	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * @param tech the Technology of the PrimitiveNode.
+	 * @param width the width of the PrimitiveNode.
+	 * @param height the height of the PrimitiveNode.
+	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
+	 * @param layers the Layers that comprise the PrimitiveNode.
+	 * @return the newly created PrimitiveNode.
+	 */
+	public static PrimitiveNode newInstance0(String protoName, Technology tech, double width, double height,
+		SizeOffset offset, Technology.NodeLayer [] layers)
+	{
+        return newInstance(protoName, tech, EPoint.ORIGIN, width, height, offset, layers);
+	}
+
+	/**
+	 * Method to create a new PrimitiveNode from the parameters.
+	 * @param protoName the name of the PrimitiveNode.
+	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * @param tech the Technology of the PrimitiveNode.
+     * @param sizeCorrector size corrector for the PrimitiveNode,
+	 * @param width the width of the PrimitiveNode.
+	 * @param height the height of the PrimitiveNode.
+	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
+	 * @param layers the Layers that comprise the PrimitiveNode.
+	 * @return the newly created PrimitiveNode.
+	 */
+	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector, double width, double height,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// check the arguments
@@ -575,7 +614,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 			return null;
 		}
 
-		PrimitiveNode pn = new PrimitiveNode(protoName, tech, width, height, offset, layers);
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector, width, height, offset, layers);
 		return pn;
 	}
 
@@ -812,32 +851,32 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
 	/**
 	 * Method to return the Pref that describes the defaut width of this PrimitiveNode.
-	 * @param factoryWidth the "factory" default width of this PrimitiveNode.
+	 * @param factoryExtendX the "factory" default extend of this PrimitiveNode over minimal width.
 	 * @return a Pref that stores the proper default width of this PrimitiveNode.
 	 */
-	private Pref getNodeProtoWidthPref(double factoryWidth)
+	private Pref getNodeProtoExtendXPref(double factoryExtendX)
 	{
-		Pref pref = defaultWidthPrefs.get(this);
+		Pref pref = defaultExtendXPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryWidth);
-			defaultWidthPrefs.put(this, pref);
+			pref = Pref.makeDoublePref("DefaultExtendXFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendX);
+			defaultExtendXPrefs.put(this, pref);
 		}
 		return pref;
 	}
 
 	/**
 	 * Method to return the Pref that describes the defaut height of this PrimitiveNode.
-	 * @param factoryHeight the "factory" default height of this PrimitiveNode.
+	 * @param factoryExtendY the "factory" default extend of this PrimitiveNode over minimal height.
 	 * @return a Pref that stores the proper default height of this PrimitiveNode.
 	 */
-	private Pref getNodeProtoHeightPref(double factoryHeight)
+	private Pref getNodeProtoExtendYPref(double factoryExtendY)
 	{
-		Pref pref = defaultHeightPrefs.get(this);
+		Pref pref = defaultExtendYPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultHeightFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryHeight);
-			defaultHeightPrefs.put(this, pref);
+			pref = Pref.makeDoublePref("DefaultExtendYFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendY);
+			defaultExtendYPrefs.put(this, pref);
 		}
 		return pref;
 	}
@@ -850,34 +889,32 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	protected void setFactoryDefSize(double defWidth, double defHeight)
 	{
-		getNodeProtoWidthPref(defWidth);
-		getNodeProtoHeightPref(defHeight);
+		getNodeProtoExtendXPref(DBMath.round(0.5*defWidth + sizeCorrector.getLambdaX()));
+		getNodeProtoExtendYPref(DBMath.round(0.5*defHeight + sizeCorrector.getLambdaY()));
 	}
 
 	/**
 	 * Method to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
-	 * @return return if any of the value was changed.
 	 */
-	public boolean setDefSize(double defWidth, double defHeight)
+	public void setDefSize(double defWidth, double defHeight)
 	{
-		boolean changed = getNodeProtoWidthPref(0).setDouble(defWidth);
-		changed = (!getNodeProtoHeightPref(0).setDouble(defHeight))? changed : true;
-		return (changed);
+		getNodeProtoExtendXPref(0).setDouble(DBMath.round(0.5*defWidth + sizeCorrector.getLambdaX()));
+		getNodeProtoExtendYPref(0).setDouble(DBMath.round(0.5*defHeight + sizeCorrector.getLambdaY()));
 	}
 
 	/**
 	 * Method to return the default width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
-	public double getDefWidth() { return getNodeProtoWidthPref(0).getDouble(); }
+	public double getDefWidth() { return 2*(getNodeProtoExtendXPref(0).getDouble() - sizeCorrector.getLambdaX()); }
 
 	/**
 	 * Method to return the default height of this PrimitiveNode.
 	 * @return the default height of this PrimitiveNode.
 	 */
-	public double getDefHeight() { return getNodeProtoHeightPref(0).getDouble(); }
+	public double getDefHeight() { return 2*(getNodeProtoExtendYPref(0).getDouble() - sizeCorrector.getLambdaY()); }
 
 	/**
 	 * Method to get the size offset of this PrimitiveNode.
@@ -911,7 +948,12 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	public void setMinSize(double minWidth, double minHeight, String minSizeRule)
 	{
+        setSizeCorrector(minWidth, minHeight);
         minNodeSize = new NodeSizeRule(minWidth, minHeight, minSizeRule);
+    }
+    
+    public void setSizeCorrector(double refWidth, double refHeight) {
+        sizeCorrector = EPoint.fromLambda(-0.5*refWidth, -0.5*refHeight);
     }
 
 	/**
@@ -1553,12 +1595,13 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
         out.println();
         if (offset != null)
             out.println("\t" + offset);
+        out.println("\trefWidth=" + -sizeCorrector.getLambdaX() + " refHeight=" + -sizeCorrector.getLambdaY());
         if (minNodeSize != null)
             out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
         if (autoGrowth != null)
             out.println("\tautoGrowth " + autoGrowth);
-        Technology.printlnPref(out, 1, defaultWidthPrefs.get(this));
-        Technology.printlnPref(out, 1, defaultHeightPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultExtendXPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultExtendYPrefs.get(this));
         out.println("\tlayers:");
         boolean isSerp = specialType == SERPTRANS;
         dumpNodeLayers(out, layers, isSerp);

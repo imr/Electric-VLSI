@@ -84,7 +84,8 @@ public class ImmutableArcInstTest {
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pp = pn.getPort(0);
         ap = tech.findArcProto("P-Active");
-        apExtend = DBMath.lambdaToGrid(1.5);
+        apExtend = DBMath.lambdaToGrid(0);
+//        apExtend = DBMath.lambdaToGrid(1.5);
         idManager = new IdManager();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
@@ -641,7 +642,7 @@ public class ImmutableArcInstTest {
         long smallExtendOverMin = -1;
         ImmutableArcInst a2 = a0.withGridExtendOverMin(smallExtendOverMin);
         assertEquals(smallExtendOverMin, a2.getGridExtendOverMin());
-        assertFalse(a2.isEasyShape());
+        assertTrue(a2.isEasyShape());
     }
 
    /**

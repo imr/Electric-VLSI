@@ -1104,7 +1104,7 @@
 
     <primitiveNode name="Metal-5-Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <diskOffset untilVersion="2" x="0.0" y="0.0"/>
         <nodeLayer layer="Metal-5" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1114,7 +1114,7 @@
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal-5</portArc>
         </primitivePort>

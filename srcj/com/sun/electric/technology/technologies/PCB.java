@@ -415,7 +415,7 @@ public class PCB extends Technology
         PrimitiveNode[] spinNodes = new PrimitiveNode[8];
 
 		/** Signal-1-Pin */
-		spinNodes[0] = PrimitiveNode.newInstance("Signal-1-Pin", this, 1.25, 1.25, null,
+		spinNodes[0] = PrimitiveNode.newInstance0("Signal-1-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -430,7 +430,7 @@ public class PCB extends Technology
 		spinNodes[0].setSquare();
 
 		/** Signal-2-Pin */
-		spinNodes[1] = PrimitiveNode.newInstance("Signal-2-Pin", this, 1.25, 1.25, null,
+		spinNodes[1] = PrimitiveNode.newInstance0("Signal-2-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -445,7 +445,7 @@ public class PCB extends Technology
 		spinNodes[1].setSquare();
 
 		/** Signal-3-Pin */
-		spinNodes[2] = PrimitiveNode.newInstance("Signal-3-Pin", this, 1.25, 1.25, null,
+		spinNodes[2] = PrimitiveNode.newInstance0("Signal-3-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -460,7 +460,7 @@ public class PCB extends Technology
 		spinNodes[2].setSquare();
 
 		/** Signal-4-Pin */
-		spinNodes[3] = PrimitiveNode.newInstance("Signal-4-Pin", this, 1.25, 1.25, null,
+		spinNodes[3] = PrimitiveNode.newInstance0("Signal-4-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S2_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -475,7 +475,7 @@ public class PCB extends Technology
 		spinNodes[3].setSquare();
 
 		/** Signal-5-Pin */
-		spinNodes[4] = PrimitiveNode.newInstance("Signal-5-Pin", this, 1.25, 1.25, null,
+		spinNodes[4] = PrimitiveNode.newInstance0("Signal-5-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S3_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -490,7 +490,7 @@ public class PCB extends Technology
 		spinNodes[4].setSquare();
 
 		/** Signal-6-Pin */
-		spinNodes[5] = PrimitiveNode.newInstance("Signal-6-Pin", this, 1.25, 1.25, null,
+		spinNodes[5] = PrimitiveNode.newInstance0("Signal-6-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S4_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -505,7 +505,7 @@ public class PCB extends Technology
 		spinNodes[5].setSquare();
 
 		/** Signal-7-Pin */
-		spinNodes[6] = PrimitiveNode.newInstance("Signal-7-Pin", this, 1.25, 1.25, null,
+		spinNodes[6] = PrimitiveNode.newInstance0("Signal-7-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S5_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -520,7 +520,7 @@ public class PCB extends Technology
 		spinNodes[6].setSquare();
 
 		/** Signal-8-Pin */
-		spinNodes[7] = PrimitiveNode.newInstance("Signal-8-Pin", this, 1.25, 1.25, null,
+		spinNodes[7] = PrimitiveNode.newInstance0("Signal-8-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(S6_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -537,7 +537,7 @@ public class PCB extends Technology
         PrimitiveNode[] ppinNodes = new PrimitiveNode[8];
 
 		/** Power-1-Pin */
-		ppinNodes[0] = PrimitiveNode.newInstance("Power-1-Pin", this, 1.25, 1.25, null,
+		ppinNodes[0] = PrimitiveNode.newInstance0("Power-1-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -552,7 +552,7 @@ public class PCB extends Technology
 		ppinNodes[0].setSquare();
 
 		/** Power-2-Pin */
-		ppinNodes[1] = PrimitiveNode.newInstance("Power-2-Pin", this, 1.25, 1.25, null,
+		ppinNodes[1] = PrimitiveNode.newInstance0("Power-2-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -567,7 +567,7 @@ public class PCB extends Technology
 		ppinNodes[1].setSquare();
 
 		/** Power-3-Pin */
-		ppinNodes[2] = PrimitiveNode.newInstance("Power-3-Pin", this, 1.25, 1.25, null,
+		ppinNodes[2] = PrimitiveNode.newInstance0("Power-3-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -582,7 +582,7 @@ public class PCB extends Technology
 		ppinNodes[2].setSquare();
 
 		/** Power-4-Pin */
-		ppinNodes[3] = PrimitiveNode.newInstance("Power-4-Pin", this, 1.25, 1.25, null,
+		ppinNodes[3] = PrimitiveNode.newInstance0("Power-4-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P2_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -597,7 +597,7 @@ public class PCB extends Technology
 		ppinNodes[3].setSquare();
 
 		/** Power-5-Pin */
-		ppinNodes[4] = PrimitiveNode.newInstance("Power-5-Pin", this, 1.25, 1.25, null,
+		ppinNodes[4] = PrimitiveNode.newInstance0("Power-5-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P3_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -612,7 +612,7 @@ public class PCB extends Technology
 		ppinNodes[4].setSquare();
 
 		/** Power-6-Pin */
-		ppinNodes[5] = PrimitiveNode.newInstance("Power-6-Pin", this, 1.25, 1.25, null,
+		ppinNodes[5] = PrimitiveNode.newInstance0("Power-6-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P4_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -627,7 +627,7 @@ public class PCB extends Technology
 		ppinNodes[5].setSquare();
 
 		/** Power-7-Pin */
-		ppinNodes[6] = PrimitiveNode.newInstance("Power-7-Pin", this, 1.25, 1.25, null,
+		ppinNodes[6] = PrimitiveNode.newInstance0("Power-7-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P5_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -642,7 +642,7 @@ public class PCB extends Technology
 		ppinNodes[6].setSquare();
 
 		/** Power-8-Pin */
-		ppinNodes[7] = PrimitiveNode.newInstance("Power-8-Pin", this, 1.25, 1.25, null,
+		ppinNodes[7] = PrimitiveNode.newInstance0("Power-8-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P6_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -660,7 +660,7 @@ public class PCB extends Technology
         PrimitiveNode[] bspinNodes = new PrimitiveNode[2];
 
 		/** Top-Silk-Pin */
-		tspinNodes[0] = PrimitiveNode.newInstance("Top-Silk-Pin", this, 1.25, 1.25, null,
+		tspinNodes[0] = PrimitiveNode.newInstance0("Top-Silk-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(T_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -675,7 +675,7 @@ public class PCB extends Technology
 		tspinNodes[0].setSquare();
 
 		/** Bottom-Silk-Pin */
-		bspinNodes[0] = PrimitiveNode.newInstance("Bottom-Silk-Pin", this, 1.25, 1.25, null,
+		bspinNodes[0] = PrimitiveNode.newInstance0("Bottom-Silk-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(B_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -690,7 +690,7 @@ public class PCB extends Technology
 		bspinNodes[0].setSquare();
 
 		/** Top-Solder-Pin */
-		tspinNodes[1] = PrimitiveNode.newInstance("Top-Solder-Pin", this, 1.25, 1.25, null,
+		tspinNodes[1] = PrimitiveNode.newInstance0("Top-Solder-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(T0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -705,7 +705,7 @@ public class PCB extends Technology
 		tspinNodes[1].setSquare();
 
 		/** Bottom-Solder-Pin */
-		bspinNodes[1] = PrimitiveNode.newInstance("Bottom-Solder-Pin", this, 1.25, 1.25, null,
+		bspinNodes[1] = PrimitiveNode.newInstance0("Bottom-Solder-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(B0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -720,7 +720,7 @@ public class PCB extends Technology
 		bspinNodes[1].setSquare();
 
 		/** Drill-Pin */
-		PrimitiveNode dp_node = PrimitiveNode.newInstance("Drill-Pin", this, 1.25, 1.25, null,
+		PrimitiveNode dp_node = PrimitiveNode.newInstance0("Drill-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -735,7 +735,7 @@ public class PCB extends Technology
 		dp_node.setSquare();
 
 		/** NonPlated-Drill-Pin */
-		PrimitiveNode ndp_node = PrimitiveNode.newInstance("NonPlated-Drill-Pin", this, 1.25, 1.25, null,
+		PrimitiveNode ndp_node = PrimitiveNode.newInstance0("NonPlated-Drill-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
@@ -750,7 +750,7 @@ public class PCB extends Technology
 		ndp_node.setSquare();
 
 		/** Engineering-Drawing-Pin */
-		PrimitiveNode edp_node = PrimitiveNode.newInstance("Engineering-Drawing-Pin", this, 1.25, 1.25, null,
+		PrimitiveNode edp_node = PrimitiveNode.newInstance0("Engineering-Drawing-Pin", this, 1.25, 1.25, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)

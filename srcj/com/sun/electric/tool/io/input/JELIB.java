@@ -30,7 +30,6 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -41,7 +40,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -98,7 +96,7 @@ public class JELIB extends LibraryFiles
         Technology.SizeCorrector getSizeCorrector(Technology tech) {
             Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
             if (corrector == null) {
-                corrector = tech.getSizeCorrector(version, projectSettings, true);
+                corrector = tech.getSizeCorrector(version, projectSettings, true, false);
                 sizeCorrectors.put(tech, corrector);
             }
             return corrector;
@@ -879,18 +877,12 @@ public class JELIB extends LibraryFiles
 			if (firstChar == 'N' || cc.revision < 1)
 			{
 				double wid = TextUtils.atof(pieces.get(5));
-				if (wid < 0 || wid == 0 && 1/wid < 0) {
-                    if (cc.revision >= 1)
-    					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-        					", Negative width " + pieces.get(5) + " of cell instance", cell, -1);
+				if (cc.revision < 1 && (wid < 0 || wid == 0 && 1/wid < 0)) {
                     flipX = true;
                     wid = -wid;
                 }
 				double hei = TextUtils.atof(pieces.get(6));
-				if (hei < 0 || hei == 0 && 1/hei < 0) {
-                    if (cc.revision >= 1)
-    					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-        					", Negative height " + pieces.get(5) + " of cell instance", cell, -1);
+				if (cc.revision < 1 && (hei < 0 || hei == 0 && 1/hei < 0)) {
                     flipY = true;
                     hei = -hei;
                 }
@@ -1008,20 +1000,20 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
-            if (np instanceof PrimitiveNode) {
-                PrimitiveNode pn = (PrimitiveNode)np;
-                PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
-                if (nodeSizeRule != null) {
-                    if (size.getLambdaX() < nodeSizeRule.getWidth()) {
-                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " width is less than minimum by " +
-                                (nodeSizeRule.getWidth() - size.getLambdaX()), ni, cell, null, 2);
-                    }
-                    if (size.getLambdaY() < nodeSizeRule.getHeight()) {
-                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " height is less than minimum by " +
-                                (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
-                    }
-                }
-            }
+//            if (np instanceof PrimitiveNode) {
+//                PrimitiveNode pn = (PrimitiveNode)np;
+//                PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
+//                if (nodeSizeRule != null) {
+//                    if (size.getLambdaX() < nodeSizeRule.getWidth()) {
+//                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " width is less than minimum by " +
+//                                (nodeSizeRule.getWidth() - size.getLambdaX()), ni, cell, null, 2);
+//                    }
+//                    if (size.getLambdaY() < nodeSizeRule.getHeight()) {
+//                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " height is less than minimum by " +
+//                                (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
+//                    }
+//                }
+//            }
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
@@ -1254,9 +1246,9 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create arc " + protoName, geomList, null, cell, 2);
 				continue;
 			}
-            if (gridExtendOverMin < 0) {
-				Input.errorLogger.logError(" (" + cell + ") arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
-            }
+//            if (gridExtendOverMin < 0) {
+//				Input.errorLogger.logWarning(" (" + cell + ") arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
+//            }
 
 			// add variables in fields 13 and up
 			Variable[] vars = readVariables(cc.revision, ai, pieces, 13, cc.fileName, cc.lineNumber + line);

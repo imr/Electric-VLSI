@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (6/6/07, DN) Preferences saves not absolute arc/node default size, but differences to
+    "min width" sizes.
+
+IMP: (6/6/07, DN) Preparation for change in JELIB format which occurs since 8.05o .
+
+BUG: (6/6/07, DN) TecEdit regressions fails.
+FIX: In LibToTech.makeTech construct new technology using Xml .
+
 BUG: (6/6/07, SMR) Cannot bind to "[" and other special keys.
 FIX: In the array KeyStrokePair.specialKeyStrokes, added more special cases.
 

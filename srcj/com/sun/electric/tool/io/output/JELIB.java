@@ -751,7 +751,7 @@ public class JELIB extends Output {
     private Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(version, projectSettings, true);
+            corrector = tech.getSizeCorrector(version, projectSettings, true, false);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;

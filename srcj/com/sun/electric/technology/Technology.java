@@ -641,18 +641,14 @@ public class Technology implements Comparable<Technology>
                 }
                 for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
                     PrimitiveNode pn = nodes.get(xpn.name);
-                    EPoint elibCorrection = null;
                     EPoint correction = EPoint.ORIGIN;
-                    if (!xpn.diskOffset.isEmpty()) {
-                        elibCorrection = xpn.diskOffset.values().iterator().next();
-                        for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
-                            if (techVersion < e.getKey()) {
-                                correction = e.getValue();
-                                break;
-                            }
+                    for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
+                        if (techVersion < e.getKey()) {
+                            correction = e.getValue();
+                            break;
                         }
-                        correction = EPoint.fromGrid(correction.getGridX() - elibCorrection.getGridX(), correction.getGridY() - elibCorrection.getGridY());
                     }
+                    correction = EPoint.fromGrid(correction.getGridX() + pn.sizeCorrector.getGridX(), correction.getGridY() + pn.sizeCorrector.getGridY());
                     nodeExtends.put(pn, correction);
                 }
                 for (Xml.Layer l: xmlTech.layers) {
@@ -662,12 +658,15 @@ public class Technology implements Comparable<Technology>
                 }
             } else {
                 boolean oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
+                boolean newestRevision = isJelib && version.compareTo(Version.parseVersion("8.05o")) >= 0;
                 for (ArcProto ap: arcs.values()) {
-                    arcExtends.put(ap, Integer.valueOf(oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
+                    arcExtends.put(ap, Integer.valueOf(newestRevision ? 0 : oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
                 }
                 for (PrimitiveNode pn: nodes.values()) {
                     EPoint correction = EPoint.ORIGIN;
-                    if (!oldRevision) {
+                    if (newestRevision) {
+                        correction = pn.sizeCorrector;
+                    } else if (!oldRevision) {
                         SizeOffset so = pn.getProtoSizeOffset();
                         correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()), -0.5*(so.getLowYOffset() + so.getHighYOffset()));
                     }
@@ -699,10 +698,20 @@ public class Technology implements Comparable<Technology>
         }
     }
     
-    public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib) {
+    public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib, boolean keepExtendOverMin) {
         return new SizeCorrector(version, isJelib);
     }
 
+    protected void setArcCorrection(SizeCorrector sc, String arcName, double lambdaBaseWidth) {
+        ArcProto ap = findArcProto(arcName);
+        Integer correction = sc.arcExtends.get(ap);
+        int gridBaseExtend = (int)DBMath.lambdaToGrid(0.5*lambdaBaseWidth);
+        if (gridBaseExtend != ap.getGridBaseExtend()) {
+            correction = Integer.valueOf(correction.intValue() + gridBaseExtend - ap.getGridBaseExtend());
+            sc.arcExtends.put(ap, correction);
+        }
+    }
+    
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
 	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;
@@ -879,15 +888,8 @@ public class Technology implements Comparable<Technology>
                 arcLayers[i] = new ArcLayer(layers.get(al.layer), layerWidthOffset, al.style);
             }
             assert minGridExtend >= 0 && minGridExtend == DBMath.lambdaToGrid(a.arcLayers.get(0).extend.value);
-            double defaultWidth = a.defaultWidth.value + DBMath.gridToLambda(2*maxGridExtend);
-//    		ArcProto ap = newArcProto(a.name, widthOffset, a.defaultWidth.value + widthOffset, a.function, arcLayers);
-            
-            // check the arguments
-            if (defaultWidth < DBMath.gridToLambda(2*maxGridExtend)) {
-                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has negative width");
-                continue;
-            }
-            ArcProto ap = new ArcProto(this, a.name, (int)DBMath.lambdaToSizeGrid(widthOffset)/2, (int)minGridExtend, a.defaultWidth.value + widthOffset, a.function, arcLayers, arcs.size());
+            long gridExtendOverMin = DBMath.lambdaToGrid(0.5*a.defaultWidth.value);
+            ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToSizeGrid(widthOffset)/2, minGridExtend, gridExtendOverMin, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
             addArcProto(ap);
             
@@ -951,7 +953,7 @@ public class Technology implements Comparable<Technology>
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
             }
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this,
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, EPoint.fromGrid(-correction.getGridX(), -correction.getGridY()),
                     DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()), DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), n.sizeOffset,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
@@ -1291,31 +1293,11 @@ public class Technology implements Comparable<Technology>
 	 * Calls the technology's specific "init()" method (if any).
 	 * Also sets up mappings from pseudo-layers to real layers.
 	 */
-	protected void setup()
+	public void setup()
 	{
 		// do any specific intialization
 		init();
 
-//		// setup mapping from pseudo-layers to real layers
-//		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
-//		{
-//			Layer layer = it.next();
-//			if (!layer.isPseudoLayer()) continue;
-//			Layer.Function fun = layer.getFunction();
-//			int extras = layer.getFunctionExtras() & ~Layer.Function.PSEUDO;
-//			for(Iterator<Layer> oIt = this.getLayers(); oIt.hasNext(); )
-//			{
-//				Layer oLayer = oIt.next();
-//				int oExtras = oLayer.getFunctionExtras();
-//				Layer.Function oFun = oLayer.getFunction();
-//				if (oFun == fun && oExtras == extras)
-//				{
-//					layer.setNonPseudoLayer(oLayer);
-//					break;
-//				}
-//			}
-//        }
-        
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
         }
@@ -1362,52 +1344,52 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void init()
 	{
-		// remember the arc widths as specified by previous defaults
-		HashMap<ArcProto,Double> arcWidths = new HashMap<ArcProto,Double>();
-		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			double width = ap.getDefaultLambdaBaseWidth();
-//			double width = ap.getDefaultLambdaFullWidth();
-			arcWidths.put(ap, width); // autoboxing
-		}
-
-		// remember the node sizes as specified by previous defaults
-		HashMap<PrimitiveNode,Point2D.Double> nodeSizes = new HashMap<PrimitiveNode,Point2D.Double>();
-		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-			double width = np.getDefWidth();
-			double height = np.getDefHeight();
-			nodeSizes.put(np, new Point2D.Double(width, height));
-		}
+//		// remember the arc widths as specified by previous defaults
+//		HashMap<ArcProto,Double> arcWidths = new HashMap<ArcProto,Double>();
+//		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+//		{
+//			ArcProto ap = it.next();
+//			double width = ap.getDefaultLambdaBaseWidth();
+////			double width = ap.getDefaultLambdaFullWidth();
+//			arcWidths.put(ap, width); // autoboxing
+//		}
+//
+//		// remember the node sizes as specified by previous defaults
+//		HashMap<PrimitiveNode,Point2D.Double> nodeSizes = new HashMap<PrimitiveNode,Point2D.Double>();
+//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+//		{
+//			PrimitiveNode np = it.next();
+//			double width = np.getDefWidth();
+//			double height = np.getDefHeight();
+//			nodeSizes.put(np, new Point2D.Double(width, height));
+//		}
 
 		// initialize all design rules in the technology (overwrites arc widths)
 		setState();
 
-		// now restore arc width defaults if they are wider than what is set
-		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			Double origWidth = arcWidths.get(ap);
-			if (origWidth == null) continue;
-			double width = ap.getDefaultLambdaBaseWidth();
-			if (origWidth > width) ap.setDefaultLambdaBaseWidth(origWidth); //autoboxing
-//			double width = ap.getDefaultLambdaFullWidth();
-//			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
-		}
-
-		// now restore node size defaults if they are larger than what is set
-		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-			Point2D size = nodeSizes.get(np);
-			if (size == null) continue;
-			double width = np.getDefWidth();
-			double height = np.getDefHeight();
-			if (size.getX() > width || size.getY() > height)
-                np.setDefSize(size.getX(), size.getY());
-		}
+//		// now restore arc width defaults if they are wider than what is set
+//		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+//		{
+//			ArcProto ap = it.next();
+//			Double origWidth = arcWidths.get(ap);
+//			if (origWidth == null) continue;
+//			double width = ap.getDefaultLambdaBaseWidth();
+//			if (origWidth > width) ap.setDefaultLambdaBaseWidth(origWidth); //autoboxing
+////			double width = ap.getDefaultLambdaFullWidth();
+////			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
+//		}
+//
+//		// now restore node size defaults if they are larger than what is set
+//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+//		{
+//			PrimitiveNode np = it.next();
+//			Point2D size = nodeSizes.get(np);
+//			if (size == null) continue;
+//			double width = np.getDefWidth();
+//			double height = np.getDefHeight();
+//			if (size.getX() > width || size.getY() > height)
+//                np.setDefSize(size.getX(), size.getY());
+//		}
 	}
 
 	/**
@@ -1911,34 +1893,9 @@ public class Technology implements Comparable<Technology>
 			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has negative width");
 			return null;
 		}
-
-		ArcProto ap = new ArcProto(this, protoName, (int)gridWidthOffset/2, 0, defaultWidth, function, layers, arcs.size());
-		addArcProto(ap);
-		return ap;
-	}
-
-	protected ArcProto newArcProto_(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, Technology.ArcLayer... layers)
-	{
-		// check the arguments
-		if (findArcProto(protoName) != null)
-		{
-			System.out.println("Error: technology " + getTechName() + " has multiple arcs named " + protoName);
-			return null;
-		}
-        long gridWidthOffset = DBMath.lambdaToSizeGrid(lambdaWidthOffset);
-		if (gridWidthOffset < 0 || gridWidthOffset > Integer.MAX_VALUE)
-		{
-			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has invalid width offset " + lambdaWidthOffset);
-			return null;
-		}
-		if (defaultWidth < DBMath.gridToLambda(gridWidthOffset))
-		{
-			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has negative width");
-			return null;
-		}
         long defaultGridWidth = DBMath.lambdaToSizeGrid(defaultWidth);
 
-		ArcProto ap = new ArcProto(this, protoName, (int)defaultGridWidth/2, (int)(defaultGridWidth - gridWidthOffset)/2, defaultWidth, function, layers, arcs.size());
+		ArcProto ap = new ArcProto(this, protoName, defaultGridWidth/2, (defaultGridWidth - gridWidthOffset)/2, 0, function, layers, arcs.size());
 		addArcProto(ap);
 		return ap;
 	}

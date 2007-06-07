@@ -37,6 +37,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
@@ -143,40 +144,40 @@ public class LibToTech
 		dialog.setVisible(true);
 	}
 
-	private static class SoftTech extends Technology
-	{
-		private SoftTech(String name, String foundryName, int numMetals)
-		{
-			super(name, Foundry.Type.valueOf(foundryName), numMetals);
-			setNoNegatedArcs();
-		}
-
-        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, ArcInfo.LayerDetails [] ad) {
-			ArcLayer [] arcLayers = new ArcLayer[ad.length];
-			for(int j=0; j<ad.length; j++)
-				arcLayers[j] = new ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
-            return newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, arcLayers);
-        }
-        
-        private void setTheScale(double scale)
-		{
-			setFactoryScale(scale, true);
-		}
-
-        protected void setTechShortName(String techShortName)
-		{
-			super.setTechShortName(techShortName);
-		}
-
-		private void setTransparentColors(Color [] colors)
-		{
-			setFactoryTransparentLayers(colors);
-		}
-        
-        protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
-            super.newFoundry(mode, fileURL, gdsLayers);
-        }
-	}
+//	private static class SoftTech extends Technology
+//	{
+//		private SoftTech(String name, String foundryName, int numMetals)
+//		{
+//			super(name, Foundry.Type.valueOf(foundryName), numMetals);
+//			setNoNegatedArcs();
+//		}
+//
+//        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, ArcInfo.LayerDetails [] ad) {
+//			ArcLayer [] arcLayers = new ArcLayer[ad.length];
+//			for(int j=0; j<ad.length; j++)
+//				arcLayers[j] = new ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
+//            return newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, arcLayers);
+//        }
+//        
+//        private void setTheScale(double scale)
+//		{
+//			setFactoryScale(scale, true);
+//		}
+//
+//        protected void setTechShortName(String techShortName)
+//		{
+//			super.setTechShortName(techShortName);
+//		}
+//
+//		private void setTransparentColors(Color [] colors)
+//		{
+//			setFactoryTransparentLayers(colors);
+//		}
+//        
+//        protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
+//            super.newFoundry(mode, fileURL, gdsLayers);
+//        }
+//	}
 
 	/**
 	 * Class to create a technology-library from a technology (in a Job).
@@ -225,9 +226,6 @@ public class LibToTech
 		// get list of dependent libraries
 		Library [] dependentLibs = Info.getDependentLibraries(lib);
 
-		// initialize the state of this technology
-//		us_tecflags = 0;
-
 		// get general information from the "factors" cell
 		Cell np = null;
 		for(int i=dependentLibs.length-1; i>=0; i--)
@@ -254,140 +252,8 @@ public class LibToTech
 		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
 		if (nList == null) return null;
 
-		// create the technology
-		SoftTech tech = new SoftTech(newTechName, gi.defaultFoundry, gi.defaultNumMetals);
-        tech.setTechShortName(gi.shortName);
-		tech.setTheScale(gi.scale);
-		tech.setTechDesc(gi.description);
-        tech.setFactoryParasitics(gi.minRes, gi.minCap);
-//		tech.setMinResistance(gi.minRes);
-//		tech.setMinCapacitance(gi.minCap);
-        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-        changeBatch.add(tech.getMaxSeriesResistanceSetting(), Double.valueOf(gi.maxSeriesResistance));
-        changeBatch.add(tech.getGateLengthSubtractionSetting(), Double.valueOf(gi.gateShrinkage));
-		changeBatch.add(tech.getGateIncludedSetting(), Boolean.valueOf(gi.includeGateInResistance));
-		changeBatch.add(tech.getGroundNetIncludedSetting(), Boolean.valueOf(gi.includeGround));
-//		tech.setGateLengthSubtraction(gi.gateShrinkage);
-//		tech.setGateIncluded(gi.includeGateInResistance);
-//		tech.setGroundNetIncluded(gi.includeGround);
-		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
-
-		// create the layers
-        String[] gdsLayers = new String[lList.length];
-		for(int i=0; i<lList.length; i++)
-		{
-            LayerInfo li = lList[i];
-			Layer lay = Layer.newInstance(tech, li.name, li.desc);
-			lay.setFunction(li.fun, li.funExtra, li.pseudo);
-			lay.setFactoryCIFLayer(li.cif);
-            gdsLayers[i] = li.name + " " + li.gds;
-//            mosis.setGDSLayer(lay, li.gds);
-            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiECap);
-//			lay.setResistance(li.spiRes);
-//			lay.setCapacitance(li.spiCap);
-//			lay.setEdgeCapacitance(li.spiECap);
-			lay.setDistance(li.height3d);
-			lay.setThickness(li.thick3d);
-			li.generated = lay;
-		}
-        
-        tech.newFoundry(Foundry.Type.MOSIS, null, gdsLayers);
-        
-        Setting.implementSettingChanges(changeBatch);
-        
-		// create the arcs
-		for(int i=0; i<aList.length; i++)
-		{
-			ArcInfo.LayerDetails [] ad = aList[i].arcDetails;
-			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, ad);
-			newArc.setFactoryFixedAngle(aList[i].fixAng);
-			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
-			newArc.setFactoryAngleIncrement(aList[i].angInc);
-			newArc.setFactoryExtended(!aList[i].noExtend);
-            if (aList[i].curvable) newArc.setCurvable();
-			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
-			aList[i].generated = newArc;
-		}
-
-		// create the nodes
-		for(int i=0; i<nList.length; i++)
-		{
-			NodeInfo.LayerDetails [] nd = nList[i].nodeLayers;
-			Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[nd.length];
-			for(int j=0; j<nd.length; j++)
-			{
-				LayerInfo li = nd[j].layer;
-				Layer lay = li.generated;
-				Technology.TechPoint [] points = nd[j].values;
-				if (nd[j].representation == Technology.NodeLayer.MULTICUTBOX)
-				{
-					nodeLayers[j] = Technology.NodeLayer.makeMulticut(lay, nd[j].portIndex, nd[j].style, points,
-						nd[j].multiXS, nd[j].multiYS, nd[j].multiSep, nd[j].multiSep2D);
-				} else if (nList[i].specialType == PrimitiveNode.SERPTRANS)
-				{
-					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
-						nd[j].lWidth, nd[j].rWidth, nd[j].extendB, nd[j].extendT);
-				} else
-				{
-					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points);
-				}
-			}
-			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
-			nList[i].generated = prim;
-			prim.setFunction(nList[i].func);
-			if (nList[i].wipes) prim.setWipeOn1or2();
-			if (nList[i].square) prim.setSquare();
-			if (nList[i].lockable) prim.setLockedPrim();
-
-			// add special information if present
-			switch (nList[i].specialType)
-			{
-				case PrimitiveNode.SERPTRANS:
-					prim.setHoldsOutline();
-					prim.setCanShrink();
-					prim.setSpecialValues(nList[i].specialValues);
-					prim.setSpecialType(nList[i].specialType);
-					break;
-//				case PrimitiveNode.MULTICUT:
-//					prim.setSpecialValues(nList[i].specialValues);
-//					prim.setSpecialType(nList[i].specialType);
-//					break;
-				case PrimitiveNode.POLYGONAL:
-					prim.setHoldsOutline();
-					prim.setSpecialType(nList[i].specialType);
-					break;
-			}
-
-			// analyze special node function circumstances
-			if (nList[i].func == PrimitiveNode.Function.NODE)
-			{
-				prim.setHoldsOutline();
-			} else if (nList[i].func == PrimitiveNode.Function.PIN)
-			{
-				if (!prim.isWipeOn1or2())
-				{
-					prim.setArcsWipe();
-					prim.setArcsShrink();
-					nList[i].arcsShrink = true;
-				}
-			}
-
-			int numPorts = nList[i].nodePortDetails.length;
-			PrimitivePort [] portList = new PrimitivePort[numPorts];
-			for(int j=0; j<numPorts; j++)
-			{
-				NodeInfo.PortDetails portDetail = nList[i].nodePortDetails[j];
-				int numConns = portDetail.connections.length;
-				ArcProto [] cons = new ArcProto[numConns];
-				for(int k=0; k<numConns; k++)
-					cons[k] = portDetail.connections[k].generated;
-				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name,
-					portDetail.angle, portDetail.range, portDetail.netIndex, PortCharacteristic.UNKNOWN,
-					portDetail.values[0].getX(), portDetail.values[0].getY(),
-					portDetail.values[1].getX(), portDetail.values[1].getY());
-			}
-			prim.addPrimitivePorts(portList);
-		}
+		for(NodeInfo ni: nList)
+			ni.arcsShrink = ni.func == PrimitiveNode.Function.PIN && !ni.wipes;
 
 		// create the pure-layer associations
 		for(int i=0; i<lList.length; i++)
@@ -401,36 +267,250 @@ public class LibToTech
 				NodeInfo.LayerDetails nld = nList[j].nodeLayers[0];
 				if (nld.layer == lList[i])
 				{
-					lList[i].generated.setPureLayerNode(nList[j].generated);
 					lList[i].pureLayerNode = nList[j];
 					break;
 				}
 			}
 		}
 
-		// setup the generic technology to handle all connections
-		Generic.tech.makeUnivList();
-
-		// check technology for consistency
-		checkAndWarn(lList, aList, nList);
-
+        Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
         if (fileName != null)
-        	LibToTech.writeXml(fileName, newTechName, gi, lList, nList, aList);
-//            dumpToJava(fileName, newTechName, gi, lList, nList, aList);
-
-//		// finish initializing the technology
-//		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
-//		{
-//			us_tecvariables[0].name = x_("prototype_center");
-//			us_tecvariables[0].value = (CHAR *)us_tecnode_grab;
-//			us_tecvariables[0].type = us_tecnode_grabcount/3;
-//		}
-
+            t.writeXml(fileName);
+        Technology tech = new Technology(t);
+        tech.setup();
+        
 		// switch to this technology
 		System.out.println("Technology " + tech.getTechName() + " built.");
 		WindowFrame.updateTechnologyLists();
 		return tech;
-	}
+    }
+    
+//	public static Technology makeTech(String newName, String fileName)
+//	{
+//		Library lib = Library.getCurrent();
+//
+//		// get a new name for the technology
+//		String newTechName = newName;
+//		boolean modified = false;
+//		for(;;)
+//		{
+//			// search by hand because "gettechnology" handles partial matches
+//			if (Technology.findTechnology(newTechName) == null) break;
+//			newTechName += "X";
+//			modified = true;
+//		}
+//		if (modified)
+//			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newTechName);
+//
+//		// get list of dependent libraries
+//		Library [] dependentLibs = Info.getDependentLibraries(lib);
+//
+//		// initialize the state of this technology
+////		us_tecflags = 0;
+//
+//		// get general information from the "factors" cell
+//		Cell np = null;
+//		for(int i=dependentLibs.length-1; i>=0; i--)
+//		{
+//			np = dependentLibs[i].findNodeProto("factors");
+//			if (np != null) break;
+//		}
+//		if (np == null)
+//		{
+//			System.out.println("Cell with general information, called 'factors', is missing");
+//			return null;
+//		}
+//		GeneralInfo gi = GeneralInfo.parseCell(np);
+//
+//		// get layer information
+//		LayerInfo [] lList = extractLayers(dependentLibs);
+//		if (lList == null) return null;
+//
+//		// get arc information
+//		ArcInfo [] aList = extractArcs(dependentLibs, lList);
+//		if (aList == null) return null;
+//
+//		// get node information
+//		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
+//		if (nList == null) return null;
+//
+//		// create the technology
+//		SoftTech tech = new SoftTech(newTechName, gi.defaultFoundry, gi.defaultNumMetals);
+//        tech.setTechShortName(gi.shortName);
+//		tech.setTheScale(gi.scale);
+//		tech.setTechDesc(gi.description);
+//        tech.setFactoryParasitics(gi.minRes, gi.minCap);
+////		tech.setMinResistance(gi.minRes);
+////		tech.setMinCapacitance(gi.minCap);
+//        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+//        changeBatch.add(tech.getMaxSeriesResistanceSetting(), Double.valueOf(gi.maxSeriesResistance));
+//        changeBatch.add(tech.getGateLengthSubtractionSetting(), Double.valueOf(gi.gateShrinkage));
+//		changeBatch.add(tech.getGateIncludedSetting(), Boolean.valueOf(gi.includeGateInResistance));
+//		changeBatch.add(tech.getGroundNetIncludedSetting(), Boolean.valueOf(gi.includeGround));
+////		tech.setGateLengthSubtraction(gi.gateShrinkage);
+////		tech.setGateIncluded(gi.includeGateInResistance);
+////		tech.setGroundNetIncluded(gi.includeGround);
+//		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
+//
+//		// create the layers
+//        String[] gdsLayers = new String[lList.length];
+//		for(int i=0; i<lList.length; i++)
+//		{
+//            LayerInfo li = lList[i];
+//			Layer lay = Layer.newInstance(tech, li.name, li.desc);
+//			lay.setFunction(li.fun, li.funExtra, li.pseudo);
+//			lay.setFactoryCIFLayer(li.cif);
+//            gdsLayers[i] = li.name + " " + li.gds;
+////            mosis.setGDSLayer(lay, li.gds);
+//            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiECap);
+////			lay.setResistance(li.spiRes);
+////			lay.setCapacitance(li.spiCap);
+////			lay.setEdgeCapacitance(li.spiECap);
+//			lay.setDistance(li.height3d);
+//			lay.setThickness(li.thick3d);
+//			li.generated = lay;
+//		}
+//        
+//        tech.newFoundry(Foundry.Type.MOSIS, null, gdsLayers);
+//        
+//        Setting.implementSettingChanges(changeBatch);
+//        
+//		// create the arcs
+//		for(int i=0; i<aList.length; i++)
+//		{
+//			ArcInfo.LayerDetails [] ad = aList[i].arcDetails;
+//			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, ad);
+//			newArc.setFactoryFixedAngle(aList[i].fixAng);
+//			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
+//			newArc.setFactoryAngleIncrement(aList[i].angInc);
+//			newArc.setFactoryExtended(!aList[i].noExtend);
+//            if (aList[i].curvable) newArc.setCurvable();
+//			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
+//			aList[i].generated = newArc;
+//		}
+//
+//		// create the nodes
+//		for(int i=0; i<nList.length; i++)
+//		{
+//			NodeInfo.LayerDetails [] nd = nList[i].nodeLayers;
+//			Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[nd.length];
+//			for(int j=0; j<nd.length; j++)
+//			{
+//				LayerInfo li = nd[j].layer;
+//				Layer lay = li.generated;
+//				Technology.TechPoint [] points = nd[j].values;
+//				if (nd[j].representation == Technology.NodeLayer.MULTICUTBOX)
+//				{
+//					nodeLayers[j] = Technology.NodeLayer.makeMulticut(lay, nd[j].portIndex, nd[j].style, points,
+//						nd[j].multiXS, nd[j].multiYS, nd[j].multiSep, nd[j].multiSep2D);
+//				} else if (nList[i].specialType == PrimitiveNode.SERPTRANS)
+//				{
+//					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
+//						nd[j].lWidth, nd[j].rWidth, nd[j].extendB, nd[j].extendT);
+//				} else
+//				{
+//					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points);
+//				}
+//			}
+//			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
+//			nList[i].generated = prim;
+//			prim.setFunction(nList[i].func);
+//			if (nList[i].wipes) prim.setWipeOn1or2();
+//			if (nList[i].square) prim.setSquare();
+//			if (nList[i].lockable) prim.setLockedPrim();
+//
+//			// add special information if present
+//			switch (nList[i].specialType)
+//			{
+//				case PrimitiveNode.SERPTRANS:
+//					prim.setHoldsOutline();
+//					prim.setCanShrink();
+//					prim.setSpecialValues(nList[i].specialValues);
+//					prim.setSpecialType(nList[i].specialType);
+//					break;
+////				case PrimitiveNode.MULTICUT:
+////					prim.setSpecialValues(nList[i].specialValues);
+////					prim.setSpecialType(nList[i].specialType);
+////					break;
+//				case PrimitiveNode.POLYGONAL:
+//					prim.setHoldsOutline();
+//					prim.setSpecialType(nList[i].specialType);
+//					break;
+//			}
+//
+//			// analyze special node function circumstances
+//			if (nList[i].func == PrimitiveNode.Function.NODE)
+//			{
+//				prim.setHoldsOutline();
+//			} else if (nList[i].func == PrimitiveNode.Function.PIN)
+//			{
+//				if (!prim.isWipeOn1or2())
+//				{
+//					prim.setArcsWipe();
+//					prim.setArcsShrink();
+//					nList[i].arcsShrink = true;
+//				}
+//			}
+//
+//			int numPorts = nList[i].nodePortDetails.length;
+//			PrimitivePort [] portList = new PrimitivePort[numPorts];
+//			for(int j=0; j<numPorts; j++)
+//			{
+//				NodeInfo.PortDetails portDetail = nList[i].nodePortDetails[j];
+//				int numConns = portDetail.connections.length;
+//				ArcProto [] cons = new ArcProto[numConns];
+//				for(int k=0; k<numConns; k++)
+//					cons[k] = portDetail.connections[k].generated;
+//				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name,
+//					portDetail.angle, portDetail.range, portDetail.netIndex, PortCharacteristic.UNKNOWN,
+//					portDetail.values[0].getX(), portDetail.values[0].getY(),
+//					portDetail.values[1].getX(), portDetail.values[1].getY());
+//			}
+//			prim.addPrimitivePorts(portList);
+//		}
+//
+//		// create the pure-layer associations
+//		for(int i=0; i<lList.length; i++)
+//		{
+//			if (lList[i].pseudo) continue;
+//
+//			// find the pure layer node
+//			for(int j=0; j<nList.length; j++)
+//			{
+//				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
+//				NodeInfo.LayerDetails nld = nList[j].nodeLayers[0];
+//				if (nld.layer == lList[i])
+//				{
+//					lList[i].generated.setPureLayerNode(nList[j].generated);
+//					lList[i].pureLayerNode = nList[j];
+//					break;
+//				}
+//			}
+//		}
+//
+//		// setup the generic technology to handle all connections
+//		Generic.tech.makeUnivList();
+//
+//		// check technology for consistency
+//		checkAndWarn(lList, aList, nList);
+//
+//        if (fileName != null)
+//        	LibToTech.writeXml(fileName, newTechName, gi, lList, nList, aList);
+////            dumpToJava(fileName, newTechName, gi, lList, nList, aList);
+//
+////		// finish initializing the technology
+////		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
+////		{
+////			us_tecvariables[0].name = x_("prototype_center");
+////			us_tecvariables[0].value = (CHAR *)us_tecnode_grab;
+////			us_tecvariables[0].type = us_tecnode_grabcount/3;
+////		}
+//
+//		// switch to this technology
+//		System.out.println("Technology " + tech.getTechName() + " built.");
+//		WindowFrame.updateTechnologyLists();
+//		return tech;
+//	}
 
 	/**
 	 * This class displays a dialog for converting a library to a technology.
@@ -3467,11 +3547,19 @@ public class LibToTech
         makeXml(newTechName, gi, lList, nList, aList).writeXml(fileName);
     }
     
-    private static Xml.Technology makeXml(String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+    static Xml.Technology makeXml(String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
         Xml.Technology t = new Xml.Technology();
         t.techName = newTechName;
         t.shortTechName = gi.shortName;
         t.description = gi.description;
+        Xml.Version version = new Xml.Version();
+        version.techVersion = 1;
+        version.electricVersion = Version.parseVersion("8.05g");
+        t.versions.add(version);
+        version = new Xml.Version();
+        version.techVersion = 2;
+        version.electricVersion = Version.parseVersion("8.05o");
+        t.versions.add(version);
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = gi.defaultNumMetals;
         t.scaleValue = gi.scale;
         t.scaleRelevant = gi.scaleRelevant;
@@ -3524,13 +3612,18 @@ public class LibToTech
             ap.fixedAngle = ai.fixAng;
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
-            ap.diskOffset.put(Integer.valueOf(1), 0.5*ai.widthOffset);
-            ap.defaultWidth.value = DBMath.round(ai.maxWidth - ai.widthOffset);
+            if (ai.widthOffset != 0) {
+                ap.diskOffset.put(Integer.valueOf(1), DBMath.round(0.5*ai.maxWidth));
+                ap.diskOffset.put(Integer.valueOf(2), DBMath.round(0.5*(ai.maxWidth - ai.widthOffset)));
+            } else {
+                ap.diskOffset.put(Integer.valueOf(2), DBMath.round(0.5*ai.maxWidth));
+            }
+            ap.defaultWidth.value = 0;
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;
                 l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
-                l.extend.value = DBMath.round(al.width/2);
+                l.extend.value = DBMath.round((ai.maxWidth - al.width)/2);
                 ap.arcLayers.add(l);
             }
             t.arcs.add(ap);
@@ -3556,29 +3649,26 @@ public class LibToTech
             pn.od18 = ni.od18;
             pn.od25 = ni.od25;
             pn.od33 = ni.od33;
-            pn.defaultWidth.value = DBMath.round(ni.xSize);
-            pn.defaultHeight.value = DBMath.round(ni.ySize);
-            pn.sizeOffset = ni.so;
+            EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
+            SizeOffset so = ni.so;
+            if (so != null && so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+                so = null;
+            if (so != null) {
+                EPoint p2 = EPoint.fromGrid(
+                        minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
+                        minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
+                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
+                pn.diskOffset.put(Integer.valueOf(2), p2);
+            } else {
+                pn.diskOffset.put(Integer.valueOf(2), minFullSize);
+            }
+//            pn.defaultWidth.value = DBMath.round(ni.xSize);
+//            pn.defaultHeight.value = DBMath.round(ni.ySize);
+            pn.sizeOffset = so;
             for(int j=0; j<ni.nodeLayers.length; j++) {
                 NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-                Xml.NodeLayer l = new Xml.NodeLayer();
-                l.layer = nl.layer.name;
-                l.style = nl.style;
-                l.portNum = nl.portIndex;
-                l.inLayers = nl.inLayers;
-                l.inElectricalLayers = nl.inElectricalLayers;
-                l.representation = nl.representation;
-                if (l.representation == Technology.NodeLayer.MULTICUTBOX) {
-                    l.sizex = nl.multiXS;
-                    l.sizey = nl.multiYS;
-                    l.sep1d = nl.multiSep;
-                    l.sep2d = nl.multiSep2D;
-                }
-                for (Technology.TechPoint tp: nl.values)
-                    l.techPoints.add(tp);
-                pn.nodeLayers.add(l);
+                pn.nodeLayers.add(makeNodeLayerDetails(nl, false, minFullSize, true, true));
             }
-            EPoint p1 = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
             for (int j = 0; j < ni.nodePortDetails.length; j++) {
                 NodeInfo.PortDetails pd = ni.nodePortDetails[j];
                 Xml.PrimitivePort pp = new Xml.PrimitivePort();
@@ -3593,13 +3683,13 @@ public class LibToTech
                 EdgeV top = pd.values[1].getY();
                 
                 pp.lx.k = left.getMultiplier()*2;
-                pp.lx.value = left.getAdder() + p1.getLambdaX()*left.getMultiplier()*2;
+                pp.lx.value = left.getAdder() + minFullSize.getLambdaX()*left.getMultiplier()*2;
                 pp.hx.k = right.getMultiplier()*2;
-                pp.hx.value = right.getAdder() + p1.getLambdaX()*right.getMultiplier()*2;
+                pp.hx.value = right.getAdder() + minFullSize.getLambdaX()*right.getMultiplier()*2;
                 pp.ly.k = bottom.getMultiplier()*2;
-                pp.ly.value = bottom.getAdder() + p1.getLambdaY()*bottom.getMultiplier()*2;
+                pp.ly.value = bottom.getAdder() + minFullSize.getLambdaY()*bottom.getMultiplier()*2;
                 pp.hy.k = top.getMultiplier()*2;
-                pp.hy.value = top.getAdder() + p1.getLambdaY()*top.getMultiplier()*2;
+                pp.hy.value = top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2;
                 
 //                pp.p0 = pd.values[0];
 //                pp.p1 = pd.values[1];
@@ -3654,6 +3744,49 @@ public class LibToTech
         t.foundries.add(foundry);
         
         return t;
+    }
+    
+    private static Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+        Xml.NodeLayer nld = new Xml.NodeLayer();
+        nld.layer = nl.layer.name;
+        nld.style = nl.style;
+        nld.portNum = nl.portIndex;
+        nld.inLayers = inLayers;
+        nld.inElectricalLayers = inElectricalLayers;
+        nld.representation = nl.representation;
+        Technology.TechPoint[] points = nl.values;
+        if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+            nld.lx.k = points[0].getX().getMultiplier()*2;
+            nld.lx.value = DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2);
+            nld.hx.k = points[1].getX().getMultiplier()*2;
+            nld.hx.value = DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2);
+            nld.ly.k = points[0].getY().getMultiplier()*2;
+            nld.ly.value = DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2);
+            nld.hy.k = points[1].getY().getMultiplier()*2;
+            nld.hy.value = DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2);
+        } else {
+            for (Technology.TechPoint p: points)
+                nld.techPoints.add(correction(p, correction));
+        }
+        nld.sizex = DBMath.round(nl.multiXS);
+        nld.sizey = DBMath.round(nl.multiYS);
+        nld.sep1d = DBMath.round(nl.multiSep);
+        nld.sep2d = DBMath.round(nl.multiSep2D);
+        if (isSerp) {
+            nld.lWidth = DBMath.round(nl.lWidth);
+            nld.rWidth = DBMath.round(nl.rWidth);
+            nld.tExtent = DBMath.round(nl.extendT);
+            nld.bExtent = DBMath.round(nl.extendB);
+        }
+        return nld;
+    }
+    
+    private static Technology.TechPoint correction(Technology.TechPoint p, EPoint correction) {
+        EdgeH h = p.getX();
+        EdgeV v = p.getY();
+        h = new EdgeH(h.getMultiplier(), h.getAdder() + correction.getLambdaX()*h.getMultiplier()*2);
+        v = new EdgeV(v.getMultiplier(), v.getAdder() + correction.getLambdaY()*v.getMultiplier()*2);
+        return new Technology.TechPoint(h, v);
     }
     
     private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {

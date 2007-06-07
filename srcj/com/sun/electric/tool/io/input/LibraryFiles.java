@@ -958,7 +958,7 @@ public abstract class LibraryFiles extends Input
     Technology.SizeCorrector getSizeCorrector(Technology tech) {
         Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(version, projectSettings, false);
+            corrector = tech.getSizeCorrector(version, projectSettings, false, false);
             sizeCorrectors.put(tech, corrector);
         }
         return corrector;
@@ -1101,18 +1101,18 @@ public abstract class LibraryFiles extends Input
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
                 center, size, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
         nil.theNode[nodeIndex] = ni;
-        if (proto instanceof PrimitiveNode) {
-            PrimitiveNode pn = (PrimitiveNode)proto;
-            PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
-            if (nodeSizeRule != null) {
-                if (size.getLambdaX() < nodeSizeRule.getWidth())
-                    Input.errorLogger.logError(" (" + parent + ") node " + ni.getName() + " width is less than minimum by " +
-                            (nodeSizeRule.getWidth() - size.getLambdaX()), ni, parent, null, 2);
-                if (size.getLambdaY() < nodeSizeRule.getHeight())
-                    Input.errorLogger.logError(" (" + parent + ") node " + ni.getName() + " height is less than minimum by " +
-                            (nodeSizeRule.getHeight() - size.getLambdaY()), ni, parent, null, 2);
-            }
-        }
+//        if (proto instanceof PrimitiveNode) {
+//            PrimitiveNode pn = (PrimitiveNode)proto;
+//            PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
+//            if (nodeSizeRule != null) {
+//                if (size.getLambdaX() < nodeSizeRule.getWidth())
+//                    Input.errorLogger.logWarning(" (" + parent + ") node " + ni.getName() + " width is less than minimum by " +
+//                            (nodeSizeRule.getWidth() - size.getLambdaX()), ni, parent, null, 2);
+//                if (size.getLambdaY() < nodeSizeRule.getHeight())
+//                    Input.errorLogger.logWarning(" (" + parent + ") node " + ni.getName() + " height is less than minimum by " +
+//                            (nodeSizeRule.getHeight() - size.getLambdaY()), ni, parent, null, 2);
+//            }
+//        }
         if (ni == null) return;
         Variable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
