@@ -694,7 +694,7 @@ public class Layer
 
 	/**
 	 * Method to make the Pure Layer Node associated with this Layer.
-	 * @param protoName the name of the PrimitiveNode.
+	 * @param nodeName the name of the PrimitiveNode.
 	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
 	 * @param size the width and the height of the PrimitiveNode.
      * @param style the Poly.Type this PrimitiveNode will generate (polygon, cross, etc.).
@@ -1151,7 +1151,7 @@ public class Layer
 	public double getResistance() { return resistanceSetting.getDouble(); }
 	/**
 	 * Returns project Setting to tell the resistance for this Layer.
-	 * @eturn project Setting to tell the resistance for this Layer.
+	 * @return project Setting to tell the resistance for this Layer.
 	 */
 	public Setting getResistanceSetting() { return resistanceSetting; }
 

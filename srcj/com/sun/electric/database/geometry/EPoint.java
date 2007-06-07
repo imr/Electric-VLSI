@@ -268,8 +268,8 @@ final public class EPoint extends Point2D implements Serializable {
     /**
      * Returns true if both coordinates of this EPoint are "small ints".
      * @return true if both coordinates of this EPoint are "small ints".
-     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
-     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     * @see com.sun.electric.database.geometry.GenMath#MIN_SMALL_COORD
+     * @see com.sun.electric.database.geometry.GenMath#MAX_SMALL_COORD
      */
     public boolean isSmall() {
         // ---------- Flat implementation

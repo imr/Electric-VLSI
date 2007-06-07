@@ -104,8 +104,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	/**
 	 * Private constructor of ArcInst.
-     * @param parent the parent Cell of this ArcInst
-     * @param d persistent data of ArcIInst
+     * @param topology the Topology of the ArcInst.
+     * @param d persistent data of ArcInst.
 	 * @param headPort the head end PortInst.
 	 * @param tailPort the tail end PortInst.
 	 */

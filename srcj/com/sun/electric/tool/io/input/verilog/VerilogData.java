@@ -79,7 +79,7 @@ public class VerilogData
         /**
          * Method to control if busses are converted into single pins or treated as bus in Electric.
          * For now, busses are converted into single pins. More memory is used though.
-         * @return
+         * @return the list of pin names.
          */
         abstract List<String> getPinNames();
         PortCharacteristic getPortType() {return null; } // not valid

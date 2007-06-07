@@ -182,7 +182,7 @@ public interface UserInterface
     /**
      * Method to start the display of a progress dialog.
      * @param msg the message to show in the progress dialog.
-     * @param the file being read (null if not reading a file).
+     * @param filePath the file being read (null if not reading a file).
      */
     public void startProgressDialog(String msg, String filePath);
 

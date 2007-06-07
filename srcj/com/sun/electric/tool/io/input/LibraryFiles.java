@@ -234,10 +234,7 @@ public abstract class LibraryFiles extends Input
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @param quick true to read the library without verbosity (used when reading a library internally).
-     * @param projectSettings project settings for reconcillation are returned to this map.
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Map<Setting,Object> readProjectsSettingsFromLibrary(URL fileURL, FileType type)

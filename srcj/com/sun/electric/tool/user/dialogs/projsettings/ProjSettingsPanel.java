@@ -75,7 +75,7 @@ public class ProjSettingsPanel extends EDialog
     /**
      * Method to get the boolean value on the Setting object.
      * The object must have been created as "boolean".
-     * @setting setting object.
+     * @param setting setting object.
      * @return the boolean value on the Setting object.
      */
     public boolean getBoolean(Setting setting) { return setting.getBoolean(getContext()); }
@@ -83,7 +83,7 @@ public class ProjSettingsPanel extends EDialog
     /**
      * Method to get the integer value on the Setting object.
      * The object must have been created as "integer".
-     * @setting setting object.
+     * @param setting setting object.
      * @return the integer value on the Setting object.
      */
     public int getInt(Setting setting) { return setting.getInt(getContext()); }
@@ -91,7 +91,7 @@ public class ProjSettingsPanel extends EDialog
     /**
      * Method to get the long value on the Setting object.
      * The object must have been created as "long".
-     * @setting setting object.
+     * @param setting setting object.
      * @return the long value on the Setting object.
      */
     public long getLong(Setting setting) { return setting.getLong(getContext()); }
@@ -99,7 +99,7 @@ public class ProjSettingsPanel extends EDialog
     /**
      * Method to get the double value on the Setting object.
      * The object must have been created as "double".
-     * @setting setting object.
+     * @param setting setting object.
      * @return the double value on the Setting object.
      */
     public double getDouble(Setting setting) { return setting.getDouble(getContext()); }

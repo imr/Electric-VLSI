@@ -375,8 +375,8 @@ public class ERectangle extends Rectangle2D implements Serializable {
     /**
      * Returns true if all coordinates of this EPoint are "small ints".
      * @return true if all coordinates of this EPoint are "small ints".
-     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
-     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     * @see com.sun.electric.database.geometry.GenMath#MIN_SMALL_COORD
+     * @see com.sun.electric.database.geometry.GenMath#MAX_SMALL_COORD
      */
     public boolean isSmall() { return isSmall; }
     

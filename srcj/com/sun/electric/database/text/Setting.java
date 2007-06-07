@@ -390,7 +390,7 @@ public class Setting {
     
 	/**
 	 * Method to get a list of projecy Settings assiciatiated with the given owner object.
-	 * @param ownerObj owner object
+	 * @param node owner object
 	 * @return a list of project Settings
 	 */
     public static List<Setting> getSettings(ProjSettingsNode node) {
@@ -556,7 +556,7 @@ public class Setting {
 	 * it is necessary to gather them on the client, and send
 	 * the changes to the server for actual change.
 	 * This method runs on the server.
-	 * @param obj the collection of project setting changes.
+	 * @param batch the collection of project setting changes.
 	 */
     public static void implementSettingChanges(SettingChangeBatch batch) {
         for (Map.Entry<String,Object> e: batch.changesForSettings.entrySet()) {

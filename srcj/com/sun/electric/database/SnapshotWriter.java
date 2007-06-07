@@ -343,7 +343,7 @@ public class SnapshotWriter {
     
     /**
      * Writes ERectangle.
-     * @param p ERectangle.
+     * @param r ERectangle.
      */
     public void writeRectangle(ERectangle r) throws IOException {
         writeCoord(r.getGridX());

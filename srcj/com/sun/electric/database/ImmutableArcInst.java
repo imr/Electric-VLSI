@@ -457,7 +457,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
     /**
      * Returns true if this ImmutableArcInst is either horizontal or vertical.
-     * @returns true if this ImmutableArcInst is either horizontal or vertical.
+     * @return true if this ImmutableArcInst is either horizontal or vertical.
      */
     public boolean isManhattan() {
         if (headLocation.getGridX() == tailLocation.getGridX()) {
@@ -904,7 +904,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     
     /**
      * Generate bounds of this ImmutableArcInst in easy case.
-     * @param m data to determine shrinkage.
+     * @param shrinkage data to determine shrinkage.
      * @param intCoords integer coords to fill.
      * @return true if bounds were generated.
      */
@@ -956,9 +956,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/**
 	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
 	 * The polygon is described by its width, and style.
-     * @param b shape builder.
-	 * @param gridWidth the gridWidth of the Poly.
-	 * @param style the style of the Poly.
 	 */
     public void makeGridBoxInt(int[] intCoords, boolean tailExtended, boolean headExtended, int gridExtend) {
         // make the box

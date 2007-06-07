@@ -1158,7 +1158,7 @@ public class GenMath
      * @param a the first number.
      * @param b the second number.
      * @param myEpsilon the given epsilon
-     * @return
+     * @return true if the values are close.
      */
     public static boolean doublesEqual(double a, double b, double myEpsilon)
     {
@@ -1552,12 +1552,10 @@ public class GenMath
      * equal to the value of <code>Long.MAX_VALUE</code>, the result is 
      * equal to the value of <code>Long.MAX_VALUE</code>.</ul> 
      *
-     * @param   a   a floating-point value to be rounded to a 
-     *		<code>long</code>.
-     * @return  the value of the argument rounded to the nearest
-     *          <code>long</code> value.
-     * @see     java.lang.Long#MAX_VALUE
-     * @see     java.lang.Long#MIN_VALUE
+     * @param x a floating-point value to be rounded to a <code>long</code>.
+     * @return the value of the argument rounded to the nearest <code>long</code> value.
+     * @see java.lang.Long#MAX_VALUE
+     * @see java.lang.Long#MIN_VALUE
      */
     public static long roundLong(double x) {
         return (long)(x >= 0 ? x + HALF : x - HALF);
@@ -1808,8 +1806,8 @@ public class GenMath
      * @param len positive vector length
      * @param angle the angle in tenth-degrees in range [0..3600).
      * @return vector packed in a long value.
-     * @see com.sun.electric.geometry.GenMath#getX
-     * @see com.sun.electric.geometry.GenMath#getY
+     * @see com.sun.electric.database.geometry.GenMath#getX(long)
+     * @see com.sun.electric.database.geometry.GenMath#getY(long)
      */
     public static long polarToXY(int len, int angle) {
         if (len == 0) return 0;
@@ -1873,20 +1871,20 @@ public class GenMath
      * @param x x-coordinate
      * @param y y-coordinate
      * @return a long value with a packed pair of coordinates.
-     * @see com.sun.electric.geometry.GenMath#getX
-     * @see com.sun.electric.geometry.GenMath#getY
+     * @see com.sun.electric.database.geometry.GenMath#getX(long)
+     * @see com.sun.electric.database.geometry.GenMath#getY(long)
      */
     public static long packXY(int x, int y) { return (x & 0xFFFFFFFFL) | ((long)(y)) << 32; }
     
     /**
      * Returns x coordinate packed in a long value by <code>packXY</code>.
-     * @see com.sun.electric.geometry.GenMath#packXY .
+     * @see com.sun.electric.database.geometry.GenMath#packXY(int, int)
      */
     public static int getX(long xy) { return (int)xy; }
     
     /**
      * Returns y coordinate packed in a long value by <code>packXY</code>.
-     * @see com.sun.electric.geometry.GenMath#packXY .
+     * @see com.sun.electric.database.geometry.GenMath#packXY(int, int)
      */
     public static int getY(long xy) { return (int)(xy >> 32); }
     

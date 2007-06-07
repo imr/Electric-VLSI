@@ -95,8 +95,8 @@ class ECoord implements Serializable {
     /**
      * Returns true if ECoord value in grid units is a "small int".
      * @return true if ECoord value in grid units is a "small int".
-     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
-     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_COORD
+     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_COORD
      */
     boolean isSmall() { return isSmall; }
     

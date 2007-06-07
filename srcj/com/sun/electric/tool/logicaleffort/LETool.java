@@ -1207,7 +1207,7 @@ public class LETool extends Tool {
 	public static double getKeeperRatio() { return tool.cacheKeeperRatio.getDouble(); }
 	/**
 	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
-	 * @eturn project Setting to tell the keeper size ratio for Logical Effort.
+	 * @return project Setting to tell the keeper size ratio for Logical Effort.
 	 */
 	public static Setting getKeeperRatioSetting() { return tool.cacheKeeperRatio; }
 

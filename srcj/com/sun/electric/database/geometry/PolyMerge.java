@@ -86,9 +86,9 @@ public class PolyMerge
 	}
 
 	/**
-	 * Method to add a PolyBase to the merged collection.
+	 * Method to add a Rectangle to the merged collection.
 	 * @param layer the layer that this Poly sits on.
-	 * @param poly the PolyBase to merge.
+	 * @param rect the Rectangle to merge.
 	 */
 	public void addRectangle(Layer layer, Rectangle2D rect)
 	{

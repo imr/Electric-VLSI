@@ -294,7 +294,6 @@ public class SeaOfGates
 	 * This is the public interface for Sea-of-Gates Routing when done in batch mode.
 	 * @param cell the cell to be Sea-of-Gates-routed.
 	 * @param arcsToRoute a List of ArcInsts on networks to be routed.
-	 * @return the total length of arcs created.
 	 */
 	public void routeIt(Job job, Cell cell, List<ArcInst> arcsToRoute)
 	{

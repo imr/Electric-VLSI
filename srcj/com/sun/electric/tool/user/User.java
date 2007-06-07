@@ -1440,7 +1440,7 @@ public class User extends Listener
 	public static String getDefaultTextExternalEditor() { return cacheDefaultTextExternalEditor.getString(); }
 	/**
 	 * Method to set the program to invoke when externally editing textual cells.
-	 * @param f the program to invoke when externally editing textual cells.
+	 * @param e the program to invoke when externally editing textual cells.
 	 */
 	public static void setDefaultTextExternalEditor(String e) { cacheDefaultTextExternalEditor.setString(e); }
 

@@ -3571,7 +3571,7 @@ public class MoCMOS extends Technology
 
     /**
 	 * Method to set the rule set for this Technology.
-	 * @param set the new rule set for this Technology:<BR>
+	 * @return the new rule setting for this Technology, with values:<BR>
 	 * 0: SCMOS rules<BR>
 	 * 1: Submicron rules<BR>
 	 * 2: Deep rules
@@ -3589,7 +3589,7 @@ public class MoCMOS extends Technology
 	public boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
 	/**
 	 * Returns project Setting to tell a second polysilicon layer in this Technology.
-	 * @eturn project Setting to tell a second polysilicon layer in this Technology.
+	 * @return project Setting to tell a second polysilicon layer in this Technology.
 	 */
 	public Setting getSecondPolysiliconSetting() { return cacheSecondPolysilicon; }
 
@@ -3631,7 +3631,7 @@ public class MoCMOS extends Technology
 	public boolean isAnalog() { return cacheAnalog.getBoolean(); }
 	/**
 	 * Returns project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
-	 * @eturn project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * @return project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
 	 */
 	public Setting getAnalogSetting() { return cacheAnalog; }
 

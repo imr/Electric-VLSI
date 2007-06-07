@@ -76,7 +76,7 @@ public abstract class AbstractShapeBuilder {
 	/**
 	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
 	 * The polygon is described by its width, and style.
-     * @param b shape builder.
+     * @param a the arc information.
 	 * @param gridWidth the gridWidth of the Poly.
 	 * @param style the style of the Poly.
 	 */
@@ -204,7 +204,7 @@ public abstract class AbstractShapeBuilder {
      * this ImmutableArcInst whose width in grid units is "gridWidth".
      * If there is no curvature information in the arc, the routine returns false,
      * otherwise it returns the curved polygon.
-     * @param b builder to fill points
+     * @param a the arc information.
      * @param gridWidth width in grid units.
      * @param gridRadius radius in grid units.
      * @return true if point were filled to the buuilder
@@ -264,7 +264,7 @@ public abstract class AbstractShapeBuilder {
     
     /**
      * Generate shape of this ImmutableArcInst in easy case.
-     * @param b AbstractShapeBuilder to generate to.
+     * @param a the arc information.
      * @return true if shape was generated.
      */
     public boolean genShapeEasy(ImmutableArcInst a) {

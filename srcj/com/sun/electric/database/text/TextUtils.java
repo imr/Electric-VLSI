@@ -1261,7 +1261,7 @@ public class TextUtils
 	 * The pure file name excludes the directory path and the extension.
 	 * It is used to find the library name from a file patj.
 	 * For example, the file path "file:/users/strubin/gates.elib" has the pure file name "gates".
-	 * @param filePath full name of file.
+	 * @param fileName full name of file.
 	 * @return the pure file name.
 	 */
 	public static String getFileNameWithoutExtension(String fileName)
