@@ -418,7 +418,7 @@ public class RouteElementArc extends RouteElement {
             Cell cell = getCell();
 
             // if they are the same point, the two nodes are in top of each other
-            int angle = (headPoint.equals(tailPoint)) ? 0 : GenMath.figureAngle(headPoint, tailPoint);
+            int angle = (headPoint.equals(tailPoint)) ? 0 : GenMath.figureAngle(tailPoint, headPoint);
             double length = headPoint.distance(tailPoint);
         	Poly poly = Poly.makeEndPointPoly(length, getArcBaseWidth(), angle, headPoint, offset,
         		tailPoint, offset, Poly.Type.FILLED);
