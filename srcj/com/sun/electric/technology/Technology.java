@@ -51,7 +51,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
@@ -64,6 +63,7 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +74,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.swing.SwingUtilities;
 
 /**
@@ -1169,7 +1168,7 @@ public class Technology implements Comparable<Technology>
         lazyClasses.put("pcb",       "com.sun.electric.technology.technologies.PCB");
         lazyClasses.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
         if (true) {
-            (new MoCMOS()).setup();
+            lazyClasses.put("mocmos","com.sun.electric.technology.technologies.MoCMOS");
         } else {
             lazyUrls.put("mocmos",   Technology.class.getResource("technologies/mocmos.xml"));
         }
@@ -1178,16 +1177,9 @@ public class Technology implements Comparable<Technology>
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
         if (true) {
-			try
-			{
-				Class cmos90TechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90");
-	            Technology tech = (Technology)cmos90TechClass.newInstance();
-	            tech.setup();
-			} catch (Exception e) {}
-        	
-//            (new CMOS90()).setup();
+            lazyClasses.put("cmos90","com.sun.electric.plugins.tsmc.CMOS90");
         } else {
-            lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));
+            lazyUrls.put("cmos90",   Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
         
         if (!LAZY_TECHNOLOGIES) {
@@ -1196,7 +1188,8 @@ public class Technology implements Comparable<Technology>
                 setupTechnology(techClassName);
             }
             for(URL techUrl: lazyUrls.values()) {
-                setupTechnology(techUrl);
+                if (techUrl != null)
+                    setupTechnology(techUrl);
             }
         }
 
@@ -1212,7 +1205,12 @@ public class Technology implements Comparable<Technology>
         Pref.delayPrefFlushing();
         try {
             Class<?> techClass = Class.forName(techClassName);
-            Technology tech = (Technology)techClass.getField("tech").get(null);
+            Constructor[] constructors = techClass.getConstructors();
+            Technology tech = null;
+            if (constructors.length != 0)
+                tech = (Technology)techClass.getConstructor().newInstance();
+            else
+                tech = (Technology)techClass.getField("tech").get(null);
             tech.setup();
             Generic.tech.makeUnivList();
         } catch (ClassNotFoundException e) {
@@ -1228,7 +1226,6 @@ public class Technology implements Comparable<Technology>
     }
     
     private static void setupTechnology(URL urlXml) {
-    	if (urlXml == null) return;
         Pref.delayPrefFlushing();
         try {
             Xml.Technology t = Xml.parseTechnology(urlXml);
