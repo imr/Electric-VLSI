@@ -86,9 +86,9 @@
         <pathelement location="packaging/prefuse.jar"/>
     </path>
 
-	<!-- Use -DGNU=1 for GNU release -->
-	<!-- Use -DSFS=1 for SFS release -->
-	<!-- Use -Dsource=1 to release the source  -->
+	<!-- Use -DGNU=1 to exclude things that should not be in the GNU release -->
+	<!-- Use -DSFS=1 to exclude things that should not be in the SFS release -->
+	<!-- Use -Dsource=1 to include source code in the release -->
     <!-- Use -DJMF=1 to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
@@ -297,9 +297,12 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
+            <exclude name="nbproject"/>
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
+            <exclude name="packaging/*.lsm"/>
             <exclude name="packaging/*.txt"/>
+            <exclude name="packaging/electric.mf"/>
             <exclude name="packaging/MakePDF.book"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
@@ -331,6 +334,7 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
+            <exclude name="nbproject"/>
             <exclude name="packaging/"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
