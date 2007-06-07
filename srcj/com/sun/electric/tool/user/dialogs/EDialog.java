@@ -69,7 +69,9 @@ public class EDialog extends JDialog
 	protected EDialog(Frame parent, boolean modal)
 	{
         // in multi-headed displays, display dialog on head with windowframe
-        super(parent, "", modal, (parent == null) ? TopLevel.getCurrentJFrame().getGraphicsConfiguration() : parent.getGraphicsConfiguration());
+        super(parent, "", modal, (parent == null) ?
+        	(TopLevel.getCurrentJFrame() == null ? null : TopLevel.getCurrentJFrame().getGraphicsConfiguration()) :
+        		parent.getGraphicsConfiguration());
 
         assert !Job.BATCHMODE;
 

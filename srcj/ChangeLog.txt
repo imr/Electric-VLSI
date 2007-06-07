@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+BUG: (6/7/07, SMR) Command-line startup may crash (Bug #1328).
+FIX: In EDialog constructor, make sure there is valid graphics information.
+
 IMP: (6/7/07, SMR) Made technology initialization quieter and able to
      handle missing technologies.
 
