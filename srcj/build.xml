@@ -297,7 +297,7 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
-            <exclude name="nbproject"/>
+            <exclude name="nbproject/"/>
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
             <exclude name="packaging/*.lsm"/>
@@ -334,7 +334,7 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
-            <exclude name="nbproject"/>
+            <exclude name="nbproject/"/>
             <exclude name="packaging/"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
