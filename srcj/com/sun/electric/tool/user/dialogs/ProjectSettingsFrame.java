@@ -35,7 +35,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
-import com.sun.electric.tool.user.dialogs.projsettings.GateLayGenTab;
 import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
 import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
 import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
@@ -87,7 +86,6 @@ public class ProjectSettingsFrame extends EDialog
 	JButton ok;
 
     ProjSettingsPanel currentOptionPanel;
-//    List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
 
@@ -127,7 +125,7 @@ public class ProjectSettingsFrame extends EDialog
 		rootNode.add(new DefaultMutableTreeNode("CIF"));
 		rootNode.add(new DefaultMutableTreeNode("GDS"));
 		rootNode.add(new DefaultMutableTreeNode("DXF"));
-		rootNode.add(new DefaultMutableTreeNode("Gate Layout Generator"));
+//		rootNode.add(new DefaultMutableTreeNode("Gate Layout Generator"));
 		rootNode.add(new DefaultMutableTreeNode("Logical Effort"));
 		rootNode.add(new DefaultMutableTreeNode("Netlists"));
 		rootNode.add(new DefaultMutableTreeNode("Parasitic"));
@@ -137,53 +135,6 @@ public class ProjectSettingsFrame extends EDialog
 		rootNode.add(new DefaultMutableTreeNode("Technology"));
 		rootNode.add(new DefaultMutableTreeNode("Verilog"));
 
-//		CIFTab cit = new CIFTab(this, modal);
-//		optionPanes.add(cit);
-//		rootNode.add(new DefaultMutableTreeNode(cit.getName()));
-//
-//		GDSTab gdt = new GDSTab(this, modal);
-//		optionPanes.add(gdt);
-//		rootNode.add(new DefaultMutableTreeNode(gdt.getName()));
-//
-//		DXFTab dxt = new DXFTab(this, modal);
-//		optionPanes.add(dxt);
-//		rootNode.add(new DefaultMutableTreeNode(dxt.getName()));
-//		
-//		GateLayGenTab glgt = new GateLayGenTab(this, modal);
-//		optionPanes.add(glgt);
-//		rootNode.add(new DefaultMutableTreeNode(glgt.getName()));
-//
-//		LogicalEffortTab let = new LogicalEffortTab(this, modal);
-//		optionPanes.add(let);
-//		rootNode.add(new DefaultMutableTreeNode(let.getName()));
-//
-//		NetlistsTab nt = new NetlistsTab(this, modal);
-//		optionPanes.add(nt);
-//		rootNode.add(new DefaultMutableTreeNode(nt.getName()));
-//
-//		ParasiticTab parat = new ParasiticTab(this, modal);
-//		optionPanes.add(parat);
-//		rootNode.add(new DefaultMutableTreeNode(parat.getName()));
-//
-//		ScaleTab scat = new ScaleTab(this, modal);
-//		optionPanes.add(scat);
-//		rootNode.add(new DefaultMutableTreeNode(scat.getName()));
-//
-//		if (IOTool.hasSkill())
-//		{
-//			SkillTab skt = new SkillTab(this, modal);
-//			optionPanes.add(skt);
-//			rootNode.add(new DefaultMutableTreeNode(skt.getName()));
-//		}
-//
-//		TechnologyTab tect = new TechnologyTab(this, modal);
-//		optionPanes.add(tect);
-//		rootNode.add(new DefaultMutableTreeNode(tect.getName()));
-//
-//		VerilogTab vet = new VerilogTab(this, modal);
-//		optionPanes.add(vet);
-//		rootNode.add(new DefaultMutableTreeNode(vet.getName()));
-//
 		// pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
 		optionTree.expandPath(topPath);
@@ -325,7 +276,6 @@ public class ProjectSettingsFrame extends EDialog
             return;
         }
         new OKUpdate(this, changeBatch, true, checkAndRepair);
-//		new OKUpdate(this, false);
 	}
 
     private void helpActionPerformed()
@@ -377,19 +327,6 @@ public class ProjectSettingsFrame extends EDialog
         currentOptionPanel = ti;
         ti.init();
         splitPane.setRightComponent(ti.getPanel());
-//		for(ProjSettingsPanel ti : optionPanes)
-//		{
-//			if (ti.getName().equals(currentTabName))
-//			{
-//				if (!ti.isInited())
-//				{
-//					ti.init();
-//					ti.setInited();
-//				}
-//				splitPane.setRightComponent(ti.getPanel());
-//				return;
-//			}
-//		}
 	}
     
     private ProjSettingsPanel createOptionPanel(boolean modal) {
@@ -399,8 +336,6 @@ public class ProjectSettingsFrame extends EDialog
             return new GDSTab(this, modal);
         if (currentTabName.equals("DXF"))
             return new DXFTab(this, modal);
-        if (currentTabName.equals("Gate Layout Generator"))
-            return new GateLayGenTab(this, modal);
         if (currentTabName.equals("Logical Effort"))
             return new LogicalEffortTab(this, modal);
         if (currentTabName.equals("Netlists"))

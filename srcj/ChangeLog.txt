@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05n: *******************************
 
+IMP: (6/7/07, SMR) Removed unused "Gate Layout Generation" Project Settings panel.
+
 IMP: (6/7/07, DN) Pins unification. Their shape is taken from arcs.
    I tried to preserve the size of pin's port. Affected pins:
    cmos90:Active-Pin
