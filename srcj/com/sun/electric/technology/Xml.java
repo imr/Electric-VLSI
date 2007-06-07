@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -389,9 +390,12 @@ public class Xml {
             
             XMLReader handler = new XMLReader();
             parser.parse(inputStream, handler);
-            long stopTime = System.currentTimeMillis();
-            System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
-            return ((XMLReader)handler).tech;
+            if (Job.getDebug())
+            {
+                long stopTime = System.currentTimeMillis();
+            	System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
+            }
+            return handler.tech;
         } catch (Exception e) {
             e.printStackTrace();
         }
