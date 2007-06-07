@@ -1868,7 +1868,7 @@ public class Technology implements Comparable<Technology>
     public int getNumMetals() { return cacheNumMetalLayers.getInt(); }
 	/**
 	 * Returns project Setting to tell the number of metal layers in the MoCMOS technology.
-	 * @eeturn project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
+	 * @return project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
 	 */
 	public Setting getNumMetalsSetting() { return cacheNumMetalLayers; }
 
@@ -2004,7 +2004,6 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Returns the polygons that describe arc "ai".
 	 * @param ai the ArcInst that is being described.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 */
@@ -2461,9 +2460,6 @@ public class Technology implements Comparable<Technology>
 	 * NodeLayer objects to use.
 	 * This method is overridden by specific Technologys.
 	 * @param ni the NodeInst that is being described.
-	 * @param wnd the window in which this node will be drawn.
-	 * If this is null, no window scaling can be done, so no text is included in the returned results.
-	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers
 	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
 	 * but each layer is tied to a specific port on the node.
@@ -2478,7 +2474,7 @@ public class Technology implements Comparable<Technology>
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst (if wnd != null).
+	 * This array includes displayable variables on the NodeInst.
 	 */
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
@@ -2822,13 +2818,6 @@ public class Technology implements Comparable<Technology>
 
 		/**
 		 * Constructor to initialize for multiple cuts.
-		 * @param niD the NodeInst with multiple cuts.
-		 * @param specialValues the array of special values for the NodeInst.
-		 * The values in "specialValues" are:
-		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
-		 *     cuts indented at least "cutIndentX/Y" from the node edge (specialValues[2] / specialValues[3])
-		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
-		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
 		 */
 		private MultiCutData(EPoint size, NodeLayer cutLayer)
 		{
@@ -2838,12 +2827,6 @@ public class Technology implements Comparable<Technology>
 		/**
 		 * Constructor to initialize for multiple cuts.
 		 * @param niD the NodeInst with multiple cuts.
-		 * @param specialValues the array of special values for the NodeInst.
-		 * The values in "specialValues" are:
-		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
-		 *     cuts indented at least "cutIndentX/Y" from the node edge (specialValues[2] / specialValues[3])
-		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
-		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
 		 */
 		public MultiCutData(ImmutableNodeInst niD)
 		{
@@ -3647,7 +3630,7 @@ public class Technology implements Comparable<Technology>
 	}
 	/**
 	 * Returns project Setting to tell the Gate Capacitance for Logical Effort.
-	 * @eturn project Setting to tell the Gate Capacitance for Logical Effort.
+	 * @return project Setting to tell the Gate Capacitance for Logical Effort.
 	 */
 	public Setting getGateCapacitanceSetting() { return cacheGateCapacitance; }
 
@@ -3958,7 +3941,7 @@ public class Technology implements Comparable<Technology>
 
 	/**
 	 * Returns project Setting to tell foundry for DRC rules.
-	 * @eturn project Setting to tell the foundry for DRC rules.
+	 * @return project Setting to tell the foundry for DRC rules.
 	 */
 	public Setting getPrefFoundrySetting() { return cacheFoundry; }
 
@@ -3991,7 +3974,7 @@ public class Technology implements Comparable<Technology>
 
     /**
      * Method to create a new on this technology.
-     * @param @mode factory type
+     * @param mode factory type
      * @param fileURL URL of xml file with description of rules
      * @param gdsLayers stirngs with definition of gds numbers for layers
      */
