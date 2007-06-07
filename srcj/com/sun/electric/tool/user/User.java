@@ -2340,10 +2340,10 @@ public class User extends Listener
      */
     public static void setMaxUndoHistory(int n) { cacheMaxUndoHistory.setInt(n); }
 
-	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", tool.prefs, 1000);
+	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", tool.prefs, 65);
 	/**
 	 * Method to tell the maximum memory to use for Electric, in megatybes.
-	 * The default is 1000 (1 gigabyte).
+	 * The default is 65 megabytes which is not enough for serious work.
 	 * @return the maximum memory to use for Electric (in megabytes).
 	 */
 	public static int getMemorySize() { return cacheMemorySize.getInt(); }
