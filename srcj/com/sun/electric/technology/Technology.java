@@ -48,7 +48,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.plugins.tsmc.CMOS90;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
@@ -75,6 +74,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -690,7 +690,7 @@ public class Technology implements Comparable<Technology>
         
         public EPoint getSizeToDisk(ImmutableNodeInst n) {
             EPoint size = n.size;
-            EPoint correction = nodeExtends.get((PrimitiveNode)n.protoId);
+            EPoint correction = nodeExtends.get(n.protoId);
             if (!correction.equals(EPoint.ORIGIN)) {
                 size = EPoint.fromLambda(size.getLambdaX() + 2*correction.getLambdaX(), size.getLambdaY() + 2*correction.getLambdaY());
             }
@@ -845,7 +845,6 @@ public class Technology implements Comparable<Technology>
         for (Xml.Layer l: t.layers) {
             Layer layer = Layer.newInstance(this, l.name, l.desc);
             layers.put(l.name, layer);
-            int extraFunction = l.extraFunction;
             layer.setFunction(l.function, l.extraFunction);
             if (l.cif != null)
                 layer.setFactoryCIFLayer(l.cif);
@@ -1179,7 +1178,14 @@ public class Technology implements Comparable<Technology>
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
         if (true) {
-            (new CMOS90()).setup();
+			try
+			{
+				Class cmos90TechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90");
+	            Technology tech = (Technology)cmos90TechClass.newInstance();
+	            tech.setup();
+			} catch (Exception e) {}
+        	
+//            (new CMOS90()).setup();
         } else {
             lazyUrls.put("cmos90",       Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
@@ -2428,18 +2434,6 @@ public class Technology implements Comparable<Technology>
 			if (eLayers != null) primLayers = eLayers;
 		}
 
-//		// if node is erased, remove layers
-//		if (!electrical)
-//		{
-//			if (ni.isWiped()) primLayers = nullPrimLayers; else
-//			{
-//				if (np.isWipeOn1or2())
-//				{
-//					if (ni.pinUseCount()) primLayers = nullPrimLayers;
-//				}
-//			}
-//		}
-
 		if (onlyTheseLayers != null)
 		{
 			List<NodeLayer> layerArray = new ArrayList<NodeLayer>();
@@ -2538,8 +2532,6 @@ public class Technology implements Comparable<Technology>
 				{
 					pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
 						ni.getAnchorCenterY() + outline[i].getY());
-// 					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
-// 						ni.getTrueCenterY() + outline[i].getY());
 				}
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
@@ -2557,8 +2549,6 @@ public class Technology implements Comparable<Technology>
 
 		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
-//		// Determine if possible cutlayer is really a contact layer
-//		boolean isCutLayer = (numBasicLayers > 0) && /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
@@ -2675,24 +2665,6 @@ public class Technology implements Comparable<Technology>
 			fillPoly++;
 		}
 
-
-//		// add in the extra contact cuts
-//		if (mcd != null)
-//		{
-//			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
-//			Poly.Type style = primLayer.getStyle();
-//			PortProto port = null;
-//			if (electrical) port = np.getPort(0);
-//			for(int i = 0; i < numExtraLayers; i++)
-//			{
-//				polys[fillPoly] = mcd.fillCutPoly(ni.getD(), i);
-//				polys[fillPoly].setStyle(style);
-//				polys[fillPoly].setLayer(primLayer.getLayer());
-//				polys[fillPoly].setPort(port);
-//				fillPoly++;
-//			}
-//		}
-
 		// add in negating bubbles
 		if (numNegatingBubbles > 0)
 		{
@@ -2803,16 +2775,10 @@ public class Technology implements Comparable<Technology>
 
 			// number of cuts depends on the size
 			// Checking first if configuration gives 2D cuts
-//			int oneDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
-//			int oneDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
             int oneDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep1D));
 			int oneDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep1D));
-//			int twoDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
-//			int twoDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
             int twoDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep2D));
 			int twoDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep2D));
-//            if (oneDcutsX != oneDcutsXOLD || oneDcutsY != oneDcutsYOLD || twoDcutsXOLD != twoDcutsX || twoDcutsYOLD != twoDcutsY)
-//                System.out.println("ERROR in multicut");
 
 			cutSep = cutSep1D;
 			cutsX = oneDcutsX;
@@ -3368,8 +3334,6 @@ public class Technology implements Comparable<Technology>
 			{
 				double cX = ni.getAnchorCenterX();
 				double cY = ni.getAnchorCenterY();
-// 				double cX = ni.getTrueCenterX();
-// 				double cY = ni.getTrueCenterY();
 				Point2D [] pointList = new Point2D.Double[outline.length];
 				for(int i=0; i<outline.length; i++)
 				{
@@ -3393,10 +3357,6 @@ public class Technology implements Comparable<Technology>
 		double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
 		double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
 		double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
-// 		double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-// 		double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-// 		double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-// 		double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 		double portX = (portLowX + portHighX) / 2;
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
@@ -3999,18 +3959,6 @@ public class Technology implements Comparable<Technology>
 	 */
 	public Setting getPrefFoundrySetting() { return cacheFoundry; }
 
-//    /**
-//     * Method to set the foundry for DRC rules and call the side effects
-//     * @param t
-//     * @param resize
-//     */
-//    public void setPrefFoundryAndResize(String t, boolean resize)
-//    {
-//        setPrefFoundry(t);
-//        // Call side effect
-//        TechSetting.technologyChangedFromDatabase(this, resize);
-//    }
-
     /**
 	 * Find the Foundry in this technology with a particular name. Protected so sub classes will use it
 	 * @param name the name of the desired Foundry.
@@ -4048,18 +3996,6 @@ public class Technology implements Comparable<Technology>
         Foundry foundry = new Foundry(this, mode, fileURL, gdsLayers);
         foundries.add(foundry);
     }
-    
-//    /**
-//     * Method to add a foundry to existing technology after the object was created.
-//     * Remove the previus version of the foundry
-//     * @param f
-//     */
-//    public void addFoundry(Foundry f)
-//    {
-//        Foundry old = findFoundry(f.toString());
-//        if (old != null) foundries.remove(old);
-//        foundries.add(f);
-//    }
 
 	/**
 	 * Method to get the foundry index associated with this technology.
