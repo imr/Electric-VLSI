@@ -183,7 +183,10 @@ public class Undo
         else
             System.out.println("Redo failed");
     }
-            
+
+    /**
+     * Class to schedule an undo in a separate Job.
+     */
     public static class UndoJob extends Job {
         int snapshotId;
         

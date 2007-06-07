@@ -25,7 +25,7 @@
 package com.sun.electric.database.geometry;
 
 /**
- * Class to define a Double-precision Dimension object.
+ * Class to define a Dimension object.
  */
 public abstract class Dimension2D extends java.awt.geom.Dimension2D {
 
@@ -54,6 +54,9 @@ public abstract class Dimension2D extends java.awt.geom.Dimension2D {
 	 */
     public abstract void setSize(double width, double height);
 
+    /**
+     * Class to define a Double-precision Dimension object.
+     */
     public static class Double extends Dimension2D {
         private double width;
         private double height;
