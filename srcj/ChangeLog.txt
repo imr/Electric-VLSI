@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+IMP: (6/7/07, SMR) Made default memory size match default JVM size.
+
 IMP: (6/7/07, SMR) Removed unused "Gate Layout Generation" Project Settings panel.
 
 ************************* Version 8.05n: *******************************
