@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+BUG: (6/8/07, GVG) Strange DRC min error related to well layer (Bug #1327)
+FIX: Indeed, the DRC error is valid (detected by Quick.checkMinDefects()). Just the errorLog is pointing to
+the wrong geometry.
+
 BUG: (6/8/07, DN) Assertion in SwingUtilities.isEventDispatchThread() while reading library from command line (Bug #1328).
 FIX: Option reconcillation dialog was called from database thread. Move initCommandLibs and runScript
     from InitDatabase.doIt to InitDatabase.TerminateOk.

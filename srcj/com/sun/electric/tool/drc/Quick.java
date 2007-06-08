@@ -1586,8 +1586,10 @@ public class Quick
         if (actual != 0 && DBMath.isGreaterThan(minWidth, actual) &&
             foundSmallSizeDefect(cell, geom1, poly1, layer1, geom2, poly2, pd, lxb, lyb, hxb, hyb))
         {
+            // you can't pass geom1 or geom2 becuase they could be in different cells and therefore the message
+            // could mislead
             reportError(DRCErrorType.MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
-                            geom1, layer1, null, geom2, layer2);
+                            null, layer1, null, null, layer2);
             foundError = true;
         }
         return foundError;
