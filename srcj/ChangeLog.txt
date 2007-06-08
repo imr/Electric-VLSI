@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+BUG: (6/8/07, DN) Assertion in SwingUtilities.isEventDispatchThread() while reading library from command line (Bug #1328).
+FIX: Option reconcillation dialog was called from database thread. Move initCommandLibs and runScript
+    from InitDatabase.doIt to InitDatabase.TerminateOk.
+
+BUG: (6/8/07, DN) Assertion while deleting pin and arc at the same time (Bug #1321).
+FIX: In Cell.killNodes don't remove nodes which are already removed.
+
 IMP: (6/7/07, GVG) New 3D information for some MOCMOS layers suggested by external user (Bug #1326).
 Transparency mode and factor were added as layer preferences so few extra classes were modified for this change.
 

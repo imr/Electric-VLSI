@@ -362,7 +362,6 @@ public final class Main
      */
     public static void openCommandLineLibs(List<String> argsList)
     {
-        List<URL> fileURLs = new ArrayList<URL>();
         for (int i=0; i<argsList.size(); i++) {
             String arg = argsList.get(i);
             if (arg.startsWith("-")) {
@@ -371,14 +370,11 @@ public final class Main
             }
 			URL url = TextUtils.makeURLToFile(arg);
             if (url == null) continue;
-            fileURLs.add(url);
             User.setWorkingDirectory(TextUtils.getFilePath(url));
             // setting database path for future references
             FileType.setDatabaseGroupPath(User.getWorkingDirectory());
+            FileMenu.openLibraryCommand(url);
         }
-
-        // open any libraries but only when there is at least one
-        new FileMenu.ReadInitialELIBs(fileURLs);
     }
 
 	/**
@@ -425,15 +421,16 @@ public final class Main
             mainLib.setCurrent();
             Input.changesQuiet(false);
 
-			openCommandLineLibs(argsList);
-            if (beanShellScript != null)
-                EvalJavaBsh.runScript(beanShellScript);
-                
+            if (Job.BATCHMODE && beanShellScript != null)
+                    EvalJavaBsh.runScript(beanShellScript);
             return true;
 		}
         
         public void terminateOK() {
             Job.getExtendedUserInterface().finishInitialization();
+			openCommandLineLibs(argsList);
+            if (beanShellScript != null)
+                EvalJavaBsh.runScript(beanShellScript);
         }
         
         public void terminateFail(Throwable jobException) {

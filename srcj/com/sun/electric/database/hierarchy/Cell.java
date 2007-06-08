@@ -2036,6 +2036,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		for(NodeInst ni : killedNodes)
 		{
+            if (!ni.isLinked()) continue;
 			// remove this node from the cell
 			removeNode(ni);
 
