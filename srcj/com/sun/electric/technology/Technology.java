@@ -112,10 +112,10 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
-    
+
     /** key of Variable for saving scalable transistor contact information. */
     public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
-      
+
    /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
@@ -433,7 +433,7 @@ public class Technology implements Comparable<Technology>
             nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
             return nl;
         }
-        
+
 		/**
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
@@ -607,17 +607,17 @@ public class Technology implements Comparable<Technology>
 		 * @param extendB the bottom extension of this layer.
 		 */
 		public void setSerpentineExtentB(double extendB) { this.extendB = extendB; }
-        
+
         public double getMulticutSizeX() { return DBMath.gridToLambda(cutGridSizeX); }
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 	}
-    
+
     public class SizeCorrector {
         public final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
         public final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
-        
+
         private SizeCorrector(Version version, boolean isJelib) {
             if (xmlTech != null) {
                 int techVersion = 0;
@@ -673,20 +673,20 @@ public class Technology implements Comparable<Technology>
                 }
             }
         }
-        
+
         public long getExtendFromDisk(ArcProto ap, double width) {
             return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap);
         }
-        
+
         public long getWidthToDisk(ImmutableArcInst a) {
             return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoType));
         }
-        
+
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
             EPoint correction = nodeExtends.get(pn);
             return EPoint.fromLambda(width - 2*correction.getLambdaX(), height - 2*correction.getLambdaY());
         }
-        
+
         public EPoint getSizeToDisk(ImmutableNodeInst n) {
             EPoint size = n.size;
             EPoint correction = nodeExtends.get(n.protoId);
@@ -696,7 +696,7 @@ public class Technology implements Comparable<Technology>
             return size;
         }
     }
-    
+
     public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib, boolean keepExtendOverMin) {
         return new SizeCorrector(version, isJelib);
     }
@@ -710,7 +710,7 @@ public class Technology implements Comparable<Technology>
             sc.arcExtends.put(ap, correction);
         }
     }
-    
+
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
 	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;
@@ -738,10 +738,10 @@ public class Technology implements Comparable<Technology>
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
-    /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>(); 
+    /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
-    /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>(); 
+    /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>();
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -749,7 +749,7 @@ public class Technology implements Comparable<Technology>
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
     /** default foundry for this Technology */              private final Setting cacheFoundry;
 	/** scale for this Technology. */						private Setting cacheScale;
-    /** number of metals for this Technology. */            private final Setting cacheNumMetalLayers; 
+    /** number of metals for this Technology. */            private final Setting cacheNumMetalLayers;
 	/** Minimum resistance for this Technology. */			private Setting cacheMinResistance;
 	/** Minimum capacitance for this Technology. */			private Setting cacheMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private final Setting cacheGateLengthSubtraction;
@@ -787,7 +787,7 @@ public class Technology implements Comparable<Technology>
 	protected Technology(String techName) {
         this(techName, Foundry.Type.NONE, 0);
     }
-    
+
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
@@ -804,7 +804,7 @@ public class Technology implements Comparable<Technology>
         	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.name().toUpperCase());
         cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName + "NumberOfMetalLayers",
             "Technology tab", techName + ": Number of Metal Layers", getProjectSettings(), "NumMetalLayers", defaultNumMetals);
-        
+
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
 		cacheIncludeGate = makeParasiticSetting("Gate Inclusion", false);
@@ -825,7 +825,7 @@ public class Technology implements Comparable<Technology>
 //    protected Technology(URL urlXml, boolean full) {
 //        this(Xml.parseTechnology(urlXml), full);
 //    }
-//    
+//
     public Technology(Xml.Technology t) {
         this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
@@ -849,7 +849,7 @@ public class Technology implements Comparable<Technology>
                 layer.setFactoryCIFLayer(l.cif);
             if (l.skill != null)
                 layer.setFactorySkillLayer(l.skill);
-            layer.setFactory3DInfo(l.thick3D, l.height3D);
+            layer.setFactory3DInfo(l.thick3D, l.height3D, l.mode3D, l.factor3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
@@ -890,7 +890,7 @@ public class Technology implements Comparable<Technology>
             ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToSizeGrid(widthOffset)/2, minGridExtend, gridExtendOverMin, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
             addArcProto(ap);
-            
+
             if (a.oldName != null)
                 oldArcNames.put(a.oldName, ap);
             arcs.put(a.name, ap);
@@ -989,7 +989,7 @@ public class Technology implements Comparable<Technology>
                 pnp.setNodeBit(PrimitiveNode.OD25BIT);
             if (n.od33)
                 pnp.setNodeBit(PrimitiveNode.OD33BIT);
-            
+
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
@@ -1085,7 +1085,7 @@ public class Technology implements Comparable<Technology>
             foundries.add(foundry);
         }
     }
-    
+
     private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
         EdgeH h = p.getX();
         EdgeV v = p.getY();
@@ -1093,19 +1093,19 @@ public class Technology implements Comparable<Technology>
         v = new EdgeV(v.getMultiplier(), v.getAdder() - correction.getLambdaY()*v.getMultiplier()*2);
         return new TechPoint(h, v);
     }
-    
+
     private TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, EPoint correction) {
         return new TechPoint(makeEdgeH(x, correction), makeEdgeV(y, correction));
     }
-    
+
     private EdgeH makeEdgeH(Xml.Distance x, EPoint correction) {
         return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
     }
-    
+
     private EdgeV makeEdgeV(Xml.Distance y, EPoint correction) {
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
-    
+
     private Object convertMenuItem(Object menuItem) {
         if (menuItem instanceof Xml.ArcProto)
             return findArcProto(((Xml.ArcProto)menuItem).name);
@@ -1117,9 +1117,9 @@ public class Technology implements Comparable<Technology>
         }
         return menuItem.toString();
     }
-    
+
     public Xml.Technology getXmlTech() { return xmlTech; }
-    
+
     protected void resizeXml(XMLRules rules) {
 //        for (Xml.ArcProto xap: xmlTech.arcs) {
 //            ArcProto ap = findArcProto(xap.name);
@@ -1134,7 +1134,7 @@ public class Technology implements Comparable<Technology>
 //            ap.computeLayerGridExtendRange();
 //        }
     }
-    
+
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -1159,7 +1159,7 @@ public class Technology implements Comparable<Technology>
 
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
-        
+
         lazyUrls.put("bicmos",       Technology.class.getResource("technologies/bicmos.xml"));
         lazyUrls.put("bipolar",      Technology.class.getResource("technologies/bipolar.xml"));
         lazyUrls.put("cmos",         Technology.class.getResource("technologies/cmos.xml"));
@@ -1181,7 +1181,7 @@ public class Technology implements Comparable<Technology>
         } else {
             lazyUrls.put("cmos90",   Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
-        
+
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present
             for(String techClassName: lazyClasses.values()) {
@@ -1200,7 +1200,7 @@ public class Technology implements Comparable<Technology>
         tech.setCurrent();
 
 	}
-    
+
     private static void setupTechnology(String techClassName) {
         Pref.delayPrefFlushing();
         try {
@@ -1216,7 +1216,7 @@ public class Technology implements Comparable<Technology>
         } catch (ClassNotFoundException e) {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find extra technologies");
-            
+
         } catch (Exception e) {
             System.out.println("Exceptions while importing extra technologies");
             ActivityLogger.logException(e);
@@ -1224,7 +1224,7 @@ public class Technology implements Comparable<Technology>
             Pref.resumePrefFlushing();
         }
     }
-    
+
     private static void setupTechnology(URL urlXml) {
         Pref.delayPrefFlushing();
         try {
@@ -1243,7 +1243,7 @@ public class Technology implements Comparable<Technology>
         } catch (ClassNotFoundException e) {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find extra technologies");
-            
+
         } catch (Exception e) {
             System.out.println("Exceptions while importing extra technologies");
             ActivityLogger.logException(e);
@@ -1251,7 +1251,7 @@ public class Technology implements Comparable<Technology>
             Pref.resumePrefFlushing();
         }
     }
-    
+
     private static Technology mocmos = null;
     private static boolean mocmosCached = false;
     /**
@@ -1265,7 +1265,7 @@ public class Technology implements Comparable<Technology>
         }
         return mocmos;
     }
-     
+
     private static Technology tsmc180 = null;
     private static boolean tsmc180Cached = false;
 	/**
@@ -1280,7 +1280,7 @@ public class Technology implements Comparable<Technology>
         }
  		return tsmc180;
     }
-    
+
     private static Technology cmos90 = null;
     private static boolean cmos90Cached = false;
 	/**
@@ -1321,7 +1321,7 @@ public class Technology implements Comparable<Technology>
             if (!layer.isPseudoLayer())
                 layer.finish();
         }
-        
+
         check();
 	}
 
@@ -1330,7 +1330,7 @@ public class Technology implements Comparable<Technology>
 	 * It gets overridden by individual technologies.
      */
 	public void setState() {}
-    
+
     protected void setNotUsed(int numPolys) {
         int numMetals = getNumMetals();
         for (PrimitiveNode pn: nodes.values()) {
@@ -1496,7 +1496,7 @@ public class Technology implements Comparable<Technology>
             null, null, null,
             "HLVT", "INTRANS", "THICK"
         };
-    
+
         out.println("Technology " + getTechName());
         out.println(getClass().toString());
         out.println("shortName=" + getTechShortName());
@@ -1519,7 +1519,7 @@ public class Technology implements Comparable<Technology>
         assert getNumTransparentLayers() == (transparentColorPrefs != null ? transparentColorPrefs.length : 0);
         for (int i = 0; i < getNumTransparentLayers(); i++)
             out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentColorPrefs[i].getIntFactoryValue()));
-        
+
         for (Layer layer: layers) {
             if (layer.isPseudoLayer()) continue;
             out.print("Layer " + layer.getName() + " " + layer.getFunction().name());
@@ -1546,6 +1546,8 @@ public class Technology implements Comparable<Technology>
             out.println();
             out.println("\tdistance3D=" + layer.getDistance());
             out.println("\tthickness3D=" + layer.getThickness());
+            out.println("\tmode3D=" + layer.getTransparencyMode());
+            out.println("\tfactor3D=" + layer.getTransparencyFactor());
 
             if (layer.getPseudoLayer() != null)
                 out.println("\tpseudoLayer=" + layer.getPseudoLayer().getName());
@@ -1572,11 +1574,11 @@ public class Technology implements Comparable<Technology>
                 out.print("\t"); printlnSetting(out,setting);
             }
         }
-        
+
         printSpiceHeader(out, 1, getSpiceHeaderLevel1());
         printSpiceHeader(out, 2, getSpiceHeaderLevel2());
         printSpiceHeader(out, 3, getSpiceHeaderLevel3());
-        
+
         if (nodeGroups != null) {
             for (int i = 0; i < nodeGroups.length; i++) {
                 Object[] nodeLine = nodeGroups[i];
@@ -1595,7 +1597,7 @@ public class Technology implements Comparable<Technology>
                 }
             }
         }
-        
+
         for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
             Foundry foundry = it.next();
             out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
@@ -1609,20 +1611,20 @@ public class Technology implements Comparable<Technology>
             out.println("    </Foundry>");
         }
     }
-    
+
     protected void dumpExtraProjectSettings(PrintWriter out) {}
-    
+
     protected static void printlnSetting(PrintWriter out, Setting setting) {
         out.println(setting.getXmlPath() + "=" + setting.getValue() + "(" + setting.getFactoryValue() + ")");
     }
-    
+
     static void printlnPref(PrintWriter out, int indent, Pref pref) {
         if (pref == null) return;
         while (indent-- > 0)
             out.print("\t");
         out.println(pref.getPrefName() + "=" + pref.getValue() + "(" + pref.getFactoryValue() + ")");
     }
-    
+
     private static void printMenuEntry(PrintWriter out, Object entry) {
         if (entry instanceof ArcProto) {
             out.print(" arc " + ((ArcProto)entry).getName());
@@ -1642,7 +1644,7 @@ public class Technology implements Comparable<Technology>
             assert false;
         }
     }
-    
+
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
         for (int i = 0; i < Integer.SIZE; i++) {
             if ((bits & (1 << i)) == 0) continue;
@@ -1653,7 +1655,7 @@ public class Technology implements Comparable<Technology>
         }
         out.println();
     }
-    
+
     private void printSpiceHeader(PrintWriter out, int level, String[] header) {
         if (header == null) return;
         out.println("SpiceHeader " + level);
@@ -1711,7 +1713,7 @@ public class Technology implements Comparable<Technology>
 		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next().getPseudoLayer();
-            if (layer == null) continue; 
+            if (layer == null) continue;
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
 		}
 		return null;
@@ -2021,7 +2023,7 @@ public class Technology implements Comparable<Technology>
     protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
         getShapeOfArc(b, a, null);
     }
-    
+
     /**
      * Fill the polygons that describe arc "a".
      * @param b AbstractShapeBuilder to fill polygons.
@@ -2033,7 +2035,7 @@ public class Technology implements Comparable<Technology>
         ArcProto ap = a.protoType;
         assert ap.getTechnology() == this;
         int numArcLayers = ap.getNumArcLayers();
-        
+
         // construct the polygons that describe the basic arc
         if (!isNoNegatedArcs() && (a.isHeadNegated() || a.isTailNegated())) {
             for (int i = 0; i < numArcLayers; i++) {
@@ -2041,7 +2043,7 @@ public class Technology implements Comparable<Technology>
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
                 if (layerOverride != null) layer = layerOverride;
-                
+
                 // remove a gap for the negating bubble
                 int angle = a.getAngle();
                 double gridBubbleSize = Schematics.getNegatingBubbleSize()*DBMath.GRID;
@@ -2066,7 +2068,7 @@ public class Technology implements Comparable<Technology>
                 b.makeGridPoly(a, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
             }
         }
-        
+
         // add an arrow to the arc description
         if (!isNoDirectionalArcs()) {
             final double lambdaArrowSize = 1.0*DBMath.GRID;
@@ -2099,7 +2101,7 @@ public class Technology implements Comparable<Technology>
             }
         }
     }
-    
+
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
 	 * @param name the unknown arc name, read from an old Library.
@@ -2646,7 +2648,7 @@ public class Technology implements Comparable<Technology>
                 }
                 continue;
             }
-             
+
 			Poly.Type style = primLayer.getStyle();
 			if (style.isText())
 			{
@@ -2832,7 +2834,7 @@ public class Technology implements Comparable<Technology>
 		{
             this(niD.size, ((PrimitiveNode)niD.protoId).findMulticut());
 		}
-        
+
 		/**
 		 * Method to return the number of cuts in the contact node.
 		 * @return the number of cuts in the contact node.
@@ -2900,7 +2902,7 @@ public class Technology implements Comparable<Technology>
                         cut = cuty * cutsX + cutx+cutsX+1;
                     }
                 }
-                
+
                 // locate the X center of the cut
                 if (cutsX != 1)
                     cX += ((cut % cutsX)*2 - (cutsX - 1))*(cutSizeX + cutSep)*0.5;
@@ -3273,7 +3275,7 @@ public class Technology implements Comparable<Technology>
 	public PrimitiveNode convertOldNodeName(String name) {
         return oldNodeNames.get(name);
     }
-    
+
     public Map<String,PrimitiveNode> getOldNodeNames() { return new TreeMap<String,PrimitiveNode>(oldNodeNames); }
 
 	/****************************** PORTS ******************************/
@@ -3381,7 +3383,7 @@ public class Technology implements Comparable<Technology>
                 getProjectSettings(), what,
                 "Parasitic tab", techShortName + " " + what, factory);
     }
-    
+
     private Setting makeParasiticSetting(String what, boolean factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
@@ -3618,7 +3620,7 @@ public class Technology implements Comparable<Technology>
 		cacheWireRatio = makeLESetting("WireRatio", wireRation);
 		cacheDiffAlpha = makeLESetting("DiffAlpha", diffAlpha);
     }
-    
+
 	/**
 	 * Method to get the Gate Capacitance for Logical Effort.
 	 * The default is DEFAULT_GATECAP.
@@ -3772,7 +3774,7 @@ public class Technology implements Comparable<Technology>
 	public void setTechName(String techName)
 	{
         throw new UnsupportedOperationException(); // Correct implementation must also rename ProjectSettings and Preferences of this Technology
-        
+
 //		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 //		{
 //			Technology tech = it.next();

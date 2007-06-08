@@ -26,7 +26,6 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -66,7 +65,9 @@ public class LayerInfo extends Info
 	double         spiECap;
 	double         height3d;
 	double         thick3d;
-	double         coverage;
+    String         mode3d;
+    double         factor3d;
+    double         coverage;
 	Layer          generated;
 
 	static SpecialTextDescr [] layerTextTable =
@@ -210,7 +211,9 @@ public class LayerInfo extends Info
 		loadTableEntry(layerTextTable, LAYERSPIECAP, new Double(spiECap));
 		loadTableEntry(layerTextTable, LAYER3DHEIGHT, new Double(height3d));
 		loadTableEntry(layerTextTable, LAYER3DTHICK, new Double(thick3d));
-		loadTableEntry(layerTextTable, LAYERCOVERAGE, new Double(coverage));
+		loadTableEntry(layerTextTable, LAYER3DMODE, mode3d);
+        loadTableEntry(layerTextTable, LAYER3DFACTOR, new Double(factor3d));
+        loadTableEntry(layerTextTable, LAYERCOVERAGE, new Double(coverage));
 
 		for(int i=0; i<layerTextTable.length; i++)
 		{

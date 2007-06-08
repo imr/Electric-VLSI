@@ -27,13 +27,10 @@ package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.Layer;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Observer;
 import java.util.Observable;
 
@@ -43,10 +40,34 @@ import java.util.Observable;
 public class J3DAppearance extends Appearance
         implements Observer
 {
-    private static final HashMap<Layer,Pref> graphics3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
-    private static final HashMap<Layer,Pref> graphics3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
-    private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
-    private static final float JAPP_DEFAULT_FACTOR = 0.2f;
+//    private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
+//    private static final float JAPP_DEFAULT_FACTOR = 0.2f;
+    public enum J3DTransparencyOption{
+        FASTEST(TransparencyAttributes.FASTEST, "FASTEST"),
+        NICEST(TransparencyAttributes.NICEST, "NICEST"),
+        BLENDED(TransparencyAttributes.BLENDED, "BLENDED"),
+        SCREEN_DOOR(TransparencyAttributes.SCREEN_DOOR, "SCREEN_DOOR"),
+        NONE(TransparencyAttributes.NONE, "NONE");
+
+        public int mode;
+        String name;
+
+        J3DTransparencyOption(int m, String n)
+        {
+            mode = m;
+            name = n;
+        }
+        static String getName(int m)
+        {
+            for (J3DTransparencyOption o : J3DTransparencyOption.values())
+            {
+                if (o.mode == m)
+                    return o.name;
+            }
+            assert(false);
+            return null; // it should not reach this line
+        }
+    }
 
     private EGraphics graphics; // reference to layer for fast access to appearance
 
@@ -177,9 +198,10 @@ public class J3DAppearance extends Appearance
 
         if (ap == null)
         {
-            int mode = graphics.getLayer().getIntegerPref("3DTransparencyMode",
-                    graphics3DTransModePrefs, JAPP_DEFAULT_MODE).getInt();
-            float factor = (float)graphics.getLayer().getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, JAPP_DEFAULT_FACTOR).getDouble();
+            String modeS = graphics.getLayer().getTransparencyMode();
+            int mode = J3DTransparencyOption.valueOf(modeS).mode;
+            double factorD = graphics.getLayer().getTransparencyFactor();
+            float factor = (float)factorD;
             ap = new J3DAppearance(graphics, mode, factor, graphics.getColor());
 
             graphics.set3DAppearance(ap);
@@ -192,10 +214,10 @@ public class J3DAppearance extends Appearance
         super.setTransparencyAttributes(transparencyAttributes);
         super.getRenderingAttributes().setDepthBufferEnable(rendering);
         int mode = transparencyAttributes.getTransparencyMode();
-        graphics.getLayer().getIntegerPref("3DTransparencyMode",
-                    graphics3DTransModePrefs, mode).setInt(mode);
+        String modelS = J3DTransparencyOption.getName(mode);
+        graphics.getLayer().setTransparencyMode(modelS);
         double factor = transparencyAttributes.getTransparency();
-        graphics.getLayer().getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, factor).setDouble(factor);
+        graphics.getLayer().setTransparencyFactor(factor);
     }
 
     /********************************************************************************************************

@@ -3581,6 +3581,8 @@ public class LibToTech
             layer.desc = li.desc;
             layer.thick3D = li.thick3d;
             layer.height3D = li.height3d;
+            layer.mode3D = li.mode3d;
+            layer.factor3D = li.factor3d;
             layer.cif = li.cif;
             layer.resistance = li.spiRes;
             layer.capacitance = li.spiCap;

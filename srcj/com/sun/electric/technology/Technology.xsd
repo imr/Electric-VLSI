@@ -466,6 +466,8 @@
                                 <xsd:complexType>
                                     <xsd:attribute name="thick" type="xsd:double" use="required"/>
                                     <xsd:attribute name="height" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="mode" type="xsd:string" use="required"/>
+                                    <xsd:attribute name="factor" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="cifLayer" minOccurs="0">

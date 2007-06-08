@@ -93,7 +93,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="17.0"/>
+        <display3D thick="0.0" height="17.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMF"/>
         <parasitics resistance="0.06" capacitance="0.07" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-1-Node" port="metal-1">
@@ -125,7 +125,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="19.0"/>
+        <display3D thick="0.0" height="19.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMS"/>
         <parasitics resistance="0.06" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-2-Node" port="metal-2">
@@ -157,7 +157,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="21.0"/>
+        <display3D thick="0.0" height="21.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMT"/>
         <parasitics resistance="0.06" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-3-Node" port="metal-3">
@@ -189,7 +189,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="23.0"/>
+        <display3D thick="0.0" height="23.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMQ"/>
         <parasitics resistance="0.03" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-4-Node" port="metal-4">
@@ -221,7 +221,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="25.0"/>
+        <display3D thick="0.0" height="25.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMP"/>
         <parasitics resistance="0.03" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-5-Node" port="metal-5">
@@ -253,7 +253,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="27.0"/>
+        <display3D thick="0.0" height="27.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CM6"/>
         <parasitics resistance="0.03" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-6-Node" port="metal-6">
@@ -285,7 +285,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="15.0"/>
+        <display3D thick="0.0" height="15.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPG"/>
         <parasitics resistance="2.5" capacitance="0.09" edgeCapacitance="0.0"/>
         <pureLayerNode name="Polysilicon-1-Node" port="polysilicon-1">
@@ -317,7 +317,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="16.0"/>
+        <display3D thick="0.0" height="16.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CEL"/>
         <parasitics resistance="50.0" capacitance="1.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Polysilicon-2-Node" port="polysilicon-2">
@@ -349,7 +349,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="13.0"/>
+        <display3D thick="0.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <parasitics resistance="2.5" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="Active-Node" port="active">
@@ -383,7 +383,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="13.0"/>
+        <display3D thick="0.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <parasitics resistance="3.0" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="N-Active-Node" port="active">
@@ -417,7 +417,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="12.0"/>
+        <display3D thick="0.0" height="12.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CSP"/>
         <pureLayerNode name="P-Select-Node" port="select">
             <lambda>4.0</lambda>
@@ -447,7 +447,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="12.0"/>
+        <display3D thick="0.0" height="12.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CSN"/>
         <pureLayerNode name="N-Select-Node" port="select">
             <lambda>4.0</lambda>
@@ -477,7 +477,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="11.0"/>
+        <display3D thick="0.0" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CWP"/>
         <pureLayerNode name="P-Well-Node" port="well">
             <lambda>12.0</lambda>
@@ -508,7 +508,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="11.0"/>
+        <display3D thick="0.0" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CWN"/>
         <pureLayerNode name="N-Well-Node" port="well">
             <lambda>12.0</lambda>
@@ -539,7 +539,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="16.0"/>
+        <display3D thick="2.0" height="16.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCG"/>
         <parasitics resistance="2.2" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Poly-Cut-Node" port="polycut">
@@ -570,7 +570,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="4.0" height="15.0"/>
+        <display3D thick="4.0" height="15.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCG"/>
         <parasitics resistance="2.5" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Active-Cut-Node" port="activecut">
@@ -601,7 +601,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="18.0"/>
+        <display3D thick="2.0" height="18.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVA"/>
         <parasitics resistance="1.0" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Via-1-Node" port="via-1">
@@ -632,7 +632,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="20.0"/>
+        <display3D thick="2.0" height="20.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVS"/>
         <parasitics resistance="0.9" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Via-2-Node" port="via-2">
@@ -663,7 +663,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="22.0"/>
+        <display3D thick="2.0" height="22.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVT"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Via-3-Node" port="via-3">
@@ -694,7 +694,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="24.0"/>
+        <display3D thick="2.0" height="24.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVQ"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Via-4-Node" port="via-4">
@@ -725,7 +725,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.0" height="26.0"/>
+        <display3D thick="2.0" height="26.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CV5"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Via-5-Node" port="via-5">
@@ -756,7 +756,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="30.0"/>
+        <display3D thick="0.0" height="30.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="COG"/>
         <pureLayerNode name="Passivation-Node" port="passivation">
             <lambda>8.0</lambda>
@@ -786,7 +786,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="31.0"/>
+        <display3D thick="0.0" height="31.0" mode="NONE" factor="0.2"/>
     </layer>
 
     <layer name="Poly-Cap" fun="CAP">
@@ -812,7 +812,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="28.0"/>
+        <display3D thick="0.0" height="28.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPC"/>
         <pureLayerNode name="Poly-Cap-Node" style="CLOSED" port="poly-cap">
             <lambda>8.0</lambda>
@@ -842,7 +842,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="29.0"/>
+        <display3D thick="0.0" height="29.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <pureLayerNode name="P-Active-Well-Node" style="CLOSED" port="p-active-well">
             <lambda>8.0</lambda>
@@ -872,7 +872,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.0" height="33.0"/>
+        <display3D thick="0.0" height="33.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CX"/>
         <pureLayerNode name="Pad-Frame-Node" style="CLOSED" port="pad-frame">
             <lambda>8.0</lambda>

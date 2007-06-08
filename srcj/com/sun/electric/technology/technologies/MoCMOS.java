@@ -1117,41 +1117,45 @@ public class MoCMOS extends Technology
 //        setDiffAlpha(0.7);
 
 		// The layer distance
-		// Data base on 18nm technology with 200nm as grid unit.
-		double BULK_LAYER = 10;
-		double DIFF_LAYER = 1; // dummy distance for now 0.2/0.2
+		// Metal values based on 18nm technology with 200nm as grid unit.
+		double BULK_LAYER = 0, WELL_THICKNESS = 13; // proposed by J. Baker.
+        double SELECT_THICKNESS = 5, SELECT_DISTANCE = 8; // proposed by J. Baker. Distance from BULK_LAYER
+        double ACTIVE_THICKNESS = 4, ACTIVE_DISTANCE = 9; // proposed by J. Baker. Distance from BULK_LAYER
+        double THICKACT_THICKNESS = 7, THICKACT_DISTANCE = 6; // values adapted after suggestions from J. Baker.
 		double ILD_LAYER = 3.5; // 0.7/0.2     convertLength()
 		double IMD_LAYER = 5.65; // 1.13um/0.2
 		double METAL_LAYER = 2.65; // 0.53um/0.2
-		activeLayers[P_TYPE].setFactory3DInfo(0.85, BULK_LAYER + 2*DIFF_LAYER);				// P-Active 0.17um/0.2 =
-		activeLayers[N_TYPE].setFactory3DInfo(0.8, BULK_LAYER + 2*DIFF_LAYER);				// N-Active 0.16um/0.2
-		selectLayers[P_TYPE].setFactory3DInfo(DIFF_LAYER, BULK_LAYER + DIFF_LAYER);				// P-Select
-		selectLayers[N_TYPE].setFactory3DInfo(DIFF_LAYER, BULK_LAYER + DIFF_LAYER);				// N-Select
-		wellLayers[P_TYPE].setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// P-Well
-		wellLayers[N_TYPE].setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// N-Well
-        pActiveWellLayer.setFactory3DInfo(0.85, BULK_LAYER + 2*DIFF_LAYER);			// P-Active-Well
-        thickActiveLayer.setFactory3DInfo(0.5, BULK_LAYER + 0.5);			// Thick Active (between select and well)
+		wellLayers[P_TYPE].setFactory3DInfo(WELL_THICKNESS, BULK_LAYER, "NICEST", 0.8);					// P-Well
+		wellLayers[N_TYPE].setFactory3DInfo(WELL_THICKNESS, BULK_LAYER, "NICEST", 0.8);					// N-Well
+		selectLayers[P_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "NICEST", 0.4);				// P-Select
+		selectLayers[N_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "NICEST", 0.4);				// N-Select
 
-		metalLayers[0].setFactory3DInfo(METAL_LAYER, ILD_LAYER + activeLayers[P_TYPE].getDepth());					// Metal-1   0.53um/0.2
-		metalLayers[1].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[0].getDistance());					// Metal-2
-		viaLayers[0].setFactory3DInfo(metalLayers[1].getDistance()-metalLayers[0].getDepth(), metalLayers[0].getDepth());					// Via-1
+        activeLayers[P_TYPE].setFactory3DInfo(ACTIVE_THICKNESS, ACTIVE_DISTANCE, "NONE", 0.0);				// P-Active old values=0.17um/0.2 =
+		activeLayers[N_TYPE].setFactory3DInfo(ACTIVE_THICKNESS, ACTIVE_DISTANCE, "NONE", 0.0);				// N-Active old values=0.16um/0.2
+        pActiveWellLayer.setFactory3DInfo(ACTIVE_THICKNESS, ACTIVE_DISTANCE, "NONE", 0.0);			// P-Active-Well
+        thickActiveLayer.setFactory3DInfo(THICKACT_THICKNESS, THICKACT_DISTANCE, "NICEST", 0.6);			// Thick Active (between select and well)
 
-		metalLayers[2].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[1].getDistance());					// Metal-3
-		viaLayers[1].setFactory3DInfo(metalLayers[2].getDistance()-metalLayers[1].getDepth(), metalLayers[1].getDepth());					// Via-2
+		metalLayers[0].setFactory3DInfo(METAL_LAYER, ILD_LAYER + activeLayers[P_TYPE].getDepth(), "NONE", 0.2);					// Metal-1   0.53um/0.2
+		metalLayers[1].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[0].getDistance(), "NONE", 0.2);					// Metal-2
+		viaLayers[0].setFactory3DInfo(metalLayers[1].getDistance()-metalLayers[0].getDepth(), metalLayers[0].getDepth(), "NONE", 0.2);					// Via-1
 
-		metalLayers[3].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[2].getDistance());					// Metal-4
-        viaLayers[2].setFactory3DInfo(metalLayers[3].getDistance()-metalLayers[2].getDepth(), metalLayers[2].getDepth());					// Via-3
+		metalLayers[2].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[1].getDistance(), "NONE", 0.2);					// Metal-3
+		viaLayers[1].setFactory3DInfo(metalLayers[2].getDistance()-metalLayers[1].getDepth(), metalLayers[1].getDepth(), "NONE", 0.2);					// Via-2
 
-		metalLayers[4].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[3].getDistance());					// Metal-5
-		viaLayers[3].setFactory3DInfo(metalLayers[4].getDistance()-metalLayers[3].getDepth(), metalLayers[3].getDepth());					// Via-4
+		metalLayers[3].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[2].getDistance(), "NONE", 0.2);					// Metal-4
+        viaLayers[2].setFactory3DInfo(metalLayers[3].getDistance()-metalLayers[2].getDepth(), metalLayers[2].getDepth(), "NONE", 0.2);					// Via-3
 
-		metalLayers[5].setFactory3DInfo(4.95, IMD_LAYER + metalLayers[4].getDistance());					// Metal-6 0.99um/0.2
-        viaLayers[4].setFactory3DInfo(metalLayers[5].getDistance()-metalLayers[4].getDepth(), metalLayers[4].getDepth());					// Via-5
+		metalLayers[4].setFactory3DInfo(METAL_LAYER, IMD_LAYER + metalLayers[3].getDistance(), "NONE", 0.2);					// Metal-5
+		viaLayers[3].setFactory3DInfo(metalLayers[4].getDistance()-metalLayers[3].getDepth(), metalLayers[3].getDepth(), "NONE", 0.2);					// Via-4
+
+		metalLayers[5].setFactory3DInfo(4.95, IMD_LAYER + metalLayers[4].getDistance(), "NONE", 0.2);					// Metal-6 0.99um/0.2
+        viaLayers[4].setFactory3DInfo(metalLayers[5].getDistance()-metalLayers[4].getDepth(), metalLayers[4].getDepth(), "NONE", 0.2);					// Via-5
 
 		double PASS_LAYER = 5; // 1um/0.2
 		double PO_LAYER = 1; // 0.2/0.2
 		double FOX_LAYER = 1.75; // 0.35/0.2
-		double TOX_LAYER = 0; // Very narrow thin oxide in gate
+        double FOX_LAYER_POLY2 = 2.85; // 15.85 - 13 requested by J. Baker.
+        double TOX_LAYER = 0; // Very narrow thin oxide in gate
 
 //		/* for displaying pins */
 //		pseudoMetal1_lay.setFactory3DInfo(0, metalLayers[0].getDistance());			// Pseudo-Metal-1
@@ -1162,18 +1166,19 @@ public class MoCMOS extends Technology
 //		pseudoMetal6_lay.setFactory3DInfo(0, metalLayers[5].getDistance());			// Pseudo-Metal-6
 
 		// Poly layers
-		poly1Layer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());					// Polysilicon-1
-		transistorPolyLayer.setFactory3DInfo(PO_LAYER, TOX_LAYER + activeLayers[P_TYPE].getDepth());			// Transistor-Poly
-        poly2_lay.setFactory3DInfo(PO_LAYER, transistorPolyLayer.getDepth());					// Polysilicon-2 // on top of transistor layer?
-		polyCapLayer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
+        double activeDepth = activeLayers[P_TYPE].getDepth();
+        poly1Layer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeDepth, "NONE", 0.2);					// Polysilicon-1
+		transistorPolyLayer.setFactory3DInfo(PO_LAYER, TOX_LAYER + activeDepth, "NONE", 0.2);			// Transistor-Poly
+        poly2_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER_POLY2 + activeDepth, "NONE", 0.2);					// Polysilicon-2 // on top of transistor layer?
+		polyCapLayer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeDepth, "NONE", 0.2);				// Poly-Cap @TODO GVG Ask polyCap
 
-		polyCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-poly1Layer.getDepth(), poly1Layer.getDepth());				// Poly-Cut between poly and metal1
-		activeCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-activeLayers[N_TYPE].getDepth(), activeLayers[N_TYPE].getDepth());				// Active-Cut betweent active and metal1
+		polyCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-poly1Layer.getDepth(), poly1Layer.getDepth(), "NONE", 0.2);				// Poly-Cut between poly and metal1
+		activeCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-activeLayers[N_TYPE].getDepth(), activeLayers[N_TYPE].getDepth(), "NONE", 0.2);				// Active-Cut betweent active and metal1
 
 		// Other layers
-		passivationLayer.setFactory3DInfo(PASS_LAYER, metalLayers[5].getDepth());			// Passivation
-		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
-        padFrameLayer.setFactory3DInfo(0, passivationLayer.getDepth());				// Pad-Frame
+		passivationLayer.setFactory3DInfo(PASS_LAYER, metalLayers[5].getDepth(), "NONE", 0.2);			// Passivation
+		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER, "NONE", 0.2);			// Silicide-Block
+        padFrameLayer.setFactory3DInfo(0, passivationLayer.getDepth(), "NONE", 0.2);				// Pad-Frame
 
 //		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
 //		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
@@ -1377,7 +1382,7 @@ public class MoCMOS extends Technology
         activePinNodes[P_TYPE] = activeArcs[P_TYPE].makeWipablePin("P-Active-Pin", "p-active", 6, 15.0);
         activePinNodes[N_TYPE] = activeArcs[N_TYPE].makeWipablePin("N-Active-Pin", "n-active", 6, 15.0);
 		PrimitiveNode activeGenPinNode = active_arc.makeWipablePin("Active-Pin", "active", 0, 3.0, activeArcs[P_TYPE], activeArcs[N_TYPE]);
-        
+
 //		/** metal-1-pin */
 //		metalPinNodes[0] = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, null,
 //			new Technology.NodeLayer []
@@ -1849,7 +1854,7 @@ public class MoCMOS extends Technology
             scalableTransistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
             scalableTransistorNodes[N_TYPE].setCanShrink();
             scalableTransistorNodes[N_TYPE].setMinSize(17, 26, "2.1, 3.1");
-            
+
             npnTransistorNode = PrimitiveNode.newInstance("NPN-Transistor", this, 56.0, 48.0, new SizeOffset(13, 13, 13, 13),
                 new Technology.NodeLayer []
                 {
@@ -2100,7 +2105,7 @@ public class MoCMOS extends Technology
         }
 
         createPureLayerNodes();
-        
+
 		oldNodeNames.put("Metal-1-Substrate-Con", metalWellContactNodes[N_TYPE]);
 		oldNodeNames.put("Metal-1-Well-Con", metalWellContactNodes[P_TYPE]);
     }
@@ -2566,28 +2571,28 @@ public class MoCMOS extends Technology
 //		thickActiveLayer.setPureLayerNode(thickActiveNode);			// Thick-Active
 //		padFrameLayer.setPureLayerNode(padFrameNode);				// Pad-Frame
     }
-    
+
     private void createExtraLayers() {
 		pBaseLayer = Layer.newInstance(this, "P-Base",
 			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 107,226, 96,/*240,221,181,*/ 0.8,true,
-			new int[] { 0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+			new int[] { 0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x0888,   //     X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x0888,   //     X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x8888,   // X   X   X   X   
-						0x4444,   //  X   X   X   X  
-						0x2222,   //   X   X   X   X 
+						0x8888,   // X   X   X   X
+						0x4444,   //  X   X   X   X
+						0x2222,   //   X   X   X   X
 						0x1111,   //    X   X   X   X
-						0x0888}));//     X   X   X   
+						0x0888}));//     X   X   X
     }
-    
+
     private void initFoundryMOSIS() {
         newFoundry(Foundry.Type.MOSIS, MoCMOS.class.getResource("utils/Mosis180DRCDeck.xml"),
                 // The GDS names for MOSIS
@@ -2614,7 +2619,7 @@ public class MoCMOS extends Technology
                 "Via3 30",
                 "Via4 32",
                 "Via5 36",
-                
+
                 "Passivation 52",
                 "Poly-Cap 28",
                 "Silicide-Block 29",
@@ -2650,7 +2655,7 @@ public class MoCMOS extends Technology
 //            mosis.setFactoryGDSLayer(thickActiveLayer, "60"); // Thick-Active
 //            mosis.setFactoryGDSLayer(padFrameLayer, "26"); // Pad-Frame
     }
-    
+
     /**
      * Method to load primitive nodes in the palette after rules have been loaded
      */
@@ -2776,7 +2781,7 @@ public class MoCMOS extends Technology
         printlnSetting(out, getAlternateActivePolyRulesSetting());
         printlnSetting(out, getAnalogSetting());
     }
-    
+
 	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
 
 	private static final int SCALABLE_ACTIVE_TOP = 0;
@@ -3222,7 +3227,7 @@ public class MoCMOS extends Technology
             int baseExtend = (int)DBMath.lambdaToGrid(width*0.5);
             ap.setExtends(baseExtend, baseExtend + ap.getGridFullExtend() - ap.getGridBaseExtend());
         }
-        
+
 //        // poly arcs
 //        double width = DBMath.round(polyWid.getValue(0));
 //        double half = DBMath.round(width/2);
@@ -3255,34 +3260,34 @@ public class MoCMOS extends Technology
         int numMetals = newDefaults ? 6 : 4;
         boolean isSecondPolysilicon = newDefaults ? true : false;
         int ruleSet = SUBMRULES;
-        
+
         Object numMetalsValue = projectSettings.get(getNumMetalsSetting());
         if (numMetalsValue instanceof Integer)
             numMetals = ((Integer)numMetalsValue).intValue();
-        
+
         Object secondPolysiliconValue = projectSettings.get(getSecondPolysiliconSetting());
         if (secondPolysiliconValue instanceof Boolean)
             isSecondPolysilicon = ((Boolean)secondPolysiliconValue).booleanValue();
         else if (secondPolysiliconValue instanceof Integer)
             isSecondPolysilicon = ((Integer)secondPolysiliconValue).intValue() != 0;
-        
+
         Object ruleSetValue = projectSettings.get(getRuleSetSetting());
         if (ruleSetValue instanceof Integer)
             ruleSet = ((Integer)ruleSetValue).intValue();
-        
+
         if (numMetals == getNumMetals() && isSecondPolysilicon == isSecondPolysilicon() && ruleSet == getRuleSet() && version.compareTo(changeOfMetal6) >= 0)
             return sc;
-        
+
         setArcCorrection(sc, "Polysilicon-2", ruleSet == SCMOSRULES ? 3 : 7);
         setArcCorrection(sc, "Metal-3", numMetals <= 3 ? (ruleSet == SCMOSRULES ? 6 : 5) : 3);
         setArcCorrection(sc, "Metal-4", numMetals <= 4 ? 6 : 3);
         setArcCorrection(sc, "Metal-5", numMetals <= 5 ? 4 : 3);
         if (version.compareTo(changeOfMetal6) < 0) // Fix of bug #357
             setArcCorrection(sc, "Metal-6", 4);
-        
+
         return sc;
     }
-    
+
 //    /**
 //	 * Method to compare a Rules set with the "factory" set and construct an override string.
 //	 * @param origDRCRules

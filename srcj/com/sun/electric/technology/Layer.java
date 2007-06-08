@@ -51,10 +51,12 @@ public class Layer
 {
     public static final boolean PSEUDO_HIDDEN = true; // True if pseudo-layers don't apper in Technology.getLayers() and don't have layer index.'
     
-    private static final double DEFAULT_THICKNESS = 0;
-    private static final double DEFAULT_DISTANCE = 0;
+    public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
+    public static final double DEFAULT_DISTANCE = 0; // 3D default distance
+    public static final String DEFAULT_MODE = "NONE"; // 3D default transparency mode DEFAULT_FACTOR
+    public static final double DEFAULT_FACTOR = 0.0; // 3D default transparency factor
     private static final double DEFAULT_AREA_COVERAGE = 10; // 10%
-    
+
     /** Describes a P-type layer. */												private static final int PTYPE =          0100;
     /** Describes a N-type layer. */												private static final int NTYPE =          0200;
     /** Describes a depletion layer. */												private static final int DEPLETION =      0400;
@@ -69,12 +71,12 @@ public class Layer
     /** Describes a layer that is VTH or VTL */								        private static final int HLVT =      010000000;
     /** Describes a layer that is inside transistor. */								private static final int INTRANS =   020000000;
     /** Describes a thick layer. */								                    private static final int THICK =     040000000;
-    
+
     private static final ArrayList<Function> metalLayers = new ArrayList<Function>();
     private static final ArrayList<Function> contactLayers = new ArrayList<Function>();
     private static final ArrayList<Function> polyLayers = new ArrayList<Function>();
     private static List<Function> allFunctions;
-        
+
 	/**
 	 * Function is a typesafe enum class that describes the function of a layer.
 	 * Functions are technology-independent and describe the nature of the layer (Metal, Polysilicon, etc.)
@@ -134,7 +136,7 @@ public class Layer
 		/** Describes an artwork layer. */						ART       ("art",         0, 0, 0, 43, 0),
 		/** Describes a control layer. */						CONTROL   ("control",     0, 0, 0, 44, 0),
         /** Describes a tileNot layer. */						TILENOT   ("tileNot",     0, 0, 0, 45, 0);
-        
+
 //        /** Describes a P-type layer. */												public static final int PTYPE = Layer.PTYPE;
 //        /** Describes a N-type layer. */												public static final int NTYPE = Layer.NTYPE;
         /** Describes a depletion layer. */												public static final int DEPLETION = Layer.DEPLETION;
@@ -149,7 +151,7 @@ public class Layer
         /** Describes a layer that is VTH or VTL */								        public static final int HLVT = Layer.HLVT;
 //        /** Describes a layer that is inside transistor. */								public static final int INTRANS = Layer.INTRANS;
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
-    
+
 		private final String name;
         private final boolean isMetal;
         private final boolean isContact;
@@ -163,7 +165,7 @@ public class Layer
             allFunctions = Arrays.asList(Function.class.getEnumConstants());
             assert allFunctions.size() <= Long.SIZE;
         }
-        
+
 		private Function(String name, int metalLevel, int contactLevel, int polyLevel, int height, int extraBits)
 		{
 			this.name = name;
@@ -183,7 +185,7 @@ public class Layer
             Function oldFunction = layers.set(level, this);
             assert oldFunction == null;
         }
-        
+
 		/**
 		 * Returns a printable version of this Function.
 		 * @return a printable version of this Function.
@@ -424,13 +426,13 @@ public class Layer
             else
                 return true;
         }
-        
+
 		/**
 		 * Method to tell the distance of this layer function.
 		 * @return the distance of this layer function.
 		 */
 		public int getHeight() { return height; }
-        
+
         /**
          * A set of Layer.Functions
          */
@@ -438,7 +440,7 @@ public class Layer
             final long bits;
             /** Set if all Layer.Functions */
             public static final Set ALL = new Set(Function.class.getEnumConstants());
-            
+
             /**
              * Constructs Function.Set from varargs Functions.
              * @param funs variable list of Functions.
@@ -449,10 +451,10 @@ public class Layer
                     bits |= bit(f);
                 this.bits = bits;
             }
-            
+
             /**
              * Constructs Function.Set from a collection of Functions.
-             * @param funs a Collection of Functions. 
+             * @param funs a Collection of Functions.
              */
             public Set(Collection<Function> funs) {
                 long bits = 0;
@@ -460,14 +462,14 @@ public class Layer
                     bits |= bit(f);
                 this.bits = bits;
             }
-            
+
             /**
              * Returns true if specified Functions is in this Set.
              * @param f Function to test.
              * @return true if specified Functions is in this Set.
              */
             public boolean contains(Function f) { return (bits & bit(f)) != 0; }
-            
+
             private static long bit(Function f) { return 1L << f.ordinal(); }
         }
 	}
@@ -524,6 +526,8 @@ public class Layer
     // 3D options
 	private static final HashMap<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
 	private static final HashMap<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
+    private static final HashMap<Layer,Pref> layer3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
+    private static final HashMap<Layer,Pref> layer3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
 
     private static final HashMap<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
 
@@ -594,7 +598,7 @@ public class Layer
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;
     }
-    
+
 	/**
 	 * Method to return the name of this Layer.
 	 * @return the name of this Layer.
@@ -648,7 +652,7 @@ public class Layer
     {
         setFunction(function, functionExtras, false);
     }
-    
+
 	/**
 	 * Method to set the Function of this Layer when the function is complex.
 	 * Some layer functions have extra bits of information to describe them.
@@ -848,7 +852,7 @@ public class Layer
                 getSubNode(what), name,
                 what + " tab", what + " for layer " + name + " in technology " + techName, factory);
     }
-    
+
     private Setting makeParasiticSetting(String what, double factory)
     {
         return Setting.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
@@ -867,7 +871,25 @@ public class Layer
         return typenode;
     }
 
-	/**
+    /**
+	 * Method to get a string preference for this Layer and a specific purpose.
+	 * @param what the purpose of the preference.
+	 * @param map a Map of preferences for the purpose.
+	 * @param factory the factory default value for this Layer/purpose.
+	 * @return the string Pref object for this Layer/purpose.
+	 */
+    public Pref getStringPref(String what, HashMap<Layer,Pref> map, String factory)
+	{
+		Pref pref = map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			map.put(this, pref);
+		}
+		return pref;
+	}
+
+    /**
 	 * Method to get a boolean preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
 	 * @param map a Map of preferences for the purpose.
@@ -924,18 +946,68 @@ public class Layer
 	/**
 	 * Method to set the 3D distance and thickness of this Layer.
 	 * @param thickness the thickness of this layer.
-	 * @param distance the distance of this layer above the ground plane (silicon).
-	 * Negative values represent layes in silicon like p++, p well, etc.
-	 * The higher the distance value, the farther from the silicon.
-	 */
-	public void setFactory3DInfo(double thickness, double distance)
+     * @param distance the distance of this layer above the ground plane (silicon).
+ * Negative values represent layes in silicon like p++, p well, etc.
+     * @param mode
+     * @param factor
+     */
+	public void setFactory3DInfo(double thickness, double distance, String mode, double factor)
 	{
         assert !isPseudoLayer();
-		getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
-		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
-	}
 
-	/**
+        // We don't call setDistance and setThickness directly here due to reflection code.
+        getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
+		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
+        if (mode != null)
+            setTransparencyMode(mode);
+        setTransparencyFactor(factor);
+    }
+
+    /**
+	 * Method to return the transparency mode of this layer as a string.
+     * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
+	 * @return the transparency mode of this layer for the 3D view..
+	 */
+	public String getTransparencyMode() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getTransparencyMode();
+        return getStringPref("3DTransparencyMode", layer3DTransModePrefs, DEFAULT_MODE).getString();
+    }
+
+    /**
+	 * Method to set the transparency mode of this layer.
+	 * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
+	 * @param mode the transparency mode of this layer.
+	 */
+	public void setTransparencyMode(String mode)
+    {
+        assert !isPseudoLayer();
+        getStringPref("3DTransparencyMode", layer3DTransModePrefs, mode).setString(mode);
+    }
+
+    /**
+	 * Method to return the transparency factor of this layer as a string.
+     * Possible values from 0 (opaque) -> 1 (transparent)
+	 * @return the transparency factor of this layer for the 3D view..
+	 */
+	public double getTransparencyFactor() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getTransparencyFactor();
+        return getDoublePref("3DTransparencyFactor", layer3DTransFactorPrefs, DEFAULT_FACTOR).getDouble();
+    }
+
+    /**
+	 * Method to set the transparency factor of this layer.
+	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
+	 * @param factor the transparency factor of this layer.
+	 */
+	public void setTransparencyFactor(double factor)
+    {
+        assert !isPseudoLayer();
+        getDoublePref("3DTransparencyFactor", layer3DTransFactorPrefs, factor).setDouble(factor);
+    }
+
+    /**
 	 * Method to return the distance of this layer.
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane.
@@ -1079,7 +1151,7 @@ public class Layer
         assert !isPseudoLayer();
         dxfLayerSetting = makeLayerSetting("DXF", dxfLayer);
     }
-    
+
 	/**
 	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.

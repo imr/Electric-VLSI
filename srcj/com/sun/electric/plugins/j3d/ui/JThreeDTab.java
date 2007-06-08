@@ -70,43 +70,6 @@ public class JThreeDTab extends ThreeDTab
 	public HashMap<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
     public HashMap<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
-    private static final HashMap<J3DTransparencyOption,J3DTransparencyOption> modeMap = new HashMap<J3DTransparencyOption,J3DTransparencyOption>(5);
-
-    // Filling the data
-    static {
-        J3DTransparencyOption option = new J3DTransparencyOption(TransparencyAttributes.FASTEST, "FASTEST");
-        modeMap.put(option, option);
-        option = new J3DTransparencyOption(TransparencyAttributes.NICEST, "NICEST");
-        modeMap.put(option, option);
-        option = new J3DTransparencyOption(TransparencyAttributes.BLENDED, "BLENDED");
-        modeMap.put(option, option);
-        option = new J3DTransparencyOption(TransparencyAttributes.SCREEN_DOOR, "SCREEN_DOOR");
-        modeMap.put(option, option);
-        option = new J3DTransparencyOption(TransparencyAttributes.NONE, "NONE");
-        modeMap.put(option, option);
-    }
-
-    /**
-     * Inner class to control options based on attribute integers
-     */
-    private static class J3DTransparencyOption
-    {
-        int mode;
-        String name;
-        J3DTransparencyOption(int mode, String name)
-        {
-            this.mode = mode;
-            this.name = name;
-        }
-        public String toString() {return name;}
-        // Careful with toString
-        /**
-         * Overwriting original function to use mode integer values
-         * for hash numbers
-         * @return
-         */
-        public int hashCode() {return mode;}
-    }
 
 	/**
 	 * Method called at the start of the dialog.
@@ -175,7 +138,7 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
         alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
-        for (J3DTransparencyOption op : modeMap.keySet())
+        for (J3DAppearance.J3DTransparencyOption op : J3DAppearance.J3DTransparencyOption.values())
         {
             transparencyMode.addItem(op);
         }
@@ -248,7 +211,7 @@ public class JThreeDTab extends ThreeDTab
             thickness.setValue(TextUtils.atof(threeDThickness.getText()));
             height.setValue(TextUtils.atof(threeDHeight.getText()));
             ta.setTransparency((float)TextUtils.atof(transparancyField.getText()));
-            J3DTransparencyOption op = (J3DTransparencyOption)transparencyMode.getSelectedItem();
+            J3DAppearance.J3DTransparencyOption op = (J3DAppearance.J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
             app.getRenderingAttributes().setDepthBufferEnable(op.mode != TransparencyAttributes.NONE);
             threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
@@ -258,7 +221,7 @@ public class JThreeDTab extends ThreeDTab
             threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
             transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
-            for (J3DTransparencyOption op : modeMap.keySet())
+            for (J3DAppearance.J3DTransparencyOption op : J3DAppearance.J3DTransparencyOption.values())
             {
                 if (op.mode == ta.getTransparencyMode())
                 {

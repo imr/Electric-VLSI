@@ -59,7 +59,7 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class Xml {
-    
+
     public static class Technology {
         public String techName;
         public String className;
@@ -81,7 +81,7 @@ public class Xml {
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
         public MenuPalette menuPalette;
         public final List<Foundry> foundries = new ArrayList<Foundry>();
-        
+
         public Layer findLayer(String name) {
             for (Layer layer: layers) {
                 if (layer.name.equals(name))
@@ -89,7 +89,7 @@ public class Xml {
             }
             return null;
         }
-        
+
         public ArcProto findArc(String name) {
             for (ArcProto arc: arcs) {
                 if (arc.name.equals(name))
@@ -97,7 +97,7 @@ public class Xml {
             }
             return null;
         }
-        
+
         public PrimitiveNode findNode(String name) {
             for (PrimitiveNode node: nodes) {
                 if (node.name.equals(name))
@@ -105,7 +105,7 @@ public class Xml {
             }
             return null;
         }
-        
+
         public void writeXml(String fileName) {
             try {
                 PrintWriter out = new PrintWriter(fileName);
@@ -118,12 +118,12 @@ public class Xml {
             }
         }
     }
-    
+
     public static class Version {
         public int techVersion;
         public com.sun.electric.database.text.Version electricVersion;
     }
-    
+
     public static class Layer {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
@@ -131,6 +131,8 @@ public class Xml {
         public EGraphics desc;
         public double thick3D;
         public double height3D;
+        public String mode3D;
+        public double factor3D;
         public String cif;
         public String skill;
         public double resistance;
@@ -138,7 +140,7 @@ public class Xml {
         public double edgeCapacitance;
         public PureLayerNode pureLayerNode;
     }
-    
+
     public static class PureLayerNode {
         public String name;
         public String oldName;
@@ -147,7 +149,7 @@ public class Xml {
         public final Distance size = new Distance();
         public final List<String> portArcs = new ArrayList<String>();
     }
-    
+
     public static class ArcProto {
         public String name;
         public String oldName;
@@ -157,7 +159,7 @@ public class Xml {
         public boolean special;
         public boolean notUsed;
         public boolean skipSizeInPalette;
-        
+
         public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
         public final Distance defaultWidth = new Distance();
         public boolean extended;
@@ -166,13 +168,13 @@ public class Xml {
         public double antennaRatio;
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
     }
-    
+
     public static class ArcLayer {
         public String layer;
-        public final Distance extend = new Distance(); 
+        public final Distance extend = new Distance();
         public Poly.Type style;
     }
-    
+
     public static class PrimitiveNode {
         public String name;
         public String oldName;
@@ -190,7 +192,7 @@ public class Xml {
         public boolean od18;
         public boolean od25;
         public boolean od33;
-        
+
         public com.sun.electric.technology.PrimitiveNode.Function function;
         public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
@@ -202,7 +204,7 @@ public class Xml {
         public double[] specialValues;
         public com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule;
     }
-    
+
     public static class NodeLayer {
         public String layer;
         public Poly.Type style;
@@ -218,7 +220,7 @@ public class Xml {
         public double sizex, sizey, sep1d, sep2d;
         public double lWidth, rWidth, tExtent, bExtent;
     }
-    
+
     public static class PrimitivePort {
         public String name;
         public int portAngle;
@@ -230,37 +232,37 @@ public class Xml {
         public final Distance hy = new Distance();
         public final List<String> portArcs = new ArrayList<String>();
     }
-    
+
     public static class SpiceHeader {
         public int level;
         public final List<String> spiceLines = new ArrayList<String>();
     }
-    
+
     public static class MenuPalette {
         public int numColumns;
         public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
     }
-    
+
     public static class MenuNodeInst {
         public String protoName;
         public com.sun.electric.technology.PrimitiveNode.Function function;
         public String text;
         public double fontSize;
     }
-    
+
     public static class Distance {
         public double k;
         public double value;
     }
-    
+
     public static class Foundry {
         public String name;
         public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
         public final List<DRCTemplate> rules = new ArrayList<DRCTemplate>();
     }
-    
+
     private Xml() {}
-    
+
     private static enum XmlKeyword {
         technology,
         shortName(true),
@@ -289,7 +291,7 @@ public class Xml {
         skillLayer,
         parasitics,
         pureLayerNode,
-        
+
         arcProto,
         oldName(true),
         wipable,
@@ -297,16 +299,16 @@ public class Xml {
         special,
         notUsed,
         skipSizeInPalette,
-        
+
         extended(true),
         fixedAngle(true),
         angleIncrement(true),
         antennaRatio(true),
-        
+
         diskOffset,
         defaultWidth,
         arcLayer,
-        
+
         primitiveNode,
         //oldName(true),
         shrinkArcs,
@@ -358,9 +360,9 @@ public class Xml {
         LayersRule,
         NodeLayersRule,
         NodeRule;
-        
+
         private final boolean hasText;
-        
+
         private XmlKeyword() {
             hasText = false;
         };
@@ -368,13 +370,13 @@ public class Xml {
             this.hasText = hasText;
         }
     };
-    
+
     private static final HashMap<String,XmlKeyword> xmlKeywords = new HashMap<String,XmlKeyword>();
     static {
         for (XmlKeyword k: XmlKeyword.class.getEnumConstants())
             xmlKeywords.put(k.name(), k);
     }
-    
+
     public static Technology parseTechnology(URL fileURL) {
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -387,7 +389,7 @@ public class Xml {
             SAXParser parser = factory.newSAXParser();
             URLConnection urlCon = fileURL.openConnection();
             InputStream inputStream = urlCon.getInputStream();
-            
+
             XMLReader handler = new XMLReader();
             parser.parse(inputStream, handler);
             if (Job.getDebug())
@@ -402,11 +404,11 @@ public class Xml {
         System.out.println("Error Parsing XML file ...");
         return null;
     }
-    
+
     private static class XMLReader extends DefaultHandler {
         private static boolean DEBUG = false;
         private Locator locator;
-        
+
         private Xml.Technology tech = new Xml.Technology();
         private int curTransparent = 0;
         private int curR;
@@ -430,11 +432,11 @@ public class Xml {
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
-        
+
         private boolean acceptCharacters;
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
-        
+
         private void beginCharacters() {
             assert !acceptCharacters;
             acceptCharacters = true;
@@ -447,12 +449,12 @@ public class Xml {
             acceptCharacters = false;
             return s;
         }
-        
-        
+
+
         ////////////////////////////////////////////////////////////////////
         // Default implementation of the EntityResolver interface.
         ////////////////////////////////////////////////////////////////////
-        
+
         /**
          * Resolve an external entity.
          *
@@ -478,14 +480,14 @@ public class Xml {
         throws IOException, SAXException {
             return null;
         }
-        
-        
-        
+
+
+
         ////////////////////////////////////////////////////////////////////
         // Default implementation of DTDHandler interface.
         ////////////////////////////////////////////////////////////////////
-        
-        
+
+
         /**
          * Receive notification of a notation declaration.
          *
@@ -505,8 +507,8 @@ public class Xml {
         throws SAXException {
             int x = 0;
         }
-        
-        
+
+
         /**
          * Receive notification of an unparsed entity declaration.
          *
@@ -528,14 +530,14 @@ public class Xml {
                 throws SAXException {
             int x = 0;
         }
-        
-        
-        
+
+
+
         ////////////////////////////////////////////////////////////////////
         // Default implementation of ContentHandler interface.
         ////////////////////////////////////////////////////////////////////
-        
-        
+
+
         /**
          * Receive a Locator object for document events.
          *
@@ -550,13 +552,13 @@ public class Xml {
         public void setDocumentLocator(Locator locator) {
             this.locator = locator;
         }
-        
+
         private void printLocator() {
             System.out.println("publicId=" + locator.getPublicId() + " systemId=" + locator.getSystemId() +
                     " line=" + locator.getLineNumber() + " column=" + locator.getColumnNumber());
         }
-        
-        
+
+
         /**
          * Receive notification of the beginning of the document.
          *
@@ -575,8 +577,8 @@ public class Xml {
                 System.out.println("startDocumnet");
             }
         }
-        
-        
+
+
         /**
          * Receive notification of the end of the document.
          *
@@ -595,8 +597,8 @@ public class Xml {
                 System.out.println("endDocumnet");
             }
         }
-        
-        
+
+
         /**
          * Receive notification of the start of a Namespace mapping.
          *
@@ -616,8 +618,8 @@ public class Xml {
                 System.out.println("startPrefixMapping prefix=" + prefix + " uri=" + uri);
             }
         }
-        
-        
+
+
         /**
          * Receive notification of the end of a Namespace mapping.
          *
@@ -636,8 +638,8 @@ public class Xml {
                 System.out.println("endPrefixMapping prefix=" + prefix);
             }
         }
-        
-        
+
+
         /**
          * Receive notification of the start of an element.
          *
@@ -744,6 +746,8 @@ public class Xml {
                 case display3D:
                     curLayer.thick3D = Double.parseDouble(a("thick"));
                     curLayer.height3D = Double.parseDouble(a("height"));
+                    curLayer.mode3D = a("mode");
+                    curLayer.factor3D = Double.parseDouble(a("factor"));
                     break;
                 case cifLayer:
                     curLayer.cif = a("cif");
@@ -1018,26 +1022,26 @@ public class Xml {
                 }
             }
         }
-        
+
         private double da_(String attrName, double defaultValue) {
             String s = a_(attrName);
             return s != null ? Double.parseDouble(s) : defaultValue;
         }
-        
+
         private String a(String attrName) {
             String v = attributes.getValue(attrName);
 //            System.out.print(" " + attrName + "=\"" + v + "\"");
             return v;
         }
-        
+
         private String a_(String attrName) {
             String v = attributes.getValue(attrName);
             if (v == null) return null;
 //            System.out.print(" " + attrName + "=\"" + v + "\"");
             return v;
         }
-        
-        
+
+
         /**
          * Receive notification of the end of an element.
          *
@@ -1194,7 +1198,7 @@ public class Xml {
                     curMenuBox.add(curMenuNodeInst);
                     curMenuNodeInst = null;
                     break;
-                    
+
                 case version:
                 case spiceHeader:
                 case numMetals:
@@ -1209,7 +1213,7 @@ public class Xml {
                 case skillLayer:
                 case parasitics:
                 case pureLayerNode:
-                    
+
                 case wipable:
                 case curvable:
                 case special:
@@ -1218,7 +1222,7 @@ public class Xml {
                 case diskOffset:
                 case defaultWidth:
                 case arcLayer:
-                    
+
                 case shrinkArcs:
                 case square:
                 case canBeZeroSize:
@@ -1231,7 +1235,7 @@ public class Xml {
                 case od18:
                 case od25:
                 case od33:
-                    
+
                 case defaultHeight:
                 case sizeOffset:
                 case box:
@@ -1259,8 +1263,8 @@ public class Xml {
                     assert false;
             }
         }
-        
-        
+
+
         /**
          * Receive notification of character data inside an element.
          *
@@ -1295,8 +1299,8 @@ public class Xml {
                 }
             }
         }
-        
-        
+
+
         /**
          * Receive notification of ignorable whitespace in element content.
          *
@@ -1317,8 +1321,8 @@ public class Xml {
         throws SAXException {
             int x = 0;
         }
-        
-        
+
+
         /**
          * Receive notification of a processing instruction.
          *
@@ -1338,8 +1342,8 @@ public class Xml {
         throws SAXException {
             int x = 0;
         }
-        
-        
+
+
         /**
          * Receive notification of a skipped entity.
          *
@@ -1357,14 +1361,14 @@ public class Xml {
         throws SAXException {
             int x = 0;
         }
-        
-        
-        
+
+
+
         ////////////////////////////////////////////////////////////////////
         // Default implementation of the ErrorHandler interface.
         ////////////////////////////////////////////////////////////////////
-        
-        
+
+
         /**
          * Receive notification of a parser warning.
          *
@@ -1384,8 +1388,8 @@ public class Xml {
             System.out.println("warning publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
                     " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
         }
-        
-        
+
+
         /**
          * Receive notification of a recoverable parser error.
          *
@@ -1405,8 +1409,8 @@ public class Xml {
             System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
                     " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
         }
-        
-        
+
+
         /**
          * Report a fatal XML parsing error.
          *
@@ -1428,25 +1432,25 @@ public class Xml {
         throws SAXException {
             throw e;
         }
-        
+
     }
-    
+
     private static class Writer {
         private static final int INDENT_WIDTH = 4;
         private final PrintWriter out;
         private int indent;
         private boolean indentEmitted;
-        
+
         Writer(PrintWriter out) {
             this.out = out;
         }
-        
+
         private void writeTechnology(Xml.Technology t) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date());
-            
+
             header();
-            
+
             pl("");
             out.println("<!--");
             pl(" *");
@@ -1475,13 +1479,13 @@ public class Xml {
             pl(" */");
             out.println("-->");
             l();
-            
+
             b(XmlKeyword.technology); a("name", t.techName); a("class", t.className); l();
             a("xmlns", "http://electric.sun.com/Technology"); l();
             a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
             a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
             l();
-            
+
             bcpel(XmlKeyword.shortName, t.shortTechName);
             bcpel(XmlKeyword.description, t.description);
             for (Version version: t.versions) {
@@ -1496,7 +1500,7 @@ public class Xml {
 //        printlnAttribute("  gateInclusion", gi.includeGateInResistance);
 //        printlnAttribute("  groundNetInclusion", gi.includeGround);
             l();
-            
+
             if (t.transparentLayers.size() != 0) {
                 comment("Transparent layers");
                 for (int i = 0; i < t.transparentLayers.size(); i++) {
@@ -1509,35 +1513,35 @@ public class Xml {
                 }
                 l();
             }
-            
+
             comment("**************************************** LAYERS ****************************************");
             for (Xml.Layer li: t.layers) {
                 writeXml(li);
             }
-            
+
             comment("******************** ARCS ********************");
             for (Xml.ArcProto ai: t.arcs) {
                 writeXml(ai);
                 l();
             }
-            
+
             comment("******************** NODES ********************");
             for (Xml.PrimitiveNode ni: t.nodes) {
                 writeXml(ni);
                 l();
             }
-            
+
             for (Xml.SpiceHeader spiceHeader: t.spiceHeaders)
                 writeSpiceHeaderXml(spiceHeader);
-            
+
             writeMenuPaletteXml(t.menuPalette);
-            
+
             for (Xml.Foundry foundry: t.foundries)
                 writeFoundryXml(foundry);
-            
+
             el(XmlKeyword.technology);
         }
-        
+
         private void writeXml(Xml.Layer li) {
             EGraphics desc = li.desc;
             String funString = null;
@@ -1554,17 +1558,17 @@ public class Xml {
                 }
             }
             b(XmlKeyword.layer); a("name", li.name); a("fun", li.function.name()); a("extraFun", funString); cl();
-            
+
             if (desc.getTransparentLayer() > 0) {
                 b(XmlKeyword.transparentColor); a("transparent", desc.getTransparentLayer()); el();
             } else {
                 Color color = desc.getColor();
                 b(XmlKeyword.opaqueColor); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); el();
             }
-            
+
             bcpel(XmlKeyword.patternedOnDisplay, desc.isPatternedOnDisplay());
             bcpel(XmlKeyword.patternedOnPrinter, desc.isPatternedOnPrinter());
-            
+
             int [] pattern = desc.getPattern();
             for(int j=0; j<16; j++) {
                 String p = "";
@@ -1572,15 +1576,18 @@ public class Xml {
                     p += (pattern[j] & (1 << (15-k))) != 0 ? 'X' : ' ';
                 bcpel(XmlKeyword.pattern, p);
             }
-            
+
             if (li.desc.getOutlined() != null)
                 bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
             bcpel(XmlKeyword.opacity, desc.getOpacity());
             bcpel(XmlKeyword.foreground, desc.getForeground());
-            
+
             // write the 3D information
-            if (li.thick3D != 0 || li.height3D != 0) {
-                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); el();
+            if (li.thick3D != com.sun.electric.technology.Layer.DEFAULT_THICKNESS ||
+                    li.height3D != com.sun.electric.technology.Layer.DEFAULT_DISTANCE ||
+                    !li.mode3D.equals(com.sun.electric.technology.Layer.DEFAULT_MODE) ||
+                    li.factor3D != com.sun.electric.technology.Layer.DEFAULT_FACTOR) {
+                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); a("mode", li.mode3D); a("factor", li.factor3D); el();
             }
             
             if (li.cif != null && li.cif.length() > 0) {
