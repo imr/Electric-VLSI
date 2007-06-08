@@ -91,7 +91,10 @@ public abstract class EMenuItem implements ActionListener {
      * @param accelerators the shortcut keys, or null if none specified.
      */
     EMenuItem(String text, KeyStroke [] accelerators) {
-        mnemonicsPos = text.indexOf('_');
+        int mnemonicsPos = text.indexOf('_');
+        if (mnemonicsPos == text.length() - 1)
+            mnemonicsPos = -1; // Don't consider '_' at end of text
+        this.mnemonicsPos = mnemonicsPos;
         this.text = mnemonicsPos >= 0 ? text.substring(0, mnemonicsPos) + text.substring(mnemonicsPos+1) : text;
         if (accelerators == null) accelerators = new KeyStroke [0];
         this.accelerators = accelerators;
