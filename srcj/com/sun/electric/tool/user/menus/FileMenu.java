@@ -377,6 +377,51 @@ public class FileMenu {
         }
     }
 
+    /**
+     * This method implements the command to read a library.
+     * It takes library URL from a parameter.
+     * @param file URL of a library
+     */
+    public static void openLibraryCommand(URL file)
+    {
+        String fileName = file.getFile();
+        FileType defType = getLibraryFormat(fileName, null);
+        if (defType == null) {
+            // no valid extension, search for file with extension
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.JELIB.getExtensions()[0]);
+            if (TextUtils.URLExists(f, null)) {
+                defType = FileType.JELIB;
+                file = f;
+            }
+        }
+        if (defType == null) {
+            // no valid extension, search for file with extension
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getExtensions()[0]);
+            if (TextUtils.URLExists(f, null)) {
+                defType = FileType.ELIB;
+                file = f;
+            }
+        }
+        if (defType == null) {
+            // no valid extension, search for file with extension
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.DELIB.getExtensions()[0]);
+            if (TextUtils.URLExists(f, null)) {
+                defType = FileType.DELIB;
+                file = f;
+            }
+        }
+        if (defType == null) {
+            // no valid extension, search for file with extension
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.READABLEDUMP.getExtensions()[0]);
+            if (TextUtils.URLExists(f, null)) {
+                defType = FileType.READABLEDUMP;
+                file = f;
+            }
+        }
+        if (defType == null) defType = FileType.DEFAULTLIB;
+        new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null);
+    }
+
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.
      */
     public static FileType getLibraryFormat(String fileName, FileType defaultType) {
@@ -590,73 +635,6 @@ public class FileMenu {
                 WindowFrame.wantToRedoLibraryTree();
                 WindowFrame.wantToOpenCurrentLibrary(true, cell);
             }});
-    }
-
-	/**
-	 * Class to read initial libraries into Electric.
-	 */
-	public static class ReadInitialELIBs extends Job
-    {
-        private List<URL> fileURLs;
-//        private Cell showThisCell;
-
-        public ReadInitialELIBs(List<URL> fileURLs) {
-            super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.fileURLs = fileURLs;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException {
-            // try to open initial libraries
-//            boolean success = false;
-            for (URL file : fileURLs) {
-                FileType defType = null;
-                String fileName = file.getFile();
-                defType = getLibraryFormat(fileName, defType);
-                if (defType == null) {
-                    // no valid extension, search for file with extension
-                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.JELIB.getExtensions()[0]);
-                    if (TextUtils.URLExists(f, null)) {
-                        defType = FileType.JELIB;
-                        file = f;
-                    }
-                }
-                if (defType == null) {
-                    // no valid extension, search for file with extension
-                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getExtensions()[0]);
-                    if (TextUtils.URLExists(f, null)) {
-                        defType = FileType.ELIB;
-                        file = f;
-                    }
-                }
-                if (defType == null) {
-                    // no valid extension, search for file with extension
-                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.DELIB.getExtensions()[0]);
-                    if (TextUtils.URLExists(f, null)) {
-                        defType = FileType.DELIB;
-                        file = f;
-                    }
-                }
-                if (defType == null) {
-                    // no valid extension, search for file with extension
-                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.READABLEDUMP.getExtensions()[0]);
-                    if (TextUtils.URLExists(f, null)) {
-                        defType = FileType.READABLEDUMP;
-                        file = f;
-                    }
-                }
-                if (defType == null) defType = FileType.DEFAULTLIB;
-                new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null);
-//                showThisCell = openALibrary(file, defType);
-            }
-//			fieldVariableChanged("showThisCell");
-            return true;
-        }
-
-//        public void terminateOK()
-//        {
-//        	doneOpeningLibrary(showThisCell);
-//        }
     }
 
 	/**
