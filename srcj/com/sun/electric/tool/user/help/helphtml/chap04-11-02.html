@@ -45,7 +45,9 @@ The transparency mode sets the
 rasterization technique to use during rendering.
 Possible values are NONE, BLENDED, FASTEST, 
 NICEST or SCREEN DOOR.
-The default setting of "NONE" indicates that all objects are opaque. 
+The default setting of "NONE" indicates that all objects are opaque.
+Due to rendering issues while setting more than 1 layer with the transparency mode "NICEST", the select layers are set
+with "SCREEN_DOOR" so they can be seen from any angle.
 Refer to <A HREF="http://www.j3d.org">www.j3d.org</A> for technical details.
 
 <P>

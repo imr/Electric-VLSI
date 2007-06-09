@@ -1127,8 +1127,8 @@ public class MoCMOS extends Technology
 		double METAL_LAYER = 2.65; // 0.53um/0.2
 		wellLayers[P_TYPE].setFactory3DInfo(WELL_THICKNESS, BULK_LAYER, "NICEST", 0.8);					// P-Well
 		wellLayers[N_TYPE].setFactory3DInfo(WELL_THICKNESS, BULK_LAYER, "NICEST", 0.8);					// N-Well
-		selectLayers[P_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "NICEST", 0.4);				// P-Select
-		selectLayers[N_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "NICEST", 0.4);				// N-Select
+		selectLayers[P_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "SCREEN_DOOR", 0.4);				// P-Select
+		selectLayers[N_TYPE].setFactory3DInfo(SELECT_THICKNESS, SELECT_DISTANCE, "SCREEN_DOOR", 0.4);				// N-Select
 
         activeLayers[P_TYPE].setFactory3DInfo(ACTIVE_THICKNESS, ACTIVE_DISTANCE, "NONE", 0.0);				// P-Active old values=0.17um/0.2 =
 		activeLayers[N_TYPE].setFactory3DInfo(ACTIVE_THICKNESS, ACTIVE_DISTANCE, "NONE", 0.0);				// N-Active old values=0.16um/0.2
