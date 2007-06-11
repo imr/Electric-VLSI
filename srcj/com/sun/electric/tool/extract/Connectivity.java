@@ -1392,6 +1392,7 @@ public class Connectivity
 				}
 
 				boolean foundCut = false;
+				String reason = null;
 				for(PossibleVia pv : possibleVias)
 				{
 					// quick test to see if this via could possibly exist
@@ -1454,7 +1455,8 @@ public class Connectivity
 						double lY = multiCutArea.getMinY() - pv.minHeight/2;
 						double hY = multiCutArea.getMaxY() + pv.minHeight/2;
 						multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-						if (doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell))
+						Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
+						if (badLayer == null)
 						{
 							// it fits: create it
 							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), multiCutArea.getWidth(), multiCutArea.getHeight(),
@@ -1468,21 +1470,28 @@ public class Connectivity
 					}
 
 					// see if a single-cut contact fits
-					Rectangle2D cutLoc = new Rectangle2D.Double(cut.getCenterX(), cut.getCenterY(), pv.minWidth, pv.minHeight);
-					if (doesNodeFit(pv, cutLoc, originalMerge, ignorePWell, ignoreNWell))
+					Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - pv.minWidth/2,
+						cutBox.getCenterY() - pv.minHeight/2, pv.minWidth, pv.minHeight);
+					Layer badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
+					if (badLayer == null)
 					{
 						// it fits: create it
-						realizeNode(pv.pNp, cutLoc.getCenterX(), cutLoc.getCenterY(), cutLoc.getWidth(), cutLoc.getHeight(),
+						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), contactLoc.getWidth(), contactLoc.getHeight(),
 							pv.rotation*10, null, merge, newCell, contactNodes);
 						cutList.remove(cut);
 						foundCut = true;
 						break;
+					} else
+					{
+						reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
 					}
 				}
 				if (!foundCut)
 				{
-					System.out.println("Did not extract contact cut at (" +
-						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")");
+					String msg = "Did not extract contact cut at (" +
+						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")";
+					if (reason != null) msg += " because " + reason;
+					System.out.println(msg);
 					cutList.remove(cut);
 				}
 			}
@@ -1815,9 +1824,10 @@ public class Connectivity
 	 * @param originalMerge the original merge data.
 	 * @param ignorePWell true to ignore p-well layers.
 	 * @param ignoreNWell true to ignore n-well layers.
-	 * @return true if a contact can be created.
+	 * @return null if a contact can be created.
+	 * If contact cannot be created, returns the offending layer.
 	 */
-	private boolean doesNodeFit(PossibleVia pv, Rectangle2D cutBox, PolyMerge originalMerge,
+	private Layer doesNodeFit(PossibleVia pv, Rectangle2D cutBox, PolyMerge originalMerge,
 		boolean ignorePWell, boolean ignoreNWell)
 	{
 		for(int i=0; i<pv.layers.length; i++)
@@ -1834,12 +1844,12 @@ public class Connectivity
 			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
 			if (!originalMerge.contains(l, layerPoly))
 			{
-				return false;
+				return l;
 			}
 		}
 
 		// all layers fit: can create the node
-		return true;
+		return null;
 	}
 
 	/********************************************** TRANSISTOR EXTRACTION **********************************************/
