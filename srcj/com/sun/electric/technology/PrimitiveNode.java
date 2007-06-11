@@ -519,7 +519,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	{
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
-			System.out.println("PrimitiveNode name " + protoName + " is not safe to write inti JELIB");
+			System.out.println("PrimitiveNode name " + protoName + " is not safe to write in the JELIB");
 		this.protoName = protoName;
 		this.fullName = tech.getTechName() + ":" + protoName;
 		this.function = Function.UNKNOWN;
