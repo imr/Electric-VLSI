@@ -1187,7 +1187,6 @@ public class LibToTech
 				// port connectivity
 				nIn.nodePortDetails[i].netIndex = i;
 				if (ns.node.hasConnections())
-//				if (ns.node.getNumConnections() != 0)
 				{
 					ArcInst ai1 = ns.node.getConnections().next().getArc();
 					Network net1 = netList.getNetwork(ai1, 0);
@@ -1197,7 +1196,6 @@ public class LibToTech
 						if (oNs == ns) break;
 						if (oNs.layer != Generic.tech.portNode) continue;
 						if (oNs.node.hasConnections())
-//						if (oNs.node.getNumConnections() != 0)
 						{
 							ArcInst ai2 = oNs.node.getConnections().next().getArc();
 							Network net2 = netList.getNetwork(ai2, 0);
@@ -2504,6 +2502,8 @@ public class LibToTech
 
 		// determine indentation of cuts
 		double multiIndent = nodeBounds.getMinX() - highlightBounds.getMinX();
+		double realIndentX = nodeBounds.getMinX() - neList.lx + multiXS/2;
+		double realIndentY = nodeBounds.getMinY() - neList.ly + multiYS/2;
 		if (highlightBounds.getMaxX() - nodeBounds.getMaxX() != multiIndent ||
 			nodeBounds.getMinY() - highlightBounds.getMinY() != multiIndent ||
 			highlightBounds.getMaxY() - nodeBounds.getMaxY() != multiIndent)
@@ -2612,8 +2612,8 @@ public class LibToTech
 			return null;
 		}
 		ns.values = new Technology.TechPoint[2];
-		ns.values[0] = new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1));
-		ns.values[1] = new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3));
+		ns.values[0] = new Technology.TechPoint(EdgeH.fromLeft(realIndentX), EdgeV.fromBottom(realIndentY));
+		ns.values[1] = new Technology.TechPoint(EdgeH.fromRight(realIndentX), EdgeV.fromTop(realIndentY));
 
 		NodeInfo.LayerDetails multiDetails = new NodeInfo.LayerDetails();
 		multiDetails.style = getStyle(ns.node);

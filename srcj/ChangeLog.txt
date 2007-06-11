@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+BUG: (6/11/07, SMR) Technology editor doesn't handle multi-cut contacts right (Bug #1329).
+FIX: In LibToTech.getMultiCutRule(), set bounds of the layer properly.
+
 IMP: (6/9/07, GVG) Transparency mode in select layers is set to SCREEN_DOOR due to visibility issues in Java3D (Bug #1326). 
 Even though  it doesn't look as good as with NICEST, the select layers will be seen for all angles.
 Note added in the 3D manual.
