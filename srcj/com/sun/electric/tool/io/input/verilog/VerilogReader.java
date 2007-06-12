@@ -997,6 +997,9 @@ public class VerilogReader extends Input
                 ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0.0,
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
+
+                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
+                ex.setCharacteristic(portType);
             }
             else
                 System.out.println("Skipping this characteristic?");

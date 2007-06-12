@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+IMP: (6/12/07, GVG) Extra code to handle controlblock example in STA tool.
+100% match in critical paths. Adding exports on vdd/gnd inputs in VerilogReader.
+
 BUG: (6/11/07, SMR) Technology editor doesn't handle multi-cut contacts right (Bug #1329).
 FIX: In LibToTech.getMultiCutRule(), set bounds of the layer properly.
 
