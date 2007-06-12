@@ -6,32 +6,40 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
-BUG: (6/12/07, SMR) Duplicating nodes with exports doesn't preserve export order (Bug #1330)
+BUG: (6/12/07, SMR) Duplicating nodes with exports doesn't preserve export order
+     (Bug #1330)
 FIX: In Clipboard.copyListToCell(), sort exports by name before reexporting.
 
 IMP: (6/12/07, GVG) Extra code to handle controlblock example in STA tool.
-100% match in critical paths. Adding exports on vdd/gnd inputs in VerilogReader.
+     100% match in critical paths. Adding exports on vdd/gnd inputs in
+     VerilogReader.
 
-BUG: (6/11/07, SMR) Technology editor doesn't handle multi-cut contacts right (Bug #1329).
+BUG: (6/11/07, SMR) Technology editor doesn't handle multi-cut contacts right
+     (Bug #1329).
 FIX: In LibToTech.getMultiCutRule(), set bounds of the layer properly.
 
-IMP: (6/9/07, GVG) Transparency mode in select layers is set to SCREEN_DOOR due to visibility issues in Java3D (Bug #1326). 
-Even though  it doesn't look as good as with NICEST, the select layers will be seen for all angles.
-Note added in the 3D manual.
+IMP: (6/9/07, GVG) Transparency mode in select layers is set to SCREEN_DOOR due
+     to visibility issues in Java3D (Bug #1326).  Even though  it doesn't look as
+     good as with NICEST, the select layers will be seen for all angles.  Note
+     added in the 3D manual.
 
 BUG: (6/8/07, GVG) Strange DRC min error related to well layer (Bug #1327)
-FIX: Indeed, the DRC error is valid (detected by Quick.checkMinDefects()). Just the errorLog is pointing to
-the wrong geometry.
+FIX: Indeed, the DRC error is valid (detected by Quick.checkMinDefects()). Just
+     the errorLog is pointing to the wrong geometry.
 
-BUG: (6/8/07, DN) Assertion in SwingUtilities.isEventDispatchThread() while reading library from command line (Bug #1328).
-FIX: Option reconcillation dialog was called from database thread. Move initCommandLibs and runScript
-    from InitDatabase.doIt to InitDatabase.TerminateOk.
+BUG: (6/8/07, DN) Assertion in SwingUtilities.isEventDispatchThread() while
+     reading library from command line (Bug #1328).
+FIX: Option reconciliation dialog was called from database thread. Move
+     initCommandLibs and runScript from InitDatabase.doIt to
+     InitDatabase.TerminateOk.
 
-BUG: (6/8/07, DN) Assertion while deleting pin and arc at the same time (Bug #1321).
+BUG: (6/8/07, DN) Assertion while deleting pin and arc at the same time (Bug
+     #1321).
 FIX: In Cell.killNodes don't remove nodes which are already removed.
 
-IMP: (6/7/07, GVG) New 3D information for some MOCMOS layers suggested by external user (Bug #1326).
-Transparency mode and factor were added as layer preferences so few extra classes were modified for this change.
+IMP: (6/7/07, GVG) New 3D information for some MOCMOS layers suggested by
+     external user (Bug #1326).  Transparency mode and factor were added as layer
+     preferences so few extra classes were modified for this change.
 
 BUG: (6/7/07, SMR) Command-line startup may crash (Bug #1328).
 FIX: In EDialog constructor, make sure there is valid graphics information.
@@ -41,7 +49,8 @@ IMP: (6/7/07, SMR) Made technology initialization quieter and able to
 
 IMP: (6/7/07, SMR) Made default memory size match default JVM size.
 
-IMP: (6/7/07, SMR) Removed unused "Gate Layout Generation" Project Settings panel.
+IMP: (6/7/07, SMR) Removed unused "Gate Layout Generation" Project Settings
+     panel.
 
 ************************* Version 8.05n: *******************************
 
