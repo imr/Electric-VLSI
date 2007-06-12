@@ -68,6 +68,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JOptionPane;
@@ -383,7 +384,7 @@ public final class ExportChanges
 		}
 	}
 
-	private static class ExportSortedByBusIndex implements Comparator<Export>
+	public static class ExportSortedByBusIndex implements Comparator<Export>
 	{
 		public int compare(Export e1, Export e2)
 		{
@@ -603,13 +604,13 @@ public final class ExportChanges
 		private boolean sort;
 		private boolean includeWiredPorts;
 		private boolean onlyPowerGround;
-		private HashMap<PortInst,Export> originalExports;
+		private Map<PortInst,Export> originalExports;
 
 		/**
 		 * Constructor.
 		 */
 		public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
-							 boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+							 boolean onlyPowerGround, Map<PortInst,Export> originalExports)
 		{
 			super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -768,7 +769,7 @@ public final class ExportChanges
 	 * @return the number of ports exported
 	 */
 	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
-		boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+		boolean onlyPowerGround, Map<PortInst,Export> originalExports)
 	{
 		EDatabase.serverDatabase().checkChanging();
 
@@ -812,7 +813,7 @@ public final class ExportChanges
 		}
 
 		// export the ports
-		HashMap<String,GenMath.MutableInteger> nextPlainIndex = new HashMap<String,GenMath.MutableInteger>();
+		Map<String,GenMath.MutableInteger> nextPlainIndex = new HashMap<String,GenMath.MutableInteger>();
 		int total = 0;
 		for (PortInst pi : portInstsFiltered)
 		{
@@ -1585,7 +1586,7 @@ public final class ExportChanges
 
 		public boolean doIt() throws JobException
 		{
-			HashMap<NodeInst,Cell> cellsToReplace = new HashMap<NodeInst,Cell>();
+			Map<NodeInst,Cell> cellsToReplace = new HashMap<NodeInst,Cell>();
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();

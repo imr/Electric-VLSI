@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JMenuItem;
@@ -776,9 +777,8 @@ public class Clipboard
 
 		// create the new nodes
 		NodeInst lastCreatedNode = null;
-		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-        List<PortInst> portInstsToExport = new ArrayList<PortInst>();
-        HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
+		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+        List<Export> reExports = new ArrayList<Export>();
 		for(NodeInst ni : theNodes)
 		{
 			if (ni.getProto() == Generic.tech.cellCenterNode && toCell.alreadyCellCenter()) continue;
@@ -815,25 +815,34 @@ public class Clipboard
 			if (copyExports)
 			{
 				for(Iterator<Export> eit = ni.getExports(); eit.hasNext(); )
-				{
-					Export pp = eit.next();
-                    PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
-                    portInstsToExport.add(pi);
-					originalExports.put(pi, pp);
-				}
+					reExports.add(eit.next());
 			}
 		}
 		if (copyExports)
-			ExportChanges.reExportPorts(toCell, portInstsToExport, true, true, false, originalExports);
+		{
+			// sort list of original Exports and make list of PortInsts on new nodes
+	        Map<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
+			Collections.sort(reExports, new ExportChanges.ExportSortedByBusIndex());
+			List<PortInst> reExpThese = new ArrayList<PortInst>();
+			for(Export e : reExports)
+			{
+				PortInst pi = e.getOriginalPort();
+				NodeInst newNi = newNodes.get(pi.getNodeInst());
+        		PortInst newPi = newNi.findPortInstFromProto(pi.getPortProto());
+				reExpThese.add(newPi);
+				originalExports.put(newPi, e);
+			}
+			ExportChanges.reExportPorts(toCell, reExpThese, false, true, false, originalExports);
+		}
 
-		HashMap<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();
+		Map<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();
 		if (theArcs.size() > 0)
 		{
 			// sort the arcs by name
 			Collections.sort(theArcs);
 
 			// for associating old names with new names
-			HashMap<String,String> newArcNames = new HashMap<String,String>();
+			Map<String,String> newArcNames = new HashMap<String,String>();
 
 			AffineTransform fixOffset = null;
 			if (inPlaceOrient != null) fixOffset = inPlaceOrient.pureRotate();

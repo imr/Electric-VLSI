@@ -43,9 +43,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -840,7 +840,7 @@ public abstract class ElectricObject implements Serializable
 	 * @return a unique name for that class in that Cell.
 	 */
 	public static String uniqueObjectName(String name, Cell cell, Class cls,
-		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
+		Set already, Map<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
 	{
 		String newName = name;
 		String lcName = TextUtils.canonicString(newName);
@@ -858,7 +858,7 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	private static String uniqueObjectNameLow(String name, Cell cell, Class cls,
-		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
+		Set already, Map<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
 	{
 		// first see if the name is unique
 		if (already != null)

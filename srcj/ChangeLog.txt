@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05o: *******************************
 
+BUG: (6/12/07, SMR) Duplicating nodes with exports doesn't preserve export order (Bug #1330)
+FIX: In Clipboard.copyListToCell(), sort exports by name before reexporting.
+
 IMP: (6/12/07, GVG) Extra code to handle controlblock example in STA tool.
 100% match in critical paths. Adding exports on vdd/gnd inputs in VerilogReader.
 
