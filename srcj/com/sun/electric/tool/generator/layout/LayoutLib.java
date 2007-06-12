@@ -28,13 +28,13 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -50,9 +50,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -645,14 +645,15 @@ public class LayoutLib {
 	 * @param nodeInsts the ArrayList of NodeInsts.
 	 */
 	public static void abutLeftRight(double leftX, double originY,
-									 ArrayList<NodeInst> nodeInsts) {
-		for (int i=0; i<nodeInsts.size(); i++) {
-			NodeInst ni = nodeInsts.get(i);
-			if (i==0) {
+									 Collection<NodeInst> nodeInsts) {
+		NodeInst prev = null;
+		for (NodeInst ni : nodeInsts) {
+			if (prev==null) {
 				abutLeft(ni, leftX, originY);
 			} else {
-				abutLeftRight(nodeInsts.get(i-1), ni);
+				abutLeftRight(prev, ni);
 			}
+			prev = ni;
 		}
 	}
 
@@ -677,9 +678,11 @@ public class LayoutLib {
 	 * node. Abut remaining nodes left to right.  Don't alter any
 	 * NodeInst's scale or rotation.
 	 * @param nodeInsts the ArrayList of NodeInsts */
-	public static void abutLeftRight(ArrayList<NodeInst> nodeInsts) {
-		for (int i=1; i<nodeInsts.size(); i++) {
-			abutLeftRight(nodeInsts.get(i-1), nodeInsts.get(i));
+	public static void abutLeftRight(Collection<NodeInst> nodeInsts) {
+		NodeInst prev = null;
+		for (NodeInst ni : nodeInsts) {
+			if (prev!=null)   abutLeftRight(prev, ni);
+			prev = ni;
 		}
 	}
 	
@@ -708,9 +711,10 @@ public class LayoutLib {
 	 * equal to the y-coorinate of <code>bottomNode</code>'s
 	 * origin. Don't move <code>bottomNode</code>.  Don't alter any
 	 * node's scale or rotation. */
-	public static void abutBottomTop(NodeInst bottomNode, NodeInst topNode) {
+	public static void abutBottomTop(NodeInst bottomNode, double space,
+			                         NodeInst topNode) {
 		abutBottom(topNode, getPosition(bottomNode).getX(),
-				   getBounds(bottomNode).getMaxY());
+				   getBounds(bottomNode).getMaxY()+space);
 	}
 
 	/**
@@ -721,17 +725,19 @@ public class LayoutLib {
 	 * @param originX desired x-coordinate of all NodeInst reference points.
 	 * Lambda units.
 	 * @param botY desired y-coordinate of bottom edge of first NodeInst.
-	 * @param nodeInsts the list of NodeInsts to abut.
+	 * @param nodeInsts Collection of NodeInsts to abut.
 	 */
 	public static void abutBottomTop(double originX, double botY,
-									 ArrayList<NodeInst> nodeInsts) {
-		for (int i=0; i<nodeInsts.size(); i++) {
-			NodeInst ni = nodeInsts.get(i);
-			if (i==0) {
-				abutBottom(ni, originX, botY);
+									 Collection<NodeInst> nodeInsts,
+			                         double space) {
+		NodeInst prev = null;
+		for (NodeInst ni : nodeInsts) {
+			if (prev==null){
+				abutBottom(ni, originX, botY); 
 			} else {
-				abutBottomTop(nodeInsts.get(i-1), ni);
+				abutBottomTop(prev, space, ni);
 			}
+			prev = ni;
 		}
 	}
 
@@ -741,9 +747,12 @@ public class LayoutLib {
 	 * alter any NodeInst's scale or rotation.
 	 * @param nodeInsts the list of NodeInsts to abut.
 	 */
-	public static void abutBottomTop(ArrayList<NodeInst> nodeInsts) {
-		for (int i=1; i<nodeInsts.size(); i++) {
-			abutBottomTop(nodeInsts.get(i-1), nodeInsts.get(i));
+	public static void abutBottomTop(Collection<NodeInst> nodeInsts,
+			                         double space) {
+		NodeInst prev = null;
+		for (NodeInst ni : nodeInsts) {
+			if (prev!=null) abutBottomTop(prev, space, ni); 
+			prev = ni;
 		}
 	}
 
