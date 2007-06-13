@@ -3,13 +3,14 @@
 Electric is written in the Java programming language and is distributed as a single ".jar" file,
 typically called "electric.jar".
 There are two variations on the ".jar" file: with or without source code.
-Either of these files can run Electric, but the one with source-code is larger because it also has
+Either of these files can run Electric, but the one with source code is larger because it also has
 all of the Java code.
 <P>
 Electric requires Java version 1.5 or later from Sun Microsystems.
-It does not run properly on open-source implementations of Java,
-including the version shipped on Fedora Core systems.
-You will have to reinstall Java from Sun in such cases.
+It can also run with Apache Harmony.
+However, it does not run properly on some open-source
+implementations of Java, including the version shipped on Fedora Core systems.
+You will have to reinstall Java from Sun or Apache in such cases. 
 <P>
 If you extract the source code from the ".jar" file and wish to build Electric, note that there are
 some Macintosh vs. non-Macintosh issues to consider.
@@ -45,9 +46,10 @@ One problem with Java is that the Java Virtual Machine has a memory limit.
 This limit prevents programs from growing too large.
 However, it prevents large circuits from being edited.
 <P>
-If Electric runs out of memory, you can request that more be used.
+If Electric runs out of memory, you can request more.
 To do this, use General Preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab).
 At the bottom of the dialog are two memory limit fields, for <I>heap space</I> and <I>permanent space</I>.
+Changes to these values take effect when you next run Electric.
 <P>
 The heap space limit is the most important because increasing it will offer much more circuitry capacity.
 Note that 32-bit JVMs can only grow so far.
@@ -56,7 +58,5 @@ On 32-bit Linux or Macintosh system, you should not set it above 3600 (3.6 Gigab
 <P>
 Permanent space is an additional section of memory that can be insufficiently small.
 For very large chips, a value of 200 or larger may enhance performance.
-<P>
-After changing these values, you will have to quit Electric and restart it for the new memory limits to take effect.
 
 <!-- TRAILER -->

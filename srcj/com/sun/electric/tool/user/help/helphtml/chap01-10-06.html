@@ -2,7 +2,6 @@
 
 <!-- HEADER 1-10-6: IC Layout Tutorial: Adding Contacts to a Transistor -->
 
-<TABLE><TR><TD>
 One very common structure in IC layout is the transistor-contact combination.
 Here you will see the proper way to construct it.
 <P>
@@ -17,17 +16,18 @@ To do this, use the <B>90 Degree Counterclockwise</B> command
 </UL>
 </TD><TD><CENTER><IMG SRC="fig01-44.png" ALT="Figure 1.44"></CENTER></TD></TR></TABLE>
 <P>
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig01-54.png" ALT="Figure 1.54"></CENTER></TD><TD>
 Although the default transistor is 2x3 in size, most people want them to be wider.
 For the purposes of this example, make the transistor be 12 wide.
 To do this, select the node and use the <B>Object Properties</B> command
 (in menu <B>Edit / Properties</B>).
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-54.png" ALT="Figure 1.54"></CENTER></TD><TD>
 Two easier ways to see the objects properties are to double-click on the node,
 or select it and type Control-I.
 When the "node Properties" dialog appears, make the width 12 and click OK.
 </TD><TD><CENTER><IMG SRC="fig01-45.png" ALT="Figure 1.45"></CENTER></TD></TR></TABLE>
-
+<P>
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig01-46.png" ALT="Figure 1.46"></CENTER></TD><TD>
 Next we need a contact.
@@ -47,11 +47,11 @@ Electric is a connectivity-oriented system, and insists that these components be
 <P>
 The easiest way to connect the contact to the transistor is to spread the nodes apart,
 wire them, and then push them back together.
-<P>
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig01-49.png" ALT="Figure 1.49"></CENTER></TD><TD>
 These two figures show the transistor and contact nodes, spread apart, and connected by an arc.
-</TD><TD><CENTER><IMG SRC="fig01-50.png" ALT="Figure 1.50"></CENTER></TD></TR></TABLE>
+<P>
+<CENTER><TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-49.png" ALT="Figure 1.49"></CENTER></TD><TD>&nbsp;&nbsp;</TD>
+<TD><CENTER><IMG SRC="fig01-50.png" ALT="Figure 1.50"></CENTER></TD></TR></TABLE></CENTER>
 On the left, the nodes and their ports; on the right, the arc.
 <P>
 The arc was made by selecting one node,
@@ -64,7 +64,7 @@ Notice that the ends of an arc are centered and indented from the edge by half o
 The ends of an arc must sit inside of the ports.
 If an arc moves such that its ends are still in the ports, then the nodes don't have to move.
 See <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A> for more
-arc arc geometry.
+on arc geometry.
 <P>
 
 <CENTER><TABLE><TR><TD><CENTER><IMG SRC="fig01-51.png" ALT="Figure 1.51"></CENTER></TD>
@@ -80,13 +80,12 @@ arc constraints.
 <P>
 Another common situation in making contacts meet transistors is when the sizes are not the same.
 In this example, the contact is the default size.
-<P>
-
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig01-52.png" ALT="Figure 1.52"></CENTER></TD><TD>
 The arc runs from the center of the contact's port to the top of the transistor's port.
 The finished layout is shown on the right.
-</TD><TD><CENTER><IMG SRC="fig01-53.png" ALT="Figure 1.53"></CENTER></TD></TR></TABLE>
+<P>
+<CENTER><TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-52.png" ALT="Figure 1.52"></CENTER></TD><TD>&nbsp;&nbsp;</TD>
+<TD><CENTER><IMG SRC="fig01-53.png" ALT="Figure 1.53"></CENTER></TD></TR></TABLE></CENTER>
 <P>
 Here are some points about connecting nodes with arcs:
 <UL>
