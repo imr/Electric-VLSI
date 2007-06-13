@@ -44,6 +44,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
@@ -1533,7 +1534,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @exception AssertionError if invariants are not valid
 	 */
 	public void check(Poly.Builder polyBuilder) {
-        if (topology.validArcBounds) {
+        if (topology.validArcBounds && Job.getDebug()) {
             double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY;
             double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
             for (Iterator<Poly> it = getShape(polyBuilder); it.hasNext(); ) {

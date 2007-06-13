@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
+
+BUG: (6/13/07, DN) Assertion after changing technology parameters.
+FIX: In ArcInst.check() and NodeInst.check() check sizes in debug mode only untile better implementation.
+
 IMP: (6/13/07, GVG) Dir and mode options in OUTPUT_DELAY and INPUT_DELAY constraints.
 
 IMP: (6/12/07, RK) Infinity: check vdd & gnd export locations, create

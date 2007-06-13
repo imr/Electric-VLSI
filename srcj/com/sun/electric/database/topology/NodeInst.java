@@ -62,6 +62,7 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -77,7 +78,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -3164,7 +3164,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             assert pp == protoType.getPort(i);
         }
         
-        if (validVisBounds) {
+        if (validVisBounds && Job.getDebug()) {
             Rectangle2D.Double bounds = new Rectangle2D.Double();
             d.computeBounds(this, bounds);
             assert bounds.equals(visBounds);
