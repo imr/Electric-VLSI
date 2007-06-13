@@ -20,8 +20,8 @@ If &lt;library&gt; is omitted, the library defined by this JELIB file is assumed
 <TR><TD>&lt;nameTD&gt;</TD><TD>a text descriptor for the name (when displayed).</TD></TR>
 <TR><TD>&lt;x&gt;</TD><TD>the X coordinate of the anchor point of the node instance.</TD></TR>
 <TR><TD>&lt;y&gt;</TD><TD>the Y coordinate of the anchor point of the node instance.</TD></TR>
-<TR><TD>&lt;width&gt;</TD><TD>the width of the primitive node (must be non-negative).</TD></TR>
-<TR><TD>&lt;height&gt;</TD><TD>the height of the primitive node (must be non-negative).</TD></TR>
+<TR><TD>&lt;width&gt;</TD><TD>the difference between width of the primitive node and and standard width of this primitive</TD></TR>
+<TR><TD>&lt;height&gt;</TD><TD>the difference between height of the primitive node and and standard height of this primitive</TD></TR>
 <TR><TD>&lt;orientation&gt;</TD><TD>the orientation of the node (see below).</TD></TR>
 <TR><TD>&lt;flags&gt;</TD><TD>flags for the node instance (see below).</TD></TR>
 <TR><TD>&lt;TD&gt;</TD><TD>a text descriptor for the cell instance name (does not apply to primitives).</TD></TR>
@@ -46,9 +46,9 @@ Num	Any digits at the end are the technology-specific bits.
 <P>
 Examples:
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Nschematic:Transistor|mos@0||2|0|4|4|R|2|ATTR_length(D5G0.5;X-0.5;Y-1;)S2</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Nschematic:Transistor|mos@0||2|0|||R|2|ATTR_length(D5G0.5;X-0.5;Y-1;)S2</CODE>
 <P>
-Places a schematic Transistor called "mos@0" at (2,0), size 4x4, rotated 90 degrees.
+Places a schematic Transistor called "mos@0" at (2,0), standard size, rotated 90 degrees.
 The flag field "2" is numeric, and therefore is technology-specific information
 (in this case, it makes the transistor be pMOS).
 There is one attribute on the node, called "length", with the value "2" (a string).
