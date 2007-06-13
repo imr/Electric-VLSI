@@ -475,7 +475,7 @@ public class LEF extends LEFDEF
 			System.out.println("EOF parsing PIN name");
 			return true;
 		}
-		String pinName = key;
+		String pinName = key.replace('<', '[').replace('>', ']');
 
 		PortCharacteristic useCharacteristics = PortCharacteristic.UNKNOWN;
 		PortCharacteristic portCharacteristics = PortCharacteristic.UNKNOWN;
@@ -930,7 +930,7 @@ public class LEF extends LEFDEF
 
 	private double convertLEFString(String key)
 	{
-		double v = TextUtils.atof(key) / 2;
+		double v = TextUtils.atof(key);
 		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
 	}
 }

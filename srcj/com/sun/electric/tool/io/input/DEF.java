@@ -643,7 +643,7 @@ public class DEF extends LEFDEF
 					if (ur == null) return true;
 					continue;
 				}
-				if (key.equalsIgnoreCase("PLACED"))
+				if (key.equalsIgnoreCase("PLACED") || key.equalsIgnoreCase("FIXED"))
 				{
 					// get pin location and orientation
 					xy = readCoordinate();
