@@ -36,6 +36,7 @@ There are a number of options that can be given at the end of the command line:
   -batch      run in batch mode (no windows or other user interface are shown).
   -version    provides full version information including build date.
   -v          provides brief version information.
+  -NOMINMEM   ignore minimum memory requirements and start JVM.
   -help       prints a list of available command options.
 
 -------------------- Memory Control
