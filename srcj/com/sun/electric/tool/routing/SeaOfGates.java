@@ -426,7 +426,7 @@ public class SeaOfGates
 		long stopTime = System.currentTimeMillis();
         Job.getUserInterface().stopProgressDialog();
         System.out.println("Routed " + numRoutedSegments + " out of " + numSegments +
-        	" segments; total length of routed wires is " + totalWireLength +
+        	" segments; total length of routed wires is " + TextUtils.formatDouble(totalWireLength) +
         	"; took " + TextUtils.getElapsedTime(stopTime-startTime));
 		if (numFailedRoutes > 0)
 			System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
@@ -884,8 +884,10 @@ public class SeaOfGates
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + metalSpacing + " all around, has blockage at ("+
-				block.bound.getCenterX()+","+block.bound.getCenterY()+") that is "+block.bound.getWidth()+"x"+block.bound.getHeight()+"]");
+				" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing) +
+				" all around, has blockage at (" + TextUtils.formatDouble(block.bound.getCenterX()) + "," +
+				TextUtils.formatDouble(block.bound.getCenterY()) + ") that is " + TextUtils.formatDouble(block.bound.getWidth()) +
+				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]");
 			return false;
 		}
 		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[toZ];
@@ -893,8 +895,10 @@ public class SeaOfGates
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[toZ].getName() + " [needs " + metalSpacing + " all around, has blockage at ("+
-				block.bound.getCenterX()+","+block.bound.getCenterY()+") that is "+block.bound.getWidth()+"x"+block.bound.getHeight()+"]");
+				" because it is blocked on layer " + metalLayers[toZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing) +
+				" all around, has blockage at (" + TextUtils.formatDouble(block.bound.getCenterX()) + "," +
+				TextUtils.formatDouble(block.bound.getCenterY()) + ") that is " + TextUtils.formatDouble(block.bound.getWidth()) +
+				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]");
 			return false;
 		}
 
