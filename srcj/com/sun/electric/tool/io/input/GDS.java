@@ -484,7 +484,6 @@ public class GDS extends Input
                             errorLogger.logWarning(message, geomList, null, null, null, null, cell, -1);
                             // Deleting now replaced pure primitives
                             cell.killNodes(toDelete);
-//                            NodeInst.killMany(toDelete);
                         }
                     }
                 }

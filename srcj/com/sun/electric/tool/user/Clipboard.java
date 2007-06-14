@@ -705,7 +705,6 @@ public class Clipboard
 		for(Iterator<NodeInst> it = clipCell.getNodes(); it.hasNext(); )
 			nodesToDelete.add(it.next());
 		clipCell.killNodes(nodesToDelete);
-//		NodeInst.killMany(nodesToDelete);
 
         // Delete all variables
         for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )

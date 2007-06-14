@@ -396,7 +396,6 @@ public class SeaOfGates
 				for(ArcInst aiKill : arcsToDelete)
 					aiKill.kill();
 				cell.killNodes(nodesToDelete);
-//				NodeInst.killMany(nodesToDelete);
 			} else
 			{
 				numFailedRoutes++;

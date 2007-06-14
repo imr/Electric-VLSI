@@ -1155,7 +1155,6 @@ public class CircuitChangeJobs
 
 			// delete the nodes
 			cell.killNodes(nodesToDelete);
-//			NodeInst.killMany(nodesToDelete);
 			return true;
 		}
 	}
@@ -1297,7 +1296,6 @@ public class CircuitChangeJobs
 
 		// next kill all of the nodes
 		cell.killNodes(nodesToDelete);
-//		NodeInst.killMany(nodesToDelete);
 
 		// kill all pin nodes that touched an arc and no longer do
 		Set<NodeInst> deleteTheseNodes = new HashSet<NodeInst>();
@@ -1312,7 +1310,6 @@ public class CircuitChangeJobs
 			}
 		}
 		cell.killNodes(deleteTheseNodes);
-//		NodeInst.killMany(deleteTheseNodes);
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
 		List<NodeInst> nodesToPassThru = new ArrayList<NodeInst>();
@@ -1394,7 +1391,6 @@ public class CircuitChangeJobs
 
 			// do the queued operations
 			cell.killNodes(pinsToRemove);
-//			NodeInst.killMany(pinsToRemove);
             int pinsPassedThrough = 0;
             for(;;)
             {

@@ -332,7 +332,6 @@ public class Routing extends Listener
 			}
             Cell cell = net.getParent();
 			cell.killNodes(nodesToDelete);
-//			NodeInst.killMany(nodesToDelete);
 
 			// now create the new unrouted wires
 			double wid = Generic.tech.unrouted_arc.getDefaultLambdaBaseWidth();
