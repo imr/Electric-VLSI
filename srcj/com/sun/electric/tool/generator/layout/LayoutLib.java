@@ -190,6 +190,7 @@ public class LayoutLib {
 		double h = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 		return DBMath.round(h);
 	}
+	private static void prln(String msg) {System.out.println(msg);}
 	/**
 	 * Find the width of the widest wire connected hierarchically to port.
 	 *
@@ -204,11 +205,12 @@ public class LayoutLib {
 		double maxWid = -1;
 		for (Iterator<ArcInst> arcs=getArcInstsOnPortInst(port); arcs.hasNext();) {
 			ArcInst ai = arcs.next();
+			//prln("    arc width: "+getArcInstWidth(ai));
 			maxWid = Math.max(maxWid, getArcInstWidth(ai));
 		}
 		if (pp instanceof Export) {
-			double check = widestWireWidth(((Export)pp).getOriginalPort());
-			maxWid = Math.max(maxWid, check);
+			double lowerMax = widestWireWidth(((Export)pp).getOriginalPort());
+			if (lowerMax!=DEF_SIZE)  maxWid = Math.max(maxWid, lowerMax);
 		}
         if (maxWid < 0) return DEF_SIZE;
 		return DBMath.round(maxWid);

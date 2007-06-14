@@ -518,6 +518,15 @@ public abstract class TechType implements Serializable {
         error(true, "port can't connect to any layer?!!");
         return null;
     }
+    
+    public ArcProto highestLayer(PortProto port) {
+    	for (int h=layers.length-1; h>=0; h--) {
+    		if (port.connectsTo(layers[h])) return layers[h];
+    	}
+    	error(true, "port can't connect to any layer?!!");
+    	return null;
+    }
+    
     public ArcProto layerAtHeight(int layHeight) {return layers[layHeight];	}
 
     public PrimitiveNode viaAbove(int layHeight) {return vias[layHeight];}

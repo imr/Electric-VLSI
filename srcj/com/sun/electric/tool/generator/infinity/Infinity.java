@@ -12,14 +12,17 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.tool.generator.layout.AbutRouter;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 
 public class Infinity {
 	private static final String STAGE_LIB_NAME = new String("stagesF");
 	private static final String AUTO_GEN_LIB_NAME = new String("autoInfinity");
+	private static final String AUTO_GEN_CELL_NAME = new String("autoInfCell{lay}");
     private static final TechType tech = TechType.CMOS90;
-    private static final double STAGE_SPACING = 10;
+    private static final double STAGE_SPACING = 144;
+    private static final double ABUT_ROUTE_PORT_TO_BOUND_SPACING = 0;
 	
 	private void prln(String s) {System.out.println(s);}
 	
@@ -72,9 +75,16 @@ public class Infinity {
 		LayoutLib.abutBottomTop(stageInsts, STAGE_SPACING);
 		return stageInsts;
 	}
-	
-	private void connectPwrGnd(Collection<NodeInst> stageInsts) {
-		
+	private void connectPwrGnd(Collection<NodeInst> nodeInsts) {
+		NodeInst prev = null;
+		for (NodeInst ni : nodeInsts) {
+			if (prev!=null) {
+				AbutRouter.abutRouteBotTop(prev, ni, 
+						                   ABUT_ROUTE_PORT_TO_BOUND_SPACING, 
+						                   tech);
+			}
+			prev = ni;
+		}
 	}
 	
 	public Infinity() {
@@ -84,7 +94,7 @@ public class Infinity {
 		ensurePwrGndExportsOnBoundingBox(stages.getStages());
 
         Library outLib = LayoutLib.openLibForWrite(AUTO_GEN_LIB_NAME);
-        Cell parentCell = Cell.newInstance(outLib, "infinityAuto");
+        Cell parentCell = Cell.newInstance(outLib, AUTO_GEN_CELL_NAME);
         Collection<NodeInst> stageInsts = addInstances(parentCell, stages);
         connectPwrGnd(stageInsts);
 
