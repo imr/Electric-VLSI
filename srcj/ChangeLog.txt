@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
+IMP: (6/14/07, GVG) Simplyfied version of get_ports and get_clocks in SDCParser.jj.
+
 IMP: (6/14/07, RK) Abut Router working
 
 IMP: (6/14/07, GVG) Latest changes in STA tool to get main_t1 example working.
