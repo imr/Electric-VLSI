@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
+IMP: (6/14/07, RK) Infinity: extract layout specifications from schematic
+
 IMP: (6/14/07, GVG) Simplyfied version of get_ports and get_clocks in SDCParser.jj.
 
 IMP: (6/14/07, RK) Abut Router working
