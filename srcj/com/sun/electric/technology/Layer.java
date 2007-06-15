@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -955,6 +956,8 @@ public class Layer
 	{
         assert !isPseudoLayer();
 
+        thickness = DBMath.round(thickness);
+        distance = DBMath.round(distance);
         // We don't call setDistance and setThickness directly here due to reflection code.
         getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
 		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);

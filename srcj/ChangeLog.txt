@@ -3,6 +3,16 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
+
+BUG: (6/14/07, DN) Tech editor test doesn't detect some technology mismatches.
+FIX: In TechnologyEditTest.compareTechnologies test port topology and serpentine numbers.
+
+BUG: (6/14/07, DN) Tech editor doesn't preserve order of NodeLayers.
+FIX: In Example.getExamples sort nodes obtained by search iterator.
+
+BUG: (6/14/07, DN) Layer thick3D and height3D are not rounded in Xml description.
+FIX: In Layer.setFactory3DInfo round values.
+
 IMP: (6/14/07, RK) Infinity: extract layout specifications from schematic
 
 IMP: (6/14/07, GVG) Simplyfied version of get_ports and get_clocks in SDCParser.jj.

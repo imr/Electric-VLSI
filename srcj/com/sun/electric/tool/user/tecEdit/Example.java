@@ -28,7 +28,6 @@ package com.sun.electric.tool.user.tecEdit;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.technology.SizeOffset;
@@ -39,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 /**
  * This class defines graphical node and arc examples during conversion of libraries to technologies.
@@ -98,12 +98,16 @@ public class Example
 				foundOne = false;
 
 				// begin to search the area so far
+                TreeSet<NodeInst> sortedNodes = new TreeSet<NodeInst>();
 				for(Iterator<RTBounds> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
 					RTBounds geom = oIt.next();
 					if (geom == null) break;
 					if (!(geom instanceof NodeInst)) continue;
-					NodeInst otherNi = (NodeInst)geom;
+                    sortedNodes.add((NodeInst)geom);
+                }
+				for(NodeInst otherNi: sortedNodes)
+				{
 					SizeOffset oSo = otherNi.getSizeOffset();
 					Poly oPoly = new Poly(otherNi.getAnchorCenterX(), otherNi.getAnchorCenterY(),
 						otherNi.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),

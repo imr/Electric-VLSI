@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -1701,13 +1700,13 @@ public class Xml {
             
             if (ni.defaultWidth.value != 0) {
                 bcl(XmlKeyword.defaultWidth);
-                bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultWidth.value));
+                bcpel(XmlKeyword.lambda, ni.defaultWidth.value);
                 el(XmlKeyword.defaultWidth);
             }
             
             if (ni.defaultHeight.value != 0) {
                 bcl(XmlKeyword.defaultHeight);
-                bcpel(XmlKeyword.lambda, DBMath.round(ni.defaultHeight.value));
+                bcpel(XmlKeyword.lambda, ni.defaultHeight.value);
                 el(XmlKeyword.defaultHeight);
             }
             
