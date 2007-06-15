@@ -847,8 +847,6 @@ public class FillGeneratorTool extends Tool {
         double nbTracks = reserved;
         if (nbTracks==0) return 0;
         return config.techNm.reservedToLambda(layer, nbTracks);
-//        if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
-//        return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
     }
 
     private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
@@ -931,15 +929,6 @@ public class FillGeneratorTool extends Tool {
                     thePlans[i] = new MetalFloorplanFlex(w, h, vddRes[i], gndRes[i], spacing[i], vddW[i], gndW[i], horiz);
                 }
                 return thePlans;
-//                return new Floorplan[] {
-//                null,
-//                new CapFloorplan(w, h, 			 	                 !evenHor),
-//                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], spacing[2],  vddW[2], gndW[2], evenHor),
-//                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], spacing[3],  vddW[3], gndW[3],!evenHor),
-//                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], spacing[4],  vddW[4], gndW[4], evenHor),
-//                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], spacing[5],  vddW[5], gndW[5],!evenHor),
-//                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], spacing[6],  vddW[6], gndW[6], evenHor)
-//                };
             }
             w = config.width = config.minTileSizeX;
             h = config.height = config.minTileSizeY;
@@ -950,15 +939,6 @@ public class FillGeneratorTool extends Tool {
             boolean horiz = (i%2==0);
             thePlans[i] = new MetalFloorplan(w, h, vddRes[i], gndRes[i], spacing[i],  horiz);
         }
-//        return new Floorplan[] {
-//            null,
-//            new CapFloorplan(w, h, 			 	                 !evenHor),
-//            new MetalFloorplan(w, h, vddRes[2], gndRes[2], spacing[2],  evenHor),
-//            new MetalFloorplan(w, h, vddRes[3], gndRes[3], spacing[3], !evenHor),
-//            new MetalFloorplan(w, h, vddRes[4], gndRes[4], spacing[4],  evenHor),
-//            new MetalFloorplan(w, h, vddRes[5], gndRes[5], spacing[5], !evenHor),
-//            new MetalFloorplan(w, h, vddRes[6], gndRes[6], spacing[6],  evenHor)
-//        };
         return thePlans;
     }
 
