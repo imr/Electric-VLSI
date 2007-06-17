@@ -647,7 +647,8 @@ public class JELIB extends Output {
                         PrimitivePort pp = pn.getPort(portIndex);
                         ImmutablePortInst pid = nid.getPortInst(pp);
                         if (pid.getNumVariables() == 0) continue;
-                        printVars(pp.getName(), pid);
+                        printVars(getPortName(pp), pid);
+//                        printVars(pp.getName(), pid);
                     }
                 }
             }

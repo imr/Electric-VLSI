@@ -3371,6 +3371,8 @@ public class Technology implements Comparable<Technology>
 			PrimitivePort pp = (PrimitivePort)np.findPortProto(portName + "tom");
 			if (pp != null) return pp;
 		}
+        if (np.getNumPorts() == 1)
+            return np.getPort(0);
 		return null;
 	}
 
