@@ -26,6 +26,7 @@ package com.sun.electric.database.text;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.File;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.StringTokenizer;
@@ -53,7 +54,7 @@ import java.util.StringTokenizer;
  *    "8.01"      major=8, minor=1, detail=999     (a Release)
  *    "8.01.1"    major=8, minor=1, detail=1001    (a PostRelease update)
  */
-public class Version implements Comparable<Version>
+public class Version implements Comparable<Version>, Serializable
 {
 	/**
 	 * This is the current version of Electric

@@ -31,7 +31,7 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.Color;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +42,7 @@ import java.util.Arrays;
 /**
  * Class to define the appearance of a piece of geometry.
  */
-public class EGraphics extends Observable
-        implements Cloneable
+public class EGraphics extends Observable implements Cloneable, Serializable
 {
 	private static Map<String,Outline> outlineNames = new HashMap<String,Outline>();
 

@@ -24,7 +24,9 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.DBMath;
+
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 
 /**
  * The SizeOffset object describes the difference between the stored bounds of
@@ -40,7 +42,7 @@ import java.awt.geom.Rectangle2D;
  * Via described above, all four offsets would be 0.5 to indicate a half-unit
  * surround between the stored and displayed/selected bounds.
  */
-public class SizeOffset
+public class SizeOffset implements Serializable
 {
 	/** Offset with all zero distances. */
 	public static final SizeOffset ZERO_OFFSET = new SizeOffset(0, 0, 0, 0);

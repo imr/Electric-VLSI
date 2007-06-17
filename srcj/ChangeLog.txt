@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
 
+IMP: (6/17/07, DN) Initial version of sandbox which laods old elecric jars and starts jobs there.
+
+BUG: (6/17/07, DN) Port names of one-port primitives are omitted in JELIB, except in PortInst variable.
+    This single technology dependence will prevent reading JELIB before technology initialization.
+FIX: In output.JELIB omit port names of one-port primitives in PortInst.
+     In Technology.convertOldPortName() convert anything in case of one-port primitives.
+
+IMP: (6/17/07, DN) Xml.Technology is serializable (together with EGraphics, Version, SizeOffset). 
+
 BUG: (6/14/07, DN) Tech editor test doesn't detect some technology mismatches.
 FIX: In TechnologyEditTest.compareTechnologies test port topology and serpentine numbers.
 

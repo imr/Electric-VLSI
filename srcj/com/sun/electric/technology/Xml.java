@@ -33,6 +33,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class Xml {
 
-    public static class Technology {
+    public static class Technology implements Serializable {
         public String techName;
         public String className;
         public String shortTechName;
@@ -118,12 +119,12 @@ public class Xml {
         }
     }
 
-    public static class Version {
+    public static class Version implements Serializable {
         public int techVersion;
         public com.sun.electric.database.text.Version electricVersion;
     }
 
-    public static class Layer {
+    public static class Layer implements Serializable {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
         public int extraFunction;
@@ -140,7 +141,7 @@ public class Xml {
         public PureLayerNode pureLayerNode;
     }
 
-    public static class PureLayerNode {
+    public static class PureLayerNode implements Serializable {
         public String name;
         public String oldName;
         public Poly.Type style;
@@ -149,7 +150,7 @@ public class Xml {
         public final List<String> portArcs = new ArrayList<String>();
     }
 
-    public static class ArcProto {
+    public static class ArcProto implements Serializable {
         public String name;
         public String oldName;
         public com.sun.electric.technology.ArcProto.Function function;
@@ -168,13 +169,13 @@ public class Xml {
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
     }
 
-    public static class ArcLayer {
+    public static class ArcLayer implements Serializable {
         public String layer;
         public final Distance extend = new Distance();
         public Poly.Type style;
     }
 
-    public static class PrimitiveNode {
+    public static class PrimitiveNode implements Serializable {
         public String name;
         public String oldName;
         public boolean shrinkArcs;
@@ -204,7 +205,7 @@ public class Xml {
         public com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule;
     }
 
-    public static class NodeLayer {
+    public static class NodeLayer implements Serializable {
         public String layer;
         public Poly.Type style;
         public int portNum;
@@ -220,7 +221,7 @@ public class Xml {
         public double lWidth, rWidth, tExtent, bExtent;
     }
 
-    public static class PrimitivePort {
+    public static class PrimitivePort implements Serializable {
         public String name;
         public int portAngle;
         public int portRange;
@@ -232,29 +233,29 @@ public class Xml {
         public final List<String> portArcs = new ArrayList<String>();
     }
 
-    public static class SpiceHeader {
+    public static class SpiceHeader implements Serializable {
         public int level;
         public final List<String> spiceLines = new ArrayList<String>();
     }
 
-    public static class MenuPalette {
+    public static class MenuPalette implements Serializable {
         public int numColumns;
         public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
     }
 
-    public static class MenuNodeInst {
+    public static class MenuNodeInst implements Serializable {
         public String protoName;
         public com.sun.electric.technology.PrimitiveNode.Function function;
         public String text;
         public double fontSize;
     }
 
-    public static class Distance {
+    public static class Distance implements Serializable {
         public double k;
         public double value;
     }
 
-    public static class Foundry {
+    public static class Foundry implements Serializable {
         public String name;
         public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
         public final List<DRCTemplate> rules = new ArrayList<DRCTemplate>();
