@@ -629,7 +629,8 @@ class FillCell {
 		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = (verNdx%2==0) ? horLay.getVdd(horNdx, 0) : horLay.getVdd(horNdx, 1);
-		LayoutLib.error(viaType==null, "can't find via for metal layers");
+        // Line below will detect mixture of technologies.
+        LayoutLib.error(viaType==null, "can't find via for metal layers " + verMetal + " " + horMetal);
 
 		ViaDim d = new ViaDim(horLay, x, y, w, h);
 
@@ -996,14 +997,6 @@ public class FillGeneratorTool extends Tool {
         }
         libInitialized = true;
     }
-
-//    private void changeWarning() {
-//        LayoutLib.error(libInitialized,
-//                        "fill cells with different widths, heights, orientations, "+
-//                        "or space reservations must be placed in a different library.\n"+
-//                        "change the library first before changing any of these fill cell "+
-//                        "characteristics.");
-//    }
 
     private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,
                                 int[] tiledSizes, StdCellParams stdCell) {
