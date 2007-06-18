@@ -560,7 +560,7 @@ public class FillGenDialog extends EDialog {
         b.vddUnit.setEnabled(option);
         b.gndSpace.setEnabled(option);
         b.gndUnit.setEnabled(option);
-        boolean value = flatSelected && option && !templateButton.isSelected();
+        boolean value = /*flatSelected &&*/ option && !templateButton.isSelected();
         b.vddWidth.setEnabled(value);
         b.vddWUnit.setEnabled(value);
         b.gndWidth.setEnabled(value);
@@ -628,18 +628,23 @@ public class FillGenDialog extends EDialog {
 
         int firstMetal = -1, lastMetal = -1;
         double vddReserve = 0, gndReserve = 0;
+        double vddWidth = 0, gndWidth = 0;
 
         for (FillGenButton b : metalOptions)
         {
             if (!b.isSelected()) continue;
-            int vddS = TextUtils.atoi(b.vddSpace.getText());
-            int gndS = TextUtils.atoi(b.gndSpace.getText());
+            double vddS = TextUtils.atof(b.vddSpace.getText());
+            double gndS = TextUtils.atof(b.gndSpace.getText());
+            double vddW = TextUtils.atof(b.vddWidth.getText());
+            double gndW = TextUtils.atof(b.gndWidth.getText());
 //            if (vddS > -1 && gndS > -1)
             {
                 if (firstMetal == -1) firstMetal = b.metal;
                 lastMetal = b.metal;
                 if (vddS > vddReserve) vddReserve = vddS;  //@@TODO we don't check that units are identical
                 if (gndS > gndReserve) gndReserve = gndS;
+                if (vddW > vddWidth) vddWidth = vddW;
+                if (gndW > gndWidth) gndWidth = gndW;
             }
         }
 
@@ -697,6 +702,9 @@ public class FillGenDialog extends EDialog {
             techNm = TechType.CMOS90;
         }
 
+        // testing new code
+        boolean withWidth = false;
+        // Width and Height are either the w/h of the template to create or the size of the cell to fill
         FillGenConfig config = new FillGenConfig(type, techNm, "autoFillLib",
                 FillGeneratorTool.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule, binary,
@@ -706,22 +714,24 @@ public class FillGenDialog extends EDialog {
         {
             Rectangle2D bnd = cellToFill.getBounds();
             double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
+            minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*vddWidth + 2*gndWidth;
+            withWidth = true;
             config.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize, minSize);
         }
 
-        boolean metalW = isFlatSelected;
+        boolean metalW = isFlatSelected || withWidth;
         for (FillGenButton b : metalOptions)
             {
             if (!b.isSelected()) continue;
-            int vddVal = TextUtils.atoi(b.vddSpace.getText());
-            int gndVal = TextUtils.atoi(b.gndSpace.getText());
+            double vddVal = TextUtils.atof(b.vddSpace.getText());
+            double gndVal = TextUtils.atof(b.gndSpace.getText());
             FillGeneratorTool.Units vddU = TRACKS;
             if (b.vddUnit.getModel().getSelectedItem().equals("lambda"))
                 vddU = LAMBDA;
             FillGeneratorTool.Units gndU = TRACKS;
             if (b.gndUnit.getModel().getSelectedItem().equals("lambda"))
                 gndU = LAMBDA;
-    //            if (vddVal > -1 && gndVal > -1)
+
             FillGenConfig.ReserveConfig c = config.reserveSpaceOnLayer(tech, b.metal, vddVal, vddU, gndVal, gndU);
 
             // Width values
@@ -733,14 +743,13 @@ public class FillGenDialog extends EDialog {
                 gndU = TRACKS;
                 if (b.gndUnit.getModel().getSelectedItem().equals("lambda"))
                     gndU = LAMBDA;
-                vddVal = TextUtils.atoi(b.vddWidth.getText());
-                gndVal = TextUtils.atoi(b.gndWidth.getText());
+                vddVal = TextUtils.atof(b.vddWidth.getText());
+                gndVal = TextUtils.atof(b.gndWidth.getText());
 
                 c.reserveWidthOnLayer(vddVal, vddU, gndVal, gndU);
             }
         }
 
-//        new FillCellGenJob(cellToFill, config, false);
         setVisible(false);
         return config;
     }

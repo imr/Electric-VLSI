@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05p: *******************************
 
+IMP: (6/18/07, GVG) First attempt to connect Sea-of-Gates router to the FillGen. Allowing the definition of metal
+widths when running BINARY/ADAPTIVE options.
+
 IMP: (6/17/07, DN) Initial version of sandbox which laods old elecric jars and starts jobs there.
 
 BUG: (6/17/07, DN) Port names of one-port primitives are omitted in JELIB, except in PortInst variable.
