@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
@@ -52,8 +53,10 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 /**
@@ -117,7 +120,7 @@ public class TechExplorer extends ESandBox {
             Object tech = tit.next();
             String techName = (String)Technology_getTechName.invoke(tech);
             Xml.Technology t = makeXml(techName);
-            t.writeXml(fileName.replaceAll("\\.lst", "\\." + techName + "\\.xml"));
+            t.writeXml(fileName.replaceAll("lst", techName + "\\.xml"));
         }
 //        if (Setting_getSettings != null) {
 //            Collection<?> allSettings = (Collection)Setting_getSettings.invoke(null);
@@ -271,12 +274,22 @@ public class TechExplorer extends ESandBox {
         Object tech = Technology_findTechnology.invoke(null, techName);
         
         Xml.Technology t = new Xml.Technology();
-        String version = (String)Version_getVersion.invoke(null).toString();
-        Xml.Version v = new Xml.Version();
-        v.electricVersion = Version.parseVersion(version);
-        v.techVersion = 1;
-        t.versions.add(v);
         t.techName = techName;
+        t.className = tech.getClass().getName();
+        if (t.className.equals("com.sun.electric.technology.Technology"))
+            t.className = null;
+        Xml.Version version = new Xml.Version();
+        String versionStr = (String)Version_getVersion.invoke(null).toString();
+//        version.electricVersion = Version.parseVersion(versionStr);
+//        version.techVersion = 1;
+//        t.versions.add(version);
+        version.techVersion = 1;
+        version.electricVersion = Version.parseVersion("8.05g");
+        t.versions.add(version);
+        version = new Xml.Version();
+        version.techVersion = 2;
+        version.electricVersion = Version.parseVersion("8.05o");
+        t.versions.add(version);
         t.shortTechName = (String)Technology_getTechShortName.invoke(tech);
         t.description = (String)Technology_getTechDesc.invoke(tech);
         t.scaleValue = (Double)Technology_getScale.invoke(tech);
@@ -294,6 +307,7 @@ public class TechExplorer extends ESandBox {
                 t.transparentLayers.add(transparentColor);
             }
         }
+        int maxMetal = 0;
         for (Iterator<?> it = (Iterator)Technology_getLayers.invoke(tech); it.hasNext(); ) {
             Object layer = it.next();
             String layerName = (String)Layer_getName.invoke(layer);
@@ -312,6 +326,8 @@ public class TechExplorer extends ESandBox {
             l.name = layerName;
             Object fun = Layer_getFunction.invoke(layer);
             l.function = fun != null ? LayerFunctions.get(fun) : Layer.Function.UNKNOWN;
+            if (l.function.isMetal())
+                maxMetal = Math.max(maxMetal, l.function.getLevel());
             l.extraFunction = extraFun;
             Object desc = Layer_getGraphics.invoke(layer);
             boolean displayPatterned = (Boolean)EGraphics_isPatternedOnDisplay.invoke(desc);
@@ -350,12 +366,21 @@ public class TechExplorer extends ESandBox {
             l.edgeCapacitance = (Double)Layer_getEdgeCapacitance.invoke(layer);
             t.layers.add(l);
         }
+        if (Technology_getNumMetals != null)
+            maxMetal = (Integer)Technology_getNumMetals.invoke(tech);
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = maxMetal;
+        
+        Map<String,?> oldArcNames = Technology_getOldArcNames != null ? (Map)Technology_getOldArcNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getArcs.invoke(tech); it.hasNext(); ) {
             Object ap = it.next();
             String arcName = (String)ArcProto_getName.invoke(ap);
             
             Xml.ArcProto a = new Xml.ArcProto();
             a.name = arcName;
+            for (Map.Entry<String,?> e: oldArcNames.entrySet()) {
+                if (e.getValue() == ap)
+                    a.oldName = e.getKey();
+            }
             a.function = ArcProtoFunctions.get(ArcProto_getFunction.invoke(ap));
             a.wipable = (Boolean)ArcProto_isWipable.invoke(ap);
             a.curvable = (Boolean)ArcProto_isCurvable.invoke(ap);
@@ -400,6 +425,8 @@ public class TechExplorer extends ESandBox {
             }
             t.arcs.add(a);
         }
+        
+        Map<String,?> oldNodeNames = Technology_getOldNodeNames != null ? (Map)Technology_getOldNodeNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
             Object pn = it.next();
             String nodeName = (String)PrimitiveNode_getName.invoke(pn);
@@ -411,6 +438,10 @@ public class TechExplorer extends ESandBox {
             if (fun == PrimitiveNode.Function.NODE && nodeLayersArray.length == 1) {
                 Xml.PureLayerNode pln = new Xml.PureLayerNode();
                 pln.name = nodeName;
+                for (Map.Entry<String,?> e: oldNodeNames.entrySet()) {
+                    if (e.getValue() == pn)
+                        pln.oldName = e.getKey();
+                }
                 Object port = ports.next();
                 pln.port = (String)PrimitivePort_getName.invoke(port);
                 pln.style = PolyTypes.get(TechnologyNodeLayer_getStyle.invoke(nodeLayersArray[0]));
@@ -428,6 +459,10 @@ public class TechExplorer extends ESandBox {
             
             Xml.PrimitiveNode n = new Xml.PrimitiveNode();
             n.name = nodeName;
+            for (Map.Entry<String,?> e: oldNodeNames.entrySet()) {
+                if (e.getValue() == pn)
+                    n.oldName = e.getKey();
+            }
             n.function = fun;
             n.shrinkArcs = (Boolean)PrimitiveNode_isArcsShrink.invoke(pn);
             n.square = (Boolean)PrimitiveNode_isSquare.invoke(pn);
@@ -443,22 +478,44 @@ public class TechExplorer extends ESandBox {
             if (PrimitiveNode_HIGHVTBIT != null)
                 n.highVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_HIGHVTBIT.get(null));
             if (PrimitiveNode_NATIVEBIT != null)
-                n.highVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_NATIVEBIT.get(null));
+                n.nativeBit = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_NATIVEBIT.get(null));
             if (PrimitiveNode_OD18BIT != null)
-                n.highVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD18BIT.get(null));
+                n.od18 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD18BIT.get(null));
             if (PrimitiveNode_OD25BIT != null)
-                n.highVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD18BIT.get(null));
+                n.od25 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD25BIT.get(null));
             if (PrimitiveNode_OD33BIT != null)
-                n.highVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD18BIT.get(null));
+                n.od33 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD33BIT.get(null));
             
             SizeOffset so = null;
             Object sizeOffset = PrimitiveNode_getProtoSizeOffset.invoke(pn);
             if (sizeOffset != null)
                 so = new SizeOffset((Double)SizeOffset_getLowXOffset.invoke(sizeOffset), (Double)SizeOffset_getHighXOffset.invoke(sizeOffset),
-                        (Double)SizeOffset_getHighXOffset.invoke(sizeOffset), (Double)SizeOffset_getHighYOffset.invoke(sizeOffset));
+                        (Double)SizeOffset_getLowYOffset.invoke(sizeOffset), (Double)SizeOffset_getHighYOffset.invoke(sizeOffset));
             if (so.getLowXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighXOffset() == 0 && so.getHighYOffset() == 0)
                 so = null;
-            EPoint minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
+            double minWidth = 0, minHeight = 0;
+            String minSizeRule = null;
+            if (classPrimitiveNodeNodeSizeRule != null) {
+                Object rule = PrimitiveNode_getMinSizeRule.invoke(pn);
+                if (rule != null) {
+                    minWidth = (Double)PrimitiveNodeNodeSizeRule_getWidth.invoke(rule);
+                    minHeight = (Double)PrimitiveNodeNodeSizeRule_getHeight.invoke(rule);
+                    minSizeRule = (String)PrimitiveNodeNodeSizeRule_getRuleName.invoke(rule);
+                }
+            } else {
+                minWidth = (Double)PrimitiveNode_getMinWidth.invoke(pn);
+                minHeight = (Double)PrimitiveNode_getMinHeight.invoke(pn);
+                minSizeRule = (String)PrimitiveNode_getMinSizeRule.invoke(pn);
+                if (minWidth == -1 && minHeight == -1 && minSizeRule.equals(""))
+                    minSizeRule = null;
+            }
+            EPoint minFullSize;
+            if (minSizeRule != null) {
+                n.nodeSizeRule = new PrimitiveNode.NodeSizeRule(minWidth, minHeight, minSizeRule);
+                minFullSize = EPoint.fromLambda(0.5*minWidth, 0.5*minHeight);
+            } else {
+                minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
+            }
             if (so != null) {
                 EPoint p2 = EPoint.fromGrid(
                         minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
@@ -468,6 +525,8 @@ public class TechExplorer extends ESandBox {
             } else {
                 n.diskOffset.put(Integer.valueOf(2), minFullSize);
             }
+            n.defaultWidth.value = round(defWidth - 2*minFullSize.getLambdaX());
+            n.defaultHeight.value = round(defHeight - 2*minFullSize.getLambdaY());
             n.sizeOffset = so;
             
             List<?> nodeLayers = Arrays.asList(nodeLayersArray);
@@ -529,24 +588,6 @@ public class TechExplorer extends ESandBox {
             double[] specialValues = (double[])PrimitiveNode_getSpecialValues.invoke(pn);
             if (specialValues != null)
                 n.specialValues = specialValues.clone();
-            double minWidth = 0, minHeight = 0;
-            String minSizeRule = null;
-            if (classPrimitiveNodeNodeSizeRule != null) {
-                Object rule = PrimitiveNode_getMinSizeRule.invoke(pn);
-                if (rule != null) {
-                    minWidth = (Double)PrimitiveNodeNodeSizeRule_getWidth.invoke(rule);
-                    minHeight = (Double)PrimitiveNodeNodeSizeRule_getHeight.invoke(rule);
-                    minSizeRule = (String)PrimitiveNodeNodeSizeRule_getRuleName.invoke(rule);
-                }
-            } else {
-                minWidth = (Double)PrimitiveNode_getMinWidth.invoke(pn);
-                minHeight = (Double)PrimitiveNode_getMinHeight.invoke(pn);
-                minSizeRule = (String)PrimitiveNode_getMinSizeRule.invoke(pn);
-                if (minWidth == -1 && minHeight == -1 && minSizeRule.equals(""))
-                    minSizeRule = null;
-            }
-            if (minSizeRule != null)
-                n.nodeSizeRule = new PrimitiveNode.NodeSizeRule(minWidth, minHeight, minSizeRule);
             t.nodes.add(n);
         }
         
@@ -582,6 +623,62 @@ public class TechExplorer extends ESandBox {
             }
         }
        
+        if (Technology_getFoundries != null) {
+            Object foundries = Technology_getFoundries.invoke(tech);
+            Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
+            for (; fit.hasNext(); ) {
+                Object foundry = fit.next();
+                Xml.Foundry f = new Xml.Foundry();
+                f.name = foundry.toString();
+                if (Foundry_getGDSLayers != null) {
+                    Map<?,String> gdsMap = (Map)Foundry_getGDSLayers.invoke(foundry);
+                    for (Map.Entry<?,String> e: gdsMap.entrySet()) {
+                        String gds = e.getValue();
+                        if (gds.length() == 0) continue;
+                        Object layer = e.getKey();
+                        f.layerGds.put((String)Layer_getName.invoke(layer), gds);
+                    }
+                }
+                
+                List<?> rules = (List)Foundry_getRules.invoke(foundry);
+                if (rules != null) {
+                    for (Object rule: rules) {
+                        String ruleName = (String)DRCTemplate_ruleName.get(rule);
+                        int when = (Integer)DRCTemplate_when.get(rule);
+                        final int TSMC = 010000;
+                        final int ST = 020000;
+                        final int MOSIS = 040000;
+                        when = when & ~(TSMC|ST|MOSIS);
+                        DRCTemplate.DRCRuleType type = DRCTemplateDRCRuleTypes.get(DRCTemplate_ruleType.get(rule));
+                        if (type == null)
+                            continue;
+                        double maxWidth = (Double)DRCTemplate_maxWidth.get(rule);
+                        double minLength = (Double)DRCTemplate_minLength.get(rule);
+                        String name1 = (String)DRCTemplate_name1.get(rule);
+                        String name2 = (String)DRCTemplate_name2.get(rule);
+                        double[] values = null;
+                        if (DRCTemplate_values != null) {
+                            values = (double[])DRCTemplate_values.get(rule);
+                        } else if (DRCTemplate_value1 != null & DRCTemplate_value2 != null) {
+                            values = new double[2];
+                            values[0] = (Double)DRCTemplate_value1.get(rule);
+                            values[1] = (Double)DRCTemplate_value2.get(rule);
+                        }
+                        values = values.clone();
+                        String nodeName = (String)DRCTemplate_nodeName.get(rule);
+                        int multiCuts = (Integer)DRCTemplate_multiCuts.get(rule);
+                        DRCTemplate r = null;
+                        if (nodeName != null)
+                            r = new DRCTemplate(ruleName, when, type, name1, name2, values, nodeName);
+                        else
+                            r = new DRCTemplate(ruleName, when, type, maxWidth, minLength, name1, name2, values, multiCuts);
+                        f.rules.add(r);
+                    }
+                    t.foundries.add(f);
+                }
+            }
+        }
+        
         return t;
     }
     
@@ -616,10 +713,12 @@ public class TechExplorer extends ESandBox {
                     nld.techPoints.add(correction(p, correction));
             }
         }
-//        nld.sizex = round(nl.getMulticutSizeX());
-//        nld.sizey = round(nl.getMulticutSizeY());
-//        nld.sep1d = round(nl.getMulticutSep1D());
-//        nld.sep2d = round(nl.getMulticutSep2D());
+        if (TechnologyNodeLayer_getMulticutSizeX != null) {
+            nld.sizex = round((Double)TechnologyNodeLayer_getMulticutSizeX.invoke(nodeLayer));
+            nld.sizey = round((Double)TechnologyNodeLayer_getMulticutSizeY.invoke(nodeLayer));
+            nld.sep1d = round((Double)TechnologyNodeLayer_getMulticutSep1D.invoke(nodeLayer));
+            nld.sep2d = round((Double)TechnologyNodeLayer_getMulticutSep2D.invoke(nodeLayer));
+        }
         if (isSerp) {
             nld.lWidth = round((Double)TechnologyNodeLayer_getSerpentineLWidth.invoke(nodeLayer));
             nld.rWidth = round((Double)TechnologyNodeLayer_getSerpentineRWidth.invoke(nodeLayer));

@@ -26,6 +26,7 @@ package com.sun.electric.tool.sandbox;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 
@@ -50,7 +51,7 @@ class EClassLoader extends URLClassLoader {
     protected final Class<?> classMainUserInterfaceDummy= loadElectricClass("Main$UserInterfaceDummy");
     protected final Class<?> classUndo                  = loadElectricClass("database.change.Undo");
     protected final Class<?> classEGraphics             = loadElectricClass("database.geometry.EGraphics");
-    protected final Class<?> classEGraphicsOutline      = loadElectricClass("database.geometry.EGraphics");
+    protected final Class<?> classEGraphicsOutline      = loadElectricClass("database.geometry.EGraphics$Outline");
     protected final Class<?> classPoly                  = loadElectricClass("database.geometry.Poly");
     protected final Class<?> classPolyType              = loadElectricClass("database.geometry.Poly$Type");
     protected final Class<?> classCell                  = loadElectricClass("database.hierarchy.Cell");
@@ -73,8 +74,11 @@ class EClassLoader extends URLClassLoader {
     protected final Class<?> classVariable              = loadElectricClass("database.variable.Variable");
     protected final Class<?> classArcProto              = loadElectricClass("technology.ArcProto", "database.prototype.ArcProto");
     protected final Class<?> classArcProtoFunction      = loadElectricClass("technology.ArcProto$Function", "database.prototype.ArcProto$Function");
+    protected final Class<?> classDRCTemplate           = loadElectricClass("technology.DRCTemplate");
+    protected final Class<?> classDRCTemplateDRCRuleType= loadElectricClass("technology.DRCTemplate$DRCRuleType");
     protected final Class<?> classEdgeH                 = loadElectricClass("technology.EdgeH");
     protected final Class<?> classEdgeV                 = loadElectricClass("technology.EdgeV");
+    protected final Class<?> classFoundry               = loadElectricClass("technology.Foundry");
     protected final Class<?> classLayer                 = loadElectricClass("technology.Layer");
     protected final Class<?> classLayerFunction         = loadElectricClass("technology.Layer$Function");
     protected final Class<?> classLayerFunctionSet      = loadElectricClass("technology.Layer$Function$Set");
@@ -102,6 +106,18 @@ class EClassLoader extends URLClassLoader {
     protected final Field Pref_prefs                    = getDeclaredField(classPref, "prefs");
     protected final Field Setting_prefs                 = getDeclaredField(classSetting, "prefs");
     protected final Field ArcProto_layers               = getDeclaredField(classPrimitiveArc != null ? classPrimitiveArc : classArcProto, "layers");
+    protected final Field DRCTemplate_ruleName          = getField(classDRCTemplate, "ruleName");
+    protected final Field DRCTemplate_when              = getField(classDRCTemplate, "when");
+    protected final Field DRCTemplate_ruleType          = getField(classDRCTemplate, "ruleType");
+    protected final Field DRCTemplate_name1             = getField(classDRCTemplate, "name1");
+    protected final Field DRCTemplate_name2             = getField(classDRCTemplate, "name2");
+    protected final Field DRCTemplate_value1            = getField(classDRCTemplate, "value1");
+    protected final Field DRCTemplate_value2            = getField(classDRCTemplate, "value2");
+    protected final Field DRCTemplate_values            = getField(classDRCTemplate, "values");
+    protected final Field DRCTemplate_maxWidth          = getField(classDRCTemplate, "maxWidth");
+    protected final Field DRCTemplate_minLength         = getField(classDRCTemplate, "minLength");
+    protected final Field DRCTemplate_nodeName          = getField(classDRCTemplate, "nodeName");
+    protected final Field DRCTemplate_multiCuts         = getField(classDRCTemplate, "multiCuts");
     protected final Field PrimitiveNode_LOWVTBIT        = getField(classPrimitiveNode, "LOWVTBIT");
     protected final Field PrimitiveNode_HIGHVTBIT       = getField(classPrimitiveNode, "HIGHVTBIT");
     protected final Field PrimitiveNode_NATIVEBIT       = getField(classPrimitiveNode, "NATIVEBIT");
@@ -178,6 +194,8 @@ class EClassLoader extends URLClassLoader {
     protected final Method ArcProto_isSkipSizeInPalette = getMethod(classArcProto, "isSkipSizeInPalette");
     protected final Method ArcProto_isSpecialArc = getMethod(classArcProto, "isSpecialArc");
     protected final Method ArcProto_isWipable = getMethod(classArcProto, "isWipable");
+    protected final Method Foundry_getGDSLayers = getMethod(classFoundry, "getGDSLayers");
+    protected final Method Foundry_getRules = getMethod(classFoundry, "getRules");
     protected final Method Layer_getCapacitance = getMethod(classLayer, "getCapacitance");
     protected final Method Layer_getCIFLayer = getMethod(classLayer, "getCIFLayer");
     protected final Method Layer_getDXFLayer = getMethod(classLayer, "getDXFLayer");
@@ -240,12 +258,16 @@ class EClassLoader extends URLClassLoader {
     protected final Method Technology_findTechnology = getMethod(classTechnology, "findTechnology", String.class);
     protected final Method Technology_getArcs = getMethod(classTechnology, "getArcs");
     protected final Method Technology_getColorMap = getMethod(classTechnology, "getColorMap");
+    protected final Method Technology_getFoundries = getMethod(classTechnology, "getFoundries");
     protected final Method Technology_getLayers = getMethod(classTechnology, "getLayers");
     protected final Method Technology_getMinResistance = getMethod(classTechnology, "getMinResistance");
     protected final Method Technology_getMinCapacitance = getMethod(classTechnology, "getMinCapacitance");
     protected final Method Technology_getNodes = getMethod(classTechnology, "getNodes");
     protected final Method Technology_getNodesGrouped = getMethod(classTechnology, "getNodesGrouped");
+    protected final Method Technology_getNumMetals = getMethod(classTechnology, "getNumMetals");
     protected final Method Technology_getNumTransparentLayers = getMethod(classTechnology, "getNumTransparentLayers");
+    protected final Method Technology_getOldArcNames = getMethod(classTechnology, "getOldArcNames");
+    protected final Method Technology_getOldNodeNames = getMethod(classTechnology, "getOldNodeNames");
     protected final Method Technology_getPrefFoundry = getMethod(classTechnology, "getPrefFoundry");
     protected final Method Technology_getScale = getMethod(classTechnology, "getScale");
     protected final Method Technology_getShapeOfNode1 = getMethod(classTechnology, "getShapeOfNode", classNodeInst, Boolean.TYPE, Boolean.TYPE, classLayerFunctionSet);
@@ -268,6 +290,10 @@ class EClassLoader extends URLClassLoader {
     protected final Method TechnologyArcLayer_getOffset = getDeclaredMethod(classTechnologyArcLayer, "getOffset");
     protected final Method TechnologyArcLayer_getStyle = getDeclaredMethod(classTechnologyArcLayer, "getStyle");
     protected final Method TechnologyNodeLayer_getLayer = getMethod(classTechnologyNodeLayer, "getLayer");
+    protected final Method TechnologyNodeLayer_getMulticutSizeX = getMethod(classTechnologyNodeLayer, "getMulticutSizeX");
+    protected final Method TechnologyNodeLayer_getMulticutSizeY = getMethod(classTechnologyNodeLayer, "getMulticutSizeY");
+    protected final Method TechnologyNodeLayer_getMulticutSep1D = getMethod(classTechnologyNodeLayer, "getMulticutSep1D");
+    protected final Method TechnologyNodeLayer_getMulticutSep2D = getMethod(classTechnologyNodeLayer, "getMulticutSep2D");
     protected final Method TechnologyNodeLayer_getPoints = getMethod(classTechnologyNodeLayer, "getPoints");
     protected final Method TechnologyNodeLayer_getPortNum = getMethod(classTechnologyNodeLayer, "getPortNum");
     protected final Method TechnologyNodeLayer_getRepresentation = getMethod(classTechnologyNodeLayer, "getRepresentation");
@@ -291,6 +317,7 @@ class EClassLoader extends URLClassLoader {
     
     protected final HashMap<Object,EGraphics.Outline> EGraphicsOutlines = new HashMap<Object,EGraphics.Outline>();
     protected final HashMap<Object,Poly.Type> PolyTypes = new HashMap<Object,Poly.Type>();
+    protected final HashMap<Object,DRCTemplate.DRCRuleType> DRCTemplateDRCRuleTypes = new HashMap<Object,DRCTemplate.DRCRuleType>();
     protected final HashMap<Object,Layer.Function> LayerFunctions = new HashMap<Object,Layer.Function>();
     protected final HashMap<Object,ArcProto.Function> ArcProtoFunctions = new HashMap<Object,ArcProto.Function>();
     protected final HashMap<Object,PrimitiveNode.Function> PrimitiveNodeFunctions = new HashMap<Object,PrimitiveNode.Function>();
@@ -313,6 +340,14 @@ class EClassLoader extends URLClassLoader {
             if (f == null) continue;
             Poly.Type old = PolyTypes.put(f.get(null), style);
             assert old == null;
+        }
+        if (classDRCTemplate != null) {
+            for (DRCTemplate.DRCRuleType type: DRCTemplate.DRCRuleType.class.getEnumConstants()) {
+                Field f = getField(classDRCTemplateDRCRuleType, type.name());
+                if (f == null) continue;
+                DRCTemplate.DRCRuleType old = DRCTemplateDRCRuleTypes.put(f.get(null), type);
+                assert old == null;
+            }
         }
         for (Layer.Function fun: Layer.Function.class.getEnumConstants()) {
             Field f = getField(classLayerFunction, fun.name());
