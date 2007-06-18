@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05q: *******************************
+
+************************* END OF Version 8.05, GNU RELEASE *************(version8.05GNU tag)
 ************************* Version 8.05p: *******************************
 
 IMP: (6/18/07, GVG) First attempt to connect Sea-of-Gates router to the FillGen. Allowing the definition of metal
