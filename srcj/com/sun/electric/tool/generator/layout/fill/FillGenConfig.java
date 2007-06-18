@@ -37,7 +37,7 @@ import com.sun.electric.tool.generator.layout.Tech;
 
 public class FillGenConfig implements Serializable
 {
-    TechType techNm = null;
+    public TechType techNm = null;
     public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
@@ -78,10 +78,6 @@ public class FillGenConfig implements Serializable
         techNm = tech;
         Tech.setTechnology(tech);
 
-//        LayoutLib.error((techNm != TechType.MOCMOS && techNm != TechType.TSMC180),
-//            "FillGeneratorTool only recognizes the technologies: "+
-//            TechType.MOCMOS+" and "+TechType.TSMC180+".\n"+
-//            "For 90nm use FillGenerator90");
         this.fillLibName = lib;
         this.perim = perim;
         this.firstLayer = first;
