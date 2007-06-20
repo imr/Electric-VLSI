@@ -304,6 +304,7 @@
             <exclude name="packaging/*.txt"/>
             <exclude name="packaging/electric.mf"/>
             <exclude name="packaging/MakePDF.book"/>
+            <exclude name=".settings"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
@@ -336,6 +337,7 @@
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
             <exclude name="packaging/"/>
+            <exclude name=".settings"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
