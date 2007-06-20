@@ -18,8 +18,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
-import com.sun.electric.plugins.sctiming.SCRun;
-import com.sun.electric.plugins.menus.PowerAnalysis;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 
 /**
  * Created by IntelliJ IDEA.
@@ -257,7 +257,7 @@ public class SCLibraryGen {
      * @param cell the cell to mark with the standard cell attribute marker
      */
     public static void markStandardCellJob(Cell cell) {
-        PowerAnalysis.CreateVar job = new PowerAnalysis.CreateVar(cell, STANDARDCELL, new Integer(1));
+        CreateVar job = new CreateVar(cell, STANDARDCELL, new Integer(1));
         job.startJob();
     }
 
@@ -266,9 +266,28 @@ public class SCLibraryGen {
      * @param cell the cell to mark with the standard cell attribute marker
      */
     public static void markStandardCell(Cell cell) {
-        PowerAnalysis.CreateVar job = new PowerAnalysis.CreateVar(cell, STANDARDCELL, new Integer(1));
+        CreateVar job = new CreateVar(cell, STANDARDCELL, new Integer(1));
         job.doIt();
     }
+
+    public static class CreateVar extends Job {
+        private Cell cell;
+        private Variable.Key key;
+        private Object defaultVal;
+        public CreateVar(Cell cell, Variable.Key key, Object defaultVal) {
+            super("Create Var", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.key = key;
+            this.defaultVal = defaultVal;
+        }
+        public boolean doIt() {
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            if (cell == null) return false;
+            cell.newVar(key, defaultVal, td);
+            return true;
+        }
+    }
+
 
     /**
      * Return the standard cells in a hierarchy starting from
