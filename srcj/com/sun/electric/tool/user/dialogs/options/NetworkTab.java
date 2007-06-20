@@ -61,7 +61,12 @@ public class NetworkTab extends PreferencePanel
 
 		// node extraction
 		extractGridAlign.setSelected(Extract.isGridAlignExtraction());
-		extractUnifyNandP.setSelected(Extract.isUnifyActive());
+		switch (Extract.getActiveHandling())
+		{
+			case 0: extractNeedProperActive.setSelected(true);   break;
+			case 1: extractUnifyNandP.setSelected(true);         break;
+			case 2: extractIgnoreWellSelect.setSelected(true);   break;
+		}
 		extractApproximateCuts.setSelected(Extract.isApproximateCuts());
 		extractSmallestPolygonSize.setText(Double.toString(Extract.getSmallestPolygonSize()));
 		extractCellPattern.setText(Extract.getCellExpandPattern());
@@ -75,8 +80,10 @@ public class NetworkTab extends PreferencePanel
 		nowBoolean = extractGridAlign.isSelected();
 		if (Extract.isGridAlignExtraction() != nowBoolean) Extract.setGridAlignExtraction(nowBoolean);
 
-		nowBoolean = extractUnifyNandP.isSelected();
-		if (Extract.isUnifyActive() != nowBoolean) Extract.setUnifyActive(nowBoolean);
+		int nowInt = 0;
+		if (extractUnifyNandP.isSelected()) nowInt = 1; else
+			if (extractIgnoreWellSelect.isSelected()) nowInt = 2;
+		if (Extract.getActiveHandling() != nowInt) Extract.setActiveHandling(nowInt);
 
 		nowBoolean = extractApproximateCuts.isSelected();
 		if (Extract.isApproximateCuts() != nowBoolean) Extract.setApproximateCuts(nowBoolean);
@@ -99,6 +106,7 @@ public class NetworkTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         netDefaultOrder = new javax.swing.ButtonGroup();
+        activeHandling = new javax.swing.ButtonGroup();
         network = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         netOrderingLabel = new javax.swing.JLabel();
@@ -108,10 +116,13 @@ public class NetworkTab extends PreferencePanel
         extractGridAlign = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         extractCellPattern = new javax.swing.JTextField();
-        extractUnifyNandP = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         extractSmallestPolygonSize = new javax.swing.JTextField();
         extractApproximateCuts = new javax.swing.JCheckBox();
+        jPanel2 = new javax.swing.JPanel();
+        extractNeedProperActive = new javax.swing.JRadioButton();
+        extractUnifyNandP = new javax.swing.JRadioButton();
+        extractIgnoreWellSelect = new javax.swing.JRadioButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -178,31 +189,23 @@ public class NetworkTab extends PreferencePanel
         jLabel1.setText("Flatten cells whose names match this:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel3.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel3.add(extractCellPattern, gridBagConstraints);
 
-        extractUnifyNandP.setText("Unify N and P active layers");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(extractUnifyNandP, gridBagConstraints);
-
         jLabel3.setText("Smallest extracted polygon (square units):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(jLabel3, gridBagConstraints);
@@ -210,7 +213,7 @@ public class NetworkTab extends PreferencePanel
         extractSmallestPolygonSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(extractSmallestPolygonSize, gridBagConstraints);
@@ -218,10 +221,52 @@ public class NetworkTab extends PreferencePanel
         extractApproximateCuts.setText("Approximate cut placement");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(extractApproximateCuts, gridBagConstraints);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Active Handling", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
+        activeHandling.add(extractNeedProperActive);
+        extractNeedProperActive.setText("Require separate N and P active; require proper select/well");
+        extractNeedProperActive.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        jPanel2.add(extractNeedProperActive, gridBagConstraints);
+
+        activeHandling.add(extractUnifyNandP);
+        extractUnifyNandP.setText("Ignore N vs. P active; require proper select/well");
+        extractUnifyNandP.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        extractUnifyNandP.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        jPanel2.add(extractUnifyNandP, gridBagConstraints);
+
+        activeHandling.add(extractIgnoreWellSelect);
+        extractIgnoreWellSelect.setText("Require separate N and P active; ignore select/well");
+        extractIgnoreWellSelect.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        extractIgnoreWellSelect.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        jPanel2.add(extractIgnoreWellSelect, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 4, 2);
+        jPanel3.add(jPanel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -242,14 +287,18 @@ public class NetworkTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup activeHandling;
     private javax.swing.JCheckBox extractApproximateCuts;
     private javax.swing.JTextField extractCellPattern;
     private javax.swing.JCheckBox extractGridAlign;
+    private javax.swing.JRadioButton extractIgnoreWellSelect;
+    private javax.swing.JRadioButton extractNeedProperActive;
     private javax.swing.JTextField extractSmallestPolygonSize;
-    private javax.swing.JCheckBox extractUnifyNandP;
+    private javax.swing.JRadioButton extractUnifyNandP;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JRadioButton netAscending;
     private javax.swing.ButtonGroup netDefaultOrder;

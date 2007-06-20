@@ -120,7 +120,8 @@ public class Connectivity
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
-	/** true if all active layers should be unified */			private boolean unifyActive;
+	/** true to unify N and P active layers */					private boolean unifyActive;
+	/** true to ignore select/well around active layers */		private boolean ignoreActiveSelectWell;
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
@@ -244,8 +245,10 @@ public class Connectivity
 			if (!validLayers) ignoreNodes.add(np);
 		}
 
-		// see if active layers should be unified
-		unifyActive = Extract.isUnifyActive();
+		// see how active layers should be handled
+		int activeHandling = Extract.getActiveHandling();
+		unifyActive = (activeHandling == 1);
+		ignoreActiveSelectWell = (activeHandling == 2);
 		if (!unifyActive)
 		{
 			boolean haveNActive = false, havePActive = false;
@@ -1631,6 +1634,12 @@ public class Connectivity
 					if (m1Layer == null) m1Layer = nLay; else
 						if (m2Layer == null) m2Layer = nLay;
 				} else if (lFun.isDiff() || lFun.isPoly()) hasPolyActive = true;
+
+				// ignore well/select layers if requested
+				if (ignoreActiveSelectWell && fun == PrimitiveNode.Function.CONTACT)
+				{
+					if (lFun.isImplant() || lFun.isSubstrate() || lFun.isWell()) continue;
+				}
 
 				// ignore well layers if the process doesn't have them
 //				if (lFun == Layer.Function.WELLP && pWellProcess) continue;

@@ -73,24 +73,25 @@ public class Extract extends Tool
 	 */
 	public static void setGridAlignExtraction(boolean a) { cacheExactGridAlign.setBoolean(a); }
 
-	private static Pref cacheUnifyActive = Pref.makeBooleanPref("UnifyActive", Extract.tool.prefs, false);
+	private static Pref cacheActiveHandling = Pref.makeIntPref("ActiveHandling", Extract.tool.prefs, 0);
 	/**
-	 * Method to tell whether the node extractor should unify all active layers.
-	 * When the distinction between N-active and P-active is uncertain, do this and force
-	 * the extractor to figure it out.  However, if the distinction is known, the extractor
-	 * can use it to be smarter.
-	 * The default is "false".
-	 * @return true if the node extractor should unify all active layers.
+	 * Method to tell how the node extractor should handle active layers.
+	 * The values can be:
+	 * 0: Insist on two different active layers (N and P) and also proper select/well surrounds (the default).
+	 * 1: Ignore active distinctions and use select/well surrounds to distinguish N from P.
+	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
+	 * @return an integer indicating how to handle active layers.
 	 */
-	public static boolean isUnifyActive() { return cacheUnifyActive.getBoolean(); }
+	public static int getActiveHandling() { return cacheActiveHandling.getInt(); }
 	/**
-	 * Method to set whether the node extractor should unify all active layers.
-	 * When the distinction between N-active and P-active is uncertain, do this and force
-	 * the extractor to figure it out.  However, if the distinction is known, the extractor
-	 * can use it to be smarter.
-	 * @param a true if the node extractor should unify all active layers.
+	 * Method to set how the node extractor should handle active layers.
+	 * @param a an integer indicating how to handle active layers.
+	 * The values can be:
+	 * 0: Insist on two different active layers (N and P) and also proper select/well surrounds (the default).
+	 * 1: Ignore active distinctions and use select/well surrounds to distinguish N from P.
+	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
 	 */
-	public static void setUnifyActive(boolean a) { cacheUnifyActive.setBoolean(a); }
+	public static void setActiveHandling(int a) { cacheActiveHandling.setInt(a); }
 
 	private static Pref cacheApproximateCuts = Pref.makeBooleanPref("ApproximateCuts", Extract.tool.prefs, false);
 	/**
