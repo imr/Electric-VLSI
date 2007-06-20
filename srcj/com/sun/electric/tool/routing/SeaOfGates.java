@@ -959,7 +959,6 @@ public class SeaOfGates
 				SearchVertex v2 = vertices.get(1);
 				ArcProto type = metalArcs[toZ];
 				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
-//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				PrimitiveNode np = metalArcs[toZ].findPinProto();
 				if (v1.getX() == v2.getX())
 				{
@@ -1001,7 +1000,6 @@ public class SeaOfGates
 				NodeInst ni = makeNodeInst(np, new EPoint(sv.getX(), sv.getY()), wid, hei, orient, cell, netID);
 				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
-//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				makeArcInst(type, width, lastPort, ni.getOnlyPortInst(), netID);
 				lastPort = ni.getOnlyPortInst();
 				madeContacts = true;
@@ -1025,7 +1023,6 @@ public class SeaOfGates
 						SearchVertex v2 = vertices.get(vertices.size()-1);
 						ArcProto type = metalArcs[fromZ];
 						double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
-//						double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 						if (v1.getX() == v2.getX())
 						{
 							// last line is vertical: run a horizontal bit
@@ -1055,7 +1052,6 @@ public class SeaOfGates
 			{
 				ArcProto type = metalArcs[sv.getZ()];
 				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
-//				double width = Math.max(type.getDefaultLambdaFullWidth(), minWidth);
 				makeArcInst(type, width, lastPort, pi, netID);
 			}
 			lastPort = pi;
@@ -1125,7 +1121,6 @@ public class SeaOfGates
 	private ArcInst makeArcInst(ArcProto type, double wid, PortInst from, PortInst to, int netID)
 	{
 		ArcInst ai = ArcInst.makeInstanceBase(type, wid, from, to);
-//		ArcInst ai = ArcInst.makeInstanceFull(type, wid, from, to);
 		if (ai != null)
 		{
 			PolyBase [] polys = tech.getShapeOfArc(ai);
@@ -1857,9 +1852,33 @@ public class SeaOfGates
 	{
 		List<MetalVia> vias = new ArrayList<MetalVia>();
 
-		void addVia(PrimitiveNode pn, int o) { vias.add(new MetalVia(pn, o)); }
+		void addVia(PrimitiveNode pn, int o)
+		{
+			vias.add(new MetalVia(pn, o));
+			Collections.sort(vias, new PrimsBySize());
+		}
 
 		List<MetalVia> getVias() { return vias; }
+	}
+
+	/**
+	 * Comparator class for sorting primitives by their size.
+	 */
+	private static class PrimsBySize implements Comparator<MetalVia>
+	{
+		/**
+		 * Method to sort primitives by their size.
+		 */
+		public int compare(MetalVia mv1, MetalVia mv2)
+        {
+			PrimitiveNode pn1 = mv1.via;
+			PrimitiveNode pn2 = mv2.via;
+			double sz1 = pn1.getDefWidth() * pn1.getDefHeight();
+			double sz2 = pn2.getDefWidth() * pn2.getDefHeight();
+			if (sz1 < sz2) return -1;
+			if (sz1 > sz2) return 1;
+        	return 0;
+		}
 	}
 
 	/************************************** DIJKSTRA PATH SEARCHING **************************************/

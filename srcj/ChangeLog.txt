@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
 
+BUG: (6/20/07, SMR) Sea-of-gates router uses larger contacts which cause DRC errors.
+FIX: Sort contacts in list so that the smaller ones are preferred.
+
 IMP: (6/20/07, GVG) Sea-of-Gates router available in onlySkill mode in CellFillGenerator.
 
 ************************* END OF Version 8.05, GNU RELEASE *************(version8.05GNU tag)
