@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
 
+IMP: (6/20/07, GVG) Sea-of-Gates router available in onlySkill mode in CellFillGenerator.
+
 ************************* END OF Version 8.05, GNU RELEASE *************(version8.05GNU tag)
 ************************* Version 8.05p: *******************************
 
