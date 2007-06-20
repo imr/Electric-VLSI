@@ -4736,6 +4736,42 @@ public class Technology implements Comparable<Technology>
                                          Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
 
     /**
+     * Utility function to copy NodeLayers from existing PrimitiveNodes into new ones.
+     * @param source
+     * @param destination
+     * @param identifier
+     */
+    public void copyPrimitives(PrimitiveNode[] source, PrimitiveNode[] destination, String identifier)
+    {
+        for (int i = 0; i < source.length; i++)
+        {
+            PrimitiveNode metal = source[i];
+            Technology.NodeLayer [] layers = metal.getLayers();
+            Technology.NodeLayer [] nodes = new Technology.NodeLayer [layers.length];
+            for (int j = 0; j < layers.length; j++)
+            {
+                Technology.NodeLayer node = layers[j];
+                nodes[j] = new Technology.NodeLayer(node);
+            }
+            destination[i] = PrimitiveNode.newInstance(identifier+"-"+metal.getName(), this,
+                    metal.getDefWidth(), metal.getDefHeight(), null, nodes);
+            PrimitivePort port = metal.getPrimitivePorts().next(); // only 1 port
+            ArcProto[] arcs = port.getConnections();
+            ArcProto[] newArcs = new ArcProto[arcs.length];
+            System.arraycopy(arcs, 0, newArcs, 0, arcs.length);
+            destination[i].addPrimitivePorts(new PrimitivePort []
+                {
+                    PrimitivePort.newInstance(this, destination[i], newArcs, port.getName(), port.getAngle(),
+                            port.getAngleRange(), port.getTopology(), port.getCharacteristic(),
+                            EdgeH.fromCenter(0), EdgeV.fromCenter(0), EdgeH.fromCenter(0), EdgeV.fromCenter(0))
+                });
+            destination[i].setFunction(metal.getFunction());
+            destination[i].setSpecialType(metal.getSpecialType());
+            destination[i].setDefSize(0, 0);   // so it won't resize against any User's default? tricky
+        }
+    }
+
+    /**
 	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
 	 */
 	public static class TechSetting extends Setting
