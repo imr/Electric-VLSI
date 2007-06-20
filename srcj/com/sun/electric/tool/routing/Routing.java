@@ -27,6 +27,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -386,6 +387,24 @@ public class Routing extends Listener
 	}
 
 	/**
+	 * Method to tell whether two arcs duplicate each other.
+	 * @param a1 the first arc.
+	 * @param a2 the second arc.
+	 * @return true if the arcs duplicate each other.
+	 */
+	private static boolean sameArc(ArcInst a1, ArcInst a2)
+	{
+		if (a1.getLambdaBaseWidth() != a2.getLambdaBaseWidth()) return false;
+		EPoint h1 = a1.getHeadLocation();
+		EPoint t1 = a1.getTailLocation();
+		EPoint h2 = a2.getHeadLocation();
+		EPoint t2 = a2.getTailLocation();
+		if (h1.equals(h2) && t1.equals(t2)) return true;
+		if (h1.equals(t2) && t1.equals(h2)) return true;
+		return false;
+	}
+
+	/**
 	 * Method to find the endpoints of a network.
 	 * @param net the network to "unroute".
 	 * @param arcsToDelete a HashSet of arcs that should be deleted.
@@ -409,7 +428,15 @@ public class Routing extends Listener
 			if (mustBeUnrouted && ai.getProto() != Generic.tech.unrouted_arc) continue;
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
+
+			// make sure that this arc doesn't duplicate a previous one
+			boolean dup = false;
+			for(ArcInst oAi : arcsToDelete)
+			{
+				if (sameArc(oAi, ai)) { dup = true;   break; }
+			}
 			arcsToDelete.add(ai);
+			if (dup) continue;
 
 			// see if an end of the arc is a network "end"
 			for(int i=0; i<2; i++)

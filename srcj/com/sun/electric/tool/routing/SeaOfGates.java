@@ -554,7 +554,8 @@ public class SeaOfGates
 		{
 			Layer lay = metalLayers[i];
 			layerSurround[i] = 1;
-			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, 10, 100);
+			double arcWidth = metalArcs[i].getDefaultLambdaBaseWidth();
+			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, arcWidth, 50);
 			if (rule != null) layerSurround[i] = rule.getValue(0);
 		}
 		viaSurround = new double[numMetalLayers-1];
@@ -563,7 +564,8 @@ public class SeaOfGates
 			Layer lay = viaLayers[i];
 
 			double spacing = 2;
-			DRCTemplate ruleSpacing = DRC.getSpacingRule(lay, null, lay, null, false, -1, 10, 100);
+			double arcWidth = metalArcs[i].getDefaultLambdaBaseWidth();
+			DRCTemplate ruleSpacing = DRC.getSpacingRule(lay, null, lay, null, false, -1, arcWidth, 50);
 			if (ruleSpacing != null) spacing = ruleSpacing.getValue(0);
 
 			double width = 2;
