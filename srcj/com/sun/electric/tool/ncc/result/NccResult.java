@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.plugins.pie.interchange.Permutation;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccGlobalsReportable;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -63,6 +64,7 @@ public class NccResult implements Serializable {
 	private NccGuiInfo nccGuiInfo;
 	private NccOptions options;
 	private CellSummary summary;
+	private Permutation exportPermutation;
 	
 	private Equivalence buildNetEquivalence(NccGlobalsReportable globalData) {
 		NetNameProxy[][] equivNets;
@@ -219,4 +221,14 @@ public class NccResult implements Serializable {
 
 	/** return information saved specifically for the GUI */
     public NccGuiInfo getNccGuiInfo() {return nccGuiInfo;}
+    
+    /** Return information saved for hierarchical interchange */
+	public Permutation getExportPermutation() {
+		return exportPermutation;
+	}
+
+    /** Save information needed for hierarchical interchange */
+	public void setExportPermutation(Permutation exportPermutation) {
+		this.exportPermutation = exportPermutation;
+	}
 }

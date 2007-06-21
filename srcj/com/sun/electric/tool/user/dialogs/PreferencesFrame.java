@@ -30,6 +30,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.CellModelPrefs;
+import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.*;
@@ -280,6 +281,18 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(nct);
 		toolSet.add(new DefaultMutableTreeNode(nct.getName()));
 
+		if(Pie.hasPie()){
+	        try
+	        {
+	            Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
+	            Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
+	            PreferencePanel pieT = (PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(modal)});
+	            optionPanes.add(pieT);
+	            toolSet.add(new DefaultMutableTreeNode(pieT.getName()));
+	        }
+	        catch (Exception ex) { /* do nothing */ };
+		}
+		
 		NetworkTab net = new NetworkTab(parent, modal);
 		optionPanes.add(net);
 		toolSet.add(new DefaultMutableTreeNode(net.getName()));
