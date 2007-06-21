@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP/MAN: (6/20/07, SMR) New extraction option to ignore select/well layers.
 
-BUG: (6/20/07, SMR) Sea-of-gates router uses larger contacts which cause DRC errors.
+BUG: (6/20/07, SMR) Sea-of-gates router uses larger contacts which cause DRC errors ([Bug #1334)
 FIX: Sort contacts in list so that the smaller ones are preferred.
 
 IMP: (6/20/07, GVG) Sea-of-Gates router available in onlySkill mode in CellFillGenerator.
