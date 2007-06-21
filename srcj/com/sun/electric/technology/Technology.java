@@ -4768,6 +4768,8 @@ public class Technology implements Comparable<Technology>
             destination[i].setFunction(metal.getFunction());
             destination[i].setSpecialType(metal.getSpecialType());
             destination[i].setDefSize(0, 0);   // so it won't resize against any User's default? tricky
+            PrimitiveNode.NodeSizeRule minRuleSize = source[i].getMinSizeRule();
+            destination[i].setMinSize(minRuleSize.getWidth(), minRuleSize.getHeight(), minRuleSize.getRuleName());
         }
     }
 
