@@ -1131,8 +1131,12 @@ public class Spice extends Topology
 					if (resistVar != null)
 					{
                         if (resistVar.getCode() == TextDescriptor.Code.SPICE) {
-                            Object obj = context.evalSpice(resistVar, false);
-                            extra = String.valueOf(obj);
+                            if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                Object obj = context.evalSpice(resistVar, false);
+                                extra = String.valueOf(obj);
+                            } else {
+                                extra = resistVar.describe(context, ni);                                
+                            }
                         }
                         if (extra == "")
                             extra = resistVar.describe(context, ni);
@@ -1178,8 +1182,12 @@ public class Spice extends Topology
 					if (capacVar != null)
 					{
                         if (capacVar.getCode() == TextDescriptor.Code.SPICE) {
-                            Object obj = context.evalSpice(capacVar, false);
-                            extra = String.valueOf(obj);
+                            if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                Object obj = context.evalSpice(capacVar, false);
+                                extra = String.valueOf(obj);
+                            } else {
+                                extra = capacVar.describe(context, ni);
+                            }
                         }
                         if (extra == "")
                             extra = capacVar.describe(context, ni);
@@ -1199,8 +1207,12 @@ public class Spice extends Topology
 					if (inductVar != null)
 					{
                         if (inductVar.getCode() == TextDescriptor.Code.SPICE) {
-                            Object obj = context.evalSpice(inductVar, false);
-                            extra = String.valueOf(obj);
+                            if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                Object obj = context.evalSpice(inductVar, false);
+                                extra = String.valueOf(obj);
+                            } else {
+                                extra = inductVar.describe(context, ni);
+                            }
                         }
                         if (extra == "")
                             extra = inductVar.describe(context, ni);
