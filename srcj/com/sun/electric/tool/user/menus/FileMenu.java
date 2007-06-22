@@ -777,7 +777,14 @@ public class FileMenu {
 
         public void terminateOK()
         {
-            WindowFrame.wantToRedoTitleNames();
+        	// set some other library to be current
+        	if (Library.getCurrent() == null)
+        	{
+	        	List<Library> remainingLibs = Library.getVisibleLibraries();
+	        	if (remainingLibs.size() > 0) remainingLibs.get(0).setCurrent();
+        	}
+
+        	WindowFrame.wantToRedoTitleNames();
             EditWindow.repaintAll();
 
             // Disable save icon if no more libraries are open
