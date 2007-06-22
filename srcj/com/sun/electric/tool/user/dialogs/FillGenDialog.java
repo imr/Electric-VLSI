@@ -611,13 +611,13 @@ public class FillGenDialog extends EDialog {
     }
 
     private void okButtonActionPerformed() {
-        FillGenConfig config = okButtonClick(false, false, false, false, 0, false, -1);
+        FillGenConfig config = okButtonClick(false, false, false, false, 0, FillGenConfig.FillGenType.INTERNAL, -1);
         if (config != null)
             new FillGenJob(Job.getUserInterface().getCurrentCell(), config, false);
     }
 
     public FillGenConfig okButtonClick(boolean isFlatSelected, boolean createMaster, boolean binary, boolean around,
-                              double gap, boolean onlySkill, int level)
+                                       double gap, FillGenConfig.FillGenType genType, int level)
     {
         boolean hierarchy = (!isFlatSelected);
         boolean useMaster = hierarchy && !createMaster;
@@ -708,7 +708,7 @@ public class FillGenDialog extends EDialog {
         FillGenConfig config = new FillGenConfig(type, techNm, "autoFillLib",
                 FillGeneratorTool.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule, binary,
-                useMaster, around, gap, onlySkill, level);
+                useMaster, around, gap, genType, level);
 
         if (!templateButton.isSelected())
         {

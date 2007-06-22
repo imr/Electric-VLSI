@@ -3,7 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
-IMP: (6/21/07, SAF) PIE: Updated to reflect progress made at UofW.  
+IMP: (6/22/07, GVG) GUI option to run Sea-of-Gates as router in the fill cell generator
+instead of the built-in one.
+
+IMP: (6/21/07, SAF) PIE: Updated to reflect progress made at UofW.
 	Added preferences panel for PIE specific options.  Added port
 	permutation to NCCResult for saving the permutation found via
 	isomorphic mapping.  PIE now uses a permutation caching algorithm
