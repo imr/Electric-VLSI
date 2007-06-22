@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
 
+BUG: (6/22/07, SMR) Layer/Pattern preferences gives spurious warnings (Bug #1333).
+FIX: In ColorPatternPanel.colorChanged(), ignore if data is changing.
+
 BUG: (6/22/07, SMR) LEF input improved (Bug #1336).
 
 BUG: (6/22/07, SMR) Closing the current library doesn't select another (Bug #1337).

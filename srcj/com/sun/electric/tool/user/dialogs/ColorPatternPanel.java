@@ -458,6 +458,7 @@ public class ColorPatternPanel extends JPanel
 	 */
 	private void colorChanged()
 	{
+		if (dataChanging) return;
 		if (currentLI == null) return;
 		Color col = colorChooser.getColor();
 		currentLI.red = col.getRed();
