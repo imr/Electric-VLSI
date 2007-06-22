@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
 
+BUG: (6/22/07, SMR) LEF input improved (Bug #1336).
+
 BUG: (6/22/07, SMR) Closing the current library doesn't select another (Bug #1337).
 FIX: In FileMenu.CloseLibrary.terminateOK(), select another library if there is no current one.
 

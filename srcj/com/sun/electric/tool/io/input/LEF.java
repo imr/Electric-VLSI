@@ -397,13 +397,12 @@ public class LEF extends LEFDEF
 					return true;
 				}
 				GetLayerInformation li = new GetLayerInformation(key);
-				if (li.layerFun == Layer.Function.UNKNOWN)
+				np = li.pure;
+				if (li.layerFun == Layer.Function.UNKNOWN || np == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Unknown layer name (" + key + ")");
 					return true;
 				}
-				np = li.pure;
-				if (np == null) return true;
 				if (ignoreToSemicolon("LAYER")) return true;
 				continue;
 			}
@@ -572,7 +571,11 @@ public class LEF extends LEFDEF
 			{
 				break;
 			}
-
+			if (key.equalsIgnoreCase("CLASS"))
+			{
+				if (ignoreToSemicolon("LAYER")) return true;
+				continue;
+			}
 			if (key.equalsIgnoreCase("LAYER"))
 			{
 				key = getAKeyword();
@@ -930,7 +933,7 @@ public class LEF extends LEFDEF
 
 	private double convertLEFString(String key)
 	{
-		double v = TextUtils.atof(key);
+		double v = TextUtils.atof(key) * OVERALLSCALE;
 		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
 	}
 }

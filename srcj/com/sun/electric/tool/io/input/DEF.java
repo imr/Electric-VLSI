@@ -797,7 +797,6 @@ public class DEF extends LEFDEF
 					// place the node
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
-
 					Variable prX = np.getVar(prXkey);
 					double width=0;
 					if (prX != null)
@@ -1651,7 +1650,7 @@ public class DEF extends LEFDEF
 		// get the amount
 		key = mustGetKeyword("UNITS");
 		if (key == null) return true;
-		scaleUnits = TextUtils.atof(key);
+		scaleUnits = TextUtils.atof(key) * OVERALLSCALE;
 
 		// ignore the keyword
 		if (ignoreToSemicolon("UNITS")) return true;

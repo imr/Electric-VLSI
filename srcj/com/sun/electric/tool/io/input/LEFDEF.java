@@ -43,6 +43,7 @@ public class LEFDEF extends Input
 {
 	protected static ViaDef firstViaDefFromLEF = null;
 	protected static HashMap<ArcProto,Double> widthsFromLEF = new HashMap<ArcProto,Double>();
+	protected static final double OVERALLSCALE = 1;
 
 	/**
 	 * Class to define Via information for LEF and DEF reading.
