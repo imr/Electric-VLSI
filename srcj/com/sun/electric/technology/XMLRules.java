@@ -1100,7 +1100,8 @@ public class XMLRules implements DRCRules {
      * @param buttedRightLeft
      */
     public void resizeContactsWithActive(PrimitiveNode[] contacts, String[] contactNames,
-                                         boolean aligned, boolean buttedTop, boolean buttedRightLeft)
+                                         boolean aligned, boolean buttedTop, boolean buttedRightLeft,
+                                         boolean metal1XfromCenter)
     {
         for (int i = 0; i < contacts.length; i++)
         {
@@ -1154,7 +1155,7 @@ public class XMLRules implements DRCRules {
                 {
                     double distFromCenterX = cutSize.getValue(0)/2 + metalSurround.getValue(0);
                     double distFromCenterY = cutSize.getValue(1)/2 + metalSurround.getValue(1);
-                    if (buttedTop && buttedRightLeft)
+                    if (buttedTop && buttedRightLeft || metal1XfromCenter)
                     {
                         pts = new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(-distFromCenterX), EdgeV.fromCenter(-distFromCenterY)),
@@ -1178,9 +1179,6 @@ public class XMLRules implements DRCRules {
             DRCTemplate activeSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
             if (activeSurround != null)
             {
-//                assert(cutSur.getValue(0) == activeSurround.getValue(0));
-//                EPoint point = new EPoint(cutSur.getValue(0)-activeSurround.getValue(0),
-//                        cutSur.getValue(1)-activeSurround.getValue(1));
                 if (buttedTop && buttedRightLeft)
                 {
                     double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);

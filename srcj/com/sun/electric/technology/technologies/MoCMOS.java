@@ -3118,10 +3118,10 @@ public class MoCMOS extends Technology
         rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
-        rules.resizeContactsWithActive(metalActiveContactNodes, null, false, false, false);
+        rules.resizeContactsWithActive(metalActiveContactNodes, null, false, false, false, false);
 
         // Well contacts
-        rules.resizeContactsWithActive(metalWellContactNodes, null, false, false, false);
+        rules.resizeContactsWithActive(metalWellContactNodes, null, false, false, false, false);
 
         // Poly contact
         rules.resizePolyContact(metal1PolyContactNodes[0]);
