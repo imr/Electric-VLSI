@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06a: *******************************
 
+BUG: (6/25/07, GVG) [Bug 1339]  New: Biderectional exports are not defined "inout" in Verilog description (Bug #1339)
+FIX: Case not detected in Verilog.writeCellTopology(). Code amended.
+
 IMP: (6/24/07, GVG) CMOS90 aligned active contacts added.
 
 BUG: (6/22/07, SMR) Layer/Pattern preferences gives spurious warnings (Bug #1333).

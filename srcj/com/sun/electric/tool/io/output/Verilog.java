@@ -472,6 +472,9 @@ public class Verilog extends Topology
             String portType = "input";
             if (pp.getCharacteristic() == PortCharacteristic.OUT)
                 portType = "output";
+            else if (pp.getCharacteristic() == PortCharacteristic.BIDIR)
+                portType = "inout";
+
             printWriter.print("  " + portType);
             if (cas.getLowIndex() > cas.getHighIndex())
             {
