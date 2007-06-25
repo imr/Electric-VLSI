@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06b: *******************************
 ************************* Version 8.06a: *******************************
 
 BUG: (6/25/07, GVG) [Bug 1339]  New: Biderectional exports are not defined "inout" in Verilog description (Bug #1339)
