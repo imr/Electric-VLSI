@@ -30,11 +30,12 @@ import com.sun.electric.database.IdManager;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -63,6 +64,7 @@ public class EDatabase {
     public static EDatabase clientDatabase() { return theDatabase; }
     
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
+    /** list of linked technologies indexed by techId. */       private final ArrayList<Technology> linkedTechs = new ArrayList<Technology>();
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** static list of all linked cells indexed by CellId. */	final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
@@ -88,6 +90,15 @@ public class EDatabase {
     public Snapshot getInitialSnapshot() { return idManager.getInitialSnapshot(); }
     
     public NetworkManager getNetworkManager() { return networkManager; }
+    
+    public void addTech(Technology tech) {
+        int techIndex = idManager.newTechId(tech.getTechName()).techIndex;
+        while (techIndex >= linkedTechs.size()) linkedTechs.add(null);
+        Technology oldTech = linkedTechs.set(techIndex, tech);
+        assert oldTech == null;
+    }
+    
+    public Technology getTech(TechId techId) { return getTech(techId.techIndex); }
     
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
     
@@ -121,6 +132,8 @@ public class EDatabase {
         while (!linkedCells.isEmpty() && linkedCells.get(linkedCells.size() - 1) == null)
             linkedCells.remove(linkedCells.size() - 1);
     }
+    
+    Technology getTech(int techIndex) { return techIndex < linkedTechs.size() ? linkedTechs.get(techIndex) : null; }
     
     Library getLib(int libIndex) { return libIndex < linkedLibs.size() ? linkedLibs.get(libIndex) : null; }
     
@@ -361,7 +374,15 @@ public class EDatabase {
         }
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
-        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups), true);
+        
+        Technology[] technologies = new Technology[linkedTechs.size()];
+        boolean techChanged = technologies.length != snapshot.technologies.size();
+        for (int techIndex = 0; techIndex < technologies.length; techIndex++) {
+            technologies[techIndex] = getTech(techIndex);
+            techChanged = techChanged || technologies[techIndex] != snapshot.technologies.get(techIndex);
+        }
+        if (!techChanged) technologies = null;
+        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups, technologies), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;

@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.text.CellName;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +36,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class IdManager {
 
+    /** List of TechIds created so far. */
+    private final ArrayList<TechId> techIds = new ArrayList<TechId>();
+    /** HashMap of TechIds by their tech name. */
+    private final HashMap<String,TechId> techIdsByName = new HashMap<String,TechId>();
     /** List of LibIds created so far. */
     private final ArrayList<LibId> libIds = new ArrayList<LibId>();
     /** HashMap of LibIds by their lib name. */
@@ -48,6 +53,34 @@ public class IdManager {
     
     /** Creates a new instance of IdManager */
     public IdManager() {
+    }
+    
+    /**
+     * Returns TechId with specified techName.
+     * @param techName technology name.
+     * @return TechId with specified techName.
+     */
+    public synchronized TechId newTechId(String techName) {
+        TechId techId = techIdsByName.get(techName);
+        return techId != null ? techId : newTechIdInternal(techName);
+    }
+    
+    /**
+     * Returns TechId by given index.
+     * @param techIndex given index.
+     * @return TechId with given index.
+     */
+    public synchronized TechId getTechId(int techIndex) {
+        return techIds.get(techIndex);
+    }
+    
+    private TechId newTechIdInternal(String techName) {
+        int techIndex = techIds.size();
+        TechId techId = new TechId(this, techName, techIndex);
+        techIds.add(techId);
+        techIdsByName.put(techName, techId);
+        assert techIds.size() == techIdsByName.size();
+        return techId;
     }
     
     /**
@@ -112,12 +145,21 @@ public class IdManager {
     int newSnapshotId() { return snapshotCount.incrementAndGet(); }
     
     void writeDiffs(SnapshotWriter writer) throws IOException {
+        assert writer.idManager == this;
+        TechId[] techIdsArray;
         LibId[] libIdsArray;
         CellId[] cellIdsArray;
         synchronized (this) {
+            techIdsArray = techIds.toArray(TechId.NULL_ARRAY);
             libIdsArray = libIds.toArray(LibId.NULL_ARRAY);
             cellIdsArray = cellIds.toArray(CellId.NULL_ARRAY);
         }
+        writer.writeInt(techIdsArray.length);
+        for (int techIndex = writer.techCount; techIndex < techIdsArray.length; techIndex++) {
+            TechId techId = techIdsArray[techIndex];
+            writer.writeString(techId.techName);
+        }
+        writer.setTechCount(techIdsArray.length);
         writer.writeInt(libIdsArray.length);
         for (int libIndex = writer.libCount; libIndex < libIdsArray.length; libIndex++) {
             LibId libId = libIdsArray[libIndex];
@@ -149,11 +191,15 @@ public class IdManager {
     }
     
     void readDiffs(SnapshotReader reader) throws IOException {
-        int oldLibIdsCount, oldCellIdsCount;
+        int oldTechIdsCount, oldLibIdsCount, oldCellIdsCount;
         synchronized (this) {
+            oldTechIdsCount = techIds.size();
             oldLibIdsCount = libIds.size();
             oldCellIdsCount = cellIds.size();
         }
+        int techIdsCount = reader.readInt();
+        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
+            newTechId(reader.readString());
         int libIdsCount = reader.readInt();
         for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
             newLibId(reader.readString());
@@ -163,6 +209,7 @@ public class IdManager {
             newCellId(libId, CellName.parseName(reader.readString()));
         }
         synchronized (this) {
+            assert techIdsCount == techIds.size();
             assert libIdsCount == libIds.size();
             assert cellIdsCount == cellIds.size();
         }
@@ -182,9 +229,19 @@ public class IdManager {
 	 * Method to check invariants in all Libraries.
 	 */
 	public void checkInvariants() {
+        int numTechIds;
         int numLibIds;
         int numCellIds;
         synchronized (this) {
+            numTechIds = techIds.size();
+            assert numTechIds == techIdsByName.size();
+            for (int techIndex = 0; techIndex < numTechIds; techIndex++) {
+                TechId techId = getTechId(techIndex);
+                assert techId.idManager == this;
+                assert techId.techIndex == techIndex;
+                techId.check();
+                assert techIdsByName.get(techId.techName) == techId;
+            }
             numLibIds = libIds.size();
             assert numLibIds == libIdsByName.size();
             for (int libIndex = 0; libIndex < numLibIds; libIndex++) {

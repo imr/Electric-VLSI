@@ -61,6 +61,7 @@ public class ImmutableArcInstTest {
     private static final long SHAPE_SCALE = 1L << 20;
     
     private Technology tech;
+    private TechId techId;
     private PrimitiveNode pn;
     private PrimitivePort pp;
     private ArcProto ap;
@@ -87,6 +88,7 @@ public class ImmutableArcInstTest {
         apExtend = DBMath.lambdaToGrid(0);
 //        apExtend = DBMath.lambdaToGrid(1.5);
         idManager = new IdManager();
+        techId = idManager.newTechId(tech.getTechName());
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
         n0 = ImmutableNodeInst.newInstance(0, pn, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
@@ -773,7 +775,7 @@ public class ImmutableArcInstTest {
         
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
             a0.write(writer);
             writer.flush();
             byte[] bytes = byteStream.toByteArray();
@@ -828,7 +830,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testMakeGridPoly() {
         System.out.println("makeGridPoly");
-        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTech(tech);
+        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(techId);
         ImmutableNodeInst[] nodes = { n0, n1 };
         CellBackup cellBackup0 = new CellBackup(c).with(c, 0, false, nodes, null, null);
         MyBuilder b = new MyBuilder();

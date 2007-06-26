@@ -34,7 +34,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,6 +62,7 @@ public class CellBackup {
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
+    /** TechId usage counts. */                                     final BitSet techUsages;
     /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
     /** definedExport == [0..definedExportLength) - deletedExports . */
     /** Map from chronIndex of Exports to sortIndex. */             final int exportIndex[];
@@ -75,6 +79,7 @@ public class CellBackup {
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
+            BitSet techUsages,
             CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
         this.d = d;
         this.revisionDate = revisionDate;
@@ -82,22 +87,30 @@ public class CellBackup {
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
+        this.techUsages = techUsages;
         this.cellUsages = cellUsages;
         this.exportIndex = exportIndex;
         this.definedExports = definedExports;
         this.definedExportsLength = definedExportsLength;
         this.deletedExports = deletedExports;
         cellBackupsCreated++;
-//        check();
+        if (Job.getDebug())
+            check();
     }
     
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d) {
         this(d, 0, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
-                NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
-        if (d.tech == null)
-            throw new NullPointerException("tech");
+                makeTechUsages(d.techId), NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
+        if (d.techId == null)
+            throw new NullPointerException("techId");
+    }
+    
+    private static BitSet makeTechUsages(TechId techId) {
+        BitSet techUsages = new BitSet();
+        techUsages.set(techId.techIndex);
+        return techUsages;
     }
     
     /**
@@ -125,16 +138,18 @@ public class CellBackup {
         
         CellId cellId = d.cellId;
         if (this.d != d) {
-            if (d.tech == null)
+            if (d.techId == null)
                 throw new NullPointerException("tech");
 //            if (cellId != this.d.cellId)
 //                throw new IllegalArgumentException("cellId");
         }
         
+        BitSet techUsages = this.techUsages;
         CellUsageInfo[] cellUsages = this.cellUsages;
-        if (this.d.cellId != d.cellId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
+        if (this.d.cellId != d.cellId || this.d.techId != d.techId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
             UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
-            cellUsages = uc.getCellUsages(cellId, this.cellUsages);
+            techUsages = uc.getTechUsages(this.techUsages);
+            cellUsages = uc.getCellUsages(this.cellUsages);
         }
         
         if (nodes != this.nodes && !nodes.isEmpty()) {
@@ -200,7 +215,7 @@ public class CellBackup {
         }
         
         CellBackup backup = new CellBackup(d, revisionDate, modified,
-                nodes, arcs, exports, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
+                nodes, arcs, exports, techUsages, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return backup;
     }
     
@@ -375,8 +390,9 @@ public class CellBackup {
 	 */
     public void check() {
         d.check();
-        assert d.tech != null;
         CellId cellId = d.cellId;
+        BitSet checkTechUsages = new BitSet();
+        checkTechUsages.set(d.techId.techIndex);
         int[] checkCellUsages = getInstCounts();
         boolean hasCellCenter = false;
         ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
@@ -403,6 +419,9 @@ public class CellBackup {
                     if (pid == ImmutablePortInst.EMPTY) continue;
                     checkPortInst(n, subCellId.getPortId(j));
                 }
+            } else {
+                Technology tech = ((PrimitiveNode)n.protoId).getTechnology();
+                checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
             }
         }
         for (int i = 0; i < checkCellUsages.length; i++)
@@ -425,6 +444,9 @@ public class CellBackup {
             a.check();
             checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
+            
+            Technology tech = a.protoType.getTechnology();
+            checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
         }
         
         if (exportIndex.length > 0)
@@ -460,6 +482,7 @@ public class CellBackup {
             assert definedExports == EMPTY_BITSET;
         if (deletedExports.isEmpty())
             assert deletedExports == EMPTY_BITSET;
+        assert techUsages.equals(checkTechUsages);
         for (CellUsageInfo cui: cellUsages) {
             if (cui != null)
                 cui.check();

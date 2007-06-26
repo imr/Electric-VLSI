@@ -38,6 +38,7 @@ import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
@@ -54,7 +55,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
@@ -315,7 +315,7 @@ public class JELIB extends Output {
             if (!cellGroupName.equals(d.cellId.cellName.getName()))
                 printWriter.print(convertString(cellGroupName));
         }
-        printWriter.print("|" + convertString(d.tech.getTechName()));
+        printWriter.print("|" + convertString(d.techId.techName));
         printWriter.print("|" + d.creationDate);
         printWriter.print("|" + cellBackup.revisionDate);
         StringBuilder cellBits = new StringBuilder();
@@ -339,7 +339,7 @@ public class JELIB extends Output {
                 printWriter.print("I" + convertString(subCellName));
             } else {
                 PrimitiveNode prim = (PrimitiveNode)np;
-                if (d.tech == prim.getTechnology())
+                if (d.techId.techName.equals(prim.getTechnology().getTechName()))
                     printWriter.print("N" + convertString(prim.getName()));
                 else
                     printWriter.print("N" + convertString(prim.getFullName()));
@@ -406,7 +406,7 @@ public class JELIB extends Output {
         // write the arcs in this cell
         for (ImmutableArcInst a: cellBackup.arcs) {
             ArcProto ap = a.protoType;
-            if (cellBackup.d.tech == ap.getTechnology())
+            if (cellBackup.d.techId.techName.equals(ap.getTechnology().getTechName()))
                 printWriter.print("A" + convertString(ap.getName()));
             else
                 printWriter.print("A" + convertString(ap.getFullName()));
@@ -734,7 +734,7 @@ public class JELIB extends Output {
             case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
             case 'R': infstr.append(convertString(((ArcProto)obj).getFullName(), inArray)); return;
             case 'S': infstr.append(convertString((String)obj, inArray)); return;
-            case 'T': infstr.append(convertString(((Technology)obj).getTechName(), inArray)); return;
+            case 'T': infstr.append(convertString(((TechId)obj).techName, inArray)); return;
             case 'V': {
                 EPoint pt2 = (EPoint)obj;
                 infstr.append(TextUtils.formatDouble(pt2.getX(), 0) + "/" + TextUtils.formatDouble(pt2.getY(), 0));
@@ -781,7 +781,7 @@ public class JELIB extends Output {
         if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
         if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
         if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return 'R';
-        if (obj instanceof Technology    || obj instanceof Technology [])    return 'T';
+        if (obj instanceof TechId        || obj instanceof TechId [])        return 'T';
         if (obj instanceof EPoint        || obj instanceof EPoint [])        return 'V';
         if (obj instanceof Byte          || obj instanceof Byte [])          return 'Y';
         assert false : obj;

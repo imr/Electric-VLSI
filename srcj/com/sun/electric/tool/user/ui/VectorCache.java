@@ -1019,7 +1019,8 @@ public class VectorCache {
                 int layerIndex = -1;
 				if (layer != null)
 				{
-                    if (vc.vcg != null && layer.getTechnology() == vc.vcg.cellBackup.d.tech)
+                    Technology tech = layer.getTechnology();
+                    if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.d.techId.techName))
                         layerIndex = layer.getIndex();
 					Layer.Function fun = layer.getFunction();
 					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))

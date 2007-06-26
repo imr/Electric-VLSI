@@ -26,7 +26,6 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -1866,8 +1865,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))}),
-                    // Right Collector P-Active
-                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                    // Right Collector N-Active
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))}),
                     // Right Collector N+ Select
@@ -1882,8 +1881,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(3))}),
-                    // Left Collector P-Active
-                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                    // Left Collector N-Active
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(3))}),
                     // Left Collector N+ Select
@@ -1906,8 +1905,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(10), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(9))}),
-                     // Bottom Collector P-Active
-                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                     // Bottom Collector N-Active
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromBottom(3)),
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(9))}),
                     // Bottom Collector N+ Select
@@ -1922,8 +1921,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(9)),
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromTop(3))}),
-                     // Top Collector P-Active
-                    new Technology.NodeLayer(activeLayers[P_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                     // Top Collector N-Active
+                    new Technology.NodeLayer(activeLayers[N_TYPE], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(9)),
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromTop(3))}),
                     // Top Collector N+ Select
@@ -2735,7 +2734,7 @@ public class MoCMOS extends Technology
     @Override
 	public void setState()
 	{
-        EDatabase.theDatabase.checkChanging();
+        super.setState();
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
         findNodeProto("Active-Pin").setNotUsed(true);
 		findArcProto("Active").setNotUsed(true);

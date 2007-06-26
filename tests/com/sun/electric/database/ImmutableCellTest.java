@@ -48,6 +48,8 @@ import org.junit.Test;
 public class ImmutableCellTest {
     
     private IdManager idManager;
+    private TechId genericTechId;
+    private TechId schematicTechId;
     private LibId libId;
     private CellId cellId;
     private CellName fooName;
@@ -60,11 +62,13 @@ public class ImmutableCellTest {
         EDatabase.theDatabase.lowLevelBeginChanging(null);
         
         idManager = new IdManager();
+        genericTechId = idManager.newTechId("generic");
+        schematicTechId = idManager.newTechId("schematic");
         libId = idManager.newLibId("libId0");
         fooName = CellName.parseName("foo;1{lay}");
         cellId = libId.newCellId(fooName);
         groupName = CellName.parseName("foo{sch}");
-        d = ImmutableCell.newInstance(cellId, 12345).withGroupName(groupName).withTech(Generic.tech);
+        d = ImmutableCell.newInstance(cellId, 12345).withGroupName(groupName).withTechId(genericTechId);
         var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true) );
     }
     
@@ -101,7 +105,7 @@ public class ImmutableCellTest {
         assertSame(d.cellId, d1.cellId);
         assertSame(groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
+        assertSame(d.techId, d1.techId);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
     }
@@ -138,30 +142,39 @@ public class ImmutableCellTest {
         assertSame(d.cellId, d1.cellId);
         assertSame(d.groupName, d1.groupName);
         assertEquals(creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
+        assertSame(d.techId, d1.techId);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
     }
 
     /**
-     * Test of withTech method, of class com.sun.electric.database.ImmutableCell.
+     * Test of withTechId method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithTech() {
-        System.out.println("withTech");
+    @Test public void testWithTecId() {
+        System.out.println("withTechId");
         
-        assertSame(d, d.withTech(Generic.tech));
+        assertSame(d, d.withTechId(genericTechId));
         
-        Technology tech = Schematics.tech;
-        ImmutableCell d1 = d.withTech(tech);
+        ImmutableCell d1 = d.withTechId(schematicTechId);
         d1.check();
         assertSame(d.cellId, d1.cellId);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
-        assertSame(tech, d1.tech);
+        assertSame(schematicTechId, d1.techId);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
         
-        assertNull( d.withTech(null).tech );
+        assertNull( d.withTechId(null).techId );
+    }
+
+    /**
+     * Test of withTechId method, of class com.sun.electric.database.ImmutableCell.
+     */
+    @Test(expected= IllegalArgumentException.class) public void testWithTecIdBad() {
+        System.out.println("withTechIdBad");
+        
+        d.withTechId(EDatabase.theDatabase.getIdManager().newTechId(genericTechId.techName));
+        d.withTechId(genericTechId);
     }
 
     /**
@@ -178,7 +191,7 @@ public class ImmutableCellTest {
         assertSame(d.cellId, d1.cellId);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
+        assertSame(d.techId, d1.techId);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(flags, d1.flags);
     }
@@ -194,7 +207,7 @@ public class ImmutableCellTest {
         assertSame(d.cellId, d1.cellId);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
+        assertSame(d.techId, d1.techId);
         assertEquals(d.flags, d1.flags);
         
         Variable[] vars = d1.getVars();
@@ -228,7 +241,7 @@ public class ImmutableCellTest {
         
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
             d.write(writer);
             writer.flush();
             byte[] bytes = byteStream.toByteArray();
@@ -243,7 +256,7 @@ public class ImmutableCellTest {
             assertSame(d.cellId, d1.cellId);
             assertEquals(d.groupName, d1.groupName);
             assertEquals(d.creationDate, d1.creationDate);
-            assertSame(d.tech, d1.tech);
+            assertSame(d.techId, d1.techId);
             assertEquals(d.flags, d1.flags);
             assertTrue( Arrays.equals(d.getVars(), d1.getVars()) );
         } catch (IOException e) {
@@ -269,7 +282,7 @@ public class ImmutableCellTest {
         assertTrue( d.equalsExceptVariables(d) );
         assertFalse( d.equalsExceptVariables(d.withGroupName(CellName.parseName("bar{sch}"))) );
         assertFalse( d.equalsExceptVariables(d.withCreationDate(1)) );
-        assertFalse( d.equalsExceptVariables(d.withTech(Schematics.tech)) );
+        assertFalse( d.equalsExceptVariables(d.withTechId(schematicTechId)) );
         assertFalse( d.equalsExceptVariables(d.withFlags(1)) );
         assertTrue( d.equalsExceptVariables(d.withVariable(var)) );
     }

@@ -177,7 +177,7 @@ public class View implements Comparable<View>
 	public static View newInstance(String fullName, String abbreviation)
 	{
 		// make sure this can be done now
-		EDatabase.theDatabase.checkChanging();
+		EDatabase.serverDatabase().checkChanging();
 
 		View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
 
@@ -197,7 +197,7 @@ public class View implements Comparable<View>
 	public static View newTextInstance(String fullName, String abbreviation)
 	{
 		// make sure this can be done now
-		EDatabase.theDatabase.checkChanging();
+		EDatabase.serverDatabase().checkChanging();
 
 		View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
 

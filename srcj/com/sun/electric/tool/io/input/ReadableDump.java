@@ -30,6 +30,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1805,7 +1806,7 @@ public class ReadableDump extends LibraryFiles
 					case ELIBConstants.VNODEPROTO:  value = new NodeProtoId[arrayLen]; break;
 					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
 					case ELIBConstants.VPORTPROTO:  value = new ExportId[arrayLen];    break;
-					case ELIBConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
+					case ELIBConstants.VTECHNOLOGY: value = new TechId[arrayLen];      break;
 					case ELIBConstants.VLIBRARY:    value = new LibId[arrayLen];       break;
 					case ELIBConstants.VTOOL:       value = new Tool[arrayLen];        break;
 				}
@@ -1886,7 +1887,7 @@ public class ReadableDump extends LibraryFiles
             case ELIBConstants.VLIBRARY:
                 if (name.length() == 0) return null;
                 if (name.charAt(0) == '"') name = name.substring(1, name.length() - 1);
-                return lib.getDatabase().getIdManager().newLibId(name);
+                return idManager.newLibId(name);
 			case ELIBConstants.VNODEPROTO:
 				int colonPos = name.indexOf(':');
 				if (colonPos < 0)
@@ -1913,7 +1914,7 @@ public class ReadableDump extends LibraryFiles
 			case ELIBConstants.VARCPROTO:
 				return ArcProto.findArcProto(name);
 			case ELIBConstants.VTECHNOLOGY:
-				return Technology.findTechnology(name);
+				return idManager.newTechId(name);
 			case ELIBConstants.VTOOL:
 				return Tool.findTool(name);
 		}

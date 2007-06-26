@@ -3,6 +3,17 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+
+BUG: (6/26/07, DN) "mocmos:NPN-Transistor" collector should include N-Active boxes.
+FIX: In MoCMOS constructor use "activeLayers[N_TYPE]" instead of activeLayers[P_TYPE].
+
+IMP: (6/26/07, DN) TechId object in IdManager, mapping TechId->Technology in Snapshot and EDatabase.
+
+IMP: (6/26/07, DN) Update Bean Shell to version "packaging/bsh-2.0b4.jar".
+
+BUG: (6/26/07, DN) "ant jarForGNUSource" doesn't work in GNU Source distribution.
+FIX: In "build.xml:jarWithVersion" don't exclude "packaging/electric.mf" and "packaging/*.txt".
+
 BUG: (6/25/07, SAF) NMOS stacks with incorrectly interchanged gates can
 be matched by local partitioning and are never re-examined, which leads
 to false NCC passes in hierarchical mode.

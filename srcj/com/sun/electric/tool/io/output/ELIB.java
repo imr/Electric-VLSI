@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.IdManager;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -37,6 +38,7 @@ import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -81,8 +83,10 @@ import java.util.TreeMap;
 public class ELIB extends Output
 {
     /** Snapshot being saved. */                                Snapshot snapshot;
+    /** IdManager of Snapshot being saved. */                   IdManager idManager;
     /** Library being saved. */                                 LibId theLibId;
 	/** Map of referenced objects for library files */          HashMap<Object,Integer> objInfo;
+    /** List of referenced Technologies */                      final ArrayList<Technology> technologies = new ArrayList<Technology>();
 	/** Maps memory face index to disk face index */            private int[] faceMap = new int[TextDescriptor.ActiveFont.getMaxIndex() + 1];
 	/** Name space of variable names */                         private TreeMap<String,Short> nameSpace;
     /** Scale for irrelevant technologies. */                   private double irrelevantScale;
@@ -100,7 +104,6 @@ public class ELIB extends Output
 		int portProtoIndex = 0;
 		int nodeProtoIndex = 0;
 		int arcIndex = 0;
-		int techCount = 0;
 		int primNodeProtoIndex = 0;
 		int primPortProtoIndex = 0;
 		int arcProtoIndex = 0;
@@ -125,6 +128,7 @@ public class ELIB extends Output
 	protected boolean writeLib(Snapshot snapshot, LibId theLibId)
 	{
         this.snapshot = snapshot;
+        idManager = snapshot.idManager;
         this.theLibId = theLibId;
         
         // Gather objects referenced from Cells
@@ -142,7 +146,7 @@ public class ELIB extends Output
                     gatherCell((CellId)np);
                 } else {
                     gatherObj(np);
-                    gatherObj(((PrimitiveNode)np).getTechnology());
+                    gatherTech(((PrimitiveNode)np).getTechnology());
                 }
                 if (n.hasPortInstVariables()) {
                     for (Iterator<PortProtoId> it = n.getPortsWithVariables(); it.hasNext(); ) {
@@ -158,7 +162,7 @@ public class ELIB extends Output
             for (ImmutableArcInst a: cellBackup.arcs) {
                 ArcProto ap = a.protoType;
                 gatherObj(ap);
-                gatherObj(ap.getTechnology());
+                gatherTech(ap.getTechnology());
                 //gatherObj(ai.getHead().getPortInst().getPortProto());
                 //gatherObj(ai.getTail().getPortInst().getPortProto());
                 gatherVariables(null, a);
@@ -179,8 +183,14 @@ public class ELIB extends Output
         for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
             gatherSettings(it.next());
         
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-            gatherSettings(it.next());
+        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+            Technology tech = it.next();
+            TechId techId = idManager.newTechId(tech.getTechName());
+            if (!objInfo.containsKey(techId))
+                continue;
+            technologies.add(tech);
+            gatherSettings(tech);
+        }
         
         putNameSpace(Library.FONT_ASSOCIATIONS.getName());
         putNameSpace(NodeInst.NODE_NAME.getName());
@@ -191,9 +201,8 @@ public class ELIB extends Output
         }
 
 		// make sure all technologies with irrelevant scale information have the same scale value
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		for(Technology tech: technologies)
 		{
-			Technology tech = it.next();
 			if (tech.isScaleRelevant()) continue;
 			if (tech == Generic.tech) continue;
 			irrelevantScale = Math.max(irrelevantScale, tech.getScale());
@@ -285,18 +294,13 @@ public class ELIB extends Output
             }
         }
         
-        // count the number of technologies and primitives
-        ArrayList<Technology> technologies = new ArrayList<Technology>();
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
-            Technology tech = it.next();
-            if (objInfo.containsKey(tech))
-                technologies.add(tech);
-        }
+        // count the number of primitives
         primNodeCounts = new int[technologies.size()];
         primArcCounts = new int[technologies.size()];
-        for (techCount = 0; techCount < technologies.size(); techCount++) {
+        for (int techCount = 0; techCount < technologies.size(); techCount++) {
             Technology tech = technologies.get(techCount);
-            if (!objInfo.containsKey(tech)) continue;
+            TechId techId = idManager.newTechId(tech.getTechName());
+            putObjIndex(techId, techCount);
             int primNodeStart = primNodeProtoIndex;
             for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); ) {
                 PrimitiveNode np = nit.next();
@@ -348,7 +352,7 @@ public class ELIB extends Output
 
 		// write number of objects
 		writeBigInteger(toolCount);
-		writeBigInteger(techCount);
+		writeBigInteger(technologies.size());
 		writeBigInteger(primNodeProtoIndex);
 		writeBigInteger(primPortProtoIndex);
 		writeBigInteger(arcProtoIndex);
@@ -426,11 +430,9 @@ public class ELIB extends Output
         }
 
 		// write the names of technologies and primitive prototypes
-		techCount = 0;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		for(int techCount = 0; techCount < technologies.size(); techCount++ )
 		{
-			Technology tech = it.next();
-			if (!objInfo.containsKey(tech)) continue;
+			Technology tech = technologies.get(techCount);
 
 			// write the technology name
 			writeString(tech.getTechName());
@@ -460,7 +462,6 @@ public class ELIB extends Output
 				if (!objInfo.containsKey(ap)) continue;
 				writeString(ap.getName());
 			}
-			techCount++;
 		}
 
 		// write the names of the tools
@@ -476,10 +477,8 @@ public class ELIB extends Output
 		//writeBigInteger(lib.lowLevelGetUserBits());
 
 		// write the tool scale values
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		for(Technology tech: technologies)
 		{
-			Technology tech = it.next();
-			if (!objInfo.containsKey(tech)) continue;
 			writeBigInteger(gridCoordToElib(tech, DBMath.GRID));
 //			writeBigInteger((int)Math.round(tech.getScale()*2));
 		}
@@ -499,10 +498,8 @@ public class ELIB extends Output
 		}
 
 		// write the variables on technologies
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		for(Technology tech: technologies)
 		{
-			Technology tech = it.next();
-			if (!objInfo.containsKey(tech)) continue;
 			writeMeaningPrefs(tech);
 		}
 
@@ -570,22 +567,22 @@ public class ELIB extends Output
 			{
 				Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
 				if (v == null) continue;
-				if (v instanceof Technology || v instanceof Tool)
+				if (v instanceof TechId || v instanceof Tool)
 				{
 					gatherObj(v);
 				} else if (v instanceof PrimitiveNode)
 				{
 					gatherObj(v);
-					gatherObj(((PrimitiveNode)v).getTechnology());
+					gatherTech(((PrimitiveNode)v).getTechnology());
 				} else if (v instanceof PrimitivePort)
 				{
 					PrimitiveNode pn = ((PrimitivePort)v).getParent();
 					gatherObj(pn);
-					gatherObj(pn.getTechnology());
+					gatherTech(pn.getTechnology());
 				} else if (v instanceof ArcProto)
 				{
 					gatherObj(v);
-					gatherObj(((ArcProto)v).getTechnology());
+					gatherTech(((ArcProto)v).getTechnology());
 				} else if (v instanceof CellId)
 				{
                     CellId cellId = (CellId)v;
@@ -620,6 +617,15 @@ public class ELIB extends Output
             if (nameSpace != null) putNameSpace(name);
         }
     }
+
+	/**
+	 * Gather TechId of Technology into objInfo map.
+	 * @param tech Technology to examine.
+	 */
+	private void gatherTech(Technology tech)
+	{
+        gatherObj(idManager.newTechId(tech.getTechName()));
+	}
 
 	/**
 	 * Gather Cell, its Library and its font into objInfo map.
@@ -932,7 +938,7 @@ public class ELIB extends Output
             int userBits = a.getElibBits();
             long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
             writeGridCoord(cellBackup, "width: ", arcWidth);
-            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellBackup.d.tech)*2/DBMath.GRID));
+            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellBackup.d.techId)*2/DBMath.GRID));
 //            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
 //            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
             writeTxt("userbits: " + userBits); // only TXT
@@ -1250,40 +1256,12 @@ public class ELIB extends Output
             writeBigInteger(tool.getIndex());
             return;
         }
-        if (obj instanceof Technology) {
-            Technology tech = (Technology)obj;
-            writeBigInteger(tech.getIndex());
-            return;
-        }
-        if (obj instanceof PrimitiveNode) {
-            writeObj(obj);
-            return;
-        }
-        if (obj instanceof ArcProto) {
-            writeObj(obj);
-            return;
-        }
         if (obj instanceof LibId) {
             LibId libId = (LibId)obj;
             writeString(libId.libName);
             return;
         }
-        if (obj instanceof CellId) {
-            CellId cellId = (CellId)obj;
-            if (!objInfo.containsKey(cellId))
-                cellId = null;
-            writeObj(cellId);
-            return;
-        }
-        if (obj instanceof ExportId) {
-            ExportId exportId = (ExportId)obj;
-            if (!objInfo.containsKey(exportId))
-                exportId = null;
-            writeObj(exportId);
-            return;
-        }
-        assert obj == null;
-        writeObj(null);
+        writeObj(obj);
     }
     
     /**
@@ -1331,8 +1309,11 @@ public class ELIB extends Output
      */
     void writeObj(Object obj) throws IOException {
         int objIndex = -1;
-        if (obj != null)
-            objIndex = objInfo.get(obj).intValue();
+        if (obj != null) {
+            Integer i = objInfo.get(obj);
+            if (i != null)
+                objIndex = i.intValue();
+        }
         writeBigInteger(objIndex);
     }
     
@@ -1344,11 +1325,16 @@ public class ELIB extends Output
      */
     private void writeGridCoord(CellBackup cellBackup, String keyword, double gridCoord) throws IOException {
 //        int i = gridCoordToElib(cellBackup.d.tech, gridCoord);
-        writeInt(keyword, gridCoordToElib(cellBackup.d.tech, gridCoord));
+        Technology tech = snapshot.getTech(cellBackup.d.techId);
+        writeInt(keyword, gridCoordToElib(tech, gridCoord));
     }
     
     int gridCoordToElib(Technology tech, double gridCoord) {
         return (int)Math.round(gridCoord * getScale(tech)*2/DBMath.GRID);
+    }
+    
+    double getScale(TechId techId) {
+        return getScale(snapshot.getTech(techId));
     }
     
     double getScale(Technology tech) {

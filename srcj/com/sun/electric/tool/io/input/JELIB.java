@@ -30,6 +30,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -39,6 +40,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -1572,7 +1574,7 @@ public class JELIB extends LibraryFiles
 						case 'P': objArray = new PrimitiveNode[limit];  break;
 						case 'R': objArray = new ArcProto[limit];       break;
 						case 'S': objArray = new String[limit];         break;
-						case 'T': objArray = new Technology[limit];     break;
+						case 'T': objArray = new TechId[limit];         break;
 						case 'V': objArray = new EPoint[limit];         break;
 						case 'Y': objArray = new Byte[limit];           break;
 					}
@@ -1852,23 +1854,11 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				libName = piece.substring(0, colonPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, -1);
-					break;
-				}
+                LibId libId = idManager.newLibId(libName);
 				cellName = piece.substring(colonPos+1);
 				commaPos = cellName.indexOf(',');
 				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
-				cell = lib.findNodeProto(cellName);
-				if (cell == null) {
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, -1);
-                    break;
-                }
-				return cell.getId();
+                return libId.newCellId(CellName.parseName(cellName));
 			case 'D':		// Double
 				return new Double(TextUtils.atof(piece));
 			case 'E':		// Export (should delay analysis until database is built!!!)
@@ -1880,13 +1870,7 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				libName = piece.substring(0, colonPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, -1);
-					break;
-				}
+                libId = idManager.newLibId(libName);
 				secondColonPos = piece.indexOf(':', colonPos+1);
 				if (secondColonPos < 0)
 				{
@@ -1895,23 +1879,11 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				cellName = piece.substring(colonPos+1, secondColonPos);
-				cell = lib.findNodeProto(cellName);
-				if (cell == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, -1);
-					break;
-				}
+                CellId cellId = libId.newCellId(CellName.parseName(cellName));
 				String exportName = piece.substring(secondColonPos+1);
 				commaPos = exportName.indexOf(',');
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
-                Export pp = (Export)findPortProto(cell, exportName);
-				if (pp == null) {
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Export: " + piece, -1);
-                    break;
-                }
-				return pp;
+                return cellId.newExportId(exportName);
 			case 'F':		// Float
 				return new Float((float)TextUtils.atof(piece));
 			case 'G':		// Long
@@ -1924,13 +1896,7 @@ public class JELIB extends LibraryFiles
 				libName = piece;
 				commaPos = libName.indexOf(',');
 				if (commaPos >= 0) libName = libName.substring(0, commaPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null) {
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Library: " + piece, -1);
-                    break;
-                }
-				return lib;
+				return idManager.newLibId(libName);
 			case 'O':		// Tool
 				String toolName = piece;
 				commaPos = toolName.indexOf(',');
@@ -2020,11 +1986,7 @@ public class JELIB extends LibraryFiles
 				techName = piece;
 				commaPos = techName.indexOf(',');
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);
-				tech = findTechnology(techName);
-				if (tech == null)
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Technology: " + piece, -1);
-				return tech;
+                return idManager.newTechId(techName);
 			case 'V':		// Point2D
 				double x = TextUtils.atof(piece);
 				int slashPos = piece.indexOf('/');

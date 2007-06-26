@@ -44,22 +44,28 @@ import java.util.HashMap;
  */
 public class SnapshotWriter {
     
+    final IdManager idManager;
     private final DataOutputStream out;
+    int techCount;
     int libCount;
     int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
-    private HashMap<Technology,Integer> techs = new HashMap<Technology,Integer>();
     private HashMap<ArcProto,Integer> arcProtos = new HashMap<ArcProto,Integer>();
     private HashMap<PrimitiveNode,Integer> primNodes = new HashMap<PrimitiveNode,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
    
     /** Creates a new instance of SnapshotWriter */
-    public SnapshotWriter(DataOutputStream out) {
+    public SnapshotWriter(IdManager idManager, DataOutputStream out) {
+        this.idManager = idManager;
         this.out = out;
     }
 
+    void setTechCount(int techCount) {
+        this.techCount = techCount;
+    }
+    
     void setLibCount(int libCount) {
         this.libCount = libCount;
     }
@@ -210,19 +216,20 @@ public class SnapshotWriter {
     }
     
     /**
+     * Writes TechId.
+     * @param techId TechId to write.
+     */
+    public void writeTechId(TechId techId) throws IOException {
+        out.writeInt(techId.techIndex);
+    }
+    
+    /**
      * Writes Technology.
      * @param tech Technology to write.
      */
-    public void writeTechnology(Technology tech) throws IOException {
-        Integer i = techs.get(tech);
-        if (i != null) {
-            out.writeInt(i.intValue());
-        } else {
-            i = new Integer(techs.size());
-            techs.put(tech, i);
-            out.writeInt(i.intValue());
-            out.writeUTF(tech.getTechName());
-        }
+    private void writeTechnology(Technology tech) throws IOException {
+        TechId techId = idManager.newTechId(tech.getTechName());
+        writeTechId(techId);
     }
     
     /**

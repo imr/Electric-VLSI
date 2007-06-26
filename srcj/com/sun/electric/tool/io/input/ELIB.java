@@ -30,7 +30,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.LibId;
-import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -2270,7 +2270,7 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProtoId[cou]; break;
 					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
 					case ELIBConstants.VPORTPROTO:  newAddrArray = new ExportId[cou];    break;
-					case ELIBConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
+					case ELIBConstants.VTECHNOLOGY: newAddrArray = new TechId[cou];      break;
 					case ELIBConstants.VLIBRARY:    newAddrArray = new LibId[cou];       break;
 					case ELIBConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
 				}
@@ -2394,7 +2394,7 @@ public class ELIB extends LibraryFiles
 					System.out.println("Variable of type Technology has negative index");
 					return null;
 				}
-				return getTechList(i);
+				return idManager.newTechId(getTechList(i).getTechName());
 			case ELIBConstants.VPORTARCINST:
 				readBigInteger();
 				System.out.println("Cannot read variable of type PortArcInst");
@@ -2406,7 +2406,7 @@ public class ELIB extends LibraryFiles
 			case ELIBConstants.VLIBRARY:
 				String libName = readString();
                 if (libName.length() == 0) return null;
-                return lib.getDatabase().getIdManager().newLibId(libName);
+                return idManager.newLibId(libName);
 			case ELIBConstants.VTOOL:
 				i = readBigInteger();
 				if (i < 0 || i >= toolCount) return null;

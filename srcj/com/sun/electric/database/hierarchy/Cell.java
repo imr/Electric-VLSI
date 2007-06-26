@@ -33,6 +33,7 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -346,6 +347,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Persistent data of this Cell. */                            private ImmutableCell d;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private Library lib;
+    /** The technology of this Cell. */                             private Technology tech;
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
@@ -382,6 +384,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         this.d = d;
         lib = database.getLib(d.getLibId());
         assert lib != null;
+        if (d.techId != null)
+            tech = database.getTech(d.techId);
 	}
 
     private Object writeReplace() throws ObjectStreamException { return new CellKey(this); }
@@ -1067,6 +1071,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         unfreshRTree();
      	this.d = newBackup.d;
         lib = database.getLib(newBackup.d.getLibId());
+        tech = database.getTech(newBackup.d.techId);
         this.revisionDate = newBackup.revisionDate;
         this.modified = newBackup.modified;
        // Update NodeInsts
@@ -4154,6 +4159,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         super.check();
         assert database.getCell(cellId) == this;
         assert database.getLib(getD().getLibId()) == lib;
+        if (getD().techId != null)
+            assert tech == database.getTech(getD().techId);
+        else
+            assert tech == null;
         assert getCellName() != null;
         assert getVersion() > 0;
         
@@ -4310,11 +4319,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return return the Technology of this Cell.
 	 */
 	public Technology getTechnology() {
-        Technology tech = getD().tech;
-        if (tech == null) {
-            tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
-            setTechnology(tech);
-        }
+        if (tech == null)
+            setTechnology(Technology.whatTechnology(this, null, 0, 0, null, 0, 0));
 		return tech;
 	}
 
@@ -4323,7 +4329,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * It can only be called for Cells because PrimitiveNodes have fixed Technology membership.
 	 * @param tech the new technology for this NodeProto (Cell).
 	 */
-	public void setTechnology(Technology tech) { setD(getD().withTech(tech)); }
+	public void setTechnology(Technology tech) {
+        TechId techId = null;
+        if (tech != null) {
+            techId = database.getIdManager().newTechId(tech.getTechName());
+            if (database.getTech(techId) != tech)
+                throw new IllegalArgumentException("tech");
+        }
+        setD(getD().withTechId(techId));
+        this.tech = tech;
+    }
 
 	/**
 	 * Finds the Schematic Cell associated with this Icon Cell.

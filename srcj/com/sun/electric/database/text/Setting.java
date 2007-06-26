@@ -66,7 +66,7 @@ public class Setting {
     
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
-        EDatabase.theDatabase.checkChanging();
+        EDatabase.serverDatabase().checkChanging();
         if (xmlNode == null)
             throw new NullPointerException();
 //        this.xmlNode = xmlNode;
@@ -181,7 +181,7 @@ public class Setting {
 //            }
 //            changeBatch = null;
 //        }
-        EDatabase.theDatabase.checkChanging();
+        EDatabase.serverDatabase().checkChanging();
         if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new ClassCastException();

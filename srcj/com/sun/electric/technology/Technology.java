@@ -26,15 +26,18 @@ package com.sun.electric.technology;
 import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -112,6 +115,8 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
+    public static final Technology[] NULL_ARRAY = {};
+    public static final ImmutableArrayList<Technology> EMPTY_LIST = new ImmutableArrayList<Technology>(NULL_ARRAY);
 
     /** key of Variable for saving scalable transistor contact information. */
     public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
@@ -720,8 +725,6 @@ public class Technology implements Comparable<Technology>
 
 	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
-	/** static list of all Technologies in Electric */		private static TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
-	/** static list of xml Technologies in Electric */		private static TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -820,6 +823,7 @@ public class Technology implements Comparable<Technology>
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
+        EDatabase.serverDatabase().addTech(this);
 	}
 
 //    protected Technology(URL urlXml, boolean full) {
@@ -1143,6 +1147,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public static void initAllTechnologies()
 	{
+        /** static list of all Technologies in Electric */		TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
+        /** static list of xml Technologies in Electric */		TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
+        
 		// technology initialization may set preferences, so batch them
 		Pref.delayPrefFlushing();
 
@@ -1304,8 +1311,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setup()
 	{
-		// do any specific intialization
-		init();
+		// initialize all design rules in the technology (overwrites arc widths)
+		setState();
 
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
@@ -1329,7 +1336,9 @@ public class Technology implements Comparable<Technology>
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
      */
-	public void setState() {}
+	public void setState() {
+        EDatabase.serverDatabase().checkChanging();
+    }
 
     protected void setNotUsed(int numPolys) {
         int numMetals = getNumMetals();
@@ -1346,60 +1355,6 @@ public class Technology implements Comparable<Technology>
             ap.setNotUsed(!isUsed);
         }
     }
-
-	/**
-	 * Method to initialize a technology. This will check and restore
-	 * default values stored as preferences
-	 */
-	public void init()
-	{
-//		// remember the arc widths as specified by previous defaults
-//		HashMap<ArcProto,Double> arcWidths = new HashMap<ArcProto,Double>();
-//		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-//		{
-//			ArcProto ap = it.next();
-//			double width = ap.getDefaultLambdaBaseWidth();
-////			double width = ap.getDefaultLambdaFullWidth();
-//			arcWidths.put(ap, width); // autoboxing
-//		}
-//
-//		// remember the node sizes as specified by previous defaults
-//		HashMap<PrimitiveNode,Point2D.Double> nodeSizes = new HashMap<PrimitiveNode,Point2D.Double>();
-//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-//		{
-//			PrimitiveNode np = it.next();
-//			double width = np.getDefWidth();
-//			double height = np.getDefHeight();
-//			nodeSizes.put(np, new Point2D.Double(width, height));
-//		}
-
-		// initialize all design rules in the technology (overwrites arc widths)
-		setState();
-
-//		// now restore arc width defaults if they are wider than what is set
-//		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-//		{
-//			ArcProto ap = it.next();
-//			Double origWidth = arcWidths.get(ap);
-//			if (origWidth == null) continue;
-//			double width = ap.getDefaultLambdaBaseWidth();
-//			if (origWidth > width) ap.setDefaultLambdaBaseWidth(origWidth); //autoboxing
-////			double width = ap.getDefaultLambdaFullWidth();
-////			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
-//		}
-//
-//		// now restore node size defaults if they are larger than what is set
-//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-//		{
-//			PrimitiveNode np = it.next();
-//			Point2D size = nodeSizes.get(np);
-//			if (size == null) continue;
-//			double width = np.getDefWidth();
-//			double height = np.getDefHeight();
-//			if (size.getX() > width || size.getY() > height)
-//                np.setDefSize(size.getX(), size.getY());
-//		}
-	}
 
 	/**
 	 * Returns the current Technology.
@@ -1445,11 +1400,21 @@ public class Technology implements Comparable<Technology>
 		for (Iterator<Technology> it = getTechnologies(); it.hasNext(); )
 		{
 			Technology t = it.next();
-			if (t.techName.equalsIgnoreCase(name))
+			if (t.getTechName().equalsIgnoreCase(name))
 				return t;
 		}
 		return null;
 	}
+
+	/**
+	 * Find the Technology with a particular TechId.
+	 * @param techId the TechId of the desired Technology
+	 * @return the Technology with the same name, or null if no
+	 * Technology matches.
+	 */
+    public static Technology findTechnology(TechId techId) {
+        return technologies.get(techId.techName);
+    }
 
 	/**
 	 * Get an iterator over all of the Technologies.
@@ -3908,7 +3873,7 @@ public class Technology implements Comparable<Technology>
      */
     protected void setFactoryResolution(double factory)
     {
-        prefResolution = Pref.makeDoublePref("ResolutionValueFor"+techName, prefs, factory);
+        prefResolution = Pref.makeDoublePref("ResolutionValueFor"+getTechName(), prefs, factory);
     }
 
     /**
@@ -4033,7 +3998,7 @@ public class Technology implements Comparable<Technology>
 		transparentColorPrefs = new Pref[transparentLayers];
 		for(int i=0; i<layers.length; i++)
 		{
-			transparentColorPrefs[i] = Pref.makeIntPref("TransparentLayer"+(i+1)+"For"+techName, prefs, layers[i].getRGB());
+			transparentColorPrefs[i] = Pref.makeIntPref("TransparentLayer"+(i+1)+"For"+getTechName(), prefs, layers[i].getRGB());
 			layers[i] = new Color(transparentColorPrefs[i].getInt());
 		}
 		setColorMapFromLayers(layers);
@@ -4473,7 +4438,7 @@ public class Technology implements Comparable<Technology>
      */
 	public int compareTo(Technology that)
 	{
-		return TextUtils.STRING_NUMBER_ORDER.compare(techName, that.techName);
+		return TextUtils.STRING_NUMBER_ORDER.compare(getTechName(), that.getTechName());
 	}
 
 	/**
@@ -4482,7 +4447,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public String toString()
 	{
-		return "Technology " + techName;
+		return "Technology " + getTechName();
 	}
 
    /**

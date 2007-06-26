@@ -56,7 +56,7 @@ public class StreamClient extends Client {
     StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream, Snapshot initialSnapshot) {
         super(connectionId);
 //        writer = new ClientWriter(outputStream, initialSnapshot);
-        writer = new SnapshotWriter(new DataOutputStream(outputStream));
+        writer = new SnapshotWriter(initialSnapshot.idManager, new DataOutputStream(outputStream));
         this.initialSnapshot = initialSnapshot;
         dispatcher = new ServerEventDispatcher();
         reader = inputStream != null ? new ClientReader(inputStream) : null;

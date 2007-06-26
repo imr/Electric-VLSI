@@ -81,7 +81,7 @@ public class NetworkManager {
     void redoNetworkNumbering(boolean reload)
     {
 		// Check that we are in changing thread
-		assert EDatabase.theDatabase.canComputeNetlist();
+		assert database.canComputeNetlist();
 
         long startTime = System.currentTimeMillis();
 		if (reload) {
@@ -116,7 +116,7 @@ public class NetworkManager {
 
 	private void invalidate() {
 		// Check that we are in changing thread
-		assert EDatabase.theDatabase.canComputeNetlist();
+		assert database.canComputeNetlist();
 
 		if (!NetworkTool.networksValid)
 			return;
@@ -126,8 +126,8 @@ public class NetworkManager {
 	}
     
     void advanceSnapshot() {
-        assert EDatabase.theDatabase.canComputeNetlist();
-        Snapshot newSnapshot = EDatabase.theDatabase.backup();
+        assert database.canComputeNetlist();
+        Snapshot newSnapshot = database.backup();
         if (newSnapshot == lastSnapshot) return;
         assert !NetworkTool.networksValid;
         updateAll(lastSnapshot, newSnapshot);

@@ -168,8 +168,9 @@ public class NetworkTool extends Tool
 	 * @return Netlist of this cell.
 	 */
 	public static Netlist getUserNetlist(Cell cell) {
-        NetworkManager mgr = cell.getDatabase().getNetworkManager();
-		if (EDatabase.theDatabase.canComputeNetlist()) {
+        EDatabase database = cell.getDatabase();
+        NetworkManager mgr = database.getNetworkManager();
+		if (database.canComputeNetlist()) {
             mgr.advanceSnapshot();
 			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors_());
@@ -203,8 +204,9 @@ public class NetworkTool extends Tool
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
-        NetworkManager mgr = cell.getDatabase().getNetworkManager();
-		if (EDatabase.theDatabase.canComputeNetlist()) {
+        EDatabase database = cell.getDatabase();
+        NetworkManager mgr = database.getNetworkManager();
+		if (database.canComputeNetlist()) {
             if (!cell.isLinked())
                 return null;
             mgr.advanceSnapshot();

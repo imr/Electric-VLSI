@@ -87,7 +87,7 @@ public abstract class Job implements Serializable {
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 15; // Oct 24
+    static final int PROTOCOL_VERSION = 16; // Jun 25
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
@@ -158,6 +158,7 @@ public abstract class Job implements Serializable {
 //    /** status */                               private String status = null;
     
     transient EJob ejob;
+    transient EDatabase database;
 
     public static void setThreadMode(Mode mode, AbstractUserInterface userInterface) {
         threadMode = mode;
@@ -207,6 +208,7 @@ public abstract class Job implements Serializable {
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
         ejob = new EJob(this, jobType, jobName);
+        database = threadDatabase();
 		this.tool = tool;
 //		this.priority = priority;
 //		this.upCell = upCell;
@@ -633,6 +635,10 @@ public abstract class Job implements Serializable {
             return ((EThread)currentThread).database;
         else
             return EDatabase.clientDatabase();
+    }
+    
+    public EDatabase getDatabase() {
+        return database;
     }
     
     public static void wantUpdateGui() {

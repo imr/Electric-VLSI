@@ -28,6 +28,8 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
@@ -36,7 +38,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +52,7 @@ public class Snapshot {
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
     public final ImmutableArrayList<LibraryBackup> libBackups;
+    public final ImmutableArrayList<Technology> technologies;
     private final ERectangle[] cellBounds;
 
     /** Creates a new instance of Snapshot */
@@ -58,6 +60,7 @@ public class Snapshot {
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups,
             ImmutableArrayList<LibraryBackup> libBackups,
+            ImmutableArrayList<Technology> technologies,
             ERectangle[] cellBounds) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
@@ -65,6 +68,7 @@ public class Snapshot {
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
         this.libBackups = libBackups;
+        this.technologies = technologies;
         this.cellBounds = new ERectangle[cellBackups.size()];
         for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
             ERectangle r = cellBounds[cellIndex];
@@ -73,13 +77,15 @@ public class Snapshot {
                 throw new IllegalArgumentException();
             this.cellBounds[cellIndex] = r;
         }
+        if (Job.getDebug())
+            check();
     }
     
     /**
      * Creates empty snapshot.
      */
     Snapshot(IdManager idManager) {
-        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], LibraryBackup.EMPTY_LIST, ERectangle.NULL_ARRAY);
+        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], LibraryBackup.EMPTY_LIST, Technology.EMPTY_LIST, ERectangle.NULL_ARRAY);
     }
     
     /**
@@ -89,12 +95,22 @@ public class Snapshot {
      * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
      * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
+     * @param techArray array indexed by TechId.techIndex of Technologied
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray, Technology[] technologiesArray) {
 //        long startTime = System.currentTimeMillis();
+        ImmutableArrayList<Technology> technologies = copyArray(technologiesArray, this.technologies);
+        if (technologies != this.technologies) {
+            for (int techIndex = 0; techIndex < technologies.size(); techIndex++) {
+                Technology tech = technologies.get(techIndex);
+                if (tech == null) continue;
+                if (!tech.getTechName().equals(idManager.getTechId(techIndex).techName))
+                    throw new IllegalArgumentException();
+            }
+        }
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
@@ -110,6 +126,7 @@ public class Snapshot {
         }
         
         // Check usages in cells
+        BitSet newUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
             CellBackup oldBackup = getCell(cellIndex);
@@ -119,6 +136,7 @@ public class Snapshot {
                     namesChanged = true;
                 
                 // If usages changed, check CellUsagesIn.
+                newUsedTechs.or(newBackup.techUsages);
                 cellId = newBackup.d.cellId;
                 if (oldBackup == null || newBackup.cellUsages != oldBackup.cellUsages) {
                     for (int i = 0; i < newBackup.cellUsages.length; i++) {
@@ -156,6 +174,13 @@ public class Snapshot {
                 cui.checkUsage(newBackup);
             }
         }
+        if (newUsedTechs.length() > technologies.size())
+            throw new IllegalArgumentException();
+        for (int techIndex = 0; techIndex < technologies.size(); techIndex++) {
+            if (technologies.get(techIndex) == null && newUsedTechs.get(techIndex))
+                throw new IllegalArgumentException();
+        }
+        
         
         // Check names
         int[] cellGroups = this.cellGroups;
@@ -168,7 +193,7 @@ public class Snapshot {
         
         if (cellBoundsArray == null)
             cellBoundsArray = this.cellBounds;
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, cellBoundsArray);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, technologies, cellBoundsArray);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -337,7 +362,7 @@ public class Snapshot {
             libBackupsArray = null;
         
         if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
-        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray, null);
     }
     
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
@@ -441,6 +466,12 @@ public class Snapshot {
         return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
     }
     
+    public Technology getTech(TechId techId) { return getTech(techId.techIndex); }
+    
+    private Technology getTech(int techIndex) {
+        return techIndex < technologies.size() ? technologies.get(techIndex) : null; 
+    }
+    
     public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
     
     private LibraryBackup getLib(int libIndex) {
@@ -528,6 +559,16 @@ public class Snapshot {
             for (int i = 0; i < cellGroups.length; i++)
                 writer.writeInt(cellGroups[i]);
         }
+        
+        boolean technologiesChanged = technologies != oldSnapshot.technologies;
+        writer.writeBoolean(technologiesChanged);
+        if (technologiesChanged) {
+            for (int techIndex = 0; techIndex < technologies.size(); techIndex++) {
+                if (technologies.get(techIndex) != null)
+                    writer.writeInt(techIndex);
+            }
+            writer.writeInt(-1);
+        }
     }
     
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
@@ -604,11 +645,28 @@ public class Snapshot {
             for (int i = 0; i < cellGroups.length; i++)
                 cellGroups[i] = reader.readInt();
         }
+        ImmutableArrayList<Technology> technologies = oldSnapshot.technologies;
+        boolean technologiesChanged = reader.readBoolean();
+        if (technologiesChanged) {
+            ArrayList<Technology> technologiesList = new ArrayList<Technology>();
+            for (;;) {
+                int techIndex = reader.readInt();
+                if (techIndex == -1)
+                    break;
+                TechId techId = oldSnapshot.idManager.getTechId(techIndex);
+                assert techId != null;
+                Technology tech = Technology.findTechnology(techId);
+                assert tech != null;
+                while (techIndex >= technologiesList.size()) technologiesList.add(null);
+                technologiesList.set(techIndex, tech);
+            }
+            technologies = new ImmutableArrayList(technologiesList);
+        }
         for (int i = 0; i < cellBackups.size(); i++) {
             assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, libBackups, cellBoundsArray);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, libBackups, technologies, cellBoundsArray);
     }
     
     /**
@@ -648,6 +706,7 @@ public class Snapshot {
         checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert Arrays.equals(this.cellGroups, cellGroups);
         assert cellBackups.size() == cellBounds.length;
+        BitSet checkUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) {
@@ -655,6 +714,7 @@ public class Snapshot {
                 continue;
             }
 //            assert cellBounds.get(cellIndex) != null;
+            checkUsedTechs.or(cellBackup.techUsages);
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
                 CellBackup.CellUsageInfo cui = cellBackup.cellUsages[i];
@@ -664,6 +724,14 @@ public class Snapshot {
                 cui.checkUsage(cellBackups.get(subCellIndex));
             }
         }
+        for (int techIndex = 0; techIndex < technologies.size(); techIndex++) {
+            Technology tech = technologies.get(techIndex);
+            if (tech != null)
+                assert tech.getTechName().equals(idManager.getTechId(techIndex).techName);
+            else
+                assert checkUsedTechs.get(techIndex);
+        }
+        assert checkUsedTechs.length() <= technologies.size();
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Checking snapshot invariants took: " + (endTime - startTime) + " msec");
     }

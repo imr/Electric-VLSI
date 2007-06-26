@@ -118,10 +118,12 @@ class EJob {
     
     Throwable deserializeToServer() {
         try {
-            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), EDatabase.serverDatabase());
+            EDatabase database = EDatabase.serverDatabase();
+            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), database);
             Job job = (Job)in.readObject();
             in.close();
             job.ejob = this;
+            job.database = database;
             serverJob = job;
             return null;
         } catch (Throwable e) {
@@ -131,10 +133,12 @@ class EJob {
     
     Throwable deserializeToClient() {
         try {
-            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), EDatabase.clientDatabase());
+            EDatabase database = EDatabase.clientDatabase();
+            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), database);
             Job job = (Job)in.readObject();
             in.close();
             job.ejob = this;
+            job.database = database;
             clientJob = job;
             return null;
         } catch (Throwable e) {

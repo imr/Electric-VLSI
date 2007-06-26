@@ -184,7 +184,7 @@ public class IdManagerTest {
             idManager.getCellId(1).newExportId(nameA);
             
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
             idManager.writeDiffs(writer);
             writer.flush();
             byte[] diffs1 = byteStream.toByteArray();

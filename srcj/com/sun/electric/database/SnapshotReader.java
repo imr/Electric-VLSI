@@ -52,7 +52,6 @@ public class SnapshotReader {
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
-    private final ArrayList<Technology> techs = new ArrayList<Technology>();
     private final ArrayList<ArcProto> arcProtos = new ArrayList<ArcProto>();
     private final ArrayList<PrimitiveNode> primNodes = new ArrayList<PrimitiveNode>();
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
@@ -196,17 +195,21 @@ public class SnapshotReader {
     }
     
     /**
+     * Reads TechId.
+     * @return TechId.
+     */
+    public TechId readTechId() throws IOException {
+        int techIndex = in.readInt();
+        return idManager.getTechId(techIndex);
+    }
+    
+    /**
      * Reads Technology.
      * @return Technology.
      */
-    public Technology readTechnology() throws IOException {
-        int i = in.readInt();
-        if (i == techs.size()) {
-            String techName = in.readUTF();
-            Technology tech = Technology.findTechnology(techName);
-            techs.add(tech);
-        }
-        return techs.get(i);
+    private Technology readTechnology() throws IOException {
+        TechId techId = readTechId();
+        return Technology.findTechnology(techId);
     }
     
     /**

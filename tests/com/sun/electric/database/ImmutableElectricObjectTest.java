@@ -205,7 +205,7 @@ public class ImmutableElectricObjectTest {
         try {
             IdManager idManager = new IdManager();
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
             obj0.write(writer);
             obj0.writeVars(writer);
             obj_Aa.write(writer);

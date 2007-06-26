@@ -23,15 +23,16 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Package-private class to collect usage of libraries/cells/exports in CellBackup or in Library variables.
@@ -41,7 +42,9 @@ import java.util.HashMap;
 class UsageCollector {
     static final BitSet EMPTY_BITSET = new BitSet();
 
+    private ImmutableCell d;
     private HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
+    private HashSet<Technology> techUsed = new HashSet<Technology> (16, 0.5f);
     
     /**
      * Collect usages in lists of nodes/arcs/exports together with Cell's variables. 
@@ -50,10 +53,13 @@ class UsageCollector {
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports) {
+        this.d = d;
         for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
             ImmutableNodeInst n = nodes.get(nodeIndex);
             if (n.protoId instanceof CellId)
                 add((CellId)n.protoId, true);
+            else
+                techUsed.add(((PrimitiveNode)n.protoId).getTechnology());
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
                 if (pi == ImmutablePortInst.EMPTY) continue;
@@ -63,6 +69,7 @@ class UsageCollector {
         }
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ImmutableArcInst a = arcs.get(arcIndex);
+            techUsed.add(a.protoType.getTechnology());
             add(a.tailPortId);
             add(a.headPortId);
         }
@@ -90,10 +97,23 @@ class UsageCollector {
     }
     
     /**
+     * Return TechId usages for CellBackup.
+     */
+    BitSet getTechUsages(BitSet oldTechUsages) {
+        IdManager idManager = d.cellId.idManager;
+        BitSet techUsages = new BitSet();
+        techUsages.set(d.techId.techIndex);
+        for (Technology tech: techUsed)
+            techUsages.set(idManager.newTechId(tech.getTechName()).techIndex);
+        return bitSetWith(oldTechUsages, techUsages); 
+    }
+    
+    /**
      * Return usages for CellBackup.
      */
-    CellBackup.CellUsageInfo[] getCellUsages(CellId parentId, CellBackup.CellUsageInfo[] oldCellUsages) {
+    CellBackup.CellUsageInfo[] getCellUsages(CellBackup.CellUsageInfo[] oldCellUsages) {
         if (cellIndices.isEmpty()) return CellBackup.NULL_CELL_USAGE_INFO_ARRAY;
+        CellId parentId = d.cellId;
         int length = 0;
         for (CellId cellId: cellIndices.keySet())
             length = Math.max(length, parentId.getUsageIn(cellId).indexInParent + 1);

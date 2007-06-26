@@ -31,6 +31,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
@@ -92,10 +93,8 @@ public class ReadableDump extends ELIB {
             writeMeaningPrefs(tool);
         }
 //		printWriter.println("userbits: " + lib.lowLevelGetUserBits());
-        printWriter.println("techcount: " + techCount);
-        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
-            Technology tech = it.next();
-            if (!objInfo.containsKey(tech)) continue;
+        printWriter.println("techcount: " + technologies.size());
+        for(Technology tech: technologies) {
             printWriter.println("techname: " + tech.getTechName() + " lambda: " + gridCoordToElib(tech, DBMath.GRID));
 //            printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
             writeMeaningPrefs(tech);
@@ -254,9 +253,9 @@ public class ReadableDump extends ELIB {
             infstr.append(tool.getName());
             return;
         }
-        if (obj instanceof Technology) {
-            Technology tech = (Technology)obj;
-            infstr.append(tech.getTechName());
+        if (obj instanceof TechId) {
+            TechId techId = (TechId)obj;
+            infstr.append(techId.techName);
             return;
         }
         if (obj instanceof PrimitiveNode) {

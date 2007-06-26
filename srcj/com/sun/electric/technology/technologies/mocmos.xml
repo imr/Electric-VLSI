@@ -2134,7 +2134,7 @@
                 <lambdaBox klx="19.0" khx="25.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="19.0" khx="25.0" kly="-21.0" khy="21.0"/>
             </box>
@@ -2154,7 +2154,7 @@
                 <lambdaBox klx="-25.0" khx="-19.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
             <box khx="-1.0">
                 <lambdaBox klx="-25.0" khx="-19.0" kly="-21.0" khy="21.0"/>
             </box>
@@ -2184,7 +2184,7 @@
                 <lambdaBox klx="10.0" khx="19.0" kly="-21.0" khy="-15.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
             <box khy="-1.0">
                 <lambdaBox klx="-19.0" khx="19.0" kly="-21.0" khy="-15.0"/>
             </box>
@@ -2204,7 +2204,7 @@
                 <lambdaBox klx="-19.0" khx="19.0" kly="15.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
             <box kly="1.0">
                 <lambdaBox klx="-19.0" khx="19.0" kly="15.0" khy="21.0"/>
             </box>

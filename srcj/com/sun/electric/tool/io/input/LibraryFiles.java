@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.IdManager;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -83,6 +84,8 @@ public abstract class LibraryFiles extends Input
 	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
     
+    /** Database where to load libraries */                                 final EDatabase database = EDatabase.serverDatabase();
+    /** IdManager where to create ids */                                    final IdManager idManager = database.getIdManager();
 	/** The Library being input. */                                         protected Library lib;
 	/** true if the library is the main one being read. */                  protected boolean topLevelLibrary;
 	// the cell information

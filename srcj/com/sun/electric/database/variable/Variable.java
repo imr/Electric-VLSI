@@ -29,6 +29,7 @@ import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
+import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -39,7 +40,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -270,7 +270,7 @@ public class Variable implements Serializable
         validClasses.put(Boolean.class, new Byte(BOOLEAN));
         validClasses.put(EPoint.class, new Byte(EPOINT));
         validClasses.put(Tool.class, new Byte(TOOL));
-        validClasses.put(Technology.class, new Byte(TECHNOLOGY));
+        validClasses.put(TechId.class, new Byte(TECHNOLOGY));
         validClasses.put(PrimitiveNode.class, new Byte(PRIM_NODE));
         validClasses.put(ArcProto.class, new Byte(ARC_PROTO));
         validClasses.put(LibId.class, new Byte(LIBRARY));
@@ -374,12 +374,6 @@ public class Variable implements Serializable
      * @return true if the value is array,
      */
     public boolean isArray() { return (type & ARRAY) != 0; }
-
-    /**
-     * Returns true if the value contaoins references to database objects.
-     * @return true if the value contaoins references to database objects.
-     */
-    public boolean hasReferences() { return type < STRING; }
     
     /**
      * Get the number of entries stored in this Variable.
@@ -458,7 +452,7 @@ public class Variable implements Serializable
                 writer.writeTool((Tool)obj);
                 break;
             case TECHNOLOGY:
-                writer.writeTechnology((Technology)obj);
+                writer.writeTechId((TechId)obj);
                 break;
             case PRIM_NODE:
                 writer.writeNodeProtoId((PrimitiveNode)obj);
@@ -496,7 +490,7 @@ public class Variable implements Serializable
                 case BOOLEAN: array = new Boolean[length]; break;
                 case EPOINT: array = new EPoint[length]; break; 
                 case TOOL: array = new Tool[length]; break;
-                case TECHNOLOGY: array = new Technology[length]; break;
+                case TECHNOLOGY: array = new TechId[length]; break;
                 case PRIM_NODE: array = new PrimitiveNode[length]; break;
                 case ARC_PROTO: array = new ArcProto[length]; break;
                 default: throw new IOException("type");
@@ -543,7 +537,7 @@ public class Variable implements Serializable
             case TOOL:
                 return reader.readTool();
             case TECHNOLOGY:
-                return reader.readTechnology();
+                return reader.readTechId();
             case PRIM_NODE:
                 return reader.readNodeProtoId();
             case ARC_PROTO:

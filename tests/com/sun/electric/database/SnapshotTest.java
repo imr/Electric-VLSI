@@ -52,6 +52,7 @@ public class SnapshotTest {
     private static byte[] emptyDiffEmpty;
     private IdManager idManager;
     private Snapshot initialSnapshot;
+    private TechId schematicTechId; 
     
     @Before public void setUp() throws Exception {
         EDatabase.theDatabase.lock(true);
@@ -59,13 +60,11 @@ public class SnapshotTest {
         
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
-        
-        // Preload technology
-        Technology tech = Schematics.tech;
+        schematicTechId = idManager.newTechId("schematic");
         
         // Init emptyDiffEmpty
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(out));
+        SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(out));
         Snapshot oldSnapshot = initialSnapshot;
         Snapshot instance = initialSnapshot;
         try {
@@ -100,19 +99,20 @@ public class SnapshotTest {
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
         CellName cellName = CellName.parseName("cell;1{sch}");
         CellId cellId = libId.newCellId(cellName);
-        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTech(Schematics.tech);
+        ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(schematicTechId);
         CellBackup cellBackup = new CellBackup(c);
         
         CellBackup[] cellBackupsArray = { cellBackup };
         ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
+        Technology[] technologiesArray = { Schematics.tech };
         Snapshot instance = initialSnapshot;
         
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray, technologiesArray);
         assertEquals(1, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
 //        assertEquals(expCellBounds, result.cellBounds);
@@ -138,13 +138,14 @@ public class SnapshotTest {
         LibraryBackup[] libBackupArray = new LibraryBackup[] { libBackupX, libBackupY };
         CellName cellNameA = CellName.parseName("A;1{sch}");
         CellId cellId0 = libIdX.newCellId(cellNameA);
-        ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTech(Schematics.tech);
+        ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
         CellBackup cellBackupA = new CellBackup(cellA);
         CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
         ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) }; 
+        Technology[] technologiesArray = { Schematics.tech };
         LibId libIdA = idManager.newLibId("A");
         
-        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray);
+        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray, technologiesArray );
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
         
@@ -246,7 +247,7 @@ public class SnapshotTest {
         System.out.println("writeDiffs");
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(out));
+        SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(out));
         Snapshot oldSnapshot = initialSnapshot;
         Snapshot instance = initialSnapshot;
         
@@ -260,8 +261,9 @@ public class SnapshotTest {
     @Test public void testReadSnapshot() throws Exception {
         System.out.println("readSnapshot");
         
+        IdManager idManager = new IdManager();
         SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)), idManager);
-        Snapshot oldSnapshot = initialSnapshot;
+        Snapshot oldSnapshot = idManager.getInitialSnapshot();
         
         ImmutableArrayList<CellBackup> expCellBackups = new ImmutableArrayList<CellBackup>(CellBackup.NULL_ARRAY);
         Snapshot result = Snapshot.readSnapshot(reader, oldSnapshot);
