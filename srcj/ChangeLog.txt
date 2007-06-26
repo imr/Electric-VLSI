@@ -3,6 +3,15 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+BUG: (6/25/07, SAF) PIE: If only one instance of a part exists it was
+automatically matched by local partitioning without verifying proper 
+interchange.
+FIX: Any place where the algorithm can return without having checked
+interchange, all parts are forced to be examined for interchange first.
+
+BUG: (6/25/07, SAF) PIE: CSwapPart hash sets were not properly compared.
+FIX: Code now properly compares the signals.
+
 ************************* Version 8.06a: *******************************
 
 BUG: (6/25/07, GVG) Biderectional exports are not defined "inout" in Verilog description (Bug #1339)
