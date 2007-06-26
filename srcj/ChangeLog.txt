@@ -3,6 +3,12 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+BUG: (6/25/07, SAF) NMOS stacks with incorrectly interchanged gates can
+be matched by local partitioning and are never re-examined, which leads
+to false NCC passes in hierarchical mode.
+FIX: Forced one hashing step of all parts after any operation that could 
+cause the bug behavior to detect the faulty interchange. 
+
 BUG: (6/25/07, SAF) PIE: If only one instance of a part exists it was
 automatically matched by local partitioning without verifying proper 
 interchange.

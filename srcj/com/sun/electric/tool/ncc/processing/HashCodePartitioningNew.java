@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -198,6 +199,31 @@ public class HashCodePartitioningNew {
 			}
 		}
 	}
+	
+	private void hashAllParts(NccGlobals globals) {
+		HashCodePropagator hashProp = new HashCodePropagator(globals);
+		if (globals.getParts()==null)  return;
+		globals.status2("----- hash all Parts");
+		for (Iterator<EquivRecord> eIt=globals.getPartLeafEquivRecs().getNotMatched(); eIt.hasNext();) {
+			EquivRecord er = eIt.next();
+			if (!er.isLeaf()) continue;
+			if (er.isMismatched()) continue;
+			// must be active
+			
+			LeafList newBornList = StratHashParts.doYourJob(er, globals);
+			hashProp.propagateFromNewBorns(newBornList);
+		}
+		for (Iterator<EquivRecord> eIt=globals.getPartLeafEquivRecs().getMatched(); eIt.hasNext();) {
+			EquivRecord er = eIt.next();
+			if (!er.isLeaf()) continue;
+			if (er.isMismatched()) continue;
+			// must be active
+			
+			LeafList newBornList = StratHashParts.doYourJob(er, globals);
+			hashProp.propagateFromNewBorns(newBornList);
+		}
+		globals.initLeafLists();
+	}
 
 	private void hashFrontierParts(HashCodePropagator hashProp) {
 		if (globals.getParts()==null)  return;
@@ -266,26 +292,46 @@ public class HashCodePartitioningNew {
 	}
 	
 	private void doWork() {
-		if (done()) return;
+
+		// Initially, we should hash all parts because local partitioning 
+		// could have left us with matched records NMOS stack records that
+		// were never hashed to verify gate interchanges.
+		HashCodePropagator hashProp = new HashCodePropagator(globals);
+		hashAllParts(globals);
+
+		if (done())	return;
+		
 		Date d1 = new Date();
 
-		HashCodePropagator hashProp = new HashCodePropagator(globals);
+		hashProp = new HashCodePropagator(globals);
 		hashFrontier(hashProp);
 		Date d2 = new Date();
 		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));
 
 		if (done() || globals.userWantsToAbort()) return;
 		useExportNames(hashProp);
+		
+		// Maybe not neccessary, but included to be safe.
+		hashProp = new HashCodePropagator(globals);
+		hashAllParts(globals);
 		Date d3 = new Date();
 		globals.status1("  Using export names took: "+NccUtils.hourMinSec(d2, d3));
 
 		if (done() || globals.userWantsToAbort()) return;
 		useTransistorSizes(hashProp);
+
+		// Maybe not neccessary, but included to be safe.
+		hashProp = new HashCodePropagator(globals);
+		hashAllParts(globals);
 		Date d4 = new Date();
 		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
 
 		if (done() || globals.userWantsToAbort()) return;
 		randomMatch(hashProp);
+
+		// Maybe not neccessary, but included to be safe.
+		hashProp = new HashCodePropagator(globals);
+		hashAllParts(globals);
 		Date d5 = new Date();
 		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));
 	}
