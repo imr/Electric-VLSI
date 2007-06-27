@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
 
+IMP: (6/26/07, GVG) New TSMC180 pure layer nodes: UBM, PLMIDE, CBD and ESD1DMY. 
+
 BUG: (6/26/07, DN) "mocmos:NPN-Transistor" collector should include N-Active boxes.
 FIX: In MoCMOS constructor use "activeLayers[N_TYPE]" instead of activeLayers[P_TYPE].
 
