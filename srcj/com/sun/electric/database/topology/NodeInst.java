@@ -2826,10 +2826,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public boolean isPrimitiveTransistor()
     {
         PrimitiveNode.Function func = protoType.getFunction(); // note bypasses ni.getFunction() call
-        if (func == PrimitiveNode.Function.TRANS ||         // covers all Schematic trans
-            func == PrimitiveNode.Function.TRANS4 ||        // covers all Schematic trans4
-            func == PrimitiveNode.Function.TRANMOS ||       // covers all MoCMOS nmos gates
-            func == PrimitiveNode.Function.TRAPMOS          // covers all MoCMOS pmos gates
+        if (func == PrimitiveNode.Function.TRANS ||            // covers all Schematic trans
+            func == PrimitiveNode.Function.TRANS4 ||           // covers all Schematic trans4
+            func == PrimitiveNode.Function.TRANMOS ||          // covers all MoCMOS nmos gates
+            func == PrimitiveNode.Function.TRAPMOS ||          // covers all MoCMOS pmos gates
+            func == PrimitiveNode.Function.TRANPN ||           // layout NPN 
+            func == PrimitiveNode.Function.TRAPNP              // layout PNP
             )
             return true;
         return false;

@@ -32,7 +32,10 @@ public class Infinity {
 	private static final String AUTO_GEN_CELL_NAME = new String("autoInfCell{lay}");
     private static final TechType tech = TechType.CMOS90;
     private static final double STAGE_SPACING = 144;
-    private static final double ABUT_ROUTE_PORT_TO_BOUND_SPACING = 0;
+    private static final double ABUT_ROUTE_PORT_TO_BOUND_SPACING = 5;
+    private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
+    private static final double SIGNAL_WID = 2.8;
+    private static final double M1_WID = 2.4;
 	
 	private void prln(String s) {System.out.println(s);}
 	
@@ -71,6 +74,10 @@ public class Infinity {
 						prln("  Bounding box: ("+minX+", "+minY+") ("+
 							 maxX+", "+maxY+")");
 						prln("  Export coordinates: ("+x+", "+y+")");
+					}
+				} else {
+					if (pc!=PortCharacteristic.IN && pc!=PortCharacteristic.OUT) {
+						prln(" Export "+e+" has undesired characteristic: "+pc);
 					}
 				}
 			}
@@ -145,11 +152,13 @@ public class Infinity {
 		}
 	}
 	
-	private List<ConnList> getLayConnFromSch(Cell autoSch,
-			                                  Cell autoLay) {
-		List<ConnList> toConnects = new ArrayList<ConnList>();
+	/** From the schematic, get a list of connections that need to be made
+	 * in the layout */
+	private List<ToConnect> getLayToConnFromSch(Cell autoSch,
+			                                    Cell autoLay) {
+		List<ToConnect> toConnects = new ArrayList<ToConnect>();
 		List<Nodable> stageInsts = getStageInstances(autoSch);
-		Map<Network,ConnList> intToConn = new HashMap<Network,ConnList>();
+		Map<Network,ToConnect> intToConn = new HashMap<Network,ToConnect>();
 		Netlist schNets = autoSch.getNetlist(true);
 		
 		for (Nodable schInst : stageInsts) {
@@ -168,22 +177,233 @@ public class Infinity {
 					LayoutLib.error(layPortInst==null,
 							        "layout instance port missing");
 					Network schNet = schNets.getNetwork(schInst, e, i);
-					ConnList conn = intToConn.get(schNet);
+					ToConnect conn = intToConn.get(schNet);
 					if (conn==null) {
-						conn = new ConnList();
+						conn = new ToConnect();
 						intToConn.put(schNet, conn);
 					}
 					conn.addPortInst(layPortInst);
 				}
 			}
 		}
-		// debug
-		prln("Dump nets");
+		
 		for (Network n : intToConn.keySet()) {
-			ConnList cl = intToConn.get(n);
-			prln("  "+cl.toString());
+			ToConnect cl = intToConn.get(n);
+			if (cl.size()>1)  toConnects.add(cl);
 		}
+		
+		// debug
+		//for (ToConnect cl : toConnects)  prln("  "+cl.toString());
+
 		return toConnects;
+	}
+	
+	private boolean nextToBoundary(double coord, double boundCoord) {
+		return Math.abs(coord-boundCoord) <= ABUT_ROUTE_PORT_TO_BOUND_SPACING;
+	}
+	
+	private boolean isPwrGnd(PortInst pi) {
+		PortCharacteristic pc = pi.getPortProto().getCharacteristic();
+		return pc==PortCharacteristic.PWR || pc==PortCharacteristic.GND;
+	}
+	
+	private void findChannels(LayerChannels m2Chnls, LayerChannels m3Chnls,
+			                  Cell autoLay) {
+		double colMinX, colMaxX, colMinY, colMaxY;
+		colMinX = colMinY = Double.MAX_VALUE;
+		colMaxX = colMaxY = Double.MIN_VALUE; 
+		
+		Blockage1D m2block = new Blockage1D();
+		Blockage1D m3block = new Blockage1D();
+		for (Iterator niIt=autoLay.getNodes(); niIt.hasNext();) {
+			NodeInst ni = (NodeInst) niIt.next();
+			if (ni.getProto() instanceof Cell) {
+				Rectangle2D bounds = ni.findEssentialBounds();
+				double instMinX = bounds.getMinX();
+				double instMaxX = bounds.getMaxX();
+				double instMinY = bounds.getMinY();
+				double instMaxY = bounds.getMaxY();
+				colMinX = Math.min(colMinX, instMinX);
+				colMaxX = Math.max(colMaxX, instMaxX);
+				colMinY = Math.min(colMinY, instMinY);
+				colMaxY = Math.max(colMaxY, instMaxY);
+				for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
+					PortInst pi = (PortInst) piIt.next();
+					double x = pi.getCenter().getX();
+					double y = pi.getCenter().getY();
+					// this doesn't work because conventions weren't followed
+					//double w = LayoutLib.widestWireWidth(pi);
+					double w = isPwrGnd(pi) ? 9 : 2.8;
+					if (nextToBoundary(x, instMinX) || 
+					    nextToBoundary(x, instMaxX) || 
+					    nextToBoundary(y, instMinY) || 
+					    nextToBoundary(y, instMaxY)) {
+						if (pi.getPortProto().connectsTo(tech.m2())) {
+							// horizontal m2 channel
+							m2block.block(y-w/2, y+w/2);
+						} else if (pi.getPortProto().connectsTo(tech.m3())) {
+							// vertical m3 channel
+							m3block.block(x-w/2, x+w/2);
+						} else {
+							LayoutLib.error(true, "unexpected metal for port: "+pi.toString());
+						}
+					}
+				}
+			}
+		}
+		Interval prv = null;
+		for (Interval i : m2block.getBlockages()) {
+			if (prv!=null) {
+				m2Chnls.add(new Channel(true, colMinX, colMaxX,
+					                    prv.getMax(), i.getMin()));
+			}
+			prv = i;
+		}
+
+		prv = null;
+		for (Interval i : m3block.getBlockages()) {
+			if (prv!=null) {
+				m3Chnls.add(new Channel(false, colMinY, colMaxY,
+					                    prv.getMax(), i.getMin()));
+			}
+			prv = i;
+		}
+	}
+	
+	private void sortLeftToRight(List<PortInst> pis) {
+		Collections.sort(pis, new Comparator<PortInst>() {
+			public int compare(PortInst p1, PortInst p2) {
+				double diff = p1.getCenter().getX() -
+				              p2.getCenter().getX();
+				return (int) Math.signum(diff);
+			}
+		});
+	}
+	
+	private void route2PinNet(ToConnect toConn, LayerChannels m2Chan,
+	                          LayerChannels m3Chan) {
+		final double PIN_HEIGHT = 0; 
+		List<PortInst> pis = toConn.getPortInsts();
+		sortLeftToRight(pis);
+		
+		PortInst p1 = pis.get(0);
+		double x1 = p1.getCenter().getX();
+		double y1 = p1.getCenter().getY();
+		double maxY1 = y1 + PIN_HEIGHT;
+		double minY1 = y1 - PIN_HEIGHT;
+		Channel c1 = m2Chan.findChanOverVertInterval(x1, minY1, maxY1);
+
+		PortInst p2 = pis.get(1);
+		double x2 = p2.getCenter().getX();
+		double y2 = p2.getCenter().getY();
+		double maxY2 = y2 + PIN_HEIGHT;
+		double minY2 = y2 - PIN_HEIGHT;
+		Channel c2 = m2Chan.findChanOverVertInterval(x2, minY2, maxY2);
+		
+		if (c1==c2) {
+			// ports share same m2 channel. Route without m3 if possible.
+			prln("shared m2 channel not yet implemented");
+		}
+		
+		// need m3 channel to connect two m2 channels
+		Channel c3 = m3Chan.findVertBridge(c1, c2, x1, x2);
+		
+		// debug
+		prln("To connect ports: "+p1+" "+p2);
+//		prln("    "+c1);
+//		prln("    "+c2);
+//		prln("    "+c3);
+		
+		if (c1==null) prln("no m2 channel for left PortInst");
+		if (c2==null) prln("no m2 channel for right PortInst");
+		if (c3==null) prln("no m3 channel");
+		if (c1==null || c2==null || c3==null) return;
+
+		Segment s1 = c1.allocate(x1, c3.getMaxX());
+		Segment s2 = c2.allocate(x2, c3.getMinX());
+		Segment s3 = c3.allocate(Math.min(minY1, minY2), 
+				                 Math.max(maxY1, maxY2));
+		
+		// do the actual routing right now. In a two level
+		// scheme we would actually postpone this
+		routeUseM3(p1, p2, s1, s2, s3);
+	}
+	
+	private void routeUseM3(PortInst pL, PortInst pR, Segment m2L, Segment m2R, Segment m3) {
+		if (m2L==null) {
+			prln("no m2 track for left PortInst");
+		}
+		if (m2R==null) {
+			prln("no m2 track for right PortInst");
+		}
+		if (m3==null) {
+			prln("no m3 track");
+		}
+		if (m2L==null || m2R==null || m3==null) return;
+		
+		Cell parent = pL.getNodeInst().getParent();
+		NodeInst m1m2a = 
+			LayoutLib.newNodeInst(tech.m1m2(), 
+				              	  pL.getCenter().getX(),
+				                  m2L.getTrackCenter(),
+				                  DEF_SIZE, DEF_SIZE, 0, parent);
+		// left vertical m1
+		LayoutLib.newArcInst(tech.m1(), M1_WID, 
+				             pL, m1m2a.getOnlyPortInst());
+		
+		NodeInst m2m3a =
+			LayoutLib.newNodeInst(tech.m2m3(),
+					              m3.getTrackCenter(),
+					              m2L.getTrackCenter(),
+					              DEF_SIZE, DEF_SIZE, 0, parent);
+		// left horizontal m2
+		LayoutLib.newArcInst(tech.m2(), SIGNAL_WID, 
+				             m1m2a.getOnlyPortInst(),
+				             m2m3a.getOnlyPortInst());
+		NodeInst m2m3b =
+			LayoutLib.newNodeInst(tech.m2m3(),
+					              m3.getTrackCenter(),
+					              m2R.getTrackCenter(),
+					              DEF_SIZE, DEF_SIZE, 0, parent);
+		// vertical m3
+		LayoutLib.newArcInst(tech.m3(), SIGNAL_WID, 
+				             m2m3a.getOnlyPortInst(),
+				             m2m3b.getOnlyPortInst());
+		
+		NodeInst m1m2b = 
+			LayoutLib.newNodeInst(tech.m1m2(), 
+				              	  pR.getCenter().getX(),
+				                  m2R.getTrackCenter(),
+				                  DEF_SIZE, DEF_SIZE, 0, parent);
+		
+		LayoutLib.newArcInst(tech.m2(), SIGNAL_WID, 
+				             m2m3b.getOnlyPortInst(),
+				             m1m2b.getOnlyPortInst());
+
+		LayoutLib.newArcInst(tech.m1(), M1_WID, 
+	             			 m1m2b.getOnlyPortInst(),
+	             			 pR);
+	}
+	
+	private void route(List<ToConnect> toConns, LayerChannels m2Chan,
+			           LayerChannels m3Chan) {
+		for (ToConnect toConn : toConns) {
+			if (toConn.size()==2) {
+				route2PinNet(toConn, m2Chan, m3Chan);
+			} else if (toConn.size()==3) {
+				prln("Skip route of 3 pin net: "+toConn);
+			} else {
+				prln("Skip route of 4+ pin net:"+toConn);
+			}
+		}
+	}
+	
+	private void dumpChannels(LayerChannels m2chan, LayerChannels m3chan) {
+        prln("m2 channels");
+        prln(m2chan.toString());
+        
+        prln("m3 channels");
+        prln(m3chan.toString());
 	}
 	
 	public Infinity() {
@@ -193,19 +413,28 @@ public class Infinity {
 		ensurePwrGndExportsOnBoundingBox(stages.getStages());
 
         Library autoLib = LayoutLib.openLibForWrite(AUTO_GEN_LIB_NAME);
-        Cell parentCell = Cell.newInstance(autoLib, AUTO_GEN_CELL_NAME);
+        Cell autoLay = Cell.newInstance(autoLib, AUTO_GEN_CELL_NAME);
         Cell autoSch = autoLib.findNodeProto("autoInfCell{sch}");
         if (autoSch==null) {
         	prln("Can't find autoInfCell{sch}");
         	return;
         }
         
-        //List<NodeInst> stageInsts = addInstances(parentCell, stages);
-        List<NodeInst> stageInsts = addInstances(parentCell, autoSch);
+        List<NodeInst> stageInsts = addInstances(autoLay, autoSch);
         connectPwrGnd(stageInsts);
         
-        getLayConnFromSch(autoSch, parentCell);
+        List<ToConnect> toConn = getLayToConnFromSch(autoSch, autoLay);
         
+        LayerChannels m2chan = new LayerChannels();
+        LayerChannels m3chan = new LayerChannels();
+        
+        findChannels(m2chan, m3chan, autoLay);
+        
+        route(toConn, m2chan, m3chan);
+        
+        // Debug
+        dumpChannels(m2chan, m3chan);
+
         System.out.println("done.");
 	}
 }

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
 
+IMP: (6/27/07, RK) Infinity: router is adding (DRC incorrect) wires 
+
+BUG: (6/27/07, RK) NCC doesn't recognize NPN layout transistors. (Bug #1340)
+FIX: Change NCC to work with NPN layout transistors
+
 IMP: (6/26/07, GVG) New TSMC180 pure layer nodes: UBM, PLMIDE, CBD and ESD1DMY. 
 
 BUG: (6/26/07, DN) "mocmos:NPN-Transistor" collector should include N-Active boxes.

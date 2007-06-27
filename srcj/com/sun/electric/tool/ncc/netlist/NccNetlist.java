@@ -557,14 +557,17 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
-		//PrimitiveNode.Function func = ni.getFunction();
 		if (ni.isPrimitiveTransistor()) {
 			buildTransistor(ni, info);
 		} else if (isPrimitivePolyResistor(ni)) {
 			buildResistor(ni, info);
 		} else {	
-//		    globals.println("NccNetlist not handled: func="+
-//		    			   func+" proto="+ni.getProto().toString());
+			PrimitiveNode.Function func = ni.getFunction();
+		    globals.prln("NccNetlist not handled: func="+
+		    			 func.toString()+" proto="+ni.getProto().toString());
+		    if (func.toString().startsWith("NPN")) {
+		    	globals.prln("I got an NPN");
+		    }
 //		    error(true, "unrecognized PrimitiveNode");
 		}
 	}

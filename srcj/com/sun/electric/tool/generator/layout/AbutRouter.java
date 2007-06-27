@@ -79,7 +79,8 @@ public class AbutRouter {
 					}
 					// make a connection
 					double w = LayoutLib.widestWireWidth(piB);
-					prln("Connecting ports: "+piB+" and "+piT+" using "+arcB+" width "+w);
+					// debug
+					//prln("Connecting ports: "+piB+" and "+piT+" using "+arcB+" width "+w);
 					LayoutLib.newArcInst(arcB, w, piB, piT);
 					// only allow each bot port to connect to at most one top port 
 					break;
