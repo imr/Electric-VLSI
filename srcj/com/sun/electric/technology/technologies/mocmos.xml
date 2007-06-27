@@ -2272,7 +2272,7 @@
         </primitivePort>
         <primitivePort name="collector">
             <portAngle primary="90" range="90"/>
-            <portTopology>1</portTopology>
+            <portTopology>2</portTopology>
             <box kly="1.0">
                 <lambdaBox klx="-22.5" khx="22.5" kly="17.5" khy="18.5"/>
             </box>
