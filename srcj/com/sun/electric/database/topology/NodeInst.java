@@ -2831,7 +2831,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             func == PrimitiveNode.Function.TRANMOS ||          // covers all MoCMOS nmos gates
             func == PrimitiveNode.Function.TRAPMOS ||          // covers all MoCMOS pmos gates
             func == PrimitiveNode.Function.TRANPN ||           // layout NPN 
-            func == PrimitiveNode.Function.TRAPNP              // layout PNP
+            func == PrimitiveNode.Function.TRA4NPN ||          // layout NPN 
+            func == PrimitiveNode.Function.TRAPNP ||           // layout PNP
+            func == PrimitiveNode.Function.TRA4PNP             // layout PNP
             )
             return true;
         return false;

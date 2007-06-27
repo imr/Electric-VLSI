@@ -562,12 +562,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		} else if (isPrimitivePolyResistor(ni)) {
 			buildResistor(ni, info);
 		} else {	
-			PrimitiveNode.Function func = ni.getFunction();
-		    globals.prln("NccNetlist not handled: func="+
-		    			 func.toString()+" proto="+ni.getProto().toString());
-		    if (func.toString().startsWith("NPN")) {
-		    	globals.prln("I got an NPN");
-		    }
+//			PrimitiveNode.Function func = ni.getFunction();
+//		    globals.prln("NccNetlist not handled: func="+
+//		    			 func.toString()+" proto="+ni.getProto().toString());
+//		    if (func.toString().startsWith("NPN")) {
+//		    	globals.prln("I got an NPN");
+//		    }
 //		    error(true, "unrecognized PrimitiveNode");
 		}
 	}
