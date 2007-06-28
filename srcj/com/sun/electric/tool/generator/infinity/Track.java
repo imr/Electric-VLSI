@@ -48,6 +48,7 @@ public class Track {
 	}
 	public boolean isHorizontal() {return channel.isHorizontal();}
 	public double getCenter() {return center;}
+	public int getIndex() {return trackNdx;}
 	public void resort(Segment s) {
 		segments.remove(s);
 		segments.add(s);
@@ -57,9 +58,7 @@ public class Track {
 		sb.append("    Track center: "+center+"\n");
 		if (segments.size()!=0) {
 			sb.append("      ");
-			for (Segment s : segments) {
-				sb.append("["+s.min+", "+s.max+"] ");
-			}
+			for (Segment s : segments)  sb.append(s.toString()+"  ");
 			sb.append("\n");
 		}
 		return sb.toString();

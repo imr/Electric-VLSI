@@ -36,6 +36,7 @@ public class Infinity {
     private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
     private static final double SIGNAL_WID = 2.8;
     private static final double M1_WID = 2.4;
+    private static final double TRACK_PITCH = 6;
 	
 	private void prln(String s) {System.out.println(s);}
 	
@@ -319,10 +320,13 @@ public class Infinity {
 		if (c3==null) prln("no m3 channel");
 		if (c1==null || c2==null || c3==null) return;
 
-		Segment s1 = c1.allocate(x1, c3.getMaxX());
-		Segment s2 = c2.allocate(x2, c3.getMinX());
-		Segment s3 = c3.allocate(Math.min(minY1, minY2), 
-				                 Math.max(maxY1, maxY2));
+		Segment s1 = c1.allocate(x1-TRACK_PITCH, c3.getMaxX(), y1, y2);
+		Segment s2 = c2.allocate(c3.getMinX(), x2+TRACK_PITCH, y1, y2);
+		// use more than necessary because using adjacent tracks causes via 
+		// spacing violations
+		double minY = Math.min(s1.getTrackCenter(), s2.getTrackCenter()) - TRACK_PITCH;
+		double maxY = Math.max(s1.getTrackCenter(), s2.getTrackCenter()) + TRACK_PITCH;
+		Segment s3 = c3.allocate(minY, maxY, x1, x2);
 		
 		// do the actual routing right now. In a two level
 		// scheme we would actually postpone this
@@ -330,16 +334,12 @@ public class Infinity {
 	}
 	
 	private void routeUseM3(PortInst pL, PortInst pR, Segment m2L, Segment m2R, Segment m3) {
-		if (m2L==null) {
-			prln("no m2 track for left PortInst");
-		}
-		if (m2R==null) {
-			prln("no m2 track for right PortInst");
-		}
-		if (m3==null) {
-			prln("no m3 track");
-		}
+		if (m2L==null)  prln("no m2 track for left PortInst");
+		if (m2R==null)  prln("no m2 track for right PortInst");
+		if (m3==null)   prln("no m3 track");
 		if (m2L==null || m2R==null || m3==null) return;
+		
+		prln("  Route m3: "+m3.toString());
 		
 		Cell parent = pL.getNodeInst().getParent();
 		NodeInst m1m2a = 

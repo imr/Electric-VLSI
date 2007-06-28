@@ -30,4 +30,7 @@ public class Segment implements Comparable {
 		max = xyMax;
 		track.resort(this);
 	}
+	public String toString() {
+		return "center="+getTrackCenter()+" ["+min+", "+max+"]";
+	}
 }
