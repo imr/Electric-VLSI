@@ -3,6 +3,11 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+IMP: (6/28/07, SAF) PIE: Added full backtracking support to algorithm.
+
+BUG: (6/28/07, SAF) PIE: With subcircuit factoring on, unique pins did
+not update their hash codes properly.
+FIX: Hash code update code in CSwapPart amended.
 
 BUG: (6/27/07, DN) Netlist problem for NPN transistor in MOCMOS technology (Bug #1341).
 FIX: In MoCMOS contructor fix port topology of "mocmos:NPN-Transistor:collector".
