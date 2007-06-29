@@ -3,6 +3,15 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+BUG: (6/29/07, SAF) PIE/NCC: Hash used for computing port multipliers
+was always 0.
+FIX: Modified name hashing code to return different hashes.
+
+BUG: (6/29/07, SAF) PIE: All transistor port multipliers are the same,
+including NMOS vs. PMOS multipliers.
+FIX: Port multipliers now generated in PartType to be unique for each
+type of part.
+
 IMP: (6/28/07, SAF) PIE: Added full backtracking support to algorithm.
 
 BUG: (6/28/07, SAF) PIE: With subcircuit factoring on, unique pins did

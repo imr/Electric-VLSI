@@ -51,9 +51,11 @@ public class SubcircuitInfo {
 			int[] coeffs = new int[portNames.length];
 			int nameHash = 0;
 			for (int i=0; i<name.length(); i++) {
-				nameHash = nameHash<<1 + (int) name.charAt(i);
+				nameHash = (nameHash<<1) + (int) name.charAt(i);
 			}
 			nameHash = nameHash % 257;
+			nameHash = Math.abs(nameHash);
+
 			for (int i=0; i<coeffs.length; i++) {
 				coeffs[i] = Primes.get(nameHash + i);
 			}
