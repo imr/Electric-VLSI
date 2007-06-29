@@ -39,21 +39,25 @@ public class LayerChannels {
 	public Channel findVertBridge(Channel horChan1, Channel horChan2, 
 			                      double x1, double x2) {
 		if (channels.size()==0) return null;
-		double xMin = Math.min(x1, x2);
-		double xMax = Math.max(x1, x2);
 		LayoutLib.error(isHorizontal(), "channels must be vertical");
 		double yMin = Math.min(horChan1.getMinY(), horChan2.getMinY());
 		double yMax = Math.max(horChan1.getMaxY(), horChan2.getMaxY());
+		double minDist = Double.MAX_VALUE;
+		Channel bestChan = null;
 		for (Channel c : channels) {
 			LayoutLib.error(yMax>c.getMaxY() || yMin<c.getMinY(),
 					        "channels can't cover Y");
-			if (c.getMaxX()<xMin) continue;
-			if (c.getMinX()>xMax) break;
+			double cCent = (c.getMinX()+c.getMaxX())/2;
+			double dist = Math.abs(cCent-((x1+x2)/2));
+			if (dist<minDist) {
+				minDist = dist;
+				bestChan = c;
+			}
 			// ideally I should check to see if channel has enough
 			// capacity
-			return c;
 		}
-		return null;
+		
+		return bestChan;
 	}
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
