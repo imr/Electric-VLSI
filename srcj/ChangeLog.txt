@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+
+BUG: (7/2/07, SMR) Schematic DRC complains about touching artwork ports.
+FIX: In Schematic.checkPortOverlap(), ignore Artwork technology.
+
 BUG: (6/29/07, SAF) PIE/NCC: Hash used for computing port multipliers
 was always 0.
 FIX: Modified name hashing code to return different hashes.
