@@ -1463,7 +1463,7 @@ public class Simulation extends Tool
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
     public static final String spiceRunChoiceDontRun = "Don't Run";
-    public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ingore Output";
+    public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ignore Output";
     public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
     private static final String [] spiceRunChoices = {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput};
 

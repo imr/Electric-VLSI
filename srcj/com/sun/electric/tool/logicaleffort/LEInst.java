@@ -52,7 +52,7 @@ public class LEInst {
         /** NotSizeable */  public static final Type WIRE = new Type("Wire");
         /** NotSizeable */  public static final Type TRANSISTOR = new Type("Transistor");
         /** NotSizeable */  public static final Type CAPACITOR = new Type("Capacitor");
-        /** Ingore */       public static final Type IGNORE = new Type("LE Ingore");
+        /** Ignore */       public static final Type IGNORE = new Type("LE Ignore");
         /** NotSizeable */  public static final Type LESETTINGS = new Type("LE Settings");
         /** NotSizeable */  public static final Type UNKNOWN = new Type("Unknown");
     }
