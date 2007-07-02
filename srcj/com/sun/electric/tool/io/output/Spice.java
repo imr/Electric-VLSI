@@ -1466,7 +1466,7 @@ public class Spice extends Topology
                         fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
                         fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS)
                     {
-                        infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
+                        infstr.append(" AREA=" + TextUtils.formatDouble(l*w));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
                     }
                 } else {
