@@ -22,6 +22,7 @@ public class InfinityJob extends Job {
 	public boolean doIt() throws JobException {
 		// figure out what to work on
 		CellContext cc = NccUtils.getCurrentCellContext();
+		if (cc==null) return true;
 		Cell cell = cc.cell;
 		
 		if (!cell.isSchematic()) {

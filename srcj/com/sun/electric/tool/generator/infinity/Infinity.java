@@ -12,28 +12,24 @@ import java.util.Map;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.AbutRouter;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 
 public class Infinity {
 	private static final String STAGE_LIB_NAME = new String("stagesF");
-	private static final String AUTO_GEN_LIB_NAME = new String("autoInfinity");
-	private static final String AUTO_GEN_CELL_NAME = new String("autoInfCell{lay}");
     private static final TechType tech = TechType.CMOS90;
-    private static final double STAGE_SPACING = 144;
+    private static final double STAGE_SPACING = 0;
     private static final double ABUT_ROUTE_PORT_TO_BOUND_SPACING = 5;
     private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
     private static final double SIGNAL_WID = 2.8;
@@ -41,23 +37,19 @@ public class Infinity {
     
 	private void prln(String s) {System.out.println(s);}
 	
-	private Stages findStageCells() {
+	private Library findStageLibrary() {
 		Library lib = Library.findLibrary(STAGE_LIB_NAME);
-		Stages stages = new Stages(lib);
 		if (lib==null) {
 			prln("Please open the library containing stage cells: "+
 				 STAGE_LIB_NAME);
 		}
+		return lib;
+	}
+	
+	private Stages findStageCells(Library lib) {
+		Stages stages = new Stages(lib);
 		return stages;
 	}
-	private boolean isPowerOrGround(PortProto pp) {
-		PortCharacteristic pc = pp.getCharacteristic();
-		return pc==PortCharacteristic.PWR || pc==PortCharacteristic.GND;
-	}
-	private boolean isPowerOrGround(PortInst pi) {
-		return isPowerOrGround(pi.getPortProto());
-	}
-
 	private void ensurePwrGndExportsOnBoundingBox(Collection<Cell> stages) {
 		for (Cell c : stages) {
 			Rectangle2D bnds = c.findEssentialBounds();
@@ -67,7 +59,7 @@ public class Infinity {
 			}
 			for (Iterator it=c.getExports(); it.hasNext();) {
 				Export e = (Export) it.next();
-				if (isPowerOrGround(e)) {
+				if (isPwrGnd(e)) {
 					PortInst pi = e.getOriginalPort();
 					if (!onBounds(pi, bnds, 0)) {
 						prln("Cell: "+c.getName()+", Export: "+e.getName()+
@@ -86,71 +78,78 @@ public class Infinity {
 		}
 	}
 	
-	private List<NodeInst> addInstances(Cell parentCell, Stages stages) {
-		List<NodeInst> stageInsts = new ArrayList<NodeInst>();
-		for (Cell c : stages.getStages()) {
-			stageInsts.add(LayoutLib.newNodeInst(c, 0, 0, 0, 0, 0, parentCell));
-		}
-		LayoutLib.abutBottomTop(stageInsts, STAGE_SPACING);
-		return stageInsts;
-	}
+//	private List<NodeInst> addInstances(Cell parentCell, Stages stages) {
+//		List<NodeInst> stageInsts = new ArrayList<NodeInst>();
+//		for (Cell c : stages.getStages()) {
+//			stageInsts.add(LayoutLib.newNodeInst(c, 0, 0, 0, 0, 0, parentCell));
+//		}
+//		LayoutLib.abutBottomTop(stageInsts, STAGE_SPACING);
+//		return stageInsts;
+//	}
 	
-	private void sortSchStageInstsByX(List<Nodable> stageInsts) {
-		Collections.sort(stageInsts, new Comparator<Nodable>() {
-			public int compare(Nodable n1, Nodable n2) {
-				double x1 = n1.getNodeInst().getBounds().getMinX();
-				double x2 = n2.getNodeInst().getBounds().getMinX();
-				double delta = x1 - x2;
-				if (delta>0) return 1;
-				if (delta==0) return 0;
-				if (delta<0) return -1;
-				LayoutLib.error(true, "stage instances x-coord unordered "+
-						        "in schematic");
-				return 0;
-			}
-		});
-	}
+//	private void sortSchStageInstsByX(List<Nodable> stageInsts) {
+//		Collections.sort(stageInsts, new Comparator<Nodable>() {
+//			public int compare(Nodable n1, Nodable n2) {
+//				double x1 = n1.getNodeInst().getBounds().getMinX();
+//				double x2 = n2.getNodeInst().getBounds().getMinX();
+//				double delta = x1 - x2;
+//				if (delta>0) return 1;
+//				if (delta==0) return 0;
+//				if (delta<0) return -1;
+//				LayoutLib.error(true, "stage instances x-coord unordered "+
+//						        "in schematic");
+//				return 0;
+//			}
+//		});
+//	}
 	
-	private List<Nodable> getStageInstances(Cell autoSch) {
-		Library stageLib = Library.findLibrary(STAGE_LIB_NAME);
-		List<Nodable> stageInsts = new ArrayList<Nodable>();
-
-		for (Iterator nIt=autoSch.getNodables(); nIt.hasNext();) {
-			Nodable na = (Nodable) nIt.next();
-			NodeProto np = na.getNodeInst().getProto();
-			if (!(np instanceof Cell)) continue;
-			Cell c = (Cell) np;
-			if (c.getLibrary()==stageLib) stageInsts.add(na);
-		}
-		sortSchStageInstsByX(stageInsts);
-		return stageInsts;
-	}
+//	private List<Nodable> getSchematicIconInstances(Cell autoSch) {
+//		//Library stageLib = Library.findLibrary(STAGE_LIB_NAME);
+//		List<Nodable> stageInsts = new ArrayList<Nodable>();
+//
+//		for (Iterator nIt=autoSch.getNodables(); nIt.hasNext();) {
+//			Nodable na = (Nodable) nIt.next();
+//			NodeProto np = na.getNodeInst().getProto();
+//			if (!(np instanceof Cell)) continue;
+//			Cell icon = (Cell) np;
+//			
+//			// for schematic X discard icons X
+//			Cell sch = icon.getEquivalent();
+//			if (sch==autoSch) continue;
+//			
+//			//prln("Schematic instantiates: "+icon.getName());
+//			//if (c.getLibrary()==stageLib) stageInsts.add(na);
+//			stageInsts.add(na);
+//		}
+//		sortSchStageInstsByX(stageInsts);
+//		return stageInsts;
+//	}
 	
-	private Cell findLayout(Cell schCell) {
-		CellGroup group = schCell.getCellGroup();
-		for (Iterator<Cell> cIt=group.getCells(); cIt.hasNext();) {
-			Cell c = cIt.next();
-			if (c.getView()==View.LAYOUT) return c;
-		}
-		return null;
-	}
+//	private Cell findLayout(Cell schCell) {
+//		CellGroup group = schCell.getCellGroup();
+//		for (Iterator<Cell> cIt=group.getCells(); cIt.hasNext();) {
+//			Cell c = cIt.next();
+//			if (c.getView()==View.LAYOUT) return c;
+//		}
+//		return null;
+//	}
 	
-	private List<NodeInst> addInstances(Cell parentCell, Cell autoSch) {
-		List<NodeInst> layInsts = new ArrayList<NodeInst>();
-		List<Nodable> schInsts = getStageInstances(autoSch);
-		for (Nodable no : schInsts) {
-			Cell schCell = (Cell) no.getProto();
-			//prln("Name of schematic instance is: "+schCell.getName());
-			Cell layCell = findLayout(schCell);
-			LayoutLib.error(layCell==null, 
-					        "Can't find layout for cell: "+schCell.getName());
-			NodeInst layInst = LayoutLib.newNodeInst(layCell, 0, 0, 0, 0, 0, parentCell);
-			layInst.setName(no.getName());
-			layInsts.add(layInst);
-		}
-		LayoutLib.abutBottomTop(layInsts, STAGE_SPACING);
-		return layInsts;
-	}
+//	private List<NodeInst> addInstances(Cell parentCell, Cell autoSch) {
+//		List<NodeInst> layInsts = new ArrayList<NodeInst>();
+//		List<Nodable> schIconInsts = getSchematicIconInstances(autoSch);
+//		for (Nodable no : schIconInsts) {
+//			Cell schCell = (Cell) no.getProto();
+//			//prln("Name of schematic instance is: "+schCell.getName());
+//			Cell layCell = findLayout(schCell);
+//			LayoutLib.error(layCell==null, 
+//					        "Can't find layout for cell: "+schCell.getName());
+//			NodeInst layInst = LayoutLib.newNodeInst(layCell, 0, 0, 0, 0, 0, parentCell);
+//			layInst.setName(no.getName());
+//			layInsts.add(layInst);
+//		}
+//		LayoutLib.abutBottomTop(layInsts, STAGE_SPACING);
+//		return layInsts;
+//	}
 	
 	private void connectPwrGnd(List<NodeInst> nodeInsts) {
 		NodeInst prev = null;
@@ -164,75 +163,74 @@ public class Infinity {
 		}
 	}
 	
-	/** From the schematic, get a list of connections that need to be made
-	 * in the layout */
-	private List<ToConnect> getLayToConnFromSch(Cell autoSch,
-			                                    Cell autoLay) {
-		List<ToConnect> toConnects = new ArrayList<ToConnect>();
-		List<Nodable> stageInsts = getStageInstances(autoSch);
-		Map<Network,ToConnect> netToConn = new HashMap<Network,ToConnect>();
-		Netlist schNets = autoSch.getNetlist(true);
-		
-		for (Nodable schInst : stageInsts) {
-			String schInstNm = schInst.getName();
-			NodeInst layInst = autoLay.findNode(schInstNm);
-			LayoutLib.error(layInst==null, "layout instance missing");
-			
-			Cell schCell = (Cell) schInst.getProto();
-			for (Iterator eIt=schCell.getExports(); eIt.hasNext();) {
-				Export e = (Export) eIt.next();
-				Name eNmKey = e.getNameKey();
-				int busWid = eNmKey.busWidth();
-				for (int i=0; i<busWid; i++) {
-					String subNm = eNmKey.subname(i).toString();
-					PortInst layPortInst = layInst.findPortInst(subNm);
-					LayoutLib.error(layPortInst==null,
-							        "layout instance port missing");
-					Network schNet = schNets.getNetwork(schInst, e, i);
-					ToConnect conn = netToConn.get(schNet);
-					if (conn==null) {
-						conn = new ToConnect();
-						netToConn.put(schNet, conn);
-					}
-					conn.addPortInst(layPortInst);
-				}
-			}
-		}
-		
-		// Mark ToConnects that are exported
-		for (Iterator<Export> eIt=autoSch.getExports(); eIt.hasNext();) {
-			Export e = eIt.next();
-			Name eNmKey = e.getNameKey();
-			int busWid = eNmKey.busWidth();
-			for (int i=0; i<busWid; i++) {
-				Network n = schNets.getNetwork(e, i);
-				ToConnect toConn = netToConn.get(n);
-				toConn.setExported();
-			}
-		}
-		
-		for (Network n : netToConn.keySet()) {
-			ToConnect cl = netToConn.get(n);
-			if (cl.size()>1)  toConnects.add(cl);
-		}
-		
-		// debug
-		//for (ToConnect cl : toConnects)  prln("  "+cl.toString());
-
-		return toConnects;
-	}
+//	/** From the schematic, get a list of connections that need to be made
+//	 * in the layout */
+//	private List<ToConnect> getLayToConnFromSch(Cell autoSch,
+//			                                    Cell autoLay) {
+//		List<ToConnect> toConnects = new ArrayList<ToConnect>();
+//		List<Nodable> stageInsts = getSchematicIconInstances(autoSch);
+//		Map<Network,ToConnect> netToConn = new HashMap<Network,ToConnect>();
+//		Netlist schNets = autoSch.getNetlist(true);
+//		
+//		for (Nodable schInst : stageInsts) {
+//			String schInstNm = schInst.getName();
+//			NodeInst layInst = autoLay.findNode(schInstNm);
+//			LayoutLib.error(layInst==null, "layout instance missing");
+//			
+//			Cell schCell = (Cell) schInst.getProto();
+//			for (Iterator eIt=schCell.getExports(); eIt.hasNext();) {
+//				Export e = (Export) eIt.next();
+//				Name eNmKey = e.getNameKey();
+//				int busWid = eNmKey.busWidth();
+//				for (int i=0; i<busWid; i++) {
+//					String subNm = eNmKey.subname(i).toString();
+//					PortInst layPortInst = layInst.findPortInst(subNm);
+//					LayoutLib.error(layPortInst==null,
+//							        "layout instance port missing");
+//					Network schNet = schNets.getNetwork(schInst, e, i);
+//					ToConnect conn = netToConn.get(schNet);
+//					if (conn==null) {
+//						conn = new ToConnect(schNet.getExportedNames());
+//						netToConn.put(schNet, conn);
+//					}
+//					conn.addPortInst(layPortInst);
+//				}
+//			}
+//		}
+//		
+//		for (Network n : netToConn.keySet())  toConnects.add(netToConn.get(n));
+//		
+//		// debug
+//		//for (ToConnect cl : toConnects)  prln("  "+cl.toString());
+//
+//		return toConnects;
+//	}
 	
 	private boolean nextToBoundary(double coord, double boundCoord, double fudge) {
 		return Math.abs(coord-boundCoord) <= fudge;
 	}
 	
+	private boolean isPowerOrGround(ToConnect tc) {
+		for (PortInst pi : tc.getPortInsts()) {
+			if (isPwrGnd(pi)) return true;
+		}
+		return false;
+	}
+
+	private boolean isPwr(PortProto pp) {
+		return pp.getCharacteristic()==PortCharacteristic.PWR;
+	}
 	private boolean isPwr(PortInst pi) {
-		PortCharacteristic pc = pi.getPortProto().getCharacteristic();
-		return pc==PortCharacteristic.PWR;
+		return isPwr(pi.getPortProto());
+	}
+	private boolean isGnd(PortProto pp) {
+		return pp.getCharacteristic()==PortCharacteristic.GND;
 	}
 	private boolean isGnd(PortInst pi) {
-		PortCharacteristic pc = pi.getPortProto().getCharacteristic();
-		return pc==PortCharacteristic.GND;
+		return isGnd(pi.getPortProto());
+	}
+	private boolean isPwrGnd(PortProto pp) {
+		return isPwr(pp) || isGnd(pp);
 	}
 	private boolean isPwrGnd(PortInst pi) {
 		return isPwr(pi) || isGnd(pi);
@@ -244,6 +242,9 @@ public class Infinity {
 		maxX = maxY = Double.MIN_VALUE;
 		for (NodeInst ni : stages) {
 			Rectangle2D bounds = ni.findEssentialBounds();
+			LayoutLib.error(bounds==null, 
+					        "Layout Cell is missing essential bounds: "+
+					        ni.getProto().describe(false));
 			minX = Math.min(minX, bounds.getMinX());
 			maxX = Math.max(maxX, bounds.getMaxX());
 			minY = Math.min(minY, bounds.getMinY());
@@ -262,10 +263,10 @@ public class Infinity {
 	}
 	
 	private void findChannels(LayerChannels m2Chnls, LayerChannels m3Chnls,
-			                  Collection<NodeInst> stages) {
+			                  Collection<NodeInst> stages,
+			                  Rectangle2D colBounds) {
 		Blockage1D m2block = new Blockage1D();
 		Blockage1D m3block = new Blockage1D();
-		Rectangle2D colBounds = findColBounds(stages);
 		for (NodeInst ni : stages) {
 			Rectangle2D instBounds = ni.findEssentialBounds();
 			for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
@@ -328,7 +329,7 @@ public class Infinity {
 		
 		PortInst p1 = pis.get(0);
 		PortInst p2 = pis.get(1);
-		prln("To connect ports: "+p1+" "+p2);
+		prln("Two pin ToConnect ports: "+p1+" "+p2);
 
 		double x1 = p1.getCenter().getX();
 		double y1 = p1.getCenter().getY();
@@ -496,6 +497,7 @@ public class Infinity {
 	}
 	
 	private void connect2PinM3(ToConnect toConn) {
+		prln("M3 "+toConn.toString());
 		PortInst pi1 = toConn.getPortInsts().get(0);
 		PortInst pi2 = toConn.getPortInsts().get(1);
 		LayoutLib.error(!connectsToM3(pi1) || ! connectsToM3(pi2),
@@ -514,26 +516,28 @@ public class Infinity {
 		for (ToConnect toConn : toConns) {
 			if (hasM3Pin(toConn))  connect2PinM3(toConn);
 		}
-		
+
 		// We must route nets with m2 pins first because m2 pins allow us no
 		// choice of m2 track.
 		for (ToConnect toConn : toConns) {
 			LayoutLib.error(toConn.size()!=2, "not two pin");
 			if (hasM2Pin(toConn))  route2PinNet(toConn, m2Chan, m3Chan);
 		}
+
 		for (ToConnect toConn : toConns) {
 			if (!hasM2Pin(toConn) && !hasM3Pin(toConn))  
 				route2PinNet(toConn, m2Chan, m3Chan);
 		}
+
 	}
 	
-	private void dumpChannels(LayerChannels m2chan, LayerChannels m3chan) {
-        prln("m2 channels");
-        prln(m2chan.toString());
-        
-        prln("m3 channels");
-        prln(m3chan.toString());
-	}
+//	private void dumpChannels(LayerChannels m2chan, LayerChannels m3chan) {
+//        prln("m2 channels");
+//        prln(m2chan.toString());
+//        
+//        prln("m3 channels");
+//        prln(m3chan.toString());
+//	}
 	/** Find which PortInsts are already connected. Stick connected PortInsts 
 	 * into a list. Return a list of such lists. */
 	private List<List<PortInst>> groupConnectedPorts(ToConnect tc) {
@@ -607,7 +611,7 @@ public class Infinity {
 		List<ToConnect> twoPins = new ArrayList<ToConnect>();
 		while (portLists.size()>1) {
 			ClosestClusters cc = findClosest(portLists);
-			ToConnect tc = new ToConnect();
+			ToConnect tc = new ToConnect(null);
 			tc.addPortInst(cc.pair.p1);
 			tc.addPortInst(cc.pair.p2);
 			twoPins.add(tc);
@@ -624,6 +628,9 @@ public class Infinity {
 	private List<ToConnect> reduceToTwoPin(List<ToConnect> toConns) {
 		List<ToConnect> twoPins = new ArrayList<ToConnect>();
 		for (ToConnect tc : toConns) {
+			// Skip Exported net that touches no stage PortInsts 
+			if (tc.size()==0) continue;
+			
 			// Some PortInsts on a ToConnect may already be connected in 
 			// schematic by abut router
 			List<List<PortInst>> connPorts = groupConnectedPorts(tc);
@@ -640,10 +647,9 @@ public class Infinity {
 		else return nm + "_" + count;
 	}
 	
-	private void exportPwrGnd(List<NodeInst> stages) {
+	private void exportPwrGnd(List<NodeInst> stages, Rectangle2D colBounds) {
 		int vddCnt = 0;
 		int gndCnt = 0;
-		 Rectangle2D colBounds = findColBounds(stages);
 		 for (NodeInst ni : stages) {
 			 for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
 				 PortInst pi = (PortInst) piIt.next();
@@ -663,33 +669,127 @@ public class Infinity {
 		 }
 	}
 	
-	private void reExport(Cell schCell) {
-		Netlist nl = schCell.getNetlist(true);
-		
+	private static class CloseToBound implements Comparator<PortInst> {
+		private Rectangle2D bound;
+		private double distToBound(PortInst pi) {
+			double x = pi.getCenter().getX();
+			double l = Math.abs(x - bound.getMinX());
+			double r = Math.abs(x - bound.getMaxX());
+			double y = pi.getCenter().getY();
+			double b = Math.abs(y - bound.getMinY());
+			double t = Math.abs(y - bound.getMaxY());
+			return Math.min(Math.min(l, r), 
+					        Math.min(t, b)); 
+		}
+		public CloseToBound(Rectangle2D bound) {this.bound=bound;}
+		public int compare(PortInst pi1, PortInst pi2) {
+			double d = distToBound(pi1) - distToBound(pi2);
+			return (int) Math.signum(d);
+		}
+	}
+	
+	/** Re-export all ports that the schematic exports. Don't do power
+	 * and ground because they are handled by another method. */
+	private void reExport(List<ToConnect> toConns, Rectangle2D colBounds) {
+		CloseToBound closeToBound = new CloseToBound(colBounds);
+		for (ToConnect tc : toConns) {
+			if (tc.size()>0 && tc.isExported() && !isPowerOrGround(tc)) {
+				List<PortInst> ports = new ArrayList<PortInst>(tc.getPortInsts());
+				
+				Collections.sort(ports, closeToBound);
+				int portNdx = 0;
+				for (String expNm : tc.getExportName()) {
+					PortInst pi = ports.get(portNdx++);
+					prln("Add Export: "+expNm);
+					Export.newInstance(pi.getNodeInst().getParent(), 
+							           pi, expNm);
+				}
+			}
+		}
+	}
+	
+	private void testStageLibrary(Library stageLib) {
+		Stages stages = findStageCells(stageLib);
+		if (stages.someStageIsMissing()) return;
+		ensurePwrGndExportsOnBoundingBox(stages.getStages());
+	}
+	
+	private void addEssentialBounds(List<NodeInst> stages, 
+			                        Rectangle2D colBounds) {
+		 Cell parent = stages.get(0).getParent();
+		 LayoutLib.newNodeInst(tech.essentialBounds(), 
+				               colBounds.getMinX(),
+				               colBounds.getMinY(),
+				               DEF_SIZE, DEF_SIZE, 0, parent);
+		 LayoutLib.newNodeInst(tech.essentialBounds(), 
+				               colBounds.getMaxX(),
+				               colBounds.getMaxY(),
+				               DEF_SIZE, DEF_SIZE, 0, parent);
+	}
+	
+	private static class CompareLayInstSchPos implements Comparator<NodeInst> {
+		Map<NodeInst, SchematicPosition> layInstToSchPos;
+		public int compare(NodeInst ni1, NodeInst ni2) {
+			SchematicPosition sp1, sp2;
+			sp1 = layInstToSchPos.get(ni1);
+			sp2 = layInstToSchPos.get(ni2);
+			return sp1.compareTo(sp2);
+		}
+		public CompareLayInstSchPos(Map<NodeInst, SchematicPosition> layInstToSchPos) {
+			this.layInstToSchPos = layInstToSchPos;
+		}
+	}
+	
+	private List<NodeInst> stackLayInsts(SchematicVisitor visitor) {
+        List<NodeInst> layInsts = visitor.getLayInsts();
+        Map<NodeInst, SchematicPosition> layInstSchPos = 
+        	visitor.getLayInstSchematicPositions();
+        
+        CompareLayInstSchPos compareLayInstSchPos = 
+        	new CompareLayInstSchPos(layInstSchPos);
+        
+        Collections.sort(layInsts, compareLayInstSchPos);
+		LayoutLib.abutBottomTop(layInsts, STAGE_SPACING);
+		return layInsts;
 	}
 	
 	public Infinity(Cell schCell) {
-		prln("Generating layout for Infinity");
-		Stages stages = findStageCells();
-		if (stages.someStageIsMissing()) return;
-		ensurePwrGndExportsOnBoundingBox(stages.getStages());
+		prln("Test stage library");
+		Library stageLib = findStageLibrary();
+		testStageLibrary(stageLib);
 		
         Library autoLib = schCell.getLibrary();
         String groupName = schCell.getCellName().getName();
+		prln("Generate layout for Cell: "+groupName);
 
         Cell autoLay = Cell.newInstance(autoLib, groupName+"{lay}");
+        autoLay.setTechnology(Technology.getCMOS90Technology());
         
-        List<NodeInst> stageInsts = addInstances(autoLay, schCell);
-        connectPwrGnd(stageInsts);
-        exportPwrGnd(stageInsts);
+        SchematicVisitor visitor = new SchematicVisitor(autoLay, stageLib);
+        HierarchyEnumerator.enumerateCell(schCell, VarContext.globalContext, visitor);
         
-        List<ToConnect> toConns = getLayToConnFromSch(schCell, autoLay);
+        //List<NodeInst> layInsts = addInstances(autoLay, schCell);
+        List<NodeInst> layInsts = stackLayInsts(visitor);
+        
+        Rectangle2D colBounds = findColBounds(layInsts);
+        addEssentialBounds(layInsts, colBounds);
+        connectPwrGnd(layInsts);
+        exportPwrGnd(layInsts, colBounds);
+        
+        //List<ToConnect> toConns = getLayToConnFromSch(schCell, autoLay);
+        List<ToConnect> toConns = visitor.getLayoutToConnects();
+        
+		// debug
+		//for (ToConnect cl : toConns)  prln("  N-Pin "+cl.toString());
+
+        reExport(toConns, colBounds);
+        
         List<ToConnect> twoPins = reduceToTwoPin(toConns);
         
         LayerChannels m2chan = new LayerChannels();
         LayerChannels m3chan = new LayerChannels();
         
-        findChannels(m2chan, m3chan, stageInsts);
+        findChannels(m2chan, m3chan, layInsts, colBounds);
         
         route(twoPins, m2chan, m3chan);
         
