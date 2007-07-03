@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+IMP: (7/3/07, SAF) PIE: Added options to control backtracking search.
+
 IMP: (7/2/07, SAF) PIE: Switched from internal to external stimulus for
 port to port matrix creation (stimulus on port,as if attached to wire).
 
