@@ -442,7 +442,7 @@ public class Schematic
 	private static void checkPortOverlap(Netlist netlist, NodeInst ni)
 	{
 		if (ni.getProto().getTechnology() == Generic.tech ||
-			ni.getProto().getTechnology() == Schematics.tech) return;
+			ni.getProto().getTechnology() == Artwork.tech) return;
 		Cell cell = ni.getParent();
 		for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 		{
@@ -457,7 +457,7 @@ public class Schematic
 				if (ni == oNi) continue;
 				if (ni.getNodeIndex() > oNi.getNodeIndex()) continue;
 				if (oNi.getProto().getTechnology() == Generic.tech ||
-					oNi.getProto().getTechnology() == Schematics.tech) continue;
+					oNi.getProto().getTechnology() == Artwork.tech) continue;
 	
 				// see if ports touch
 				for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )
