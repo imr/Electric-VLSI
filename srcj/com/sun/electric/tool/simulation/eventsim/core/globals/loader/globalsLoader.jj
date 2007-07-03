@@ -1,0 +1,104 @@
+/**
+ * JavaCC file
+ */
+ 
+options {
+  JDK_VERSION = "1.5";
+  STATIC= false;
+}
+PARSER_BEGIN(GlobalsParser)
+package com.sun.electric.tool.simulation.eventsim.core.globals.loader;
+
+import com.sun.electric.tool.simulation.eventsim.core.globals.Globals;
+
+public class GlobalsParser {
+
+	Globals globals= Globals.getInstance();	
+	
+	public static void main(String args[]) 
+	throws ParseException, TokenMgrError {
+  	
+  		GlobalsParser parser= new GlobalsParser(System.in);
+  		parser.start();
+
+	}
+    
+}
+PARSER_END(GlobalsParser)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+|	"\f"
+}
+
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")?>
+}
+
+MORE: { "/*" : IN_COMMENT }
+<IN_COMMENT>MORE: { < ~[] > }
+<IN_COMMENT>SKIP: { "*/": DEFAULT }
+
+TOKEN :
+
+{
+	< #SYMBOL : ["a"-"z"] | ["A"-"Z"] | "-" | "_" | "." | ":" | "\\" | "/" >
+|   < #DIGIT: ["0" - "9"] >
+}
+
+TOKEN : 
+{	
+	< NUMBER: ("-")?(<DIGIT>)+ >
+|	< NAME: (<SYMBOL> | <DIGIT>)* (<SYMBOL>)+ (<SYMBOL> | <DIGIT>)* >
+|	< EQUALS: "=" >
+|  	< STRING_LITERAL:       
+	  "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\"" >
+}
+
+void start() :
+{
+	Token t;
+	String name;
+	String value;
+}
+{
+	(
+		t= <NAME>
+		{
+			name= t.image;
+		}
+		<EQUALS>
+		(
+			t= <NUMBER>
+			{
+				value= t.image;
+			}
+			| t= <NAME>
+			{
+				value= t.image;
+			}
+			| t= <STRING_LITERAL>
+			{
+				value= t.image.substring(1, t.image.length()-1);
+			}
+		)
+		{
+			globals.setParameter(name, value);
+		}
+		[ ";" ]
+	)*
+}
