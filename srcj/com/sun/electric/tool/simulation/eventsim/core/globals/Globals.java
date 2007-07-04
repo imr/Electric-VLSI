@@ -27,7 +27,7 @@ public class Globals {
 	/** maps values to keywords/names */
 	private static Map<String,String> values;
 	
-	/** the defaulet name of the file where golbal values are set */
+	/** the defaulet name of the file where global values are set */
 	public static final String DEF_GLOBALS_FILE= "Settings.fglob";
 
 	/** This class is intended to hold global flags - it is a singleton.
@@ -57,7 +57,7 @@ public class Globals {
 		ldr.load(file);
 	} // load
  	
-	/** Clear parameters and itheir values */
+	/** Clear parameters and their values */
 	public void clear() {
 		if (values != null) values.clear();
 	} // clear
