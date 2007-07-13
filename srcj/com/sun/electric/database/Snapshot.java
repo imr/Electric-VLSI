@@ -119,7 +119,7 @@ public class Snapshot {
                 for (int cellIndex = 0; cellIndex < cellBoundsArray.length; cellIndex++) {
                     ERectangle r = cellBoundsArray[cellIndex];
                     if (r == null) continue;
-                    setCellBounds(cellBackups.get(cellIndex).d.cellId, r);
+                    setCellBounds(cellBackups.get(cellIndex).cellRevision.d.cellId, r);
                 }
             }
             return this;
