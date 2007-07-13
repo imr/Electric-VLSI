@@ -116,8 +116,8 @@ public final class ExportId implements PortProtoId, Serializable {
      * @return the ImmutableExport representing ExportId in the specified snapshot.
      */
     public ImmutableExport inSnapshot(Snapshot snapshot) {
-        CellBackup cellBackup = snapshot.getCell(parentId);
-        return cellBackup != null ? cellBackup.getExport(this) : null;
+        CellRevision cellRevision = snapshot.getCellRevision(parentId);
+        return cellRevision != null ? cellRevision.getExport(this) : null;
     }
     
     /**

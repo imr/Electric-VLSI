@@ -129,49 +129,56 @@ public class Snapshot {
         BitSet newUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
+            CellRevision newRevision = null;
             CellBackup oldBackup = getCell(cellIndex);
             CellId cellId;
             if (newBackup != null) {
-                if (oldBackup == null || newBackup.d.groupName != oldBackup.d.groupName)
+                newRevision = newBackup.cellRevision;
+                if (oldBackup == null || newRevision.d.groupName != oldBackup.cellRevision.d.groupName)
                     namesChanged = true;
                 
                 // If usages changed, check CellUsagesIn.
-                newUsedTechs.or(newBackup.techUsages);
-                cellId = newBackup.d.cellId;
-                if (oldBackup == null || newBackup.cellUsages != oldBackup.cellUsages) {
-                    for (int i = 0; i < newBackup.cellUsages.length; i++) {
-                        CellBackup.CellUsageInfo cui = newBackup.cellUsages[i];
+                newUsedTechs.or(newRevision.techUsages);
+                cellId = newRevision.d.cellId;
+                if (oldBackup == null || newRevision.cellUsages != oldBackup.cellRevision.cellUsages) {
+                    for (int i = 0; i < newRevision.cellUsages.length; i++) {
+                        CellRevision.CellUsageInfo cui = newRevision.cellUsages[i];
                         if (cui == null) continue;
-                        if (oldBackup != null && i < oldBackup.cellUsages.length) {
-                            CellBackup.CellUsageInfo oldCui = oldBackup.cellUsages[i];
-                            if (oldCui != null && cui.usedExports == oldCui.usedExports) continue;
+                        if (oldBackup != null) {
+                            CellRevision oldRevision = oldBackup.cellRevision;
+                            if (i < oldRevision.cellUsages.length) {
+                                CellRevision.CellUsageInfo oldCui = oldRevision.cellUsages[i];
+                                if (oldCui != null && cui.usedExports == oldCui.usedExports) continue;
+                            }
                         }
                         CellUsage u = cellId.getUsageIn(i);
-                        CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
-                        cui.checkUsage(protoBackup);
+                        CellRevision protoRevision = cellBackups.get(u.protoId.cellIndex).cellRevision;
+                        cui.checkUsage(protoRevision);
                     }
                 }
             } else {
                 if (oldBackup == null) continue;
-                cellId = oldBackup.d.cellId;
+                cellId = oldBackup.cellRevision.d.cellId;
                 namesChanged = true;
             }
             
             // If some exports deleted, check CellUsagesOf
             if (oldBackup == null) continue;
-            if (newBackup != null && newBackup.definedExportsLength >= oldBackup.definedExportsLength &&
-                    (newBackup.deletedExports == oldBackup.deletedExports ||
-                    !newBackup.deletedExports.intersects(oldBackup.definedExports))) continue;
+            CellRevision oldRevision = oldBackup.cellRevision;
+            if (newRevision != null && newRevision.definedExportsLength >= oldRevision.definedExportsLength &&
+                    (newRevision.deletedExports == oldRevision.deletedExports ||
+                    !newRevision.deletedExports.intersects(oldRevision.definedExports))) continue;
             for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
                 CellUsage u = cellId.getUsageOf(i);
                 int parentCellIndex = u.parentId.cellIndex;
                 if (parentCellIndex >= cellBackups.size()) continue;
                 CellBackup parentBackup = cellBackups.get(parentCellIndex);
                 if (parentBackup == null) continue;
-                if (u.indexInParent >= parentBackup.cellUsages.length) continue;
-                CellBackup.CellUsageInfo cui = parentBackup.cellUsages[u.indexInParent];
+                CellRevision parentRevision = parentBackup.cellRevision;
+                if (u.indexInParent >= parentRevision.cellUsages.length) continue;
+                CellRevision.CellUsageInfo cui = parentRevision.cellUsages[u.indexInParent];
                 if (cui == null) continue;
-                cui.checkUsage(newBackup);
+                cui.checkUsage(newBackup.cellRevision);
             }
         }
         if (newUsedTechs.length() > technologies.size())
@@ -266,7 +273,7 @@ public class Snapshot {
         int maxCellIndex = -1;
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup == null) continue;
-            maxCellIndex = Math.max(maxCellIndex, idMapper.get(cellBackup.d.cellId).cellIndex);
+            maxCellIndex = Math.max(maxCellIndex, idMapper.get(cellBackup.cellRevision.d.cellId).cellIndex);
         }
         int maxLibIndex = -1;
         for (LibraryBackup libBackup: libBackups) {
@@ -297,10 +304,11 @@ public class Snapshot {
             for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
                 CellBackup cellBackup = cellBackups.get(cellIndex);
                 if (cellBackup == null) continue;
-                if (cellBackup.d.cellId.libId == fromGroup.libId) {
-                    if (cellBackup.d.cellId.cellName.getName().equals(toGroupCellId.cellName.getName()))
+                CellId cellId = cellBackup.cellRevision.d.cellId;
+                if (cellId.libId == fromGroup.libId) {
+                    if (cellId.cellName.getName().equals(toGroupCellId.cellName.getName()))
                         toGroupIndex1 = cellGroups[cellIndex];
-                    if (toGroup != null && cellBackup.d.cellId.cellName.getName().equals(toGroup))
+                    if (toGroup != null && cellId.cellName.getName().equals(toGroup))
                         toGroupIndex2 = cellGroups[cellIndex];
                 }
             }
@@ -311,13 +319,14 @@ public class Snapshot {
             for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
                 CellBackup cellBackup = cellBackups.get(cellIndex);
                 if (cellBackup == null || cellIndex == fromGroup.cellIndex) continue;
+                CellId cellId = cellBackup.cellRevision.d.cellId;
                 if (cellGroups[cellIndex] == fromGroupIndex) {
                     fromGroupCellIds.set(cellIndex);
-                    fromCellNames.add(cellBackup.d.cellId.cellName);
+                    fromCellNames.add(cellId.cellName);
                 }
                 if (cellGroups[cellIndex] == toGroupIndex1 || cellGroups[cellIndex] == toGroupIndex2) {
                     toGroupCellIds.set(cellIndex);
-                    toCellNames.add(cellBackup.d.cellId.cellName);
+                    toCellNames.add(cellId.cellName);
                 }
             }
             if (!fromCellNames.isEmpty())
@@ -328,7 +337,7 @@ public class Snapshot {
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup oldCellBackup = cellBackups.get(cellIndex);
             if (oldCellBackup == null) continue;
-            CellName newGroupName = oldCellBackup.d.groupName;
+            CellName newGroupName = oldCellBackup.cellRevision.d.groupName;
             if (fromGroup != null) {
                 if (toGroupCellIds.get(cellIndex) || cellIndex == fromGroup.cellIndex)
                     newGroupName = toGroupName;
@@ -338,7 +347,7 @@ public class Snapshot {
             CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper, newGroupName);
             if (newCellBackup != oldCellBackup)
                 cellBackupsChanged = true;
-            int newCellIndex = newCellBackup.d.cellId.cellIndex;
+            int newCellIndex = newCellBackup.cellRevision.d.cellId.cellIndex;
             if (newCellIndex != cellIndex)
                 cellIdsChanged = true;
             cellBackupsArray[newCellIndex] = newCellBackup;
@@ -404,8 +413,18 @@ public class Snapshot {
         return getCell(cellId.cellIndex);
     }
     
+    public CellRevision getCellRevision(CellId cellId) {
+        CellBackup cellBackup = getCell(cellId);
+        return cellBackup != null ? cellBackup.cellRevision : null;
+    }
+    
     public CellBackup getCell(int cellIndex) {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
+    }
+    
+    public CellRevision getCellRevision(int cellIndex) {
+        CellBackup cellBackup = getCell(cellIndex);
+        return cellBackup != null ? cellBackup.cellRevision : null;
     }
     
 //    /**
@@ -527,12 +546,12 @@ public class Snapshot {
             if (oldBackup == newBackup) continue;
             if (oldBackup == null) {
                 writer.writeInt(i);
-                newBackup.write(writer);
+                newBackup.cellRevision.write(writer);
             } else if (newBackup == null) {
                 writer.writeInt(~i);
             } else {
                 writer.writeInt(i);
-                newBackup.write(writer);
+                newBackup.cellRevision.write(writer);
             }
         }
         writer.writeInt(Integer.MAX_VALUE);
@@ -713,15 +732,16 @@ public class Snapshot {
                 assert cellBounds[cellIndex] == null;
                 continue;
             }
+            CellRevision cellRevision = cellBackup.cellRevision;
 //            assert cellBounds.get(cellIndex) != null;
-            checkUsedTechs.or(cellBackup.techUsages);
-            CellId cellId = cellBackup.d.cellId;
-            for (int i = 0; i < cellBackup.cellUsages.length; i++) {
-                CellBackup.CellUsageInfo cui = cellBackup.cellUsages[i];
+            checkUsedTechs.or(cellRevision.techUsages);
+            CellId cellId = cellBackup.cellRevision.d.cellId;
+            for (int i = 0; i < cellRevision.cellUsages.length; i++) {
+                CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
                 if (cui == null) continue;
                 CellUsage u = cellId.getUsageIn(i);
                 int subCellIndex = u.protoId.cellIndex;
-                cui.checkUsage(cellBackups.get(subCellIndex));
+                cui.checkUsage(cellBackups.get(subCellIndex).cellRevision);
             }
         }
         for (int techIndex = 0; techIndex < technologies.size(); techIndex++) {
@@ -775,7 +795,7 @@ public class Snapshot {
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) continue;
-            ImmutableCell d = cellBackup.d;
+            ImmutableCell d = cellBackup.cellRevision.d;
             CellId cellId = d.cellId;
             if (cellId != idManager.getCellId(cellIndex))
                 throw new IllegalArgumentException("CellId");

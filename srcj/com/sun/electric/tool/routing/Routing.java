@@ -24,6 +24,7 @@
 package com.sun.electric.tool.routing;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -140,13 +141,14 @@ public class Routing extends Listener
 			CellBackup oldBackup = oldSnapshot.getCell(cellId);
 			if (oldBackup == null) continue; // Don't route in new cells
 			if (oldBackup == cell.backup()) continue;
+            CellRevision oldRevision = oldBackup.cellRevision;
 			ArrayList<ImmutableNodeInst> oldNodes = new ArrayList<ImmutableNodeInst>();
-			for (ImmutableNodeInst n: oldBackup.nodes) {
+			for (ImmutableNodeInst n: oldRevision.nodes) {
 				while (n.nodeId >= oldNodes.size()) oldNodes.add(null);
 				oldNodes.set(n.nodeId, n);
 			}
 			ArrayList<ImmutableArcInst> oldArcs = new ArrayList<ImmutableArcInst>();
-			for (ImmutableArcInst a: oldBackup.arcs) {
+			for (ImmutableArcInst a: oldRevision.arcs) {
 				while (a.arcId >= oldArcs.size()) oldArcs.add(null);
 				oldArcs.set(a.arcId, a);
 			}
@@ -170,12 +172,12 @@ public class Routing extends Listener
 						current.createdArcs[current.numCreatedArcs++] = ai;
 				}
 			}
-			for (ImmutableArcInst nid: oldBackup.arcs) {
+			for (ImmutableArcInst nid: oldRevision.arcs) {
 				if (nid == null) continue;
 				if (cell.getNodeById(nid.arcId) == null)
 					current.numDeletedNodes++;
 			}
-			for (ImmutableArcInst aid: oldBackup.arcs) {
+			for (ImmutableArcInst aid: oldRevision.arcs) {
 				if (aid == null) continue;
 				if (cell.getArcById(aid.arcId) == null) {
 					if (current.numDeletedArcs == 0) {

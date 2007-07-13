@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -374,11 +375,12 @@ public abstract class AbstractShapeBuilder {
         }
         
         public Shrinkage(CellBackup cellBackup) {
+            CellRevision cellRevision = cellBackup.cellRevision;
             int maxNodeId = -1;
-            for (int nodeIndex = 0; nodeIndex < cellBackup.nodes.size(); nodeIndex++)
-                maxNodeId = Math.max(maxNodeId, cellBackup.nodes.get(nodeIndex).nodeId);
+            for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++)
+                maxNodeId = Math.max(maxNodeId, cellRevision.nodes.get(nodeIndex).nodeId);
             int[] angles = new int[maxNodeId+1];
-            for (ImmutableArcInst a: cellBackup.arcs) {
+            for (ImmutableArcInst a: cellRevision.arcs) {
                 if (a.getGridFullWidth() == 0) continue;
                 if (a.tailNodeId == a.headNodeId && a.tailPortId == a.headPortId) {
                     // Fake register for full shrinkage
@@ -390,8 +392,8 @@ public abstract class AbstractShapeBuilder {
                 registerArcEnd(angles, a.headNodeId, a.getAngle(), is90, a.isHeadExtended());
             }
             short[] shrink = new short[maxNodeId + 1];
-            for (int nodeIndex = 0; nodeIndex < cellBackup.nodes.size(); nodeIndex++) {
-                ImmutableNodeInst n = cellBackup.nodes.get(nodeIndex);
+            for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
                 if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink())
                     shrink[n.nodeId] = computeShrink(angles[nodeIndex]);

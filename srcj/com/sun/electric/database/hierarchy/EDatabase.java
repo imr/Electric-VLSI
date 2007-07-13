@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.IdManager;
 import com.sun.electric.database.LibId;
@@ -401,7 +402,7 @@ public class EDatabase {
         BitSet recovered = new BitSet();
         for (CellBackup newBackup: snapshot.cellBackups) {
             if (newBackup != null)
-                recoverRecursively(newBackup.d.cellId, recovered);
+                recoverRecursively(newBackup.cellRevision.d.cellId, recovered);
         }
         for (Library lib: libraries.values())
             lib.collectCells();
@@ -418,9 +419,10 @@ public class EDatabase {
         int cellIndex = cellId.cellIndex;
         if (recovered.get(cellIndex)) return;
         CellBackup newBackup = snapshot.getCell(cellId);
+        CellRevision newRevision = newBackup.cellRevision;
         for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
             CellUsage u = cellId.getUsageIn(i);
-            if (newBackup.getInstCount(u) <= 0) continue;
+            if (newRevision.getInstCount(u) <= 0) continue;
             recoverRecursively(u.protoId, recovered);
         }
         Cell cell = getCell(cellId);
@@ -453,10 +455,10 @@ public class EDatabase {
                 CellBackup newBackup = snapshot.getCell(cellIndex);
                 if (oldBackup == newBackup) continue;
                 if (oldBackup == null) {
-                    cellNamesChangedInLibrary.set(newBackup.d.getLibId().libIndex);
+                    cellNamesChangedInLibrary.set(newBackup.cellRevision.d.getLibId().libIndex);
                     assert cellGroupsChanged;
                 } else if (newBackup == null) {
-                    cellNamesChangedInLibrary.set(oldBackup.d.getLibId().libIndex);
+                    cellNamesChangedInLibrary.set(oldBackup.cellRevision.d.getLibId().libIndex);
                     assert cellGroupsChanged;
 //                } else {
 //                    boolean moved = oldBackup.d.getLibId() != newBackup.d.getLibId();
@@ -479,7 +481,7 @@ public class EDatabase {
         BitSet boundsModified = new BitSet();
         for (CellBackup newBackup: snapshot.cellBackups) {
             if (newBackup != null)
-                undoRecursively(oldSnapshot, newBackup.d.cellId, updated, exportsModified, boundsModified);
+                undoRecursively(oldSnapshot, newBackup.cellRevision.d.cellId, updated, exportsModified, boundsModified);
         }
         if (!cellNamesChangedInLibrary.isEmpty()) {
             for (Library lib: libraries.values()) {
@@ -501,12 +503,13 @@ public class EDatabase {
         int cellIndex = cellId.cellIndex;
     	if (updated.get(cellIndex)) return;
         CellBackup newBackup = snapshot.getCell(cellId);
+        CellRevision newRevision = newBackup.cellRevision;
         assert cellId != null;
         boolean subCellsExportsModified = false;
         boolean subCellsBoundsModified = false;
         for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
             CellUsage u = cellId.getUsageIn(i);
-            if (newBackup.getInstCount(u) <= 0) continue;
+            if (newRevision.getInstCount(u) <= 0) continue;
             undoRecursively(oldSnapshot, u.protoId, updated, exportsModified, boundsModified);
             int subCellIndex = u.protoId.cellIndex;
             if (exportsModified.get(subCellIndex))
@@ -515,15 +518,15 @@ public class EDatabase {
                 subCellsBoundsModified = true;
         }
         Cell cell = getCell(cellId);
-        CellBackup oldBackup = oldSnapshot.getCell(cellId);
+        CellRevision oldRevision = oldSnapshot.getCellRevision(cellId);
         ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
         cell.undo(newBackup, snapshot.getCellBounds(cellId),
                 subCellsExportsModified ? exportsModified : null,
                 subCellsBoundsModified ? boundsModified : null);
     	updated.set(cellIndex);
-        if (oldBackup == null || !newBackup.sameExports(oldBackup))
+        if (oldRevision == null || !newRevision.sameExports(oldRevision))
             exportsModified.set(cellIndex);
-        if (oldBackup == null || snapshot.getCellBounds(cellId) != oldBounds)
+        if (oldRevision == null || snapshot.getCellBounds(cellId) != oldBounds)
             boundsModified.set(cellIndex);
     }
 
@@ -585,7 +588,7 @@ public class EDatabase {
             if (newBackup == null) {
                 if (cell != null) linkedCells.set(cellIndex, null);
             } else if (cell == null) {
-                linkedCells.set(cellIndex, new Cell(this, newBackup.d));
+                linkedCells.set(cellIndex, new Cell(this, newBackup.cellRevision.d));
             }
         }
     }
@@ -697,7 +700,7 @@ public class EDatabase {
                     assert snapshot.cellGroups[i] == -1;
                     continue;
                 }
-                Cell cell = getCell(cellBackup.d.cellId);
+                Cell cell = getCell(cellBackup.cellRevision.d.cellId);
                 Cell.CellGroup cellGroup = cell.getCellGroup();
                 Integer gn = groupNums.get(cellGroup);
                 if (gn == null) {

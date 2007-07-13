@@ -159,10 +159,10 @@ public class SnapshotTest {
         assertEquals(2, newSnapshot.cellBackups.size());
         assertNull( newSnapshot.cellBackups.get(0) );
         CellBackup newCellA = newSnapshot.cellBackups.get(1);
-        assertSame( libIdA, newCellA.d.cellId.libId );
-        assertSame( cellNameA, newCellA.d.cellId.cellName );
-        assertSame( libIdA, newCellA.d.getLibId() );
-        assertEquals( idManager.getCellId(1), newCellA.d.cellId );
+        assertSame( libIdA, newCellA.cellRevision.d.cellId.libId );
+        assertSame( cellNameA, newCellA.cellRevision.d.cellId.cellName );
+        assertSame( libIdA, newCellA.cellRevision.d.getLibId() );
+        assertEquals( idManager.getCellId(1), newCellA.cellRevision.d.cellId );
     }
     
     /**

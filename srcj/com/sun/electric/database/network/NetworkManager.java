@@ -26,6 +26,7 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -183,10 +184,10 @@ public class NetworkManager {
         }
         // new Cells
         for (int i = 0; i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup == null || oldBackup != null) continue;
-            CellId cellId = newBackup.d.cellId;
+            CellRevision oldRevision = oldSnapshot.getCellRevision(i);
+            CellRevision newRevision = newSnapshot.getCellRevision(i);
+            if (newRevision == null || oldRevision != null) continue;
+            CellId cellId = newRevision.d.cellId;
             Cell cell = database.getCell(cellId);
             if (cell.isIcon() || cell.isSchematic())
                 new NetSchem(cell);
@@ -241,7 +242,7 @@ public class NetworkManager {
                 int oldGroupIndex = newGroupMap[newGroupIndex];
                 if (oldGroupIndex == -1) continue;
                 if (oldGroupIndex >= 0 && oldGroupMap[oldGroupIndex] == newGroupIndex) continue;
-                CellId cellId = newSnapshot.getCell(cellIndex).d.cellId;
+                CellId cellId = newSnapshot.getCellRevision(cellIndex).d.cellId;
                 Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
                 newGroupMap[newGroupIndex] = -1;
@@ -249,16 +250,16 @@ public class NetworkManager {
         }
         // Cell contents changed
         for (int i = 0; i < maxCells; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup == null || oldBackup == null) continue;
-            if (oldBackup == newBackup) continue;
-            CellId cellId = newBackup.d.cellId;
+            CellRevision oldRevision = oldSnapshot.getCellRevision(i);
+            CellRevision newRevision = newSnapshot.getCellRevision(i);
+            if (newRevision == null || oldRevision == null) continue;
+            if (oldRevision == newRevision) continue;
+            CellId cellId = newRevision.d.cellId;
             Cell cell = database.getCell(cellId);
-            boolean exportsChanged = !newBackup.sameExports(oldBackup);
+            boolean exportsChanged = !newRevision.sameExports(oldRevision);
             if (!exportsChanged) {
-                for (int j = 0; j < newBackup.exports.size(); j++) {
-                    if (newBackup.exports.get(j).name != oldBackup.exports.get(j).name)
+                for (int j = 0; j < newRevision.exports.size(); j++) {
+                    if (newRevision.exports.get(j).name != oldRevision.exports.get(j).name)
                         exportsChanged = true;
                 }
             }

@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.IdMapper;
@@ -46,6 +47,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -1010,7 +1012,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (!cellContentsFresh) {
 //            System.out.println("Refresh contents of " + this);
             nodes = backupNodes();
-            arcs = topology.backupArcs(backup.arcs);
+            arcs = topology.backupArcs(backup.cellRevision.arcs);
             exports = backupExports();
         }
         backup = backup.with(getD(), revisionDate, modified,
@@ -1022,11 +1024,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private ImmutableNodeInst[] backupNodes() {
         ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
-        boolean changed = nodes.size() != backup.nodes.size();
+        ImmutableArrayList<ImmutableNodeInst> oldNodes = backup.cellRevision.nodes;
+        boolean changed = nodes.size() != oldNodes.size();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             ImmutableNodeInst d = ni.getD();
-            changed = changed || backup.nodes.get(i) != d;
+            changed = changed || oldNodes.get(i) != d;
             newNodes[i] = d;
         }
         return changed ? newNodes : null;
@@ -1034,11 +1037,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private ImmutableExport[] backupExports() {
         ImmutableExport[] newExports = new ImmutableExport[exports.length];
-        boolean changed = exports.length != backup.exports.size();
+        ImmutableArrayList<ImmutableExport> oldExports = backup.cellRevision.exports;
+        boolean changed = exports.length != oldExports.size();
         for (int i = 0; i < exports.length; i++) {
             Export e = exports[i];
             ImmutableExport d = e.getD();
-            changed = changed || backup.exports.get(i) != d;
+            changed = changed || oldExports.get(i) != d;
             newExports[i] = d;
         }
         return changed ? newExports : null;
@@ -1069,18 +1073,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         checkUndoing();
         boundsDirty = BOUNDS_RECOMPUTE;
         unfreshRTree();
-     	this.d = newBackup.d;
-        lib = database.getLib(newBackup.d.getLibId());
-        tech = database.getTech(newBackup.d.techId);
-        this.revisionDate = newBackup.revisionDate;
-        this.modified = newBackup.modified;
+        CellRevision newRevision = newBackup.cellRevision;
+     	this.d = newRevision.d;
+        lib = database.getLib(newRevision.d.getLibId());
+        tech = database.getTech(newRevision.d.techId);
+        this.revisionDate = newRevision.revisionDate;
+        this.modified = newRevision.modified;
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
         maxSuffix.clear();
-        cellUsages = newBackup.getInstCounts();
-        for (int i = 0; i < newBackup.nodes.size(); i++) {
-            ImmutableNodeInst d = newBackup.nodes.get(i);
+        cellUsages = newRevision.getInstCounts();
+        for (int i = 0; i < newRevision.nodes.size(); i++) {
+            ImmutableNodeInst d = newRevision.nodes.get(i);
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
             NodeInst ni = chronNodes.get(d.nodeId);
             if (ni != null && ni.getProto().getId() == d.protoId) {
@@ -1108,7 +1113,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 essenBounds.add(ni);
 //            ni.check();
         }
-        assert nodes.size() == newBackup.nodes.size();
+        assert nodes.size() == newRevision.nodes.size();
 
         int nodeCount = 0;
         for (int i = 0; i < chronNodes.size(); i++) {
@@ -1124,11 +1129,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert nodeCount == nodes.size();
 
-        topology.updateArcs(newBackup);
+        topology.updateArcs(newRevision);
 
-        exports = new Export[newBackup.exports.size()];
-        for (int i = 0; i < newBackup.exports.size(); i++) {
-            ImmutableExport d = newBackup.exports.get(i);
+        exports = new Export[newRevision.exports.size()];
+        for (int i = 0; i < newRevision.exports.size(); i++) {
+            ImmutableExport d = newRevision.exports.get(i);
             // Add to chronExports
             int chronIndex = d.exportId.getChronIndex();
             if (chronExports.length <= chronIndex) {
@@ -4166,16 +4171,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert getCellName() != null;
         assert getVersion() > 0;
         
+        CellRevision cellRevision = backup != null ? backup.cellRevision : null;
         if (cellBackupFresh) {
-            assert backup.d == getD();
-            assert backup.revisionDate == revisionDate;
-            assert backup.modified == modified;
+            assert cellRevision.d == getD();
+            assert cellRevision.revisionDate == revisionDate;
+            assert cellRevision.modified == modified;
             assert cellContentsFresh;
         }
         if (cellContentsFresh) {
-            assert backup.nodes.size() == nodes.size();
-            assert backup.arcs.size() == topology.getNumArcs();
-            assert backup.exports.size() == exports.length;
+            assert cellRevision.nodes.size() == nodes.size();
+            assert cellRevision.arcs.size() == topology.getNumArcs();
+            assert cellRevision.exports.size() == exports.length;
         }
         
         // check exports
@@ -4184,7 +4190,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert e.getParent() == this;
             assert e.getPortIndex() == portIndex;
             assert chronExports[e.getId().getChronIndex()] == e;
-            if (cellContentsFresh) assert backup.exports.get(portIndex) == e.getD();
+            if (cellContentsFresh) assert cellRevision.exports.get(portIndex) == e.getD();
             if (portIndex > 0)
                 assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[portIndex - 1].getName(), e.getName()) < 0);
             assert e.getOriginalPort() == getPortInst(e.getD().originalNodeId, e.getD().originalPortId);
@@ -4203,7 +4209,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 for(int arcIndex = 0; arcIndex < topology.getNumArcs(); arcIndex++) {
                     ArcInst ai = topology.getArc(arcIndex);
                     ImmutableArcInst a = ai.getD();
-                    assert backup.arcs.get(arcIndex) == a;
+                    assert cellRevision.arcs.get(arcIndex) == a;
                 }
             }
         }
@@ -4217,7 +4223,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert ni.getParent() == this;
             assert ni.getNodeIndex() == nodeIndex;
             assert chronNodes.get(n.nodeId) == ni;
-            if (cellContentsFresh) assert backup.nodes.get(nodeIndex) == n;
+            if (cellContentsFresh) assert cellRevision.nodes.get(nodeIndex) == n;
             if (prevNi != null) {
                 assert TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName()) < 0;
             }

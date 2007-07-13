@@ -45,8 +45,9 @@ public class IdMapper implements Serializable {
         idMapper.libIdMap.put(oldLibId, newLibId);
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            if (cellBackup.d.getLibId() != oldLibId) continue;
-            CellId newCellId = newLibId.newCellId(cellBackup.d.cellId.cellName);
+            CellId oldCellId = cellBackup.cellRevision.d.cellId;
+            if (oldCellId.libId != oldLibId) continue;
+            CellId newCellId = newLibId.newCellId(oldCellId.cellName);
             idMapper.moveCell(cellBackup, newCellId);
         }
         return idMapper;
@@ -63,8 +64,9 @@ public class IdMapper implements Serializable {
         IdMapper idMapper = new IdMapper();
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            CellId cellId = cellBackup.d.cellId;
-            for (ImmutableExport e: cellBackup.exports) {
+            CellRevision cellRevision = cellBackup.cellRevision;
+            CellId cellId = cellRevision.d.cellId;
+            for (ImmutableExport e: cellRevision.exports) {
                 if (e.name.toString().equals(e.exportId.externalId)) continue;
                 idMapper.exportIdMap.put(e.exportId, cellId.newExportId(e.name.toString()));
             }
@@ -78,7 +80,7 @@ public class IdMapper implements Serializable {
      * @param newCellId new CellId.
      */
     public void moveCell(CellBackup cellBackup, CellId newCellId) {
-            CellId oldCellId = cellBackup.d.cellId;
+            CellId oldCellId = cellBackup.cellRevision.d.cellId;
             cellIdMap.put(oldCellId, newCellId);
     }
     

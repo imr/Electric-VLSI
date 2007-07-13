@@ -109,26 +109,26 @@ class UsageCollector {
     }
     
     /**
-     * Return usages for CellBackup.
+     * Return usages for CellRevision.
      */
-    CellBackup.CellUsageInfo[] getCellUsages(CellBackup.CellUsageInfo[] oldCellUsages) {
-        if (cellIndices.isEmpty()) return CellBackup.NULL_CELL_USAGE_INFO_ARRAY;
+    CellRevision.CellUsageInfo[] getCellUsages(CellRevision.CellUsageInfo[] oldCellUsages) {
+        if (cellIndices.isEmpty()) return CellRevision.NULL_CELL_USAGE_INFO_ARRAY;
         CellId parentId = d.cellId;
         int length = 0;
         for (CellId cellId: cellIndices.keySet())
             length = Math.max(length, parentId.getUsageIn(cellId).indexInParent + 1);
-        CellBackup.CellUsageInfo[] newCellUsages = new CellBackup.CellUsageInfo[length];
+        CellRevision.CellUsageInfo[] newCellUsages = new CellRevision.CellUsageInfo[length];
         for (CellId cellId: cellIndices.keySet()) {
             CellUsage u = parentId.getUsageIn(cellId);
             int indexInParent = u.indexInParent;
-            CellBackup.CellUsageInfo newC = null;
+            CellRevision.CellUsageInfo newC = null;
             CellUsageInfoBuilder cellCount = cellIndices.get(cellId);
             if (cellCount != null) {
-                CellBackup.CellUsageInfo oldC = indexInParent < oldCellUsages.length ? oldCellUsages[indexInParent] : null;
+                CellRevision.CellUsageInfo oldC = indexInParent < oldCellUsages.length ? oldCellUsages[indexInParent] : null;
                 if (oldC != null)
                     newC = oldC.with(cellCount.instCount, cellCount.usedExports);
                 else
-                    newC = new CellBackup.CellUsageInfo(cellCount.instCount, cellCount.usedExports);
+                    newC = new CellRevision.CellUsageInfo(cellCount.instCount, cellCount.usedExports);
             }
             newCellUsages[indexInParent] = newC;
         }

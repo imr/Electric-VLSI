@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
@@ -371,7 +372,7 @@ public class VectorCache {
             this.cellBackup = cellBackup;
             clear();
             cell = database.getCell(cellId);
-            isParameterized = isCellParameterized(cellBackup);
+            isParameterized = isCellParameterized(cellBackup.cellRevision);
        }
         
         private void updateBounds(Snapshot snapshot) {
@@ -728,11 +729,11 @@ public class VectorCache {
 	 * Method to tell whether a Cell is parameterized.
 	 * Code is taken from tool.drc.Quick.checkEnumerateProtos
 	 * Could also use the code in tool.io.output.Spice.checkIfParameterized
-	 * @param cell the Cell to examine
+	 * @param cellRevision the Cell to examine
 	 * @return true if the cell has parameters
 	 */
-    private static boolean isCellParameterized(CellBackup cellBackup) {
-        for(Iterator<Variable> vIt = cellBackup.d.getVariables(); vIt.hasNext(); ) {
+    private static boolean isCellParameterized(CellRevision cellRevision) {
+        for(Iterator<Variable> vIt = cellRevision.d.getVariables(); vIt.hasNext(); ) {
             Variable var = vIt.next();
             if (var.getTextDescriptor().isParam()) {
                 // this attribute is not a parameter
@@ -742,13 +743,13 @@ public class VectorCache {
         }
         
         // look for any Java coded stuff (Logical Effort calls)
-        for (ImmutableNodeInst n: cellBackup.nodes) {
+        for (ImmutableNodeInst n: cellRevision.nodes) {
             for(Iterator<Variable> vIt = n.getVariables(); vIt.hasNext(); ) {
                 Variable var = vIt.next();
                 if (var.getCode() != TextDescriptor.Code.NONE) return true;
             }
         }
-        for (ImmutableArcInst a: cellBackup.arcs) {
+        for (ImmutableArcInst a: cellRevision.arcs) {
             for(Iterator<Variable> vIt = a.getVariables(); vIt.hasNext(); ) {
                 Variable var = vIt.next();
                 if (var.getCode() != TextDescriptor.Code.NONE) return true;
@@ -756,7 +757,7 @@ public class VectorCache {
         }
         
         // bus pin appearance depends on parent Cell
-        for (ImmutableExport e: cellBackup.exports) {
+        for (ImmutableExport e: cellRevision.exports) {
             if (e.originalPortId == busPinPort)
                 return true;
         }
@@ -1020,7 +1021,7 @@ public class VectorCache {
 				if (layer != null)
 				{
                     Technology tech = layer.getTechnology();
-                    if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.d.techId.techName))
+                    if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.cellRevision.d.techId.techName))
                         layerIndex = layer.getIndex();
 					Layer.Function fun = layer.getFunction();
 					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))

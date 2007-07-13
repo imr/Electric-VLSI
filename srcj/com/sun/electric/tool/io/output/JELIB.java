@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
@@ -113,12 +114,14 @@ public class JELIB extends Output {
         LibraryBackup libBackup = snapshot.getLib(libId);
         HashSet<LibId> usedLibs = new HashSet<LibId>();
         HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
-        TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
+        TreeMap<CellName,CellRevision> sortedCells = new TreeMap<CellName,CellRevision>();
         for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null || cellBackup.d.getLibId() != libId) continue;
-            CellId cellId = cellBackup.d.cellId;
-            sortedCells.put(cellId.cellName, cellBackup);
-            int[] instCounts = cellBackup.getInstCounts();
+            if (cellBackup == null) continue;
+            CellRevision cellRevision = cellBackup.cellRevision;
+            if (cellRevision.d.getLibId() != libId) continue;
+            CellId cellId = cellRevision.d.cellId;
+            sortedCells.put(cellId.cellName, cellRevision);
+            int[] instCounts = cellRevision.getInstCounts();
             for (int i = 0; i < instCounts.length; i++) {
                 int instCount = instCounts[i];
                 if (instCount == 0) continue;
@@ -137,8 +140,9 @@ public class JELIB extends Output {
         HashSet<View> usedViews = new HashSet<View>();
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            if (cellBackup.d.getLibId() != libId && !usedExports.containsKey(cellBackup.d.cellId)) continue;
-            usedViews.add(cellBackup.d.cellId.cellName.getView());
+            CellRevision cellRevision = cellBackup.cellRevision;
+            if (cellRevision.d.getLibId() != libId && !usedExports.containsKey(cellRevision.d.cellId)) continue;
+            usedViews.add(cellRevision.d.cellId.cellName.getView());
         }
         for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
             View view = it.next();
@@ -208,10 +212,10 @@ public class JELIB extends Output {
         // gather groups
         ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
         ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
-        for (CellBackup cellBackup: sortedCells.values()) {
-            CellName cellName = cellBackup.d.cellId.cellName;
+        for (CellRevision cellRevision: sortedCells.values()) {
+            CellName cellName = cellRevision.d.cellId.cellName;
             
-            int groupIndex = snapshot.cellGroups[cellBackup.d.cellId.cellIndex];
+            int groupIndex = snapshot.cellGroups[cellRevision.d.cellId.cellIndex];
             while (groupIndex >= chronGroups.size()) chronGroups.add(null);
             CellGroup group = chronGroups.get(groupIndex);
             if (group == null) {
@@ -225,8 +229,8 @@ public class JELIB extends Output {
         }
         
         // write cells
-        for (CellBackup cellBackup: sortedCells.values()) {
-            writeCell(cellBackup);
+        for (CellRevision cellRevision: sortedCells.values()) {
+            writeCell(cellRevision);
             //printWriter.println();
         }
         printWriter.println();
@@ -300,10 +304,10 @@ public class JELIB extends Output {
     
     /**
      * Method to write a cell to the output file
-     * @param cellBackup the cell to write
+     * @param cellRevision the cell to write
      */
-    void writeCell(CellBackup cellBackup) {
-        ImmutableCell d = cellBackup.d;
+    void writeCell(CellRevision cellRevision) {
+        ImmutableCell d = cellRevision.d;
         LibId libId = d.getLibId();
         // write the Cell name
         printWriter.println();
@@ -317,7 +321,7 @@ public class JELIB extends Output {
         }
         printWriter.print("|" + convertString(d.techId.techName));
         printWriter.print("|" + d.creationDate);
-        printWriter.print("|" + cellBackup.revisionDate);
+        printWriter.print("|" + cellRevision.revisionDate);
         StringBuilder cellBits = new StringBuilder();
         if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
         if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.cellName.getView() == View.ICON) cellBits.append("E");
@@ -331,7 +335,7 @@ public class JELIB extends Output {
         // write the nodes in this cell (sorted by node name)
         Name prevNodeName = null;
         int duplicate = 0;
-        for (ImmutableNodeInst n: cellBackup.nodes) {
+        for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoId np = n.protoId;
             if (np instanceof CellId) {
                 CellId subCellId = (CellId)np;
@@ -404,9 +408,9 @@ public class JELIB extends Output {
         }
         
         // write the arcs in this cell
-        for (ImmutableArcInst a: cellBackup.arcs) {
+        for (ImmutableArcInst a: cellRevision.arcs) {
             ArcProto ap = a.protoType;
-            if (cellBackup.d.techId.techName.equals(ap.getTechnology().getTechName()))
+            if (cellRevision.d.techId.techName.equals(ap.getTechnology().getTechName()))
                 printWriter.print("A" + convertString(ap.getName()));
             else
                 printWriter.print("A" + convertString(ap.getFullName()));
@@ -445,7 +449,7 @@ public class JELIB extends Output {
         }
         
         // write the exports in this cell
-        for (ImmutableExport e: cellBackup.exports) {
+        for (ImmutableExport e: cellRevision.exports) {
             printWriter.print("E" + convertString(e.exportId.externalId));
             if (!oldRevision) {
                 printWriter.print("|");

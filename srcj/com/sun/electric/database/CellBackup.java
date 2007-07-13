@@ -30,16 +30,12 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -52,47 +48,17 @@ public class CellBackup {
     public static final CellBackup[] NULL_ARRAY = {};
     public static final ImmutableArrayList<CellBackup> EMPTY_LIST = new ImmutableArrayList<CellBackup>(NULL_ARRAY);
 
-    private static final int[] NULL_INT_ARRAY = {};
-    static final CellUsageInfo[] NULL_CELL_USAGE_INFO_ARRAY = {};
     static int cellBackupsCreated = 0;
     static int cellBackupsMemoized = 0;
-    /** Cell persistent data. */                                    public final ImmutableCell d;
-	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
-    /** "Modified" flag of the Cell. */                             public final boolean modified;
-    /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
-	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
-    /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
-    /** TechId usage counts. */                                     final BitSet techUsages;
-    /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
-    /** definedExport == [0..definedExportLength) - deletedExports . */
-    /** Map from chronIndex of Exports to sortIndex. */             final int exportIndex[];
-    /** Bitmap of defined exports. */                               final BitSet definedExports;
-    /** Length of defined exports. */                               final int definedExportsLength;
-    /** Bitmap of deleted exports. */                               final BitSet deletedExports;
+    /** Cell data. */                                               public final CellRevision cellRevision;           
 
     /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
     /** Arc shrinkage data */                                       private AbstractShapeBuilder.Shrinkage shrinkage;
     /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
     
     /** Creates a new instance of CellBackup */
-    private CellBackup(ImmutableCell d, long revisionDate, boolean modified,
-            ImmutableArrayList<ImmutableNodeInst> nodes,
-            ImmutableArrayList<ImmutableArcInst> arcs,
-            ImmutableArrayList<ImmutableExport> exports,
-            BitSet techUsages,
-            CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
-        this.d = d;
-        this.revisionDate = revisionDate;
-        this.modified = modified;
-        this.nodes = nodes;
-        this.arcs = arcs;
-        this.exports = exports;
-        this.techUsages = techUsages;
-        this.cellUsages = cellUsages;
-        this.exportIndex = exportIndex;
-        this.definedExports = definedExports;
-        this.definedExportsLength = definedExportsLength;
-        this.deletedExports = deletedExports;
+    private CellBackup(CellRevision cellRevision) {
+        this.cellRevision = cellRevision;
         cellBackupsCreated++;
         if (Job.getDebug())
             check();
@@ -100,17 +66,7 @@ public class CellBackup {
     
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d) {
-        this(d, 0, false,
-                ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
-                makeTechUsages(d.techId), NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
-        if (d.techId == null)
-            throw new NullPointerException("techId");
-    }
-    
-    private static BitSet makeTechUsages(TechId techId) {
-        BitSet techUsages = new BitSet();
-        techUsages.set(techId.techIndex);
-        return techUsages;
+        this(new CellRevision(d));
     }
     
     /**
@@ -128,99 +84,9 @@ public class CellBackup {
      */
     public CellBackup with(ImmutableCell d, long revisionDate, boolean modified,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
-        ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
-        ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
-        ImmutableArrayList<ImmutableExport> exports = copyArray(exportsArray, this.exports);
-        if (this.d == d && this.revisionDate == revisionDate && this.modified == modified &&
-                this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
-            return this;
-        }
-        
-        CellId cellId = d.cellId;
-        if (this.d != d) {
-            if (d.techId == null)
-                throw new NullPointerException("tech");
-//            if (cellId != this.d.cellId)
-//                throw new IllegalArgumentException("cellId");
-        }
-        
-        BitSet techUsages = this.techUsages;
-        CellUsageInfo[] cellUsages = this.cellUsages;
-        if (this.d.cellId != d.cellId || this.d.techId != d.techId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
-            UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
-            techUsages = uc.getTechUsages(this.techUsages);
-            cellUsages = uc.getCellUsages(this.cellUsages);
-        }
-        
-        if (nodes != this.nodes && !nodes.isEmpty()) {
-            boolean hasCellCenter = false;
-            ImmutableNodeInst prevN = null;
-            for (int i = 0; i < nodes.size(); i++) {
-                ImmutableNodeInst n = nodes.get(i);
-                if (n.protoId == Generic.tech.cellCenterNode) {
-                    if (hasCellCenter)
-                        throw new IllegalArgumentException("Duplicate cell center");
-                    hasCellCenter = true;
-                }
-                if (prevN != null && TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) >= 0)
-                    throw new IllegalArgumentException("nodes order");
-                prevN = n;
-            }
-        }
-        
-        int[] exportIndex = this.exportIndex;
-        BitSet definedExports = this.definedExports;
-        int definedExportsLength = this.definedExportsLength;
-        BitSet deletedExports = this.deletedExports;
-        if (exports != this.exports) {
-            int exportIndexLength = 0;
-            String prevExportName = null;
-            for (ImmutableExport e: exports) {
-                if (e.exportId.parentId != cellId)
-                    throw new IllegalArgumentException("exportId");
-                String exportName = e.name.toString();
-                if (prevExportName != null && TextUtils.STRING_NUMBER_ORDER.compare(prevExportName, exportName) >= 0)
-                    throw new IllegalArgumentException("exportName");
-                prevExportName = exportName;
-                int chronIndex = e.exportId.chronIndex;
-                exportIndexLength = Math.max(exportIndexLength, chronIndex + 1);
-            }
-            exportIndex = new int[exportIndexLength];
-            Arrays.fill(exportIndex, -1);
-            for (int portIndex = 0; portIndex < exports.size(); portIndex++) {
-                ImmutableExport e = exports.get(portIndex);
-                int chronIndex = e.exportId.chronIndex;
-                if (exportIndex[chronIndex] >= 0)
-                    throw new IllegalArgumentException("exportChronIndex");
-                exportIndex[chronIndex] = portIndex;
-                //checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
-            }
-            if (Arrays.equals(this.exportIndex, exportIndex)) {
-                exportIndex = this.exportIndex;
-            } else {
-                definedExports = new BitSet();
-                for (int chronIndex = 0; chronIndex < exportIndex.length; chronIndex++) {
-                    if (exportIndex[chronIndex] < 0) continue;
-                    definedExports.set(chronIndex);
-                }
-                definedExports = UsageCollector.bitSetWith(this.definedExports, definedExports);
-                if (definedExports != this.definedExports) {
-                    definedExportsLength = definedExports.length();
-                    deletedExports = new BitSet();
-                    deletedExports.set(0, definedExportsLength);
-                    deletedExports.andNot(definedExports);
-                    deletedExports = UsageCollector.bitSetWith(this.deletedExports, deletedExports);
-                }
-            }
-        }
-        
-        CellBackup backup = new CellBackup(d, revisionDate, modified,
-                nodes, arcs, exports, techUsages, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
-        return backup;
-    }
-    
-    private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
-        return newArray != null ? new ImmutableArrayList<T>(newArray) : oldList;
+        CellRevision newRevision = cellRevision.with(d, revisionDate, modified, nodesArray, arcsArray, exportsArray);
+        if (newRevision == cellRevision) return this;
+        return new CellBackup(newRevision);
     }
     
 	/**
@@ -229,130 +95,9 @@ public class CellBackup {
      * @return CellBackup with renamed Ids.
 	 */
     CellBackup withRenamedIds(IdMapper idMapper, CellName newGroupName) {
-        ImmutableCell d = this.d.withRenamedIds(idMapper).withGroupName(newGroupName);
-        
-        ImmutableNodeInst[] nodesArray = null;
-        for (int i = 0; i < nodes.size(); i++) {
-            ImmutableNodeInst oldNode = nodes.get(i);
-            ImmutableNodeInst newNode = oldNode.withRenamedIds(idMapper);
-            if (newNode != oldNode && nodesArray == null) {
-                nodesArray = new ImmutableNodeInst[nodes.size()];
-                for (int j = 0; j < i; j++)
-                    nodesArray[j] = nodes.get(j);
-            }
-            if (nodesArray != null)
-                nodesArray[i] = newNode;
-        }
-        
-        ImmutableArcInst[] arcsArray = null;
-        for (int i = 0; i < arcs.size(); i++) {
-            ImmutableArcInst oldArc = arcs.get(i);
-            ImmutableArcInst newArc = oldArc.withRenamedIds(idMapper);
-            if (newArc != oldArc && arcsArray == null) {
-                arcsArray = new ImmutableArcInst[arcs.size()];
-                for (int j = 0; j < i; j++)
-                    arcsArray[j] = arcs.get(j);
-            }
-            if (arcsArray != null)
-                arcsArray[i] = newArc;
-        }
-
-        ImmutableExport[] exportsArray = null;
-        for (int i = 0; i < exports.size(); i++) {
-            ImmutableExport oldExport = exports.get(i);
-            ImmutableExport newExport = oldExport.withRenamedIds(idMapper);
-            if (newExport != oldExport && exportsArray == null) {
-                exportsArray = new ImmutableExport[exports.size()];
-                for (int j = 0; j < i; j++)
-                    exportsArray[j] = exports.get(j);
-            }
-            if (exportsArray != null)
-                exportsArray[i] = newExport;
-        }
-        
-        if (this.d == d && nodesArray == null && arcsArray == null && exportsArray == null) return this;
-        CellBackup newBackup = with(d, revisionDate, true, nodesArray, arcsArray, exportsArray);
-        newBackup.check();
-        return newBackup;
-    }
-    
-    /**
-     * Returns ImmutableNodeInst by its node id.
-     * @param nodeId id of node.
-     * @return ImmutableNodeInst with this id or null if node doesn't exist.
-     */
-    // FIX ME !!!
-    public ImmutableNodeInst getNode(int nodeId) { return nodeId < nodes.size() ? nodes.get(nodeId) : null; }
-    
-    /**
-     * Returns ImmutableArcInst by its arc id.
-     * @param arcId id of node.
-     * @return ImmutableArcInst with this id or null if node doesn't exist.
-     */
-    // FIX ME !!!
-    public ImmutableArcInst getArc(int arcId) { return arcId < arcs.size() ? arcs.get(arcId) : null; }
-    
-    /**
-     * Returns ImmutableExport by its export id.
-     * @param exportId id of export.
-     * @return ImmutableExport with this id or null if node doesn't exist.
-     */
-    public ImmutableExport getExport(ExportId exportId) {
-        if (exportId.parentId != d.cellId)
-            throw new IllegalArgumentException();
-        int chronIndex = exportId.chronIndex;
-        int portIndex = chronIndex < exportIndex.length ? exportIndex[chronIndex] : -1;
-        return portIndex >= 0 ? exports.get(portIndex) : null;
-    }
-    
-    /**
-     * Returns subcell instance counts, indexed by CellUsage.indexInParent. 
-     * @return subcell instance counts, indexed by CellUsage.indexInParent. 
-     */
-    public int[] getInstCounts() {
-        int l = cellUsages.length;
-        while (l > 0 && (cellUsages[l - 1] == null || cellUsages[l - 1].instCount == 0)) l--;
-        if (l == 0) return NULL_INT_ARRAY;
-        int[] instCounts = new int[l];
-        for (int indexInParent = 0; indexInParent < l; indexInParent++) {
-            if (cellUsages[indexInParent] != null)
-                instCounts[indexInParent] = cellUsages[indexInParent].instCount;
-        }
-        return instCounts;
-    }
-    
-    /**
-     * For given CellUsage in this cell returns count of subcell instances.
-     * @param u CellUsage.
-     * @return count of subcell instances.
-     * @throws IllegalArgumentException if CellUsage's parent is not this cell.
-     */
-    public int getInstCount(CellUsage u) {
-        if (u.parentId != d.cellId)
-            throw new IllegalArgumentException();
-        if (u.indexInParent >= cellUsages.length) return 0;
-        CellUsageInfo cui = cellUsages[u.indexInParent];
-        if (cui == null) return 0;
-        return cui.instCount;
-    }
-
-    /**
-     * Writes this CellBackup to SnapshotWriter.
-     * @param writer where to write.
-     */
-    void write(SnapshotWriter writer) throws IOException {
-        d.write(writer);
-        writer.writeLong(revisionDate);
-        writer.writeBoolean(modified);
-        writer.writeInt(nodes.size());
-        for (ImmutableNodeInst n: nodes)
-            n.write(writer);
-        writer.writeInt(arcs.size());
-        for (ImmutableArcInst a: arcs)
-            a.write(writer);
-        writer.writeInt(exports.size());
-        for (ImmutableExport e: exports)
-            e.write(writer);
+        CellRevision newRevision = cellRevision.withRenamedIds(idMapper, newGroupName);
+        if (newRevision == cellRevision) return this;
+        return new CellBackup(newRevision);
     }
     
     /**
@@ -360,28 +105,8 @@ public class CellBackup {
      * @param reader where to read.
      */
     static CellBackup read(SnapshotReader reader) throws IOException {
-        ImmutableCell d = ImmutableCell.read(reader);
-        long revisionDate = reader.readLong();
-        boolean modified = reader.readBoolean();
-        CellBackup backup = new CellBackup(d.withoutVariables());
-        
-        int nodesLength = reader.readInt();
-        ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
-        for (int i = 0; i < nodesLength; i++)
-            nodes[i] = ImmutableNodeInst.read(reader);
-        
-        int arcsLength = reader.readInt();
-        ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
-        for (int i = 0; i < arcsLength; i++)
-            arcs[i] = ImmutableArcInst.read(reader);
-        
-        int exportsLength = reader.readInt();
-        ImmutableExport[] exports = new ImmutableExport[exportsLength];
-        for (int i = 0; i < exportsLength; i++)
-            exports[i] = ImmutableExport.read(reader);
-        
-        backup = backup.with(d, revisionDate, modified, nodes, arcs, exports);
-        return backup;
+        CellRevision newRevision = CellRevision.read(reader);
+        return new CellBackup(newRevision);
     }
 
     /**
@@ -389,166 +114,14 @@ public class CellBackup {
 	 * @throws AssertionError if invariant is broken.
 	 */
     public void check() {
-        d.check();
-        CellId cellId = d.cellId;
-        BitSet checkTechUsages = new BitSet();
-        checkTechUsages.set(d.techId.techIndex);
-        int[] checkCellUsages = getInstCounts();
-        boolean hasCellCenter = false;
-        ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
-        ImmutableNodeInst prevN = null;
-        for (ImmutableNodeInst n: nodes) {
-            n.check();
-            if (n.protoId == Generic.tech.cellCenterNode) {
-                assert !hasCellCenter;
-                hasCellCenter = true;
-            }
-            while (n.nodeId >= nodesById.size()) nodesById.add(null);
-            ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
-            assert oldNode == null;
-			if (prevN != null)
-				assert TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) < 0;
-            prevN = n;
-            if (n.protoId instanceof CellId) {
-                CellId subCellId = (CellId)n.protoId;
-                CellUsage u = cellId.getUsageIn(subCellId);
-                checkCellUsages[u.indexInParent]--;
-                assert cellUsages[u.indexInParent] != null;
-                for (int j = 0; j < n.ports.length; j++) {
-                    ImmutablePortInst pid = n.ports[j];
-                    if (pid == ImmutablePortInst.EMPTY) continue;
-                    checkPortInst(n, subCellId.getPortId(j));
-                }
-            } else {
-                Technology tech = ((PrimitiveNode)n.protoId).getTechnology();
-                checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
-            }
-        }
-        for (int i = 0; i < checkCellUsages.length; i++)
-            assert checkCellUsages[i] == 0;
-        BitSet arcIds = new BitSet();
-        ImmutableArcInst prevA = null;
-        for (ImmutableArcInst a: arcs) {
-            assert !arcIds.get(a.arcId);
-            arcIds.set(a.arcId);
-			if (prevA != null) {
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevA.name.toString(), a.name.toString());
-				assert cmp <= 0;
-				if (cmp == 0) {
-                    assert !a.name.isTempname();
-					assert prevA.arcId < a.arcId;
-                }
-			}
-            prevA = a;
-            
-            a.check();
-            checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
-            checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
-            
-            Technology tech = a.protoType.getTechnology();
-            checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
-        }
-        
-        if (exportIndex.length > 0)
-            assert exportIndex[exportIndex.length - 1] >= 0;
-        assert exportIndex.length == definedExportsLength;
-        assert definedExports.length() == definedExportsLength;
-        for (int i = 0; i < exports.size(); i++) {
-            ImmutableExport e = exports.get(i);
-            e.check();
-            assert e.exportId.parentId == cellId;
-            assert exportIndex[e.exportId.chronIndex] == i;
-            if (i > 0)
-                assert(TextUtils.STRING_NUMBER_ORDER.compare(exports.get(i - 1).name.toString(), e.name.toString()) < 0) : i;
-            checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
-        }
-        int exportCount = 0;
-        for (int chronIndex = 0; chronIndex < exportIndex.length; chronIndex++) {
-            int portIndex = exportIndex[chronIndex];
-            if (portIndex == -1) {
-                assert !definedExports.get(chronIndex);
-                continue;
-            }
-            assert definedExports.get(chronIndex);
-            exportCount++;
-            assert exports.get(portIndex).exportId.chronIndex == chronIndex;
-        }
-        assert exports.size() == exportCount;
-        BitSet checkDeleted = new BitSet();
-        checkDeleted.set(0, definedExportsLength);
-        checkDeleted.andNot(definedExports);
-        assert deletedExports.equals(checkDeleted);
-        if (definedExports.isEmpty())
-            assert definedExports == EMPTY_BITSET;
-        if (deletedExports.isEmpty())
-            assert deletedExports == EMPTY_BITSET;
-        assert techUsages.equals(checkTechUsages);
-        for (CellUsageInfo cui: cellUsages) {
-            if (cui != null)
-                cui.check();
-        }
+        cellRevision.check();
         
         if (m != null)
             m.check();
     }
     
-    private void checkPortInst(ImmutableNodeInst node, PortProtoId portId) {
-        assert node != null;
-        assert portId.getParentId() == node.protoId;
-        if (portId instanceof ExportId)
-            checkExportId((ExportId)portId);
-    }
-    
-    private void checkExportId(ExportId exportId) {
-        CellUsage u = d.cellId.getUsageIn(exportId.parentId);
-        assert cellUsages[u.indexInParent].usedExports.get(exportId.getChronIndex());
-    }
-    
-    public boolean sameExports(CellBackup thatBackup) {
-        if (thatBackup == this) return true;
-        if (exports.size() != thatBackup.exports.size())
-            return false;
-        for (int i = 0; i < exports.size(); i++) {
-            if (exports.get(i).exportId != thatBackup.exports.get(i).exportId)
-                return false;
-        }
-        return true;
-    }
-    
-    static class CellUsageInfo {
-        final int instCount;
-        final BitSet usedExports;
-        final int usedExportsLength;
-        
-        CellUsageInfo(int instCount, BitSet usedExports) {
-            this.instCount = instCount;
-            usedExportsLength = usedExports.length();
-            this.usedExports = usedExportsLength > 0 ? usedExports : EMPTY_BITSET;
-        }
-        
-        CellUsageInfo with(int instCount, BitSet usedExports) {
-            usedExports = UsageCollector.bitSetWith(this.usedExports, usedExports);
-            if (this.instCount == instCount && this.usedExports == usedExports) return this;
-            return new CellUsageInfo(instCount, usedExports);
-        }
-        
-        void checkUsage(CellBackup subCellBackup) {
-            if (subCellBackup == null)
-                throw new IllegalArgumentException("subCell deleted");
-            if (subCellBackup.definedExportsLength < usedExportsLength || subCellBackup.deletedExports.intersects(usedExports))
-                throw new IllegalArgumentException("exportUsages");
-        }
-        
-        private void check() {
-            assert instCount >= 0;
-            assert usedExportsLength == usedExports.length();
-            if (usedExportsLength == 0)
-                assert usedExports == EMPTY_BITSET;
-        }
-    }
-    
     @Override
-    public String toString() { return d.toString(); }
+    public String toString() { return cellRevision.toString(); }
 
     /**
      * Returns data for size computation (connectivity etc).
@@ -581,6 +154,7 @@ public class CellBackup {
     }
     
     public ERectangle computePrimitiveBounds() {
+        ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
         if (arcs.isEmpty()) return null;
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
         int[] intCoords = new int[4];
@@ -633,6 +207,8 @@ public class CellBackup {
         
         Memoization() {
             cellBackupsMemoized++;
+            ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
+            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
             int maxNodeId = -1;
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++)
                 maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
@@ -648,7 +224,7 @@ public class CellBackup {
             sortConnections(connections, 0, connections.length - 1);
             this.connections = connections;
             
-            ImmutableExport[] exportIndexByOriginalPort = exports.toArray(new ImmutableExport[exports.size()]);
+            ImmutableExport[] exportIndexByOriginalPort = cellRevision.exports.toArray(new ImmutableExport[cellRevision.exports.size()]);
             Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
@@ -736,7 +312,7 @@ public class CellBackup {
             while (low <= high) {
                 int mid = (low + high) >> 1; // try in a middle
                 int con = connections[mid];
-                ImmutableArcInst a = arcs.get(con >>> 1);
+                ImmutableArcInst a = cellRevision.arcs.get(con >>> 1);
                 boolean end = (con & 1) != 0;
                 int endNodeId = end ? a.headNodeId : a.tailNodeId;
                 int cmp = endNodeId - nodeId;
@@ -753,7 +329,7 @@ public class CellBackup {
             return low;
         }
         
-        public ImmutableArrayList<ImmutableArcInst> getArcs() { return arcs; }
+        public ImmutableArrayList<ImmutableArcInst> getArcs() { return cellRevision.arcs; }
         
         /**
          * Method to tell whether the specified ImmutableNodeInst is wiped.
@@ -773,15 +349,15 @@ public class CellBackup {
          * @throws AssertionError if invariant is broken.
          */
         private void check() {
-            assert exportIndexByOriginalPort.length == exports.size();
+            assert exportIndexByOriginalPort.length == cellRevision.exports.size();
             ImmutableExport prevE = null;
             for (ImmutableExport e: exportIndexByOriginalPort) {
                 if (prevE != null)
                     assert BY_ORIGINAL_PORT.compare(prevE, e) < 0;
-                assert e == exports.get(exportIndex[e.exportId.chronIndex]);
+                assert e == cellRevision.getExport(e.exportId);
                 prevE = e;
             }
-            assert connections.length == arcs.size()*2;
+            assert connections.length == cellRevision.arcs.size()*2;
             for (int i = 1; i < connections.length; i++)
                 assert compareConnections(connections[i - 1], connections[i]) < 0;
         }
@@ -811,8 +387,8 @@ public class CellBackup {
         }
         
         private int compareConnections(int con1, int con2) {
-            ImmutableArcInst a1 = arcs.get(con1 >>> 1);
-            ImmutableArcInst a2 = arcs.get(con2 >>> 1);
+            ImmutableArcInst a1 = cellRevision.arcs.get(con1 >>> 1);
+            ImmutableArcInst a2 = cellRevision.arcs.get(con2 >>> 1);
             boolean end1 = (con1 & 1) != 0;
             boolean end2 = (con2 & 1) != 0;
             int nodeId1 = end1 ? a1.headNodeId : a1.tailNodeId;

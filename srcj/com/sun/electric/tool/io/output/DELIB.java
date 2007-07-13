@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
@@ -92,8 +93,10 @@ public class DELIB extends JELIB {
 
         // decide what files should be written
         for (CellBackup cellBackup : snapshot.cellBackups) {
-            if (cellBackup == null || cellBackup.d.getLibId() != libId) continue;
-            String cellFile = getCellFile(cellBackup.d.cellId);
+            if (cellBackup == null) continue;
+            CellRevision cellRevision = cellBackup.cellRevision;
+            if (cellRevision.d.getLibId() != libId) continue;
+            String cellFile = getCellFile(cellRevision.d.cellId);
             String file = filePath + File.separator + cellFile;
             // different cells are in different files, with the exception of
             // different versions of the same cell, which map to the same file name
@@ -105,7 +108,7 @@ public class DELIB extends JELIB {
             // if any versions are modified or do not exist on disk like they should,
             // mark the file to be modified
             File fd = new File(file);
-            if (cellBackup.modified || !fd.exists()) state.modified = true;
+            if (cellRevision.modified || !fd.exists()) state.modified = true;
         }
 
         boolean b = super.writeLib(snapshot, libId, null, false);
@@ -160,34 +163,35 @@ public class DELIB extends JELIB {
      * write a reference to an external file, and write the contents there
      * @param cellBackup
      */
-    void writeCell(CellBackup cellBackup) {
+    @Override
+    void writeCell(CellRevision cellRevision) {
         if (writeHeaderOnly) return;
 
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // new way, no subdir
         } else {
             // old way, subdir
-            String cellDir = getCellSubDir(cellBackup.d.cellId);
+            String cellDir = getCellSubDir(cellRevision.d.cellId);
             File cellFD = new File(filePath + File.separator + cellDir);
             if (cellFD.exists()) {
                 if (!cellFD.isDirectory()) {
                     System.out.println("Error, file "+cellFD+" is not a directory, moving it to "+cellDir+".old");
                     if (!cellFD.renameTo(new File(cellDir+".old"))) {
-                        System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellBackup.d.cellId.cellName);
+                        System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellRevision.d.cellId.cellName);
                         return;
                     }
                 }
             } else {
                 // create the directory
                 if (!cellFD.mkdir()) {
-                    System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellBackup.d.cellId.cellName);
+                    System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellRevision.d.cellId.cellName);
                     return;
                 }
             }
         }
 
         // create cell file in directory
-        String cellFile = getCellFile(cellBackup.d.cellId);
+        String cellFile = getCellFile(cellRevision.d.cellId);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
         CellFileState state = cellFileMap.get(cellFileAbs);
@@ -208,22 +212,22 @@ public class DELIB extends JELIB {
 
             // write out external references for this cell
             HashSet<LibId> usedLibs = new HashSet<LibId>();
-            int[] instCounts = cellBackup.getInstCounts();
+            int[] instCounts = cellRevision.getInstCounts();
             for (int i = 0; i < instCounts.length; i++) {
                 int instCount = instCounts[i];
                 if (instCount == 0) continue;
-                CellUsage u = cellBackup.d.cellId.getUsageIn(i);
+                CellUsage u = cellRevision.d.cellId.getUsageIn(i);
                 usedLibs.add(u.protoId.libId);
             }
 
              // write short header information (library, version)
-            LibId libId = cellBackup.d.getLibId();
+            LibId libId = cellRevision.d.getLibId();
             printWriter.println("H" + convertString(libId.libName) + "|" + Version.getVersion());
 
             super.writeExternalLibraryInfo(libId, usedLibs);
 
             // write out the cell into the new file
-            super.writeCell(cellBackup);
+            super.writeCell(cellRevision);
 
             printWriter.close();
             // set the print writer back

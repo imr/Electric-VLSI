@@ -27,6 +27,7 @@ package com.sun.electric.tool.project;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.Snapshot;
@@ -423,14 +424,16 @@ public class Project extends Listener
 	{
         if (oldBackup == null || newBackup == null) return true;
         assert oldBackup != newBackup;
-        if (oldBackup.nodes != newBackup.nodes) return true;
-        if (oldBackup.arcs != newBackup.arcs) return true;
-        if (oldBackup.exports != newBackup.exports) return true;
+        CellRevision oldRevision = oldBackup.cellRevision;
+        CellRevision newRevision = newBackup.cellRevision;
+        if (oldRevision.nodes != newRevision.nodes) return true;
+        if (oldRevision.arcs != newRevision.arcs) return true;
+        if (oldRevision.exports != newRevision.exports) return true;
         // if (oldBackup.revisionDate != newBackup.revisionDate) return true;
         // if (oldBackup.modified != newBackup.modified) return true; // This will happen if subcells are renamed.
         
-        ImmutableCell oldD = oldBackup.d;
-        ImmutableCell newD = newBackup.d;
+        ImmutableCell oldD = oldRevision.d;
+        ImmutableCell newD = newRevision.d;
         if (!oldD.equalsExceptVariables(newD)) return true;
         
 		int oldLength = oldD.getNumVariables();

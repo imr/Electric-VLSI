@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -70,10 +71,10 @@ public class ReadableDump extends ELIB {
         portProtoError = 0;
         
         // determine proper library order
-        for (CellBackup cellBackup: externalCells)
-            cellOrdering.put(cellBackup.d.cellId, null);
-        for (CellBackup cellBackup: localCells) {
-            CellId cellId = cellBackup.d.cellId;
+        for (CellRevision cellRevision: externalCells)
+            cellOrdering.put(cellRevision.d.cellId, null);
+        for (CellRevision cellRevision: localCells) {
+            CellId cellId = cellRevision.d.cellId;
             if (!cellOrdering.containsKey(cellId)) textRecurse(theLibId, cellId);
         }
         int cellNumber = 0;
@@ -115,35 +116,36 @@ public class ReadableDump extends ELIB {
             CellId cellId = entry.getKey();
             if (cellId.libId != theLibId) continue;
             CellBackup cellBackup = snapshot.getCell(cellId);
-            startCell(cellBackup, 0);
+            CellRevision cellRevision = cellBackup.cellRevision;
+            startCell(cellRevision, 0);
             int groupIndex = groupRenumber[snapshot.cellGroups[cellId.cellIndex]];
             printWriter.println("***cell: " + entry.getValue().intValue() + "/" + groupIndex);
-            writeCellInfo(cellBackup);
+            writeCellInfo(cellRevision);
             
             // write tool information
-            printWriter.println("userbits: " + (cellBackup.d.flags & ELIBConstants.CELL_BITS));
+            printWriter.println("userbits: " + (cellRevision.d.flags & ELIBConstants.CELL_BITS));
             
             // count and number the ports
             portMap = new HashMap<ExportId,Integer>();
             int portCount = 0;
-            for(int exportIndex = 0; exportIndex < cellBackup.exports.size(); exportIndex++) {
-                ImmutableExport e = cellBackup.exports.get(exportIndex);
+            for(int exportIndex = 0; exportIndex < cellRevision.exports.size(); exportIndex++) {
+                ImmutableExport e = cellRevision.exports.get(exportIndex);
                 portMap.put(e.exportId, new Integer(portCount++));
             }
-            printWriter.println("nodes: " + cellBackup.nodes.size() + " arcs: " + cellBackup.arcs.size() +
-                    " porttypes: " + cellBackup.exports.size());
+            printWriter.println("nodes: " + cellRevision.nodes.size() + " arcs: " + cellRevision.arcs.size() +
+                    " porttypes: " + cellRevision.exports.size());
             
             // write variables on the cell
-            writeVariables(cellBackup.d);
+            writeVariables(cellRevision.d);
             
             // write the nodes in this cell
             writeNodes(cellBackup, 0);
             
             // write the portprotos in this cell
-            writeExports(cellBackup);
+            writeExports(cellRevision);
             
             // write the arcs in this cell
-            writeArcs(cellBackup);
+            writeArcs(cellRevision);
             printWriter.println("celldone: " + cellId.cellName.getName());
         }
         
@@ -176,7 +178,7 @@ public class ReadableDump extends ELIB {
      * in the outout
      */
     private void textRecurse(LibId libId, CellId cellId) {
-        for (ImmutableNodeInst n: snapshot.getCell(cellId).nodes) {
+        for (ImmutableNodeInst n: snapshot.getCellRevision(cellId).nodes) {
             if (!(n.protoId instanceof CellId)) continue;
             CellId subCellId = (CellId)n.protoId;
             if (subCellId.libId != libId) continue;

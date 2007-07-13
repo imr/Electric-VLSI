@@ -23,8 +23,8 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -56,7 +56,7 @@ public class Topology {
     public Topology(Cell cell, boolean loadBackup) {
         this.cell = cell;
         if (loadBackup)
-            updateArcs(cell.backup());
+            updateArcs(cell.backup().cellRevision);
     }
     
 	/****************************** ARCS ******************************/
@@ -211,12 +211,12 @@ public class Topology {
         return changed ? newArcs : null;
     }
     
-    public void updateArcs(CellBackup newBackup) {
+    public void updateArcs(CellRevision newRevision) {
         validArcBounds = false;
         arcs.clear();
         maxArcSuffix = -1;
-        for (int i = 0; i < newBackup.arcs.size(); i++) {
-            ImmutableArcInst d = newBackup.arcs.get(i);
+        for (int i = 0; i < newRevision.arcs.size(); i++) {
+            ImmutableArcInst d = newRevision.arcs.get(i);
             while (d.arcId >= chronArcs.size()) chronArcs.add(null);
             ArcInst ai = chronArcs.get(d.arcId);
             PortInst headPi = cell.getPortInst(d.headNodeId, d.headPortId);

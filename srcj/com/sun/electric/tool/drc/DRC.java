@@ -212,13 +212,13 @@ public class DRC extends Listener
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
                 ImmutableNodeInst d = ni.getD();
-                if (oldBackup == null || oldBackup.getNode(d.nodeId) != d)
+                if (oldBackup == null || oldBackup.cellRevision.getNode(d.nodeId) != d)
                     includeGeometric(ni);
             }
             for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
                 ArcInst ai = it.next();
                 ImmutableArcInst d = ai.getD();
-                if (oldBackup == null || oldBackup.getArc(d.arcId) != d)
+                if (oldBackup == null || oldBackup.cellRevision.getArc(d.arcId) != d)
                     includeGeometric(ai);
             }
         }

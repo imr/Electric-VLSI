@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.IdManager;
 import com.sun.electric.database.ImmutableArcInst;
@@ -98,8 +99,8 @@ public class ELIB extends Output
     /** size correctors for technologies */                     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
     /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
     /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
-    ArrayList<CellBackup> localCells = new ArrayList<CellBackup>();
-    ArrayList<CellBackup> externalCells = new ArrayList<CellBackup>();
+    ArrayList<CellRevision> localCells = new ArrayList<CellRevision>();
+    ArrayList<CellRevision> externalCells = new ArrayList<CellRevision>();
 		int nodeIndex = 0;
 		int portProtoIndex = 0;
 		int nodeProtoIndex = 0;
@@ -136,11 +137,12 @@ public class ELIB extends Output
         nameSpace = new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER);
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            CellId cellId = cellBackup.d.cellId;
+            CellRevision cellRevision = cellBackup.cellRevision;
+            CellId cellId = cellRevision.d.cellId;
             if (cellId.libId != theLibId) continue;
-            gatherCell(cellBackup.d.cellId);
+            gatherCell(cellRevision.d.cellId);
             
-            for (ImmutableNodeInst n: cellBackup.nodes) {
+            for (ImmutableNodeInst n: cellRevision.nodes) {
                 NodeProtoId np = n.protoId;
                 if (np instanceof CellId) {
                     gatherCell((CellId)np);
@@ -159,7 +161,7 @@ public class ELIB extends Output
                 gatherFont(n.protoDescriptor);
             }
             
-            for (ImmutableArcInst a: cellBackup.arcs) {
+            for (ImmutableArcInst a: cellRevision.arcs) {
                 ArcProto ap = a.protoType;
                 gatherObj(ap);
                 gatherTech(ap.getTechnology());
@@ -169,13 +171,13 @@ public class ELIB extends Output
                 gatherFont(a.nameDescriptor);
             }
             
-            for (ImmutableExport e: cellBackup.exports) {
+            for (ImmutableExport e: cellRevision.exports) {
                 //gatherObj(e.getOriginalPort().getPortProto());
                 gatherVariables(null, e);
                 gatherFont(e.nameDescriptor);
             }
             
-            gatherVariables(null, cellBackup.d);
+            gatherVariables(null, cellRevision.d);
         }
         gatherVariables(null, snapshot.getLib(theLibId).d);
         
@@ -213,7 +215,7 @@ public class ELIB extends Output
         HashMap<LibId,TreeMap<CellName,CellId>> sortedCellIds = new HashMap<LibId,TreeMap<CellName,CellId>>();
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            CellId cellId = cellBackup.d.cellId;
+            CellId cellId = cellBackup.cellRevision.d.cellId;
             if (!objInfo.containsKey(cellId)) continue;
             LibId libId = cellId.libId;
             sortedLibIds.put(libId.libName, libId);
@@ -225,32 +227,32 @@ public class ELIB extends Output
             sortedCellIdsInLibrary.put(cellId.cellName, cellId);
         }
         for (CellId cellId: sortedCellIds.get(theLibId).values())
-            localCells.add(snapshot.getCell(cellId));
+            localCells.add(snapshot.getCellRevision(cellId));
         
         // count and number the cells, nodes, arcs, and ports in this library
         int maxGroup = -1;
-        ArrayList<TreeMap<CellName,CellBackup>> cellGroups_ = new ArrayList<TreeMap<CellName,CellBackup>>();
-        for (CellBackup cellBackup: localCells)
-            maxGroup = Math.max(maxGroup, snapshot.cellGroups[cellBackup.d.cellId.cellIndex]);
+        ArrayList<TreeMap<CellName,CellId>> cellGroups_ = new ArrayList<TreeMap<CellName,CellId>>();
+        for (CellRevision cellRevision: localCells)
+            maxGroup = Math.max(maxGroup, snapshot.cellGroups[cellRevision.d.cellId.cellIndex]);
         groupRenumber = new int[maxGroup + 1];
         
-        for(CellBackup cellBackup: localCells) {
-            CellId cellId = cellBackup.d.cellId;
+        for(CellRevision cellRevision: localCells) {
+            CellId cellId = cellRevision.d.cellId;
             cellOrdering.put(cellId, new Integer(nodeProtoIndex));
             putObjIndex(cellId, nodeProtoIndex++);
-            for (ImmutableExport e: cellBackup.exports)
+            for (ImmutableExport e: cellRevision.exports)
                 putObjIndex(e.exportId, portProtoIndex++);
-            nodeIndex += cellBackup.nodes.size();
-            arcIndex += cellBackup.arcs.size();
+            nodeIndex += cellRevision.nodes.size();
+            arcIndex += cellRevision.arcs.size();
             
             int snapshotGroup = snapshot.cellGroups[cellId.cellIndex];
             int elibGroup = groupRenumber[snapshotGroup];
             if (elibGroup == 0) {
-                cellGroups_.add(new TreeMap<CellName,CellBackup>());
+                cellGroups_.add(new TreeMap<CellName,CellId>());
                 elibGroup = cellGroups_.size();
                 groupRenumber[snapshotGroup] = elibGroup;
             }
-            cellGroups_.get(elibGroup - 1).put(cellId.cellName, cellBackup);
+            cellGroups_.get(elibGroup - 1).put(cellId.cellName, cellId);
             
             // gather proto name if creating version-6-compatible output
             if (compatibleWith6) {
@@ -260,12 +262,12 @@ public class ELIB extends Output
             }
         }
         for (int i = 0; i < cellGroups_.size(); i++) {
-            TreeMap<CellName,CellBackup> cellGroup_ = cellGroups_.get(i);
-            Iterator<CellBackup> git = cellGroup_.values().iterator();
-            CellId firstCellInGroup = git.next().d.cellId;
+            TreeMap<CellName,CellId> cellGroup_ = cellGroups_.get(i);
+            Iterator<CellId> git = cellGroup_.values().iterator();
+            CellId firstCellInGroup = git.next();
             CellId lastCellInGroup = firstCellInGroup;
             while (git.hasNext()) {
-                CellId cellInGroup = git.next().d.cellId;
+                CellId cellInGroup = git.next();
 //                assert cellInSameGroup.get(lastCellInGroup) == cellInGroup;
                 cellInSameGroup.put(lastCellInGroup, cellInGroup);
                 lastCellInGroup = cellInGroup;
@@ -279,10 +281,10 @@ public class ELIB extends Output
             if (libId == theLibId) continue;
             for (CellId cellId: sortedCellIds.get(libId).values()) {
                 assert objInfo.containsKey(cellId);
-                CellBackup cellBackup = snapshot.getCell(cellId);
-                externalCells.add(cellBackup);
+                CellRevision cellRevision = snapshot.getCellRevision(cellId);
+                externalCells.add(cellRevision);
                 putObjIndex(cellId, nodeProtoIndex++);
-                for (ImmutableExport e: cellBackup.exports)
+                for (ImmutableExport e: cellRevision.exports)
                     putObjIndex(e.exportId, portProtoIndex++);
                 
                 // gather proto name if creating version-6-compatible output
@@ -414,19 +416,19 @@ public class ELIB extends Output
 		// write total number of arcinsts, nodeinsts, and ports in each cell
 		for (CellId cellId: cellOrdering.keySet())
 		{
-            CellBackup cellBackup = snapshot.getCell(cellId);
-			writeBigInteger(cellBackup.arcs.size());
-			writeBigInteger(cellBackup.nodes.size());
-			writeBigInteger(cellBackup.exports.size());
+            CellRevision cellRevision = snapshot.getCellRevision(cellId);
+			writeBigInteger(cellRevision.arcs.size());
+			writeBigInteger(cellRevision.nodes.size());
+			writeBigInteger(cellRevision.exports.size());
 		}
 
 		// write dummy numbers of arcinsts and nodeinst; count ports for external cells
-        for (CellBackup cellBackup: externalCells) {
-            CellId cellId = cellBackup.d.cellId;
+        for (CellRevision cellRevision: externalCells) {
+            CellId cellId = cellRevision.d.cellId;
             if (!objInfo.containsKey(cellId)) continue;
             writeBigInteger(-1);
             writeBigInteger(-1);
-            writeBigInteger(cellBackup.exports.size());
+            writeBigInteger(cellRevision.exports.size());
         }
 
 		// write the names of technologies and primitive prototypes
@@ -523,10 +525,10 @@ public class ELIB extends Output
 		// write all of the cells in this library
         nodeIndex = 0;
 		for (CellId cellId: cellOrdering.keySet()) {
-            CellBackup cellBackup = snapshot.getCell(cellId);
-            startCell(cellBackup, nodeIndex);
-			writeNodeProto(cellBackup);
-            nodeIndex += cellBackup.nodes.size();
+            CellRevision cellRevision = snapshot.getCellRevision(cellId);
+            startCell(cellRevision, nodeIndex);
+			writeNodeProto(cellRevision);
+            nodeIndex += cellRevision.nodes.size();
 		}
 
 		// write all of the cells in external libraries
@@ -537,12 +539,12 @@ public class ELIB extends Output
         arcIndex = 0;
 		for (CellId cellId: cellOrdering.keySet())
 		{
-            CellBackup cellBackup = snapshot.getCell(cellId);
-            startCell(cellBackup, nodeIndex);
-            writeArcs(cellBackup);
-            writeNodes(cellBackup, arcIndex);
-            nodeIndex += cellBackup.nodes.size();
-            arcIndex += cellBackup.arcs.size();
+            CellRevision cellRevision = snapshot.getCellRevision(cellId);
+            startCell(cellRevision, nodeIndex);
+            writeArcs(cellRevision);
+            writeNodes(snapshot.getCell(cellId), arcIndex);
+            nodeIndex += cellRevision.nodes.size();
+            arcIndex += cellRevision.arcs.size();
         }
 		// library written successfully
 		return false;
@@ -591,8 +593,8 @@ public class ELIB extends Output
 				} else if (v instanceof ExportId)
 				{
                     ExportId exportId = (ExportId)v;
-                    CellBackup cellBackup = snapshot.getCell(exportId.parentId);
-                    if (cellBackup != null && cellBackup.getExport(exportId) != null) {
+                    CellRevision cellRevision = snapshot.getCellRevision(exportId.parentId);
+                    if (cellRevision != null && cellRevision.getExport(exportId) != null) {
                         gatherObj(exportId);
                         gatherCell(exportId.parentId);
                     }
@@ -702,13 +704,13 @@ public class ELIB extends Output
         return fontAssociation;
     }
 
-    void startCell(CellBackup cellBackup, int baseNodeIndex) {
+    void startCell(CellRevision cellRevision, int baseNodeIndex) {
         int maxNodeId = -1;
-        for (ImmutableNodeInst n: cellBackup.nodes)
+        for (ImmutableNodeInst n: cellRevision.nodes)
             maxNodeId = Math.max(maxNodeId, n.nodeId);
         nodeIndexByNodeId = new int[maxNodeId + 1];
-        for (int nodeIndex = 0; nodeIndex < cellBackup.nodes.size(); nodeIndex++) {
-            ImmutableNodeInst n = cellBackup.nodes.get(nodeIndex);
+        for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
+            ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
             nodeIndexByNodeId[n.nodeId] = nodeIndex + baseNodeIndex;
         }
     }
@@ -717,10 +719,10 @@ public class ELIB extends Output
 
     void writeExternalCells() throws IOException {
         for (int i = 0; i < externalCells.size(); i++) {
-            CellBackup cellBackup = externalCells.get(i);
-            CellId cellId = cellBackup.d.cellId;
+            CellRevision cellRevision = externalCells.get(i);
+            CellId cellId = cellRevision.d.cellId;
             writeTxt("***cell: " + i);  // TXT only
-            writeCellInfo(cellBackup);
+            writeCellInfo(cellRevision);
             
             LibraryBackup libBackup = snapshot.getLib(cellId.libId);
             URL fileUrl = libBackup.d.libFile;
@@ -730,16 +732,16 @@ public class ELIB extends Output
             writeString(filePath); 
             
             // write the number of portprotos on this nodeproto
-            writeBigInteger(cellBackup.exports.size());
-            for (ImmutableExport e: cellBackup.exports) {
+            writeBigInteger(cellRevision.exports.size());
+            for (ImmutableExport e: cellRevision.exports) {
                 // write the portproto name
                 writeString(e.name.toString());
             }
         }
     }
     
-    void writeCellInfo(CellBackup cellBackup) throws IOException {
-        CellId cellId = cellBackup.d.cellId;
+    void writeCellInfo(CellRevision cellRevision) throws IOException {
+        CellId cellId = cellRevision.d.cellId;
         
         if (this instanceof ReadableDump) {
             writeTxt("name: " + cellId.cellName.getName() + cellId.cellName.getView().getAbbreviationExtension());
@@ -764,15 +766,15 @@ public class ELIB extends Output
         }
         writeInt("version: ", cellId.cellName.getVersion());
             
-        writeInt("creationdate: ", (int)(cellBackup.d.creationDate/1000));
-        writeInt("revisiondate: ", (int)(cellBackup.revisionDate/1000));
+        writeInt("creationdate: ", (int)(cellRevision.d.creationDate/1000));
+        writeInt("revisiondate: ", (int)(cellRevision.revisionDate/1000));
             
         // write the nodeproto bounding box
         ERectangle bounds = snapshot.getCellBounds(cellId);
-        writeGridCoord(cellBackup, "lowx: ", bounds.getGridMinX());
-        writeGridCoord(cellBackup, "highx: ", bounds.getGridMaxX());
-        writeGridCoord(cellBackup, "lowy: ", bounds.getGridMinY());
-        writeGridCoord(cellBackup, "highy: ", bounds.getGridMaxY());
+        writeGridCoord(cellRevision, "lowx: ", bounds.getGridMinX());
+        writeGridCoord(cellRevision, "highx: ", bounds.getGridMaxX());
+        writeGridCoord(cellRevision, "lowy: ", bounds.getGridMinY());
+        writeGridCoord(cellRevision, "highy: ", bounds.getGridMaxY());
 //        Technology tech = cellBackup.d.tech;
 //        int lowX = (int)Math.round((bounds.getLambdaMinX() * tech.getScale()*2));
 //        int highX = (int)Math.round((bounds.getLambdaMaxX() * tech.getScale()*2));
@@ -784,24 +786,25 @@ public class ELIB extends Output
 //        writeInt("highy: ", highY);
     }
     
-    private void writeNodeProto(CellBackup cellBackup) throws IOException {
-        writeCellInfo(cellBackup);
+    private void writeNodeProto(CellRevision cellRevision) throws IOException {
+        writeCellInfo(cellRevision);
         
-        writeExports(cellBackup);
+        writeExports(cellRevision);
         // write tool information
         writeBigInteger(0);		// was "adirty"
-        writeBigInteger(cellBackup.d.flags & ELIBConstants.CELL_BITS);
+        writeBigInteger(cellRevision.d.flags & ELIBConstants.CELL_BITS);
         
         // write variable information
-        writeVariables(cellBackup.d);
+        writeVariables(cellRevision.d);
     }
     
     void writeNodes(CellBackup cellBackup, int arcBase) throws IOException {
 //		Technology tech = cellBackup.d.tech;
         CellBackup.Memoization m = cellBackup.getMemoization();
+        CellRevision cellRevision = cellBackup.cellRevision;
         
-        for (int nodeIndex = 0; nodeIndex < cellBackup.nodes.size(); nodeIndex++) {
-            ImmutableNodeInst n = cellBackup.nodes.get(nodeIndex);
+        for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
+            ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
             writeTxt("**node: " + nodeIndex);
             
             // write descriptive information
@@ -836,10 +839,10 @@ public class ELIB extends Output
 //                lowY = (int)Math.round((n.anchor.getLambdaY() - n.size.getLambdaY()/2) * tech.getScale()*2);
 //                highY = (int)Math.round((n.anchor.getLambdaY() + n.size.getLambdaY()/2) * tech.getScale()*2);
             }
-            writeGridCoord(cellBackup, "lowx: ", trueCenterX - xSize*0.5);
-            writeGridCoord(cellBackup, "lowy: ", trueCenterY - ySize*0.5);
-            writeGridCoord(cellBackup, "highx: ", trueCenterX + xSize*0.5);
-            writeGridCoord(cellBackup, "highy: ", trueCenterY + ySize*0.5);
+            writeGridCoord(cellRevision, "lowx: ", trueCenterX - xSize*0.5);
+            writeGridCoord(cellRevision, "lowy: ", trueCenterY - ySize*0.5);
+            writeGridCoord(cellRevision, "highx: ", trueCenterX + xSize*0.5);
+            writeGridCoord(cellRevision, "highy: ", trueCenterY + ySize*0.5);
 //            writeInt("lowx: ", lowX);
 //            writeInt("lowy: ", lowY);
 //            writeInt("highx: ", highX);
@@ -847,8 +850,8 @@ public class ELIB extends Output
             
             // write anchor point too
             if (protoId instanceof CellId && !compatibleWith6) {
-                writeGridCoord(cellBackup, null, n.anchor.getGridX());
-                writeGridCoord(cellBackup, null, n.anchor.getGridY());
+                writeGridCoord(cellRevision, null, n.anchor.getGridX());
+                writeGridCoord(cellRevision, null, n.anchor.getGridY());
 //                int anchorX = (int)Math.round(n.anchor.getLambdaX() * tech.getScale() * 2);
 //                int anchorY = (int)Math.round(n.anchor.getLambdaY() * tech.getScale() * 2);
 //                writeBigInteger(anchorX);
@@ -923,11 +926,11 @@ public class ELIB extends Output
         }
     }
     
-	void writeArcs(CellBackup cellBackup) throws IOException {
-//        double gridScale = cellBackup.d.tech.getScale()*2/DBMath.GRID;
+	void writeArcs(CellRevision cellRevision) throws IOException {
+//        double gridScale = cellRevision.d.tech.getScale()*2/DBMath.GRID;
         
-        for (int arcIndex = 0; arcIndex < cellBackup.arcs.size(); arcIndex++) {
-            ImmutableArcInst a = cellBackup.arcs.get(arcIndex);
+        for (int arcIndex = 0; arcIndex < cellRevision.arcs.size(); arcIndex++) {
+            ImmutableArcInst a = cellRevision.arcs.get(arcIndex);
             
             writeTxt("**arc: " + arcIndex); // TXT only
             // write the arcproto pointer
@@ -937,16 +940,16 @@ public class ELIB extends Output
             // write basic arcinst information
             int userBits = a.getElibBits();
             long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
-            writeGridCoord(cellBackup, "width: ", arcWidth);
-            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellBackup.d.techId)*2/DBMath.GRID));
+            writeGridCoord(cellRevision, "width: ", arcWidth);
+            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellRevision.d.techId)*2/DBMath.GRID));
 //            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
 //            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
             writeTxt("userbits: " + userBits); // only TXT
             
             // write the arcinst tail information
             writeTxt("*end: 0");
-            writeGridCoord(cellBackup, "xpos: ", a.tailLocation.getGridX());
-            writeGridCoord(cellBackup, "ypos: ", a.tailLocation.getGridY());
+            writeGridCoord(cellRevision, "xpos: ", a.tailLocation.getGridX());
+            writeGridCoord(cellRevision, "ypos: ", a.tailLocation.getGridY());
 //            writeInt("xpos: ", (int)Math.round(a.tailLocation.getGridX() * gridScale));
 //            writeInt("ypos: ", (int)Math.round(a.tailLocation.getGridY() * gridScale));
             writeInt("node: ", nodeIndexByNodeId[a.tailNodeId]);
@@ -954,8 +957,8 @@ public class ELIB extends Output
             
             // write the arcinst head information
             writeTxt("*end: 1");
-            writeGridCoord(cellBackup, "xpos: ", a.headLocation.getGridX());
-            writeGridCoord(cellBackup, "ypos: ", a.headLocation.getGridY());
+            writeGridCoord(cellRevision, "xpos: ", a.headLocation.getGridX());
+            writeGridCoord(cellRevision, "ypos: ", a.headLocation.getGridY());
 //            writeInt("xpos: ", (int)Math.round(a.headLocation.getGridX() * gridScale));
 //            writeInt("ypos: ", (int)Math.round(a.headLocation.getGridY() * gridScale));
             writeInt("node: ", nodeIndexByNodeId[a.headNodeId]);
@@ -969,11 +972,11 @@ public class ELIB extends Output
         }
 	}
     
-    void writeExports(CellBackup cellBackup) throws IOException {
-        writeBigInteger(cellBackup.exports.size());
+    void writeExports(CellRevision cellRevision) throws IOException {
+        writeBigInteger(cellRevision.exports.size());
         
-        for (int exportIndex = 0; exportIndex < cellBackup.exports.size(); exportIndex++) {
-            ImmutableExport e = cellBackup.exports.get(exportIndex);
+        for (int exportIndex = 0; exportIndex < cellRevision.exports.size(); exportIndex++) {
+            ImmutableExport e = cellRevision.exports.get(exportIndex);
             writeTxt("**porttype: " + exportIndex); // TXT only
                 
             // write the connecting subnodeinst for this portproto
@@ -1324,8 +1327,18 @@ public class ELIB extends Output
      * @param gridCoord coordinate in grid units.
      */
     private void writeGridCoord(CellBackup cellBackup, String keyword, double gridCoord) throws IOException {
+        writeGridCoord(cellBackup.cellRevision, keyword, gridCoord);
+    }
+    
+    /**
+     * Method to write a coordinate as (4 bytes) integer to the ouput stream.
+     * @param cellRevision cell to determine scale
+     * @param keyword keywork fro ReadableDump
+     * @param gridCoord coordinate in grid units.
+     */
+    private void writeGridCoord(CellRevision cellRevision, String keyword, double gridCoord) throws IOException {
 //        int i = gridCoordToElib(cellBackup.d.tech, gridCoord);
-        Technology tech = snapshot.getTech(cellBackup.d.techId);
+        Technology tech = snapshot.getTech(cellRevision.d.techId);
         writeInt(keyword, gridCoordToElib(tech, gridCoord));
     }
     
