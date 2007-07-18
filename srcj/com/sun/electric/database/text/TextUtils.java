@@ -713,7 +713,42 @@ public class TextUtils
 		return false;
 	}
 
-	/**
+    /**
+     * Method to determine whether or not a string is a postfix formatted
+     * number, such as 1.02f.
+     * @param pp the string to test.
+     * @return true if it is a postfix number.
+     */
+    public static boolean isANumberPostFix(String pp) {
+        // ignore the minus sign
+        int i = 0;
+        int len = pp.length();
+        if (i < len && (pp.charAt(i) == '+' || pp.charAt(i) == '-')) i++;
+
+        boolean founddigits = false;
+        while (i < len && (TextUtils.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
+        {
+            if (pp.charAt(i) != '.') founddigits = true;
+            i++;
+        }
+
+        if (!founddigits) return false;
+        if (i == len) return true;
+
+        // handle post fix character (spice format)
+        if (i+1 == len) {
+            char c = Character.toLowerCase(pp.charAt(i));
+            if (c == 'g' || c == 'k' || c == 'm' || c == 'u' ||
+                c == 'n' || c == 'p' || c == 'f') {
+                return true;
+            }
+        } else if (pp.substring(i).toLowerCase().equals("meg"))
+            return true;
+
+        return false;
+    }
+
+    /**
 	 * Method to describe a time value as a String.
 	 * @param milliseconds the time span in milli-seconds.
 	 * @return a String describing the time span with the

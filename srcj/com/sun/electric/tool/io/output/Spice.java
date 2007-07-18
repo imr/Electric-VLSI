@@ -1144,6 +1144,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
+                        } else if (TextUtils.isANumberPostFix(extra)) {
+                            // do nothing
                         } else {
                             extra = "'"+extra+"'";
                         }
@@ -1195,6 +1197,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
+                        } else if (TextUtils.isANumberPostFix(extra)) {
+                            // do nothing
 						} else {
                             extra = "'"+extra+"'";
                         }
@@ -1220,6 +1224,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
+                        } else if (TextUtils.isANumberPostFix(extra)) {
+                            // do nothing
                         } else {
                             extra = "'"+extra+"'";
                         }
