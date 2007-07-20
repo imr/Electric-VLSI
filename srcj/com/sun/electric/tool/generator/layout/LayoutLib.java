@@ -68,6 +68,9 @@ public class LayoutLib {
 	 * constant. Negative dimensions specify mirroring for certain
 	 * methods. */
 	public static final double DEF_SIZE = Double.POSITIVE_INFINITY;
+	public static enum Corner {
+		TL, TR, BL, BR;
+	}
 
 	// ---------------------------- public methods ---------------------------
 	/**
@@ -756,6 +759,28 @@ public class LayoutLib {
 			if (prev!=null) abutBottomTop(prev, space, ni); 
 			prev = ni;
 		}
+	}
+	private static Point2D getPointAtCorner(NodeInst ni, Corner cnr) {
+		Rectangle2D b = ni.findEssentialBounds();
+		double x = (cnr==Corner.TL || cnr==Corner.BL) ? 
+			b.getMinX()
+		:
+			b.getMaxX();
+		
+		double y = (cnr==Corner.BL || cnr==Corner.BR) ? 
+			b.getMinY()
+		:
+			b.getMaxY(); 
+		return new Point2D.Double(x, y);
+	}
+	public static void alignCorners(NodeInst niFixed, Corner cnrFixed,
+			                        NodeInst niMove, Corner cnrMove,
+			                        double offsetX, double offsetY) {
+		Point2D ptFixed = getPointAtCorner(niFixed, cnrFixed);
+		Point2D ptMove = getPointAtCorner(niMove, cnrMove);
+		double dx = ptFixed.getX() - ptMove.getX() + offsetX;
+		double dy = ptFixed.getY() - ptMove.getY() + offsetY;
+		niMove.move(dx, dy);
 	}
 
     /**

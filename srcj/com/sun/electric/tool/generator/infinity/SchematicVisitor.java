@@ -19,18 +19,33 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class SchematicVisitor extends Visitor {
-	private Library stageLib;
-	private Cell layCell;
+	private static final Variable.Key LAYOUT_SPACE_KEY = Variable.newKey("ATTR_LAYOUT_SPACE");
+	private final List<Library> primLayLibs;
+	private final Cell layCell;
 	private SchematicPosition schPos = new SchematicPosition();
 	private List<NodeInst> layInsts = new ArrayList<NodeInst>();
 	private Map<NodeInst, SchematicPosition> layInstToSchPos = 
 		new HashMap<NodeInst, SchematicPosition>();
+	private Map<NodeInst, Double> layInstToSpacing =
+		new HashMap<NodeInst, Double>();
 	private Map<Integer, ToConnect> netIdToToConn =
 		new HashMap<Integer, ToConnect>();
 
+	private static final void prln(String msg) {System.out.println(msg);}
+	
+	// Is this Cell something we have layout for?
+	private boolean isLayoutPrimitive(Cell c) {
+		Library lib = c.getLibrary();
+		for (Library l : primLayLibs) {
+			if (lib==l) return true;
+		}
+		return false;
+	}
+	
 	private Cell findLayout(Cell icon) {
 		CellGroup group = icon.getCellGroup();
 		for (Iterator<Cell> cIt=group.getCells(); cIt.hasNext();) {
@@ -50,8 +65,12 @@ public class SchematicVisitor extends Visitor {
 			for (int i=0; i<busWid; i++) {
 				String subNm = eNmKey.subname(i).toString();
 				PortInst layPortInst = layInst.findPortInst(subNm);
-				LayoutLib.error(layPortInst==null,
-						        "layout instance port missing");
+				if (layPortInst==null) {
+					prln("layout Cell: "+layInst.getProto().getName()+
+						 " missing port: "+subNm);
+					continue;
+				}
+						 
 				Network net = nl.getNetwork(iconInst, e, i);
 				int netID = info.getNetID(net);
 				ToConnect conn = netIdToToConn.get(netID);
@@ -64,6 +83,44 @@ public class SchematicVisitor extends Visitor {
 		}
 	}
 	
+	// The name "foo[3]__bar is illegal in Electric because the
+	// array reference is inside the name. Change inner array
+	// refs to use _ instead: "foo_3___bar".
+	private String removeInnerArrayRefs(String instNm) {
+		final int LEN = instNm.length();
+		char[] chars = new char[LEN];
+		boolean findMatchOpen = false;
+		for (int i=LEN-1; i>=0; i--) {
+			chars[i] = instNm.charAt(i);
+			if (i==LEN-1 && chars[i]==']') {
+				findMatchOpen = true;
+				continue;
+			}
+			if (findMatchOpen && chars[i]=='[') {
+				findMatchOpen = false;
+				continue;
+			}
+			if (chars[i]==']' || chars[i]=='[') {
+				chars[i] = '_';
+			}
+		}
+		if (findMatchOpen) {
+			// Never found a matching open.  Delete the close
+			chars[LEN-1] = '_';
+		}
+		return new String(chars);
+	}
+	
+	private double getLayoutSpacing(Nodable no) {
+		NodeInst iconInst = no.getNodeInst();
+		Variable v = iconInst.getVar(LAYOUT_SPACE_KEY);
+		if (v==null) return 0;
+		Object o = v.getObject();
+		if (o instanceof Integer) return ((Integer)o).doubleValue();
+		if (o instanceof Float) return ((Float)o).doubleValue();
+		if (o instanceof Double) return ((Double)o).doubleValue();
+		return 0;
+	}
 
 	public boolean visitNodeInst(Nodable no, CellInfo info) {
 		// ignore primitives
@@ -77,26 +134,28 @@ public class SchematicVisitor extends Visitor {
 		Cell iconSch = icon.getEquivalent();
 		if (iconSch==schematic) return false;
 
-		// expand Cells not contained by stageLib
-		if (icon.getLibrary()!=stageLib) return true;
+		// expand Cells that are not layout primitives
+		if (!isLayoutPrimitive(iconSch)) return true;
 		
-		// Icon belongs to stageLib, get layout
+		// Icon is a layout primitive, get layout
 		Cell lay = findLayout(icon);
 		
 		LayoutLib.error(lay==null, 
 		        "Can't find layout for icon: "+icon.getName());
 
 		NodeInst layInst = LayoutLib.newNodeInst(lay, 0, 0, 0, 0, 0, layCell);
-		layInst.setName(info.getUniqueNodableName(no, "__"));
+		String instNm = info.getUniqueNodableName(no, "__");
+		layInst.setName(removeInnerArrayRefs(instNm));
 		layInsts.add(layInst);
 		SchematicPosition copy = schPos.copy();
 		copy.push(no.getNodeInst().getBounds().getMinX());
 		layInstToSchPos.put(layInst, copy);
-
+		layInstToSpacing.put(layInst, getLayoutSpacing(no));
 		getLayConnectionsFromIcon(icon, no, layInst, info);
 		
 		return false;
 	}
+	
 	public boolean enterCell(CellInfo info) {
 		if (info.isRootCell()) {
 			// create ToConnect for every exported Network
@@ -119,8 +178,8 @@ public class SchematicVisitor extends Visitor {
 		if (!info.isRootCell())  schPos.pop();
 	}
 	
-	public SchematicVisitor(Cell layCell, Library stageLib) {
-		this.stageLib = stageLib;
+	public SchematicVisitor(Cell layCell, List<Library> primLayLibs) {
+		this.primLayLibs = primLayLibs;
 		this.layCell = layCell;
 	}
 	public List<ToConnect> getLayoutToConnects() {
@@ -134,6 +193,10 @@ public class SchematicVisitor extends Visitor {
 	public Map<NodeInst, SchematicPosition> getLayInstSchematicPositions() {
 		return layInstToSchPos;
 	}
-	
+	/** when stacking layout instances, user may request extra space between
+	 * a particular instance and its predecessor */
+	public Map<NodeInst, Double> getLayInstSpacing() {
+		return layInstToSpacing;
+	}
 
 }

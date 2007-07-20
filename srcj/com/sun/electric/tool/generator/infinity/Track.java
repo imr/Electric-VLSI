@@ -46,6 +46,21 @@ public class Track {
 		sanityCheck();
 		return seg;
 	}
+	/** Allocate longest segment within the interval [min, max] that
+	 * covers src. */
+	public Segment allocateBiggest(double min, double src, double max) {
+		Segment prev = null;
+		Segment next = null;
+		for (Segment s : segments) {
+			if (s.max<=src)  prev=s;
+			// if segment already covers src then all is lost
+			if (s.min<=src && src<=s.max) return null;
+			if (src<=s.min) {next=s; break;}
+		}
+		if (next!=null) max = Math.min(max, next.min);
+		if (prev!=null) min = Math.max(min, prev.max);
+		return new Segment(min, max, this, trackNdx);
+	}
 	public boolean isHorizontal() {return channel.isHorizontal();}
 	public double getCenter() {return center;}
 	public int getIndex() {return trackNdx;}

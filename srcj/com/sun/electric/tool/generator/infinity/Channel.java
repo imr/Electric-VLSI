@@ -3,6 +3,8 @@ package com.sun.electric.tool.generator.infinity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.electric.tool.generator.layout.LayoutLib;
+
 
 /** rectangular region for routing */
 public class Channel implements Comparable<Channel> {
@@ -11,18 +13,24 @@ public class Channel implements Comparable<Channel> {
 	private static final double METAL_WIDE_SPACE = 4;
 	private static final double METAL_SPACE = 3;
 	private static final double METAL_WIDTH = 3;
-	private boolean horizontal;
-    private List<Track> tracks = new ArrayList<Track>();
-    private double minL, maxL,   // dimensions along channel length    
-                   minW, maxW;   // dimensions along channel width
+	private static final double METAL_PITCH = METAL_SPACE + METAL_WIDTH;
+	private final boolean horizontal;
+    private final List<Track> tracks = new ArrayList<Track>();
+    private final double minL, maxL,   // dimensions along channel length    
+                         minW, maxW;   // dimensions along channel width
+    private final String description;
+    
+    private static void prln(String msg) {System.out.println(msg);}
 
     public Channel(boolean horizontal, double l1, double l2, 
-    		       double w1, double w2) {
+    		       double w1, double w2,
+    		       String description) {
     	this.horizontal = horizontal;
     	this.minL = Math.min(l1, l2);
     	this.maxL = Math.max(l1, l2);
     	this.minW = Math.min(w1, w2);
     	this.maxW = Math.max(w1, w2);
+    	this.description = description;
     	double trackCent=minW+METAL_WIDE_SPACE+METAL_WIDTH/2;
     	while (trackCent+METAL_WIDTH/2 + METAL_WIDE_SPACE <=maxW) {
     		int ndx = tracks.size();
@@ -44,8 +52,8 @@ public class Channel implements Comparable<Channel> {
      * smallest number of channels.  */
     public Segment allocate(double xy1, double xy2,
     		                double boundXY1, double boundXY2) {
-    	double min = Math.min(xy1, xy2);
-    	double max = Math.max(xy1, xy2);
+    	double min = Math.min(xy1, xy2) - METAL_PITCH;
+    	double max = Math.max(xy1, xy2) + METAL_PITCH;
     	double minBound = Math.min(boundXY1, boundXY2);
     	double maxBound = Math.max(boundXY1, boundXY2);
     	
@@ -71,8 +79,32 @@ public class Channel implements Comparable<Channel> {
     			}
     		}
     	}
-    	if (bestTrack==null) return null;
-    	return bestTrack.allocate(min, max);
+    	if (bestTrack==null) {
+    		String lDesc = isHorizontal() ? "x=" : "y=";
+    		String wDesc = isHorizontal() ? "y=" : "x=";
+    			
+    		prln("Failed to allocate "+description+" segment from "+
+    			 lDesc+min+" to "+lDesc+max+" between "+wDesc+minW+" and "+
+    			 wDesc+"maxW");
+    		prln(this.toString());
+    		return null;
+    	}
+    	Segment s = bestTrack.allocate(min, max);
+    	LayoutLib.error(s==null, 
+    			        "Impossible: we already checked it's available");
+    	return s;
+    }
+    /** Metal-2 only PortInst don't allow us to chose the track center.
+     * Allocate the largest segment in the interval [min, max] that covers src */
+    public Segment allocateBiggestFromTrack(double min, double src, double max, 
+    		                                double trackCenter) {
+    	for (Track t : tracks) {
+    		double center = t.getCenter();
+    		if (center==trackCenter) {
+    			return t.allocateBiggest(min, src, max);
+    		}
+    	}
+		return null;
     }
     public boolean isHorizontal() {return horizontal;}
     public boolean hasTracks() {return tracks.size()!=0;}
@@ -96,8 +128,17 @@ public class Channel implements Comparable<Channel> {
 
     	return sb.toString();
     }
-    public double getMinX() {return isHorizontal() ? minL : minW;}
-    public double getMaxX() {return isHorizontal() ? maxL : maxW;}
-    public double getMinY() {return isHorizontal() ? minW : minL;}
-    public double getMaxY() {return isHorizontal() ? maxW : maxL;}
+//    public double getMinX() {return isHorizontal() ? minL : minW;}
+//    public double getMaxX() {return isHorizontal() ? maxL : maxW;}
+//    public double getMinY() {return isHorizontal() ? minW : minL;}
+//    public double getMaxY() {return isHorizontal() ? maxW : maxL;}
+    
+    public double getMinTrackCenter() {
+    	return tracks.get(0).getCenter(); 
+    }
+    public double getMaxTrackCenter() {
+    	return tracks.get(tracks.size()-1).getCenter();
+    }
+    public double getMinTrackEnd() {return minL;}
+    public double getMaxTrackEnd() {return maxL;}
 }

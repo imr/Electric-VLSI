@@ -20,34 +20,38 @@ public class LayerChannels {
 	public void add(Channel ch) {channels.add(ch);}
 	public Collection<Channel> getChannels() {return channels;}
 	
-	
+	/** For a horizontal layer, find a channel that covers a vertical pin
+	 * at x from y1 to y2. */
 	public Channel findChanOverVertInterval(double x, double y1, double y2) {
 		double yMin = Math.min(y1, y2);
 		double yMax = Math.max(y1, y2);
 		if (channels.size()==0) return null;
 		LayoutLib.error(!isHorizontal(), "not sure what this means yet");
 		for (Channel c : channels) {
-			LayoutLib.error(x<c.getMinX() || x > c.getMaxX(),
+			LayoutLib.error(x<c.getMinTrackEnd() || x > c.getMaxTrackEnd(),
 					        "channels can't cover X");
-			if (c.getMaxY()<yMin) continue;
-			if (c.getMinY()>yMax) break;;
+			if (c.getMaxTrackCenter()<yMin) continue;
+			if (c.getMinTrackCenter()>yMax) break;;
 			return c;
 		}
 		return null;
 	}
-	
+	/** For a vertical layer, find a vertical channel between x1 and x2
+	 * that can connect the two horizontal channels: horChan1 and horChan2. */
 	public Channel findVertBridge(Channel horChan1, Channel horChan2, 
 			                      double x1, double x2) {
 		if (channels.size()==0) return null;
-		LayoutLib.error(isHorizontal(), "channels must be vertical");
-		double yMin = Math.min(horChan1.getMinY(), horChan2.getMinY());
-		double yMax = Math.max(horChan1.getMaxY(), horChan2.getMaxY());
+		LayoutLib.error(isHorizontal(), "layer must be vertical");
+		double yMin = Math.min(horChan1.getMinTrackCenter(), 
+				               horChan2.getMinTrackCenter());
+		double yMax = Math.max(horChan1.getMaxTrackCenter(), 
+				               horChan2.getMaxTrackCenter());
 		double minDist = Double.MAX_VALUE;
 		Channel bestChan = null;
 		for (Channel c : channels) {
-			LayoutLib.error(yMax>c.getMaxY() || yMin<c.getMinY(),
+			LayoutLib.error(yMax>c.getMaxTrackEnd() || yMin<c.getMinTrackEnd(),
 					        "channels can't cover Y");
-			double cCent = (c.getMinX()+c.getMaxX())/2;
+			double cCent = (c.getMinTrackCenter()+c.getMaxTrackCenter())/2;
 			double dist = Math.abs(cCent-((x1+x2)/2));
 			if (dist<minDist) {
 				minDist = dist;

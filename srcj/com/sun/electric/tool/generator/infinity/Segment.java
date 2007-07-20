@@ -1,6 +1,5 @@
 package com.sun.electric.tool.generator.infinity;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 
 
 /** A line segment that makes up part of a route */
@@ -25,9 +24,9 @@ public class Segment implements Comparable {
 	public void trim(double xy1, double xy2) {
 		double xyMin = Math.min(xy1, xy2);
 		double xyMax = Math.max(xy1, xy2);
-		LayoutLib.error(xyMin<min || xyMax>max, "trim may not extend segment");
-		min = xyMin;
-		max = xyMax;
+		//LayoutLib.error(xyMin<min || xyMax>max, "trim may not extend segment");
+		min = Math.max(min, xyMin);
+		max = Math.min(max, xyMax);
 		track.resort(this);
 	}
 	public String toString() {
