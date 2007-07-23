@@ -35,7 +35,6 @@ public class Infinity {
 	private static final String[] PRIM_LAY_LIBS = 
 		new String[] {"stagesF", "wiresF", "fansF"};
     private static final TechType tech = TechType.CMOS90;
-    private static final double STAGE_SPACING = 0;
     private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
     private static final double PWR_GND_WID = 9;
     private static final double SIGNAL_WID = 2.8;
@@ -81,11 +80,11 @@ public class Infinity {
 		return libs;
 	}
 	
-	private Stages findStageCells(Library lib) {
-		Stages stages = new Stages(lib);
+	private Stages findStageCells() {
+		Stages stages = new Stages();
 		return stages;
 	}
-	private void ensurePwrGndExportsOnBoundingBox(Collection<Cell> stages) {
+	private void checkStageExports(Collection<Cell> stages) {
 		for (Cell c : stages) {
 			Rectangle2D bnds = c.findEssentialBounds();
 			if (bnds==null) {
@@ -103,10 +102,16 @@ public class Infinity {
 						prln("  Port Center: "+pi.getCenter().toString());
 						onBounds(pi, bnds, 0);
 					}
+					double w = LayoutLib.widestWireWidth(pi);
+					if (w!=9) {
+						prln("Cell: "+c.getName()+", power or ground Export: "+
+							 e.getName()+" has width: "+w);
+					}
 				} else {
 					PortCharacteristic pc = e.getCharacteristic();
-					if (pc!=PortCharacteristic.IN && pc!=PortCharacteristic.OUT) {
-						prln(" Export "+e+" has undesired characteristic: "+pc);
+					if (pc!=PortCharacteristic.IN && pc!=PortCharacteristic.OUT &&
+						pc!=PortCharacteristic.BIDIR) {
+						prln("Cell: "+c.getName()+" Export "+e+" has undesired characteristic: "+pc);
 					}
 				}
 			}
@@ -287,14 +292,19 @@ public class Infinity {
 		}
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
-	
-	private boolean onBounds(PortInst pi, Rectangle2D bounds, double fudge) {
-		double x = pi.getCenter().getX();
+	private boolean onTopOrBottom(PortInst pi, Rectangle2D bounds, double fudge) {
 		double y = pi.getCenter().getY();
+		return nextToBoundary(y, bounds.getMinY(), fudge) ||
+	           nextToBoundary(y, bounds.getMaxY(), fudge);
+ 	}
+	private boolean onLeftOrRight(PortInst pi, Rectangle2D bounds, double fudge) {
+		double x = pi.getCenter().getX();
 		return nextToBoundary(x, bounds.getMinX(), fudge) ||
-		       nextToBoundary(x, bounds.getMaxX(), fudge) ||
-		       nextToBoundary(y, bounds.getMinY(), fudge) ||
-		       nextToBoundary(y, bounds.getMaxY(), fudge);
+	           nextToBoundary(x, bounds.getMaxX(), fudge);
+	}
+	private boolean onBounds(PortInst pi, Rectangle2D bounds, double fudge) {
+		return onTopOrBottom(pi, bounds, fudge) ||
+		       onLeftOrRight(pi, bounds, fudge);
 	}
 	
 	private boolean isScan(PortInst pi) {
@@ -897,14 +907,28 @@ public class Infinity {
 		else return nm + "_" + count;
 	}
 	
+	private boolean portOnLayer(PortInst pi, List<ArcProto> layers) {
+		for (ArcProto ap : layers) {
+			if (pi.getPortProto().connectsTo(ap)) return true;
+		}
+		return false;
+	}
+	
 	private void exportPwrGnd(List<NodeInst> stages, Rectangle2D colBounds) {
+		List<ArcProto> vertLayers = new ArrayList<ArcProto>();
+		vertLayers.add(tech.m3());
+		List<ArcProto> horiLayers = new ArrayList<ArcProto>();
+		horiLayers.add(tech.m2());
 		int vddCnt = 0;
 		int gndCnt = 0;
 		 for (NodeInst ni : stages) {
 			 for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
 				 PortInst pi = (PortInst) piIt.next();
 				 if (isPwrGnd(pi)) {
-					 if (onBounds(pi, colBounds, 0)) {
+					 if ((onTopOrBottom(pi, colBounds, 0) && 
+					      portOnLayer(pi, vertLayers)) ||
+						 (onLeftOrRight(pi, colBounds, 0) && 
+						  portOnLayer(pi, horiLayers))) {
 						 Cell parent = pi.getNodeInst().getParent();
 						 String exptNm;
 						 if (isPwr(pi)) {
@@ -958,10 +982,10 @@ public class Infinity {
 		}
 	}
 	
-	private void testStageLibrary(Library stageLib) {
-		Stages stages = findStageCells(stageLib);
+	private void checkStageLibrary() {
+		Stages stages = findStageCells();
 		if (stages.someStageIsMissing()) return;
-		ensurePwrGndExportsOnBoundingBox(stages.getStages());
+		checkStageExports(stages.getStages());
 	}
 	
 	private void addEssentialBounds(List<NodeInst> stages, 
@@ -1149,23 +1173,26 @@ public class Infinity {
 		Collections.reverse(scanList);
 	}
 	
-	private Cell findCell(String cellNm, Library lib) {
-		Cell c = lib.findNodeProto(cellNm);
-		if (c==null) {
-			prln("Can't find Cell"+cellNm);
+	private NodeInst findInst(String type, List<NodeInst> insts) {
+		for (NodeInst ni : insts) {
+			String t = ni.getProto().getName();
+			if (t.equals(type)) return ni;
 		}
-		return c;
+		return null;
 	}
 	
 	private void doInfinity(Cell autoLay, Cell schCell) {
-		Library autoLib = autoLay.getLibrary();
-		Cell infA = findCell("infinityA{lay}", autoLib);
-		Cell infB = findCell("infinityB{lay}", autoLib);
-		Cell infC = findCell("infinityC{lay}", autoLib);
-		if (infA==null || infB==null || infC==null) return;
-		NodeInst niA = LayoutLib.newNodeInst(infA, 0, 0, DEF_SIZE, DEF_SIZE, 0, autoLay);
-		NodeInst niB = LayoutLib.newNodeInst(infB, 0, 0, DEF_SIZE, DEF_SIZE, 0, autoLay);
-		NodeInst niC = LayoutLib.newNodeInst(infC, 0, 0, DEF_SIZE, DEF_SIZE, 0, autoLay);
+        Library autoLib = autoLay.getLibrary();
+        List<Library> primLibs = new ArrayList<Library>();
+        primLibs.add(autoLib);
+        SchematicVisitor visitor = new SchematicVisitor(autoLay, primLibs);
+        HierarchyEnumerator.enumerateCell(schCell, VarContext.globalContext, visitor);
+
+        List<NodeInst> layInsts = visitor.getLayInsts();
+        
+		NodeInst niA = findInst("infinityA", layInsts);
+		NodeInst niB = findInst("infinityB", layInsts);
+		NodeInst niC = findInst("infinityC", layInsts);
 		
 		double colWid = niA.findEssentialBounds().getWidth();
 		double numFillCellsAcross = Math.ceil(colWid/FILL_CELL_WIDTH);
@@ -1179,12 +1206,47 @@ public class Infinity {
 		horizLayers.add(tech.m4());
 		AbutRouter.abutRouteLeftRight(niA, niC, 0, horizLayers);
 		AbutRouter.abutRouteLeftRight(niC, niB, 0, horizLayers);
+
+        Rectangle2D bounds = findColBounds(layInsts);
+        addEssentialBounds(layInsts, bounds);
+        exportPwrGnd(layInsts, bounds);
+
+        List<ToConnect> toConns = visitor.getLayoutToConnects();
+        reExport(toConns, bounds);
+	}
+	private void doGuts(Cell autoLay, Cell schCell) {
+        Library autoLib = autoLay.getLibrary();
+        List<Library> primLibs = new ArrayList<Library>();
+        primLibs.add(autoLib);
+        SchematicVisitor visitor = new SchematicVisitor(autoLay, primLibs);
+        HierarchyEnumerator.enumerateCell(schCell, VarContext.globalContext, visitor);
+
+        List<NodeInst> layInsts = visitor.getLayInsts();
+        
+		NodeInst niI = findInst("infinity", layInsts);
+		NodeInst niC = findInst("crosser", layInsts);
+		NodeInst niR = findInst("ring", layInsts);
+		
+		double colWid = niR.findEssentialBounds().getWidth();
+		double numFillCellsAcross = Math.ceil(colWid/FILL_CELL_WIDTH);
+		double columnPitch = FILL_CELL_WIDTH * numFillCellsAcross;
+		double spaceBetweenCols = columnPitch - colWid;
+
+		LayoutLib.alignCorners(niI, Corner.BR, niC, Corner.BL, spaceBetweenCols, (670-2));
+		LayoutLib.alignCorners(niC, Corner.TL, niR, Corner.BL, 0, 0);
+		
+		List<ArcProto> horizLayers = new ArrayList<ArcProto>();
+		horizLayers.add(tech.m2());
+		horizLayers.add(tech.m4());
+
+		AbutRouter.abutRouteLeftRight(niI, niC, 0, horizLayers);
+		AbutRouter.abutRouteLeftRight(niI, niR, 0, horizLayers);
 	}
 	
 	private void doEverything(Cell schCell) {
 		prln("Test stage library");
 		List<Library> primLibs = findPrimLayLibs();
-		testStageLibrary(primLibs.get(0));
+		checkStageLibrary();
 		
         Library autoLib = schCell.getLibrary();
         String groupName = schCell.getCellName().getName();
@@ -1195,6 +1257,8 @@ public class Infinity {
         
 		if (groupName.equals("infinity")) {
 			doInfinity(autoLay, schCell);
+		} else if (groupName.equals("gutsDrc")) {
+			doGuts(autoLay, schCell);
 		} else {
 			doInfinityABC(autoLay, primLibs, schCell);
 		}
