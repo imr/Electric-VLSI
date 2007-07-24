@@ -129,7 +129,7 @@ public class CompareList implements Iterable<CellContext> {
 			Cell c = gi.next();
 			// A cell with a joinGroup is not in this group
 			NccCellAnnotations a = NccCellAnnotations.getAnnotations(c);
-			if (a.getGroupToJoin()!=null && a.getGroupToJoin()!=group)
+			if (a!=null && a.getGroupToJoin()!=null && a.getGroupToJoin()!=group)
 				continue;
 				
 			if (use1.cellIsUsed(c)) {used1=true; compareSet.add(use1.getCellContext(c));}
