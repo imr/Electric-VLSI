@@ -3,6 +3,12 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
+
+BUG: (7/24/07, SMR) GDS import leaves "_" on export names and does not
+     make NCC annotations to show unified names (Bug #1343).
+FIX: In GDS.CellBuilder.makeInstances(), accumulate duplicate names and
+     write NCC annotation.
+
 IMP: (7/11/07, SAF) PIE: Changed subcircuit factoring to compose 
 hierarchically and use internal hierarchy connections.
 

@@ -48,6 +48,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -56,8 +57,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -321,6 +324,7 @@ public class GDS extends Input
            	Collections.sort(insts);
 			int count = 0;
 			int renamed = 0;
+			Map<String,String> exportUnify = new HashMap<String,String>();
 			for(MakeInstance mi : insts)
 			{
 				if (countOff && ((++count % 1000) == 0))
@@ -333,11 +337,33 @@ public class GDS extends Input
                 }
 
 				// make the instance
-                if (mi.instantiate(this.cell)) renamed++;
+                if (mi.instantiate(this.cell, exportUnify)) renamed++;
 			}
 			if (renamed > 0)
+			{
 				System.out.println("  Warning: Cell " + this.cell.describe(false) + " had " + renamed +
-					" exports with duplicate names that were renamed");
+					" exports with duplicate names that were renamed and unified");
+				Map<String,String> unifyStrings = new HashMap<String,String>();
+				Set<String> finalNames = exportUnify.keySet();
+				for(String finalName : finalNames)
+				{
+					String singleName = exportUnify.get(finalName);
+					String us = unifyStrings.get(singleName);
+					if (us == null) us = singleName;
+					us += " " + finalName;
+					unifyStrings.put(singleName, us);
+				}
+				List<String> annotations = new ArrayList<String>();
+				for(String us : unifyStrings.keySet())
+					annotations.add("exportsConnectedByParent " + unifyStrings.get(us));
+				if (annotations.size() > 0)
+				{
+					String [] anArr = new String[annotations.size()];
+					for(int i=0; i<annotations.size(); i++) anArr[i] = annotations.get(i);
+					TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					this.cell.newVar(NccCellAnnotations.NCC_ANNOTATION_KEY, anArr, td);
+				}
+			}
             if (IOTool.isGDSInSimplifyCells())
                 simplifyNodes(this.cell);
 			builtCells.add(this.cell);
@@ -566,9 +592,10 @@ public class GDS extends Input
         /**
          * Method to instantiate a node/export in a Cell.
          * @param parent the Cell in which to create the geometry.
+         * @param exportUnify a map that shows how renamed exports connect.
          * @return true if the export had to be renamed.
          */
-        private boolean instantiate(Cell parent) {
+        private boolean instantiate(Cell parent, Map<String,String> exportUnify) {
         	String name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
 
@@ -583,11 +610,14 @@ public class GDS extends Input
             boolean renamed = false;
             if (exportName != null)
             {
+            	if (exportName.endsWith(":"))
+            		exportName = exportName.substring(0, exportName.length()-1);
         		if (parent.findExport(exportName) != null)
         		{
                     String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
 //                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
 //                    	parent.describe(false) + " (renamed to " + newName + ")");
+                    exportUnify.put(newName, exportName);
                     exportName = newName;
                     renamed = true;
         		}
