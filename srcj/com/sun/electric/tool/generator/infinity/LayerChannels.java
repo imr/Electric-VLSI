@@ -49,8 +49,10 @@ public class LayerChannels {
 		double minDist = Double.MAX_VALUE;
 		Channel bestChan = null;
 		for (Channel c : channels) {
-			LayoutLib.error(yMax>c.getMaxTrackEnd() || yMin<c.getMinTrackEnd(),
-					        "channels can't cover Y");
+			if (yMax>c.getMaxTrackEnd() || yMin<c.getMinTrackEnd()) {
+				Infinity.printConnectionMessage();
+				prln("channels can't cover Y");
+			}
 			double cCent = (c.getMinTrackCenter()+c.getMaxTrackCenter())/2;
 			double dist = Math.abs(cCent-((x1+x2)/2));
 			if (dist<minDist) {

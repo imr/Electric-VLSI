@@ -82,7 +82,7 @@ public class Channel implements Comparable<Channel> {
     	if (bestTrack==null) {
     		String lDesc = isHorizontal() ? "x=" : "y=";
     		String wDesc = isHorizontal() ? "y=" : "x=";
-    			
+    		Infinity.printConnectionMessage();
     		prln("Failed to allocate "+description+" segment from "+
     			 lDesc+min+" to "+lDesc+max+" between "+wDesc+minW+" and "+
     			 wDesc+"maxW");

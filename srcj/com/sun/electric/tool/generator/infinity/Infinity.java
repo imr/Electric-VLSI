@@ -54,6 +54,9 @@ public class Infinity {
 	private static final int NUM_PLACES_TO_STRETCH = 3;
 	private static final double STRETCH_AMOUNT = 2 * ROW_PITCH;
 	private static final double FILL_CELL_WIDTH = 264;
+	
+	private static StringBuffer connMsg = new StringBuffer();
+	private static boolean connMsgPrinted = false;
     
 	static {
 		for (int i=0; i<SCAN_PORT_NAMES.length; i++) {
@@ -414,13 +417,17 @@ public class Infinity {
 			maxY = y + PIN_HEIGHT;
 			minY = y - PIN_HEIGHT;
 			m2Chan = m2Chans.findChanOverVertInterval(x, minY, maxY);
-			if (m2Chan==null) prln("no m2 channel for PortInst: "+pi.toString());
+			if (m2Chan==null) {
+				printConnectionMessage();
+				prln("no m2 channel for PortInst: "+pi.toString());
+			}
 		}
 		public void getM2OnlySeg(double xL, double xR) {
 			if (connectsToM2(portInst)) {
 				m2Seg = m2Chan.allocateBiggestFromTrack(xL-TRACK_PITCH, 
 						                                x, xR+TRACK_PITCH, y);
 				if (m2Seg==null) {
+					printConnectionMessage();
 					prln("failed to get segment for m2-only PortInst: center="+y+
 						 "["+(xL-TRACK_PITCH)+", "+(xR+TRACK_PITCH)+"]");				
 					prln(m2Chan.toString());
@@ -432,11 +439,9 @@ public class Infinity {
 	// Single vertical m3 connects to all PortInsts in m2
 	private void routeThreePinNet(ToConnect toConn, LayerChannels m2Chan,
 	                              LayerChannels m3Chan) {
-		List<PortInst> pis = toConn.getPortInsts();
+		saveConnectionMessage(toConn, "Three");
 
-		pr("Three pin ToConnect ports: ");
-		for (PortInst pi : pis)  pr(pi+" ");
-		prln("");
+		List<PortInst> pis = toConn.getPortInsts();
 
 		List<PortInfo> infos = new ArrayList<PortInfo>();
 		for (PortInst pi : pis) {
@@ -508,14 +513,29 @@ public class Infinity {
 				   m3Seg);
 	}
 	
+	private void saveConnectionMessage(ToConnect toConn, String numPinsMsg) {
+		connMsg.setLength(0);
+		connMsgPrinted = false;
+		connMsg.append(numPinsMsg);
+		connMsg.append(" pin ToConnect ports: ");
+
+		for (PortInst pi : toConn.getPortInsts()) {
+			connMsg.append(pi+" ");
+		}
+	}
+	
+	public static void printConnectionMessage() {
+		if (connMsgPrinted) return;
+		prln(connMsg.toString());
+		connMsgPrinted = true;
+	}
+	
 	
 	private void routeTwoPinNet(ToConnect toConn, LayerChannels m2Chan,
 	                            LayerChannels m3Chan) {
 		List<PortInst> pis = toConn.getPortInsts();
 
-		pr("Two pin ToConnect ports: ");
-		for (int i=0; i<pis.size(); i++) pr(pis.get(i)+" ");
-		prln("");
+		saveConnectionMessage(toConn, "Two");
 
 		List<PortInfo> infos = new ArrayList<PortInfo>();
 		for (PortInst pi : pis) {
@@ -582,9 +602,9 @@ public class Infinity {
 	}
 	
 	private void routeUseM3(PortInst pL, PortInst pR, Segment m2L, Segment m2R, Segment m3) {
-		if (m2L==null)  prln("no m2 track for left PortInst");
-		if (m2R==null)  prln("no m2 track for right PortInst");
-		if (m3==null)   prln("no m3 track");
+		if (m2L==null)  {printConnectionMessage(); prln("no m2 track for left PortInst");}
+		if (m2R==null)  {printConnectionMessage(); prln("no m2 track for right PortInst");}
+		if (m3==null)   {printConnectionMessage(); prln("no m3 track");}
 		if (m2L==null || m2R==null || m3==null) return;
 		
 		//prln("  Route m3: "+m3.toString());

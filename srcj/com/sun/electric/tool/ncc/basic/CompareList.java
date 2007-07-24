@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 /** A list of CellContexts to compare. Also, each CompareList has a 
@@ -100,14 +101,18 @@ public class CompareList implements Iterable<CellContext> {
 	 * that Cell will occur twice in returned List, each with a 
 	 * different VarContext. This has advantages and pitfalls.
 	 */
-	public CompareList(Cell cell, CellUsage use1, CellUsage use2) {
+	public CompareList(Cell cell, CellUsage use1, CellUsage use2,
+			           Set<CellGroup> visitedGroups) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		Cell.CellGroup group = cell.getCellGroup();
 
-		// if a Cell is moving to another group then don't explore
-		// its current group
-		if (ann!=null && ann.getGroupToJoin()!=null &&
-		    ann.getGroupToJoin()!=group) return;
+		// if a Cell is moving to another group then explore that group
+		// instead of the Cell's current group
+		if (ann!=null && ann.getGroupToJoin()!=null) group = ann.getGroupToJoin();
+		
+		// joinGroups may cause us to visit a group more than once
+		if (visitedGroups.contains(group)) return;
+		visitedGroups.add(group);
 
 		// make sure we have at least one cell from use1 and one from use2
 		boolean used1=false, used2=false;
@@ -122,6 +127,11 @@ public class CompareList implements Iterable<CellContext> {
 		// add all Cells that are actually used
 		for (Iterator<Cell> gi=group.getCells(); gi.hasNext();) {
 			Cell c = gi.next();
+			// A cell with a joinGroup is not in this group
+			NccCellAnnotations a = NccCellAnnotations.getAnnotations(c);
+			if (a.getGroupToJoin()!=null && a.getGroupToJoin()!=group)
+				continue;
+				
 			if (use1.cellIsUsed(c)) {used1=true; compareSet.add(use1.getCellContext(c));}
 			if (use2.cellIsUsed(c)) {used2=true; compareSet.add(use2.getCellContext(c));}
 

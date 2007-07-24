@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class CompareLists {
@@ -66,12 +67,13 @@ public class CompareLists {
 	private List<CompareList> getCompareLists(CellUsage use1, CellUsage use2) {
 		Set<Cell> compared = new HashSet<Cell>();
 
+		Set<CellGroup> visitedGroups = new HashSet<CellGroup>(); 
 		List<CompareList> compareLists = new ArrayList<CompareList>();
 		for (Iterator<Cell> it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = it.next();
 			// RKao debug
 			//System.out.println("seed cell: "+cell.getName());
-			CompareList compareList = new CompareList(cell, use1, use2);
+			CompareList compareList = new CompareList(cell, use1, use2, visitedGroups);
 
 			// RKao debug
 			//compareList.printCells();
