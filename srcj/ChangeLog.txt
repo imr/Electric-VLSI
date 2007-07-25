@@ -2,10 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.06b: *******************************
+************************* Version 8.06c: *******************************
 
 BUG: (7/25/07, RK) Make NCC's joinGroup annotation work on schematic 
      Cells as well as layout Cells (Bug #1345)
+
+************************* Version 8.06b: *******************************
 
 BUG: (7/25/07, DN) m5 to m8 connection not made correctly in TSMC90 technology *Bug #1344)
 FIX: In VerticalRoute.findConnectingPorts ignore contacts which are not used in technology.
