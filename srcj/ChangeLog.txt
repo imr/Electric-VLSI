@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06b: *******************************
 
+BUG: (7/25/07, DN) m5 to m8 connection not made correctly in TSMC90 technology *Bug #1344)
+FIX: In VerticalRoute.findConnectingPorts ignore contacts which are not used in technology.
+
 BUG: (7/24/07, SMR) GDS import leaves "_" on export names and does not
      make NCC annotations to show unified names (Bug #1343).
 FIX: In GDS.CellBuilder.makeInstances(), accumulate duplicate names and
