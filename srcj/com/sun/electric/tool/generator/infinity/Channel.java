@@ -20,7 +20,7 @@ public class Channel implements Comparable<Channel> {
                          minW, maxW;   // dimensions along channel width
     private final String description;
     
-    private static void prln(String msg) {System.out.println(msg);}
+    private static void prln(String msg) {Infinity.prln(msg);}
 
     public Channel(boolean horizontal, double l1, double l2, 
     		       double w1, double w2,
@@ -82,7 +82,6 @@ public class Channel implements Comparable<Channel> {
     	if (bestTrack==null) {
     		String lDesc = isHorizontal() ? "x=" : "y=";
     		String wDesc = isHorizontal() ? "y=" : "x=";
-    		Infinity.printConnectionMessage();
     		prln("Failed to allocate "+description+" segment from "+
     			 lDesc+min+" to "+lDesc+max+" between "+wDesc+minW+" and "+
     			 wDesc+"maxW");

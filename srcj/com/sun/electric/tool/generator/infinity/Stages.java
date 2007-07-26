@@ -25,7 +25,7 @@ public class Stages {
 	private Collection<Cell> stages = new ArrayList<Cell>();
 	private boolean someCellMissing = false;
 	public Cell branch, cross, drain, fill, merge /*plain*/;
-	private void prln(String msg) {System.out.println(msg);}
+	private void prln(String msg) {Infinity.prln(msg);}
 	
 	private Cell findStage(Library lib, String stageNm) {
 		Cell stage = lib.findNodeProto(stageNm);

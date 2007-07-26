@@ -9,7 +9,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 public class LayerChannels {
 	private TreeSet<Channel> channels = new TreeSet<Channel>();
 	
-	private static void prln(String msg) {System.out.println(msg);}
+	private static void prln(String msg) {Infinity.prln(msg);}
 	private boolean isHorizontal() {
 		LayoutLib.error(channels.size()==0, 
 				        "can't tell direction because no channels");
@@ -50,7 +50,6 @@ public class LayerChannels {
 		Channel bestChan = null;
 		for (Channel c : channels) {
 			if (yMax>c.getMaxTrackEnd() || yMin<c.getMinTrackEnd()) {
-				Infinity.printConnectionMessage();
 				prln("channels can't cover Y");
 			}
 			double cCent = (c.getMinTrackCenter()+c.getMaxTrackCenter())/2;

@@ -8,7 +8,7 @@ public class Blockage1D {
 	// sorted by increasing min values
 	private List<Interval> blockages = new LinkedList<Interval>();
 	
-	private void prln(String msg) {System.out.println(msg);}
+	private void prln(String msg) {Infinity.prln(msg);}
 	
 	public Blockage1D() {}
 	

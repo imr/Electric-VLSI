@@ -35,7 +35,7 @@ public class SchematicVisitor extends Visitor {
 	private Map<Integer, ToConnect> netIdToToConn =
 		new HashMap<Integer, ToConnect>();
 
-	private static final void prln(String msg) {System.out.println(msg);}
+	private static final void prln(String msg) {Infinity.prln(msg);}
 	
 	// Is this Cell something we have layout for?
 	private boolean isLayoutPrimitive(Cell c) {
