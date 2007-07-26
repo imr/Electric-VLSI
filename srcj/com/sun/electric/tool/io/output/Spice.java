@@ -2670,31 +2670,36 @@ public class Spice extends Topology
                 reader.readFile(fileName, false);
                 HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
                 Nodable no = info.getParentInst();
-                String parameterizedName = parameterizedName(no, parentInfo.getContext());
+                String parameterizedName = info.getCell().getName();
+                if (no != null && parentInfo != null) {
+                    parameterizedName = parameterizedName(no, parentInfo.getContext());                        
+                }
                 CellNetInfo cni = getCellNetInfo(parameterizedName);
                 SpiceSubckt subckt = reader.getSubckt(parameterizedName);
-                if (subckt == null) {
-                    System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
-                } else {
-                    List<String> signals = new ArrayList<String>();
-                    for (Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); ) {
-                        CellSignal cs = sIt.next();
-                        if (ignoreSubcktPort(cs)) continue;
-                        signals.add(cs.getName());
-                    }
-                    List<String> subcktSignals = subckt.getPorts();
-                    if (signals.size() != subcktSignals.size()) {
-                        System.out.println("Warning: wrong number of ports for subckt "+
-                                parameterizedName+": expected "+signals.size()+", but found "+
-                                subcktSignals.size()+", in included file "+fileName);
-                    }
-                    int len = Math.min(signals.size(), subcktSignals.size());
-                    for (int i=0; i<len; i++) {
-                        String s1 = signals.get(i);
-                        String s2 = subcktSignals.get(i);
-                        if (!s1.equalsIgnoreCase(s2)) {
-                            System.out.println("Warning: port "+i+" of subckt "+parameterizedName+
-                                    " is named "+s1+" in Electric, but "+s2+" in included file "+fileName);
+                if (cni != null && subckt != null) {
+                    if (subckt == null) {
+                        System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
+                    } else {
+                        List<String> signals = new ArrayList<String>();
+                        for (Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); ) {
+                            CellSignal cs = sIt.next();
+                            if (ignoreSubcktPort(cs)) continue;
+                            signals.add(cs.getName());
+                        }
+                        List<String> subcktSignals = subckt.getPorts();
+                        if (signals.size() != subcktSignals.size()) {
+                            System.out.println("Warning: wrong number of ports for subckt "+
+                                    parameterizedName+": expected "+signals.size()+", but found "+
+                                    subcktSignals.size()+", in included file "+fileName);
+                        }
+                        int len = Math.min(signals.size(), subcktSignals.size());
+                        for (int i=0; i<len; i++) {
+                            String s1 = signals.get(i);
+                            String s2 = subcktSignals.get(i);
+                            if (!s1.equalsIgnoreCase(s2)) {
+                                System.out.println("Warning: port "+i+" of subckt "+parameterizedName+
+                                        " is named "+s1+" in Electric, but "+s2+" in included file "+fileName);
+                            }
                         }
                     }
                 }
