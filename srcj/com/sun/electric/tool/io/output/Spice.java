@@ -110,6 +110,7 @@ public class Spice extends Topology
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_smartspice");
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_A_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_assura");
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_C_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_calibre");
+	/** key of Variable holding Spice model file. */		    public static final Variable.Key SPICE_NETLIST_FILE_KEY = Variable.newKey("ATTR_SPICE_netlist_file");
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SIM_spice_card");
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
@@ -2618,22 +2619,46 @@ public class Spice extends Topology
         }
         if (varTemplate != null) return true;
 
-		// look for a model file on the current cell
+		// look for a model file for the current cell, can come from pref or on cell
+        String fileName = null;
         if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
-            String fileName = CellModelPrefs.spiceModelPrefs.getModelFile(cell);
+            fileName = CellModelPrefs.spiceModelPrefs.getModelFile(cell);
+        }
+        varTemplate = cell.getVar(SPICE_NETLIST_FILE_KEY);
+        if (varTemplate != null) {
+            Object obj = varTemplate.getObject();
+            if (obj instanceof String) {
+                String str = (String)obj;
+                if (!str.equals("") && !str.equals("*Undefined"))
+                    fileName = str;
+            }
+        }
+        if (fileName != null) {
             if (!modelOverrides.containsKey(cell))
             {
-                multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
-                addIncludeFile(fileName);
+                String absFileName = fileName;
                 if (!fileName.startsWith("/") && !fileName.startsWith("\\")) {
                     File spiceFile = new File(filePath);
-                    fileName = (new File(spiceFile.getParent(), fileName)).getPath();
+                    absFileName = (new File(spiceFile.getParent(), fileName)).getPath();
                 }
-                modelOverrides.put(cell, fileName);
+                boolean alreadyIncluded = false;
+                for (String includeFile : modelOverrides.values()) {
+                    if (absFileName.equals(includeFile))
+                        alreadyIncluded = true;
+                }
+                if (alreadyIncluded) {
+                    multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
+                    multiLinePrint(true, "* "+fileName+" (already included) \n");
+                } else {
+                    multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
+                    addIncludeFile(fileName);
+                }
+                modelOverrides.put(cell, absFileName);
             }
             return true;
         }
-		return false;
+        
+        return false;
     }
 
     protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) {
@@ -3180,7 +3205,7 @@ public class Spice extends Topology
             }
         }
         // look for a model file on the current cell
-        if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
+        if (modelOverrides.get(cell) != null) {
             empty = false;
         }
         // check for spice template

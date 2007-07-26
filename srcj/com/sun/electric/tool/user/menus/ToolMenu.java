@@ -264,7 +264,13 @@ public class ToolMenu {
 		        new EMenuItem("Set _GnuCap Template") { public void run() {
                     makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }},
 		        new EMenuItem("Set _SmartSpice Template") { public void run() {
-                    makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }}),
+                    makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }},
+                new EMenuItem("Set Assura CDL Template") { public void run() {
+                    makeTemplate(Spice.SPICE_A_TEMPLATE_KEY); }},
+                new EMenuItem("Set Calibre Spice Template") { public void run() {
+                    makeTemplate(Spice.SPICE_C_TEMPLATE_KEY); }},
+                new EMenuItem("Set Netlist Cell From File") { public void run() {
+                    makeTemplate(Spice.SPICE_NETLIST_FILE_KEY); }}),
 
 		//------------------- Simulation (Verilog)
 
