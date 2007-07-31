@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP: (7/31/07, SAF) PIE: Added benchmarking counters and made 
+	 performance optimizations.
+
 BUG: (7/25/07, RK) Make NCC's joinGroup annotation work on schematic 
      Cells as well as layout Cells (Bug #1345)
 
