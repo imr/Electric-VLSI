@@ -24,7 +24,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class SchematicVisitor extends Visitor {
 	private static final Variable.Key LAYOUT_SPACE_KEY = Variable.newKey("ATTR_LAYOUT_SPACE");
-	private final List<Library> primLayLibs;
+	private final LayoutPrimitiveTester layPrimTester;
 	private final Cell layCell;
 	private SchematicPosition schPos = new SchematicPosition();
 	private List<NodeInst> layInsts = new ArrayList<NodeInst>();
@@ -36,15 +36,6 @@ public class SchematicVisitor extends Visitor {
 		new HashMap<Integer, ToConnect>();
 
 	private static final void prln(String msg) {Infinity.prln(msg);}
-	
-	// Is this Cell something we have layout for?
-	private boolean isLayoutPrimitive(Cell c) {
-		Library lib = c.getLibrary();
-		for (Library l : primLayLibs) {
-			if (lib==l) return true;
-		}
-		return false;
-	}
 	
 	private Cell findLayout(Cell icon) {
 		CellGroup group = icon.getCellGroup();
@@ -135,7 +126,7 @@ public class SchematicVisitor extends Visitor {
 		if (iconSch==schematic) return false;
 
 		// expand Cells that are not layout primitives
-		if (!isLayoutPrimitive(iconSch)) return true;
+		if (!layPrimTester.isLayoutPrimitive(iconSch)) return true;
 		
 		// Icon is a layout primitive, get layout
 		Cell lay = findLayout(icon);
@@ -178,8 +169,8 @@ public class SchematicVisitor extends Visitor {
 		if (!info.isRootCell())  schPos.pop();
 	}
 	
-	public SchematicVisitor(Cell layCell, List<Library> primLayLibs) {
-		this.primLayLibs = primLayLibs;
+	public SchematicVisitor(Cell layCell, LayoutPrimitiveTester layPrimTester) {
+		this.layPrimTester = layPrimTester;
 		this.layCell = layCell;
 	}
 	public List<ToConnect> getLayoutToConnects() {
