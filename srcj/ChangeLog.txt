@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
+IMP: (8/1/07, RK) Allow fill generator to place peripheral and internal exports on whatever layer the designer specifies. (Bug #1351)
+     I fixed FillGenerator90. Later I'll see if we can delete FillGenerator90 and move the changes to the FillGenerator.
 
 BUG: (8/1/07, RK) NodeInst.findEssentialBounds() returns wrong bounds when NodeInst is rotated. (Bug #1350)
 FIX: call transformOut() instead of translateOut()
