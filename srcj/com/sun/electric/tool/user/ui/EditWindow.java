@@ -3803,7 +3803,7 @@ public class EditWindow extends JPanel
 			PrinterJob pj = ep.getPrintJob();
 			ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
 			int printMode = 1;
-			if (cs.getValue() == 0) printMode = 2;
+			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
 			int oldBackgroundColor = User.getColorBackground();

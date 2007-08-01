@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/1/07, DN) Print command throws exception on Solaris.
+FIX: In EditWindow.getPrintImage test if ColorSupported attribute is absent on platform.
+
 IMP: (7/31/07, SAF) PIE: Added benchmarking counters and made 
 	 performance optimizations.
 
