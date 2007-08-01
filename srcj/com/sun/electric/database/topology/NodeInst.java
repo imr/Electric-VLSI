@@ -3345,7 +3345,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		if (!(np instanceof Cell)) return null;
 		Rectangle2D eb = ((Cell)np).findEssentialBounds();
 		if (eb==null)  return null;
-		AffineTransform xForm = translateOut();
+		AffineTransform xForm = transformOut();
 		Point2D ll = new Point2D.Double(eb.getMinX(), eb.getMinY());
 		ll = xForm.transform(ll, null);
 		Point2D ur = new Point2D.Double(eb.getMaxX(), eb.getMaxY());
