@@ -38,9 +38,11 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.Aborter;
 import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -127,9 +129,13 @@ public class NccUtils {
 
 	/** print hours minutes seconds */
 	public static String hourMinSec(Date start, Date stop) {
+		long elapsedMsec = stop.getTime() - start.getTime();
+		return hourMinSec(elapsedMsec);
+	}
+	
+	public static String hourMinSec(long elapsedMsec){
 		final int msecPerHour = 1000*60*60;
 		final int msecPerMin = 1000*60;
-		long elapsedMsec = stop.getTime() - start.getTime();
 		long hours = elapsedMsec / msecPerHour;
 		elapsedMsec = elapsedMsec % msecPerHour;
 		long mins = elapsedMsec / msecPerMin;
@@ -140,6 +146,7 @@ public class NccUtils {
 		if (mins!=0) time += mins + " minutes ";
 		time += secs + " seconds";
 		return time; 
+		
 	}
 	
 	public static NccResult buildBlackBoxes(CellContext c1, CellContext c2,
@@ -180,5 +187,27 @@ public class NccUtils {
 		long m = pow(10, places);
 		return Math.rint(x*m)/m;
 	}
+	public static long registerTiming(String msg, long start, BenchIdx benchmark,NccGlobals globals){
+		long end = NccUtils.getTime();
+		long time = end-start;
+		if(msg != null)
+			globals.status1(msg+NccUtils.hourMinSec(time));
+		globals.getBenchmarkResults().results[benchmark.ordinal()] += time;
+		
+		return end;
+	}
+	public static long accumulateBenchmarkValue(String msg, long val, BenchIdx benchmark,NccGlobals globals){
+		if(msg != null)
+		globals.status1(msg+val);
+		return globals.getBenchmarkResults().results[benchmark.ordinal()] += val; 
+	}
+	
+	public static void incrementBenchmarkCount(BenchIdx benchmark,NccGlobals globals){
+		globals.getBenchmarkResults().results[benchmark.ordinal()]++;
+	}
+	public static long getTime(){
+		return System.currentTimeMillis();
+	}
+
 }
 

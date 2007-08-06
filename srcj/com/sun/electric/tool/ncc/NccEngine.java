@@ -51,6 +51,7 @@ import com.sun.electric.tool.ncc.processing.LocalPartitioning;
 import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
 import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
 import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -115,6 +116,7 @@ public class NccEngine {
 	
 	private NccResult designsMatch(HierarchyInfo hierInfo, 
 			                       boolean hierInfoOnly) {
+		long start = NccUtils.getTime();
         boolean noNetlists = globals.cantBuildNetlist();
 		if (globals.getRoot()==null || noNetlists) {
 			globals.status2("empty cell or netlist error");
@@ -136,16 +138,18 @@ public class NccEngine {
 			}
 			// Useless so far
 			//expCheck.printExportTypeWarnings();
-			Date d1 = new Date();
-			globals.status1("  Export name matching took: "+
-			                NccUtils.hourMinSec(d0, d1));
+			start = NccUtils.registerTiming("  Export name matching took: ",start,BenchIdx.EXPORT_MATCHING_TIME,globals);
+//			Date d1 = new Date();
+//			globals.status1("  Export name matching took: "+
+//			                NccUtils.hourMinSec(d0, d1));
 			
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 			
 			SerialParallelMerge.doYourJob(globals);
-			Date d2 = new Date();
-			globals.status1("  Serial/parallel merge took: "+
-					        NccUtils.hourMinSec(d1, d2));
+			start = NccUtils.registerTiming("  Serial/parallel merge took: ",start,BenchIdx.MERGE_TIME,globals);
+//			Date d2 = new Date();
+//			globals.status1("  Serial/parallel merge took: "+
+//					        NccUtils.hourMinSec(d1, d2));
 
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
@@ -169,10 +173,10 @@ public class NccEngine {
 			globals.initLeafLists();
 
 			
-
-			Date d3 = new Date();
-			globals.status1("  Local partitioning took "+ 
-					        NccUtils.hourMinSec(d2, d3));
+			start = NccUtils.registerTiming("  Local partitioning took ",start,BenchIdx.LOCAL_PARTITIONING_TIME,globals);
+//			Date d3 = new Date();
+//			globals.status1("  Local partitioning took "+ 
+//					        NccUtils.hourMinSec(d2, d3));
 
 
 			boolean topoOK = HashCodePartitioningNew.doYourJob(globals);
@@ -185,19 +189,25 @@ public class NccEngine {
 				
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 			
-			Date d4 = new Date();
+			//Date d4 = new Date();
+			start = NccUtils.getTime();
 			boolean expTopoOK = true;
 			if (topoOK) {
 				expCheck.suggestPortMatchesBasedOnTopology();
 				expTopoOK = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 			}
 
-            Date d5 = new Date();
-			globals.status1("  Export checking took "+NccUtils.hourMinSec(d4, d5));
+			start = NccUtils.registerTiming("  Export checking took ",start,BenchIdx.EXPORT_CHECKING_TIME,globals);
+
+ //           Date d5 = new Date();
+//			globals.status1("  Export checking took "+NccUtils.hourMinSec(d4, d5));
             
 			boolean sizesOK = StratCheckSizes.doYourJob(globals);
-			Date d6 = new Date();
-			globals.status1("  Size checking took "+NccUtils.hourMinSec(d5, d6));
+
+			start = NccUtils.registerTiming("  Size checking took ",start,BenchIdx.SIZE_CHECKING_TIME,globals);
+
+//			Date d6 = new Date();
+//			globals.status1("  Size checking took "+NccUtils.hourMinSec(d5, d6));
 			
 			if (!topoOK) {
 				ReportHashCodeFailure hcf = new ReportHashCodeFailure(globals);

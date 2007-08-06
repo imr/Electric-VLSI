@@ -45,6 +45,7 @@ import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.result.BenchmarkResults;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
@@ -90,6 +91,7 @@ public class NccGlobals implements NccGlobalsReportable {
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** can't build netlist? */               private boolean[] cantBuildNetlist;
     /** mismatches displayed by GUI */        private NccGuiInfo nccGuiInfo;
+    /** holds performance counters */         private BenchmarkResults benchResults = new BenchmarkResults();
 
     
 	// ----------------------------- private methods --------------------------
@@ -286,4 +288,9 @@ public class NccGlobals implements NccGlobalsReportable {
     public int[] getPortCounts() { return getNetObjCounts(portLeafRecs); }
     /** @return true if user wants to abort */
     public boolean userWantsToAbort() {return aborter.userWantsToAbort();}
+
+    /** Get result of benchmarking performance counters*/
+	public BenchmarkResults getBenchmarkResults() {
+		return benchResults;
+	}
 }

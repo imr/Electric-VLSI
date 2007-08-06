@@ -37,6 +37,7 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
 import com.sun.electric.tool.ncc.strategy.StratCount;
 import com.sun.electric.tool.ncc.strategy.StratHashParts;
 import com.sun.electric.tool.ncc.strategy.StratHashWires;
@@ -190,6 +191,7 @@ public class HashCodePartitioningNew {
 				
 				for (EquivRecord er : adjacent) {
 					if (!er.isLeaf()) continue;
+					NccUtils.incrementBenchmarkCount(BenchIdx.NEWBORNS_PROCESSED,globals);
 					if (er.getNetObjType()==NetObject.Type.PART) {
 						addAll(StratHashParts.doYourJob(er, globals));
 					} else {
@@ -293,6 +295,7 @@ public class HashCodePartitioningNew {
 	
 	private void doWork() {
 
+		long start = NccUtils.getTime();
 		// Initially, we should hash all parts because local partitioning 
 		// could have left us with matched records NMOS stack records that
 		// were never hashed to verify gate interchanges.
@@ -305,8 +308,11 @@ public class HashCodePartitioningNew {
 
 		hashProp = new HashCodePropagator(globals);
 		hashFrontier(hashProp);
-		Date d2 = new Date();
-		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));
+		
+		start = NccUtils.registerTiming("  Hashing frontier took: ",start,BenchIdx.HASH_CODE_PASS1_TIME,globals);
+
+//		Date d2 = new Date();
+//		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));
 
 		if (done() || globals.userWantsToAbort()) return;
 		useExportNames(hashProp);
@@ -314,8 +320,10 @@ public class HashCodePartitioningNew {
 		// Maybe not neccessary, but included to be safe.
 		hashProp = new HashCodePropagator(globals);
 		hashAllParts(globals);
-		Date d3 = new Date();
-		globals.status1("  Using export names took: "+NccUtils.hourMinSec(d2, d3));
+		
+		start = NccUtils.registerTiming("  Using export names took: ",start,BenchIdx.EXPORT_MATCHING_TIME,globals);
+//		Date d3 = new Date();
+//		globals.status1("  Using export names took: "+NccUtils.hourMinSec(d2, d3));
 
 		if (done() || globals.userWantsToAbort()) return;
 		useTransistorSizes(hashProp);
@@ -323,8 +331,10 @@ public class HashCodePartitioningNew {
 		// Maybe not neccessary, but included to be safe.
 		hashProp = new HashCodePropagator(globals);
 		hashAllParts(globals);
-		Date d4 = new Date();
-		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
+		
+		start = NccUtils.registerTiming("  Using transistor sizes took: ",start,BenchIdx.SIZE_MATCHING_TIME,globals);
+//		Date d4 = new Date();
+//		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
 
 		if (done() || globals.userWantsToAbort()) return;
 		randomMatch(hashProp);
@@ -332,8 +342,10 @@ public class HashCodePartitioningNew {
 		// Maybe not neccessary, but included to be safe.
 		hashProp = new HashCodePropagator(globals);
 		hashAllParts(globals);
-		Date d5 = new Date();
-		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));
+		
+		start = NccUtils.registerTiming("  Random match took: ",start,BenchIdx.RANDOM_MATCHING_TIME,globals);
+//		Date d5 = new Date();
+//		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));
 	}
 	
 	private boolean allPartsWiresMatch() {

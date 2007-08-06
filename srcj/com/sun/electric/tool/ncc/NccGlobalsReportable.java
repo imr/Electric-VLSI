@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.ncc.result.BenchmarkResults;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
 
 public interface NccGlobalsReportable {
@@ -41,5 +42,6 @@ public interface NccGlobalsReportable {
 	int[] getWireCounts();
 	boolean[] cantBuildNetlistBits();
 	NccGuiInfo getNccGuiInfo();
+	BenchmarkResults getBenchmarkResults();
 
 }

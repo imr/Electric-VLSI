@@ -65,6 +65,7 @@ public class NccResult implements Serializable {
 	private NccOptions options;
 	private CellSummary summary;
 	private Permutation exportPermutation;
+	private BenchmarkResults benchResults;
 	
 	private Equivalence buildNetEquivalence(NccGlobalsReportable globalData) {
 		NetNameProxy[][] equivNets;
@@ -103,6 +104,7 @@ public class NccResult implements Serializable {
                 				  globalData.getPortCounts(),
                 				  globalData.getWireCounts(),
                 				  globalData.cantBuildNetlistBits());
+        benchResults = globalData.getBenchmarkResults();
 	}
 	public static NccResult newResult(boolean exportNameMatch, 
             boolean topologyMatch, 
@@ -231,4 +233,10 @@ public class NccResult implements Serializable {
 	public void setExportPermutation(Permutation exportPermutation) {
 		this.exportPermutation = exportPermutation;
 	}
+	
+	/** Get result of benchmarking performance counters*/
+	public BenchmarkResults getBenchmarkResults() {
+		return benchResults;
+	}
+	
 }
