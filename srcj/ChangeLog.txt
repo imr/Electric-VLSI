@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
+
+BUG: (8/6/07, DN) Netlist crash (Bug #1354)
+FIX: In Spice.addNodeInformation test capacitance after technology.
+
 IMP: (8/1/07, RK) Allow fill generator to place peripheral and internal exports on whatever layer the designer specifies. (Bug #1351)
      I fixed FillGenerator90. Later I'll see if we can delete FillGenerator90 and move the changes to the FillGenerator.
 

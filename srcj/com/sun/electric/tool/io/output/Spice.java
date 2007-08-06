@@ -3054,8 +3054,8 @@ public class Spice extends Topology
             if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
 //            if (layer.isPseudoLayer()) continue;
-			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
+			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 
 			// leave out the gate capacitance of transistors
 			if (layer.getFunction() == Layer.Function.GATE) continue;
