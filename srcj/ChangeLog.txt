@@ -4,8 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
-IMP: (8/6/07, JL) added new layers: RPDUMMY, DM2V, metal dummy.
-IMP: (8/6/07, GVG) RPDUMMY added to Poly RPO resistors.
+IMP: (8/6/07, JL) added new layers: RPDUMMY, DM2V, metal dummy (Bug #1356).
+IMP: (8/6/07, GVG) RPDUMMY added to Poly RPO resistors (Bug #1356).
 
 IMP: (8/06/07, SAF) Added benchmarking counters to NCC.
 
