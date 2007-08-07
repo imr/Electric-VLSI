@@ -60,8 +60,8 @@ public class CellBackup {
     private CellBackup(CellRevision cellRevision) {
         this.cellRevision = cellRevision;
         cellBackupsCreated++;
-        if (Job.getDebug())
-            check();
+//        if (Job.getDebug())
+//            check();
     }
     
     /** Creates a new instance of CellBackup */
@@ -206,6 +206,7 @@ public class CellBackup {
         private final BitSet wiped;
         
         Memoization() {
+//            long startTime = System.currentTimeMillis();
             cellBackupsMemoized++;
             ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
             ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
@@ -219,9 +220,33 @@ public class CellBackup {
 //            }
 //            this.nodesById = nodesById;
 
+            // Put connections into buckets by nodeId.
             int[] connections = new int[arcs.size()*2];
-            for (int i = 0; i < connections.length; i++) connections[i] = i;
-            sortConnections(connections, 0, connections.length - 1);
+            int[] connectionsByNodeId = new int[maxNodeId+1];
+            for (ImmutableArcInst a: arcs) {
+                connectionsByNodeId[a.headNodeId]++;
+                connectionsByNodeId[a.tailNodeId]++;
+            }
+            int sum = 0;
+            for (int nodeId = 0; nodeId < connectionsByNodeId.length; nodeId++) {
+                int start = sum;
+                sum += connectionsByNodeId[nodeId];
+                connectionsByNodeId[nodeId] = start;
+            }
+            for (int i = 0; i < arcs.size(); i++) {
+                ImmutableArcInst a = arcs.get(i);
+                connections[connectionsByNodeId[a.tailNodeId]++] = i*2;
+                connections[connectionsByNodeId[a.headNodeId]++] = i*2 + 1;
+            }
+            
+            // Sort each bucket by portId.
+            sum = 0;
+            for (int nodeId = 0; nodeId < connectionsByNodeId.length; nodeId++) {
+                int start = sum;
+                sum = connectionsByNodeId[nodeId];
+                if (sum - 1 > start)
+                    sortConnections(connections, start, sum - 1);
+            }
             this.connections = connections;
             
             ImmutableExport[] exportIndexByOriginalPort = cellRevision.exports.toArray(new ImmutableExport[cellRevision.exports.size()]);
@@ -236,7 +261,6 @@ public class CellBackup {
                     wiped.set(a.headNodeId);
                 }
             }
-//            short[] shrink = new short[maxNodeId + 1];
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
@@ -244,6 +268,8 @@ public class CellBackup {
                     wiped.clear(n.nodeId);
             }
             this.wiped = wiped;
+//            long stopTime = System.currentTimeMillis();
+//            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
         }
         
        /**
@@ -361,14 +387,39 @@ public class CellBackup {
             for (int i = 1; i < connections.length; i++)
                 assert compareConnections(connections[i - 1], connections[i]) < 0;
         }
-
+        
         private void sortConnections(int[] connections, int l, int r) {
-            while (l < r) {
+            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
+            while (l + 1 < r) {
                 int x = connections[(l + r) >>> 1];
+                ImmutableArcInst ax = arcs.get(x >>> 1);
+                boolean endx = (x & 1) != 0;
+                PortProtoId portIdX = endx ? ax.headPortId : ax.tailPortId;
+                int chronIndexX = portIdX.getChronIndex(); 
                 int i = l, j = r;
                 do {
-                    while (compareConnections(connections[i], x) < 0) i++;
-                    while (compareConnections(x, connections[j]) < 0) j--;
+                    // while (compareConnections(connections[i], x) < 0) i++;
+                    for (;;) {
+                        int con = connections[i];
+                        ImmutableArcInst a = arcs.get(con >>> 1);
+                        boolean end = (con & 1) != 0;
+                        PortProtoId portId = end ? a.headPortId : a.tailPortId;
+                        if (portId.getChronIndex() > chronIndexX) break;
+                        if (portId.getChronIndex() == chronIndexX && con >= x) break;
+                        i++;
+                    }
+                    
+                    // while (compareConnections(x, connections[j]) < 0) j--;
+                    for (;;) {
+                        int con = connections[j];
+                        ImmutableArcInst a = arcs.get(con >>> 1);
+                        boolean end = (con & 1) != 0;
+                        PortProtoId portId = end ? a.headPortId : a.tailPortId;
+                        if (chronIndexX > portId.getChronIndex()) break;
+                        if (chronIndexX == portId.getChronIndex() && x >= con) break;
+                        j--;
+                    }
+                    
                     if (i <= j) {
                         int w = connections[i];
                         connections[i] = connections[j];
@@ -382,6 +433,21 @@ public class CellBackup {
                 } else {
                     sortConnections(connections, i, r);
                     r = j;
+                }
+            }
+            if (l + 1 == r) {
+                int con1 = connections[l];
+                int con2 = connections[r];
+                ImmutableArcInst a1 = arcs.get(con1 >>> 1);
+                ImmutableArcInst a2 = arcs.get(con2 >>> 1);
+                boolean end1 = (con1 & 1) != 0;
+                boolean end2 = (con2 & 1) != 0;
+                PortProtoId portId1 = end1 ? a1.headPortId : a1.tailPortId;
+                PortProtoId portId2 = end2 ? a2.headPortId : a2.tailPortId;
+                int cmp = portId1.getChronIndex() - portId2.getChronIndex();
+                if (cmp > 0 || cmp == 0 && con1 > con2) {
+                    connections[l] = con2;
+                    connections[r] = con1;
                 }
             }
         }

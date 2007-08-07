@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/7/07, DN) Editing layout too slow when lots of stuff in cell (Bug #1355)
+FIX: In CellBackup.Memoization sort connections a little faster.
+
 IMP: (8/6/07, JL) added new layers: RPDUMMY, DM2V, metal dummy (Bug #1356).
 IMP: (8/6/07, GVG) RPDUMMY added to Poly RPO resistors (Bug #1356).
 
