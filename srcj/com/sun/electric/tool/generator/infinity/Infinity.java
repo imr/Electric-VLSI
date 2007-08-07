@@ -41,7 +41,7 @@ public class Infinity {
     private static final TechType tech = TechType.CMOS90;
     private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
     private static final double M2_PWR_GND_WID = 9;
-    private static final double M3_PWR_GND_WID = 20;
+    private static final double M3_PWR_GND_WID = 21;
     private static final double SIGNAL_WID = 2.8;
     private static final double TRACK_PITCH = 6;
 	private static final String[][] SCAN_PORT_NAMES = {
@@ -428,15 +428,15 @@ public class Infinity {
 			}
 		});
 	}
-	private void sortPortInstsBotToTop(List<PortInst> pis) {
-		Collections.sort(pis, new Comparator<PortInst>() {
-			public int compare(PortInst p1, PortInst p2) {
-				double diff = p1.getCenter().getY() -
-				              p2.getCenter().getY();
-				return (int) Math.signum(diff);
-			}
-		});
-	}
+//	private void sortPortInstsBotToTop(List<PortInst> pis) {
+//		Collections.sort(pis, new Comparator<PortInst>() {
+//			public int compare(PortInst p1, PortInst p2) {
+//				double diff = p1.getCenter().getY() -
+//				              p2.getCenter().getY();
+//				return (int) Math.signum(diff);
+//			}
+//		});
+//	}
 	private void routeTwoOrThreePinNet(ToConnect toConn, LayerChannels m2Chan,
             LayerChannels m3Chan) {
 		if (toConn.size()==2) routeTwoPinNet(toConn, m2Chan, m3Chan);
@@ -471,8 +471,8 @@ public class Infinity {
 			minY = y - PIN_HEIGHT;
 			m2Chan = m2Chans.findChanOverVertInterval(x, minY, maxY);
 			if (m2Chan==null) {
-				printConnectionMessage();
 				prln("no m2 channel for PortInst: "+pi.toString());
+				prln(m2Chans.toString());
 			}
 		}
 		public void getM2OnlySeg(double xL, double xR) {
@@ -480,7 +480,6 @@ public class Infinity {
 				m2Seg = m2Chan.allocateBiggestFromTrack(xL-TRACK_PITCH, 
 						                                x, xR+TRACK_PITCH, y);
 				if (m2Seg==null) {
-					printConnectionMessage();
 					prln("failed to get segment for m2-only PortInst: center="+y+
 						 "["+(xL-TRACK_PITCH)+", "+(xR+TRACK_PITCH)+"]");				
 					prln(m2Chan.toString());
@@ -638,9 +637,9 @@ public class Infinity {
 	}
 	
 	private void routeUseM3(PortInst pL, PortInst pR, Segment m2L, Segment m2R, Segment m3) {
-		if (m2L==null)  {printConnectionMessage(); prln("no m2 track for left PortInst");}
-		if (m2R==null)  {printConnectionMessage(); prln("no m2 track for right PortInst");}
-		if (m3==null)   {printConnectionMessage(); prln("no m3 track");}
+		if (m2L==null)  {prln("no m2 track for left PortInst");}
+		if (m2R==null)  {prln("no m2 track for right PortInst");}
+		if (m3==null)   {prln("no m3 track");}
 		if (m2L==null || m2R==null || m3==null) return;
 		
 		//prln("  Route m3: "+m3.toString());
@@ -1402,8 +1401,8 @@ public class Infinity {
 		LayoutPrimitiveTester lpt = new LayoutPrimitiveTester(primLibs);
 		checkStageLibrary();
 		
-		prln("Fix scan fans");
-        fixScanFans();
+//		prln("Fix scan fans");
+//        fixScanFans();
         
         Library autoLib = schCell.getLibrary();
         String groupName = schCell.getCellName().getName();
@@ -1421,107 +1420,107 @@ public class Infinity {
 		}
 	}
 	
-	private void getM3PwrGndX(Set<Double> m3PwrX, Set<Double> m3GndX, Cell plain) {
-		for (Iterator expIt=plain.getExports(); expIt.hasNext();) {
-			Export e = (Export) expIt.next();
-			if (connectsToM3(e)) {
-				double x = e.getOriginalPort().getCenter().getX();
-				if (isPwr(e)) {
-					m3PwrX.add(x);
-				} else if (isGnd(e)) {
-					m3GndX.add(x);
-				}
-			}
-		}
-		prln("Found "+m3PwrX.size()+" power X and "+m3GndX.size()+" ground X in Cell: "+plain.getName());
-	}
+//	private void getM3PwrGndX(Set<Double> m3PwrX, Set<Double> m3GndX, Cell plain) {
+//		for (Iterator expIt=plain.getExports(); expIt.hasNext();) {
+//			Export e = (Export) expIt.next();
+//			if (connectsToM3(e)) {
+//				double x = e.getOriginalPort().getCenter().getX();
+//				if (isPwr(e)) {
+//					m3PwrX.add(x);
+//				} else if (isGnd(e)) {
+//					m3GndX.add(x);
+//				}
+//			}
+//		}
+//		prln("Found "+m3PwrX.size()+" power X and "+m3GndX.size()+" ground X in Cell: "+plain.getName());
+//	}
 	
 	
-	private void findPwrGndM2Exports(List<PortInst> pwrGnd,
-			                         Cell scanFan) {
-		for (Iterator eIt=scanFan.getExports(); eIt.hasNext();) {
-			Export e = (Export) eIt.next();
-			if (!connectsToM2(e)) continue;
-			PortInst o = e.getOriginalPort();
-			if (isPwr(e) || isGnd(e)) pwrGnd.add(o);
-		}
-		sortPortInstsBotToTop(pwrGnd);
-		error(pwrGnd.size()!=4, "expect 4 metal-2 pwr/gnd exports");
-	}
+//	private void findPwrGndM2Exports(List<PortInst> pwrGnd,
+//			                         Cell scanFan) {
+//		for (Iterator eIt=scanFan.getExports(); eIt.hasNext();) {
+//			Export e = (Export) eIt.next();
+//			if (!connectsToM2(e)) continue;
+//			PortInst o = e.getOriginalPort();
+//			if (isPwr(e) || isGnd(e)) pwrGnd.add(o);
+//		}
+//		sortPortInstsBotToTop(pwrGnd);
+//		error(pwrGnd.size()!=4, "expect 4 metal-2 pwr/gnd exports");
+//	}
 	
-	private void fixScanFan(Cell scanFan, 
-			                Set<Double> m3PwrX, Set<Double> m3GndX) {
-		Set<Double> existingM3PwrX = new TreeSet<Double>();
-		Set<Double> existingM3GndX = new TreeSet<Double>();
-		getM3PwrGndX(existingM3PwrX, existingM3GndX, scanFan);
-		
-		// find out what's missing
-		Set<Double> pwrX = new TreeSet<Double>(m3PwrX);
-		pwrX.removeAll(existingM3PwrX);
-		Set<Double> gndX = new TreeSet<Double>(m3GndX);
-		gndX.removeAll(existingM3GndX);
-		
-		List<PortInst> pwrGndExp = new ArrayList<PortInst>();
-		findPwrGndM2Exports(pwrGndExp, scanFan);
-		
-		double topY = scanFan.findEssentialBounds().getMaxY();
-		double botY = scanFan.findEssentialBounds().getMinY();
-		
-		Cell gndStrap = WIRE_LIB.findNodeProto("strapScanGND{lay}");
-		Cell vddStrap = WIRE_LIB.findNodeProto("strapScanVDD{lay}");
-		ExportNamer vddNm = new ExportNamer("vdd",10);
-		addScanFanM3Wire(scanFan, pwrX, pwrGndExp, topY, botY, 
-				         vddStrap, vddNm);
-		ExportNamer gndNm = new ExportNamer("gnd", 10);
-		addScanFanM3Wire(scanFan, gndX, pwrGndExp, topY, botY, 
-				         gndStrap, gndNm);
-	}
-	private List<PortInst> getPwrGndPorts(NodeInst strap) {
-		List<PortInst> ports = new ArrayList<PortInst>();
-		for (Iterator piIt=strap.getPortInsts(); piIt.hasNext();) {
-			ports.add((PortInst) piIt.next());
-		}
-		sortPortInstsBotToTop(ports);
-		return ports;
-	}
-	private void addScanFanM3Wire(Cell scanFan, Set<Double> pwrX, 
-			                      List<PortInst> pwrGndExp,
-			                      double topY, double botY,
-			                      Cell pwrStrap,
-			                      ExportNamer vddNm) {
-		List<PortInst> prev = pwrGndExp;
-		for (Double pX : pwrX) {
-			NodeInst strap = 
-				LayoutLib.newNodeInst(pwrStrap, pX, 0, DEF_SIZE, DEF_SIZE, 0, scanFan);
-			List<PortInst> strapPorts = getPwrGndPorts(strap);
-			
-			PortInst topPin = strapPorts.get(5);
-			PortInst botPin = strapPorts.get(0);
-			List<PortInst> cur = strapPorts.subList(1, 5);
-			
-			for (int i=0; i<4; i++) {
-				LayoutLib.newArcInst(tech.m2(), 9, 
-						             prev.get(i), cur.get(i));				
-			}
-			Export.newInstance(scanFan, topPin, vddNm.nextName());
-			Export.newInstance(scanFan, botPin, vddNm.nextName());
-			prev = cur;
-		}
-	}
+//	private void fixScanFan(Cell scanFan, 
+//			                Set<Double> m3PwrX, Set<Double> m3GndX) {
+//		Set<Double> existingM3PwrX = new TreeSet<Double>();
+//		Set<Double> existingM3GndX = new TreeSet<Double>();
+//		getM3PwrGndX(existingM3PwrX, existingM3GndX, scanFan);
+//		
+//		// find out what's missing
+//		Set<Double> pwrX = new TreeSet<Double>(m3PwrX);
+//		pwrX.removeAll(existingM3PwrX);
+//		Set<Double> gndX = new TreeSet<Double>(m3GndX);
+//		gndX.removeAll(existingM3GndX);
+//		
+//		List<PortInst> pwrGndExp = new ArrayList<PortInst>();
+//		findPwrGndM2Exports(pwrGndExp, scanFan);
+//		
+//		double topY = scanFan.findEssentialBounds().getMaxY();
+//		double botY = scanFan.findEssentialBounds().getMinY();
+//		
+//		Cell gndStrap = WIRE_LIB.findNodeProto("strapScanGND{lay}");
+//		Cell vddStrap = WIRE_LIB.findNodeProto("strapScanVDD{lay}");
+//		ExportNamer vddNm = new ExportNamer("vdd",10);
+//		addScanFanM3Wire(scanFan, pwrX, pwrGndExp, topY, botY, 
+//				         vddStrap, vddNm);
+//		ExportNamer gndNm = new ExportNamer("gnd", 10);
+//		addScanFanM3Wire(scanFan, gndX, pwrGndExp, topY, botY, 
+//				         gndStrap, gndNm);
+//	}
+//	private List<PortInst> getPwrGndPorts(NodeInst strap) {
+//		List<PortInst> ports = new ArrayList<PortInst>();
+//		for (Iterator piIt=strap.getPortInsts(); piIt.hasNext();) {
+//			ports.add((PortInst) piIt.next());
+//		}
+//		sortPortInstsBotToTop(ports);
+//		return ports;
+//	}
+//	private void addScanFanM3Wire(Cell scanFan, Set<Double> pwrX, 
+//			                      List<PortInst> pwrGndExp,
+//			                      double topY, double botY,
+//			                      Cell pwrStrap,
+//			                      ExportNamer vddNm) {
+//		List<PortInst> prev = pwrGndExp;
+//		for (Double pX : pwrX) {
+//			NodeInst strap = 
+//				LayoutLib.newNodeInst(pwrStrap, pX, 0, DEF_SIZE, DEF_SIZE, 0, scanFan);
+//			List<PortInst> strapPorts = getPwrGndPorts(strap);
+//			
+//			PortInst topPin = strapPorts.get(5);
+//			PortInst botPin = strapPorts.get(0);
+//			List<PortInst> cur = strapPorts.subList(1, 5);
+//			
+//			for (int i=0; i<4; i++) {
+//				LayoutLib.newArcInst(tech.m2(), 9, 
+//						             prev.get(i), cur.get(i));				
+//			}
+//			Export.newInstance(scanFan, topPin, vddNm.nextName());
+//			Export.newInstance(scanFan, botPin, vddNm.nextName());
+//			prev = cur;
+//		}
+//	}
 	
-	private void fixScanFans() {
-		Cell plain = STAGE_LIB.findNodeProto("aPlainStage{lay}");
-
-		Set<Double> m3PwrX = new TreeSet<Double>();
-		Set<Double> m3GndX = new TreeSet<Double>();
-		getM3PwrGndX(m3PwrX, m3GndX, plain);
-
-		Cell scanFanLeft = FAN_LIB.findNodeProto("scanFanLeft{lay}");
-		fixScanFan(scanFanLeft, m3PwrX, m3GndX);
-
-		Cell scanFanRight = FAN_LIB.findNodeProto("scanFanRight{lay}");
-		fixScanFan(scanFanRight, m3PwrX, m3GndX);
-	}
+//	private void fixScanFans() {
+//		Cell plain = STAGE_LIB.findNodeProto("aPlainStage{lay}");
+//
+//		Set<Double> m3PwrX = new TreeSet<Double>();
+//		Set<Double> m3GndX = new TreeSet<Double>();
+//		getM3PwrGndX(m3PwrX, m3GndX, plain);
+//
+//		Cell scanFanLeft = FAN_LIB.findNodeProto("scanFanLeft{lay}");
+//		fixScanFan(scanFanLeft, m3PwrX, m3GndX);
+//
+//		Cell scanFanRight = FAN_LIB.findNodeProto("scanFanRight{lay}");
+//		fixScanFan(scanFanRight, m3PwrX, m3GndX);
+//	}
 	
 //	private NodeInst findFirstStage(List<NodeInst> insts) {
 //		for (NodeInst ni : insts) {
