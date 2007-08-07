@@ -37,13 +37,13 @@ import com.sun.electric.tool.generator.layout.Tech;
 
 public class FillGenConfig implements Serializable
 {
-    public TechType techNm = null;
+    public TechType techType = null;
     public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
     public boolean evenLayersHorizontal;
     public double width, height, targetW, targetH, minTileSizeX, minTileSizeY;
-    public FillGeneratorTool.ExportConfig perim;
+    public ExportConfig perim;
     public int firstLayer, lastLayer;
     public int[] cellTiles;
     public boolean hierarchy;
@@ -74,7 +74,7 @@ public class FillGenConfig implements Serializable
         }
     }
 
-    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, TechType tech, String lib, FillGeneratorTool.ExportConfig perim,
+    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, TechType tech, String lib, ExportConfig perim,
                          int first, int last,
                          double w, double h, boolean even,
                          int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
@@ -92,7 +92,7 @@ public class FillGenConfig implements Serializable
         this.evenLayersHorizontal = even;
         this.useMaster = useMaster;
 
-        techNm = tech;
+        techType = tech;
         Tech.setTechnology(tech);
 
         this.fillLibName = lib;

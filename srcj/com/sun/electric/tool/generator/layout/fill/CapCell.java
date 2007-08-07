@@ -105,16 +105,15 @@ class CapCellMosis extends CapCell{
 
 	/** Interleave well contacts with diffusion contacts left to right. Begin
 	 *  and end with well contacts */
-	private PortInst[] diffCont(double y, ProtoPlan plan, Cell cell,
-	                            StdCellParams stdCell) {
+	private PortInst[] diffCont(double y, ProtoPlan plan, Cell cell) {
 		PortInst[] conts = new PortInst[plan.numMosX];
 		double x = - plan.numMosX * plan.mosPitchX / 2;
 		PortInst wellCont = LayoutLib.newNodeInst(Tech.pwm1(), x, y, G.DEF_SIZE,
 										 		  G.DEF_SIZE, 0, cell
 										 		  ).getOnlyPortInst();
 		Export e = Export.newInstance(cell, wellCont,
-		                              stdCell.getGndExportName()+"_"+gndNum++);
-		e.setCharacteristic(stdCell.getGndExportRole());
+		                              FillCell.GND_NAME+"_"+gndNum++);
+		e.setCharacteristic(FillCell.GND_CHARACTERISTIC);
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
@@ -146,7 +145,7 @@ class CapCellMosis extends CapCell{
 	/** Interleave gate contacts and MOS transistors left to right. Begin
 	 *  and end with gate contacts. */
 	private void mos(PortInst[] botDiffs, PortInst[] topDiffs, double y,
-					 ProtoPlan plan, Cell cell, StdCellParams stdCell) {
+					 ProtoPlan plan, Cell cell) {
 		final double POLY_CONT_HEIGHT = plan.vddWidth + 1;
 		double x = plan.leftWellContX;
 		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1(), x, y, POLY_CONT_WIDTH,
@@ -154,8 +153,8 @@ class CapCellMosis extends CapCell{
 											  ).getOnlyPortInst();
 		PortInst leftCont = poly;
 		Export e = Export.newInstance(cell, poly,
-		                              stdCell.getVddExportName()+"_"+vddNum++);
-		e.setCharacteristic(stdCell.getVddExportRole());
+		                              FillCell.VDD_NAME+"_"+vddNum++);
+		e.setCharacteristic(FillCell.VDD_CHARACTERISTIC);
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
@@ -213,22 +212,21 @@ class CapCellMosis extends CapCell{
 		}
 	}
 
-	public CapCellMosis(Library lib, CapFloorplan instPlan, StdCellParams stdCell) {
+	public CapCellMosis(Library lib, CapFloorplan instPlan) {
 		this.plan = new ProtoPlan(instPlan);
 		PortInst[] botDiffs = new PortInst[plan.numMosX];
 		PortInst[] topDiffs = new PortInst[plan.numMosX];
 
-		String nameExt = stdCell.getVddExportName().equals("vdd") ? "" : "_pwr";
-		cell = Cell.newInstance(lib, "fillCap"+nameExt+"{lay}");
+		cell = Cell.newInstance(lib, "fillCap{lay}");
 		double y = plan.botWellContY;
 
-		PortInst[] lastCont = diffCont(y, plan, cell, stdCell);
+		PortInst[] lastCont = diffCont(y, plan, cell);
 		for (int i=0; i<plan.numMosY; i++) {
 			y += plan.mosPitchY/2;
-			mos(botDiffs, topDiffs, y, plan, cell, stdCell);
+			mos(botDiffs, topDiffs, y, plan, cell);
 			connectDiffs(lastCont, botDiffs);
 			y += plan.mosPitchY/2;
-			lastCont = diffCont(y, plan, cell, stdCell);
+			lastCont = diffCont(y, plan, cell);
 			connectDiffs(topDiffs, lastCont);
 		}
 		// Cover the sucker with well to eliminate notch errors

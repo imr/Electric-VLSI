@@ -111,8 +111,9 @@ public class FillGenJob extends Job
 
     public boolean doTemplateFill(FillGeneratorTool fillGen)
     {
-        fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
-                fillGenConfig.cellTiles, false);
+        fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, 
+        		                     fillGenConfig.techType, fillGenConfig.perim,
+                                     fillGenConfig.cellTiles, false);
         fillGen.makeGallery();
         return true;
     }

@@ -55,27 +55,24 @@ public class TiledCell {
     }
 
     private int vddNum, gndNum;
-    private final String vddNm, gndNm;
     private Cell tileCell;
     protected FillGenConfig config; // required by qTree method
 
     private String vddName() {
         int n = vddNum++;
-        return n==0 ? vddNm : vddNm+"_"+n;
+        return n==0 ? FillCell.VDD_NAME : FillCell.VDD_NAME+"_"+n;
     }
     private String gndName() {
         int n = gndNum++;
-        return n==0 ? gndNm : gndNm+"_"+n;
+        return n==0 ? FillCell.GND_NAME : FillCell.GND_NAME+"_"+n;
     }
 
     /**
      * Constructor used by working with qTree fill.
      * @param stdCell
      */
-    public TiledCell(StdCellParams stdCell, FillGenConfig conf)
+    public TiledCell(FillGenConfig conf)
     {
-        vddNm = stdCell.getVddExportName();
-        gndNm = stdCell.getGndExportName();
         config = conf;
     }
 
@@ -90,11 +87,8 @@ public class TiledCell {
      * @param stdCell
      */
     private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans,
-                      Library lib, StdCellParams stdCell)
+                      Library lib)
     {
-        vddNm = stdCell.getVddExportName();
-        gndNm = stdCell.getGndExportName();
-
         String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
         tileCell = Cell.newInstance(lib, tiledName);
 
@@ -118,7 +112,7 @@ public class TiledCell {
             y += cellH;
         }
         connectAllPortInsts(tileCell);
-        exportUnconnectedPortInsts(rows, plans[plans.length-1].horizontal, tileCell, stdCell);
+        exportUnconnectedPortInsts(rows, plans[plans.length-1].horizontal, tileCell);
 //		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
         addEssentialBounds1(r.getX(), r.getY(), cellW, cellH, numX, numY, tileCell);
     }
@@ -194,17 +188,16 @@ public class TiledCell {
         }
         return ports;
     }
-    private void exportPortInsts(List<PortInst> ports, Cell tiled,
-                                        StdCellParams stdCell) {
+    private void exportPortInsts(List<PortInst> ports, Cell tiled) {
         Collections.sort(ports, new OrderPortInstsByName());
         for (PortInst pi : ports) {
             PortProto pp = pi.getPortProto();
             PortCharacteristic role = pp.getCharacteristic();
-            if (role==stdCell.getVddExportRole()) {
+            if (role==FillCell.VDD_CHARACTERISTIC) {
                 //System.out.println(pp.getName());
                 Export e = Export.newInstance(tiled, pi, vddName());
                 e.setCharacteristic(role);
-            } else if (role==stdCell.getGndExportRole()) {
+            } else if (role==FillCell.GND_CHARACTERISTIC) {
                 //System.out.println(pp.getName());
                 Export e = Export.newInstance(tiled, pi, gndName());
                 e.setCharacteristic(role);
@@ -217,8 +210,8 @@ public class TiledCell {
      * to something */
     private static final Orientation[] horizontalPlan = {Orientation.VERT_EXTERIOR, Orientation.HORI_EXTERIOR, Orientation.INTERIOR};
     private static final Orientation[] verticalPlan = {Orientation.HORI_EXTERIOR, Orientation.VERT_EXTERIOR, Orientation.INTERIOR};
-    public void exportUnconnectedPortInsts(NodeInst[][] rows, boolean isPlanHorizontal,
-                                                   Cell tiled, StdCellParams stdCell) {
+    public void exportUnconnectedPortInsts(NodeInst[][] rows, 
+    		                               boolean isPlanHorizontal, Cell tiled) {
         // Subtle!  If top layer is horizontal then begin numbering exports on
         // vertical edges of boundary first. This ensures that fill6_2x2 and
         // fill56_2x2 have matching port names on the vertical edges.
@@ -249,7 +242,7 @@ public class TiledCell {
 
                     if (orientation!=Orientation.INTERIOR || row==col) {
                         List<PortInst> ports = getUnconnectedPortInsts(list, rows[row][col]);
-                        exportPortInsts(ports, tiled, stdCell);
+                        exportPortInsts(ports, tiled);
                     }
                 }
             }
@@ -291,9 +284,8 @@ public class TiledCell {
 
 
     public static Cell makeTiledCell(int numX, int numY, Cell cell,
-                                     Floorplan[] plans, Library lib,
-                                     StdCellParams stdCell) {
-        TiledCell tile = new TiledCell(numX, numY, cell, plans, lib, stdCell);
+                                     Floorplan[] plans, Library lib) {
+        TiledCell tile = new TiledCell(numX, numY, cell, plans, lib);
         return tile.tileCell;
     }
 }

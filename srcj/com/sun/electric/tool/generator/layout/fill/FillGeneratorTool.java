@@ -23,22 +23,27 @@
  */
 package com.sun.electric.tool.generator.layout.fill;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.geometry.*;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.tool.generator.layout.*;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
-
-import java.util.*;
-import java.lang.reflect.Constructor;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.generator.layout.Gallery;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 
 abstract class MetalFloorplanBase extends Floorplan
 {
@@ -438,16 +443,12 @@ class CapLayer implements VddGndStraps {
 	private CapCell capCell;
 	private NodeInst capCellInst;
 	private CapFloorplan plan;
-	private String vddName, gndName;
 
     public boolean addExtraArc() { return true; }
 
-	public CapLayer(CapFloorplan plan, CapCell capCell, Cell cell,
-                    StdCellParams stdCell) {
+	public CapLayer(CapFloorplan plan, CapCell capCell, Cell cell) {
 		this.plan = plan;
 		this.capCell = capCell;
-		vddName = stdCell.getVddExportName();
-		gndName = stdCell.getGndExportName();
 
 		double angle = plan.horizontal ? 0 : 90;
         if (capCell != null)
@@ -458,7 +459,7 @@ class CapLayer implements VddGndStraps {
 	public boolean isHorizontal() {return plan.horizontal;}
 	public int numVdd() {return (capCell != null) ? capCell.numVdd() : 0;}
 	public PortInst getVdd(int n, int pos) {
-		return capCellInst.findPortInst(vddName+"_"+n);
+		return capCellInst.findPortInst(FillCell.VDD_NAME+"_"+n);
 	}
 	public double getVddCenter(int n) {
         EPoint center = getVdd(n, 0).getCenter();
@@ -467,7 +468,7 @@ class CapLayer implements VddGndStraps {
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
 	public int numGnd() {return capCell.numGnd();}
 	public PortInst getGnd(int n, int pos) {
-		return capCellInst.findPortInst(gndName+"_"+n);
+		return capCellInst.findPortInst(FillCell.GND_NAME+"_"+n);
 	}
 	public double getGndCenter(int n) {
         EPoint center = getGnd(n, 0).getCenter();
@@ -482,249 +483,6 @@ class CapLayer implements VddGndStraps {
 	public int getLayerNumber() {return 1;}
 }
 
-// ---------------------------------- FillCell --------------------------------
-class FillCell {
-	private int vddNum, gndNum;
-	private String vddNm, gndNm;
-
-	private String vddName() {
-		int n = vddNum++;
-		return vddNm + (n==0 ? "" : ("_"+n));
-	}
-	private String gndName() {
-		int n = gndNum++;
-		return gndNm + (n==0 ? "" : ("_"+n));
-	}
-
-	public void exportPerimeter(VddGndStraps lay, Cell cell,
-	StdCellParams stdCell) {
-		for (int i=0; i<lay.numGnd(); i++) {
-			exportStripeEnds(i, lay, true, cell, stdCell);
-		}
-		for (int i=0; i<lay.numVdd(); i++) {
-			exportStripeEnds(i, lay, false, cell, stdCell);
-		}
-	}
-	private void exportStripeEnds(int n, VddGndStraps lay, boolean gnd, Cell cell,
-	StdCellParams stdCell) {
-		PrimitiveNode pin = lay.getPinType();
-		ArcProto metal = lay.getMetalType();
-		double edge = (lay.isHorizontal() ? lay.getCellWidth() : lay.getCellHeight())/2;
-		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
-		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
-		PortInst piLeft = gnd ? lay.getGnd(n, 0) : lay.getVdd(n, 0);
-        PortInst piRight = gnd ? lay.getGnd(n, 1) : lay.getVdd(n, 1);
-		if (lay.isHorizontal()) {
-			export(-edge, center, pin, metal, piLeft, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-			export(edge, center, pin, metal, piRight, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-		} else {
-			export(center, -edge, pin, metal, piLeft, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-			export(center, edge, pin, metal, piRight, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-		}
-	}
-	private void export(double x, double y, PrimitiveNode pin,
-						ArcProto metal, PortInst conn, double w,
-						String name, boolean gnd, Cell cell,
-						StdCellParams stdCell, boolean withExtraArc)
-    {
-        Export e = null;
-        if (false) // withExtraArc)
-        {
-            PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE,
-                                                0, cell).getOnlyPortInst();
-            G.noExtendArc(metal, w, conn, pi);
-            e = Export.newInstance(cell, pi, name);
-        }
-        else
-            e = Export.newInstance(cell, conn, name);
-		e.setCharacteristic(gnd ? stdCell.getGndExportRole() :
-								  stdCell.getVddExportRole());
-	}
-	public void exportWiring(VddGndStraps lay, Cell cell, StdCellParams stdCell) {
-		for (int i=0; i<lay.numGnd(); i++) {
-			exportStripeCenter(i, lay, true, cell, stdCell);
-		}
-		for (int i=0; i<lay.numVdd(); i++) {
-			exportStripeCenter(i, lay, false, cell, stdCell);
-		}
-	}
-	private void exportStripeCenter(int n, VddGndStraps lay, boolean gnd, Cell cell,
-	StdCellParams stdCell) {
-		PrimitiveNode pin = lay.getPinType();
-		ArcProto metal = lay.getMetalType();
-		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
-		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
-		PortInst pi = gnd ? lay.getGnd(n, 0) : lay.getVdd(n, 0); // Doesn't matter which bar end is taken
-		if (lay.isHorizontal()) {
-			export(0, center, pin, metal, pi, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-		} else {
-			export(center, 0, pin, metal, pi, width,
-				   gnd ? gndName() : vddName(), gnd, cell, stdCell, lay.addExtraArc());
-		}
-	}
-
-	private String fillName(int lo, int hi, boolean wireLowest,
-						    StdCellParams stdCell) {
-		StringBuffer buf = new StringBuffer();
-		buf.append("fill");
-		if (lo!=1 || hi!=6) {
-			for (int i=lo; i<=hi; i++)  buf.append(i);
-		}
-
-		if (wireLowest)  buf.append("w");
-		if (!stdCell.getVddExportName().equals("vdd")) buf.append("_pwr");
-		buf.append("{lay}");
-		return buf.toString();
-	}
-
-	private VddGndStraps[] findHoriVert(VddGndStraps lay1, VddGndStraps lay2) {
-		if (lay1.isHorizontal()) {
-			LayoutLib.error(lay2.isHorizontal(), "adjacent layers both horizontal");
-			return new VddGndStraps[] {lay1, lay2};
-		} else {
-			LayoutLib.error(!lay2.isHorizontal(), "adjacent layers both vertical");
-			return new VddGndStraps[] {lay2, lay1};
-		}
-	}
-
-	/** Move via's edge inside by 1 lambda if via's edge is on cell's edge */
-	private static class ViaDim {
-		public final double x, y, w, h;
-		public ViaDim(VddGndStraps lay, double x, double y, double w, double h) {
-			if (x+w/2 == lay.getCellWidth()/2) {
-				w -= 1;
-				x -= .5;
-			} else if (x-w/2 == -lay.getCellWidth()/2) {
-				w -= 1;
-				x += .5;
-			}
-			if (y+h/2 == lay.getCellHeight()/2) {
-				h -= 1;
-				y -= .5;
-			} else if (y-h/2 == -lay.getCellHeight()/2) {
-				h -= 1;
-				y += .5;
-			}
-			this.x = x;
-			this.y = y;
-			this.w = w;
-			this.h = h;
-		}
-	}
-
-	private void connectVddStraps(VddGndStraps horLay, int horNdx,
-								  VddGndStraps verLay, int verNdx, Cell cell) {
-		double w = verLay.getVddWidth(verNdx);
-		double x = verLay.getVddCenter(verNdx);
-		ArcProto verMetal = verLay.getMetalType();
-        // Try to select the closest pin in the other layer , even to the left, odd to the right
-		PortInst verPort = (horNdx%2==0) ? verLay.getVdd(verNdx, 0) : verLay.getVdd(verNdx, 1);
-		double h = horLay.getVddWidth(horNdx);
-		double y = horLay.getVddCenter(horNdx);
-		ArcProto horMetal = horLay.getMetalType();
-		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
-		PortInst horPort = (verNdx%2==0) ? horLay.getVdd(horNdx, 0) : horLay.getVdd(horNdx, 1);
-        // Line below will detect mixture of technologies.
-        LayoutLib.error(viaType==null, "can't find via for metal layers " + verMetal + " " + horMetal);
-
-		ViaDim d = new ViaDim(horLay, x, y, w, h);
-
-		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0,
-		                                     cell).getOnlyPortInst();
-
-        G.noExtendArc(horMetal, h, horPort, via);
-        G.noExtendArc(verMetal, w, via, verPort);
-//		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
-//		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
-	}
-
-	private void connectGndStraps(VddGndStraps horLay, int horNdx,
-								  VddGndStraps verLay, int verNdx, Cell cell) {
-		double w = verLay.getGndWidth(verNdx);
-		double x = verLay.getGndCenter(verNdx);
-		ArcProto verMetal = verLay.getMetalType();
-        // Try to select the closest pin in the other layer , even to the left, odd to the right
-		PortInst verPort = (horNdx%2==0) ? verLay.getGnd(verNdx, 0) : verLay.getGnd(verNdx, 1);
-		double h = horLay.getGndWidth(horNdx);
-		double y = horLay.getGndCenter(horNdx);
-		ArcProto horMetal = horLay.getMetalType();
-		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
-		PortInst horPort = (verNdx%2==0) ? horLay.getGnd(horNdx, 0) : horLay.getGnd(horNdx, 1);
-		LayoutLib.error(viaType==null, "can't find via for metal layers");
-
-		ViaDim d = new ViaDim(horLay, x, y, w, h);
-
-		PortInst via = LayoutLib.newNodeInst(viaType, d.x, d.y, d.w, d.h, 0,
-		 									 cell).getOnlyPortInst();
-
-        G.noExtendArc(horMetal, h, horPort, via);
-        G.noExtendArc(verMetal, w, via, verPort);
-//		LayoutLib.newArcInst(horMetal, G.DEF_SIZE, horPort, via);
-//		LayoutLib.newArcInst(verMetal, G.DEF_SIZE, via, verPort);
-	}
-
-	private void connectLayers(VddGndStraps loLayer, VddGndStraps hiLayer,
-							   Cell cell) {
-		VddGndStraps layers[] = findHoriVert(loLayer, hiLayer);
-		VddGndStraps horLay = layers[0];
-		VddGndStraps verLay = layers[1];
-		for (int h=0; h<horLay.numVdd(); h++) {
-			for (int v=0; v<verLay.numVdd(); v++) {
-				connectVddStraps(horLay, h, verLay, v, cell);
-			}
-		}
-		for (int h=0; h<horLay.numGnd(); h++) {
-			for (int v=0; v<verLay.numGnd(); v++) {
-				connectGndStraps(horLay, h, verLay, v, cell);
-			}
-		}
-   	}
-
-	protected Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer,
-                               int topLayer, CapCell capCell, boolean wireLowest,
-                               StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
-		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
-		Cell cell = Cell.newInstance(lib, name);
-		VddGndStraps[] layers = new VddGndStraps[topLayer+1];
-		for (int i=topLayer; i>=botLayer; i--) {
-			if (i==1) {
-				layers[i] = new CapLayer((CapFloorplan) plans[i], capCell,
-				                         cell, stdCell);
-			} else {
-                if (metalFlex && !hierFlex)
-				    layers[i] = new MetalLayerFlex(i, plans[i], cell);
-                else
-                    layers[i] = new MetalLayer(i, plans[i], cell);
-			}
-			if (i!=topLayer) {
-				// connect to upper level
-				connectLayers(layers[i], layers[i+1], cell);
-			}
-		}
-		if (layers[topLayer]!=null) exportPerimeter(layers[topLayer], cell, stdCell);
-		if (layers[topLayer-1]!=null) exportPerimeter(layers[topLayer-1], cell, stdCell);
-		if (wireLowest)  exportWiring(layers[botLayer], cell, stdCell);
-
-		double cellWidth = plans[topLayer].cellWidth;
-		double cellHeight = plans[topLayer].cellHeight;
-		LayoutLib.newNodeInst(Tech.essentialBounds(),
-							  -cellWidth/2, -cellHeight/2,
-							  G.DEF_SIZE, G.DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(),
-							  cellWidth/2, cellHeight/2,
-							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
-		return cell;
-	}
-	protected FillCell(StdCellParams stdCell) {
-		gndNm = stdCell.getGndExportName();
-		vddNm = stdCell.getVddExportName();
-	}
-}
 
 class FillRouter {
 	private HashMap<String,List<PortInst>> portMap = new HashMap<String,List<PortInst>>();
@@ -783,7 +541,13 @@ class FillRouter {
  * Object for building fill libraries
  */
 public class FillGeneratorTool extends Tool {
-
+    public FillGenConfig config;
+    protected Library lib;
+    private boolean libInitialized;
+    public List<Cell> masters;
+    protected CapCell capCell;
+    protected Floorplan[] plans;
+    
     /** the fill generator tool. */								private static FillGeneratorTool tool = getTool();
      // Depending on generator plugin available
     public static FillGeneratorTool getTool()
@@ -794,19 +558,19 @@ public class FillGeneratorTool extends Tool {
         try
         {
             Class<?> extraClass = Class.forName("com.sun.electric.plugins.generator.FillCellTool");
-            Constructor instance = extraClass.getDeclaredConstructor(TechType.class); // varags
-            Object obj = instance.newInstance(TechType.MOCMOS);  // varargs;
+            Constructor instance = extraClass.getDeclaredConstructor(); // varags
+            Object obj = instance.newInstance();  // varargs;
             tool = (FillGeneratorTool)obj;
         } catch (Exception e)
         {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find Fill Cell Generator plugin");
-            tool = new FillGeneratorTool(TechType.MOCMOS);
+            tool = new FillGeneratorTool();
         }
         return tool;
     }
 
-    public FillGeneratorTool(TechType tech) {
+    public FillGeneratorTool() {
         super("Fill Generator");
     }
 
@@ -815,21 +579,10 @@ public class FillGeneratorTool extends Tool {
         this.config = config;
         this.libInitialized = false; 
         /** Set technology */
-        Tech.setTechnology(config.techNm);
+        Tech.setTechnology(config.techType);
     }
 
     public enum Units {NONE, LAMBDA, TRACKS}
-    public enum PowerType {POWER, VDD}
-    public enum ExportConfig {PERIMETER, PERIMETER_AND_INTERNAL}
-
-    public FillGenConfig config;
-    protected Library lib;
-    private boolean libInitialized;
-    public List<Cell> masters;
-    protected StdCellParams stdCell, stdCellP;
-    protected CapCell capCell, capCellP;
-    protected Floorplan[] plans;
-
     protected boolean getOrientation() {return plans[plans.length-1].horizontal;}
 
     /** Reserve space in the middle of the Vdd and ground straps for signals.
@@ -847,7 +600,7 @@ public class FillGeneratorTool extends Tool {
         if (units==LAMBDA) return reserved;
         double nbTracks = reserved;
         if (nbTracks==0) return 0;
-        return config.techNm.reservedToLambda(layer, nbTracks);
+        return config.techType.reservedToLambda(layer, nbTracks);
     }
 
     private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
@@ -857,7 +610,7 @@ public class FillGeneratorTool extends Tool {
                         "height hasn't been specified. use setHeight()");
         double w = config.width;
         double h = config.height;
-        int numLayers = config.techNm.getNumMetals() + 1; // one extra for the cap
+        int numLayers = config.techType.getNumMetals() + 1; // one extra for the cap
         double[] vddRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] gndRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] vddW = new double[numLayers]; //{0,0,0,0,0,0,0};
@@ -950,15 +703,14 @@ public class FillGeneratorTool extends Tool {
         }
     }
 
-    private static CapCell getCMOS90CapCell(Library lib, CapFloorplan plan, StdCellParams params)
+    private static CapCell getCMOS90CapCell(Library lib, CapFloorplan plan)
     {
         CapCell c = null;
         try
 		{
 			Class<?> cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90");
-            Constructor capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class,
-                    StdCellParams.class);   // varargs
-            Object cell = capCellC.newInstance(lib, plan, params);
+            Constructor capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class);   // varargs
+            Object cell = capCellC.newInstance(lib, plan);
             c = (CapCell)cell;
          } catch (Exception e)
         {
@@ -978,64 +730,60 @@ public class FillGeneratorTool extends Tool {
         if (!metalFlex) printCoverage(plans);
 
         lib = LayoutLib.openLibForWrite(config.fillLibName);
-        stdCell = new StdCellParams(Tech.getTechnology());
-        stdCellP = new StdCellParams(Tech.getTechnology());
-        stdCellP.setVddExportName("power");
-        stdCellP.setVddExportRole(PortCharacteristic.IN);
         if (!metalFlex) // don't do transistors
         {
-            if (config.techNm == TechType.MOCMOS || config.techNm == TechType.TSMC180)
+            if (config.techType == TechType.MOCMOS || config.techType == TechType.TSMC180)
             {
-                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1], stdCell);
-                capCellP = new CapCellMosis(lib, (CapFloorplan) plans[1], stdCellP);
+                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1]);
             }
             else
             {
-                capCell = getCMOS90CapCell(lib, (CapFloorplan) plans[1], stdCell);
-                capCellP = getCMOS90CapCell(lib, (CapFloorplan) plans[1], stdCellP);
+                capCell = getCMOS90CapCell(lib, (CapFloorplan) plans[1]);
             }
         }
         libInitialized = true;
     }
 
     private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,
-                                int[] tiledSizes, StdCellParams stdCell) {
+                                int[] tiledSizes) {
         if (tiledSizes==null) return;
         for (int num : tiledSizes)
         {
-            TiledCell.makeTiledCell(num, num, cell, plans, lib, stdCell);
+            TiledCell.makeTiledCell(num, num, cell, plans, lib);
         }
     }
 
 	public static Cell makeFillCell(Library lib, Floorplan[] plans,
                                     int botLayer, int topLayer, CapCell capCell,
-                                    boolean wireLowest, StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
-		FillCell fc = new FillCell(stdCell);
+                                    TechType tech,
+                                    ExportConfig expCfg, boolean metalFlex, boolean hierFlex) {
+		FillCell fc = new FillCell(tech);
 
 		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell,
-		                        wireLowest, stdCell, metalFlex, hierFlex);
+		                        expCfg, metalFlex, hierFlex);
 	}
 
     /**
      * Method to create standard set of tiled cells.
      */
     private Cell standardMakeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
-                                         int hiLay, CapCell capCell, boolean wireLowest,
-                                         int[] tiledSizes, StdCellParams stdCell,
-                                         boolean metalFlex)
+                                         int hiLay, CapCell capCell,
+                                         TechType tech,
+                                         ExportConfig expCfg,
+                                         int[] tiledSizes, boolean metalFlex)
     {
         Cell master = makeFillCell(lib, plans, lowLay, hiLay, capCell,
-                wireLowest, stdCell, metalFlex, false);
+                                   tech, expCfg, metalFlex, false);
         masters = new ArrayList<Cell>();
         masters.add(master);
-        makeTiledCells(master, plans, lib, tiledSizes, stdCell);
+        makeTiledCells(master, plans, lib, tiledSizes);
         return master;
     }
 
     public static final Units LAMBDA = Units.LAMBDA;
     public static final Units TRACKS = Units.TRACKS;
-    public static final PowerType POWER = PowerType.POWER;
-    public static final PowerType VDD = PowerType.VDD;
+    //public static final PowerType POWER = PowerType.POWER;
+    //public static final PowerType VDD = PowerType.VDD;
     public static final ExportConfig PERIMETER = ExportConfig.PERIMETER;
     public static final ExportConfig PERIMETER_AND_INTERNAL = ExportConfig.PERIMETER_AND_INTERNAL;
 
@@ -1064,29 +812,6 @@ public class FillGeneratorTool extends Tool {
 //		this.gndReserved[layer] = reservedToLambda(layer, gndReserved, gndUnits);
 //	}
 
-    /** This version of makeFillCell is deprecated. We should no longer need
-     * to create fill cells with export type "POWER". Please use the version
-     * of makeFillCell that has no PowerType argument. */
-    private Cell standardMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, PowerType powerType,
-                                      int[] tiledSizes, boolean metalFlex) {
-        initFillParameters(metalFlex, false);
-
-        LayoutLib.error(loLayer<1, "loLayer must be >=1");
-        int maxNumMetals = config.techNm.getNumMetals();
-        LayoutLib.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
-        LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
-        boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
-        Cell cell = null;
-        if (powerType==VDD) {
-            cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-                            tiledSizes, stdCell, metalFlex);
-        } else {
-            cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-                            tiledSizes, stdCellP, metalFlex);
-        }
-        return cell;
-    }
-
     /** Create a fill cell using the current library, fill cell width, fill cell
      * height, layer orientation, and reserved spaces for each layer. Then
      * generate larger fill cells by tiling that fill cell according to the
@@ -1102,9 +827,21 @@ public class FillGeneratorTool extends Tool {
      * @param tiledSizes Array specifying composite Cells we should build by
      * concatonating fill cells. For example int[] {2, 4, 7} means we should
      * */
-    public Cell standardMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+    public Cell standardMakeFillCell(int loLayer, int hiLayer, 
+    		                         TechType tech,
+    		                         ExportConfig exportConfig, 
                                      int[] tiledSizes, boolean metalFlex) {
-        return standardMakeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex);
+        initFillParameters(metalFlex, false);
+
+        LayoutLib.error(loLayer<1, "loLayer must be >=1");
+        int maxNumMetals = config.techType.getNumMetals();
+        LayoutLib.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
+        LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
+        Cell cell = null;
+            cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, 
+            		                       tech, exportConfig,
+            		                       tiledSizes, metalFlex);
+        return cell;
     }
 
     public void makeGallery() {

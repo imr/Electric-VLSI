@@ -42,6 +42,7 @@ public abstract class TechType implements Serializable {
         public int hashCode() {return arc1.hashCode()*arc2.hashCode();}
     }
     private final Technology generic = Technology.findTechnology("generic");
+    private final Technology technology;
     private final PrimitiveNode essentialBounds =
         generic.findNodeProto("Essential-Bounds");
     private final PrimitiveNode facetCenter =
@@ -183,6 +184,7 @@ public abstract class TechType implements Serializable {
         // I can't break this into subroutines because most data members are
         // final.
         nbLay = layerNms.length;
+        technology = tech;
 
         //--------------------------- initialize layers -----------------------
         layers = new ArcProto[nbLay];
@@ -383,6 +385,7 @@ public abstract class TechType implements Serializable {
     //----------------------------- public methods ----------------------------
 
     public abstract int getNumMetals();
+    public Technology getTechnology() {return technology;}
 
     /** layers */
     public ArcProto pdiff() {return pdiff;}

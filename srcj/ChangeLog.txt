@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP: (8/7/07, RK) Remove "power" Cell hacks from FillGeneratorTool. 
+     These were workarounds to get C-NCC to work with multiple power supples.
+     Merge my changes to FillGenerator90 (Bug #1351) into FillGeneratorTool.
+     First cut at making FillGeneratorTool accessible from bean shell script.
+
 IMP: (8/7/07, JKG) Added option under Prefs->Selection to not highlight
      connected nodes. This improves performance when editing vdd/gnd in very large
      cells when you do not need to see everything connected.
