@@ -59,7 +59,8 @@ public class SelectionTab extends PreferencePanel
         cancelMoveDelayMillis = ClickZoomWireListener.theOne.getCancelMoveDelayMillis();
         selectionCancelMoveDelay.setText(String.valueOf(cancelMoveDelayMillis));
         useMouseOverHighlighting.setSelected(User.isMouseOverHighlightingEnabled());
-	}
+        highlightConnectedObjects.setSelected(User.isHighlightConnectedObjects());
+    }
 
 	/**
 	 * Method called when the "OK" panel is hit.
@@ -78,6 +79,10 @@ public class SelectionTab extends PreferencePanel
         currBoolean = useMouseOverHighlighting.isSelected();
         if (currBoolean != User.isMouseOverHighlightingEnabled())
             User.setMouseOverHighlightingEnabled(currBoolean);
+
+        currBoolean = highlightConnectedObjects.isSelected();
+        if (currBoolean != User.isHighlightConnectedObjects())
+            User.setHighlightConnectedObjects(currBoolean);
 
         long delay;
         try {
@@ -106,6 +111,7 @@ public class SelectionTab extends PreferencePanel
         selectionCancelMoveDelay = new javax.swing.JTextField();
         jLabel58 = new javax.swing.JLabel();
         useMouseOverHighlighting = new javax.swing.JCheckBox();
+        highlightConnectedObjects = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -172,6 +178,16 @@ public class SelectionTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(useMouseOverHighlighting, gridBagConstraints);
 
+        highlightConnectedObjects.setText("Highlight Connected Objects");
+        highlightConnectedObjects.setBorder(null);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 4);
+        selection.add(highlightConnectedObjects, gridBagConstraints);
+
         getContentPane().add(selection, new java.awt.GridBagConstraints());
 
         pack();
@@ -185,6 +201,7 @@ public class SelectionTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox highlightConnectedObjects;
     private javax.swing.JLabel jLabel55;
     private javax.swing.JLabel jLabel58;
     private javax.swing.JCheckBox selDraggingEnclosesEntireObject;

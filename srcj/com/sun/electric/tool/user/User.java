@@ -1107,7 +1107,19 @@ public class User extends Listener
      */
     public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
 
-	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
+    private static Pref cacheHighlightConnectedObjects = Pref.makeBooleanPref("HighlightConnectedObjects", tool.prefs, true);
+    /**
+     * Method to set whether to highlight objects connected to the selected object
+     * @return true to highlight objects connected to the selected object, false otherwise
+     */
+    public static boolean isHighlightConnectedObjects() { return cacheHighlightConnectedObjects.getBoolean(); }
+    /**
+     * Method to get whether to highlight objects connected to the selected object
+     * @param on true to highlight objects connected to the selected object
+     */
+    public static void setHighlightConnectedObjects(boolean on) { cacheHighlightConnectedObjects.setBoolean(on); }
+
+    /****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
 	private static Pref cacheDefGridXSpacing = Pref.makeDoublePref("DefGridXSpacing", tool.prefs, 1);
 	/**

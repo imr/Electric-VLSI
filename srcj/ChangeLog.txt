@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP: (8/7/07, JKG) Added option under Prefs->Selection to not highlight
+     connected nodes. This improves performance when editing vdd/gnd in very large
+     cells when you do not need to see everything connected.
+
 BUG: (8/7/07, DN) Editing layout too slow when lots of stuff in cell (Bug #1355)
 FIX: In CellBackup.Memoization sort connections a little faster.
 

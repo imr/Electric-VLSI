@@ -595,7 +595,7 @@ public class Highlighter implements DatabaseChangeListener {
             // only show highlights for the current cell
             if (h.getCell() == wnd.getCell())
             {
-                boolean setConnected = true;
+                boolean setConnected = User.isHighlightConnectedObjects();
                 Color color = colorH;
                 if (type == MOUSEOVER_HIGHLIGHTER)
                 {
