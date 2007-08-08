@@ -15,7 +15,7 @@ FIX: In Change.java, remember "Ignore Port Names", "Allow Missing Ports" and
 BUG: (8/08/07, SMR) Expanded state of a node is not copied properly (Bug #1349).
 FIX: Must also copy expanded state whenever copying "state bits".
 
-IMP: (8/7/07, RK) Remove "power" Cell hacks from FillGeneratorTool. 
+IMP: (8/7/07, RK) Remove "power" Cell hacks from FillGeneratorTool.
      These were workarounds to get C-NCC to work with multiple power supples.
      Merge my changes to FillGenerator90 (Bug #1351) into FillGeneratorTool.
      First cut at making FillGeneratorTool accessible from bean shell script.
@@ -27,7 +27,7 @@ IMP: (8/7/07, JKG) Added option under Prefs->Selection to not highlight
 BUG: (8/7/07, DN) Editing layout too slow when lots of stuff in cell (Bug #1355)
 FIX: In CellBackup.Memoization sort connections a little faster.
 
-IMP: (8/6/07, JL) added new layers: RPDUMMY, DM2V, metal dummy (Bug #1356).
+IMP: (8/6/07, JKG) added new layers: RPDUMMY, , metal dummy (Bug #1356).
 IMP: (8/6/07, GVG) RPDUMMY added to Poly RPO resistors (Bug #1356).
 
 IMP: (8/06/07, SAF) Added benchmarking counters to NCC.
