@@ -1354,13 +1354,17 @@ class PixelDrawing
 		{
 			Connection con = it.next();
 			PortInst pi = con.getPortInst();
-			shownPorts[pi.getPortIndex()] = true;
+            Export e = (Export)pi.getPortProto();
+            if (!e.isAlwaysDrawn())
+            	shownPorts[pi.getPortIndex()] = true;
 		}
 		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
 		{
 			Export exp = it.next();
 			PortInst pi = exp.getOriginalPort();
-			shownPorts[pi.getPortIndex()] = true;
+            Export e = (Export)pi.getPortProto();
+            if (!e.isAlwaysDrawn())
+            	shownPorts[pi.getPortIndex()] = true;
 		}
 		int portDisplayLevel = User.getPortDisplayLevel();
 		for(int i = 0; i < numPorts; i++)

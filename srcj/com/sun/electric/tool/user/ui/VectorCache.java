@@ -904,12 +904,16 @@ public class VectorCache {
             for(Iterator<Connection> it = ni.getConnections(); it.hasNext();) {
                 Connection con = it.next();
                 PortInst pi = con.getPortInst();
-                vsc.shownPorts.set(pi.getPortProto().getId().getChronIndex());
+                Export e = (Export)pi.getPortProto();
+                if (!e.isAlwaysDrawn())
+                	vsc.shownPorts.set(e.getId().getChronIndex());
             }
             for(Iterator<Export> it = ni.getExports(); it.hasNext();) {
                 Export exp = it.next();
                 PortInst pi = exp.getOriginalPort();
-                vsc.shownPorts.set(pi.getPortProto().getId().getChronIndex());
+                Export e = (Export)pi.getPortProto();
+                if (!e.isAlwaysDrawn())
+                	vsc.shownPorts.set(e.getId().getChronIndex());
             }
 
 			// draw any displayable variables on the instance
