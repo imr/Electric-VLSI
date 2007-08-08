@@ -882,6 +882,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME);
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
 		newNi.copyStateBits(this);
+        newNi.setExpanded(this.isExpanded());
 
 		// now delete the original nodeinst
 		kill();

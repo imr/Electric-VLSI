@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/08/07, SMR) Expanded state of a node is not copied properly (Bug #1349).
+FIX: Must also copy expanded state whenever copying "state bits".
+
 IMP: (8/7/07, RK) Remove "power" Cell hacks from FillGeneratorTool. 
      These were workarounds to get C-NCC to work with multiple power supples.
      Merge my changes to FillGenerator90 (Bug #1351) into FillGeneratorTool.
