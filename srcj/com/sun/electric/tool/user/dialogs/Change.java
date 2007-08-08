@@ -83,10 +83,12 @@ public class Change extends EDialog implements HighlightListener
 	/** Change all in all Libraries. */			private static final int CHANGE_EVERYWHERE = 5;
 
 	private static Change theDialog = null;
-	private static boolean nodesAndArcs = false;
+	private static boolean lastChangeNodesWithArcs = false;
+	private static boolean lastIgnorePortNames = false;
+	private static boolean lastAllowMissingPorts = false;
 	private static int whatToChange = CHANGE_SELECTED;
-	private List<Geometric> geomsToChange;                  // List of Geometrics to change
     private static String libSelected = null;
+	private List<Geometric> geomsToChange;                  // List of Geometrics to change
 	private JList changeList;
 	private DefaultListModel changeListModel;
 	private List<NodeProto> changeNodeProtoList;
@@ -142,6 +144,18 @@ public class Change extends EDialog implements HighlightListener
 		librariesPopup.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { reload(false); }
+		});
+
+		// restore defaults
+		ignorePortNames.setSelected(lastIgnorePortNames);
+		allowMissingPorts.setSelected(lastAllowMissingPorts);
+		ignorePortNames.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { rememberState(); }
+		});
+		allowMissingPorts.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { rememberState(); }
 		});
 
 		showPrimitives.addActionListener(new ActionListener()
@@ -310,10 +324,16 @@ public class Change extends EDialog implements HighlightListener
 			showPrimitives.setEnabled(false);
 			showCells.setEnabled(false);
 			changeNodesWithArcs.setEnabled(true);
-			changeNodesWithArcs.setSelected(nodesAndArcs);
+			changeNodesWithArcs.setSelected(lastChangeNodesWithArcs);
 		}
 
 		reload(true);
+	}
+
+	private void rememberState()
+	{
+		lastIgnorePortNames = ignorePortNames.isSelected();
+		lastAllowMissingPorts = allowMissingPorts.isSelected();
 	}
 
 	private boolean dontReload = false;
@@ -324,6 +344,7 @@ public class Change extends EDialog implements HighlightListener
 	 */
 	private void reload(boolean canSwitchLibraries)
 	{
+		lastChangeNodesWithArcs = changeNodesWithArcs.isSelected();
 		if (dontReload) return;
 
 		changeListModel.clear();

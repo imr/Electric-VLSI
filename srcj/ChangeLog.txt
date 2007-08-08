@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/08/07, SMR) "Change" dialog doesn't remember checkboxes (Bug #1353).
+FIX: In Change.java, remember "Ignore Port Names", "Allow Missing Ports" and
+     "Change Nodes With Arcs".
+
 BUG: (8/08/07, SMR) Expanded state of a node is not copied properly (Bug #1349).
 FIX: Must also copy expanded state whenever copying "state bits".
 
