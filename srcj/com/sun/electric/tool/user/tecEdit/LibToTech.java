@@ -10,7 +10,7 @@
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * Electric(tm) is distributed in the hope that it will be useful,
@@ -2715,7 +2715,7 @@ public class LibToTech
 //		buffWriter.println(" *");
 //		buffWriter.println(" * Electric(tm) is free software; you can redistribute it and/or modify");
 //		buffWriter.println(" * it under the terms of the GNU General Public License as published by");
-//		buffWriter.println(" * the Free Software Foundation; either version 2 of the License, or");
+//		buffWriter.println(" * the Free Software Foundation; either version 3 of the License, or");
 //		buffWriter.println(" * (at your option) any later version.");
 //		buffWriter.println(" *");
 //		buffWriter.println(" * Electric(tm) is distributed in the hope that it will be useful,");

@@ -8,7 +8,7 @@
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
  * Electric(tm) is distributed in the hope that it will be useful,
@@ -1597,9 +1597,11 @@ public class Panel extends JPanel
 							break;
 						case Stimuli.LOGIC_X:
 							lowy = 5;   highy = hei-5;
+							if (!Simulation.isWaveformDisplayMultiState()) g.setColor(Color.RED);
 							break;
 						case Stimuli.LOGIC_Z:
-							lowy = 5;   highy = hei-5;
+							lowy = highy = hei/2;
+							if (!Simulation.isWaveformDisplayMultiState()) g.setColor(Color.GREEN);
 							break;
 					}
 					if (i != 0)

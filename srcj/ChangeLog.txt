@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP: (8/09/07, SMR) Upgraded GPL version 2 to version 3 in all code.
+
 BUG: (8/09/07, SMR) Text change in edit windows repeats changes (Bug #1357).
 FIX: In EditWindow.StringSearch, remember changes and avoid duplication.
 
