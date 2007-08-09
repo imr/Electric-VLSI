@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/09/07, SMR) Text change in edit windows repeats changes (Bug #1357).
+FIX: In EditWindow.StringSearch, remember changes and avoid duplication.
+
 BUG: (8/09/07, SMR) Sea-of-Gates router crashes (Bug #1335).
 FIX: Ignore arcs with no network information.
 
