@@ -343,6 +343,11 @@ public class SeaOfGates
 				break;
 			}
 			Network net = netList.getNetwork(ai, 0);
+			if (net == null)
+			{
+				System.out.println("Arc " + ai.describe(false) + " has no network!");
+				continue;
+			}
 			Job.getUserInterface().setProgressValue(a*100/numToRoute);
 			Job.getUserInterface().setProgressNote("Network " + net.getName());
 			System.out.println("Routing network " + net.getName() + "...");
@@ -707,7 +712,7 @@ public class SeaOfGates
 						if (!layer.getFunction().isMetal()) continue;
 						Rectangle2D viaBounds = viaPoly.getBounds2D();
 						SOGBound already = getMetalBlockage(netID, layer, viaBounds.getWidth()/2, viaBounds.getHeight()/2,
-							polyBounds.getMinX(), polyBounds.getMinY());
+							0, polyBounds.getMinX(), polyBounds.getMinY());
 						if (already != null) continue;
 						Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX() + polyBounds.getCenterX(),
 							viaBounds.getMinY() + polyBounds.getCenterY(), viaBounds.getWidth(), viaBounds.getHeight());
@@ -880,8 +885,8 @@ public class SeaOfGates
 		}
 
 		// see if access is blocked
-		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[fromZ];
-		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, fromX, fromY);
+		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
+		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, layerSurround[fromZ], fromX, fromY);
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
@@ -891,8 +896,8 @@ public class SeaOfGates
 				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]");
 			return false;
 		}
-		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2 + layerSurround[toZ];
-		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, toX, toY);
+		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
+		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, layerSurround[toZ], toX, toY);
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
@@ -1257,7 +1262,7 @@ public class SeaOfGates
 									cY = curY + (dy + med) / 2;
 									halfHei += Math.abs(med-dy)/2;
 								}
-								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, cX, cY) == null)
+								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, 0, cX, cY) == null)
 								{
 									lo = med;
 								} else
@@ -1287,8 +1292,11 @@ public class SeaOfGates
 				{
 					// running on one layer: check surround
 					double width = Math.max(metalArcs[nZ].getDefaultLambdaBaseWidth(), minWidth);
-					double metalSpacing = width / 2 + layerSurround[nZ];
-					SOGBound sb = getMetalBlockage(netID, metalLayers[nZ], metalSpacing, metalSpacing, nX, nY);
+					double metalToMetal = layerSurround[nZ];
+//				DRCTemplate rule = DRC.getSpacingRule(metalLayers[nZ], null, metalLayers[nZ], null, false, -1, width, 50);
+//				if (rule != null) metalToMetal = rule.getValue(0);
+					double metalSpacing = width / 2;
+					SOGBound sb = getMetalBlockage(netID, metalLayers[nZ], metalSpacing, metalSpacing, metalToMetal, nX, nY);
 					if (sb != null) continue;
 				} else
 				{
@@ -1321,8 +1329,8 @@ public class SeaOfGates
 							{
 								Rectangle2D conRect = conPoly.getBounds2D();
 								int metalNo = lFun.getLevel() - 1;
-								if (getMetalBlockage(netID, conLayer, conRect.getWidth()/2 + layerSurround[metalNo],
-									conRect.getHeight()/2 + layerSurround[metalNo], conRect.getCenterX(), conRect.getCenterY()) != null)
+								if (getMetalBlockage(netID, conLayer, conRect.getWidth()/2, conRect.getHeight()/2,
+									layerSurround[metalNo], conRect.getCenterX(), conRect.getCenterY()) != null)
 								{
 //System.out.println("CANNOT PLACE "+np.describe(false)+" AT ("+nX+","+nY+") BECAUSE LAYER "+conLayer.getName()+" IS BLOCKED");
 //System.out.println("  SEARCHED "+(conRect.getWidth()/2)+"x"+(conRect.getHeight()/2)+" WITH LAYER SURROUND "+layerSurround[metalNo]+" ABOUT ("+(nX+conRect.getCenterX())+","+(nY+conRect.getCenterY())+")");
@@ -1489,7 +1497,10 @@ public class SeaOfGates
 	private int getJumpSize(int curX, int curY, int curZ, int dx, int dy, Rectangle jumpBound, int netID, double minWidth)
 	{				
 		double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), minWidth);
-		double metalSpacing = width / 2 + layerSurround[curZ];
+		double metalToMetal = layerSurround[curZ];
+//	DRCTemplate rule = DRC.getSpacingRule(metalLayers[curZ], null, metalLayers[curZ], null, false, -1, width, 50);
+//	if (rule != null) metalToMetal = rule.getValue(0);
+		double metalSpacing = width / 2 + metalToMetal;
 		double lX = curX - metalSpacing, hX = curX + metalSpacing;
 		double lY = curY - metalSpacing, hY = curY + metalSpacing;
 		if (dx > 0) hX = jumpBound.getMaxX()+metalSpacing; else
@@ -1599,29 +1610,51 @@ public class SeaOfGates
 	 * Method to find a metal blockage in the R-Tree.
 	 * @param netID the network ID of the desired space (blockages on this netID are ignored).
 	 * @param layer the metal layer being examined.
-	 * @param halfWidth half of the width of the area to examine.
-	 * @param halfHeight half of the height of the area to examine.
+	 * @param halfWidth half of the width of the area that will be filled.
+	 * @param halfHeight half of the height of the area that will be filled.
+	 * @param surround is the surround around the area that will be filled.
 	 * @param x the X coordinate at the center of the area to examine.
 	 * @param y the Y coordinate at the center of the area to examine.
 	 * @return a blocking SOGBound object that is in the area.
 	 * Returns null if the area is clear.
 	 */
-	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double x, double y)
+	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double surround, double x, double y)
 	{
 		RTNode rtree = metalTrees.get(layer);
 		if (rtree == null) return null;
 
+		// compute the notch area
+		double lXNotch = x - halfWidth, hXNotch = x + halfWidth;
+		double lYNotch = y - halfHeight, hYNotch = y + halfHeight;
+		SOGBound notchError = null;
+		boolean possibleNotch = true;
+
 		// see if there is anything in that area
-		double lX = x - halfWidth, hX = x + halfWidth;
-		double lY = y - halfHeight, hY = y + halfHeight;
-		Rectangle2D searchArea = new Rectangle2D.Double(lX, lY, halfWidth*2, halfHeight*2);
+		double lX = x - halfWidth - surround, hX = x + halfWidth + surround;
+		double lY = y - halfHeight - surround, hY = y + halfHeight + surround;
+		Rectangle2D searchArea = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 		for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
 		{
 			SOGBound sBound = (SOGBound)sea.next();
-			if (sBound.getNetID() == netID) continue;
 			Rectangle2D bound = sBound.getBounds();
 			if (bound.getMaxX() <= lX || bound.getMinX() >= hX ||
 				bound.getMaxY() <= lY || bound.getMinY() >= hY) continue;
+
+			// if on the same net, make sure there is no notch error
+			if (sBound.getNetID() == netID)
+			{
+				if (bound.getMaxX() <= lXNotch || bound.getMinX() >= hXNotch ||
+					bound.getMaxY() <= lYNotch || bound.getMinY() >= hYNotch) notchError = sBound; else
+				{
+					if (sBound instanceof SOGPoly)
+					{
+						PolyBase poly = ((SOGPoly)sBound).getPoly();
+						if (!poly.contains(searchArea)) continue;
+					}
+					possibleNotch = false;
+				}
+				continue;
+			}
 
 			// if this is a polygon, do closer examination
 			if (sBound instanceof SOGPoly)
@@ -1631,6 +1664,7 @@ public class SeaOfGates
 			}
 			return sBound;
 		}
+		if (possibleNotch) return notchError;
 		return null;
 	}
 

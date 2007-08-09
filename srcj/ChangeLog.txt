@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/09/07, SMR) Sea-of-Gates router crashes (Bug #1335).
+FIX: Ignore arcs with no network information.
+
+BUG: (8/08/07, SMR) Sea-of-Gates router creates notch errors.
+FIX: Added more complex spacing checks.
+
 BUG: (8/08/07, SMR) The "Always Drawn" property of exports doesn't work.
 FIX: In VectorCache.drawNode() and in PixelDrawing.showCellPorts(),
      force drawing when this property is set.
