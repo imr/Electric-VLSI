@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP/MAN: (8/10/07, SMR) Digital waveforms now show the "Z" state (from Verilog)
+     as a thick green bar.
+
 BUG: (8/10/07, SMR) Changing arcs (with nodes) may loop infinitely (Bug #1359).
 FIX: In Change.findPathToArc(), track arcs used, not primitives.
 

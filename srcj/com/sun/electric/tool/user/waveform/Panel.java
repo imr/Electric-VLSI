@@ -1597,19 +1597,22 @@ public class Panel extends JPanel
 							break;
 						case Stimuli.LOGIC_X:
 							lowy = 5;   highy = hei-5;
-							if (!Simulation.isWaveformDisplayMultiState()) g.setColor(Color.RED);
 							break;
 						case Stimuli.LOGIC_Z:
-							lowy = highy = hei/2;
-							if (!Simulation.isWaveformDisplayMultiState()) g.setColor(Color.GREEN);
+							lowy = (hei-10) / 3 + 5;   highy = hei - (hei-10) / 3 - 5;
 							break;
 					}
+					if (g != null && !Simulation.isWaveformDisplayMultiState()) g.setColor(Color.RED);
 					if (i != 0)
 					{
 						if (state != lastState)
 						{
-							if (processALine(g, x, 5, x, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+							if (processALine(g, x, Math.min(lowy, lastLowy), x, Math.max(lowy, lastLowy), bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
 						}
+					}
+					if (g != null && !Simulation.isWaveformDisplayMultiState())
+					{
+						if (lastState == Stimuli.LOGIC_Z) g.setColor(Color.GREEN);
 					}
 					if (lastLowy == lastHighy)
 					{
