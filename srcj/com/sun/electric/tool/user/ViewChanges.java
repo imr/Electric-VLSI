@@ -1839,7 +1839,6 @@ public class ViewChanges
                     return null;
                 }
                 newNi.copyStateBits(ni);
-                newNi.setExpanded(ni.isExpanded());
                 if (no.getParent().getView() != View.SCHEMATIC)
                     newNi.copyVarsFrom(ni);
 

@@ -664,7 +664,6 @@ public class CellChangeJobs
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.copyStateBits(ni);
-				newNi.setExpanded(ni.isExpanded());
 				newNi.copyVarsFrom(ni);
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 
@@ -856,7 +855,6 @@ public class CellChangeJobs
 				if (newNi == null) continue;
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 				newNi.copyStateBits(ni);
-				newNi.setExpanded(ni.isExpanded());
 				newNi.copyVarsFrom(ni);
 
 				// add ports to the new node's portmap

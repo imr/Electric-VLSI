@@ -803,7 +803,6 @@ public class Clipboard
 				return lastCreatedNode;
 			}
 			newNi.copyStateBits(ni);
-			newNi.setExpanded(ni.isExpanded());
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyVarsFrom(ni);
@@ -1012,7 +1011,6 @@ public class Clipboard
 		// copy any special user bits
 		destNode.copyStateBits(srcNode);
 		destNode.clearExpanded();
-		destNode.setExpanded(srcNode.isExpanded());
 		destNode.clearLocked();
 
 		return(destNode);

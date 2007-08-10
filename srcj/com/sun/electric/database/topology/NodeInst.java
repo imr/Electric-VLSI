@@ -882,7 +882,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME);
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
 		newNi.copyStateBits(this);
-        newNi.setExpanded(this.isExpanded());
 
 		// now delete the original nodeinst
 		kill();
@@ -3188,10 +3187,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 	/**
 	 * Method to copy the various state bits from another NodeInst to this NodeInst.
+	 * Includes all of the state bits stored in the flags word and also the "expanded" state.
 	 * @param ni the other NodeInst to copy.
 	 */
 	public void copyStateBits(NodeInst ni) {
         setD(d.withStateBits(ni.d), true);
+        setExpanded(ni.isExpanded());
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
