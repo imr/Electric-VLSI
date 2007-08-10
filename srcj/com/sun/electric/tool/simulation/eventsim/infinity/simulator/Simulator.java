@@ -38,7 +38,7 @@ public class Simulator {
 			sim.buildHandshakeModel();
 			
 
-			long start= System.currentTimeMillis();
+//			long start= System.currentTimeMillis();
 			
 			d.reset();
 
@@ -59,7 +59,7 @@ public class Simulator {
 //			}
 //			}
 			
-			long stop= System.currentTimeMillis();
+//			long stop= System.currentTimeMillis();
 			
 			
 		}
@@ -118,7 +118,7 @@ public class Simulator {
 			Entity e= ei.next();
 			Method m= null;
 			try {
-				m= e.getClass().getMethod("getInfo", null);
+				m= e.getClass().getMethod("getInfo", (Class<?>[])null);
 			}
 			catch (SecurityException se) {
 				d.fatalError("Runner caught security exception when inspecting class "
@@ -130,7 +130,7 @@ public class Simulator {
 			if (m != null) {
 				try {
 					// get status
-					Object so= m.invoke(e, null );
+					Object so= m.invoke(e, (Object[])null);
 					// print status
 					System.out.println(so.toString());
 				}
