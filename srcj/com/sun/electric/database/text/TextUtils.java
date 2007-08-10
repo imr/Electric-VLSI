@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Client;
 
 import java.io.File;
 import java.io.IOException;
@@ -1249,6 +1250,10 @@ public class TextUtils
 			URI uri = new URI(filePath);
 			filePath = uri.getPath();
 		} catch (URISyntaxException e) {}
+
+		// hack to fix Windows file names with spaces in them
+		if (Client.getOperatingSystem() == Client.OS.WINDOWS)
+			filePath = filePath.replaceAll("%20", " ");
 		return filePath;
     }
 

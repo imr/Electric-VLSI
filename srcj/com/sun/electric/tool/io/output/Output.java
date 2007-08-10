@@ -572,7 +572,7 @@ public class Output
 		this.filePath = filePath;
         try
 		{
-            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+        	printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
         } catch (IOException e)
 		{
             System.out.println("Error opening " + filePath+": "+e.getMessage());
