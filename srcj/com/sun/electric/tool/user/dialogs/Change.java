@@ -395,20 +395,27 @@ public class Change extends EDialog implements HighlightListener
 				}
 			}
             changeList.setSelectedIndex(0);
+
             // try to select prototype of selected node
-            if (ni.isCellInstance()) {
+            if (ni.isCellInstance())
+            {
                 Cell c = (Cell)ni.getProto();
-                for (int i=0; i<changeListModel.getSize(); i++) {
+                for (int i=0; i<changeListModel.getSize(); i++)
+                {
                     String str = (String)changeListModel.get(i);
-                    if (str.equals(c.noLibDescribe())) {
+                    if (str.equals(c.noLibDescribe()))
+                    {
                         changeList.setSelectedIndex(i);
                         break;
                     }
                 }
-            } else {
-                for (int i=0; i<changeListModel.getSize(); i++) {
+            } else
+            {
+                for (int i=0; i<changeListModel.getSize(); i++)
+                {
                     String str = (String)changeListModel.get(i);
-                    if (str.equals(ni.getProto().describe(false))) {
+                    if (str.equals(ni.getProto().describe(false)))
+                    {
                         changeList.setSelectedIndex(i);
                         break;
                     }
@@ -502,18 +509,9 @@ public class Change extends EDialog implements HighlightListener
 
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 
-		new ChangeObject(
-			geomsToChange, highs,
-			getLibSelected(),
-			np, ap,
-			ignorePortNames.isSelected(),
-			allowMissingPorts.isSelected(),
-			changeNodesWithArcs.isSelected(),
-			changeInCell.isSelected(),
-			changeInLibrary.isSelected(),
-			changeEverywhere.isSelected(),
-			changeConnected.isSelected()
-			);
+		new ChangeObject(geomsToChange, highs, getLibSelected(), np, ap, ignorePortNames.isSelected(),
+			allowMissingPorts.isSelected(), changeNodesWithArcs.isSelected(), changeInCell.isSelected(),
+			changeInLibrary.isSelected(), changeEverywhere.isSelected(), changeConnected.isSelected());
 	}
 
 	/**
@@ -529,18 +527,10 @@ public class Change extends EDialog implements HighlightListener
 		private boolean changeInCell, changeInLibrary, changeEverywhere, changeConnected;
 		private List<Geometric> highlightThese;
 
-		protected ChangeObject(
-			List<Geometric> geomsToChange,
-			List<Geometric> highs,
-			String libName,
-			NodeProto np, ArcProto ap,
-			boolean ignorePortNames,
-			boolean allowMissingPorts,
-			boolean changeNodesWithArcs,
-			boolean changeInCell,
-			boolean changeInLibrary,
-			boolean changeEverywhere,
-			boolean changeConnected)
+		private ChangeObject(List<Geometric> geomsToChange, List<Geometric> highs, String libName,
+			NodeProto np, ArcProto ap, boolean ignorePortNames, boolean allowMissingPorts,
+			boolean changeNodesWithArcs, boolean changeInCell, boolean changeInLibrary,
+			boolean changeEverywhere, boolean changeConnected)
 		{
 			super("Change type", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.geomsToChange = geomsToChange;
@@ -584,9 +574,9 @@ public class Change extends EDialog implements HighlightListener
 					if (oldNType == np)
 					{
 						System.out.println("Node already of type " + np.describe(true));
-                        // just skip this case. No need to redo it. This not an error.
+
+						// just skip this case. No need to redo it. This not an error.
                         continue;
-//						return false;
 					}
 
 					// replace the nodeinsts
@@ -987,7 +977,6 @@ public class Change extends EDialog implements HighlightListener
 					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
 				}
 				if (ni.hasConnections() && allArcs) geomMarked.add(ni);
-//				if (ni.getNumConnections() != 0 && allArcs) geomMarked.add(ni);
 			}
 
 			// now create new pins where they belong
@@ -1056,9 +1045,6 @@ public class Change extends EDialog implements HighlightListener
 				double wid = ap.getDefaultLambdaBaseWidth();
 				if (ai.getLambdaBaseWidth() > wid) wid = ai.getLambdaBaseWidth();
 				ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pi0, pi1, ai.getHeadLocation(),
-//				double wid = ap.getDefaultLambdaFullWidth();
-//				if (ai.getLambdaFullWidth() > wid) wid = ai.getLambdaFullWidth();
-//				ArcInst newAi = ArcInst.makeInstanceFull(ap, wid, pi0, pi1, ai.getHeadLocation(),
 				    ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
@@ -1080,29 +1066,16 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst newNi = newNodes.get(ni);
 				if (!ni.hasExports())
-//				if (ni.getNumExports() == 0)
 				{
 					String niName = ni.getName();
 					ni.kill();
 					newNi.setName(niName);
 				}
 			}
-
-//			List<NodeInst> killNodes = new ArrayList<NodeInst>();
-//			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-//			{
-//				NodeInst ni = it.next();
-//				if (geomMarked.contains(ni)) killNodes.add(ni);
-//			}
-//			for(NodeInst ni : killNodes)
-//			{
-//				if (ni.getNumExports() == 0)
-//					ni.kill();
-//			}
 		}
 
-		NodeProto [] contactStack = new NodeProto[100];
-		ArcProto [] contactStackArc = new ArcProto[100];
+		private NodeProto [] contactStack = new NodeProto[100];
+		private ArcProto [] contactStackArc = new ArcProto[100];
 
 		/**
 		 * Method to examine end "end" of arc "ai" and return a node at that position which
@@ -1113,8 +1086,8 @@ public class Change extends EDialog implements HighlightListener
 		{
 			NodeInst lastNi = ai.getPortInst(end).getNodeInst();
 			PortProto lastPp = ai.getPortInst(end).getPortProto();
-			Set<PrimitiveNode> marked = new HashSet<PrimitiveNode>();
-			int depth = findPathToArc(lastPp, ap, 0, marked);
+			Set<ArcProto> markedArcs = new HashSet<ArcProto>();
+			int depth = findPathToArc(lastPp, ap, 0, markedArcs);
 			if (depth < 0) return null;
 
 			// create the contacts
@@ -1131,15 +1104,21 @@ public class Change extends EDialog implements HighlightListener
 
 				ArcProto typ = contactStackArc[i];
 				ArcInst newAi = ArcInst.makeInstance(typ, thisPi, retPi);
-//				double wid = typ.getDefaultLambdaFullWidth();
-//				ArcInst newAi = ArcInst.makeInstanceFull(typ, wid, thisPi, retPi);
 				retPi = thisPi;
 				if (newAi == null) return null;
 			}
 			return retPi;
 		}
 
-		int findPathToArc(PortProto pp, ArcProto ap, int depth, Set<PrimitiveNode> marked)
+		/**
+		 * Method to compute an array of contacts and arcs that connects a port to an arcproto.
+		 * @param pp the original port.
+		 * @param ap the destination arcproto.
+		 * @param depth the location in the contact array to fill.
+		 * @param markedArcs a set of Arcprotos that have been used in the search.
+		 * @return the new size of the contact array.
+		 */
+		private int findPathToArc(PortProto pp, ArcProto ap, int depth, Set<ArcProto> markedArcs)
 		{
 			// see if the connection is made
 			if (pp.connectsTo(ap)) return depth;
@@ -1152,7 +1131,6 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode nextNp = it.next();
-				if (marked.contains(nextNp)) continue;
 				PrimitiveNode.Function fun = nextNp.getFunction();
 				if (fun != PrimitiveNode.Function.CONTACT) continue;
 
@@ -1164,15 +1142,16 @@ public class Change extends EDialog implements HighlightListener
 				{
 					ArcProto thisAp = connections[i];
 					if (thisAp.getTechnology() != tech) continue;
+					if (markedArcs.contains(thisAp)) continue;
 					if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
 				}
 				if (found == null) continue;
 
 				// this contact is part of the chain
 				contactStack[depth] = nextNp;
-				marked.add(nextNp);
-				int newDepth = findPathToArc(nextPp, ap, depth+1, marked);
-				marked.remove(nextNp);
+				markedArcs.add(found);
+				int newDepth = findPathToArc(nextPp, ap, depth+1, markedArcs);
+				markedArcs.remove(found);
 				if (newDepth < 0) continue;
 				if (bestNp == null || newDepth < bestDepth)
 				{
@@ -1185,17 +1164,16 @@ public class Change extends EDialog implements HighlightListener
 			{
 				contactStack[depth] = bestNp;
 				contactStackArc[depth] = bestAp;
-				marked.add(bestNp);
-				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, marked);
-				marked.remove(bestNp);
+				markedArcs.add(bestAp);
+				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, markedArcs);
+				markedArcs.remove(bestAp);
 				return newDepth;
 			}
 			return -1;
 		}
-
 	}
 
-    protected String getLibSelected()
+    private String getLibSelected()
     {
         return (String)librariesPopup.getSelectedItem();
     }
@@ -1409,7 +1387,7 @@ public class Change extends EDialog implements HighlightListener
 		Highlighter.removeHighlightListener(this);
 		setVisible(false);
 		dispose();
-		theDialog = null;		
+		theDialog = null;
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

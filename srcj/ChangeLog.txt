@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/10/07, SMR) Changing arcs (with nodes) may loop infinitely (Bug #1359).
+FIX: In Change.findPathToArc(), track arcs used, not primitives.
+
+BUG: (8/10/07, SMR) Cannot save JELIBs to Windows desktop.
+FIX: Paths with spaces in names fail.  Fixed TextUtils.URLtoString()
+     to convert "%20" to a space on Windows.
+
 IMP: (8/09/07, SMR) Upgraded GPL version 2 to version 3 in all code.
 
 BUG: (8/09/07, SMR) Text change in edit windows repeats changes (Bug #1357).
