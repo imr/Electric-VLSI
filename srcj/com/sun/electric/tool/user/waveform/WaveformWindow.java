@@ -2325,6 +2325,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * or a String describing the context if net is null
 	 */
 	public static String getSpiceNetName(VarContext context, Network net)
+    {
+        return getSpiceNetName(context, net, false);
+    }
+    /**
+     * Get the spice net name associated with the network and the context.
+     * If the network is null, a String describing only the context is returned.
+     * @param context the context
+     * @param net the network, or null
+     * @param assuraRCXFormat return net assuming Assura RCX flat netlist format
+     * @return a String describing the unique, global spice name for the network,
+     * or a String describing the context if net is null
+     */
+    public static String getSpiceNetName(VarContext context, Network net, boolean assuraRCXFormat)
 	{
 		boolean isGlobal = false;
 
@@ -2359,17 +2372,21 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// create net name
 		String contextStr = context.getInstPath(".");
-		contextStr = TextUtils.canonicString(contextStr);
+        if (assuraRCXFormat) {
+            contextStr = "x"+context.getInstPath("/x");
+        }
+        contextStr = TextUtils.canonicString(contextStr);
 		if (net == null)
 			return contextStr;
 		else {
 			if (context == VarContext.globalContext || isGlobal)
 				return getSpiceNetName(net);
-			else return contextStr + "." + getSpiceNetName(net);
+            else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
+            else return contextStr + "." + getSpiceNetName(net);
 		}
 	}
 
-	/**
+    /**
 	 * Get the Network in the childNodable's parent that corresponds to the Network
 	 * inside the childNodable.
 	 * @param childNetwork the network in the childNodable
@@ -2708,7 +2725,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
-				if (sSig == null) {
+                if (sSig == null) {
+                    // when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
+                    String temp = getSpiceNetName(context, net, true);
+                    sSig = an.findSignalForNetworkQuickly(temp);
+                }
+
+                if (sSig == null) {
 					// check for equivalent layout net name
 					// search up hierarchy for cell with NCC equiv info
 					Cell cell = net.getParent();
