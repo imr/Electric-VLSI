@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+BUG: (8/13/07, SMR) Waveform crossprobing makes unnecessary warnings (Bug #1302).
+FIX: In WaveformWindow.findSelectedSignals(), removed warning message.
+
 BUG/MAN: (8/13/07, SMR) "Package into Cell" should package the exact highlighted
      objects but instead gathers everything in the highlighted area (Bug #1360).
 FIX: In CellChangeJobs.PackageCell class, take a set of nodes and arcs to package.

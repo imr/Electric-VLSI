@@ -2725,41 +2725,42 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
-                if (sSig == null) {
+                if (sSig == null)
+                {
                     // when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
                     String temp = getSpiceNetName(context, net, true);
                     sSig = an.findSignalForNetworkQuickly(temp);
                 }
 
-                if (sSig == null) {
+                if (sSig == null)
+                {
 					// check for equivalent layout net name
 					// search up hierarchy for cell with NCC equiv info
 					Cell cell = net.getParent();
 					NccResult result = NccCrossProbing.getResults(cell);
-					if (result == null) {
-						for (VarContext checkContext = context; checkContext != VarContext.globalContext; checkContext = checkContext.pop()) {
+					if (result == null)
+					{
+						for (VarContext checkContext = context; checkContext != VarContext.globalContext; checkContext = checkContext.pop())
+						{
 							cell = checkContext.getNodable().getParent();
 							result = NccCrossProbing.getResults(cell);
 							if (result != null) break;
 						}
 					}
-					if (result != null) {
+					if (result != null)
+					{
 						HierarchyEnumerator.NetNameProxy proxy = result.getEquivalence().findEquivalentNet(context, net);
-						if (proxy != null) {
+						if (proxy != null)
+						{
 							String otherName = getSpiceNetName(proxy.getContext(), proxy.getNet());
 							System.out.println("Mapped "+netName+" to "+otherName);
 							sSig = an.findSignalForNetworkQuickly(otherName);
 						}
 					}
 				}
-				//if (sSig == null)
-				//	sSig = an.findSignalForNetwork(netName);
 				if (sSig != null)
-				{
 					found.add(sSig);
-				} else {
-					System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
-				}
+//					else System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
 			}
 		}
 
@@ -2772,13 +2773,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		Set<Network> nets = new HashSet<Network>();
 		List<Signal> found = new ArrayList<Signal>();
-		for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); ) {
+		for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); )
+		{
 			nets.add(it.next());
 		}
 		found.addAll(findSelectedSignals(nets, context, false));
 
-		if (recurse) {
-			for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); ) {
+		if (recurse)
+		{
+			for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); )
+			{
 				Nodable no = it.next();
 				if (!(no.getProto() instanceof Cell)) continue;
                 Cell subCell = (Cell)no.getProto();
