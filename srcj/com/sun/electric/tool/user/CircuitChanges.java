@@ -640,7 +640,19 @@ public class CircuitChanges
 		if (newCellName == null) return;
 		newCellName += curCell.getView().getAbbreviationExtension();
 
-		new CellChangeJobs.PackageCell(curCell, bounds, newCellName);
+		Set<Geometric> whatToPackage = new HashSet<Geometric>();
+		List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
+		for(Geometric geom : highlighted)
+		{
+			whatToPackage.add(geom);
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				whatToPackage.add(ai.getHeadPortInst().getNodeInst());
+				whatToPackage.add(ai.getTailPortInst().getNodeInst());
+			}
+		}
+		new CellChangeJobs.PackageCell(curCell, whatToPackage, newCellName);
 	}
 	
 	/**

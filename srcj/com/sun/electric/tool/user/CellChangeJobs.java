@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -630,14 +631,14 @@ public class CellChangeJobs
 	public static class PackageCell extends Job
 	{
 		Cell curCell;
-		ERectangle bounds;
+		Set<Geometric> whatToPackage;
 		String newCellName;
 
-		public PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
+		public PackageCell(Cell curCell, Set<Geometric> whatToPackage, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
-			this.bounds = ERectangle.fromLambda(bounds);
+			this.whatToPackage = whatToPackage;
 			this.newCellName = newCellName;
 			startJob();
 		}
@@ -650,9 +651,8 @@ public class CellChangeJobs
 
 			// copy the nodes into the new cell
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-			for(Iterator<RTBounds> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
+			for(Geometric look : whatToPackage)
 			{
-				RTBounds look = sIt.next();
 				if (!(look instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)look;
 
@@ -683,9 +683,8 @@ public class CellChangeJobs
 			}
 
 			// copy the arcs into the new cell
-			for(Iterator<RTBounds> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
+			for(Geometric look : whatToPackage)
 			{
-				RTBounds look = sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
 				NodeInst niTail = newNodes.get(ai.getTailPortInst().getNodeInst());
