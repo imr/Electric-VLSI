@@ -1243,7 +1243,11 @@ public class EditWindow extends JPanel
         }
         logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
 
-		// add in grid if requested
+        // set the default text size (for highlighting, etc)
+        Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*User.getGlobalTextScale()));
+        g.setFont(f);
+
+        // add in grid if requested
 //		if (showGrid) drawGrid(g);
 
 		// add cross-probed level display
