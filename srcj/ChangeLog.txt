@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP/MAN: (8/15/07, SMR) Added a new Preferences panel: "Added Technologies"
+     so that new technology XML files can be linked into Electric more easily.
+
+IMP: (8/15/07, SMR) Highlight text now scales with global text scale.
+
 BUG: (8/13/07, SMR) Waveform crossprobing makes unnecessary warnings (Bug #1302).
 FIX: In WaveformWindow.findSelectedSignals(), removed warning message.
 

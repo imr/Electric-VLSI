@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -1188,6 +1189,20 @@ public class Technology implements Comparable<Technology>
         } else {
             lazyUrls.put("cmos90",   Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
+        List<String> softTechnologies = getSoftTechnologies();
+        for(String softTechFile : softTechnologies)
+        {
+        	URL url = TextUtils.makeURLToFile(softTechFile);
+        	if (TextUtils.URLExists(url))
+        	{
+	        	String softTechName = TextUtils.getFileNameWithoutExtension(url);
+	        	lazyUrls.put(softTechName, url);
+        	} else
+        	{
+        		System.out.println("WARNING: could not find added technology: " + softTechFile);
+        		System.out.println("  (fix this error in the 'Added Technologies' Preferences)");
+        	}
+        }
 
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present
@@ -1208,7 +1223,44 @@ public class Technology implements Comparable<Technology>
 
 	}
 
-    private static void setupTechnology(String techClassName) {
+	private static Pref softTechnologyList;
+
+	/**
+	 * Method to get an array of additional technologies that should be added to Electric.
+	 * These added technologies are XML files, and the list is the path to those files.
+	 * @return an array of additional technologies that should be added to Electric.
+	 */
+	public static List<String> getSoftTechnologies()
+	{
+		if (softTechnologyList == null)
+			softTechnologyList = Pref.makeStringPref("SoftTechnologies", Technology.prefs, "");
+		String techString = softTechnologyList.getString();
+		List<String> techList = new ArrayList<String>();
+		String [] techArray = techString.split(";");
+		for(int i=0; i<techArray.length; i++)
+			if (techArray[i].length() > 0) techList.add(techArray[i]);
+		return techList;
+	}
+
+	/**
+	 * Method to set an array of additional technologies that should be added to Electric.
+	 * These added technologies are XML files, and the list is the path to those files.
+	 * @param a an array of additional technologies that should be added to Electric.
+	 */
+	public static void setSoftTechnologies(List<String> a)
+	{
+		StringBuffer sb = new StringBuffer();
+		for(int i=0; i<a.size(); i++)
+		{
+			if (i != 0) sb.append(";");
+			sb.append(a.get(i));
+		}
+		if (softTechnologyList == null)
+			softTechnologyList = Pref.makeStringPref("SoftTechnologies", Technology.prefs, "");
+		softTechnologyList.setString(sb.toString());
+	}
+
+	private static void setupTechnology(String techClassName) {
         Pref.delayPrefFlushing();
         try {
             Class<?> techClass = Class.forName(techClassName);

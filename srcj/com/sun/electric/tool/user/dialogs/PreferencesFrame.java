@@ -346,6 +346,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(tect);
 		techSet.add(new DefaultMutableTreeNode(tect.getName()));
 
+		AddedTechnologiesTab att = new AddedTechnologiesTab(parent, modal);
+		optionPanes.add(att);
+		techSet.add(new DefaultMutableTreeNode(att.getName()));
+
 		DesignRulesTab drt = new DesignRulesTab(parent, modal);
 		optionPanes.add(drt);
 		techSet.add(new DefaultMutableTreeNode(drt.getName()));
