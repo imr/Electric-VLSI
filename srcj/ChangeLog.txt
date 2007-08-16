@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06d: *******************************
 ************************* Version 8.06c: *******************************
 
 IMP: (8/16/07, SAF) PIE: Independent ports are now treated as single
