@@ -308,7 +308,7 @@ public class KeyBindingManager {
             KeyEvent keyEvent = (KeyEvent)e.getSource();
             KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(keyEvent);
             manager.setPrefixKey(stroke);
-            System.out.println("prefix key '"+KeyStrokePair.keyStrokeToString(stroke)+"' hit...");
+            if (DEBUG) System.out.println("prefix key '"+KeyStrokePair.keyStrokeToString(stroke)+"' hit...");
         }
     }
 
@@ -359,6 +359,9 @@ public class KeyBindingManager {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
         if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
         if (e.getKeyCode() == KeyEvent.VK_META) return false;
+
+        // ignore unknown keys
+        if (e.getKeyCode() == KeyEvent.KEY_LOCATION_UNKNOWN) return false;
 
         return true;
     }
