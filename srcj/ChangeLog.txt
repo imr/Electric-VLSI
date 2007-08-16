@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06c: *******************************
 
+IMP: (8/16/07, SAF) PIE: Independent ports are now treated as single
+islands instead of a group, which allows factoring to propegate up
+the hierarchy better.
+
+BUG: (8/16/07, SAF) PIE: Leftover hash codes were breaking port to port
+matrix computation for subsequent matrix columns.
+FIX: Properly zero and reinitialize all hash codes.
+
+BUG: (8/16/07, SAF) PIE: Partition tree objects didn't know parents upon
+restore for sub-NCC.
+FIX: Have all partition tree records adopt their children after backtrack.
+
+IMP: (8/16/07, SAF) PIE: Added annotation to prevent interchange.
+
 BUG: (8/16/07, SMR) Two-key bindings don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore code zero.
 
