@@ -113,6 +113,7 @@ public class Xml {
                 writer.writeTechnology(this);
                 out.close();
                 System.out.println("Wrote " + fileName);
+                System.out.println(" (Add this file to the 'Added Technologies' Preferences to install it in Electric)");
             } catch (IOException e) {
                 System.out.println("Error creating " + fileName);
             }

@@ -100,7 +100,7 @@ public class AddedTechnologiesTab extends PreferencePanel
 
 	private void addTechnology()
 	{
-		String fileName = OpenFile.chooseInputFile(FileType.ANY, null);
+		String fileName = OpenFile.chooseInputFile(FileType.XML, null);
 		if (fileName == null) return;
 		addedTechnologiesModel.addElement(fileName);
 	}
