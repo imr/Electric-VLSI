@@ -133,6 +133,18 @@ public class VerticalRoute {
     public static VerticalRoute newRoute(PortProto startPort, PortProto endPort) {
         ArcProto [] startArcs = startPort.getBasePort().getConnections();
         ArcProto [] endArcs = endPort.getBasePort().getConnections();
+        // special case for universal pins
+        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
+            startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)
+            startArcs = endArcs;
+        if (endPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
+            endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)
+            endArcs = startArcs;
+        if ((startPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
+             startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode) &&
+            (endPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
+             endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode))
+            startArcs = endArcs = new ArcProto[] {User.getUserTool().getCurrentArcProto()};
         VerticalRoute vr = new VerticalRoute(startPort, endPort, null, null, startArcs, endArcs);
         vr.specificationSucceeded = vr.specifyRoute();
         return vr;
@@ -146,6 +158,9 @@ public class VerticalRoute {
     public static VerticalRoute newRoute(PortProto startPort, ArcProto endArc) {
         ArcProto [] startArcs = startPort.getBasePort().getConnections();
         ArcProto [] endArcs = {endArc};
+        // special case for universal pins
+        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode)
+            startArcs = endArcs;
         VerticalRoute vr = new VerticalRoute(startPort, null, null, endArc, startArcs, endArcs);
         vr.specificationSucceeded = vr.specifyRoute();
         return vr;
