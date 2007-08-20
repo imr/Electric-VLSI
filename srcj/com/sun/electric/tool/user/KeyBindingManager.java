@@ -361,7 +361,7 @@ public class KeyBindingManager {
         if (e.getKeyCode() == KeyEvent.VK_META) return false;
 
         // ignore unknown keys
-        if (e.getKeyCode() == KeyEvent.KEY_LOCATION_UNKNOWN) return false;
+//        if (e.getKeyCode() == KeyEvent.KEY_LOCATION_UNKNOWN) return false;
 
         return true;
     }
