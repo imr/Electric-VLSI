@@ -32,6 +32,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.projsettings.AddedTechnologiesTab;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
@@ -122,6 +123,7 @@ public class ProjectSettingsFrame extends EDialog
 		optionTree.addMouseListener(handler);
 		optionTree.addTreeExpansionListener(handler);
 
+		rootNode.add(new DefaultMutableTreeNode("Added Technologies"));
 		rootNode.add(new DefaultMutableTreeNode("CIF"));
 		rootNode.add(new DefaultMutableTreeNode("GDS"));
 		rootNode.add(new DefaultMutableTreeNode("DXF"));
@@ -330,6 +332,12 @@ public class ProjectSettingsFrame extends EDialog
 	}
     
     private ProjSettingsPanel createOptionPanel(boolean modal) {
+
+//		AddedTechnologiesTab att = new AddedTechnologiesTab(parent, modal);
+//		optionPanes.add(att);
+//		techSet.add(new DefaultMutableTreeNode(att.getName()));
+        if (currentTabName.equals("Added Technologies"))
+            return new AddedTechnologiesTab(this, modal);
         if (currentTabName.equals("CIF"))
             return new CIFTab(this, modal);
         if (currentTabName.equals("GDS"))

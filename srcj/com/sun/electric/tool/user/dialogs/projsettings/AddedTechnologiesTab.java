@@ -21,11 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs.options;
+package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -47,9 +48,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 /**
- * Class to handle the "Added Technologies" tab of the Preferences dialog.
+ * Class to handle the "Added Technologies" tab of the Project Settings dialog.
  */
-public class AddedTechnologiesTab extends PreferencePanel
+public class AddedTechnologiesTab extends ProjSettingsPanel
 {
     private JPanel addedTechnologies;
 	private JList addedTechnologiesList;
@@ -57,16 +58,16 @@ public class AddedTechnologiesTab extends PreferencePanel
     private JScrollPane addedTechnologiesPane;
 
     /** Creates new form AddedTechnologiesTab */
-	public AddedTechnologiesTab(java.awt.Frame parent, boolean modal)
+	public AddedTechnologiesTab(ProjectSettingsFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for this Project Settings tab. */
 	public JPanel getPanel() { return addedTechnologies; }
 
-	/** return the name of this preferences tab. */
+	/** return the name of this Project Settings tab. */
 	public String getName() { return "Added Technologies"; }
 
     /**
@@ -132,20 +133,28 @@ public class AddedTechnologiesTab extends PreferencePanel
 
         addedTechnologies.setLayout(new GridBagLayout());
 
-        JLabel jLabel66 = new JLabel("Technologies that will be added to Electric:");
+        JLabel jLabel1 = new JLabel("Technologies that will be added to Electric when it next runs");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
-        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
-        addedTechnologies.add(jLabel66, gridBagConstraints);
+        gridBagConstraints.insets = new Insets(4, 4, 1, 4);
+        addedTechnologies.add(jLabel1, gridBagConstraints);
+        JLabel jLabel2 = new JLabel("(these are XML files created by the Technology Editor)");
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.insets = new Insets(1, 4, 4, 4);
+        addedTechnologies.add(jLabel2, gridBagConstraints);
 
         addedTechnologiesPane = new JScrollPane();
         addedTechnologiesPane.setPreferredSize(new Dimension(300, 200));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -156,7 +165,7 @@ public class AddedTechnologiesTab extends PreferencePanel
         JButton addTech = new JButton("Add");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new Insets(4, 4, 4, 4);
         addedTechnologies.add(addTech, gridBagConstraints);
         addTech.addActionListener(new ActionListener()
@@ -167,7 +176,7 @@ public class AddedTechnologiesTab extends PreferencePanel
 		JButton removeTech = new JButton("Remove");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new Insets(4, 4, 4, 4);
         addedTechnologies.add(removeTech, gridBagConstraints);
         removeTech.addActionListener(new ActionListener()
