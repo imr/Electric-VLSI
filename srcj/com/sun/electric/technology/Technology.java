@@ -1150,7 +1150,7 @@ public class Technology implements Comparable<Technology>
 	{
         /** static list of all Technologies in Electric */		TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
         /** static list of xml Technologies in Electric */		TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
-        
+
 		// technology initialization may set preferences, so batch them
 		Pref.delayPrefFlushing();
 
@@ -1816,7 +1816,8 @@ public class Technology implements Comparable<Technology>
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
 		if (layer1 == layer2) return true;
-		if (layer1.getFunction() == Layer.Function.POLY1 && layer2.getFunction() == Layer.Function.GATE) return true;
+        if (layer1.getFunction() == layer2.getFunction()) return true;
+        if (layer1.getFunction() == Layer.Function.POLY1 && layer2.getFunction() == Layer.Function.GATE) return true;
 		if (layer2.getFunction() == Layer.Function.POLY1 && layer1.getFunction() == Layer.Function.GATE) return true;
 		return false;
 	}
