@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -352,16 +353,14 @@ public class KeyBindingManager {
     public static boolean validKeyEvent(KeyEvent e) {
 
         // only look at key pressed events
-        if ((e.getID() != KeyEvent.KEY_PRESSED) && (e.getID() != KeyEvent.KEY_TYPED)) return false;
+//        if (e.getID() != KeyEvent.KEY_PRESSED && e.getID() != KeyEvent.KEY_TYPED) return false;
+        if (e.getID() != KeyEvent.KEY_PRESSED) return false;
 
         // ignore modifier only events (CTRL, SHIFT etc just by themselves)
         if (e.getKeyCode() == KeyEvent.VK_CONTROL) return false;
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
         if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
         if (e.getKeyCode() == KeyEvent.VK_META) return false;
-
-        // ignore unknown keys
-//        if (e.getKeyCode() == KeyEvent.KEY_LOCATION_UNKNOWN) return false;
 
         return true;
     }
@@ -381,14 +380,13 @@ public class KeyBindingManager {
         if (!validKeyEvent(e)) return false;
 
         // get KeyStroke
-        KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
+		KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
 
-        // remove modifiers from Events with undefined KeyCode (Key Typed events)
-        // This lets KeyStrokes like '<' register correctly, because they are always
-        // delivered as SHIFT-'<'.
-        if (stroke.getKeyCode() == KeyEvent.VK_UNDEFINED) {
-            stroke = KeyStroke.getKeyStroke(stroke.getKeyChar());
-        }
+		// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
+		// because they are always delivered as SHIFT-'<'.
+//      if (stroke.getKeyCode() == KeyEvent.VK_UNDEFINED)
+		if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyChar()))
+			stroke = KeyStroke.getKeyStroke(e.getKeyChar());
         if (DEBUG) System.out.println("  Current key is "+stroke+", last prefix key is "+lastPrefix);
 
         // ignore if consumed
