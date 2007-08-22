@@ -23,18 +23,31 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Client;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.Client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -102,7 +115,8 @@ public class ClickZoomWireListener
     private ArcProto currentArcWhenWiringPressed; /* current arc proto when mouse pressed to draw wire: later actions of this tool may change current arc */
 
     private int mouseX, mouseY;                 /* last known location of mouse */
-    private Highlight2 moveDelta;                /* highlight to display move delta */
+    private Highlight2 moveDelta;               /* highlight to display move delta */
+    private Highlight2 moveDRC;                 /* highlight to display design rules during a move */
 
     private EventListener oldListener;          /* used when swtiching back to old listener */
 
@@ -438,7 +452,7 @@ public class ClickZoomWireListener
                     // over something, user may want to move objects
 	                dbMoveStartX = dbClick.getX();
 	                dbMoveStartY = dbClick.getY();
-                    moveDelta = null;
+                    moveDelta = moveDRC = null;
 	                modeLeft = Mode.move;
 	            } else {
 	                // findObject handles cycling through objects (another)
@@ -455,7 +469,7 @@ public class ClickZoomWireListener
 	                    // over something, user may want to move objects
 	                    dbMoveStartX = dbClick.getX();
 	                    dbMoveStartY = dbClick.getY();
-                        moveDelta = null;
+                        moveDelta = moveDRC = null;
 	                    modeLeft = Mode.move;
 	                }
                     mouseOver(dbClick, wnd);
@@ -624,20 +638,328 @@ public class ClickZoomWireListener
 	                EditWindow.gridAlign(dbDelta);              // align to grid
 	                Point2D screenDelta = wnd.deltaDatabaseToScreen(dbDelta.getX(), dbDelta.getY());
 	                highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
-                    // display amount to be moved in center of screen
+
+	                // detect worst design-rule violation if moving just one object
+	                WorstSpacing ws = new WorstSpacing();
+	                List<Geometric> selected = highlighter.getHighlightedEObjs(true, true);
+	                if (selected.size() == 1)
+	                {
+	                	Geometric g = selected.get(0);
+	                	Netlist nl = g.getParent().acquireUserNetlist();
+	                	if (g instanceof ArcInst)
+	                	{
+	                		ArcInst ai = (ArcInst)g;
+	                		Network net = nl.getNetwork(ai, 0);
+            				if (net != null)
+            				{
+	                			Poly [] polys = ai.getProto().getTechnology().getShapeOfArc(ai);
+	                			for(int i=0; i<polys.length; i++)
+	                				ws.findWorstSpacing(g, polys[i], net, dbDelta, nl);
+            				}
+	                	} else
+	                	{
+	                		NodeInst ni = (NodeInst)g;
+	                		if (!ni.isCellInstance())
+	                		{
+	                			AffineTransform trans = ni.rotateOut();
+	                			Poly [] polys = ni.getProto().getTechnology().getShapeOfNode(ni, true, true, null);
+	                			for(int i=0; i<polys.length; i++)
+	                			{
+	                				PortProto pp = polys[i].getPort();
+	                				if (pp == null) continue;
+	                				PortInst pi = ni.findPortInstFromProto(pp);
+	                				if (pi == null) continue;
+	                				Network net = nl.getNetwork(pi);
+	                				if (net == null) continue;
+	                				polys[i].transform(trans);
+	                				ws.findWorstSpacing(g, polys[i], net, dbDelta, nl);
+	                			}
+	                		}
+	                	}
+	                }
+
+	                // display DRC if known, otherwise distance moved
                     if (moveDelta != null) highlighter.remove(moveDelta);
-                    Rectangle2D bounds = wnd.getDisplayedBounds();
-                    moveDelta = highlighter.addMessage(cell, "("+dbDelta.getX()+","+dbDelta.getY()+")",
-                            new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
+                    if (moveDRC != null) highlighter.remove(moveDRC);
+                    String deltaMessage = "Moved (" + TextUtils.formatDouble(dbDelta.getX()) + "," +
+                    	TextUtils.formatDouble(dbDelta.getY()) + ")";
+                	if (ws.validSpacing())
+                	{
+	                	// display worst design rule violation
+                		boolean tooClose = ws.getSeparation() < ws.getMinSpacing();
+                		String message = ws.getOneLayer().getName();
+                		if (ws.getOneLayer() != ws.getOtherLayer()) message += " to " + ws.getOtherLayer().getName();
+                		message += " spacing is " + TextUtils.formatDouble(ws.getSeparation());
+                		if (tooClose) message = "ERROR! " + message + " MINIMUM IS " + TextUtils.formatDouble(ws.getMinSpacing());
+
+                		// compute upper-left corner of moved object and place text there
+                		Geometric g = selected.get(0);
+	                	Poly hPoly;
+	                	if (g instanceof NodeInst)
+	                	{
+	                		hPoly = Highlight2.getNodeInstOutline((NodeInst)g);
+	                	} else
+	                	{
+	                		ArcInst ai = (ArcInst)g;
+	                		hPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
+	                	}
+	                	double minX = 0, maxY = 0;
+	                	Point2D[] points = hPoly.getPoints();
+	                	for(int i=0; i<points.length; i++)
+	                	{
+	                		if (i == 0 || points[i].getX() < minX)
+	                			minX = points[i].getX();
+	                		if (i == 0 || points[i].getY() > maxY)
+	                			maxY = points[i].getY();
+	                	}
+	                    moveDelta = highlighter.addMessage(cell, deltaMessage + ", " + message,
+	                    	new Point2D.Double(minX + dbDelta.getX(), maxY + dbDelta.getY()));
+	                    Point2D end1 = new Point2D.Double(ws.getOnePoint().getX() - dbDelta.getX(), ws.getOnePoint().getY() - dbDelta.getY());
+	                    Point2D end2 = new Point2D.Double(ws.getOtherPoint().getX() - dbDelta.getX(), ws.getOtherPoint().getY() - dbDelta.getY());
+	                    moveDRC = highlighter.addLine(end1, end2, cell, tooClose);
+                	} else
+                	{
+	                	// display amount to be moved in center of screen
+                        Rectangle2D bounds = wnd.getDisplayedBounds();
+	                    moveDelta = highlighter.addMessage(cell, deltaMessage,
+	                        new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
+                	}
 	                wnd.repaint();
 	            }
 	        }
 
 	        wnd.repaint();
-	        }
+	    }
     }
 
-    /** Handle mouse released event
+    /**
+     * Class to detect the worst design-rule violation while moving a node or arc.
+     */
+    private static class WorstSpacing
+    {
+    	private boolean valid;
+    	private double separation;
+    	private double worstViolation;
+    	private double minSpacing;
+    	private Point2D worstFrom, worstTo;
+    	private Layer layerFrom, layerTo;
+
+    	public WorstSpacing()
+    	{
+    		valid = false;
+    		worstFrom = new Point2D.Double(0, 0);
+    		worstTo = new Point2D.Double(0, 0);
+    	}
+
+    	public boolean validSpacing() { return valid; }
+
+    	public double getSeparation() { return separation; }
+
+    	public double getMinSpacing() { return minSpacing; }
+
+    	public Layer getOneLayer() { return layerFrom; }
+
+    	public Layer getOtherLayer() { return layerTo; }
+
+    	public Point2D getOnePoint() { return worstFrom; }
+
+    	public Point2D getOtherPoint() { return worstTo; }
+
+    	/**
+    	 * Method to update this WorstSpacing object according to a polygon on a Geometric.
+    	 * @param self the Geometric being examined.
+    	 * @param poly the Poly on the Geometric.
+    	 * @param net the Network connected to the polygon.
+    	 * @param delta the offset that is being applied to the polygon (how much it has been dragged).
+    	 * @param nl the Netlist for the cell.
+    	 */
+    	public void findWorstSpacing(Geometric self, Poly poly, Network net, Point2D delta, Netlist nl)
+    	{
+    		// ignore null layers
+    		Layer lay = poly.getLayer();
+    		if (lay == null) return;
+    		if (lay.isPseudoLayer()) return;
+    		if (lay.getFunction().isSubstrate()) return;
+
+    		// move the polygon by the dragged amount
+    		Point2D [] points = poly.getPoints();
+    		for(int j=0; j<points.length; j++)
+    			poly.setPoint(j, points[j].getX() + delta.getX(), points[j].getY() + delta.getY());
+
+    		// find simplest rule for this layer to itself
+    		Rectangle2D bounds = poly.getBounds2D();
+    		double xS = bounds.getWidth();
+    		double yS = bounds.getHeight();
+    		double widRule = Math.min(xS, yS);
+    		double lenRule = Math.max(xS, yS);
+			int multiCut = -1;
+			double surround = DRC.getMaxSurround(lay, Double.MAX_VALUE);
+
+    		// search up to 5 times the design-rule distance away
+    		double worstInteractionDistance = surround * 5;
+    		Rectangle2D searchBounds = new Rectangle2D.Double(
+    			bounds.getMinX()-worstInteractionDistance,
+    			bounds.getMinY()-worstInteractionDistance,
+    			bounds.getWidth() + worstInteractionDistance*2,
+    			bounds.getHeight() + worstInteractionDistance*2);
+    		for(Iterator<RTBounds> it = self.getParent().searchIterator(searchBounds); it.hasNext(); )
+    		{
+    			Geometric neighbor = (Geometric)it.next();
+    			if (neighbor == self) continue;
+    			if (neighbor instanceof NodeInst)
+    			{
+    				NodeInst otherNi = (NodeInst)neighbor;
+    				if (otherNi.isCellInstance()) continue;
+    				AffineTransform trans = otherNi.rotateOut();
+        			Poly [] otherPolys = otherNi.getProto().getTechnology().getShapeOfNode(otherNi, true, true, null);
+        			for(int i=0; i<otherPolys.length; i++)
+        			{
+        				Poly otherPoly = otherPolys[i];
+        				Layer otherLay = otherPoly.getLayer();
+        				if (otherLay == null) continue;
+        	    		if (otherLay.isPseudoLayer()) continue;
+        	    		if (otherLay.getFunction().isSubstrate()) continue;
+        	    		if (lay.getTechnology() != otherLay.getTechnology()) continue;
+        	    		PortProto pp = otherPoly.getPort();
+        	    		if (pp == null) continue;
+        	    		PortInst pi = otherNi.findPortInstFromProto(pp);
+        	    		if (pi == null) continue;
+        	    		Network otherNet = nl.getNetwork(pi);
+        	    		if (otherNet == null) continue;
+        	    		if (net == otherNet) continue;
+
+        	    		DRCTemplate rule = DRC.getSpacingRule(lay, null, otherLay, null, false, multiCut, widRule, lenRule);
+        	    		if (rule == null) continue;
+        	    		double dist = rule.getValue(0);
+
+        	    		otherPoly.transform(trans);
+        				double sep = poly.separation(otherPoly);
+        				if (valid && sep-dist >= worstViolation) continue;
+
+        				// this is a better spacing
+    					valid = true;
+    					worstViolation = sep-dist;
+    					separation = sep;
+    					minSpacing = dist;
+    					layerFrom = lay;
+    					layerTo = otherLay;
+    					findClosestPoints(poly, otherPoly);
+        			}
+    			} else
+    			{
+    				ArcInst otherAi = (ArcInst)neighbor;
+    	    		Network otherNet = nl.getNetwork(otherAi, 0);
+    	    		if (otherNet == null) continue;
+    	    		if (net == otherNet) continue;
+        			Poly [] otherPolys = otherAi.getProto().getTechnology().getShapeOfArc(otherAi);
+        			for(int i=0; i<otherPolys.length; i++)
+        			{
+        				Poly otherPoly = otherPolys[i];
+        				Layer otherLay = otherPoly.getLayer();
+        				if (otherLay == null) continue;
+        	    		if (otherLay.isPseudoLayer()) continue;
+        	    		if (otherLay.getFunction().isSubstrate()) continue;
+
+        	    		DRCTemplate rule = DRC.getSpacingRule(lay, null, otherLay, null, true, multiCut, widRule, lenRule);
+        	    		if (rule == null) continue;
+        	    		double dist = rule.getValue(0);
+
+        				double sep = poly.separation(otherPoly);
+        				if (valid && sep-dist >= worstViolation) continue;
+
+        				// this is a better spacing
+        				valid = true;
+        				worstViolation = sep-dist;
+        				separation = sep;
+    					minSpacing = dist;
+    					layerFrom = lay;
+    					layerTo = otherLay;
+    					findClosestPoints(poly, otherPoly);
+        			}
+    			}			
+    		}
+    	}
+
+    	/**
+    	 * Method to examine load the "worstFrom" and "worstTo" field variables with the
+    	 * closest two points on two polygons.
+    	 * @param from one of the Polys to examine.
+    	 * @param to the other Poly to examine.
+    	 */
+    	private void findClosestPoints(Poly from, Poly to)
+    	{
+    		// if both are manhattan, use special cases
+    		Rectangle2D fromBox = from.getBox();
+    		Rectangle2D toBox = to.getBox();
+    		if (fromBox != null && toBox != null)
+    		{
+    			if (fromBox.getMinX() < toBox.getMaxX() && fromBox.getMaxX() > toBox.getMinX())
+    			{
+    				// one above the other: find Y distance
+    				double xPos = (Math.max(fromBox.getMinX(), toBox.getMinX()) + Math.min(fromBox.getMaxX(), toBox.getMaxX())) / 2;
+    				if (fromBox.getMinY() > toBox.getMaxY())
+    				{
+    					// from is above to
+    					worstFrom.setLocation(xPos, fromBox.getMinY());
+    					worstTo.setLocation(xPos, toBox.getMaxY());
+    					return;
+    				}
+    				if (toBox.getMinY() > fromBox.getMaxY())
+    				{
+    					// to is above from
+    					worstFrom.setLocation(xPos, fromBox.getMaxY());
+    					worstTo.setLocation(xPos, toBox.getMinY());
+    					return;
+    				}
+    				return;
+    			}
+    			if (fromBox.getMinY() < toBox.getMaxY() && fromBox.getMaxY() > toBox.getMinY())
+    			{
+    				// one next to the other: find X distance
+    				double yPos = (Math.max(fromBox.getMinY(), toBox.getMinY()) + Math.min(fromBox.getMaxY(), toBox.getMaxY())) / 2;
+    				if (fromBox.getMinX() > toBox.getMaxX())
+    				{
+    					// from is above to
+    					worstFrom.setLocation(fromBox.getMinX(), yPos);
+    					worstTo.setLocation(toBox.getMaxX(), yPos);
+    					return;
+    				}
+    				if (toBox.getMinX() > fromBox.getMaxX())
+    				{
+    					// to is above from
+    					worstFrom.setLocation(fromBox.getMaxX(), yPos);
+    					worstTo.setLocation(toBox.getMinX(), yPos);
+    					return;
+    				}
+    				return;
+    			}
+    		}
+
+    		// use generalized algorithm
+    		double minPD = 0;
+    		Point2D [] fromPoints = from.getPoints();
+    		for(int f=0; f<fromPoints.length; f++)
+    		{
+    			Point2D c = to.closestPoint(fromPoints[f]);
+    			double pd = c.distance(fromPoints[f]);
+    			if (f != 0 && pd >= minPD) continue;
+    			minPD = pd;
+    			worstFrom.setLocation(fromPoints[f]);
+    		}
+
+    		minPD = 0;
+    		Point2D [] toPoints = to.getPoints();
+    		for(int t=0; t<toPoints.length; t++)
+    		{
+    			double pd = worstFrom.distance(toPoints[t]);
+    			if (t != 0 && pd >= minPD) continue;
+    			minPD = pd;
+    			worstTo.setLocation(toPoints[t]);
+    		}
+    	}
+    }
+
+	/** Handle mouse released event
      *
      * @param evt the MouseEvent
      */
@@ -783,6 +1105,7 @@ public class ClickZoomWireListener
 	                    highlighter.setHighlightOffset(0, 0);
 	                    modeLeft = Mode.none;
                         if (moveDelta != null) highlighter.remove(moveDelta);
+	                    if (moveDRC != null) highlighter.remove(moveDRC);
 	                    wnd.repaint();
 	                    return;
 	                }
@@ -842,6 +1165,7 @@ public class ClickZoomWireListener
 	                    Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
                         EditWindow.gridAlign(dbDelta);
                         if (moveDelta != null) highlighter.remove(moveDelta);
+	                    if (moveDRC != null) highlighter.remove(moveDRC);
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                        highlighter.setHighlightOffset(0, 0);
 	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());

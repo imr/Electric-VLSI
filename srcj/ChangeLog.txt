@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06d: *******************************
 
-BUG: (8/16/07, SMR) Two-key bindings still don't work right (Bug #980).
+IMP/MAN: (8/22/07, SMR) When dragging a single node or arc, highlighting
+     shows design rules and simple violations.
+
+BUG: (8/22/07, SMR) Two-key bindings still don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore KEY_TYPED events and
      use KeyChar only when SHIFT held down on non-alpha key.
 
