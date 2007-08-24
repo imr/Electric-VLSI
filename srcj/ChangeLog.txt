@@ -11,8 +11,11 @@ BUG: (8/22/07, SMR) Two-key bindings still don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore KEY_TYPED events and
      use KeyChar only when SHIFT held down on non-alpha key.
 
-BUG: (8/21/07, GVG) Bogus errors reported for rule OD.S.1 (TSMC180) (Bug#1367)
+BUG: (8/21/07, GVG) Bogus errors reported for rule OD.S.1 (TSMC180) (Bug #1367)
 FIX: correction in Technology.sameLayer to consider P-Active-Well == P-Active
+
+BUG: (8/21/07, SMR) Using ">" and "<" to scroll through errors is broken (Bug #1365)
+FIX: fixed
 
 ************************* Version 8.06c: *******************************
 
