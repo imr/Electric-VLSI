@@ -642,7 +642,7 @@ public class ClickZoomWireListener
 	                // detect worst design-rule violation if moving just one object
 	                WorstSpacing ws = new WorstSpacing();
 	                List<Geometric> selected = highlighter.getHighlightedEObjs(true, true);
-	                if (selected.size() == 1)
+	                if (DRC.isInteractiveDRCDragOn() && selected.size() == 1)
 	                {
 	                	Geometric g = selected.get(0);
 	                	Netlist nl = g.getParent().acquireUserNetlist();

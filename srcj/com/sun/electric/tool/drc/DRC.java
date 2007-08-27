@@ -935,7 +935,7 @@ public class DRC extends Listener
 	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, false);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
-	 * The default is "true".
+	 * The default is "false".
 	 * @return true if DRC should be done incrementally.
 	 */
 	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
@@ -944,6 +944,19 @@ public class DRC extends Listener
 	 * @param on true if DRC should be done incrementally.
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
+
+	private static Pref cacheInteractiveDRCDragOn = Pref.makeBooleanPref("InteractiveDRCDrag", tool.prefs, true);
+	/**
+	 * Method to tell whether DRC violations should be shown while nodes and arcs are dragged.
+	 * The default is "true".
+	 * @return true if DRC violations should be shown while nodes and arcs are dragged.
+	 */
+	public static boolean isInteractiveDRCDragOn() { return cacheInteractiveDRCDragOn.getBoolean(); }
+	/**
+	 * Method to set whether DRC violations should be shown while nodes and arcs are dragged.
+	 * @param on true if DRC violations should be shown while nodes and arcs are dragged.
+	 */
+	public static void setInteractiveDRCDragOn(boolean on) { cacheInteractiveDRCDragOn.setBoolean(on); }
 
 	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
             DRCCheckMode.ERROR_CHECK_DEFAULT.mode());

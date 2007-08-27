@@ -5,7 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.06d: *******************************
 
 IMP/MAN: (8/22/07, SMR) When dragging a single node or arc, highlighting
-     shows design rules and simple violations.
+     shows design rules and simple violations.  Controlled from tool/DRC
+     Preferences with "Show worst violation while moving nodes and arcs".
 
 BUG: (8/22/07, SMR) Two-key bindings still don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore KEY_TYPED events and
