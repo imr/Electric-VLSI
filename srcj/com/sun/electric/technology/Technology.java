@@ -34,7 +34,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -78,6 +77,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -4599,11 +4599,21 @@ public class Technology implements Comparable<Technology>
     /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
 
     /**
-     * Method to retrieve correct group of elements for the palette.
+     * Method to change the group of elements for the component menu.
+     * @param ng the new set of objects to display in the component menu.
      */
-    public Object[][] getNodesGrouped()
+    public void setNodesGrouped(Object[][] ng)
     {
-        // Check if some metal layers are not used
+    	nodeGroups = ng;
+    }
+
+    /**
+     * Method to retrieve correct group of elements for the palette.
+     * @param curCell the current cell being displayed (may affect the palette).
+     * @return the new set of objects to display in the component menu.
+     */
+    public Object[][] getNodesGrouped(Cell curCell)
+    {
         if (nodeGroups == null)
         {
         	// compute palette information automatically
@@ -4638,6 +4648,8 @@ public class Technology implements Comparable<Technology>
         		}
         	}
         }
+
+        // Check if some metal layers are not used
         List <Object>list = new ArrayList<Object>(nodeGroups.length);
         for (int i = 0; i < nodeGroups.length; i++)
         {

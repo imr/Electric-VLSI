@@ -59,6 +59,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JPopupMenu;
+
 
 /**
  * This is the Schematics technology.
@@ -1404,6 +1406,121 @@ public class Schematics extends Technology
 	}
 
 	//**************************************** METHODS ****************************************
+
+	/**
+	 * Method to compute the component menu entries automatically.
+	 * @return a two-dimensional array of menu entries.
+	 */
+	public Object[][] getNodesGrouped(Cell curCell)
+	{
+		if (nodeGroups != null) return nodeGroups;
+
+		nodeGroups = new Object[14][2];
+		nodeGroups[0][0] = wire_arc;
+		nodeGroups[1][0] = wirePinNode;
+		nodeGroups[2][0] = "Spice";
+		nodeGroups[3][0] = offpageNode;
+
+        List<Object> list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(globalNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Signal", 4.5));
+        list.add(Technology.makeNodeInst(globalPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
+        nodeGroups[4][0] = list;
+
+        nodeGroups[5][0] = powerNode;
+
+        //  Resistor nodes
+        list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(resistorNode, PrimitiveNode.Function.RESIST, 0, false, "Normal Resistor", 4.5));
+        list.add(Technology.makeNodeInst(resistorNode, PrimitiveNode.Function.PRESIST, 0, false, "Poly Resistor", 4.5));
+        nodeGroups[6][0] = list;
+
+        // Capacitor nodes
+        list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(capacitorNode, PrimitiveNode.Function.CAPAC, 0, false, "Normal Capacitor", 4.5));
+        list.add(Technology.makeNodeInst(capacitorNode, PrimitiveNode.Function.ECAPAC, 0, false, "Electrolytic Capacitor", 4.5));
+        nodeGroups[7][0] = list;
+
+        // 4-port transistors
+        list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, false, "nMOS 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, false, "PMOS 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, false, "DMOS 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMES, 900, false, "DMES 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4EMES, 900, false, "EMES 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "PJFET 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "NJFET 4-port", 4.5));
+        nodeGroups[8][0] = list;
+
+        // 3-port transistors
+        list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, "nMOS", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, "PMOS", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMOS, 900, false, "DMOS", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMES, 900, false, "DMES", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAEMES, 900, false, "EMES", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPJFET, 900, false, "PJFET", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANJFET, 900, false, "NJFET", 4.5));
+        nodeGroups[9][0] = list;
+
+        nodeGroups[10][0] = switchNode;
+        nodeGroups[11][0] = muxNode;
+        nodeGroups[12][0] = xorNode;
+        nodeGroups[13][0] = bboxNode;
+
+        nodeGroups[0][1] = bus_arc;
+        nodeGroups[1][1] = busPinNode;
+        nodeGroups[2][1] = "Cell";
+        nodeGroups[3][1] = wireConNode;
+        nodeGroups[4][1] = "Misc.";
+        nodeGroups[5][1] = groundNode;
+        nodeGroups[6][1] = inductorNode;
+
+        // Diode nodes
+        list = new ArrayList<Object>();
+        list.add(Technology.makeNodeInst(diodeNode, PrimitiveNode.Function.DIODE, 0, false, "Normal Diode", 4.5));
+        list.add(Technology.makeNodeInst(diodeNode, PrimitiveNode.Function.DIODEZ, 0, false, "Zener Diode", 4.5));
+        nodeGroups[7][1] = list;
+
+        nodeGroups[8][1] = Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, null, 4.5);
+        nodeGroups[9][1] = Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, null, 4.5);
+
+        // Flip Flop nodes
+        list = new ArrayList<Object>();
+        nodeGroups[10][1] = list;
+        List<Object> subList = new ArrayList<Object>();
+        list.add(subList);
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0, false, "R-S master/slave", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0, false, "R-S positive", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0, false, "R-S negative", 4.5));
+        list.add(new JPopupMenu.Separator());
+        subList = new ArrayList<Object>();
+        list.add(subList);
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0, false, "J-K master/slave", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0, false, "J-K positive", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0, false, "J-K negative", 4.5));
+        list.add(new JPopupMenu.Separator());
+        subList = new ArrayList<Object>();
+        list.add(subList);
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0, false, "D master/slave", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0, false, "D positive", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0, false, "D negative", 4.5));
+        list.add(new JPopupMenu.Separator());
+        subList = new ArrayList<Object>();
+        list.add(subList);
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0, false, "T master/slave", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0, false, "T positive", 4.5));
+        subList.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTN, 0, false, "T negative", 4.5));
+
+        nodeGroups[11][1] = bufferNode;
+        nodeGroups[12][1] = orNode;
+        nodeGroups[13][1] = andNode;
+        return nodeGroups;
+	}
+
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 
 	/**

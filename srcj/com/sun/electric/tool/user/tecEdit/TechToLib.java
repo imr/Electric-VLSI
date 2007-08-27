@@ -711,7 +711,7 @@ public class TechToLib
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
         
-        Object[][] origPalette = tech.getNodesGrouped();
+        Object[][] origPalette = tech.getNodesGrouped(null);
         int numRows = origPalette.length;
         int numCols = origPalette[0].length;
         for (Object[] row: origPalette) {

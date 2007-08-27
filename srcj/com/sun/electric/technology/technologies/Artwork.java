@@ -28,12 +28,21 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.AbstractShapeBuilder;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Point2D;
 
@@ -422,23 +431,90 @@ public class Artwork extends Technology
 			});
 		thickCircleNode.setFunction(PrimitiveNode.Function.ART);
 		thickCircleNode.setEdgeSelect();
-        
-        // Foundry
-        newFoundry(Foundry.Type.NONE, null,
-                // The GDS names
-                "Graphics 1");
-//        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
+
+		// Foundry
+		newFoundry(Foundry.Type.NONE, null,
+				// The GDS names
+				"Graphics 1");
+//		noFoundry.setFactoryGDSLayer(defaultLayer, "1");
 //		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
 
 		oldArcNames.put("Dash-1", dottedArc);
 		oldArcNames.put("Dash-2", dashedArc);
 		oldArcNames.put("Dash-3", thickerArc);
-        
-        oldNodeNames.put("Message", Generic.tech.invisiblePinNode);
-        oldNodeNames.put("Centered-Message", Generic.tech.invisiblePinNode);
-        oldNodeNames.put("Left-Message", Generic.tech.invisiblePinNode);
-        oldNodeNames.put("Right-Message", Generic.tech.invisiblePinNode);
-        oldNodeNames.put("Opened-FarDotted-Polygon", openedThickerPolygonNode);
+
+		oldNodeNames.put("Message", Generic.tech.invisiblePinNode);
+		oldNodeNames.put("Centered-Message", Generic.tech.invisiblePinNode);
+		oldNodeNames.put("Left-Message", Generic.tech.invisiblePinNode);
+		oldNodeNames.put("Right-Message", Generic.tech.invisiblePinNode);
+		oldNodeNames.put("Opened-FarDotted-Polygon", openedThickerPolygonNode);
+	}
+
+	private Object[][] techEditSet;
+
+	/**
+	 * Method to compute the component menu entries automatically.
+	 * @return a two-dimensional array of menu entries.
+	 */
+	public Object[][] getNodesGrouped(Cell curCell)
+	{
+		if (curCell != null && curCell.isInTechnologyLibrary())
+		{
+			// special variation of Artwork for technology editing
+			if (techEditSet != null) return techEditSet;
+			techEditSet = new Object[16][1];
+			techEditSet[0][0] = "Text";
+			NodeInst arc = NodeInst.makeDummyInstance(circleNode);
+			arc.setArcDegrees(0, Math.PI/4);
+			techEditSet[1][0] = arc;
+			NodeInst half = NodeInst.makeDummyInstance(circleNode);
+			half.setArcDegrees(0, Math.PI);
+			techEditSet[2][0] = half;
+			techEditSet[3][0] = filledCircleNode;
+			techEditSet[4][0] = circleNode;
+			techEditSet[5][0] = openedThickerPolygonNode;
+			techEditSet[6][0] = openedDashedPolygonNode;
+			techEditSet[7][0] = openedDottedPolygonNode;
+			techEditSet[8][0] = openedPolygonNode;
+			techEditSet[9][0] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+			techEditSet[10][0] = Technology.makeNodeInst(filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+			techEditSet[11][0] = boxNode;
+			techEditSet[12][0] = crossedBoxNode;
+			techEditSet[13][0] = filledBoxNode;
+			techEditSet[14][0] = "High";
+			techEditSet[15][0] = "Port";
+			return techEditSet;
+		}
+
+		// normal menu
+		if (nodeGroups != null) return nodeGroups;
+		nodeGroups = new Object[12][2];
+		nodeGroups[0][0] = solidArc;
+		nodeGroups[1][0] = thickerArc;
+		nodeGroups[2][0] = "Cell";
+		nodeGroups[3][0] = openedPolygonNode;
+		nodeGroups[4][0] = openedThickerPolygonNode;
+		nodeGroups[5][0] = filledTriangleNode;
+		nodeGroups[6][0] = filledBoxNode;
+		nodeGroups[7][0] = Technology.makeNodeInst(filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		nodeGroups[8][0] = filledCircleNode;
+		nodeGroups[9][0] = pinNode;
+		nodeGroups[10][0] = crossedBoxNode;
+		nodeGroups[11][0] = thickCircleNode;
+
+		nodeGroups[0][1] = dottedArc;
+		nodeGroups[1][1] = dashedArc;
+		nodeGroups[2][1] = "Text";
+		nodeGroups[3][1] = openedDottedPolygonNode;
+		nodeGroups[4][1] = openedDashedPolygonNode;
+		nodeGroups[5][1] = triangleNode;
+		nodeGroups[6][1] = boxNode;
+		nodeGroups[7][1] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		nodeGroups[8][1] = circleNode;
+		nodeGroups[9][1] = "Export";
+		nodeGroups[10][1] = arrowNode;
+		nodeGroups[11][1] = Technology.makeNodeInst(splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		return nodeGroups;
 	}
 
 	/**
@@ -454,7 +530,7 @@ public class Artwork extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-    @Override
+	@Override
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -553,16 +629,16 @@ public class Artwork extends Technology
 		return polys[0];
 	}
 
-    /**
-     * Fill the polygons that describe arc "a".
-     * @param b AbstractShapeBuilder to fill polygons.
-     * @param a the ImmutableArcInst that is being described.
-     */
-    @Override
-    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+	/**
+	 * Fill the polygons that describe arc "a".
+	 * @param b AbstractShapeBuilder to fill polygons.
+	 * @param a the ImmutableArcInst that is being described.
+	 */
+	@Override
+	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
 		getShapeOfArc(b, a, getProperLayer(a));
-    }
-    
+	}
+
 	/**
 	 * Method to return an array of Point2D that describe an ellipse.
 	 * @param center the center coordinate of the ellipse.
@@ -600,7 +676,7 @@ public class Artwork extends Technology
 		{
 			// more efficient algorithm used for full ellipse drawing
 			double p = 2.0 * Math.PI / (ELLIPSEPOINTS-1);
-			double c2 = Math.cos(p);    double s2 = Math.sin(p);
+			double c2 = Math.cos(p);	double s2 = Math.sin(p);
 			double c3 = 1.0;            double s3 = 0.0;
 			for(int m=0; m<ELLIPSEPOINTS; m++)
 			{
@@ -648,7 +724,7 @@ public class Artwork extends Technology
 		return v + cY;
 	}
 
-    /**
+	/**
 	 * Method to set default outline information on a NodeInst.
 	 * Very few primitives have default outline information (usually just in the Artwork Technology).
 	 * This method overrides the one in Technology.
@@ -752,16 +828,16 @@ public class Artwork extends Technology
 		Layer thisLayer = Layer.newInstance("Graphics", graphics);
 		return thisLayer;
 	}
-	
+
 	/**
 	 * Method to create an EGraphics for an ElectricObject with color and pattern Variables.
 	 * @param eObj the ElectricObject with graphics specifications.
 	 * @return a new EGraphics that has the color and pattern.
 	 */
 	public static EGraphics makeGraphics(ElectricObject eObj) {
-        return makeGraphics(eObj.getD());
-    }
-    
+		return makeGraphics(eObj.getD());
+	}
+
 	/**
 	 * Method to create an EGraphics for an ImmutableElectricObject with color and pattern Variables.
 	 * @param d the ImmutableElectricObject with graphics specifications.
@@ -827,7 +903,7 @@ public class Artwork extends Technology
 		}
 		return graphics;
 	}
-	
+
 //	/**
 //	 * Method to set Variables on an ElectricObject to capture information in an EGraphics.
 //	 * @param graphics the EGraphics to store on the ElectricObject.
@@ -896,18 +972,18 @@ public class Artwork extends Technology
 //		return null;
 //	}
 
-    /**
-     * Method to determ if ArcProto is an Artwork primitive arc
-     * @param p ArcProto reference
-     * @return true if primitive belongs to the Artwork technology
-     */
-    public static boolean isArtworkArc(ArcProto p)
-    {
-        return (p == Artwork.tech.solidArc || p == Artwork.tech.dottedArc
-                || p == Artwork.tech.dashedArc || p == Artwork.tech.thickerArc);
-    }
+	/**
+	 * Method to determ if ArcProto is an Artwork primitive arc
+	 * @param p ArcProto reference
+	 * @return true if primitive belongs to the Artwork technology
+	 */
+	public static boolean isArtworkArc(ArcProto p)
+	{
+		return (p == Artwork.tech.solidArc || p == Artwork.tech.dottedArc
+				|| p == Artwork.tech.dashedArc || p == Artwork.tech.thickerArc);
+	}
 
-    /******************** OPTIONS ********************/
+	/******************** OPTIONS ********************/
 
 	private static Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
 	/**

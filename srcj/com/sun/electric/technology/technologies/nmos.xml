@@ -1086,16 +1086,6 @@
     <menuPalette numColumns="3">
 
         <menuBox>
-            <menuArc>Polysilicon</menuArc>
-        </menuBox>
-        <menuBox>
-            <menuNode>Polysilicon-Pin</menuNode>
-        </menuBox>
-        <menuBox>
-            <menuNode>Metal-Polysilicon-Con</menuNode>
-        </menuBox>
-
-        <menuBox>
             <menuArc>Metal</menuArc>
         </menuBox>
         <menuBox>
@@ -1103,6 +1093,16 @@
         </menuBox>
         <menuBox>
             <menuNode>Butting-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Polysilicon</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>Polysilicon-Pin</menuNode>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-Polysilicon-Con</menuNode>
         </menuBox>
 
         <menuBox>

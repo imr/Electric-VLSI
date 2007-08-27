@@ -52,7 +52,15 @@ import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.tecEdit.Info;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -117,248 +125,80 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
     }
 
-    /**
-     * Loads a new technology into the palette. Returns the
-     * new desired size of the panel
-     * @param tech the technology to load
-     * @param curCell the cell in the window associated with this palette
-     * @return the preferred size of the new panel
-     */
-    public Dimension loadForTechnology(Technology tech, Cell curCell)
-    {
-        inPalette.clear();
-        elementsMap.clear();
+	/**
+	 * Loads a new technology into the palette. Returns the
+	 * new desired size of the panel
+	 * @param tech the technology to load
+	 * @param curCell the cell in the window associated with this palette
+	 * @return the preferred size of the new panel
+	 */
+	public Dimension loadForTechnology(Technology tech, Cell curCell)
+	{
+		inPalette.clear();
+		elementsMap.clear();
 
-        if (tech == Schematics.tech)
-        {
-	        List<Object> list = null;
+		Object[][] paletteMatrix = tech.getNodesGrouped(curCell);
 
-            menuX = 2;
-            menuY = 14;
-            inPalette.add(Schematics.tech.wire_arc);
-            inPalette.add(Schematics.tech.wirePinNode);
-            inPalette.add("Spice");
-            inPalette.add(Schematics.tech.offpageNode);
+		if (paletteMatrix == null)
+		{
+			System.out.println("Error: no palette information found for " + tech.getTechName());
+		} else
+		{
+			menuX = paletteMatrix[0].length;
+			menuY = paletteMatrix.length;
+			inPalette.clear();
+			for (int i = 0; i < menuX; i++)
+			{
+				for (int j = 0; j < menuY; j++)
+				{
+					Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
+					if (item instanceof NodeInst)
+					{
+						item = rotateTransistor((NodeInst)item);
+					} else if (item instanceof List)
+					{
+						List nodes = (List)item;
+						for(int k=0; k<nodes.size(); k++)
+						{
+							Object o = nodes.get(k);
+							if (o instanceof NodeInst)
+							{
+								nodes.set(k, rotateTransistor((NodeInst)o));
+							}
+						}
+					}
+					item = getInUsed(item);
+					inPalette.add(item);
+				}
+			}
+		}
 
-//          inPalette.add(Schematics.tech.globalNode);
-            list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.globalNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Signal", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.globalPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
-            inPalette.add(list);
-
-            inPalette.add(Schematics.tech.powerNode);
-
-            //  Resistor nodes
-//            inPalette.add(Schematics.tech.resistorNode);
-            list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.resistorNode, PrimitiveNode.Function.RESIST, 0, false, "Normal Resistor", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.resistorNode, PrimitiveNode.Function.PRESIST, 0, false, "Poly Resistor", 4.5));
-            inPalette.add(list);
-
-	        // Capacitor nodes
-	        list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.CAPAC, 0, false, "Normal Capacitor", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.ECAPAC, 0, false, "Electrolytic Capacitor", 4.5));
-            inPalette.add(list);
-
-	        // 4-port transistors
-	        list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, false, "nMOS 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, false, "PMOS 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, false, "DMOS 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4DMES, 900, false, "DMES 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4EMES, 900, false, "EMES 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "PJFET 4-port", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "NJFET 4-port", 4.5));
-	        inPalette.add(list);
-
-	        // 3-port transistors
-	        list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, "nMOS", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, "PMOS", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMOS, 900, false, "DMOS", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRADMES, 900, false, "DMES", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAEMES, 900, false, "EMES", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPJFET, 900, false, "PJFET", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANJFET, 900, false, "NJFET", 4.5));
-	        inPalette.add(list);
-
-            inPalette.add(Schematics.tech.switchNode);
-            inPalette.add(Schematics.tech.muxNode);
-            inPalette.add(Schematics.tech.xorNode);
-            inPalette.add(Schematics.tech.bboxNode);
-
-            inPalette.add(Schematics.tech.bus_arc);
-            inPalette.add(Schematics.tech.busPinNode);
-            inPalette.add("Cell");
-            inPalette.add(Schematics.tech.wireConNode);
-            inPalette.add("Misc.");
-            inPalette.add(Schematics.tech.groundNode);
-            inPalette.add(Schematics.tech.inductorNode);
-
-	        // Diode nodes
-	        list = new ArrayList<Object>();
-	        list.add(Technology.makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODE, 0, false, "Normal Diode", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.diodeNode, PrimitiveNode.Function.DIODEZ, 0, false, "Zener Diode", 4.5));
-            inPalette.add(list);
-
-	        inPalette.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, null, 4.5));
-            inPalette.add(Technology.makeNodeInst(Schematics.tech.transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, null, 4.5));
-
-	        // Flip Flop nodes
-            list = new ArrayList<Object>();
-            inPalette.add(list);
-	        List<Object> subList = new ArrayList<Object>();
-	        list.add(subList);
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0, false, "R-S master/slave", 4.5));
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0, false, "R-S positive", 4.5));
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0, false, "R-S negative", 4.5));
-	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList<Object>();
-	        list.add(subList);
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0, false, "J-K master/slave", 4.5));
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0, false, "J-K positive", 4.5));
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0, false, "J-K negative", 4.5));
-	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList<Object>();
-	        list.add(subList);
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0, false, "D master/slave", 4.5));
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0, false, "D positive", 4.5));
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0, false, "D negative", 4.5));
-	        list.add(new JPopupMenu.Separator());
-	        subList = new ArrayList<Object>();
-	        list.add(subList);
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0, false, "T master/slave", 4.5));
-            subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0, false, "T positive", 4.5));
-	        subList.add(Technology.makeNodeInst(Schematics.tech.flipflopNode, PrimitiveNode.Function.FLIPFLOPTN, 0, false, "T negative", 4.5));
-
-            inPalette.add(Schematics.tech.bufferNode);
-            inPalette.add(Schematics.tech.orNode);
-            inPalette.add(Schematics.tech.andNode);
-        } else if (tech == Artwork.tech)
-        {
-        	if (curCell != null && curCell.isInTechnologyLibrary())
-        	{
-        		// special variation of Artwork for technology editing
-	            menuX = 1;
-	            menuY = 16;
-	            inPalette.add("Text");
-                NodeInst arc = NodeInst.makeDummyInstance(Artwork.tech.circleNode);
-                arc.setArcDegrees(0, Math.PI/4);
-	            inPalette.add(arc);
-                NodeInst half = NodeInst.makeDummyInstance(Artwork.tech.circleNode);
-                half.setArcDegrees(0, Math.PI);
-	            inPalette.add(half);
-	            inPalette.add(Artwork.tech.filledCircleNode);
-	            inPalette.add(Artwork.tech.circleNode);
-	            inPalette.add(Artwork.tech.openedThickerPolygonNode);
-	            inPalette.add(Artwork.tech.openedDashedPolygonNode);
-	            inPalette.add(Artwork.tech.openedDottedPolygonNode);
-	            inPalette.add(Artwork.tech.openedPolygonNode);
-	            inPalette.add(Technology.makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-	            inPalette.add(Technology.makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-	            inPalette.add(Artwork.tech.boxNode);
-	            inPalette.add(Artwork.tech.crossedBoxNode);
-	            inPalette.add(Artwork.tech.filledBoxNode);
-	            inPalette.add("High");
-	            inPalette.add("Port");
-        	} else
-        	{
-        		// regular artwork menu
-	            menuX = 2;
-	            menuY = 12;
-	            inPalette.add(Artwork.tech.solidArc);
-	            inPalette.add(Artwork.tech.thickerArc);
-	            inPalette.add("Cell");
-	            inPalette.add(Artwork.tech.openedPolygonNode);
-	            inPalette.add(Artwork.tech.openedThickerPolygonNode);
-	            inPalette.add(Artwork.tech.filledTriangleNode);
-	            inPalette.add(Artwork.tech.filledBoxNode);
-	            inPalette.add(Technology.makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-	            inPalette.add(Artwork.tech.filledCircleNode);
-	            inPalette.add(Artwork.tech.pinNode);
-	            inPalette.add(Artwork.tech.crossedBoxNode);
-	            inPalette.add(Artwork.tech.thickCircleNode);
-	
-	            inPalette.add(Artwork.tech.dottedArc);
-	            inPalette.add(Artwork.tech.dashedArc);
-	            inPalette.add("Text");
-	            inPalette.add(Artwork.tech.openedDottedPolygonNode);
-	            inPalette.add(Artwork.tech.openedDashedPolygonNode);
-	            inPalette.add(Artwork.tech.triangleNode);
-	            inPalette.add(Artwork.tech.boxNode);
-	            inPalette.add(Technology.makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-	            inPalette.add(Artwork.tech.circleNode);
-	            inPalette.add("Export");
-	            inPalette.add(Artwork.tech.arrowNode);
-	            inPalette.add(Technology.makeNodeInst(Artwork.tech.splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-        	}
-        } else
-        {
-            Object[][] paletteMatrix = tech.getNodesGrouped();
-
-            if (paletteMatrix != null)
-            {
-	            menuX = paletteMatrix[0].length;
-	            menuY = paletteMatrix.length;
-	            inPalette.clear();
-	            for (int i = 0; i < menuX; i++)
-	            {
-	                for (int j = 0; j < menuY; j++)
-	                {
-	                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
-	                    if (item instanceof NodeInst)
-	                    {
-	                    	item = rotateTransistor((NodeInst)item);
-	                    } else if (item instanceof List)
-	                    {
-	                    	List nodes = (List)item;
-	                    	for(int k=0; k<nodes.size(); k++)
-	                    	{
-	                    		Object o = nodes.get(k);
-	                    		if (o instanceof NodeInst)
-	                    		{
-	                    			nodes.set(k, rotateTransistor((NodeInst)o));
-	                    		}
-	                    	}
-	                    }
-                        item = getInUsed(item);
-	                    inPalette.add(item);
-	                }
-	            }
-            }
-            else
-                System.out.println("Error: no palette information found for " + tech.getTechName());
-        }
-        Dimension size = TopLevel.getScreenSize();
-        entrySize = (int)size.getWidth() / menuX;
-        int ysize = (int)(size.getHeight()*0.9) / menuY;
-        if (ysize < entrySize) entrySize = ysize;
-        size.setSize(entrySize*menuX+1, entrySize*menuY+1);
+		Dimension size = TopLevel.getScreenSize();
+		entrySize = (int)size.getWidth() / menuX;
+		int ysize = (int)(size.getHeight()*0.9) / menuY;
+		if (ysize < entrySize) entrySize = ysize;
+		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
 		User.getUserTool().setCurrentArcProto(tech.getArcs().next());
 
-        paletteImageStale = true;
+		paletteImageStale = true;
 
-        return size;
-    }
+		return size;
+	}
 
-    private NodeInst rotateTransistor(NodeInst ni)
-    {
-    	int rot = 0;
-    	if (User.isRotateLayoutTransistors()) rot = 900;
-    	PrimitiveNode.Function fun = ni.getFunction();
-    	if (fun.isTransistor())
-    	{
-	        NodeInst newNi = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
-	        newNi.copyVarsFrom(ni);
-	        ni = newNi;
-    	}
-    	return ni;
-    }
+	private NodeInst rotateTransistor(NodeInst ni)
+	{
+		if (!ni.getProto().getTechnology().isLayout()) return ni;
+		int rot = 0;
+		if (User.isRotateLayoutTransistors()) rot = 900;
+		PrimitiveNode.Function fun = ni.getFunction();
+		if (fun.isTransistor())
+		{
+			NodeInst newNi = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+			newNi.copyVarsFrom(ni);
+			ni = newNi;
+		}
+		return ni;
+	}
 
     /**
      * Method to determine if item is in used or not. Null if not.
