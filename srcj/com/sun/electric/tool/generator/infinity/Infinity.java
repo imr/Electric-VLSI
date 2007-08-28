@@ -35,6 +35,7 @@ import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
 
 public class Infinity {
+	private boolean forScott = false;
 	private static final String STAGE_LIB_NAME = "stagesF";
 	private static final String WIRE_LIB_NAME = "wiresF";
 	private static final String FAN_LIB_NAME = "fansF";
@@ -992,12 +993,6 @@ public class Infinity {
 		return twoOrThreePin;
 	}
 	
-//	private boolean portOnLayer(PortInst pi, List<ArcProto> layers) {
-//		for (ArcProto ap : layers) {
-//			if (pi.getPortProto().connectsTo(ap)) return true;
-//		}
-//		return false;
-//	}
 	private void getM3PwrGndExports(Map<Double, PortInst> pwr, Map<Double, PortInst> gnd, 
 			                        NodeInst ni, double y) {
 		for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
@@ -1037,37 +1032,6 @@ public class Infinity {
 		fattenVerticalM3(botPwr, topPwr);
 	}
 	
-//	private int[] exportPwrGnd(List<NodeInst> stages, Rectangle2D colBounds) {
-//		
-//		List<ArcProto> vertLayers = new ArrayList<ArcProto>();
-//		vertLayers.add(tech.m3());
-//		List<ArcProto> horiLayers = new ArrayList<ArcProto>();
-//		horiLayers.add(tech.m2());
-//		int vddCnt = 0;
-//		int gndCnt = 0;
-//		for (NodeInst ni : stages) {
-//			 for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
-//				 PortInst pi = (PortInst) piIt.next();
-//				 if (isPwrGnd(pi)) {
-//					 if ((onTopOrBottom(pi, colBounds, 0) && 
-//					      portOnLayer(pi, vertLayers)) ||
-//						 (onLeftOrRight(pi, colBounds, 0) && 
-//						  portOnLayer(pi, horiLayers))) {
-//						 Cell parent = pi.getNodeInst().getParent();
-//						 String exptNm;
-//						 if (isPwr(pi)) {
-//							 exptNm = addIntSuffix("vdd", vddCnt++);
-//						 } else {
-//							 exptNm = addIntSuffix("gnd", gndCnt++);
-//						 }
-//						 Export.newInstance(parent, pi, exptNm);
-//					 }
-//				 }
-//			 }
-//		}
-//		fattenPwrGnd(stages, colBounds, vddCnt, gndCnt);
-//		return new int[] {vddCnt, gndCnt};
-//	}
 	
 	private static class CloseToBound implements Comparator<PortInst> {
 		private Rectangle2D bound;
@@ -1086,6 +1050,23 @@ public class Infinity {
 			double d = distToBound(pi1) - distToBound(pi2);
 			return (int) Math.signum(d);
 		}
+	}
+	
+	
+	
+	private void reExportIfPortNameMatches(List<String> expNms,
+			                               List<PortInst> ports) {
+		if (ports.isEmpty()) return;
+		Cell parent = ports.get(0).getNodeInst().getParent();
+		for (Iterator<String> sIt=expNms.iterator(); sIt.hasNext();) {
+			String nm = sIt.next();
+			if (parent.findExport(nm)!=null) {
+				sIt.remove();
+			} else {
+				
+			}
+		}
+		
 	}
 	
 	/** Re-export all ports that the schematic exports. Don't do power
@@ -1294,9 +1275,11 @@ public class Infinity {
 			NodeInst ni = layInsts.get(i);
 			ni.move(0, -h);
 		}
-		for (int i=layInsts.size()-2; i<layInsts.size(); i++) {
-			NodeInst ni = layInsts.get(i);
-			ni.move(0, -h);
+		if (!forScott) {
+			for (int i=layInsts.size()-2; i<layInsts.size(); i++) {
+				NodeInst ni = layInsts.get(i);
+				ni.move(0, -h);
+			}
 		}
 	}
 	// infinityC needs stages stacked top to bottom. Furthermore,
@@ -1307,7 +1290,8 @@ public class Infinity {
 		if (!dataFan.getParent().getName().contains("infinityC"))
 			return;
 		Collections.reverse(layInsts);
-		for (int i=3; i<layInsts.size()-3; i++) {
+		int end = forScott ? 0 : 3;
+		for (int i=3; i<layInsts.size()-end; i++) {
 			NodeInst ni = layInsts.get(i);
 			ni.modifyInstance(0, 0, 0, 0, Orientation.Y);
 		}
@@ -1360,7 +1344,8 @@ public class Infinity {
         addEssentialBounds(layInsts, bounds);
         ExportNamer vddNm = new ExportNamer("vdd");
         ExportNamer gndNm = new ExportNamer("gnd");
-        exportPwrGnd(autoLay, vddNm, gndNm);
+        //exportPwrGnd(autoLay, vddNm, gndNm);
+        exportPwrGnd(layInsts, bounds, vddNm, gndNm);
 
         List<ToConnect> toConns = visitor.getLayoutToConnects();
         reExport(toConns, bounds);
@@ -1589,16 +1574,52 @@ public class Infinity {
 //		return covers;
 //	}
 
+	private boolean portOnLayer(PortInst pi, List<ArcProto> layers) {
+		for (ArcProto ap : layers) {
+			if (pi.getPortProto().connectsTo(ap)) return true;
+		}
+		return false;
+	}
+	private void exportPwrGnd(List<NodeInst> stages, Rectangle2D colBounds,
+			                  ExportNamer vdd, ExportNamer gnd) {
+		List<ArcProto> vertLayers = new ArrayList<ArcProto>();
+		vertLayers.add(tech.m3());
+		List<ArcProto> horiLayers = new ArrayList<ArcProto>();
+		horiLayers.add(tech.m2());
+		for (NodeInst ni : stages) {
+			 for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
+				 PortInst pi = (PortInst) piIt.next();
+				 if (isPwrGnd(pi)) {
+					 if ((onTopOrBottom(pi, colBounds, 0) && 
+					      portOnLayer(pi, vertLayers)) ||
+						 (onLeftOrRight(pi, colBounds, 0) && 
+						  portOnLayer(pi, horiLayers))) {
+						 Cell parent = pi.getNodeInst().getParent();
+						 String exptNm;
+						 if (isPwr(pi)) {
+							 exptNm = vdd.nextName();
+						 } else {
+							 exptNm = gnd.nextName();
+						 }
+						 Export.newInstance(parent, pi, exptNm);
+					 }
+				 }
+			 }
+		}
+	}
+	
 	// Re-export all PortInsts of all NodeInsts that have the power or ground
 	// characteristic that aren't connected to arcs.
 	private void exportPwrGnd(Cell c, ExportNamer vdd, ExportNamer gnd) {
 		for (Iterator<NodeInst> niIt=c.getNodes(); niIt.hasNext();) {
 			NodeInst ni = niIt.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
+			ConnectionCache cc = new ConnectionCache(ni);
 			for (Iterator<PortInst> piIt=ni.getPortInsts(); piIt.hasNext();) {
 				PortInst pi = piIt.next();
 				if (!isPwrGnd(pi)) continue;
-				if (pi.hasConnections()) continue;
+				//if (pi.hasConnections()) continue;
+				if (cc.hasConnections(pi)) continue;
 				Export e;
 				if (isPwr(pi)) {
 					e = Export.newInstance(c, pi, vdd.nextName());
@@ -1655,7 +1676,8 @@ public class Infinity {
 		
         ExportNamer vddNmr = new ExportNamer("vdd");
         ExportNamer gndNmr = new ExportNamer("gnd");
-		exportPwrGnd(autoLay, vddNmr, gndNmr);
+		//exportPwrGnd(autoLay, vddNmr, gndNmr);
+        exportPwrGnd(layInsts, colBounds, vddNmr, gndNmr);
 		fattenPwrGnd(layInsts, colBounds);
         
         // Debug

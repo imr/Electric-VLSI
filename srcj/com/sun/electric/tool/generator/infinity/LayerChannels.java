@@ -46,16 +46,23 @@ public class LayerChannels {
 				               horChan2.getMinTrackCenter());
 		double yMax = Math.max(horChan1.getMaxTrackCenter(), 
 				               horChan2.getMaxTrackCenter());
-		double minDist = Double.MAX_VALUE;
+		double xMin = Math.min(x1, x2);
+		double xMax = Math.max(x1, x2);
+		
+		double maxOverlap = -Double.MAX_VALUE;
 		Channel bestChan = null;
 		for (Channel c : channels) {
 			if (yMax>c.getMaxTrackEnd() || yMin<c.getMinTrackEnd()) {
 				prln("channels can't cover Y");
 			}
-			double cCent = (c.getMinTrackCenter()+c.getMaxTrackCenter())/2;
-			double dist = Math.abs(cCent-((x1+x2)/2));
-			if (dist<minDist) {
-				minDist = dist;
+			// calculate how much of the vertical channel overlaps with
+			// [x1, x2]. If channel doesn't overlap with [x1, x2] then 
+			// measure the distance between the channel and [x1, x2]
+			double startX = Math.max(xMin, c.getMinTrackCenter());
+			double endX = Math.min(xMax, c.getMaxTrackCenter());
+			double overlap = endX - startX;
+			if (overlap>maxOverlap) {
+				maxOverlap = overlap;
 				bestChan = c;
 			}
 			// ideally I should check to see if channel has enough
