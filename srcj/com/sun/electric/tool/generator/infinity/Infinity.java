@@ -1290,7 +1290,7 @@ public class Infinity {
 		if (!dataFan.getParent().getName().contains("infinityC"))
 			return;
 		Collections.reverse(layInsts);
-		int end = forScott ? 0 : 3;
+		int end = forScott ? 1 : 3;
 		for (int i=3; i<layInsts.size()-end; i++) {
 			NodeInst ni = layInsts.get(i);
 			ni.modifyInstance(0, 0, 0, 0, Orientation.Y);
