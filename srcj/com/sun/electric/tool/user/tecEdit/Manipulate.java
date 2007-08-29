@@ -1705,7 +1705,10 @@ public class Manipulate
 		{
 			CellId [] connects = (CellId [])var.getObject();
 			for(int i=0; i<connects.length; i++)
-				connectSet.add(EDatabase.serverDatabase().getCell(connects[i]));
+			{
+				if (connects[i] != null)
+					connectSet.add(EDatabase.serverDatabase().getCell(connects[i]));
+			}
 		}
 
 		// build an array of arc connections

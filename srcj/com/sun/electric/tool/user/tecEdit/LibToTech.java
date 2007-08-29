@@ -1086,33 +1086,35 @@ public class LibToTech
 				{
 					// convert "arc-CELL" pointers to indices
 					CellId [] arcCells = (CellId [])var.getObject();
-					ArcInfo [] connections = new ArcInfo[arcCells.length];
-					nIn.nodePortDetails[i].connections = connections;
-					boolean portChecked = false;
+					List<ArcInfo> validArcCells = new ArrayList<ArcInfo>();
 					for(int j=0; j<arcCells.length; j++)
 					{
 						// find arc that connects
+						if (arcCells[j] == null) continue;
 						Cell arcCell = EDatabase.serverDatabase().getCell(arcCells[j]);
-						connections[j] = null;
-						if (arcCell != null)
+						if (arcCell == null) continue;
+						String cellName = arcCell.getName().substring(4);
+						for(int k=0; k<aList.length; k++)
 						{
-							String cellName = arcCell.getName().substring(4);
-							for(int k=0; k<aList.length; k++)
+							if (aList[k].name.equalsIgnoreCase(cellName))
 							{
-								if (aList[k].name.equalsIgnoreCase(cellName))
-								{
-									connections[j] = aList[k];
-									break;
-								}
+								validArcCells.add(aList[k]);
+								break;
 							}
 						}
-						if (connections[j] == null)
-						{
-							pointOutError(ns.node, ns.node.getParent());
-							System.out.println("Invalid connection list on port in " + np);
-							return null;
-						}
-
+					}
+					if (validArcCells.size() != arcCells.length)
+					{
+						pointOutError(ns.node, ns.node.getParent());
+						System.out.println("Warning: Invalid connection list on port in " + np);
+					}
+					ArcInfo [] connections = new ArcInfo[validArcCells.size()];
+					nIn.nodePortDetails[i].connections = connections;
+					for(int j=0; j<validArcCells.size(); j++)
+						connections[j] = validArcCells.get(j);
+					boolean portChecked = false;
+					for(int j=0; j<connections.length; j++)
+					{
 						// find port characteristics for possible transistors
 						if (portChecked) continue;
 						if (connections[j].func.isPoly())

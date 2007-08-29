@@ -256,7 +256,7 @@ public class LayerTab extends JPanel
 	{
 		StringBuffer layerName = new StringBuffer();
 		Boolean layerVisible = visibility.get(layer);
-		if (layerVisible.booleanValue()) layerName.append("\u2713 "); else
+		if (layerVisible != null && layerVisible.booleanValue()) layerName.append("\u2713 "); else
 			layerName.append("  ");
 		if (layer.isPseudoLayer()) layerName.append(" (for pins)");
 		Boolean layerHighlighted = highlighted.get(layer);
