@@ -2660,7 +2660,13 @@ public class MoCMOS extends Technology
      */
     private void buildTechPalette()
     {
-        // Information for palette
+    	if (nodeGroups == null)
+    	{
+    		getPrefComponentMenu();
+        	if (nodeGroups != null) return;
+    	}
+
+    	// Information for palette
         int maxY = metalArcs.length + activeArcs.length + 2 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
         nodeGroups = new Object[maxY][3];
         int count = 0;

@@ -74,7 +74,7 @@ public class DaisTab extends PreferencePanel
 
 	/**
 	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the Skill tab.
+	 * Updates any changed fields in the tab.
 	 */
 	public void term()
 	{

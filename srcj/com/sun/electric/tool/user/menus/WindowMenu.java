@@ -26,14 +26,17 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.dialogs.SetFocus;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
@@ -43,9 +46,6 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.io.FileType;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -59,12 +59,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
-import java.net.URL;
 
 import javax.swing.KeyStroke;
 

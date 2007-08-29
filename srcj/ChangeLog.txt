@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06d: *******************************
 
+IMP/MAN: (8/29/07, SMR) Added "Component Menu" preference panel to customize
+     the Component Menu for the current technology.
+
 IMP/MAN: (8/22/07, SMR) When dragging a single node or arc, highlighting
      shows design rules and simple violations.  Controlled from tool/DRC
      Preferences with "Show worst violation while moving nodes and arcs".

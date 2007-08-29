@@ -172,16 +172,8 @@ public class NodeInfo extends Info
 			switch (((Integer)var.getObject()).intValue())
 			{
 				case NODEFUNCTION:
-					nIn.func = PrimitiveNode.Function.UNKNOWN;
-					List<PrimitiveNode.Function> allFuncs = PrimitiveNode.Function.getFunctions();
-					for(PrimitiveNode.Function fun : allFuncs)
-					{
-						if (fun.toString().equalsIgnoreCase(str))
-						{
-							nIn.func = fun;
-							break;
-						}
-					}
+					nIn.func = PrimitiveNode.Function.findName(str);
+					if (nIn.func == null) nIn.func = PrimitiveNode.Function.UNKNOWN;
 					break;
 				case NODESQUARE:
 					nIn.square = str.equalsIgnoreCase("yes");

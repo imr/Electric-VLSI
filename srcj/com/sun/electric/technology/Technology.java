@@ -781,6 +781,7 @@ public class Technology implements Comparable<Technology>
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
+    /** Preference for saving component menus */			private Pref componentMenuPref = null;
 
 	/****************************** CONTROL ******************************/
 
@@ -1052,7 +1053,7 @@ public class Technology implements Comparable<Technology>
                     row = new Object[numColumns];
                     rows.add(row);
                 }
-                ArrayList<Object> menuBoxList = t.menuPalette.menuBoxes.get(i);
+                List<Object> menuBoxList = t.menuPalette.menuBoxes.get(i);
                 if (menuBoxList == null || menuBoxList.isEmpty()) continue;
                 if (menuBoxList.size() == 1) {
                     row[column] = convertMenuItem(menuBoxList.get(0));
@@ -1118,7 +1119,8 @@ public class Technology implements Comparable<Technology>
             return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
         if (menuItem instanceof Xml.MenuNodeInst) {
             Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
-            return makeNodeInst(findNodeProto(n.protoName), n.function, 0, true, n.text, n.fontSize);
+            boolean hasText = (n.text != null);
+            return makeNodeInst(findNodeProto(n.protoName), n.function, n.rotation, hasText, n.text, n.fontSize);
         }
         return menuItem.toString();
     }
@@ -4594,110 +4596,165 @@ public class Technology implements Comparable<Technology>
 //		}
 //	}
 
-    /********************* FOR GUI **********************/
+	/********************* FOR GUI **********************/
 
-    /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
+	/** Temporary variable for holding names */		public static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
 
-    /**
-     * Method to change the group of elements for the component menu.
-     * @param ng the new set of objects to display in the component menu.
-     */
-    public void setNodesGrouped(Object[][] ng)
-    {
-    	nodeGroups = ng;
-    }
+	/**
+	 * Method to change the group of elements for the component menu.
+	 * @param ng the new set of objects to display in the component menu.
+	 * @param xml the XML for the new component menu groupings.
+	 */
+	public void setNodesGrouped(Object[][] ng, String xml)
+	{
+		nodeGroups = ng;
+		if (componentMenuPref == null)
+			componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
+		componentMenuPref.setString(xml);
+	}
 
-    /**
-     * Method to retrieve correct group of elements for the palette.
-     * @param curCell the current cell being displayed (may affect the palette).
-     * @return the new set of objects to display in the component menu.
-     */
-    public Object[][] getNodesGrouped(Cell curCell)
-    {
-        if (nodeGroups == null)
-        {
-        	// compute palette information automatically
-        	List<Object> things = new ArrayList<Object>();
-        	for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-        	{
-        		ArcProto ap = it.next();
-        		if (!ap.isNotUsed()) things.add(ap);
-        	}
-        	for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-        	{
-        		PrimitiveNode np = it.next();
-        		if (np.isNotUsed()) continue;
-        		if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
-        		things.add(np);
-        	}
-        	things.add("Pure");
-        	things.add("Misc.");
-        	things.add("Cell");
-        	int columns = (things.size()+13) / 14;
-        	int rows = (things.size() + columns-1) / columns;
-        	nodeGroups = new Object[rows][columns];
-        	int rowPos = 0, colPos = 0;
-        	for(Object obj : things)
-        	{
-        		nodeGroups[rowPos][colPos] = obj;
-        		rowPos++;
-        		if (rowPos >= rows)
-        		{
-        			rowPos = 0;
-        			colPos++;
-        		}
-        	}
-        }
+	/**
+	 * Method to get the group of elements for the component menu.
+	 * @return the XML for the new component menu groupings.
+	 */
+	public String getNodesGroupedXML()
+	{
+		if (componentMenuPref == null)
+			componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
+		return componentMenuPref.getString();
+	}
 
-        // Check if some metal layers are not used
-        List <Object>list = new ArrayList<Object>(nodeGroups.length);
-        for (int i = 0; i < nodeGroups.length; i++)
-        {
-            Object[] objs = nodeGroups[i];
-            if (objs != null)
-            {
-                Object obj = objs[0];
-                boolean valid = true;
-                if (obj instanceof ArcProto)
-                {
-                    ArcProto ap = (ArcProto)obj;
-                    valid = !ap.isNotUsed();
-                }
-                if (valid)
-                    list.add(objs);
-            }
-        }
-        Object[][] newMatrix = new Object[list.size()][nodeGroups[0].length];
-        for (int i = 0; i < list.size(); i++)
-        {
-            Object[] objs = (Object[])list.get(i);
-            for (int j = 0; j < objs.length; j++)
-            {
-                Object obj = objs[j];
-                // Element is not used or first element in list is not used
-                if ((obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed()))
-                    obj = null;
-                else if (obj instanceof List)
-                {
-                    List<?> l = (List)obj;
-                    Object o = l.get(0);
-                    if (o instanceof NodeInst)
-                    {
-                    	NodeInst ni = (NodeInst)o;
-                        if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isNotUsed())
-                            obj = null;
-                    }
-                    else if (o instanceof PrimitiveNode)
-                    {
-                        if (((PrimitiveNode)o).isNotUsed())
-                            obj = null;
-                    }
-                }
-                newMatrix[i][j] = obj;
-            }
-        }
-        return newMatrix;
-    }
+	/**
+	 * Method to see if there are component menu preferences.
+	 * If such preferences exist, the field variable "nodeGroups"
+	 * is loaded with that menu.
+	 */
+	public void getPrefComponentMenu()
+	{
+		// if component menu is already defined, stop now
+		if (nodeGroups != null) return;
+
+		// see if there is a preference for the component menu
+		String nodeGroupXML = getNodesGroupedXML();
+		if (nodeGroupXML == null) return;
+		if (nodeGroupXML.length() == 0) return;
+
+		// parse the preference and build a component menu
+		Xml.MenuPalette xx = Xml.parseComponentMenuXML(nodeGroupXML, this);
+		List<List<Object>> menuData = xx.menuBoxes;
+		int menuWid = xx.numColumns;
+		int menuHei = menuData.size() / menuWid;
+		nodeGroups = new Object[menuHei][menuWid];
+		int next = 0;
+		for(int y=0; y<menuHei; y++)
+		{
+			for(int x=0; x<menuWid; x++)
+			{
+				Object obj = menuData.get(next++);
+				if (obj instanceof List)
+				{
+					List<?> list = (List)obj;
+					if (list.size() == 0) obj = null; else
+						if (list.size() == 1) obj = list.get(0);
+				}
+				nodeGroups[y][x] = obj;
+			}
+		}
+	}
+
+	/**
+	 * Method to retrieve correct group of elements for the palette.
+	 * @param curCell the current cell being displayed (may affect the palette).
+	 * @return the new set of objects to display in the component menu.
+	 */
+	public Object[][] getNodesGrouped(Cell curCell)
+	{
+		// make sure any preferences are applied
+		getPrefComponentMenu();
+		if (nodeGroups == null)
+		{
+			// compute palette information automatically
+			List<Object> things = new ArrayList<Object>();
+			for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = it.next();
+				if (!ap.isNotUsed()) things.add(ap);
+			}
+			for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = it.next();
+				if (np.isNotUsed()) continue;
+				if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
+				things.add(np);
+			}
+			things.add("Pure");
+			things.add("Misc.");
+			things.add("Cell");
+			int columns = (things.size()+13) / 14;
+			int rows = (things.size() + columns-1) / columns;
+			nodeGroups = new Object[rows][columns];
+			int rowPos = 0, colPos = 0;
+			for(Object obj : things)
+			{
+				nodeGroups[rowPos][colPos] = obj;
+				rowPos++;
+				if (rowPos >= rows)
+				{
+					rowPos = 0;
+					colPos++;
+				}
+			}
+		}
+
+		// Check if some metal layers are not used
+		List <Object>list = new ArrayList<Object>(nodeGroups.length);
+		for (int i = 0; i < nodeGroups.length; i++)
+		{
+			Object[] objs = nodeGroups[i];
+			if (objs != null)
+			{
+				Object obj = objs[0];
+				boolean valid = true;
+				if (obj instanceof ArcProto)
+				{
+					ArcProto ap = (ArcProto)obj;
+					valid = !ap.isNotUsed();
+				}
+				if (valid)
+					list.add(objs);
+			}
+		}
+		Object[][] newMatrix = new Object[list.size()][nodeGroups[0].length];
+		for (int i = 0; i < list.size(); i++)
+		{
+			Object[] objs = (Object[])list.get(i);
+			for (int j = 0; j < objs.length; j++)
+			{
+				Object obj = objs[j];
+				// Element is not used or first element in list is not used
+				if ((obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed()))
+					obj = null;
+				else if (obj instanceof List)
+				{
+					List<?> l = (List)obj;
+					Object o = l.get(0);
+					if (o instanceof NodeInst)
+					{
+						NodeInst ni = (NodeInst)o;
+						if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isNotUsed())
+							obj = null;
+					}
+					else if (o instanceof PrimitiveNode)
+					{
+						if (((PrimitiveNode)o).isNotUsed())
+							obj = null;
+					}
+				}
+				newMatrix[i][j] = obj;
+			}
+		}
+		return newMatrix;
+	}
 
     /**
      * Method to create temporary nodes for the palette

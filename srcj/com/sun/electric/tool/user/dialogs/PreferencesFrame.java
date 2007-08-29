@@ -130,6 +130,10 @@ public class PreferencesFrame extends EDialog
             generalSet.add(new DefaultMutableTreeNode(keys.getName()));
         }
 
+        ComponentMenuTab cmt = new ComponentMenuTab(parent, modal);
+		optionPanes.add(cmt);
+		generalSet.add(new DefaultMutableTreeNode(cmt.getName()));
+
 		NewNodesTab nnt = new NewNodesTab(parent, modal);
 		optionPanes.add(nnt);
 		generalSet.add(new DefaultMutableTreeNode(nnt.getName()));

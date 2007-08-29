@@ -35,37 +35,28 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Foundry;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Xml.ArcLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -75,7 +66,6 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -512,6 +502,67 @@ public class LibToTech
 //		return tech;
 //	}
 
+//	private static void checkAndWarn(LayerInfo [] lList, ArcInfo [] aList, NodeInfo [] nList)
+//	{
+//		// make sure there is a pure-layer node for every nonpseudo layer
+//		for(int i=0; i<lList.length; i++)
+//		{
+//			if (lList[i].pseudo) continue;
+//			boolean found = false;
+//			for(int j=0; j<nList.length; j++)
+//			{
+//				NodeInfo nIn = nList[j];
+//				if (nIn.func != PrimitiveNode.Function.NODE) continue;
+//				if (nIn.nodeLayers[0].layer == lList[i])
+//				{
+//					found = true;
+//					break;
+//				}
+//			}
+//			if (found) continue;
+//			System.out.println("Warning: Layer " + lList[i].name + " has no associated pure-layer node");
+//		}
+//
+//		// make sure there is a pin for every arc and that it uses pseudo-layers
+//		for(int i=0; i<aList.length; i++)
+//		{
+//			// find that arc's pin
+//			boolean found = false;
+//			for(int j=0; j<nList.length; j++)
+//			{
+//				NodeInfo nIn = nList[j];
+//				if (nIn.func != PrimitiveNode.Function.PIN) continue;
+//
+//				for(int k=0; k<nIn.nodePortDetails.length; k++)
+//				{
+//					ArcInfo [] connections = nIn.nodePortDetails[k].connections;
+//					for(int l=0; l<connections.length; l++)
+//					{
+//						if (connections[l] == aList[i])
+//						{
+//							// pin found: make sure it uses pseudo-layers
+//							boolean allPseudo = true;
+//							for(int m=0; m<nIn.nodeLayers.length; m++)
+//							{
+//								LayerInfo lin = nIn.nodeLayers[m].layer;
+//								if (!lin.pseudo) { allPseudo = false;   break; }
+//							}
+//							if (!allPseudo)
+//								System.out.println("Warning: Pin " + nIn.name + " is not composed of pseudo-layers");
+//
+//							found = true;
+//							break;
+//						}
+//					}
+//					if (found) break;
+//				}
+//				if (found) break;
+//			}
+//			if (!found)
+//				System.out.println("Warning: Arc " + aList[i].name + " has no associated pin node");
+//		}
+//	}
+
 	/**
 	 * This class displays a dialog for converting a library to a technology.
 	 */
@@ -662,67 +713,6 @@ public class LibToTech
 			public void changedUpdate(DocumentEvent e) { dialog.nameChanged(); }
 			public void insertUpdate(DocumentEvent e) { dialog.nameChanged(); }
 			public void removeUpdate(DocumentEvent e) { dialog.nameChanged(); }
-		}
-	}
-
-	private static void checkAndWarn(LayerInfo [] lList, ArcInfo [] aList, NodeInfo [] nList)
-	{
-		// make sure there is a pure-layer node for every nonpseudo layer
-		for(int i=0; i<lList.length; i++)
-		{
-			if (lList[i].pseudo) continue;
-			boolean found = false;
-			for(int j=0; j<nList.length; j++)
-			{
-				NodeInfo nIn = nList[j];
-				if (nIn.func != PrimitiveNode.Function.NODE) continue;
-				if (nIn.nodeLayers[0].layer == lList[i])
-				{
-					found = true;
-					break;
-				}
-			}
-			if (found) continue;
-			System.out.println("Warning: Layer " + lList[i].name + " has no associated pure-layer node");
-		}
-
-		// make sure there is a pin for every arc and that it uses pseudo-layers
-		for(int i=0; i<aList.length; i++)
-		{
-			// find that arc's pin
-			boolean found = false;
-			for(int j=0; j<nList.length; j++)
-			{
-				NodeInfo nIn = nList[j];
-				if (nIn.func != PrimitiveNode.Function.PIN) continue;
-
-				for(int k=0; k<nIn.nodePortDetails.length; k++)
-				{
-					ArcInfo [] connections = nIn.nodePortDetails[k].connections;
-					for(int l=0; l<connections.length; l++)
-					{
-						if (connections[l] == aList[i])
-						{
-							// pin found: make sure it uses pseudo-layers
-							boolean allPseudo = true;
-							for(int m=0; m<nIn.nodeLayers.length; m++)
-							{
-								LayerInfo lin = nIn.nodeLayers[m].layer;
-								if (!lin.pseudo) { allPseudo = false;   break; }
-							}
-							if (!allPseudo)
-								System.out.println("Warning: Pin " + nIn.name + " is not composed of pseudo-layers");
-
-							found = true;
-							break;
-						}
-					}
-					if (found) break;
-				}
-				if (found) break;
-			}
-			if (!found)
-				System.out.println("Warning: Arc " + aList[i].name + " has no associated pin node");
 		}
 	}
 

@@ -385,6 +385,21 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		public static List<Function> getFunctions() { return Arrays.asList(Function.class.getEnumConstants()); }
 
 		/**
+		 * Method to find a Function from its name.
+		 * @param name the name to find.
+		 * @return a Function (null if not found).
+		 */
+		public static Function findName(String name)
+		{
+			List<Function> allFuncs = getFunctions();
+			for(Function fun : allFuncs)
+			{
+				if (fun.name.equalsIgnoreCase(name)) return fun;
+			}
+			return null;
+		}
+
+		/**
 		 * Returns a name of this Function.
 		 * @return a name of this Function.
 		 */

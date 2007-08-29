@@ -487,7 +487,8 @@ public class Artwork extends Technology
 		}
 
 		// normal menu
-		if (nodeGroups != null) return nodeGroups;
+    	if (nodeGroups == null) getPrefComponentMenu();
+    	if (nodeGroups != null) return nodeGroups;
 		nodeGroups = new Object[12][2];
 		nodeGroups[0][0] = solidArc;
 		nodeGroups[1][0] = thickerArc;

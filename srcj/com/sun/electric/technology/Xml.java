@@ -26,6 +26,9 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
@@ -34,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -48,6 +52,7 @@ import java.util.TreeMap;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -241,7 +246,7 @@ public class Xml {
 
     public static class MenuPalette implements Serializable {
         public int numColumns;
-        public ArrayList<ArrayList<Object>> menuBoxes = new ArrayList<ArrayList<Object>>();
+        public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
     }
 
     public static class MenuNodeInst implements Serializable {
@@ -249,6 +254,7 @@ public class Xml {
         public com.sun.electric.technology.PrimitiveNode.Function function;
         public String text;
         public double fontSize;
+        public int rotation;
     }
 
     public static class Distance implements Serializable {
@@ -402,7 +408,32 @@ public class Xml {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Error Parsing XML file ...");
+        System.out.println("Error parsing XML file ...");
+        return null;
+    }
+
+    /**
+     * Method to parse a string of XML that describes the component menu.
+     * Normal parsing of XML returns objects in the Xml class, but
+     * this method returns objects in a given Technology.
+     * @param xml the XML string
+     * @param tech the Technology that this string describes.
+     * @return the MenuPalette describing the component menu.
+     */
+    public static MenuPalette parseComponentMenuXML(String xml, com.sun.electric.technology.Technology tech) {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        try {
+            SAXParser parser = factory.newSAXParser();
+            InputSource is = new InputSource(new StringReader(xml));
+            XMLReader handler = new XMLReader();
+            handler.menuTech = tech;
+            parser.parse(is, handler);
+            return handler.tech.menuPalette;
+        } catch (Exception e) {
+            System.out.println("Error parsing XML component menu data");
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -437,6 +468,7 @@ public class Xml {
         private boolean acceptCharacters;
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
+        private com.sun.electric.technology.Technology menuTech;
 
         private void beginCharacters() {
             assert !acceptCharacters;
@@ -506,7 +538,7 @@ public class Xml {
          */
         public void notationDecl(String name, String publicId, String systemId)
         throws SAXException {
-            int x = 0;
+//            int x = 0;
         }
 
 
@@ -529,7 +561,7 @@ public class Xml {
         public void unparsedEntityDecl(String name, String publicId,
                 String systemId, String notationName)
                 throws SAXException {
-            int x = 0;
+//            int x = 0;
         }
 
 
@@ -987,6 +1019,8 @@ public class Xml {
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
                     curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
+                    String rotField = a("rotation");
+                    if (rotField != null) curMenuNodeInst.rotation = TextUtils.atoi(rotField);
                     break;
                 case menuNodeText:
                     curMenuNodeInst.text = a("text");
@@ -1145,10 +1179,16 @@ public class Xml {
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
                     case menuArc:
-                        curMenuBox.add(tech.findArc(text));
+                        Object arcObj = tech.findArc(text);
+                        if (arcObj == null && menuTech != null)
+                        	arcObj = menuTech.findArcProto(text);
+                        curMenuBox.add(arcObj);
                         break;
                     case menuNode:
-                        curMenuBox.add(tech.findNode(text));
+                        Object nodeObj = tech.findNode(text);
+                        if (nodeObj == null && menuTech != null)
+                        	nodeObj = menuTech.findNodeProto(text);
+                        curMenuBox.add(nodeObj);
                         break;
                     case menuText:
                         curMenuBox.add(text);
@@ -1196,7 +1236,13 @@ public class Xml {
                     curPort = null;
                     break;
                 case menuNodeInst:
-                    curMenuBox.add(curMenuNodeInst);
+                	if (menuTech == null) curMenuBox.add(curMenuNodeInst); else
+                	{
+                		NodeProto np = menuTech.findNodeProto(curMenuNodeInst.protoName);
+                		NodeInst ni = com.sun.electric.technology.Technology.makeNodeInst(np, curMenuNodeInst.function,
+                			curMenuNodeInst.rotation, curMenuNodeInst.text != null, curMenuNodeInst.text, curMenuNodeInst.fontSize);
+                        curMenuBox.add(ni);
+                	}
                     curMenuNodeInst = null;
                     break;
 
@@ -1320,7 +1366,7 @@ public class Xml {
          */
         public void ignorableWhitespace(char ch[], int start, int length)
         throws SAXException {
-            int x = 0;
+//            int x = 0;
         }
 
 
@@ -1341,7 +1387,7 @@ public class Xml {
          */
         public void processingInstruction(String target, String data)
         throws SAXException {
-            int x = 0;
+//            int x = 0;
         }
 
 
@@ -1360,7 +1406,7 @@ public class Xml {
          */
         public void skippedEntity(String name)
         throws SAXException {
-            int x = 0;
+//            int x = 0;
         }
 
 
@@ -1436,13 +1482,13 @@ public class Xml {
 
     }
 
-    private static class Writer {
+    public static class Writer {
         private static final int INDENT_WIDTH = 4;
-        private final PrintWriter out;
+        protected final PrintWriter out;
         private int indent;
-        private boolean indentEmitted;
+        protected boolean indentEmitted;
 
-        Writer(PrintWriter out) {
+        public Writer(PrintWriter out) {
             this.out = out;
         }
 
@@ -1810,7 +1856,7 @@ public class Xml {
             l();
         }
         
-        private void writeMenuPaletteXml(Xml.MenuPalette menuPalette) {
+        public void writeMenuPaletteXml(Xml.MenuPalette menuPalette) {
             if (menuPalette == null) return;
             b(XmlKeyword.menuPalette); a("numColumns", menuPalette.numColumns); cl();
             for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
@@ -1823,7 +1869,7 @@ public class Xml {
             l();
         }
         
-        private void writeMenuBoxXml(ArrayList<Object> list) {
+        private void writeMenuBoxXml(List<Object> list) {
             b(XmlKeyword.menuBox);
             if (list.size() == 0) {
                 el();
@@ -1838,6 +1884,7 @@ public class Xml {
                 } else if (o instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());
+                    if (ni.rotation != 0) a("rotation", ni.rotation);
                     if (ni.text == null) {
                         el();
                     } else {
@@ -1846,7 +1893,8 @@ public class Xml {
                         el(XmlKeyword.menuNodeInst);
                     }
                 } else {
-                    bcpel(XmlKeyword.menuText, o);
+                	if (o == null) bel(XmlKeyword.menuText); else
+                		bcpel(XmlKeyword.menuText, o);
                 }
             }
             el(XmlKeyword.menuBox);
@@ -1914,7 +1962,7 @@ public class Xml {
         /**
          * Print text with replacement of special chars.
          */
-        private void p(String s) {
+        protected void p(String s) {
             assert indentEmitted;
             for (int i = 0; i < s.length(); i++) {
                 char c = s.charAt(i);
@@ -1980,7 +2028,7 @@ public class Xml {
             l();
         }
         
-        private void checkIndent() {
+        protected void checkIndent() {
             if (indentEmitted) return;
             for (int i = 0; i < indent; i++)
                 out.print(' ');
@@ -1990,7 +2038,7 @@ public class Xml {
         /**
          *  Print new line.
          */
-        private void l() {
+        protected void l() {
             out.println();
             indentEmitted = false;
         }

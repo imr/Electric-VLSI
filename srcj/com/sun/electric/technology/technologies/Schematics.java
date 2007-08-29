@@ -1413,6 +1413,7 @@ public class Schematics extends Technology
 	 */
 	public Object[][] getNodesGrouped(Cell curCell)
 	{
+    	if (nodeGroups == null) getPrefComponentMenu();
 		if (nodeGroups != null) return nodeGroups;
 
 		nodeGroups = new Object[14][2];
