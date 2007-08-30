@@ -26,7 +26,9 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -43,6 +45,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Xml.MenuPalette;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -50,6 +54,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.ComponentMenu;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PromptAt;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -64,7 +69,16 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -484,6 +498,95 @@ public class Manipulate
 	public static void editLibraryDependencies()
 	{
 		new EditDependentLibraries();
+	}
+
+	/**
+	 * Method to edit the component menu for the technology.
+	 */
+	public static void editComponentMenu()
+	{
+System.out.println("CANNOT EDIT COMPONENT MENU YET");
+		// get information about arcs and nodes in the technology being edited
+		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] arcCells = Info.findCellSequence(dependentlibs, "arc-", Info.ARCSEQUENCE_KEY);
+		Cell [] nodeCells = Info.findCellSequence(dependentlibs, "node-", Info.NODESEQUENCE_KEY);
+
+		// get the XML string describing the component menu
+		String compMenuXML;
+		Variable var = Library.getCurrent().getVar(Info.COMPMENU_KEY);
+		if (var == null)
+		{
+			// construct a default component menu
+			List<Object> things = new ArrayList<Object>();
+
+			// add in arcs
+			for(int i=0; i<arcCells.length; i++)
+			{
+				String arcName = arcCells[i].getName().substring(4);
+				Xml.ArcProto curArc = new Xml.ArcProto();
+                curArc.name = arcName;
+				things.add(curArc);
+			}
+
+			// add in nodes
+			for(int i=0; i<nodeCells.length; i++)
+			{
+				Cell np = nodeCells[i];
+				NodeInfo nIn = NodeInfo.parseCell(np);
+				if (nIn.func == PrimitiveNode.Function.NODE) continue;
+				String nodeName = nodeCells[i].getName().substring(5);
+				Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
+                curNode.name = nodeName;
+                curNode.function = nIn.func;
+				things.add(curNode);
+			}
+
+			// add in special menu entries
+			things.add("Pure");
+			things.add("Misc.");
+			things.add("Cell");
+
+			// construct the menu information
+			int columns = (things.size()+13) / 14;
+			Xml.MenuPalette xmp = new Xml.MenuPalette();
+			xmp.numColumns = columns;
+			xmp.menuBoxes = new ArrayList<List<Object>>();
+			for(Object item : things)
+			{
+				List<Object> subList = new ArrayList<Object>();
+				subList.add(item);
+				xmp.menuBoxes.add(subList);
+			}
+
+			StringWriter sw = new StringWriter();
+			PrintWriter out = new PrintWriter(sw);
+			Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
+			writer.writeMenuPaletteXml(xmp);
+			out.close();
+			StringBuffer sb = sw.getBuffer();
+			compMenuXML = sb.toString();
+		} else
+		{
+			compMenuXML = (String)var.getObject();
+		}
+	    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+		for(int i=0; i<nodeCells.length; i++)
+		{
+			Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
+			xnp.name = nodeCells[i].getName().substring(5);
+			NodeInfo nIn = NodeInfo.parseCell(nodeCells[i]);
+			xnp.function = nIn.func;
+			nodes.add(xnp);
+		}
+	    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
+		for(int i=0; i<arcCells.length; i++)
+		{
+			Xml.ArcProto xap = new Xml.ArcProto();
+			xap.name = arcCells[i].getName().substring(4);
+			arcs.add(xap);
+		}
+	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
+	    ComponentMenu.showComponentMenuDialog(Technology.getCurrent().getTechName(), xmp, nodes, arcs);
 	}
 
 	/**

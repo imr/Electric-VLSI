@@ -174,11 +174,11 @@ public class CrossLibCopy extends EDialog
 
 		// TO syncronize scroll bars
 		JScrollBar[] scrollArray1 = {cellsRight.getVerticalScrollBar(), center.getVerticalScrollBar()};
-		cellsLeft.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray1));
+		cellsLeft.getVerticalScrollBar().getModel().addChangeListener(new CrossLibScrollBarListener(scrollArray1));
 		JScrollBar[] scrollArray2 = {cellsLeft.getVerticalScrollBar(), center.getVerticalScrollBar()};
-		cellsRight.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray2));
+		cellsRight.getVerticalScrollBar().getModel().addChangeListener(new CrossLibScrollBarListener(scrollArray2));
 		JScrollBar[] scrollArray3 = {cellsLeft.getVerticalScrollBar(), cellsRight.getVerticalScrollBar()};
-		center.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray3));
+		center.getVerticalScrollBar().getModel().addChangeListener(new CrossLibScrollBarListener(scrollArray3));
 
 		finishInitialization();
 	}

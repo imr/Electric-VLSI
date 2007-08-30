@@ -8,7 +8,9 @@ BUG: (8/29/07, SMR) Technology editor crashes when arc list is bad on ports.
 FIX: More robust both in technology conversion and in port list editing.
 
 IMP/MAN: (8/29/07, SMR) Added "Component Menu" preference panel to customize
-     the Component Menu for the current technology.
+     the Component Menu for the current technology.  Also added the command
+     "Edit / Technology Specific / Edit Component Menu..." to customize the
+     component menu in the technology editor.
 
 IMP/MAN: (8/22/07, SMR) When dragging a single node or arc, highlighting
      shows design rules and simple violations.  Controlled from tool/DRC

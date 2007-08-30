@@ -330,6 +330,8 @@ public class EditMenu {
                 SEPARATOR,
                 new EMenuItem("Edit Library _Dependencies...") { public void run() {
                     Manipulate.editLibraryDependencies(); }},
+                new EMenuItem("Edit Component Menu...") { public void run() {
+                    Manipulate.editComponentMenu(); }},
                 SEPARATOR,
                 new EMenuItem("Descri_be this Technology") { public void run() {
                     describeTechnologyCommand(); }},

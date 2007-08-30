@@ -118,6 +118,7 @@ public class Info
 
     /** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
+	/** key of Variable holding component menu info. */	public static final Variable.Key COMPMENU_KEY = Variable.newKey("EDTEC_componentmenu");
 	/** key of Variable holding arc ordering. */		static final Variable.Key ARCSEQUENCE_KEY = Variable.newKey("EDTEC_arcsequence");
 	/** key of Variable holding node ordering. */		static final Variable.Key NODESEQUENCE_KEY = Variable.newKey("EDTEC_nodesequence");
 	/** key of Variable holding layer ordering. */		static final Variable.Key LAYERSEQUENCE_KEY = Variable.newKey("EDTEC_layersequence");

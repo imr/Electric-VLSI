@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -413,24 +414,55 @@ public class Xml {
     }
 
     /**
-     * Method to parse a string of XML that describes the component menu.
+     * Method to parse a string of XML that describes the component menu in a given Technology.
      * Normal parsing of XML returns objects in the Xml class, but
      * this method returns objects in a given Technology.
      * @param xml the XML string
      * @param tech the Technology that this string describes.
      * @return the MenuPalette describing the component menu.
      */
-    public static MenuPalette parseComponentMenuXML(String xml, com.sun.electric.technology.Technology tech) {
+    public static MenuPalette parseComponentMenuXML(String xml, com.sun.electric.technology.Technology tech)
+    {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
-        try {
+        try
+        {
             SAXParser parser = factory.newSAXParser();
             InputSource is = new InputSource(new StringReader(xml));
             XMLReader handler = new XMLReader();
             handler.menuTech = tech;
             parser.parse(is, handler);
             return handler.tech.menuPalette;
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
+            System.out.println("Error parsing XML component menu data");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Method to parse a string of XML that describes the component menu in a Technology Editing context.
+     * Normal parsing of XML returns objects in the Xml class, but
+     * this method returns objects in a given Technology-Editor world.
+     * @param xml the XML string
+     * @param nodes the PrimitiveNode objects describing nodes in the technology.
+     * @param arcs the ArcProto objects describing arcs in the technology.
+     * @return the MenuPalette describing the component menu.
+     */
+    public static MenuPalette parseComponentMenuXMLTechEdit(String xml, List<PrimitiveNode> nodes, List<ArcProto> arcs)
+    {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        try
+        {
+            SAXParser parser = factory.newSAXParser();
+            InputSource is = new InputSource(new StringReader(xml));
+            XMLReader handler = new XMLReader(nodes, arcs);
+            parser.parse(is, handler);
+            return handler.tech.menuPalette;
+        } catch (Exception e)
+        {
             System.out.println("Error parsing XML component menu data");
             e.printStackTrace();
         }
@@ -469,6 +501,16 @@ public class Xml {
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
         private com.sun.electric.technology.Technology menuTech;
+
+        XMLReader() {}
+
+        XMLReader(List<PrimitiveNode> nodes, List<ArcProto> arcs)
+        {
+        	for(ArcProto xap : arcs)
+                tech.arcs.add(xap);
+        	for(PrimitiveNode xnp : nodes)
+                tech.nodes.add(xnp);
+        }
 
         private void beginCharacters() {
             assert !acceptCharacters;
@@ -2043,4 +2085,32 @@ public class Xml {
             indentEmitted = false;
         }
     }
+
+    /**
+     * Class to write the XML without multiple lines and indentation.
+     * Useful when the XML is to be a single string.
+     */
+	public static class OneLineWriter extends Writer
+	{
+		public OneLineWriter(PrintWriter out)
+		{
+			super(out);
+		}
+
+		/**
+		 * Print text without replacement of special chars.
+		 */
+		protected void p(String s)
+		{
+			for (int i = 0; i < s.length(); i++)
+				out.print(s.charAt(i));
+		}
+
+		protected void checkIndent() { indentEmitted = true; }
+
+		/**
+		 * Do not print new line.
+		 */
+		protected void l() { indentEmitted = false; }
+	}
 }
