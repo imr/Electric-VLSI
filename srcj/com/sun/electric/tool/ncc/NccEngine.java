@@ -244,7 +244,13 @@ public class NccEngine {
         globals.setInitialNetlists(nccNetlists);
         
 		NccResult result = designsMatch(hierInfo, false);
-
+		
+		if(result.match())
+			NccUtils.incrementBenchmarkCount(BenchIdx.PASS_RESULT, globals);
+		else{
+			NccUtils.incrementBenchmarkCount(BenchIdx.FAIL_RESULT, globals);
+		}
+		
 		globals.status2("****************************************"+					  		
 		                "****************************************");
 		return result;		              					  				

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06d: *******************************
 
+IMP: (8/30/07, SAF) PIE: Added counters and fixed options for benchmarking.
+
+BUG: (8/30/07, SAF) PIE: Backtracking doesn't properly restore partition tree.
+FIX: Backtrack all leaf nodes instead of only unmatched leaves.
+
 BUG: (8/29/07, SMR) Technology editor crashes when arc list is bad on ports.
 FIX: More robust both in technology conversion and in port list editing.
 

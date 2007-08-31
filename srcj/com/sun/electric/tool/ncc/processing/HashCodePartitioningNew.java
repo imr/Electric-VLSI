@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 
+import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -337,6 +338,8 @@ public class HashCodePartitioningNew {
 //		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
 
 		if (done() || globals.userWantsToAbort()) return;
+		
+		boolean preGuessMismatch = hasMismatch();
 		randomMatch(hashProp);
 
 		// Maybe not neccessary, but included to be safe.
@@ -344,10 +347,25 @@ public class HashCodePartitioningNew {
 		hashAllParts(globals);
 		
 		start = NccUtils.registerTiming("  Random match took: ",start,BenchIdx.RANDOM_MATCHING_TIME,globals);
+
+		if(!preGuessMismatch && hasMismatch())
+			NccUtils.incrementBenchmarkCount(BenchIdx.MAYBE_RESULT, globals);
+		
 //		Date d5 = new Date();
 //		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));
 	}
-	
+	private boolean hasMismatch() {
+		LeafEquivRecords partLeafEquivRecs = globals.getPartLeafEquivRecs();
+		LeafEquivRecords wireLeafEquivRecs = globals.getWireLeafEquivRecs();
+		for(Iterator<EquivRecord> eIt=partLeafEquivRecs.getNotMatched(); eIt.hasNext();){
+			if(eIt.next().isMismatched()) return true;
+		}
+		for(Iterator<EquivRecord> eIt=wireLeafEquivRecs.getNotMatched(); eIt.hasNext();){
+			if(eIt.next().isMatched()) return true;
+		}
+		return false;
+	}
+
 	private boolean allPartsWiresMatch() {
 		return globals.getPartLeafEquivRecs().numNotMatched()==0 &&
 		       globals.getWireLeafEquivRecs().numNotMatched()==0;

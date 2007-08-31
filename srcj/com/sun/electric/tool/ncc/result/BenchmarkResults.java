@@ -55,6 +55,9 @@ public class BenchmarkResults implements Serializable {
 		MAX_PORT_SIZE,
 		SUM_OF_MATRIX_SIZES,
 		NUMBER_OF_MATRICES,
+		PASS_RESULT,
+		FAIL_RESULT,
+		MAYBE_RESULT,
 		NUMBER_OF_VALUES;
 	}
 	public long[] results = new long[BenchIdx.NUMBER_OF_VALUES.ordinal()];
