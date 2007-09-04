@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06e: *******************************
+
 ************************* Version 8.06d: *******************************
 
 BUG: (9/4/07, SMR) Epic reader doesn't always find the JVM (Bug #1370).
