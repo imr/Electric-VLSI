@@ -448,7 +448,7 @@ public class LEF extends LEFDEF
 
 				if (ignoreToSemicolon("RECT")) return true;
 
-				// make the pin
+				// make the obstruction
 				Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
 				double sX = Math.abs(hX - lX);
 				double sY = Math.abs(hY - lY);
@@ -661,7 +661,7 @@ public class LEF extends LEFDEF
 					// create the port on the first pin
 					first = false;
 					Export pp = newPort(cell, ni, pureNp.getPort(0), portname);
-					pp.setCharacteristic(portCharacteristics);
+					if (pp != null) pp.setCharacteristic(portCharacteristics);
 				}
 				continue;
 			}
