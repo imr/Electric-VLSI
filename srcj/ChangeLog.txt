@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06d: *******************************
 
+IMP: (9/4/07, RK) Add N-Well-RPO-Resistor to NCC
+
 BUG: (9/4/07, SMR) Epic reader doesn't always find the JVM (Bug #1370).
 FIX: Using System.getProperty("java.home") to get the right JVM.
 

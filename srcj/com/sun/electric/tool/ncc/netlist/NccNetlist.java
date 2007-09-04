@@ -417,6 +417,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		PrimitiveNode.Function func = ni.getFunction();
 		return func==PrimitiveNode.Function.PRESIST;
 	}
+	/** @return true if well resistor */
+	private boolean isPrimitiveWellResistor(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
+		return func==PrimitiveNode.Function.WRESIST;
+	}
 	private PartType getMosType(NodeInst ni, NccCellInfo info) {
 		String typeNm;
 		if (isSchematicPrimitive(ni)) {
@@ -559,7 +564,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
 		if (ni.isPrimitiveTransistor()) {
 			buildTransistor(ni, info);
-		} else if (isPrimitivePolyResistor(ni)) {
+		} else if (isPrimitivePolyResistor(ni) ||
+				   isPrimitiveWellResistor(ni)) {
 			buildResistor(ni, info);
 		} else {	
 //			PrimitiveNode.Function func = ni.getFunction();

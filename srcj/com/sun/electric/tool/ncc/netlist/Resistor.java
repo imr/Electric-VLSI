@@ -33,7 +33,8 @@ public class Resistor extends Part {
 	public static final PartTypeTable TYPES = 
 		new PartTypeTable(new String[][] {
 			{"N-Poly-RPO-Resistor", "N-Poly-RPO-Resistor"},
-			{"P-Poly-RPO-Resistor", "P-Poly-RPO-Resistor"}
+			{"P-Poly-RPO-Resistor", "P-Poly-RPO-Resistor"},
+			{"N-Well-RPO-Resistor", "N-Well-RPO-Resistor"}
 		});
 		
 	private static class ResistorPinType implements PinType {
