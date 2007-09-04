@@ -208,6 +208,8 @@ public class EpicOutProcess extends Simulate implements Runnable
 		// see if the required amount of memory is already present
 		Runtime runtime = Runtime.getRuntime();
         String program = "java";
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
         int maxMemWanted = Simulation.getSpiceEpicMemorySize();
 
         // get location of jar file
