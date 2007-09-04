@@ -505,7 +505,6 @@ public class Manipulate
 	 */
 	public static void editComponentMenu()
 	{
-System.out.println("CANNOT EDIT COMPONENT MENU YET");
 		// get information about arcs and nodes in the technology being edited
 		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
 		Cell [] arcCells = Info.findCellSequence(dependentlibs, "arc-", Info.ARCSEQUENCE_KEY);

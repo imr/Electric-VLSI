@@ -23,14 +23,14 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
@@ -50,12 +50,14 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -83,7 +85,7 @@ public class ComponentMenu extends EDialog
 	public static void showComponentMenuDialog(String techName, Xml.MenuPalette xmp,
 		List<Xml.PrimitiveNode> nodes, List<Xml.ArcProto> arcs)
 	{
-		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true);
+		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true, true);
 		Xml.Technology xTech = new Xml.Technology();
 		for(Xml.PrimitiveNode xnp : nodes)
 			xTech.nodes.add(xnp);
@@ -115,7 +117,7 @@ public class ComponentMenu extends EDialog
 	}
 
 	/** Creates new form ComponentMenu */
-	public ComponentMenu(Frame parent, boolean modal)
+	public ComponentMenu(Frame parent, boolean modal, boolean standAlone)
 	{
 		super(parent, modal);
 		initComponents();
@@ -178,6 +180,27 @@ public class ComponentMenu extends EDialog
 		showNodeName.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) { nodeInfoChanged(); }
 		});
+
+		if (standAlone)
+		{
+			JButton OK = new JButton("OK");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;       gbc.gridy = 4;
+			gbc.insets = new Insets(25, 4, 4, 4);
+			lowerRight.add(OK, gbc);
+			OK.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { saveChanges();   closeDialog(null); }
+	        });
+
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;       gbc.gridy = 4;
+			gbc.insets = new Insets(25, 4, 4, 4);
+			lowerRight.add(cancel, gbc);
+			cancel.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { closeDialog(null); }
+	        });
+		}
 	}
 
 	/**
@@ -223,11 +246,68 @@ public class ComponentMenu extends EDialog
 	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return Top; }
 
-	protected void escapePressed() { /*done(null);*/ }
+	protected void escapePressed() { closeDialog(null); }
 
 	public boolean isChanged() { return changed; }
 
 	public Object[][] getMenuInfo() { return menuArray; }
+
+	/**
+	 * Method called when the "OK" button is hit.
+	 */
+	private void saveChanges()
+	{
+		if (!changed) return;
+		Xml.MenuPalette xmp = new Xml.MenuPalette();
+		xmp.numColumns = menuWid;
+		xmp.menuBoxes = new ArrayList<List<Object>>();
+		for(int y=0; y<menuHei; y++)
+		{
+			for(int x=0; x<menuWid; x++)
+			{
+				Object item = null;
+				if (menuArray[y] != null)
+					item = menuArray[y][x];
+				if (item instanceof List)
+				{
+					xmp.menuBoxes.add((List)item);
+				} else
+				{
+					List<Object> subList = new ArrayList<Object>();
+					if (item != null) subList.add(item);
+					xmp.menuBoxes.add(subList);
+				}
+			}
+		}
+		StringWriter sw = new StringWriter();
+		PrintWriter out = new PrintWriter(sw);
+		Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
+		writer.writeMenuPaletteXml(xmp);
+		out.close();
+		StringBuffer sb = sw.getBuffer();
+		new SetMenuJob(sb.toString());
+	}
+
+	/**
+	 * Class to store the updated component menu on the Technology Library.
+	 */
+	private static class SetMenuJob extends Job
+	{
+		private String menuXML;
+
+		private SetMenuJob(String menuXML)
+		{
+			super("Set Technology Library Component Menu", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.menuXML = menuXML;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Library.getCurrent().newVar(Info.COMPMENU_KEY, menuXML);
+			return true;
+		}
+	}
 
 	/**
 	 * Class to handle special changes to changes to node fields.
@@ -314,8 +394,10 @@ public class ComponentMenu extends EDialog
 			List nodes = (List)item;
 			for(Object obj : nodes)
 			{
+				if (obj instanceof Xml.PrimitiveNode) modelPopup.addElement(((Xml.PrimitiveNode)obj).name); else
 				if (obj instanceof Xml.MenuNodeInst) modelPopup.addElement(getNodeName((Xml.MenuNodeInst)obj)); else
-					modelPopup.addElement(obj);
+					if (obj instanceof Xml.ArcProto) modelPopup.addElement(((Xml.ArcProto)obj).name); else
+						modelPopup.addElement(obj);
 			}
 		} else if (item instanceof String)
 		{
@@ -816,6 +898,7 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         lowerRight.add(addRow, gridBagConstraints);
@@ -830,6 +913,7 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         lowerRight.add(deleteRow, gridBagConstraints);
@@ -844,6 +928,7 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         lowerRight.add(addColumn, gridBagConstraints);
@@ -858,6 +943,7 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         lowerRight.add(deleteColumn, gridBagConstraints);

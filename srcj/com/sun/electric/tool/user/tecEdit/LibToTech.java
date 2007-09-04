@@ -263,7 +263,53 @@ public class LibToTech
 			}
 		}
 
-        Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
+		// add the component menu information if available
+		Variable var = Library.getCurrent().getVar(Info.COMPMENU_KEY);
+		if (var != null)
+		{
+			String compMenuXML = (String)var.getObject();
+		    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+			for(int i=0; i<nList.length; i++)
+			{
+				Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
+				xnp.name = nList[i].name;
+				xnp.function = nList[i].func;
+				nodes.add(xnp);
+			}
+		    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
+			for(int i=0; i<aList.length; i++)
+			{
+				Xml.ArcProto xap = new Xml.ArcProto();
+				xap.name = aList[i].name;
+				arcs.add(xap);
+			}
+		    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
+		    int menuWid = xmp.numColumns;
+		    int menuHei = xmp.menuBoxes.size() / menuWid;
+			gi.menuPalette = new Object[menuHei][menuWid];
+			int i = 0;
+			for(int y=0; y<menuHei; y++)
+			{
+				for(int x=0; x<menuWid; x++)
+				{
+					List<Object> items = xmp.menuBoxes.get(i++);
+					Object item = null;
+					if (items.size() == 1)
+					{
+						item = items.get(0);
+					} else if (items.size() > 1)
+					{
+						List<Object> convItems = new ArrayList<Object>();
+						for(Object obj : items)
+							convItems.add(obj);
+						item = convItems;
+					}
+					gi.menuPalette[y][x] = item;
+				}
+			}
+		}
+
+		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
         if (fileName != null)
             t.writeXml(fileName);
         Technology tech = new Technology(t);
@@ -274,8 +320,8 @@ public class LibToTech
 		WindowFrame.updateTechnologyLists();
 		return tech;
     }
-    
-//	public static Technology makeTech(String newName, String fileName)
+
+	//	public static Technology makeTech(String newName, String fileName)
 //	{
 //		Library lib = Library.getCurrent();
 //
@@ -3706,13 +3752,15 @@ public class LibToTech
         addSpiceHeader(t, 2, gi.spiceLevel2Header);
         addSpiceHeader(t, 3, gi.spiceLevel3Header);
         
-        if (gi.menuPalette != null) {
+        if (gi.menuPalette != null)
+        {
             t.menuPalette = new Xml.MenuPalette();
             int numColumns = gi.menuPalette[0].length;
             t.menuPalette.numColumns = numColumns;
-            for (Object[] menuLine: gi.menuPalette) {
+            for (Object[] menuLine: gi.menuPalette)
+            {
                 for (int i = 0; i < numColumns; i++)
-                    t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
+                	t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
             }
         }
         
@@ -3792,14 +3840,17 @@ public class LibToTech
         t.spiceHeaders.add(spiceHeader);
     }
     
-    private static ArrayList<Object> makeMenuBoxXml(Xml.Technology t, Object o) {
+    private static ArrayList<Object> makeMenuBoxXml(Xml.Technology t, Object o)
+    {
         ArrayList<Object> menuBox = new ArrayList<Object>();
-        if (o instanceof ArcInfo)
-            menuBox.add(t.findArc(((ArcInfo)o).name));
-        else if (o instanceof NodeInfo)
-            menuBox.add(t.findNode(((NodeInfo)o).name));
-        else if (o != null)
-            menuBox.add(o.toString());
+        if (o != null)
+        {
+	        if (o instanceof List)
+	        {
+	        	for(Object subO : (List)o)
+	                menuBox.add(subO);
+	        } else menuBox.add(o);
+        }
         return menuBox;
     }
     
