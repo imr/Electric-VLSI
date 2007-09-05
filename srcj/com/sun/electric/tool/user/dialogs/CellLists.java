@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -558,6 +559,12 @@ public class CellLists extends EDialog
 		printHeaderLine(maxLen);
 		String line = makeCellLine(curCell, maxLen);
 		System.out.println(line);
+
+		// also give range of X and Y
+		ERectangle bounds = curCell.getBounds();
+		System.out.println("Cell runs from " + TextUtils.formatDouble(bounds.getMinX()) + " <= X <= " +
+			TextUtils.formatDouble(bounds.getMaxX()) + " and " + TextUtils.formatDouble(bounds.getMinY()) +
+			" <= Y <= " + TextUtils.formatDouble(bounds.getMaxY()));
 	}
 
 	private static void printHeaderLine(int maxLen)

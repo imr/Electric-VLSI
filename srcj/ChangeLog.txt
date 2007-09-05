@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP/MAN: (9/5/07, SMR) Enhanced "Describe This Cell" command to give bounds
+     in X and Y (Bug #1374).
+
 IMP: (9/5/07, SMR) LEF/DEF reader more powerful.
 
 IMP/MAN: (9/5/07, SMR) Verilog output reader now supports Modelsim.
