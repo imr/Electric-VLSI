@@ -167,7 +167,9 @@ public class VerilogOut extends Simulate
 				if (varName == null) break;
 				if (varName.equals("wire") || varName.equals("reg") ||
 					varName.equals("supply0") || varName.equals("supply1") ||
-					varName.equals("parameter") || varName.equals("trireg"))
+					varName.equals("parameter") || varName.equals("trireg") ||
+					varName.equals("in") || varName.equals("out") ||
+					varName.equals("inout"))
 				{
 					// get the bus width
 					String widthText = getNextKeyword();
@@ -270,12 +272,15 @@ public class VerilogOut extends Simulate
 					if (chr == '$')
 					{
 						if (restOfLine.equals("end")) continue;
+						if (restOfLine.equals("dumpon")) continue;
+						if (restOfLine.equals("dumpoff")) continue;
+						if (restOfLine.equals("dumpall")) continue;
 						System.out.println("Unknown directive on line " + lineReader.getLineNumber() + ": " + currentLine);
 						continue;
 					}
 					if (chr == '#')
 					{
-						curTime = TextUtils.atoi(restOfLine) * timeScale;
+						curTime = TextUtils.atof(restOfLine) * timeScale;
 						continue;
 					}
 					if (chr == 'b')
@@ -486,7 +491,7 @@ public class VerilogOut extends Simulate
 			if (linePos < lineLen)
 			{
 				char ch = lastLine.charAt(linePos);
-				if (ch == ' ')
+				if (ch == ' ' || ch == '\t')
 				{
 					linePos++;
 				} else

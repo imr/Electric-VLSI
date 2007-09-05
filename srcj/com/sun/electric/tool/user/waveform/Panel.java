@@ -1623,6 +1623,10 @@ public class Panel extends JPanel
 					}
 					if (i >= numEvents-1)
 					{
+						if (g != null && !Simulation.isWaveformDisplayMultiState())
+						{
+							if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
+						}
 						if (lowy == highy)
 						{
 							if (processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
