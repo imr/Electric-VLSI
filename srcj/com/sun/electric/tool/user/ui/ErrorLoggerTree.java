@@ -426,24 +426,54 @@ public class ErrorLoggerTree {
                 updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
         }
         
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e)
+        {
             int index = indexOf(this);
-            if (e.getSource() instanceof JMenuItem) {
+            if (e.getSource() instanceof JMenuItem)
+            {
                 JMenuItem m = (JMenuItem)e.getSource();
-                if (m.getText().equals("Delete")) removeLogger(index);
-                else if (m.getText().equals("Save")) {
+                if (m.getText().equals("Delete"))
+                {
+                	boolean removedStuff = false;
+                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                	if (wf != null)
+                	{
+	                	ExplorerTree ex = wf.getExplorerTab();
+	                	TreePath [] paths = ex.getSelectionPaths();
+	                	for(int i=0; i<paths.length; i++)
+	                	{
+	    	                Object obj = paths[i].getLastPathComponent();
+	    	                if (obj instanceof DefaultMutableTreeNode)
+	    	                {
+	    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+	    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
+	    	                	{
+	    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
+	    	                    	removeLogger(index);
+	    	                    	removedStuff = true;
+	    	                	}
+	    	                }
+	                	}
+                	}
+                	if (!removedStuff)
+                		removeLogger(index);
+                } else if (m.getText().equals("Save"))
+                {
                     String filePath = null;
-                    
-                    try {
+                    try
+                    {
                         filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
                         if (filePath == null) return; // cancel operation
                         logger.save(filePath);
-                    } catch (Exception se) {
+                    } catch (Exception se)
+                    {
                         System.out.println("Error creating " + filePath);
                     }
-                } else if (m.getText().equals("Get Info")) {
+                } else if (m.getText().equals("Get Info"))
+                {
                     System.out.println("ErrorLogger Information: " +  logger.getInfo());
-                } else if (m.getText().equals("Set Current")) {
+                } else if (m.getText().equals("Set Current"))
+                {
                     setCurrent(index);
                 }
             }
