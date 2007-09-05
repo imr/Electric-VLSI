@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+BUG: (9/5/07, SMR) Auto-routing may connect two arcs that do not touch (Bug #1369).
+FIX: In AutoStitch.compareTwoArcs(), fix second call to "getShapeOfArc" to use second arc.
+
 IMP/MAN: Function in SunAsyncMenu to migrate a MOSIS lib into TSMC180 (requested by Justin)
 
 IMP: (9/4/07, RK) Add N-Well-RPO-Resistor to NCC

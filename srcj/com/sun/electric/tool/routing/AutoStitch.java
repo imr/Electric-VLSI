@@ -1034,7 +1034,7 @@ public class AutoStitch
 		// look at all polygons on the first arcinst
 		Poly [] polys1 = ai1.getProto().getTechnology().getShapeOfArc(ai1);
 		int tot1 = polys1.length;
-		Poly [] polys2 = ai2.getProto().getTechnology().getShapeOfArc(ai1);
+		Poly [] polys2 = ai2.getProto().getTechnology().getShapeOfArc(ai2);
 		int tot2 = polys2.length;
 		for(int i1=0; i1<tot1; i1++)
 		{
