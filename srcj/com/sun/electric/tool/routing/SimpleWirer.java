@@ -67,7 +67,7 @@ public class SimpleWirer extends InteractiveRouter {
         boolean singleArc = false;
     	if (useArc != null)
     	{
-    		int inc = useArc.getAngleIncrement();
+    		int inc = 10*useArc.getAngleIncrement();
     		if (inc == 0) singleArc = true; else
     		{
     			int ang = GenMath.figureAngle(startLoc, endLoc);
