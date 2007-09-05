@@ -28,21 +28,25 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLogger.MessageLog;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.ErrorLogger.MessageLog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
