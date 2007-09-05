@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+BUG: (9/5/07, JKG) Wiring tool did not interpret arc angle restrictions correctly
+FIX: In SimpleWirer, figureAngle returns tenth-degrees instead of degrees.
+
 BUG: (9/5/07, SMR) Cannot delete multiple selected ERROR sections from the
      Explorer tree (Bug #1375).
 FIX: In ErrorLoggerTree.ErrorLoggerTreeNode.actionPerformed(), check the selection
