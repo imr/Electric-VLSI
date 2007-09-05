@@ -49,7 +49,6 @@ import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -629,7 +628,7 @@ public class DEF extends LEFDEF
 					if (key == null) return true;
 					if (!schImport)
 					{
-						GetLayerInformation li = new GetLayerInformation(key);
+						GetLayerInformation li = getLayerInformation(key);
 						if (li.pin == null)
 						{
 							reportError("Unknown layer (" + key + ")");
@@ -905,7 +904,6 @@ public class DEF extends LEFDEF
 				//do connection
 				ArcProto ap = Generic.tech.unrouted_arc;
 				ArcInst ai = ArcInst.makeInstance(ap, pi, lastPi);
-//				ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi, lastPi);
 				if (ai == null)
 				{
 					reportError("Could not create unrouted arc");
@@ -939,7 +937,6 @@ public class DEF extends LEFDEF
 					// create a logical net between these two points
 					ArcProto ap = Generic.tech.unrouted_arc;
 					ArcInst ai = ArcInst.makeInstance(ap, specPi, normalPi);
-//					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), specPi, normalPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -950,8 +947,12 @@ public class DEF extends LEFDEF
 		}
 	}
 
-	private ViaDef checkForVia (String key)
+	private ViaDef checkForVia(String key)
 	{
+if (key.equals("V01"))
+{
+	int w = 9;
+}
 		ViaDef vd = null;
 		for(vd = firstViaDef; vd != null; vd = vd.nextViaDef)
 			if (key.equalsIgnoreCase(vd.viaName)) break;
@@ -1014,7 +1015,6 @@ public class DEF extends LEFDEF
 					//connect logical network and physical network so that DRC passes
 					ArcProto ap = Generic.tech.unrouted_arc;
 					ArcInst ai = ArcInst.makeInstance(ap, lastPi, lastLogPi);
-//					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1046,7 +1046,7 @@ public class DEF extends LEFDEF
 					// handle "ROUTED" keyword
 					key = mustGetKeyword("NET");
 					if (key == null) return true;
-					li = new GetLayerInformation(key);
+					li = getLayerInformation(key);
 					if (li.pin == null)
 					{
 						reportError("Unknown layer (" + key + ")");
@@ -1065,7 +1065,7 @@ public class DEF extends LEFDEF
 					// handle "FIXED" keyword
 					key = mustGetKeyword("NET");
 					if (key == null) return true;
-					li = new GetLayerInformation(key);
+					li = getLayerInformation(key);
 					if (li.pin == null)
 					{
 						reportError("Unknown layer (" + key + ")");
@@ -1166,7 +1166,6 @@ public class DEF extends LEFDEF
 						{
 							ArcProto ap = Generic.tech.unrouted_arc;
 							ArcInst ai = ArcInst.makeInstance(ap, pi, lastLogPi);
-//							ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
 							if (ai == null)
 							{
 								reportError("Could not create unrouted arc");
@@ -1192,7 +1191,6 @@ public class DEF extends LEFDEF
 					//connect logical network and physical network so that DRC passes
 					ArcProto ap = Generic.tech.unrouted_arc;
 					ArcInst ai = ArcInst.makeInstance(ap, lastPi, lastLogPi);
-//					ArcInst ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1202,7 +1200,7 @@ public class DEF extends LEFDEF
 
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
-				li = new GetLayerInformation(key);
+				li = getLayerInformation(key);
 				if (li.pin == null)
 				{
 					reportError("Unknown layer (" + key + ")");
@@ -1266,7 +1264,7 @@ public class DEF extends LEFDEF
 			}
 
 			// see if it is a via name
-			ViaDef vd = checkForVia(key) ;
+			ViaDef vd = checkForVia(key);
 
 			// stop now if not placing physical nets
 			if (!IOTool.isDEFPhysicalPlacement() || schImport)
@@ -1316,7 +1314,6 @@ public class DEF extends LEFDEF
 				if (pathStart && lastPi != null && foundCoord)
 				{
 					double width = li.arc.getDefaultLambdaBaseWidth();
-//					double width = li.arc.getDefaultLambdaFullWidth();
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
@@ -1324,7 +1321,6 @@ public class DEF extends LEFDEF
 						if (wid != null) width = wid.doubleValue();
 					}
 					ArcInst ai = ArcInst.makeInstanceBase(li.arc, width, lastPi, pi);
-//					ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, lastPi, pi);
 					if (ai == null)
 					{
 						reportError("Unable to create net starting point");
@@ -1374,7 +1370,6 @@ public class DEF extends LEFDEF
 
 				// run the wire
 				double width = li.arc.getDefaultLambdaBaseWidth();
-//				double width = li.arc.getDefaultLambdaFullWidth();
 				if (special) width = specialWidth; else
 				{
 					// get the width from the LEF file
@@ -1439,7 +1434,6 @@ public class DEF extends LEFDEF
 				}
 
 				ArcInst ai = ArcInst.makeInstanceBase(li.arc, width, lastPi, pi);
-//				ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, lastPi, pi);
 				if (ai == null)
 				{
 					reportError("Unable to create net path");
@@ -1476,7 +1470,6 @@ public class DEF extends LEFDEF
 				if (nextPi != null)
 				{
 					double width = li.arc.getDefaultLambdaBaseWidth();
-//					double width = li.arc.getDefaultLambdaFullWidth();
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
@@ -1485,7 +1478,6 @@ public class DEF extends LEFDEF
 					}
 
 					ArcInst ai = ArcInst.makeInstanceBase(li.arc, width, pi, nextPi);
-//					ArcInst ai = ArcInst.makeInstanceFull(li.arc, width, pi, nextPi);
 					if (ai == null)
 					{
 						reportError("Unable to create net ending point");
@@ -1563,7 +1555,7 @@ public class DEF extends LEFDEF
 					// handle definition of a via rectangle
 					key = mustGetKeyword("VIA");
 					if (key == null) return true;
-					GetLayerInformation li = new GetLayerInformation(key);
+					GetLayerInformation li = getLayerInformation(key);
 					if (li.pure == null)
 					{
 						reportError("Layer " + key + " not in current technology");

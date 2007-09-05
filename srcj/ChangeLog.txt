@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/5/07, SMR) LEF/DEF reader more powerful.
+
+IMP/MAN: (9/5/07, SMR) Verilog output reader now supports Modelsim.
+
 BUG: (9/5/07, SMR) Auto-routing may connect two arcs that do not touch (Bug #1369).
 FIX: In AutoStitch.compareTwoArcs(), fix second call to "getShapeOfArc" to use second arc.
 

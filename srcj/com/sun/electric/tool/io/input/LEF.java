@@ -34,7 +34,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -43,14 +42,13 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.io.input.LEFDEF.GetLayerInformation;
-import com.sun.electric.tool.io.input.LEFDEF.ViaDef;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This class reads files in LEF files.
@@ -76,7 +74,7 @@ public class LEF extends LEFDEF
 			pt = new Point2D[2];
 			ni = new NodeInst[2];
 		}
-	};
+	}
 
 	/**
 	 * Method to import a library from disk.
@@ -88,6 +86,7 @@ public class LEF extends LEFDEF
 		// remove any vias in the globals
 		firstViaDefFromLEF = null;
 		widthsFromLEF = new HashMap<ArcProto,Double>();
+		knownLayers = new HashMap<String,GetLayerInformation>();
 		initKeywordParsing();
 
 		try
@@ -135,6 +134,23 @@ public class LEF extends LEFDEF
 			{
 				if (readVia(lib)) return true;
 			}
+			if (key.equalsIgnoreCase("VIARULE") || key.equalsIgnoreCase("SITE") ||
+				key.equalsIgnoreCase("ARRAY"))
+			{
+				String name = getAKeyword();
+				ignoreToEnd(name);
+				continue;
+			}
+			if (key.equalsIgnoreCase("SPACING"))
+			{
+				ignoreToEnd(key);
+				continue;
+			}
+			if (key.equalsIgnoreCase("MINFEATURE"))
+			{
+				ignoreToSemicolon(key);
+				continue;
+			}
 		}
 		return false;
 	}
@@ -180,7 +196,7 @@ public class LEF extends LEFDEF
 			{
 				key = getAKeyword();
 				if (key == null) return true;
-				GetLayerInformation li = new GetLayerInformation(key);
+				GetLayerInformation li = getLayerInformation(key);
 				if (li.arc != null)
 				{
 					if (vd.lay1 == null) vd.lay1 = li.arc; else
@@ -396,7 +412,7 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading LAYER clause");
 					return true;
 				}
-				GetLayerInformation li = new GetLayerInformation(key);
+				GetLayerInformation li = getLayerInformation(key);
 				np = li.pure;
 				if (li.layerFun == Layer.Function.UNKNOWN || np == null)
 				{
@@ -511,6 +527,7 @@ public class LEF extends LEFDEF
 				if (key.equalsIgnoreCase("POWER")) useCharacteristics = PortCharacteristic.PWR; else
 				if (key.equalsIgnoreCase("GROUND")) useCharacteristics = PortCharacteristic.GND; else
 				if (key.equalsIgnoreCase("CLOCK")) useCharacteristics = PortCharacteristic.CLK; else
+				if (!key.equalsIgnoreCase("SIGNAL") && !key.equalsIgnoreCase("DATA"))
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Unknown USE keyword (" + key + ")");
 				}
@@ -558,6 +575,7 @@ public class LEF extends LEFDEF
 		boolean first = true;
 		double intWidth = 0;
 		double lastIntX = 0, lastIntY = 0;
+		Point2D singlePathPoint = null;
 		for(;;)
 		{
 			String key = getAKeyword();
@@ -584,7 +602,7 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading LAYER clause");
 					return true;
 				}
-				GetLayerInformation li = new GetLayerInformation(key);
+				GetLayerInformation li = getLayerInformation(key);
 				ap = li.arc;
 				pureNp = li.pure;
 				if (ignoreToSemicolon("LAYER")) return true;
@@ -693,7 +711,7 @@ public class LEF extends LEFDEF
 					double inty = convertLEFString(key);
 
 					// plot this point
-					if (i != 0)
+					if (i == 0) singlePathPoint = new Point2D.Double(intx, inty); else
 					{
 						// queue path
 						LEFPath lp = new LEFPath();
@@ -731,7 +749,7 @@ public class LEF extends LEFDEF
 
 				// find the proper via
 				key = getAKeyword();
-				GetLayerInformation li = new GetLayerInformation(key);
+				GetLayerInformation li = getLayerInformation(key);
 				if (li.pin == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": No Via in current technology for '" + key + "'");
@@ -803,6 +821,14 @@ public class LEF extends LEFDEF
 					return true;
 				}
 
+				if (first && cell.findExport(portname) == null)
+				{
+					// create the port on the first pin
+					first = false;
+					Export pp = newPort(cell, lp.ni[i], pin.getPort(0), portname);
+					if (pp != null) pp.setCharacteristic(portCharacteristics);
+				}
+
 				// use this pin at other paths which meet here
 				for(LEFPath oLp = lefPaths; oLp != null; oLp = oLp.nextLEFPath)
 				{
@@ -824,7 +850,6 @@ public class LEF extends LEFDEF
 			Point2D headPt = lp.pt[0];
 			Point2D tailPt = lp.pt[1];
 			ArcInst ai = ArcInst.makeInstanceBase(lp.arc, lp.width, head, tail, headPt, tailPt, null);
-//			ArcInst ai = ArcInst.makeInstanceFull(lp.arc, lp.width, head, tail, headPt, tailPt, null);
 			if (ai == null)
 			{
 				System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create arc for PATH");
@@ -832,6 +857,26 @@ public class LEF extends LEFDEF
 			}
 		}
 
+		if (lefPaths == null && singlePathPoint != null && ap != null && first && cell.findExport(portname) == null)
+		{
+			// path was a single point: plot it
+			NodeProto pin = ap.findPinProto();
+			if (pin != null)
+			{
+				double sX = pin.getDefWidth();
+				double sY = pin.getDefHeight();
+				NodeInst ni = NodeInst.makeInstance(pin, singlePathPoint, sX, sY, cell);
+				if (ni == null)
+				{
+					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create pin for PATH");
+					return true;
+				}
+
+				// create the port on the pin
+				Export pp = newPort(cell, ni, pin.getPort(0), portname);
+				if (pp != null) pp.setCharacteristic(portCharacteristics);
+			}
+		}
 		return false;
 	}
 
@@ -867,9 +912,9 @@ public class LEF extends LEFDEF
 			System.out.println("EOF parsing LAYER header");
 			return true;
 		}
-		GetLayerInformation li = new GetLayerInformation(layerName);
-		ArcProto ap = li.arc;
 
+		String layerType = null;
+		double defWidth = -1;
 		for(;;)
 		{
 			// get the next keyword
@@ -894,23 +939,32 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading WIDTH");
 					return true;
 				}
-				if (ap != null)
-				{
-					double defwidth = convertLEFString(key);
-					widthsFromLEF.put(ap, new Double(defwidth));
-				}
+				defWidth = convertLEFString(key);
 				if (ignoreToSemicolon("WIDTH")) return true;
 				continue;
 			}
 
-			if (key.equalsIgnoreCase("TYPE") || key.equalsIgnoreCase("SPACING") ||
-				key.equalsIgnoreCase("PITCH") || key.equalsIgnoreCase("DIRECTION") ||
-				key.equalsIgnoreCase("CAPACITANCE") || key.equalsIgnoreCase("RESISTANCE"))
+			if (key.equalsIgnoreCase("TYPE"))
+			{
+				layerType = getAKeyword();
+				if (ignoreToSemicolon("TYPE")) return true;
+				continue;
+			}
+
+			if (key.equalsIgnoreCase("SPACING") || key.equalsIgnoreCase("PITCH") ||
+				key.equalsIgnoreCase("DIRECTION") || key.equalsIgnoreCase("CAPACITANCE") ||
+				key.equalsIgnoreCase("RESISTANCE"))
 			{
 				if (ignoreToSemicolon(key)) return true;
 				continue;
 			}
 		}
+
+		GetLayerInformation li = new GetLayerInformation(layerName, layerType);
+		knownLayers.put(layerName, li);
+		ArcProto ap = li.arc;
+		if (ap != null && defWidth > 0)
+			widthsFromLEF.put(ap, new Double(defWidth));
 		return false;
 	}
 
@@ -927,6 +981,35 @@ public class LEF extends LEFDEF
 				return true;
 			}
 			if (key.equals(";")) break;
+		}
+		return false;
+	}
+
+	private boolean ignoreToEnd(String endName)
+		throws IOException
+	{
+		// ignore up to "END endName"
+		boolean findEnd = true;
+		for(;;)
+		{
+			String key = getAKeyword();
+			if (key == null)
+			{
+				System.out.println("EOF parsing " + endName);
+				return true;
+			}
+			if (findEnd && key.equalsIgnoreCase("END"))
+			{
+				key = getAKeyword();
+				if (key == null)
+				{
+					System.out.println("EOF parsing " + endName);
+					return true;
+				}
+				if (key.equals(endName)) break;
+				continue;
+			}
+			if (key.equals(";")) findEnd = true; else findEnd = false;
 		}
 		return false;
 	}
