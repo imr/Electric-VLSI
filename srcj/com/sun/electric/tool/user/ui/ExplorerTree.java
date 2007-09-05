@@ -1222,13 +1222,25 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			// double click
 			if (e.getClickCount() == 2)
 			{
+				Object clickedObject = null;
+				TreePath cp = getPathForLocation(e.getX(), e.getY());
+				if (cp != null)
+				{
+	                Object obj = cp.getLastPathComponent();
+	                if (obj instanceof DefaultMutableTreeNode)
+	                	clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+				}
+
 				// handle things that can accomodate multiple selections
 				boolean didSomething = false;
+				boolean clickedIsSelected = false;
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					if (getCurrentlySelectedObject(i) instanceof Signal)
+					Object obj = getCurrentlySelectedObject(i);
+					if (obj == clickedObject) clickedIsSelected = true;
+					if (obj instanceof Signal)
 					{
-						Signal sig = (Signal)getCurrentlySelectedObject(i);
+						Signal sig = (Signal)obj;
 						if (wf.getContent() instanceof WaveformWindow)
 						{
 							WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -1237,9 +1249,9 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 						didSomething = true;
 					}
 
-					if (getCurrentlySelectedObject(i) instanceof SweepSignal)
+					if (obj instanceof SweepSignal)
 					{
-						SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
+						SweepSignal ss = (SweepSignal)obj;
 						if (ss == null) return;
 						ss.setIncluded(!ss.isIncluded(), true);
 						updateUI();
@@ -1247,6 +1259,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					}
 				}
 				if (didSomething) return;
+				if (!clickedIsSelected) return;
 
 				// must have only 1 selection
                 if (numCurrentlySelectedObjects() == 0)
