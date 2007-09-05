@@ -949,10 +949,6 @@ public class DEF extends LEFDEF
 
 	private ViaDef checkForVia(String key)
 	{
-if (key.equals("V01"))
-{
-	int w = 9;
-}
 		ViaDef vd = null;
 		for(vd = firstViaDef; vd != null; vd = vd.nextViaDef)
 			if (key.equalsIgnoreCase(vd.viaName)) break;
