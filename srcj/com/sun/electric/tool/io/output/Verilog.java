@@ -282,7 +282,7 @@ public class Verilog extends Topology
             String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
             // check that data from file is consistent
             VerilogReader reader = new VerilogReader();
-            VerilogData data = reader.parseVerilog(fileName);
+            VerilogData data = reader.parseVerilog(fileName, true);
             if (data == null) {
                 System.out.println("Error reading include file: "+fileName);
                 return false;

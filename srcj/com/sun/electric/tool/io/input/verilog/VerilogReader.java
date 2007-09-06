@@ -756,7 +756,7 @@ public class VerilogReader extends Input
 	protected boolean importALibrary(Library lib)
     {
         initKeywordParsing();
-        VerilogData verilogData = parseVerilog(lib.getName(), true);
+        VerilogData verilogData = parseVerilogInternal(lib.getName(), true);
         buildCells(verilogData, lib);
         return verilogData == null;
     }
@@ -773,7 +773,7 @@ public class VerilogReader extends Input
         initKeywordParsing();
         setProgressValue(0);
         setProgressNote("Reading Verilog format " + verilogName);
-        VerilogData verilogData = parseVerilog(verilogName, true);
+        VerilogData verilogData = parseVerilogInternal(verilogName, true);
         System.out.println("Verilog format " + verilogName + " read");
         return verilogData;
     }
@@ -781,9 +781,10 @@ public class VerilogReader extends Input
     /**
      * Function to parse Verilog file without creating Electric objects.
      * @param file
+     * @param simplifyWires
      * @return VerilogData object
      */
-    public VerilogData parseVerilog(String file)
+    public VerilogData parseVerilog(String file, boolean simplifyWires)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
         if (openTextInput(fileURL))
@@ -795,28 +796,31 @@ public class VerilogReader extends Input
         initKeywordParsing();
         setProgressValue(0);
         setProgressNote("Reading Verilog file:" + file);
-        VerilogData verilogData = parseVerilog(file, true);
+        VerilogData verilogData = parseVerilogInternal(file, simplifyWires);
         System.out.println("Verilog file: " + file + " read");
         return verilogData;
     }
 
-    public Cell readVerilog(String testName, String file, boolean newStrategy)
+    public Cell readVerilog(String testName, String file, boolean createCells, boolean simplifyWires)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
-        if (openTextInput(fileURL))
-        {
-            System.out.println("Cannot open the Verilog file: " + file);
-            return null;
-        }
-        System.out.println("Reading Verilog file: " + file);
-        initKeywordParsing();
-        setProgressValue(0);
-        setProgressNote("Reading Verilog file");
-        VerilogData verilogData = parseVerilog(file, newStrategy);
+//        if (openTextInput(fileURL))
+//        {
+//            System.out.println("Cannot open the Verilog file: " + file);
+//            return null;
+//        }
+//        System.out.println("Reading Verilog file: " + file);
+//        initKeywordParsing();
+//        setProgressValue(0);
+//        setProgressNote("Reading Verilog file");
+//        VerilogData verilogData = parseVerilogInternal(file, true);
+        VerilogData verilogData = parseVerilog(file, simplifyWires);
+        if (verilogData == null) return null; // error
         int index = file.lastIndexOf("/");
         String libName = file.substring(index+1);
+
         // Last verilogName must be the top one
-        if (newStrategy)
+        if (createCells)
         {
             Library library = Library.newInstance(libName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
@@ -833,10 +837,9 @@ public class VerilogReader extends Input
         return topCell; // still work because VerilogReader remembers the top cell
     }
 
-    private VerilogData parseVerilog(String fileName, boolean newObjects)
+    private VerilogData parseVerilogInternal(String fileName, boolean simplifyWires)
     {
-        VerilogData verilogData = null;
-        if (newObjects) verilogData = new VerilogData(fileName);
+        VerilogData verilogData = new VerilogData(fileName);
 
         try
         {
@@ -872,7 +875,7 @@ public class VerilogReader extends Input
         }
 
         // Simplify wires?: a[1], a[2], a[3] -> a[1:3]
-        if (newObjects) verilogData.simplifyWires();
+        if (simplifyWires) verilogData.simplifyWires();
         return verilogData;
     }
 
