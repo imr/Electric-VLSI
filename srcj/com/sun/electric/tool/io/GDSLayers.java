@@ -139,7 +139,8 @@ public class GDSLayers
 				}
 				if (endPos == trimmed.length()) break;
 			}
-			string = trimmed.substring(endPos+1);
+			if (endPos < trimmed.length()) endPos++;
+			string = trimmed.substring(endPos);
 		}
         if (normalLayers.isEmpty() && pinLayer == -1 && textLayer == -1) return EMPTY;
 		return new GDSLayers(normalLayers, pinLayer, textLayer);
