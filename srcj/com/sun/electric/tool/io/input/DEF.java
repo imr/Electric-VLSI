@@ -970,6 +970,12 @@ public class DEF extends LEFDEF
 			ignoreToSemicolon("NET");
 			return false;
 		}
+//if (special)
+//{
+//	// always ignore special nets
+//	ignoreToSemicolon("NET");
+//	return false;
+//}
 
 		// get the net name
 		String key = mustGetKeyword("NET");
@@ -1071,6 +1077,16 @@ public class DEF extends LEFDEF
 				} else if (key.equalsIgnoreCase("SHAPE"))
 				{
 					// handle "SHAPE" keyword
+					key = mustGetKeyword("NET");
+					if (key == null) return true;
+				} else if (key.equalsIgnoreCase("SOURCE"))
+				{
+					// handle "SOURCE" keyword
+					key = mustGetKeyword("NET");
+					if (key == null) return true;
+				} else if (key.equalsIgnoreCase("ORIGINAL"))
+				{
+					// handle "ORIGINAL" keyword
 					key = mustGetKeyword("NET");
 					if (key == null) return true;
 				} else
@@ -1444,36 +1460,37 @@ public class DEF extends LEFDEF
 			adjustPinLocPi = false;
 
 			// switch layers to the other one supported by the via
+			ArcProto liArc = li.arc;
 			if (placedVia)
 			{
-				if (li.arc == vd.lay1)
+				if (liArc == vd.lay1)
 				{
-					li.arc = vd.lay2;
-				} else if (li.arc == vd.lay2)
+					liArc = vd.lay2;
+				} else if (liArc == vd.lay2)
 				{
-					li.arc = vd.lay1;
+					liArc = vd.lay1;
 				}
-				li.pin = li.arc.findPinProto();
+				li.pin = liArc.findPinProto();
 			}
 
 			// if the path ends here, connect it
 			if (key.equalsIgnoreCase("NEW") || key.equals(";"))
 			{
 				// see if there is a connection point here when starting a path
-				PortInst nextPi = findConnection(curX, curY, li.arc, cell, pi.getNodeInst());
+				PortInst nextPi = findConnection(curX, curY, liArc, cell, pi.getNodeInst());
 
 				// if the path starts with a via, wire it
 				if (nextPi != null)
 				{
-					double width = li.arc.getDefaultLambdaBaseWidth();
+					double width = liArc.getDefaultLambdaBaseWidth();
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
-						Double wid = widthsFromLEF.get(li.arc);
+						Double wid = widthsFromLEF.get(liArc);
 						if (wid != null) width = wid.doubleValue();
 					}
 
-					ArcInst ai = ArcInst.makeInstanceBase(li.arc, width, pi, nextPi);
+					ArcInst ai = ArcInst.makeInstanceBase(liArc, width, pi, nextPi);
 					if (ai == null)
 					{
 						reportError("Unable to create net ending point");

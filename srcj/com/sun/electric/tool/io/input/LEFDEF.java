@@ -67,9 +67,12 @@ public class LEFDEF extends Input
 	 */
 	protected GetLayerInformation getLayerInformation(String name)
 	{
-		GetLayerInformation li = knownLayers.get(name);
-		if (li != null) return li;
-		li = new GetLayerInformation(name);
+		if (knownLayers != null)
+		{
+			GetLayerInformation li = knownLayers.get(name);
+			if (li != null) return li;
+		}
+		GetLayerInformation li = new GetLayerInformation(name);
 		return li;
 	}
 
