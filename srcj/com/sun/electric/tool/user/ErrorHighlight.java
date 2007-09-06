@@ -65,7 +65,7 @@ public abstract class ErrorHighlight implements Serializable {
 
     boolean isValid(EDatabase database) { return cellId == null || getCell(database) != null; } // Still have problems with minAre DRC errors
 
-    void addToHighlighter(Highlighter h, EDatabase database) {;}
+    public void addToHighlighter(Highlighter h, EDatabase database) {;}
     
     public static ErrorHighlight newInstance(VarContext context, Geometric geom) {
         if (geom instanceof NodeInst)
@@ -96,7 +96,7 @@ class ErrorHighExport extends ErrorHighlight {
 
     boolean isValid(EDatabase database) {return pp.inDatabase(database) != null;}
 
-    void addToHighlighter(Highlighter h, EDatabase database)
+    public void addToHighlighter(Highlighter h, EDatabase database)
     {
         Export e = pp.inDatabase(database);
         h.addText(e, e.getParent(), Export.EXPORT_NAME);
@@ -125,7 +125,7 @@ class ErrorHighLine extends ErrorHighlight {
         msg.append(" />\n");
     }
 
-    void addToHighlighter(Highlighter h, EDatabase database)
+    public void addToHighlighter(Highlighter h, EDatabase database)
     {
         Cell cell = getCell(database);
         if (thickLine) h.addThickLine(p1, p2, cell);
@@ -142,7 +142,7 @@ class ErrorHighPoint extends ErrorHighlight {
         this.point = p;
     }
 
-    void addToHighlighter(Highlighter h, EDatabase database)
+    public void addToHighlighter(Highlighter h, EDatabase database)
     {
         double consize = 5;
         Cell cell = getCell(database);
@@ -186,7 +186,7 @@ class ErrorHighNode extends ErrorHighlight {
 
     boolean isValid(EDatabase database) { return getObject(database) != null; }
 
-    void addToHighlighter(Highlighter h, EDatabase database)
+    public void addToHighlighter(Highlighter h, EDatabase database)
     {
         NodeInst ni = (NodeInst)getObject(database);
         if (ni != null)
@@ -227,7 +227,7 @@ class ErrorHighArc extends ErrorHighlight {
 
     boolean isValid(EDatabase database) {return getObject(database) != null; }
 
-    void addToHighlighter(Highlighter h, EDatabase database)
+    public void addToHighlighter(Highlighter h, EDatabase database)
     {
         ArcInst ai = (ArcInst)getObject(database);
         if (ai != null)

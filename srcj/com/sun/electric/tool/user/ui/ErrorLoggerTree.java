@@ -31,7 +31,9 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -218,6 +220,26 @@ public class ErrorLoggerTree {
         ExplorerTreeModel.fireTreeNodesRemoved(errorTree, errorPath, childIndices, children);
     }
     
+    private static void highlightLogger(int index)
+    {
+    	EditWindow ew = EditWindow.getCurrent();
+    	if (ew == null) return;
+    	Highlighter h = ew.getHighlighter();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)errorTree.getChildAt(index);
+        ErrorLoggerTreeNode eltn = (ErrorLoggerTreeNode)node.getUserObject();
+        ErrorLogger el = eltn.getLogger();
+        EDatabase database = EDatabase.clientDatabase();
+        for(int i=0; i<el.getNumLogs(); i++)
+        {
+        	MessageLog ml = el.getLog(i);
+        	for(Iterator<ErrorHighlight> it = ml.getHighlights(); it.hasNext(); )
+        	{
+        		ErrorHighlight eh = it.next();
+        		eh.addToHighlighter(h, database);
+        	}
+        }
+    }
+    
     private static void updateTree(DefaultMutableTreeNode loggerNode) {
         TreePath loggerPath = errorPath.pathByAddingChild(loggerNode);
         int oldChildCount = loggerNode.getChildCount();
@@ -330,6 +352,7 @@ public class ErrorLoggerTree {
         JMenuItem m;
         m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
+        m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
 	    m = new JMenuItem("Save"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
         return p;
@@ -473,6 +496,27 @@ public class ErrorLoggerTree {
                     {
                         System.out.println("Error creating " + filePath);
                     }
+                } else if (m.getText().equals("Show All"))
+                {
+                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                	if (wf == null) return;
+                	Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
+                	ExplorerTree ex = wf.getExplorerTab();
+                	TreePath [] paths = ex.getSelectionPaths();
+                	for(int i=0; i<paths.length; i++)
+                	{
+    	                Object obj = paths[i].getLastPathComponent();
+    	                if (obj instanceof DefaultMutableTreeNode)
+    	                {
+    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
+    	                	{
+    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
+    	                		highlightLogger(index);
+    	                	}
+    	                }
+                	}
+                	Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
                 } else if (m.getText().equals("Get Info"))
                 {
                     System.out.println("ErrorLogger Information: " +  logger.getInfo());
