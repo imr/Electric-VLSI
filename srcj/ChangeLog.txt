@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+BUG: (9/6/07, SMR) Ctrl-Shift-X doesn't bind (Bug #1381).
+FIX: In KeyBindingManager.processKeyEvent(), consider alpha property by
+     examining KeyCode, not KeyChar.
+
 IMP/MAN: (9/6/07, SMR) Added new context menu "Show All" to ERROR part of
      the Explorer tree to highlight all errors (Bug #1377).
 
