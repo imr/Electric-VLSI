@@ -813,9 +813,12 @@ public class VerilogReader extends Input
         setProgressValue(0);
         setProgressNote("Reading Verilog file");
         VerilogData verilogData = parseVerilog(file, newStrategy);
+        int index = file.lastIndexOf("/");
+        String libName = file.substring(index+1);
+        // Last verilogName must be the top one
         if (newStrategy)
         {
-            Library library = Library.newInstance(testName, null);
+            Library library = Library.newInstance(libName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
             topCell = buildCells(verilogData, library);
             Cell c = library.findNodeProto(topCellName);
