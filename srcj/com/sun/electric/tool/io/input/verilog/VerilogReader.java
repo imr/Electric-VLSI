@@ -801,24 +801,16 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    public Cell readVerilog(String testName, String file, boolean createCells, boolean simplifyWires)
+    public Cell readVerilog(String testName, String file, boolean createCells, boolean simplifyWires, Job job)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
-//        if (openTextInput(fileURL))
-//        {
-//            System.out.println("Cannot open the Verilog file: " + file);
-//            return null;
-//        }
-//        System.out.println("Reading Verilog file: " + file);
-//        initKeywordParsing();
-//        setProgressValue(0);
-//        setProgressNote("Reading Verilog file");
-//        VerilogData verilogData = parseVerilogInternal(file, true);
         VerilogData verilogData = parseVerilog(file, simplifyWires);
         if (verilogData == null) return null; // error
         int index = file.lastIndexOf("/");
         String libName = file.substring(index+1);
 
+        if (job != null)
+            System.out.println("Accumulative time before creating cells '" + testName + "' " + job.getInfo());
         // Last verilogName must be the top one
         if (createCells)
         {
@@ -834,6 +826,8 @@ public class VerilogReader extends Input
             else
                 topCell = c;
         }
+        if (job != null)
+            System.out.println("Accumulative time after creating cells '" + testName + "' " + job.getInfo());
         return topCell; // still work because VerilogReader remembers the top cell
     }
 
