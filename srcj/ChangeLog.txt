@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/6/07, DN) Removed import of technology classes from technology.Xml module.
+
+BUG: (9/6/07, DN) "mocmos:P-Base" layer hasn't default GDS and CIF codes.
+FIX: Put them into MoCMOS.java .
+
 BUG: (9/5/07, JKG) Wiring tool did not interpret arc angle restrictions correctly
 FIX: In SimpleWirer, figureAngle returns tenth-degrees instead of degrees.
 

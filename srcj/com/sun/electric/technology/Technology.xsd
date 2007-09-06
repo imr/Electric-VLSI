@@ -43,6 +43,7 @@
                         </xsd:sequence>
                         <xsd:attribute name="protoName" type="tns:PrimitiveNodeName" use="required"/>
                         <xsd:attribute name="function" type="tns:PrimitiveNodeFun" use="required"/>
+                        <xsd:attribute name="rotation" type="xsd:integer"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:choice>

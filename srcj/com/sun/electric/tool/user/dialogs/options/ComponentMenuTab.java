@@ -34,8 +34,6 @@ import com.sun.electric.tool.user.dialogs.ComponentMenu;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -151,13 +149,7 @@ public class ComponentMenuTab extends PreferencePanel
 				}
 			}
 		}
-		StringWriter sw = new StringWriter();
-		PrintWriter out = new PrintWriter(sw);
-		Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
-		writer.writeMenuPaletteXml(xmp);
-		out.close();
-		StringBuffer sb = sw.getBuffer();
-		tech.setNodesGrouped(convMenuArray, sb.toString());
+		tech.setNodesGrouped(convMenuArray, xmp.writeXml());
 
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{

@@ -26,10 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
@@ -39,6 +35,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -248,6 +245,15 @@ public class Xml {
     public static class MenuPalette implements Serializable {
         public int numColumns;
         public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
+        
+        public String writeXml() {
+            StringWriter sw = new StringWriter();
+            PrintWriter out = new PrintWriter(sw);
+            Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
+            writer.writeMenuPaletteXml(this);
+            out.close();
+            return sw.getBuffer().toString();
+        }
     }
 
     public static class MenuNodeInst implements Serializable {
@@ -414,34 +420,6 @@ public class Xml {
     }
 
     /**
-     * Method to parse a string of XML that describes the component menu in a given Technology.
-     * Normal parsing of XML returns objects in the Xml class, but
-     * this method returns objects in a given Technology.
-     * @param xml the XML string
-     * @param tech the Technology that this string describes.
-     * @return the MenuPalette describing the component menu.
-     */
-    public static MenuPalette parseComponentMenuXML(String xml, com.sun.electric.technology.Technology tech)
-    {
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        factory.setNamespaceAware(true);
-        try
-        {
-            SAXParser parser = factory.newSAXParser();
-            InputSource is = new InputSource(new StringReader(xml));
-            XMLReader handler = new XMLReader();
-            handler.menuTech = tech;
-            parser.parse(is, handler);
-            return handler.tech.menuPalette;
-        } catch (Exception e)
-        {
-            System.out.println("Error parsing XML component menu data");
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
      * Method to parse a string of XML that describes the component menu in a Technology Editing context.
      * Normal parsing of XML returns objects in the Xml class, but
      * this method returns objects in a given Technology-Editor world.
@@ -500,7 +478,6 @@ public class Xml {
         private boolean acceptCharacters;
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
-        private com.sun.electric.technology.Technology menuTech;
 
         XMLReader() {}
 
@@ -1061,8 +1038,8 @@ public class Xml {
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
                     curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
-                    String rotField = a("rotation");
-                    if (rotField != null) curMenuNodeInst.rotation = TextUtils.atoi(rotField);
+                    String rotField = a_("rotation");
+                    if (rotField != null) curMenuNodeInst.rotation = Integer.parseInt(rotField);
                     break;
                 case menuNodeText:
                     curMenuNodeInst.text = a("text");
@@ -1221,16 +1198,10 @@ public class Xml {
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
                     case menuArc:
-                        Object arcObj = tech.findArc(text);
-                        if (arcObj == null && menuTech != null)
-                        	arcObj = menuTech.findArcProto(text);
-                        curMenuBox.add(arcObj);
+                        curMenuBox.add(tech.findArc(text));
                         break;
                     case menuNode:
-                        Object nodeObj = tech.findNode(text);
-                        if (nodeObj == null && menuTech != null)
-                        	nodeObj = menuTech.findNodeProto(text);
-                        curMenuBox.add(nodeObj);
+                        curMenuBox.add(tech.findNode(text));
                         break;
                     case menuText:
                         curMenuBox.add(text);
@@ -1278,13 +1249,7 @@ public class Xml {
                     curPort = null;
                     break;
                 case menuNodeInst:
-                	if (menuTech == null) curMenuBox.add(curMenuNodeInst); else
-                	{
-                		NodeProto np = menuTech.findNodeProto(curMenuNodeInst.protoName);
-                		NodeInst ni = com.sun.electric.technology.Technology.makeNodeInst(np, curMenuNodeInst.function,
-                			curMenuNodeInst.rotation, curMenuNodeInst.text != null, curMenuNodeInst.text, curMenuNodeInst.fontSize);
-                        curMenuBox.add(ni);
-                	}
+                	curMenuBox.add(curMenuNodeInst);
                     curMenuNodeInst = null;
                     break;
 
@@ -1524,13 +1489,13 @@ public class Xml {
 
     }
 
-    public static class Writer {
+    private static class Writer {
         private static final int INDENT_WIDTH = 4;
         protected final PrintWriter out;
         private int indent;
         protected boolean indentEmitted;
 
-        public Writer(PrintWriter out) {
+        private Writer(PrintWriter out) {
             this.out = out;
         }
 
@@ -2090,9 +2055,9 @@ public class Xml {
      * Class to write the XML without multiple lines and indentation.
      * Useful when the XML is to be a single string.
      */
-	public static class OneLineWriter extends Writer
+	private static class OneLineWriter extends Writer
 	{
-		public OneLineWriter(PrintWriter out)
+		private OneLineWriter(PrintWriter out)
 		{
 			super(out);
 		}
@@ -2100,17 +2065,20 @@ public class Xml {
 		/**
 		 * Print text without replacement of special chars.
 		 */
+        @Override
 		protected void p(String s)
 		{
 			for (int i = 0; i < s.length(); i++)
 				out.print(s.charAt(i));
 		}
 
+        @Override
 		protected void checkIndent() { indentEmitted = true; }
 
 		/**
 		 * Do not print new line.
 		 */
+        @Override
 		protected void l() { indentEmitted = false; }
 	}
 }

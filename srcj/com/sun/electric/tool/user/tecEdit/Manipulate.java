@@ -46,7 +46,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Xml.MenuPalette;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -69,8 +68,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -557,13 +554,7 @@ public class Manipulate
 				xmp.menuBoxes.add(subList);
 			}
 
-			StringWriter sw = new StringWriter();
-			PrintWriter out = new PrintWriter(sw);
-			Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
-			writer.writeMenuPaletteXml(xmp);
-			out.close();
-			StringBuffer sb = sw.getBuffer();
-			compMenuXML = sb.toString();
+			compMenuXML = xmp.writeXml();
 		} else
 		{
 			compMenuXML = (String)var.getObject();

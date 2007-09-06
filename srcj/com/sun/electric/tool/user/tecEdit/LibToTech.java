@@ -3766,6 +3766,10 @@ public class LibToTech
         
         Xml.Foundry foundry = new Xml.Foundry();
         foundry.name = gi.defaultFoundry;
+        for (LayerInfo li: lList) {
+            if (li.gds != null && li.gds.length() > 0)
+                foundry.layerGds.put(li.name, li.gds);
+        }
         if (gi.conDist != null && gi.unConDist != null) {
             int layerTotal = lList.length;
             int ruleIndex = 0;

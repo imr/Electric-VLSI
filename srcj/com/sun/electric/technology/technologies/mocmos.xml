@@ -992,6 +992,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <cifLayer cif="CBA"/>
         <pureLayerNode name="P-Base-Node" port="p-base">
             <lambda>22.0</lambda>
         </pureLayerNode>
@@ -2739,6 +2740,7 @@
         <layerGds layer="Silicide-Block" gds="29"/>
         <layerGds layer="Thick-Active" gds="60"/>
         <layerGds layer="Pad-Frame" gds="26"/>
+        <layerGds layer="P-Base" gds="58"/>
 
         <LayerRule ruleName="1.1 Mosis" layerName="P-Well" type="MINWID" when="DE|SU" value="12.0"/>
         <LayerRule ruleName="1.1 Mosis" layerName="N-Well" type="MINWID" when="DE|SU" value="12.0"/>

@@ -50,8 +50,6 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -279,13 +277,8 @@ public class ComponentMenu extends EDialog
 				}
 			}
 		}
-		StringWriter sw = new StringWriter();
-		PrintWriter out = new PrintWriter(sw);
-		Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
-		writer.writeMenuPaletteXml(xmp);
-		out.close();
-		StringBuffer sb = sw.getBuffer();
-		new SetMenuJob(sb.toString());
+        ;
+		new SetMenuJob(xmp.writeXml());
 	}
 
 	/**

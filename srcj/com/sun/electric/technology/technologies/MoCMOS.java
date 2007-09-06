@@ -1050,6 +1050,7 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFactoryCIFLayer("CSB");		// Silicide-Block
 		thickActiveLayer.setFactoryCIFLayer("CTA");			// Thick-Active
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
+		pBaseLayer.setFactoryCIFLayer("CBA");				// Pad-Frame
 //		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
 //		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
 //		pseudoMetal3_lay.setFactoryCIFLayer("");			// Pseudo-Metal-3
@@ -2623,7 +2624,8 @@ public class MoCMOS extends Technology
                 "Poly-Cap 28",
                 "Silicide-Block 29",
                 "Thick-Active 60",
-                "Pad-Frame 26");
+                "Pad-Frame 26",
+                "P-Base 58");
 //            mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t"); // Metal-1
 //            mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t"); // Metal-2
 //            mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t"); // Metal-3

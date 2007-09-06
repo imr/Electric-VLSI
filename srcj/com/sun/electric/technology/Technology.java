@@ -1043,29 +1043,7 @@ public class Technology implements Comparable<Technology>
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
-        if (t.menuPalette != null) {
-            int numColumns = t.menuPalette.numColumns;
-            ArrayList<Object[]> rows = new ArrayList<Object[]>();
-            Object[] row = null;
-            for (int i = 0; i < t.menuPalette.menuBoxes.size(); i++) {
-                int column = i % numColumns;
-                if (column == 0) {
-                    row = new Object[numColumns];
-                    rows.add(row);
-                }
-                List<Object> menuBoxList = t.menuPalette.menuBoxes.get(i);
-                if (menuBoxList == null || menuBoxList.isEmpty()) continue;
-                if (menuBoxList.size() == 1) {
-                    row[column] = convertMenuItem(menuBoxList.get(0));
-                } else {
-                    ArrayList<Object> list = new ArrayList<Object>();
-                    for (Object o: menuBoxList)
-                        list.add(convertMenuItem(o));
-                    row[column] = list;
-                }
-            }
-            nodeGroups = rows.toArray(new Object[rows.size()][]);
-        }
+        convertMenuPalette(t.menuPalette);
         for (Xml.SpiceHeader h: t.spiceHeaders) {
             String[] spiceLines = h.spiceLines.toArray(new String[h.spiceLines.size()]);
             switch (h.level) {
@@ -1112,6 +1090,31 @@ public class Technology implements Comparable<Technology>
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
+    private void convertMenuPalette(Xml.MenuPalette menuPalette) {
+        if (menuPalette == null) return;
+        int numColumns = menuPalette.numColumns;
+        ArrayList<Object[]> rows = new ArrayList<Object[]>();
+        Object[] row = null;
+        for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
+            int column = i % numColumns;
+            if (column == 0) {
+                row = new Object[numColumns];
+                rows.add(row);
+            }
+            List<Object> menuBoxList = menuPalette.menuBoxes.get(i);
+            if (menuBoxList == null || menuBoxList.isEmpty()) continue;
+            if (menuBoxList.size() == 1) {
+                row[column] = convertMenuItem(menuBoxList.get(0));
+            } else {
+                ArrayList<Object> list = new ArrayList<Object>();
+                for (Object o: menuBoxList)
+                    list.add(convertMenuItem(o));
+                row[column] = list;
+            }
+        }
+        nodeGroups = rows.toArray(new Object[rows.size()][]);
+    }
+    
     private Object convertMenuItem(Object menuItem) {
         if (menuItem instanceof Xml.ArcProto)
             return findArcProto(((Xml.ArcProto)menuItem).name);
@@ -4640,26 +4643,39 @@ public class Technology implements Comparable<Technology>
 		if (nodeGroupXML.length() == 0) return;
 
 		// parse the preference and build a component menu
-		Xml.MenuPalette xx = Xml.parseComponentMenuXML(nodeGroupXML, this);
-		List<List<Object>> menuData = xx.menuBoxes;
-		int menuWid = xx.numColumns;
-		int menuHei = menuData.size() / menuWid;
-		nodeGroups = new Object[menuHei][menuWid];
-		int next = 0;
-		for(int y=0; y<menuHei; y++)
-		{
-			for(int x=0; x<menuWid; x++)
-			{
-				Object obj = menuData.get(next++);
-				if (obj instanceof List)
-				{
-					List<?> list = (List)obj;
-					if (list.size() == 0) obj = null; else
-						if (list.size() == 1) obj = list.get(0);
-				}
-				nodeGroups[y][x] = obj;
-			}
-		}
+        List<Xml.PrimitiveNode> xmlNodes = new ArrayList<Xml.PrimitiveNode>();
+        for (PrimitiveNode pn: nodes.values()) {
+            Xml.PrimitiveNode xpn = new Xml.PrimitiveNode();
+            xpn.name = pn.getName();
+            xmlNodes.add(xpn);
+        }
+        List<Xml.ArcProto> xmlArcs = new ArrayList<Xml.ArcProto>();
+        for (ArcProto ap: arcs.values()) {
+            Xml.ArcProto xap = new Xml.ArcProto();
+            xap.name = ap.getName();
+            xmlArcs.add(xap);
+        }
+		Xml.MenuPalette xx = Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodes, xmlArcs);
+        convertMenuPalette(xx);
+//		List<List<Object>> menuData = xx.menuBoxes;
+//		int menuWid = xx.numColumns;
+//		int menuHei = menuData.size() / menuWid;
+//		nodeGroups = new Object[menuHei][menuWid];
+//		int next = 0;
+//		for(int y=0; y<menuHei; y++)
+//		{
+//			for(int x=0; x<menuWid; x++)
+//			{
+//				Object obj = menuData.get(next++);
+//				if (obj instanceof List)
+//				{
+//					List<?> list = (List)obj;
+//					if (list.size() == 0) obj = null; else
+//						if (list.size() == 1) obj = list.get(0);
+//				}
+//				nodeGroups[y][x] = obj;
+//			}
+//		}
 	}
 
 	/**
