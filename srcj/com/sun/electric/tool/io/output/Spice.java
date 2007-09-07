@@ -331,6 +331,9 @@ public class Spice extends Topology
             case SPICE_ENGINE_H_ASSURA: preferedEngineTemplateKey = SPICE_A_TEMPLATE_KEY;  assuraHSpice = true; break;
             case SPICE_ENGINE_H_CALIBRE: preferedEngineTemplateKey = SPICE_C_TEMPLATE_KEY; assuraHSpice = true; break;
 		}
+        if (useCDL) {
+            preferedEngineTemplateKey = CDL_TEMPLATE_KEY;
+        }
         if (assuraHSpice || (useCDL && !CDLWRITESEMPTYSUBCKTS) ||
             (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
             writeEmptySubckts = false;
@@ -2601,14 +2604,6 @@ public class Spice extends Topology
      */
     protected boolean skipCellAndSubcells(Cell cell)
 	{
-        if (useCDL) {
-            // check for CDL template: if exists, skip
-            Variable cdlTemplate = cell.getVar(CDL_TEMPLATE_KEY);
-            if (cdlTemplate != null) return true;
-            // no template, return false
-            return false;
-        }
-
 		// skip if there is a template
         Variable varTemplate = null;
         varTemplate = cell.getVar(preferedEngineTemplateKey);
