@@ -30,6 +30,30 @@ public class VerilogData
     }
 
     /**
+     * Compare class for VerilogModule
+     */
+    private static VerilogModuleSort compareVerilogModules = new VerilogModuleSort();
+
+    private static class VerilogModuleSort implements Comparator<VerilogModule>
+    {
+        public int compare(VerilogModule a1, VerilogModule a2)
+        {
+            assert(a1 != a2); // not sure if this could happen
+            return (a1.getName().compareTo(a2.getName()));
+        }
+    }
+    /**
+     * Method to return modules sorted by per cell name
+     */
+    public List<VerilogModule> getSortedModules()
+    {
+        List<VerilogModule> list = new ArrayList<VerilogModule>(modules.size());
+        list.addAll(modules.values());
+        Collections.sort(list, compareVerilogModules);
+        return list;
+    }
+
+    /**
      * Function to return a collection of modules defined
      * @return Collection of VerilogModule objects
      */

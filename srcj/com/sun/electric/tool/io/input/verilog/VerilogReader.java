@@ -886,7 +886,8 @@ public class VerilogReader extends Input
     private Cell buildCells(VerilogData verilogCell, Library lib)
     {
         Cell topCell = null; // assumes the first module in the list is the top cell
-        for (VerilogData.VerilogModule module : verilogCell.getModules())
+
+        for (VerilogData.VerilogModule module : verilogCell.getSortedModules())
         {
             Cell cell = buildCellFromModule(module, lib);
             if (topCell == null)
