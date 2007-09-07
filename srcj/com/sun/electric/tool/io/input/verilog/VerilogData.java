@@ -38,7 +38,6 @@ public class VerilogData
     {
         public int compare(VerilogModule a1, VerilogModule a2)
         {
-            assert(a1 != a2); // not sure if this could happen
             return (a1.getName().compareTo(a2.getName()));
         }
     }
@@ -321,7 +320,6 @@ public class VerilogData
     {
         public int compare(VerilogInstance a1, VerilogInstance a2)
         {
-            assert(a1 != a2); // not sure if this could happen
             return (a1.getName().compareTo(a2.getName()));
         }
     }
@@ -381,7 +379,7 @@ public class VerilogData
     {
         String name;
         boolean fullInfo; // in case the module information was found in the file
-        List<VerilogWire> wires = new ArrayList<VerilogWire>();
+        private List<VerilogWire> wires = new ArrayList<VerilogWire>();
         Map<String,VerilogPort> ports = new LinkedHashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements, ordering is important
         List<VerilogInstance> instances = new ArrayList<VerilogInstance>();
         boolean primitive; // if this is a primitive instead of a module
@@ -426,6 +424,17 @@ public class VerilogData
         {
             Collections.sort(instances, compareVerilogInstances);
             return instances;
+        }
+
+        /**
+         * Function to return list of VerilogWire objects in the module.
+         * The list is sorted.
+         * @return List of VerilogWire objects
+         */
+        public List<VerilogWire> getWires()
+        {
+            Collections.sort(wires, compareVerilogWires);
+            return wires;
         }
 
         /**
@@ -535,7 +544,7 @@ public class VerilogData
          */
         void simplifyWires()
         {
-            Collections.sort(wires, compareWires);
+            Collections.sort(wires, compareVerilogWires);
             int i = 0;
             List<VerilogWire> toDelete = new ArrayList<VerilogWire>();
 
@@ -581,9 +590,9 @@ public class VerilogData
         }
     }
 
-    private static WireSort compareWires = new WireSort();
+    private static VerilogWireSort compareVerilogWires = new VerilogWireSort();
 
-    private static class WireSort implements Comparator<VerilogWire>
+    private static class VerilogWireSort implements Comparator<VerilogWire>
     {
         public int compare(VerilogWire a1, VerilogWire a2)
         {

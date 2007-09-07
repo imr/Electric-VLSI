@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
-IMP: (9/7/07, GVG) Sorting modules, instances in VerilogReader to improve reading time
+IMP: (9/7/07, GVG) Sorting modules, instances, wires in VerilogReader to improve reading time
 
 BUG: (9/7/07, DN) Redisplay exceptions when switching off/on layer visibility.(Bug #1358).
 FIX: PatternedTransparentRaster.current was used concurrently by EditWindow and by TechPalette.

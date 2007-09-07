@@ -958,7 +958,7 @@ public class VerilogReader extends Input
 
         // wires first to determine which pins are busses or simple pins
         // Sort wires
-        for (VerilogData.VerilogWire wire : module.wires)
+        for (VerilogData.VerilogWire wire : module.getWires())
         {
             addPins(wire, cell, false);
         }
