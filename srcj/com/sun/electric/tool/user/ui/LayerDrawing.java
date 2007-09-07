@@ -268,6 +268,7 @@ class LayerDrawing
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
 
 	/** the map from layers to layer bitmaps */             private HashMap<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
+    /** temporary raster for patterned layers */            private PatternedTransparentRaster currentPatternedTransparentRaster = new PatternedTransparentRaster();
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
@@ -1225,17 +1226,16 @@ class LayerDrawing
 	 * This is called before any rendering is done.
 	 * @param bounds the area of the image to actually draw (null to draw all).
 	 */
-	public void clearImage(Rectangle bounds)
-	{
-		// erase the patterned opaque layer bitmaps
-		for(Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
-		{
-			TransparentRaster raster = e.getValue();
-			int [] layerBitMap = raster.layerBitMap;
-            for (int i = 0; i < layerBitMap.length; i++)
-                layerBitMap[i] = 0;
-		}
-	}
+    public void clearImage(Rectangle bounds) {
+        // erase the patterned opaque layer bitmaps
+        if (true || bounds == null) {
+            for(TransparentRaster raster: layerRasters.values())
+                raster.eraseAll();
+        } else {
+            for(TransparentRaster raster: layerRasters.values())
+                raster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+        }
+    }
 
 	/**
 	 * Method to draw the grid into the offscreen buffer
@@ -1824,8 +1824,8 @@ class LayerDrawing
             EGraphics.Outline o = graphics.getOutlined();
             if (o == EGraphics.Outline.NOPAT)
                 o = null;
-            PatternedTransparentRaster.current.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
-            raster = PatternedTransparentRaster.current;
+            currentPatternedTransparentRaster.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
+            raster = currentPatternedTransparentRaster;
         }
         return raster;
     }
@@ -1947,12 +1947,44 @@ class LayerDrawing
                 for (int y = lY; y <= hY; y++) {
                     layerBitMap[lIndex] |= lMask;
                     for (int index = lIndex + 1; index < hIndex; index++)
-                        layerBitMap[index] |= -1;
+                        layerBitMap[index] = -1;
                     layerBitMap[hIndex] |= hMask;
                     lIndex += intsPerRow;
                     hIndex += intsPerRow;
                 }
             }
+        }
+        
+        public void eraseBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*intsPerRow;
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                mask = ~mask;
+                for (int y = lY; y < hY; y++) {
+                    layerBitMap[lIndex] &= mask;
+                    lIndex += intsPerRow;
+                }
+            } else {
+                int lMask = -(1 << (lX&31));
+                int hMask = (2 << (hX&31)) - 1;
+                lMask = ~lMask;
+                hMask = ~hMask;
+                for (int y = lY; y <= hY; y++) {
+                    layerBitMap[lIndex] &= lMask;
+                    for (int index = lIndex + 1; index < hIndex; index++)
+                        layerBitMap[index] = 0;
+                    layerBitMap[hIndex] &= hMask;
+                    lIndex += intsPerRow;
+                    hIndex += intsPerRow;
+                }
+            }
+        }
+        
+        public void eraseAll() {
+            for (int i = 0; i < layerBitMap.length; i++)
+                layerBitMap[i] = 0;
         }
         
         public void fillHorLine(int y, int lX, int hX) {
@@ -2215,8 +2247,6 @@ class LayerDrawing
      * ERaster for patterned transparent layers.
      */
     private static class PatternedTransparentRaster extends TransparentRaster {
-        private static PatternedTransparentRaster current = new PatternedTransparentRaster();
-        
         int[] pattern;
         EGraphics.Outline outline;
   
@@ -2297,6 +2327,8 @@ class LayerDrawing
         
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
             int[] srcLayerBitMap = src.layerBitMap;
+            assert (minSrcY + dy)*intsPerRow + ((minSrcX + dx) >> 5) >= 0;
+            assert (maxSrcY + dy)*intsPerRow + ((maxSrcX + dx) >> 5) < layerBitMap.length;
             for(int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                 int destY = srcY + dy;
                 int pat = pattern[destY & 15];
