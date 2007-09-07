@@ -887,7 +887,7 @@ public class VerilogReader extends Input
     {
         Cell topCell = null; // assumes the first module in the list is the top cell
 
-        for (VerilogData.VerilogModule module : verilogCell.getSortedModules())
+        for (VerilogData.VerilogModule module : verilogCell.getModules())
         {
             Cell cell = buildCellFromModule(module, lib);
             if (topCell == null)
@@ -957,12 +957,14 @@ public class VerilogReader extends Input
                 Orientation.RR, null, 0);
 
         // wires first to determine which pins are busses or simple pins
+        // Sort wires
         for (VerilogData.VerilogWire wire : module.wires)
         {
             addPins(wire, cell, false);
         }
 
         // inputs/outputs/inouts/supplies
+        // Sort ports
         for (VerilogData.VerilogPort port : module.ports.values())
         {
             //Point2D center, double width, double height, Cell parent)
@@ -1008,7 +1010,7 @@ public class VerilogReader extends Input
         }
 
         // instances
-        for (VerilogData.VerilogInstance inst : module.instances)
+        for (VerilogData.VerilogInstance inst : module.getInstances())
         {
             buildNodeInstFromModule(inst, lib, cell);
         }

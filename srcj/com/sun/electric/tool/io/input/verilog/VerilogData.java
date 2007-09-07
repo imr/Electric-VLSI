@@ -42,22 +42,19 @@ public class VerilogData
             return (a1.getName().compareTo(a2.getName()));
         }
     }
+
     /**
-     * Method to return modules sorted by per cell name
+     * Function to return a collection of modules defined.
+     * The collection is sorted by name.
+     * @return Collection of VerilogModule objects
      */
-    public List<VerilogModule> getSortedModules()
+    public Collection<VerilogModule> getModules()
     {
         List<VerilogModule> list = new ArrayList<VerilogModule>(modules.size());
         list.addAll(modules.values());
         Collections.sort(list, compareVerilogModules);
         return list;
     }
-
-    /**
-     * Function to return a collection of modules defined
-     * @return Collection of VerilogModule objects
-     */
-    public Collection<VerilogModule> getModules() {return modules.values();}
 
     /**
      * Function to return VerilogModule object for a given name
@@ -136,7 +133,6 @@ public class VerilogData
      */
     public class VerilogPort extends VerilogConnection
     {
-//        private String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
         PortCharacteristic type;
 
         VerilogPort(String name, PortCharacteristic type)
@@ -149,7 +145,6 @@ public class VerilogData
 
         void setBusInformation(String s)
         {
-//            busPins = s;
             int pos = s.indexOf(":");
             start = Integer.parseInt(s.substring(1, pos)); // first number
             end = Integer.parseInt(s.substring(pos+1, s.length()-1)); // second number
@@ -161,11 +156,6 @@ public class VerilogData
 
             if (isBusConnection())
             {
-//                int pos = busPins.indexOf(":");
-//                int index1 = Integer.parseInt(busPins.substring(1, pos)); // first number
-//                int index2 = Integer.parseInt(busPins.substring(pos+1, busPins.length()-1)); // second number
-//                assert(index1 == start);
-//                assert(index2 == end);
                 extractPinNames(start, end, name, list);
             } else
             {
@@ -322,6 +312,20 @@ public class VerilogData
         }
     }
 
+    /**
+     * Compare class for VerilogModule
+     */
+    private static VerilogInstanceSort compareVerilogInstances = new VerilogInstanceSort();
+
+    private static class VerilogInstanceSort implements Comparator<VerilogInstance>
+    {
+        public int compare(VerilogInstance a1, VerilogInstance a2)
+        {
+            assert(a1 != a2); // not sure if this could happen
+            return (a1.getName().compareTo(a2.getName()));
+        }
+    }
+
     public class VerilogInstance
     {
         String name;
@@ -414,10 +418,15 @@ public class VerilogData
         public boolean isPrimitive() { return primitive; }
 
         /**
-         * Function to return list of VerilogInstance objects in the module
+         * Function to return list of VerilogInstance objects in the module.
+         * The list is sorted.
          * @return List of VerilogInstance objects
          */
-        public List<VerilogInstance> getInstances() {return instances;}
+        public List<VerilogInstance> getInstances()
+        {
+            Collections.sort(instances, compareVerilogInstances);
+            return instances;
+        }
 
         /**
          * Function to return collection of VerilogPort objects in the module

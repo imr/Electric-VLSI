@@ -4,11 +4,19 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/7/07, GVG) Sorting modules, instances in VerilogReader to improve reading time
+
 BUG: (9/7/07, DN) Redisplay exceptions when switching off/on layer visibility.(Bug #1358).
 FIX: PatternedTransparentRaster.current was used concurrently by EditWindow and by TechPalette.
 
 BUG: (9/7/07, DN) Peek causes other cells to disappear in LayerDrawing (Bug #1338, #1373).
-FIX: Implement correctly LayerDrawing.clearImage(). 
+FIX: Implement correctly LayerDrawing.clearImage().
+
+BUG: (9/7/07, DN) [Bug 1225] Layer Display Algorithm color blending poly/diffusion/metal
+FIX: Ask him
+
+BUG: (9/7/07, DN) [Bug 1136] "invisible outside of cell" does not work with new display algorithm
+FIX: Ask him
 
 IMP: (9/6/06, GVG) Verilog reading change to allow the upload of multiple files.
 
