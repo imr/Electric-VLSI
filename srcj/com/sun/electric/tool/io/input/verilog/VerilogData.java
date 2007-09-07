@@ -128,6 +128,19 @@ public class VerilogData
     }
 
     /**
+     * Compare class for VerilogModule
+     */
+    private static VerilogPortSort compareVerilogPorts = new VerilogPortSort();
+
+    private static class VerilogPortSort implements Comparator<VerilogPort>
+    {
+        public int compare(VerilogPort a1, VerilogPort a2)
+        {
+            return (a1.name.compareTo(a2.name));
+        }
+    }
+
+    /**
      * This class covers input/output/inout
      */
     public class VerilogPort extends VerilogConnection
@@ -287,26 +300,12 @@ public class VerilogData
                     int start = Integer.parseInt(s.substring(index1+1, pos)); // first number
                     int end = Integer.parseInt(s.substring(pos+1, index2)); // second number
                     extractPinNames(start, end, root, l);
-//                    if (start > end)
-//                    {
-//                        for (int i = start; i >= end; i--)
-//                        {
-//                            String thisName = root+"["+i+"]";
-//                            l.add(thisName);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        for (int i = start; i <= end; i++)
-//                        {
-//                            String thisName = root+"["+i+"]";
-//                            l.add(thisName);
-//                        }
-//                    }
                 }
                 else
                     l.add(s);
             }
+
+            // sort list
             return l;
         }
     }
@@ -380,7 +379,7 @@ public class VerilogData
         String name;
         boolean fullInfo; // in case the module information was found in the file
         private List<VerilogWire> wires = new ArrayList<VerilogWire>();
-        Map<String,VerilogPort> ports = new LinkedHashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements, ordering is important
+        private Map<String,VerilogPort> ports = new LinkedHashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements, ordering is important
         List<VerilogInstance> instances = new ArrayList<VerilogInstance>();
         boolean primitive; // if this is a primitive instead of a module
 
@@ -438,10 +437,17 @@ public class VerilogData
         }
 
         /**
-         * Function to return collection of VerilogPort objects in the module
+         * Function to return collection of VerilogPort objects in the module.
+         * The ports are sorted by the name
          * @return Collection of VerilogPort objects
          */
-        public Collection<VerilogPort> getPorts() {return ports.values();}
+        public Collection<VerilogPort> getPorts()
+        {
+            List<VerilogPort> list = new ArrayList<VerilogPort>(ports.size());
+            list.addAll(ports.values());
+            Collections.sort(list, compareVerilogPorts);
+            return list;
+        }
 
         /**
          * Function to search an export for a given name

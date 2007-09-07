@@ -957,15 +957,13 @@ public class VerilogReader extends Input
                 Orientation.RR, null, 0);
 
         // wires first to determine which pins are busses or simple pins
-        // Sort wires
         for (VerilogData.VerilogWire wire : module.getWires())
         {
             addPins(wire, cell, false);
         }
 
         // inputs/outputs/inouts/supplies
-        // Sort ports
-        for (VerilogData.VerilogPort port : module.ports.values())
+        for (VerilogData.VerilogPort port : module.getPorts())
         {
             //Point2D center, double width, double height, Cell parent)
             String name = port.name;
