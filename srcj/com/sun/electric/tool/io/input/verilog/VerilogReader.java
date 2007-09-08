@@ -951,10 +951,11 @@ public class VerilogReader extends Input
         cell = Cell.makeInstance(lib, cellName);
         cell.setTechnology(Schematics.tech);
         // Adding essential bounds for now
-        NodeInst.makeInstance(essentialBounds, new Point2D.Double(10,10), 1, 1, cell,
-                Orientation.IDENT, null, 0);
-        NodeInst.makeInstance(essentialBounds, new Point2D.Double(-10,-10), 1, 1, cell,
-                Orientation.RR, null, 0);
+        // Change Sept 08, 07 Out
+//        NodeInst.makeInstance(essentialBounds, new Point2D.Double(10,10), 1, 1, cell,
+//                Orientation.IDENT, null, 0);
+//        NodeInst.makeInstance(essentialBounds, new Point2D.Double(-10,-10), 1, 1, cell,
+//                Orientation.RR, null, 0);
 
         // wires first to determine which pins are busses or simple pins
         for (VerilogData.VerilogWire wire : module.getWires())

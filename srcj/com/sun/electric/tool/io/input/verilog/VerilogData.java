@@ -1,6 +1,7 @@
 package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 
 import java.util.*;
@@ -38,7 +39,9 @@ public class VerilogData
     {
         public int compare(VerilogModule a1, VerilogModule a2)
         {
-            return (a1.getName().compareTo(a2.getName()));
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(a1.getName(), a2.getName());
+            return cmp;
+//            return (a1.getName().compareTo(a2.getName()));
         }
     }
 
@@ -136,7 +139,9 @@ public class VerilogData
     {
         public int compare(VerilogPort a1, VerilogPort a2)
         {
-            return (a1.name.compareTo(a2.name));
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(a1.name, a2.name);
+            return cmp;
+//            return (a1.name.compareTo(a2.name));
         }
     }
 
@@ -319,7 +324,9 @@ public class VerilogData
     {
         public int compare(VerilogInstance a1, VerilogInstance a2)
         {
-            return (a1.getName().compareTo(a2.getName()));
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(a1.getName(), a2.getName());
+            return cmp;
+//            return (a1.getName().compareTo(a2.getName()));
         }
     }
 
@@ -602,7 +609,8 @@ public class VerilogData
     {
         public int compare(VerilogWire a1, VerilogWire a2)
         {
-            int diff = (a1.name.compareTo(a2.name));
+            int diff = TextUtils.STRING_NUMBER_ORDER.compare(a1.name, a2.name);
+//            int diff = (a1.name.compareTo(a2.name));
             if (diff == 0) // identical
             {
                 diff = a1.start - a2.start;
