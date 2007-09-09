@@ -756,8 +756,9 @@ public class VerilogReader extends Input
 	protected boolean importALibrary(Library lib)
     {
         initKeywordParsing();
-        VerilogData verilogData = parseVerilogInternal(lib.getName(), true);
-        buildCells(verilogData, lib);
+        boolean fullOyster = true;
+        VerilogData verilogData = parseVerilogInternal(lib.getName(), fullOyster);
+        buildCells(verilogData, lib, fullOyster);
         return verilogData == null;
     }
 
@@ -801,10 +802,10 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    public Cell readVerilog(String testName, String file, boolean createCells, boolean simplifyWires, Job job)
+    public Cell readVerilog(String testName, String file, boolean createCells, boolean fullOyster, Job job)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
-        VerilogData verilogData = parseVerilog(file, simplifyWires);
+        VerilogData verilogData = parseVerilog(file, fullOyster);
         if (verilogData == null) return null; // error
         int index = file.lastIndexOf("/");
         String libName = file.substring(index+1);
@@ -816,7 +817,7 @@ public class VerilogReader extends Input
         {
             Library library = Library.newInstance(libName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
-            topCell = buildCells(verilogData, library);
+            topCell = buildCells(verilogData, library, fullOyster);
             Cell c = library.findNodeProto(topCellName);
             if (c == null)
             {
@@ -882,14 +883,15 @@ public class VerilogReader extends Input
      * Function to build cells from a VerilogData object
      * @param verilogCell
      * @param lib
+     * @param fullOyster
      */
-    private Cell buildCells(VerilogData verilogCell, Library lib)
+    private Cell buildCells(VerilogData verilogCell, Library lib, boolean fullOyster)
     {
         Cell topCell = null; // assumes the first module in the list is the top cell
 
         for (VerilogData.VerilogModule module : verilogCell.getModules())
         {
-            Cell cell = buildCellFromModule(module, lib);
+            Cell cell = buildCellFromModule(module, lib, fullOyster);
             if (topCell == null)
                 topCell = cell;
         }
@@ -940,9 +942,10 @@ public class VerilogReader extends Input
     /**
      * Function to build cell fro a VerilogModule object
      * @param lib
+     * @param fullOyster
      * @return Cell object representing this module
      */
-    private Cell buildCellFromModule(VerilogData.VerilogModule module, Library lib)
+    private Cell buildCellFromModule(VerilogData.VerilogModule module, Library lib, boolean fullOyster)
     {
         String cellName = module.name + View.SCHEMATIC.getAbbreviationExtension();
         Cell cell = lib.findNodeProto(cellName);
@@ -1011,11 +1014,12 @@ public class VerilogReader extends Input
         // instances
         for (VerilogData.VerilogInstance inst : module.getInstances())
         {
-            buildNodeInstFromModule(inst, lib, cell);
+            buildNodeInstFromModule(inst, lib, cell, fullOyster);
         }
 
         // making icon
-        ViewChanges.makeIconViewNoGUI(cell, true, true);
+        if (fullOyster)
+            ViewChanges.makeIconViewNoGUI(cell, true, true);
 
         return cell; // not too much sense?
     }
@@ -1025,14 +1029,16 @@ public class VerilogReader extends Input
      * @param inst
      * @param lib
      * @param parent
+     * @param fullOyster
      */
-    Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent)
+    Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent, boolean fullOyster)
     {
-        Cell schematics = buildCellFromModule(inst.element, lib);
-        Cell icon = schematics.iconView();
-        if (icon == null)
-        assert(icon != null);
+        Cell schematics = buildCellFromModule(inst.element, lib, fullOyster);
+        Cell icon = (fullOyster) ? schematics.iconView() : schematics;
+//        if (icon == null)
+//        assert(icon != null);
 
+        // Only for benchmarks schematics in
         NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
                 Orientation.IDENT, inst.name, 0);
 
