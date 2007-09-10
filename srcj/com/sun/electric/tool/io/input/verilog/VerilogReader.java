@@ -898,12 +898,12 @@ public class VerilogReader extends Input
         return topCell;
     }
 
-    private void addPins(VerilogData.VerilogConnection port, Cell cell, boolean addExport)
+    private void addPins(VerilogData.VerilogConnection port, Cell cell, boolean addExport, boolean fullOyster)
     {
         String name = port.name;
         PortCharacteristic portType = port.getPortType();
 
-        List<String> pinNames = port.getPinNames(); // This function controls if busses are split into multi pins
+        List<String> pinNames = port.getPinNames(fullOyster); // This function controls if busses are split into multi pins
         // or as just one element
 
         Collections.sort(pinNames);
@@ -970,7 +970,7 @@ public class VerilogReader extends Input
 //        for (VerilogData.VerilogWire wire : module.getWires())
         {
             VerilogData.VerilogWire wire = (VerilogData.VerilogWire)obj;
-            addPins(wire, cell, false);
+            addPins(wire, cell, false, fullOyster);
         }
 
         else if (obj instanceof VerilogData.VerilogPort)
@@ -990,7 +990,7 @@ public class VerilogReader extends Input
                     portType == PortCharacteristic.UNKNOWN) // unknown when modules are read as instances
             {
                 // new code
-                addPins(port, cell, true);
+                addPins(port, cell, true, fullOyster);
             }
             else if (portType == PortCharacteristic.PWR ||
                     portType == PortCharacteristic.GND)

@@ -103,8 +103,9 @@ public class VerilogData
          * Method to control if busses are converted into single pins or treated as bus in Electric.
          * For now, busses are converted into single pins. More memory is used though.
          * @return the list of pin names.
+         * @param fullOyster
          */
-        abstract List<String> getPinNames();
+        abstract List<String> getPinNames(boolean fullOyster);
         PortCharacteristic getPortType() {return null; } // not valid
         String getName() {return name;}
 
@@ -168,11 +169,11 @@ public class VerilogData
             end = Integer.parseInt(s.substring(pos+1, s.length()-1)); // second number
         }
 
-        public List<String> getPinNames()
+        public List<String> getPinNames(boolean fullOyster)
         {
             List<String> list = new ArrayList<String>();
 
-            if (isBusConnection())
+            if (fullOyster && isBusConnection())
             {
                 extractPinNames(start, end, name, list);
             } else
@@ -224,11 +225,11 @@ public class VerilogData
             }
         }
 
-        List<String> getPinNames()
+        List<String> getPinNames(boolean fullOyster)
         {
             List<String> list = new ArrayList<String>();
 
-            if (isBusConnection())
+            if (fullOyster && isBusConnection())
             {
                 extractPinNames(start, end, name, list);
             } else

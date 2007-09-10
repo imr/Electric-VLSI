@@ -890,7 +890,7 @@ public class Verilog extends Topology
                     if (module == null) break;
                     System.out.print(cell.getName()+" ports: ");
                     for (VerilogData.VerilogPort port : module.getPorts()) {
-                        List<String> portnames = port.getPinNames();
+                        List<String> portnames = port.getPinNames(true);
                         if (portnames.size() == 0) {
                             // continue
                         } else if (portnames.size() > 1) {
