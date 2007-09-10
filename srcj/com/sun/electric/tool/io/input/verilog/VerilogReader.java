@@ -1006,7 +1006,7 @@ public class VerilogReader extends Input
                 NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
                         0.5, 0.5,
         //                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(),
-                        cell);
+                        cell, Orientation.IDENT, name+"@0", 0);
 
                 ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0.0,
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
