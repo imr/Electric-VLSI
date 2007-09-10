@@ -906,6 +906,7 @@ public class VerilogReader extends Input
         List<String> pinNames = port.getPinNames(); // This function controls if busses are split into multi pins
         // or as just one element
 
+        Collections.sort(pinNames);
         for (String pinName : pinNames)
         {
             PrimitiveNode primitive = Schematics.tech.wirePinNode;
