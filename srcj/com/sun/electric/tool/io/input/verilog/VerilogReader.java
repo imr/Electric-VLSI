@@ -802,6 +802,21 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
+    private static List<VerilogData> verilogDataList = new ArrayList<VerilogData>();
+
+    public void readVerilogOnly(String file, boolean fullOyster, Job job)
+    {
+        URL fileURL = TextUtils.makeURLToFile(file);
+        VerilogData verilogData = parseVerilog(file, fullOyster);
+
+        if (verilogData == null) return; // error
+
+        verilogDataList.add(verilogData);
+
+        if (job != null)
+            System.out.println("Accumulative time before creating cells '" + file + "' " + job.getInfo());
+    }
+
     public Cell readVerilog(String testName, String file, boolean createCells, boolean fullOyster, Job job)
     {
         URL fileURL = TextUtils.makeURLToFile(file);

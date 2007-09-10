@@ -291,8 +291,8 @@ public class VerilogData
                     list.add(name);
                     if (Job.getDebug())
                         assert(!name.contains(":")); // this case not handled yet!
-                    else
-                        System.out.println("This case not handled yet in getPortNames");
+//                    else
+//                        System.out.println("This case not handled yet in getPortNames");
                 }
             }
             else
