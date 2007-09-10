@@ -289,7 +289,10 @@ public class VerilogData
                     String name = parse.nextToken();
                     name = name.replaceAll(" ", "");
                     list.add(name);
-                    assert(!name.contains(":")); // this case not handled yet!
+                    if (Job.getDebug())
+                        assert(!name.contains(":")); // this case not handled yet!
+                    else
+                        System.out.println("This case not handled yet in getPortNames");
                 }
             }
             else
