@@ -106,6 +106,7 @@ public class VerilogData
          */
         abstract List<String> getPinNames();
         PortCharacteristic getPortType() {return null; } // not valid
+        String getName() {return name;}
 
         /**
          * Function to know if a wire represents a wire
@@ -316,7 +317,7 @@ public class VerilogData
     }
 
     /**
-     * Compare class for VerilogModule
+     * Compare class for VerilogInstance
      */
     private static VerilogInstanceSort compareVerilogInstances = new VerilogInstanceSort();
 
@@ -379,6 +380,33 @@ public class VerilogData
     }
 
     /**
+         * Compare class for VerilogAll
+         */
+        private static VerilogAllSort compareVerilogAll = new VerilogAllSort();
+
+        private static class VerilogAllSort implements Comparator<Object>
+        {
+            public int compare(Object a1, Object a2)
+            {
+                String name1, name2;
+                if (a1 instanceof VerilogInstance)
+                    name1 = ((VerilogInstance)a1).getName();
+                else if (a1 instanceof VerilogWire)
+                    name1 = ((VerilogWire)a1).getName();
+                else
+                    name1 = ((VerilogPort)a1).getName();
+                if (a2 instanceof VerilogInstance)
+                    name2 = ((VerilogInstance)a2).getName();
+                else if (a2 instanceof VerilogWire)
+                    name2 = ((VerilogWire)a2).getName();
+                else
+                    name2 = ((VerilogPort)a2).getName();
+                int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name1, name2);
+                return cmp;
+            }
+        }
+
+    /**
      * Class to represent subcells
      */
     public class VerilogModule //extends VerilogElement
@@ -420,6 +448,19 @@ public class VerilogData
          * @return true if this module was defined as a primitive
          */
         public boolean isPrimitive() { return primitive; }
+
+        /**
+         * Returns list of ports and wires sorted by name
+         * @return
+         */
+        public List<Object> getAllSorted() {
+
+            List<Object> list = new ArrayList<Object>(ports.size() + wires.size());
+            list.addAll(ports.values());
+            list.addAll(wires);
+            Collections.sort(list, compareVerilogAll);
+            return list;
+        }
 
         /**
          * Function to return list of VerilogInstance objects in the module.

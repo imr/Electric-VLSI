@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/10/07, GVG) Sorting wires and ports in Oyster
+
 IMP: (9/8/07, GVG) No icon for benchmarks in Oyster
 
 IMP: (9/8/07, GVG) No essential bnds, no center for benchmarks, using STRING_NUMBER for sorting.

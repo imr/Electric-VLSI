@@ -960,16 +960,24 @@ public class VerilogReader extends Input
 //        NodeInst.makeInstance(essentialBounds, new Point2D.Double(-10,-10), 1, 1, cell,
 //                Orientation.RR, null, 0);
 
-        // wires first to determine which pins are busses or simple pins
-        for (VerilogData.VerilogWire wire : module.getWires())
+        List<Object> all = module.getAllSorted();
+        for (Object obj : all)
         {
+
+            if (obj instanceof VerilogData.VerilogWire)
+        // wires first to determine which pins are busses or simple pins
+//        for (VerilogData.VerilogWire wire : module.getWires())
+        {
+            VerilogData.VerilogWire wire = (VerilogData.VerilogWire)obj;
             addPins(wire, cell, false);
         }
 
+        else if (obj instanceof VerilogData.VerilogPort)
         // inputs/outputs/inouts/supplies
-        for (VerilogData.VerilogPort port : module.getPorts())
+//        for (VerilogData.VerilogPort port : module.getPorts())
         {
             //Point2D center, double width, double height, Cell parent)
+            VerilogData.VerilogPort port = (VerilogData.VerilogPort)obj;
             String name = port.name;
             PortCharacteristic portType = port.type;
 
@@ -1009,6 +1017,7 @@ public class VerilogReader extends Input
             else
                 System.out.println("Skipping this characteristic?");
 //                    assert(false); // it should not reach this point.
+        }
         }
 
         // instances
