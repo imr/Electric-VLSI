@@ -29,9 +29,12 @@ import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.event.InputEvent;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -361,18 +364,53 @@ public class EditKeyBinding extends EDialog {
         List<KeyBindings> conflicts = getConflicts();
         if (conflicts == null || conflicts.size() == 0) {
             clearConflictsList();
-            return;
+        } else
+        {
+	        // create array of strings to display in list box
+	        String [] objects = new String[conflicts.size()];
+	        for (int i=0; i<conflicts.size(); i++) {
+	            KeyBindings k = conflicts.get(i);
+	            String s = k.getActionDesc() + "  [ "+k.bindingsToString()+" ]";
+	            objects[i] = s;
+	        }
+	        // update list box
+	        conflictsList.setListData(objects);
+	        return;
         }
 
-        // create array of strings to display in list box
-        String [] objects = new String[conflicts.size()];
-        for (int i=0; i<conflicts.size(); i++) {
-            KeyBindings k = conflicts.get(i);
-            String s = k.getActionDesc() + "  [ "+k.bindingsToString()+" ]";
-            objects[i] = s;
+        // warn if an ALT key conflicts with a pulldown menu
+        if ((key1.getModifiers() & InputEvent.ALT_MASK) != 0)
+        {
+			TopLevel top = TopLevel.getCurrentJFrame();
+			EMenuBar menuBar = top.getEMenuBar();
+			for (EMenuItem menu: menuBar.getItems())
+			{
+				char reservedAlt = menu.getMnemonicChar();
+				if (reservedAlt == 0) continue;
+				KeyStroke ksRes = KeyStroke.getKeyStroke(reservedAlt, InputEvent.ALT_MASK);
+				if (ksRes == key1)
+				{
+			        String [] objects = new String[1];
+		            objects[0] = "Pulldown menu: " + menu.getText();
+			        conflictsList.setListData(objects);
+			        return;
+				}
+			}
         }
-        // update list box
-        conflictsList.setListData(objects);
+//        // check for reserved keystrokes (doesn't work)
+//        KeyStroke key1 = getStroke(stroke1Input);
+//        Keymap map = JTextComponent.getKeymap(JTextComponent.DEFAULT_KEYMAP);
+//        for ( ; map != null; map = map.getResolveParent())
+//        {
+//            KeyStroke[] keys = map.getBoundKeyStrokes();
+//            for (int i=0; i<keys.length; i++)
+//            {
+//            	if (keys[i] == key1)
+//            	{
+//        	        System.out.println(key1 + " IS RESERVED");
+//            	}
+//            }
+//        }
     }
 
     /**

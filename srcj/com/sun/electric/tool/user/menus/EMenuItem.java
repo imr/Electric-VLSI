@@ -313,7 +313,17 @@ public abstract class EMenuItem implements ActionListener {
      * @return true is this generic EMenuItem is selected.
      */
     public boolean isSelected() { return false; }
-    
+
+    /**
+     * Method to return the ALT character that will invoke this menu item.
+     * @return the character (0 if none).
+     */
+    public char getMnemonicChar()
+    {
+    	if (mnemonicsPos < 0) return 0;
+    	return text.charAt(mnemonicsPos);
+    }
+
     /**
      * Invoked when an action occurs.
      * It can be envoked form menu button, tool bar button or shortcut key.
