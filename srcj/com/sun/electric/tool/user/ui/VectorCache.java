@@ -933,8 +933,7 @@ public class VectorCache {
 		}
 
 		// draw any exports from the node
-		Iterator<Export> it = ni.getExports();
-		while (it.hasNext())
+		for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 		{
 			Export e = it.next();
 			Poly poly = e.getNamePoly();

@@ -25,9 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -37,17 +38,16 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow0;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -68,11 +68,11 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -461,7 +461,6 @@ class PixelDrawing
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
-//			Runtime.getRuntime().gc();
 			startTime = System.currentTimeMillis();
 			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
@@ -659,12 +658,9 @@ class PixelDrawing
 		// merge transparent image into opaque one
 		synchronized(img)
 		{
-			// if a grid is requested, overlay it
-//			if (cell != null && wnd.isGrid()) drawGrid(wnd);
-
 			// combine transparent and opaque colors into a final image
 			composite(null);
-		};
+		}
 	}
 
 	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
@@ -1143,7 +1139,6 @@ class PixelDrawing
        		Rectangle2D cellBounds = subCell.getBounds();
 			Poly poly = new Poly(cellBounds);
 			poly.transform(subTrans);
-//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 			cellBounds = poly.getBounds2D();
 			Rectangle screenBounds = databaseToScreen(cellBounds);
 			if (screenBounds.width <= 0 || screenBounds.height <= 0)
@@ -1254,10 +1249,9 @@ class PixelDrawing
 			while (it.hasNext())
 			{
 				Export e = it.next();
+            	if (np instanceof PrimitiveNode && !((PrimitiveNode)np).isVisible()) continue;
 				Poly poly = e.getNamePoly();
                 poly.transform(trans);
-//				if (topWnd != null && topWnd.isInPlaceEdit())
-//					poly.transform(topWnd.getInPlaceTransformOut());
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				if (exportDisplayLevel == 2)
 				{
@@ -1274,8 +1268,6 @@ class PixelDrawing
 						// use shorter port name
 						portName = e.getShortName();
 					}
-//					if (topWnd != null && topWnd.isInPlaceEdit())
-//						poly.transform(topWnd.getInPlaceTransformOut());
 					databaseToScreen(poly.getCenterX(), poly.getCenterY(), tempPt1);
 					Rectangle textRect = new Rectangle(tempPt1);
 					type = Poly.rotateType(type, ni);
@@ -1309,7 +1301,6 @@ class PixelDrawing
 				return;
 			}
 			if (ai.getGridFullWidth() > 0)
-//			if (ai.getLambdaFullWidth() > 0)
 			{
 				arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
 				if (arcSize < maxObjectSize)
@@ -1595,8 +1586,6 @@ class PixelDrawing
 		// transform into the subcell
         Orientation subOrient = orient.concatenate(ni.getOrient());
 		AffineTransform subTrans = ni.transformOut(trans);
-//		AffineTransform localTrans = ni.rotateOut(trans);
-//		AffineTransform subTrans = ni.translateOut(localTrans);
 
 		// compute where this cell lands on the screen
 		NodeProto np = ni.getProto();
@@ -1604,7 +1593,6 @@ class PixelDrawing
 		Rectangle2D cellBounds = subCell.getBounds();
 		Poly poly = new Poly(cellBounds);
 		poly.transform(subTrans);
-//		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 		cellBounds = poly.getBounds2D();
 		Rectangle screenBounds = databaseToScreen(cellBounds);
 		if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
@@ -1651,7 +1639,6 @@ class PixelDrawing
 		}
 
 		// now recurse
-
 		countCell(subCell, null, fullInstantiate, subOrient, subTrans);
 	}
 
@@ -1912,7 +1899,6 @@ class PixelDrawing
 
 			// transform the bounds
 			poly.transform(trans);
-//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 
 			// render the polygon
 			if (DEBUGRENDERTIMING)
@@ -3277,11 +3263,6 @@ class PixelDrawing
 			offY = -textHeight;
 		} if (style == Poly.Type.TEXTBOX)
 		{
-//			if (textWidth > rect.getLambdaFullWidth())
-//			{
-//				// text too big for box: scale it down
-//				textScale *= rect.getLambdaFullWidth() / textWidth;
-//			}
 			offX = -textWidth/2;
 			offY = -textHeight/2;
 		}

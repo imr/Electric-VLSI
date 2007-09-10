@@ -35,6 +35,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.geometry.Orientation;
@@ -2422,6 +2423,8 @@ class LayerDrawing
                 
                 EGraphics graphics = vt.graphics;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null) {
+                	NodeProto np = vt.e.getOriginalPort().getNodeInst().getProto();
+                	if (np instanceof PrimitiveNode && !((PrimitiveNode)np).isVisible()) continue;
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross

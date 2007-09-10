@@ -807,6 +807,7 @@ public class Layer
 			visibilityInitialized = true;
 		}
 		visible = newVis;
+		PrimitiveNode.resetAllVisibility();
 	}
 
 	/**

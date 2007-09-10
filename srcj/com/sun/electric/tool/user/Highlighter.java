@@ -1449,23 +1449,27 @@ public class Highlighter implements DatabaseChangeListener {
             		// add export text
             		if (User.isTextVisibilityOnExport())
             		{
-            			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
-            			{
-            				Export pp = eIt.next();
-                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
-                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                    		list.add(new HighlightText(pp, cell, Export.EXPORT_NAME));
+                    	NodeProto np = ni.getProto();
+                    	if (!(np instanceof PrimitiveNode) || ((PrimitiveNode)np).isVisible())
+                    	{
+	            			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
+	            			{
+	            				Export pp = eIt.next();
+	                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
+	                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+		                    		list.add(new HighlightText(pp, cell, Export.EXPORT_NAME));
 
-            				// add in variables on the exports
-                    		for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
-                        	{
-                        		Variable var = vIt.next();
-                        		if (!var.isDisplay()) continue;
-                        		style = getHighlightTextStyleBounds(wnd, pp, var.getKey(), textBounds);
-                        		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                        		list.add(new HighlightText(pp, cell, var.getKey()));
-                        	}
-                		}
+	            				// add in variables on the exports
+	                    		for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
+	                        	{
+	                        		Variable var = vIt.next();
+	                        		if (!var.isDisplay()) continue;
+	                        		style = getHighlightTextStyleBounds(wnd, pp, var.getKey(), textBounds);
+	                        		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+		                        		list.add(new HighlightText(pp, cell, var.getKey()));
+	                        	}
+	                		}
+                    	}
             		}
 // 					the old way to find node text
 //                  AffineTransform trans = ni.rotateOut();

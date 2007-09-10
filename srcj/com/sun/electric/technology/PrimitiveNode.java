@@ -38,12 +38,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
-
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -477,28 +478,28 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	}
 
 	// constants used in the "specialType" field
-	/** Defines a normal node. */					public static final int NORMAL = 0;
-	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
-	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
+	/** Defines a normal node. */							public static final int NORMAL    = 0;
+	/** Defines a serpentine transistor. */					public static final int SERPTRANS = 1;
+	/** Defines a polygonal transistor. */					public static final int POLYGONAL = 2;
+	/** set if node is a low vt transistor */               public static final int LOWVTBIT =   010;
+    /** set if node is a high vt transistor */              public static final int HIGHVTBIT =  020;
+    /** set if node is a native transistor */               public static final int NATIVEBIT =  040;
+    /** set if node is a od18 transistor */                 public static final int OD18BIT =   0100;
+    /** set if node is a od25 transistor */                 public static final int OD25BIT =   0200;
+    /** set if node is a od33 transistor */                 public static final int OD33BIT =   0400;
 
-	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
-	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
-	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
-	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
-	/** set if this primitive can be zero-sized */			private static final int CANBEZEROSIZE =    010000;
-	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
-	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
-	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
-	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
-	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =      0400000;
-	/** set if node will be considered in palette */        private static final int SKIPSIZEINPALETTE =    01000000;
-	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
-    /** set if node is a low vt transistor */               public static final int LOWVTBIT =          010;
-    /** set if node is a high vt transistor */              public static final int HIGHVTBIT =         020;
-    /** set if node is a native transistor */               public static final int NATIVEBIT =         040;
-    /** set if node is a od18 transistor */                 public static final int OD18BIT =          0100;
-    /** set if node is a od25 transistor */                 public static final int OD25BIT =          0200;
-    /** set if node is a od33 transistor */                 public static final int OD33BIT =          0400;
+	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =              01;
+	/** set if instances can be wiped */					private static final int ARCSWIPE =             01000;
+	/** set if node is to be kept square in size */			private static final int NSQUARE =              02000;
+	/** primitive can hold trace information */				private static final int HOLDSTRACE =           04000;
+	/** set if this primitive can be zero-sized */			private static final int CANBEZEROSIZE =       010000;
+	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =          020000;
+	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =          040000;
+	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =        0100000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =          0200000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =         0400000;
+	/** set if node will be considered in palette */        private static final int SKIPSIZEINPALETTE = 01000000;
+	/** set if not used (don't put in menu) */				private static final int NNOTUSED =          02000000;
 
 	// --------------------- private data -----------------------------------
 	
@@ -521,8 +522,9 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
-	/** Pref map for node width. */					private static HashMap<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
-	/** Pref map for node height. */				private static HashMap<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node width. */					private static Map<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node height. */				private static Map<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** cached state of node visibility */			private static Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
 
 	// ------------------ private and protected methods ----------------------
 
@@ -736,7 +738,11 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * Method to reset the list of Layers that comprise this PrimitiveNode.
      * @param layers
      */
-    public void setLayers(Technology.NodeLayer [] layers) { this.layers = layers; }
+    public void setLayers(Technology.NodeLayer [] layers)
+    {
+    	this.layers = layers;
+    	resetAllVisibility();
+    }
 
 	/**
 	 * Method to return an iterator over the layers in this PrimitiveNode.
@@ -1511,6 +1517,42 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
             userBits &= ~NNOTUSED; // clear
 
     }
+
+	/**
+	 * Method to reset the cache of PrimitiveNode visibility.
+	 * Called when layer visibility changes.
+	 */
+	public static void resetAllVisibility()
+	{
+		cacheVisibilityNodes.clear();
+	}
+
+	/**
+	 * Method to determine whether a primitive node is visible.
+	 * If all layers are invisible, the primitive is considered invisible.
+	 * Otherwise, it is visible.
+	 * @return true if this PrimitiveNode is visible.
+	 */
+	public boolean isVisible()
+	{
+		Boolean b = cacheVisibilityNodes.get(this);
+		if (b == null)
+		{
+			boolean visible = false;
+			for (Iterator<Layer> it2 = getLayerIterator(); it2.hasNext(); )
+			{
+				Layer lay = it2.next();
+				if (lay.isVisible())
+				{
+					visible = true;
+					break;
+				}
+			}
+			b = new Boolean(visible);
+			cacheVisibilityNodes.put(this, b);
+		}
+		return b.booleanValue();
+	}
 
 	/**
 	 * Method to tell if this PrimitiveNode is used.

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/10/07, SMR) Nodes that are invisible do not show or select exports (Bug #1348).
+
 IMP: (9/10/07, SMR) Key binding preferences now warn when binding to ALT keys
      that are attached to menus (Bug #1108).
 
