@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP/MAN: (9/11/07, SMR) Added Thin Film technology (tft).
+
 IMP: (9/11/07, GVG) Code to create cells in multithreaded jobs for Oyster
 
 IMP: (9/10/07, GVG) Code to multithread the reading of Verilog files.

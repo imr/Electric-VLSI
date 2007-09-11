@@ -1188,6 +1188,7 @@ public class Technology implements Comparable<Technology>
         lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
         lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
+        lazyUrls.put("tft",          Technology.class.getResource("technologies/TFT.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
         if (true) {
             lazyClasses.put("cmos90","com.sun.electric.plugins.tsmc.CMOS90");
