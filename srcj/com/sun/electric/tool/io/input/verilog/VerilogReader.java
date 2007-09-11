@@ -802,19 +802,29 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    private static List<VerilogData> verilogDataList = new ArrayList<VerilogData>();
+    public Cell createCellsOnly(VerilogData verilogData, Job job)
+    {
+        Cell theCell = null;
 
-    public void readVerilogOnly(String file, boolean fullOyster, Job job)
+        Library library = Library.newInstance(verilogData.name, null);
+        String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name);
+        buildCells(verilogData, library, false);
+        theCell = library.findNodeProto(topCellName);
+        if (job != null)
+            System.out.println("Accumulative time after creating cells '" + verilogData.name + "' " + job.getInfo());
+        return theCell; // still work because VerilogReader remembers the top cell
+    }
+
+    public VerilogData readVerilogOnly(String file, boolean fullOyster, Job job)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
         VerilogData verilogData = parseVerilog(file, fullOyster);
 
-        if (verilogData == null) return; // error
-
-        verilogDataList.add(verilogData);
+        if (verilogData == null) return null; // error
 
         if (job != null)
             System.out.println("Accumulative time before creating cells '" + file + "' " + job.getInfo());
+        return verilogData;
     }
 
     public Cell readVerilog(String testName, String file, boolean createCells, boolean fullOyster, Job job)

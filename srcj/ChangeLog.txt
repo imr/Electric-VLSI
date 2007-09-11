@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/11/07, GVG) Code to create cells in multithreaded jobs for Oyster
+
 IMP: (9/10/07, GVG) Code to multithread the reading of Verilog files.
 
 IMP: (9/10/07, SMR) Nodes that are invisible do not show or select exports (Bug #1348).

@@ -5,6 +5,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 
 import java.util.*;
+import java.io.Serializable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,7 +14,7 @@ import java.util.*;
  * Time: 1:04:47 PM
  * To change this template use File | Settings | File Templates.
  */
-public class VerilogData
+public class VerilogData implements Serializable
 {
     String name;
     private Map<String, VerilogModule> modules = new HashMap<String, VerilogModule>();
@@ -22,6 +23,8 @@ public class VerilogData
     {
         this.name = name;
     }
+
+    public String getName() {return name;}
 
     VerilogModule addModule(String name, boolean primitive)
     {
@@ -88,7 +91,7 @@ public class VerilogData
     /**
      * Covers supplies
      */
-    abstract static class VerilogConnection
+    abstract static class VerilogConnection implements Serializable
     {
         protected String name;
         int start;
@@ -266,7 +269,7 @@ public class VerilogData
         }
     }
 
-    public class VerilogPortInst
+    public class VerilogPortInst implements Serializable
     {
         String name;
         VerilogPort port;
@@ -335,7 +338,7 @@ public class VerilogData
         }
     }
 
-    public class VerilogInstance
+    public class VerilogInstance implements Serializable
     {
         String name;
         VerilogModule element;
@@ -413,7 +416,7 @@ public class VerilogData
     /**
      * Class to represent subcells
      */
-    public class VerilogModule //extends VerilogElement
+    public class VerilogModule implements Serializable
     {
         String name;
         boolean fullInfo; // in case the module information was found in the file
