@@ -346,7 +346,7 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading SIZE X");
 					return true;
 				}
-				convertLEFString(key);		// ignore SX
+				double wid = convertLEFString(key);		// get width
 
 				key = getAKeyword();
 				if (key == null)
@@ -366,7 +366,9 @@ public class LEF extends LEFDEF
 					System.out.println("EOF reading SIZE Y");
 					return true;
 				}
-				convertLEFString(key);		// ignore SY
+				double hei = convertLEFString(key);		// get height
+				cell.newVar(prXkey, new Double(wid));
+				cell.newVar(prYkey, new Double(hei));
 				if (ignoreToSemicolon("SIZE")) return true;
 				continue;
 			}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+BUG: (9/11/07, SMR) DEF input doesn't handle all orientations of instances.
+FIX: Improved LEF/DEF reader.
+
 IMP/MAN: (9/11/07, SMR) Added Thin Film technology (tft).
 
 IMP: (9/11/07, GVG) Code to create cells in multithreaded jobs for Oyster

@@ -742,9 +742,6 @@ public class DEF extends LEFDEF
 		return false;
 	}
 
-	private static Variable.Key prXkey = Variable.newKey("ATTR_prWidth");
-	private static Variable.Key prYkey = Variable.newKey("ATTR_prHeight");
-
 	/* cell is the parent cell */
 	private boolean readComponent(Cell cell)
 		throws IOException
@@ -801,8 +798,7 @@ public class DEF extends LEFDEF
 					if (prX != null)
 					{
 						String tmps = prX.getPureValue(0);
-						int tmp = Integer.parseInt(tmps);
-						width = tmp;
+						width = TextUtils.atof(tmps);
 					} else
 					{
 						width = sX;  //no PR boundary, use cell boundary
@@ -812,16 +808,13 @@ public class DEF extends LEFDEF
 					if (prY != null)
 					{
 						String tmps = prY.getPureValue(0);
-						int tmp = Integer.parseInt(tmps);
-						height = tmp;
+						height = TextUtils.atof(tmps);
 					} else
 					{
 						height = sY; //no PR boundary, use cell boundary
 					}
 
-					/* DEF orientations require translations from Java orientations
-					 * Need to add W, E, FW, FE support
-					 */
+					// DEF orientations require translations from Java orientations
 					if (or.equals(Orientation.YRR))
 					{
 						// FN DEF orientation
@@ -837,6 +830,26 @@ public class DEF extends LEFDEF
 						// S DEF orientation
 						ny = ny + height;
 						nx = nx + width;
+					}
+					if (or.equals(Orientation.RRR))
+					{
+						// E DEF orientation
+						ny = ny + width;
+					}
+					if (or.equals(Orientation.R))
+					{
+						// W DEF orientation
+						nx = nx + height;
+					}
+					if (or.equals(Orientation.YRRR))
+					{
+						// FE DEF orientation
+					}
+					if (or.equals(Orientation.YR))
+					{
+						// FW DEF orientation
+						nx = nx + height;
+						ny = ny + width;
 					}
 					Point2D npt = new Point2D.Double(nx,ny);
 					NodeInst ni = NodeInst.makeInstance(np, npt, sX, sY, cell, or, compName, 0);

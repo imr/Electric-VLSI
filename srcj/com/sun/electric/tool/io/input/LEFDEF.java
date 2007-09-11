@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -46,6 +47,9 @@ public class LEFDEF extends Input
 	protected static HashMap<ArcProto,Double> widthsFromLEF = new HashMap<ArcProto,Double>();
 	protected static Map<String,GetLayerInformation> knownLayers;
 	protected static final double OVERALLSCALE = 1;
+
+	protected static Variable.Key prXkey = Variable.newKey("ATTR_LEFwidth");
+	protected static Variable.Key prYkey = Variable.newKey("ATTR_LEFheight");
 
 	/**
 	 * Class to define Via information for LEF and DEF reading.
