@@ -3159,6 +3159,10 @@ public class Spice extends Topology
 
         boolean empty = true;
 
+        boolean useParasitics = useNewParasitics && (!useCDL) &&
+                Simulation.isSpiceUseParasitics() && (cell.getView() == View.LAYOUT);
+        if (useParasitics) return false;
+
         List<Cell> emptyCells = new ArrayList<Cell>();
 
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
