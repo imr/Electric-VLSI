@@ -2728,9 +2728,9 @@ public class MoCMOS extends Technology
         }
 
         // On the side
-        nodeGroups[++count][0] = "Pure";
-        nodeGroups[count][1] = "Misc.";
-        nodeGroups[count][2] = "Cell";
+        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
+        nodeGroups[count][1] = Technology.SPECIALMENUMISC;
+        nodeGroups[count][2] = Technology.SPECIALMENUCELL;
 	}
 
 	/******************** SUPPORT METHODS ********************/

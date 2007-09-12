@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -225,11 +226,11 @@ public class ComponentMenu extends EDialog
 		}
 
 		modelSpecials.clear();
-		modelSpecials.addElement("Cell");
-		modelSpecials.addElement("Export");
-		modelSpecials.addElement("Misc");
-		modelSpecials.addElement("Pure");
-		modelSpecials.addElement("Spice");
+		modelSpecials.addElement(Technology.SPECIALMENUCELL);
+		modelSpecials.addElement(Technology.SPECIALMENUEXPORT);
+		modelSpecials.addElement(Technology.SPECIALMENUMISC);
+		modelSpecials.addElement(Technology.SPECIALMENUPURE);
+		modelSpecials.addElement(Technology.SPECIALMENUSPICE);
 
 		// display the menu
 		showMenuSize();

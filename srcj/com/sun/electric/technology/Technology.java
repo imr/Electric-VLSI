@@ -122,6 +122,16 @@ public class Technology implements Comparable<Technology>
     /** key of Variable for saving scalable transistor contact information. */
     public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
+    // strings used in the Component Menu
+    public static final String SPECIALMENUCELL   = "Cell";
+    public static final String SPECIALMENUMISC   = "Misc.";
+    public static final String SPECIALMENUPURE   = "Pure";
+    public static final String SPECIALMENUSPICE  = "Spice";
+    public static final String SPECIALMENUEXPORT = "Export";
+    public static final String SPECIALMENUTEXT   = "Text";
+    public static final String SPECIALMENUHIGH   = "High";
+    public static final String SPECIALMENUPORT   = "Port";
+
    /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
@@ -4704,9 +4714,9 @@ public class Technology implements Comparable<Technology>
 				if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
 				things.add(np);
 			}
-			things.add("Pure");
-			things.add("Misc.");
-			things.add("Cell");
+			things.add(SPECIALMENUPURE);
+			things.add(SPECIALMENUMISC);
+			things.add(SPECIALMENUCELL);
 			int columns = (things.size()+13) / 14;
 			int rows = (things.size() + columns-1) / columns;
 			nodeGroups = new Object[rows][columns];

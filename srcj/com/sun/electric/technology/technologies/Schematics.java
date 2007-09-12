@@ -1419,7 +1419,7 @@ public class Schematics extends Technology
 		nodeGroups = new Object[14][2];
 		nodeGroups[0][0] = wire_arc;
 		nodeGroups[1][0] = wirePinNode;
-		nodeGroups[2][0] = "Spice";
+		nodeGroups[2][0] = Technology.SPECIALMENUSPICE;
 		nodeGroups[3][0] = offpageNode;
 
         List<Object> list = new ArrayList<Object>();
@@ -1474,9 +1474,9 @@ public class Schematics extends Technology
 
         nodeGroups[0][1] = bus_arc;
         nodeGroups[1][1] = busPinNode;
-        nodeGroups[2][1] = "Cell";
+        nodeGroups[2][1] = Technology.SPECIALMENUCELL;
         nodeGroups[3][1] = wireConNode;
-        nodeGroups[4][1] = "Misc.";
+        nodeGroups[4][1] = Technology.SPECIALMENUMISC;
         nodeGroups[5][1] = groundNode;
         nodeGroups[6][1] = inductorNode;
 

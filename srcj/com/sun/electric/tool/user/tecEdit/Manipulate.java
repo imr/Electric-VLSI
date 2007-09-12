@@ -538,9 +538,9 @@ public class Manipulate
 			}
 
 			// add in special menu entries
-			things.add("Pure");
-			things.add("Misc.");
-			things.add("Cell");
+			things.add(Technology.SPECIALMENUPURE);
+			things.add(Technology.SPECIALMENUMISC);
+			things.add(Technology.SPECIALMENUCELL);
 
 			// construct the menu information
 			int columns = (things.size()+13) / 14;

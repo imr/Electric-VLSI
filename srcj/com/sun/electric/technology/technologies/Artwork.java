@@ -463,7 +463,7 @@ public class Artwork extends Technology
 			// special variation of Artwork for technology editing
 			if (techEditSet != null) return techEditSet;
 			techEditSet = new Object[16][1];
-			techEditSet[0][0] = "Text";
+			techEditSet[0][0] = Technology.SPECIALMENUTEXT;
 			NodeInst arc = NodeInst.makeDummyInstance(circleNode);
 			arc.setArcDegrees(0, Math.PI/4);
 			techEditSet[1][0] = arc;
@@ -481,8 +481,8 @@ public class Artwork extends Technology
 			techEditSet[11][0] = boxNode;
 			techEditSet[12][0] = crossedBoxNode;
 			techEditSet[13][0] = filledBoxNode;
-			techEditSet[14][0] = "High";
-			techEditSet[15][0] = "Port";
+			techEditSet[14][0] = Technology.SPECIALMENUHIGH;
+			techEditSet[15][0] = Technology.SPECIALMENUPORT;
 			return techEditSet;
 		}
 
@@ -492,7 +492,7 @@ public class Artwork extends Technology
 		nodeGroups = new Object[12][2];
 		nodeGroups[0][0] = solidArc;
 		nodeGroups[1][0] = thickerArc;
-		nodeGroups[2][0] = "Cell";
+		nodeGroups[2][0] = Technology.SPECIALMENUCELL;
 		nodeGroups[3][0] = openedPolygonNode;
 		nodeGroups[4][0] = openedThickerPolygonNode;
 		nodeGroups[5][0] = filledTriangleNode;
@@ -505,14 +505,14 @@ public class Artwork extends Technology
 
 		nodeGroups[0][1] = dottedArc;
 		nodeGroups[1][1] = dashedArc;
-		nodeGroups[2][1] = "Text";
+		nodeGroups[2][1] = Technology.SPECIALMENUTEXT;
 		nodeGroups[3][1] = openedDottedPolygonNode;
 		nodeGroups[4][1] = openedDashedPolygonNode;
 		nodeGroups[5][1] = triangleNode;
 		nodeGroups[6][1] = boxNode;
 		nodeGroups[7][1] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
 		nodeGroups[8][1] = circleNode;
-		nodeGroups[9][1] = "Export";
+		nodeGroups[9][1] = Technology.SPECIALMENUEXPORT;
 		nodeGroups[10][1] = arrowNode;
 		nodeGroups[11][1] = Technology.makeNodeInst(splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
 		return nodeGroups;

@@ -315,7 +315,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         } else if (obj instanceof String)
         {
             String msg = (String)obj;
-            if (msg.equals("Cell"))
+            if (msg.equals(Technology.SPECIALMENUCELL))
             {
                 JPopupMenu cellMenu = new JPopupMenu("Cells");
                 for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
@@ -328,7 +328,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 //					cellMenu.addMouseListener(new MyPopupListener());
 //					cellMenu.addPopupMenuListener(new MyPopupListener());
                 cellMenu.show(panel, e.getX(), e.getY());
-            } else if (msg.equals("Misc."))
+            } else if (msg.equals(Technology.SPECIALMENUMISC))
             {
                 JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
                 menuItem = new JMenuItem("Cell Instance...");
@@ -393,7 +393,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.unroutedPinNode));
                 specialMenu.add(menuItem);
                 specialMenu.show(panel, e.getX(), e.getY());
-            } else if (msg.equals("Pure"))
+            } else if (msg.equals(Technology.SPECIALMENUPURE))
             {
                 JPopupMenu pureMenu = new JPopupMenu("Pure");
                 for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
@@ -407,7 +407,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     pureMenu.add(menuItem);
                 }
                 pureMenu.show(panel, e.getX(), e.getY());
-            } if (msg.equals("Spice"))
+            } if (msg.equals(Technology.SPECIALMENUSPICE))
             {
                 JPopupMenu cellMenu = new JPopupMenu("Spice");
 
@@ -423,7 +423,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     ReadSpiceLibrary.loadSpiceCells(spiceLib, panel, cellMenu);
                     cellMenu.show(panel, e.getX(), e.getY());
                 }
-            } if (msg.equals("Export"))
+            } if (msg.equals(Technology.SPECIALMENUEXPORT))
             {
                 JPopupMenu specialMenu = new JPopupMenu("Export");
                 menuItem = new JMenuItem("Wire");
@@ -436,17 +436,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("universal"); } });
                 specialMenu.add(menuItem);
                 specialMenu.show(panel, e.getX(), e.getY());
-            } if (msg.equals("Text"))
+            } if (msg.equals(Technology.SPECIALMENUTEXT))
             {
             	// place a piece of text
                 PaletteFrame.placeInstance("ART_message", panel, false);
-            } if (msg.equals("High"))
+            } if (msg.equals(Technology.SPECIALMENUHIGH))
             {
             	// place a technology-edit highlight box
             	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech.boxNode);
     			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
                 PaletteFrame.placeInstance(ni, panel, false);
-            } if (msg.equals("Port"))
+            } if (msg.equals(Technology.SPECIALMENUPORT))
             {
             	// place a technology-edit port
                 PaletteFrame.placeInstance(Generic.tech.portNode, panel, false);
@@ -868,8 +868,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 }
                 if (toDraw instanceof String) {
                     String str = (String)toDraw;
-                    if (str.equals("Cell") || str.equals("Spice") || str.equals("Misc.") || str.equals("Pure"))
-                        drawArrow = true;
+                    if (str.equals(Technology.SPECIALMENUCELL) || str.equals(Technology.SPECIALMENUSPICE) ||
+                    	str.equals(Technology.SPECIALMENUMISC) || str.equals(Technology.SPECIALMENUPURE))
+                        	drawArrow = true;
                     
                     int defSize = 18;
                     Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);

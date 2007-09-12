@@ -297,9 +297,9 @@ public class GEM extends Technology
         nodeGroups[++count][0] = Prerequisite_arc; nodeGroups[count][1] = pp_node;
         nodeGroups[++count][0] = Nondeterministic_arc; nodeGroups[count][1] = np_node;
         nodeGroups[++count][0] = Nondeterministic_fork_arc; nodeGroups[count][1] = fp_node;
-        nodeGroups[++count][0] = "Cell"; nodeGroups[count][1] = e_node;
-        nodeGroups[++count][0] = "Misc."; nodeGroups[count][1] = g_node;
-        nodeGroups[++count][0] = "Pure.";
+        nodeGroups[++count][0] = Technology.SPECIALMENUCELL; nodeGroups[count][1] = e_node;
+        nodeGroups[++count][0] = Technology.SPECIALMENUMISC; nodeGroups[count][1] = g_node;
+        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
         
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

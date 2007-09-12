@@ -197,9 +197,9 @@ public class FPGA extends Technology
         int count = -1;
 
         nodeGroups[++count][0] = wireArc;
-        nodeGroups[++count][0] = "Cell";
-        nodeGroups[++count][0] = "Misc.";
-        nodeGroups[++count][0] = "Pure";
+        nodeGroups[++count][0] = Technology.SPECIALMENUCELL;
+        nodeGroups[++count][0] = Technology.SPECIALMENUMISC;
+        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
         nodeGroups[++count][0] = wirePinNode;
         nodeGroups[++count][0] = pipNode;
         nodeGroups[++count][0] = repeaterNode;

@@ -1146,7 +1146,9 @@ public class PCB extends Technology
         nodeGroups[count][2] = Bottom_Solder_arc; nodeGroups[count][3] = bspinNodes[1];
         nodeGroups[++count][0] = Drawing_arc; nodeGroups[count][1] = dp_node;
         nodeGroups[count][2] = ndp_node; nodeGroups[count][3] = edp_node;
-        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
+        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
+        nodeGroups[count][1] = Technology.SPECIALMENUMISC;
+        nodeGroups[count][2] = Technology.SPECIALMENUCELL;
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
