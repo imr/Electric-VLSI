@@ -43,6 +43,10 @@ import java.util.Map;
  */
 public class LEFDEF extends Input
 {
+	// special controls to ignore LEF/DEF data (set false to eliminate data)
+	protected static final boolean PLACELEFGEOMETRY = true;
+	protected static final boolean PLACEDEFNETS = true;
+
 	protected static ViaDef firstViaDefFromLEF = null;
 	protected static HashMap<ArcProto,Double> widthsFromLEF = new HashMap<ArcProto,Double>();
 	protected static Map<String,GetLayerInformation> knownLayers;
@@ -126,59 +130,12 @@ public class LEFDEF extends Input
 			layerFun = Layer.Function.UNKNOWN;
 			viaArc1 = viaArc2 = null;
 
-			// if type is given, use it
-			if (type != null)
-			{
-				if (type.equalsIgnoreCase("masterslice"))
-				{
-					// masterslice layers are typically polysilicon
-					int j = 0;
-					name = name.toUpperCase();
-					if (name.startsWith("POLY")) j = 4; else
-						if (name.startsWith("P")) j = 1;
-					setupPolyLayer(name.substring(j));
-					return;
-				}
-				if (type.equalsIgnoreCase("cut"))
-				{
-					int j = 0;
-					name = name.toUpperCase();
-					if (name.startsWith("VIA")) j = 3; else
-						if (name.startsWith("V")) j = 1;
-					setupViaLayer(name.substring(j));
-					return;
-				}
-				if (type.equalsIgnoreCase("routing"))
-				{
-					int j = 0;
-					if (name.startsWith("METAL")) j = 5; else
-						if (name.startsWith("MET")) j = 3; else
-							if (name.startsWith("M")) j = 1;
-					name = name.substring(j);
-					while (name.length() > 0 && !Character.isDigit(name.charAt(0)))
-						name = name.substring(1);
-					setupMetalLayer(name);
-					return;
-				}
-			}
-
-			// handle via layers
-			int j = 0;
-			name = name.toUpperCase();
-			if (name.startsWith("VIA")) j = 3; else
-				if (name.startsWith("V")) j = 1;
-			if (j != 0)
-			{
-				setupViaLayer(name.substring(j));
-				return;
-			}
-
+			// first handle known layer names
 			if (name.startsWith("POLY"))
 			{
 				setupPolyLayer(name.substring(4));
 				return;
 			}
-			
 			if (name.equals("PDIFF"))
 			{
 				arcFun = ArcProto.Function.DIFFP;
@@ -200,11 +157,21 @@ public class LEFDEF extends Input
 				pure = getPureLayerNode();
 				return;
 			}
-		
 			if (name.equals("CONT"))
 			{
 				layerFun = Layer.Function.CONTACT1;
 				pure = getPureLayerNode();
+				return;
+			}
+
+			// handle via layers
+			int j = 0;
+			name = name.toUpperCase();
+			if (name.startsWith("VIA")) j = 3; else
+				if (name.startsWith("V")) j = 1;
+			if (j != 0)
+			{
+				setupViaLayer(name.substring(j));
 				return;
 			}
 
@@ -217,6 +184,42 @@ public class LEFDEF extends Input
 			{
 				setupMetalLayer(name.substring(j));
 				return;
+			}
+
+			// if type is given, use it
+			if (type != null)
+			{
+				if (type.equalsIgnoreCase("masterslice"))
+				{
+					// masterslice layers are typically polysilicon
+					j = 0;
+					name = name.toUpperCase();
+					if (name.startsWith("POLY")) j = 4; else
+						if (name.startsWith("P")) j = 1;
+					setupPolyLayer(name.substring(j));
+					return;
+				}
+				if (type.equalsIgnoreCase("cut"))
+				{
+					j = 0;
+					name = name.toUpperCase();
+					if (name.startsWith("VIA")) j = 3; else
+						if (name.startsWith("V")) j = 1;
+					setupViaLayer(name.substring(j));
+					return;
+				}
+				if (type.equalsIgnoreCase("routing"))
+				{
+					j = 0;
+					if (name.startsWith("METAL")) j = 5; else
+						if (name.startsWith("MET")) j = 3; else
+							if (name.startsWith("M")) j = 1;
+					name = name.substring(j);
+					while (name.length() > 0 && !Character.isDigit(name.charAt(0)))
+						name = name.substring(1);
+					setupMetalLayer(name);
+					return;
+				}
 			}
 		}
 

@@ -977,18 +977,17 @@ public class DEF extends LEFDEF
 	private boolean readNet(Cell cell, boolean special)
 		throws IOException
 	{
+		if (!PLACEDEFNETS)
+		{
+			ignoreToSemicolon("NET");
+			return false;
+		}
 		if (schImport && special)
 		{
 			// when doing schematic import, ignore special nets
 			ignoreToSemicolon("NET");
 			return false;
 		}
-//if (special)
-//{
-//	// always ignore special nets
-//	ignoreToSemicolon("NET");
-//	return false;
-//}
 
 		// get the net name
 		String key = mustGetKeyword("NET");

@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -370,6 +371,12 @@ public class LEF extends LEFDEF
 				cell.newVar(prXkey, new Double(wid));
 				cell.newVar(prYkey, new Double(hei));
 				if (ignoreToSemicolon("SIZE")) return true;
+
+				if (!PLACELEFGEOMETRY)
+				{
+					Point2D ctr = new Point2D.Double(wid/2, hei/2);
+					NodeInst.makeInstance(Generic.tech.invisiblePinNode, ctr, wid, hei, cell);
+				}
 				continue;
 			}
 
@@ -427,11 +434,6 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("RECT"))
 			{
-				if (np == null)
-				{
-					System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
-					return true;
-				}
 				key = getAKeyword();
 				if (key == null)
 				{
@@ -467,14 +469,22 @@ public class LEF extends LEFDEF
 				if (ignoreToSemicolon("RECT")) return true;
 
 				// make the obstruction
-				Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
-				double sX = Math.abs(hX - lX);
-				double sY = Math.abs(hY - lY);
-				NodeInst ni = NodeInst.makeInstance(np, ctr, sX, sY, cell);
-				if (ni == null)
+				if (PLACELEFGEOMETRY)
 				{
-					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create node for RECT");
-					return true;
+					if (np == null)
+					{
+						System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
+						return true;
+					}
+					Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
+					double sX = Math.abs(hX - lX);
+					double sY = Math.abs(hY - lY);
+					NodeInst ni = NodeInst.makeInstance(np, ctr, sX, sY, cell);
+					if (ni == null)
+					{
+						System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create node for RECT");
+						return true;
+					}
 				}
 				continue;
 			}
@@ -626,11 +636,6 @@ public class LEF extends LEFDEF
 
 			if (key.equalsIgnoreCase("RECT"))
 			{
-				if (pureNp == null)
-				{
-					System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
-					return true;
-				}
 				key = getAKeyword();
 				if (key == null)
 				{
@@ -666,22 +671,30 @@ public class LEF extends LEFDEF
 				if (ignoreToSemicolon("RECT")) return true;
 
 				// make the pin
-				Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
-				double sX = Math.abs(hX - lX);
-				double sY = Math.abs(hY - lY);
-				NodeInst ni = NodeInst.makeInstance(pureNp, ctr, sX, sY, cell);
-				if (ni == null)
+				if (PLACELEFGEOMETRY)
 				{
-					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create pin for RECT");
-					return true;
-				}
+					if (pureNp == null)
+					{
+						System.out.println("Line " + lineReader.getLineNumber() + ": No layers for RECT");
+						return true;
+					}
+					Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
+					double sX = Math.abs(hX - lX);
+					double sY = Math.abs(hY - lY);
+					NodeInst ni = NodeInst.makeInstance(pureNp, ctr, sX, sY, cell);
+					if (ni == null)
+					{
+						System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create pin for RECT");
+						return true;
+					}
 
-				if (first)
-				{
-					// create the port on the first pin
-					first = false;
-					Export pp = newPort(cell, ni, pureNp.getPort(0), portname);
-					if (pp != null) pp.setCharacteristic(portCharacteristics);
+					if (first)
+					{
+						// create the port on the first pin
+						first = false;
+						Export pp = newPort(cell, ni, pureNp.getPort(0), portname);
+						if (pp != null) pp.setCharacteristic(portCharacteristics);
+					}
 				}
 				continue;
 			}
@@ -760,13 +773,16 @@ public class LEF extends LEFDEF
 				if (ignoreToSemicolon("VIA")) return true;
 
 				// create the via
-				double sX = li.pin.getDefWidth();
-				double sY = li.pin.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(li.pin, new Point2D.Double(intX, intY), sX, sY, cell);
-				if (ni == null)
+				if (PLACELEFGEOMETRY)
 				{
-					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create VIA for PATH");
-					return true;
+					double sX = li.pin.getDefWidth();
+					double sY = li.pin.getDefHeight();
+					NodeInst ni = NodeInst.makeInstance(li.pin, new Point2D.Double(intX, intY), sX, sY, cell);
+					if (ni == null)
+					{
+						System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create VIA for PATH");
+						return true;
+					}
 				}
 				continue;
 			}
@@ -774,6 +790,8 @@ public class LEF extends LEFDEF
 			System.out.println("Line " + lineReader.getLineNumber() + ": Unknown PORT keyword (" + key + ")");
 			return true;
 		}
+
+		if (!PLACELEFGEOMETRY) return false;
 
 		// look for paths that end at vias
 		for(LEFPath lp = lefPaths; lp != null; lp = lp.nextLEFPath)
