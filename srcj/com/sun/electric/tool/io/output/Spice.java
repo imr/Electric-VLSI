@@ -460,9 +460,15 @@ public class Spice extends Topology
         Variable varTemplate = null;
 
         varTemplate = cell.getVar(preferedEngineTemplateKey);
-        if (!assuraHSpice) // null in case of NO_TEMPLATE_KEY
+        // Any of the following spice templates, if missing, will default to the generic spice template
+        if (varTemplate == null)
         {
-            if (varTemplate == null)
+            if (preferedEngineTemplateKey == SPICE_2_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_3_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_H_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_P_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_GC_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_SM_TEMPLATE_KEY)
                 varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         }
         return varTemplate;
@@ -919,16 +925,10 @@ public class Spice extends Topology
 
 				// look for a SPICE template on the prototype
 				Variable varTemplate = null;
-				if (useCDL)
-				{
-					varTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
-				} else
-				{
-                    varTemplate = getEngineTemplate(subCell);
-//					varTemplate = subCell.getVar(preferedEngineTemplateKey);
-//					if (varTemplate == null)
-//						varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
-				}
+                varTemplate = getEngineTemplate(subCell);
+//			    varTemplate = subCell.getVar(preferedEngineTemplateKey);
+//				if (varTemplate == null)
+//					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 
 				// handle templates
 				if (varTemplate != null)
@@ -2606,12 +2606,7 @@ public class Spice extends Topology
 	{
 		// skip if there is a template
         Variable varTemplate = null;
-        varTemplate = cell.getVar(preferedEngineTemplateKey);
-        if (varTemplate != null) return true;
-        if (!assuraHSpice)
-        {
-            varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
-        }
+        varTemplate = getEngineTemplate(cell);
         if (varTemplate != null) return true;
 
 		// look for a model file for the current cell, can come from pref or on cell
