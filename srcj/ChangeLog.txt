@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/12/07, GVG) Detecting job finished with string in Oyster multithread job
+
 BUG: (9/11/07, SMR) DEF input doesn't handle all orientations of instances.
 FIX: Improved LEF/DEF reader.
 
