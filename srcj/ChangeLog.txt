@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/12/07, GVG) splitNodes in Oyster.
+
 BUG: (9/12/07, SMR) Editing the component menu fails for the "Misc." text.
 FIX: Generalized all component menu text so that strings are defined just once.
 
