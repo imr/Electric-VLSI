@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/13/07, DN) A small change in CircuitChangeJobs.CleenupChanges.doIt to
+    speed up bulky arcs kill. Command "Tests|Dima|cleenup arcs" to remove
+    duplicate arcs.
+
 IMP: (9/12/07, GVG) splitNodes in Oyster.
 
 BUG: (9/12/07, SMR) Editing the component menu fails for the "Misc." text.

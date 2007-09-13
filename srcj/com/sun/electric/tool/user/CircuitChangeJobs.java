@@ -1418,11 +1418,16 @@ public class CircuitChangeJobs
 			{
 				ni.invisiblePinWithOffsetText(true);
 			}
-			for(ArcInst ai : arcsToKill)
-			{
-				if (!ai.isLinked()) continue;
-				ai.kill();
-			}
+            for (int arcIndex = cell.getNumArcs() - 1; arcIndex >= 0; arcIndex--) {
+                ArcInst ai = cell.getArc(arcIndex);
+                if (arcsToKill.contains(ai))
+                    ai.kill();
+            }
+//			for(ArcInst ai : arcsToKill)
+//			{
+//				if (!ai.isLinked()) continue;
+//				ai.kill();
+//			}
 
 			// report what was cleaned
 			StringBuffer infstr = new StringBuffer();
