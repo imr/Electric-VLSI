@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/13/07, GVG) Arrivals with splitNode option. Multithread and single versions.
+
 IMP: (9/13/07, DN) A small change in CircuitChangeJobs.CleenupChanges.doIt to
     speed up bulky arcs kill. Command "Tests|Dima|cleenup arcs" to remove
     duplicate arcs.
