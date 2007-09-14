@@ -433,8 +433,7 @@ public class DEF extends LEFDEF
 	 * Method to look for a connection to arcs of type "ap" in cell "cell"
 	 * at (x, y).  The connection can not be on "not" (if it is not null).
 	 * If found, return the PortInst.
-	 */
-	/*
+	 *
 	 * This function became too slow as the number of nets in cell increased.
 	 * Replaced by function below. RBR Mar 2007
 	 */
@@ -742,7 +741,9 @@ public class DEF extends LEFDEF
 		return false;
 	}
 
-	/* cell is the parent cell */
+	/**
+	 * cell is the parent cell
+	 */
 	private boolean readComponent(Cell cell)
 		throws IOException
 	{
@@ -912,11 +913,10 @@ public class DEF extends LEFDEF
 			pp = ni.getProto().findPortProto(portName);
 			if (pp == null) continue;
 			pi = ni.findPortInstFromProto(pp);
-			if (lastPi != null)
+			if (lastPi != null && IOTool.isDEFLogicalPlacement())
 			{
 				//do connection
-				ArcProto ap = Generic.tech.unrouted_arc;
-				ArcInst ai = ArcInst.makeInstance(ap, pi, lastPi);
+				ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, pi, lastPi);
 				if (ai == null)
 				{
 					reportError("Could not create unrouted arc");
@@ -928,7 +928,7 @@ public class DEF extends LEFDEF
 		return lastPi;
 	}
 
-	/*
+	/**
 	 * Look for special nets that need to be merged with normal nets
 	 * Synopsys Astro router places patches of metal in special nets
 	 * to cover normal nets as a method of filling notches
@@ -937,6 +937,7 @@ public class DEF extends LEFDEF
 	{
 		if (specialNetsHT == null) return;
 		if (normalNetsHT == null) return;
+		if (!IOTool.isDEFLogicalPlacement()) return;
 		for (Enumeration enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
 		{
 			String netName = (String)enSpec.nextElement();
@@ -944,12 +945,11 @@ public class DEF extends LEFDEF
 			PortInst normalPi = null;
 			if (normalNetsHT.containsKey(netName))
 			{
-				normalPi = (normalNetsHT.get(netName));
+				normalPi = normalNetsHT.get(netName);
 				if (normalPi != null)
 				{
 					// create a logical net between these two points
-					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, specPi, normalPi);
+					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, specPi, normalPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1024,11 +1024,10 @@ public class DEF extends LEFDEF
 					if (special) specialNetsHT.put(netName,lastPi);
 						else normalNetsHT.put(netName,lastPi);
 				}
-				if (lastLogPi != null && lastPi != null)
+				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
 				{
-					//connect logical network and physical network so that DRC passes
-					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, lastPi, lastLogPi);
+					// connect logical network and physical network so that DRC passes
+					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1182,20 +1181,21 @@ public class DEF extends LEFDEF
 				{
 					if (connectAllComponents)
 					{
-						//must connect all components in netlist
+						// must connect all components in netlist
 						pi = connectGlobal(cell, wildcardPort);
 						if (pi == null) return true;
 					} else
+					{
 						if (lastLogPi != null)
 						{
-							ArcProto ap = Generic.tech.unrouted_arc;
-							ArcInst ai = ArcInst.makeInstance(ap, pi, lastLogPi);
+							ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, pi, lastLogPi);
 							if (ai == null)
 							{
 								reportError("Could not create unrouted arc");
 								return true;
 							}
 						}
+					}
 				}
 				lastLogPi = pi;
 
@@ -1208,13 +1208,11 @@ public class DEF extends LEFDEF
 			// handle "new" start of coordinate trace
 			if (key.equalsIgnoreCase("NEW"))
 			{
-				/*
-				 * Connect last created segment to logical network
-				 */
-				if (lastLogPi != null && lastPi != null){
-					//connect logical network and physical network so that DRC passes
-					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, lastPi, lastLogPi);
+				// Connect last created segment to logical network
+				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
+				{
+					// connect logical network and physical network so that DRC passes
+					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1358,9 +1356,8 @@ public class DEF extends LEFDEF
 				// get the next keyword
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
-				/*
-				 * check if next key is yet another via
-				 */
+
+				// check if next key is yet another via
 				ViaDef vdStack = checkForVia(key) ;
 				if (vdStack == null) stackedViaFlag = false;
 				else stackedViaFlag = true;
