@@ -603,6 +603,7 @@ public class VectorCache {
                     portDescript = portDescript.withColorIndex(descript.getColorIndex());
                     style = descript.getPos().getPolyType();
                 }
+descript = portDescript;
                 VectorText vt = new VectorText(portPoly.getBounds2D(), style, /*portDescript*/descript, null, VectorText.TEXTTYPEPORT, pp,
                         null, null);
                 portShapes.add(vt);

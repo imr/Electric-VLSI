@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+BUG: (9/14/07, SMR) Exports don't show rotation, size, etc at higher levels.
+FIX: In VectorCache.VectorCell.initPortShapes(), use "portDescript", not "descript".
+
 IMP/MAN: (9/14/07, SMR) DEF input ignores logical wires when not selected.
      DEF preferences updated to be clear about input.
 
