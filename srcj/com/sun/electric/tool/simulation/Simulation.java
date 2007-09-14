@@ -1560,7 +1560,7 @@ public class Simulation extends Tool
 	/**
 	 * Method to get the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
-	 * Specification="" means use built-in header cards.<BR>
+	 * Specification="N O N E XXX" means use built-in header cards (XXX is the former specification).<BR>
 	 * Specification="Extension XXX" means use header cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use header cards from the file XXX.
@@ -1570,7 +1570,7 @@ public class Simulation extends Tool
 	/**
 	 * Method to set the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
-	 * Specification="" means use built-in header cards.<BR>
+	 * Specification="N O N E XXX" means use built-in header cards (XXX is the former specification).<BR>
 	 * Specification="Extension XXX" means use header cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use header cards from the file XXX.
@@ -1583,7 +1583,7 @@ public class Simulation extends Tool
 	/**
 	 * Method to get the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
-	 * Specification="" means use built-in trailer cards.<BR>
+	 * Specification="N O N E XXX" means use built-in trailer cards (XXX is the former specification).<BR>
 	 * Specification="Extension XXX" means use trailer cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use trailer cards from the file XXX.
@@ -1593,7 +1593,7 @@ public class Simulation extends Tool
 	/**
 	 * Method to set the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
-	 * Specification="" means use built-in trailer cards.<BR>
+	 * Specification="N O N E XXX" means use built-in trailer cards (XXX is the former specification).<BR>
 	 * Specification="Extension XXX" means use trailer cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use trailer cards from the file XXX.

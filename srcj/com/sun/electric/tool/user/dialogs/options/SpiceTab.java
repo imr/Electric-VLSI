@@ -133,35 +133,43 @@ public class SpiceTab extends PreferencePanel
 
 		// the next section: header and trailer cards
 		String spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
-		if (spiceHeaderCardInitial.length() == 0)
+		boolean noHeader = false;
+		if (spiceHeaderCardInitial.startsWith(Spice.SPICE_NOEXTENSION_PREFIX))
+		{
+			noHeader = true;
+			spiceHeaderCardInitial = spiceHeaderCardInitial.substring(Spice.SPICE_NOEXTENSION_PREFIX.length());
+		}
+		if (spiceHeaderCardInitial.length() == 0) noHeader = true;
+		if (spiceHeaderCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
+		{
+			spiceHeaderCardsWithExtension.setSelected(true);
+			spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
+		} else
+		{
+			spiceHeaderCardsFromFile.setSelected(true);
+			spiceHeaderCardFile.setText(spiceHeaderCardInitial);
+		}
+		if (noHeader)
             spiceNoHeaderCards.setSelected(true);
-        else
-		{
-			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
-			{
-				spiceHeaderCardsWithExtension.setSelected(true);
-				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
-			} else
-			{
-				spiceHeaderCardsFromFile.setSelected(true);
-				spiceHeaderCardFile.setText(spiceHeaderCardInitial);
-			}
-		}
 		String spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
-		if (spiceTrailerCardInitial.length() == 0)
-            spiceNoTrailerCards.setSelected(true);
-        else
+		boolean noTrailer = false;
+		if (spiceTrailerCardInitial.startsWith(Spice.SPICE_NOEXTENSION_PREFIX))
 		{
-			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
-			{
-				spiceTrailerCardsWithExtension.setSelected(true);
-				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
-			} else
-			{
-				spiceTrailerCardsFromFile.setSelected(true);
-				spiceTrailerCardFile.setText(spiceTrailerCardInitial);
-			}
+			noTrailer = true;
+			spiceTrailerCardInitial = spiceTrailerCardInitial.substring(Spice.SPICE_NOEXTENSION_PREFIX.length());
 		}
+		if (spiceTrailerCardInitial.length() == 0) noTrailer = true;
+		if (spiceTrailerCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
+		{
+			spiceTrailerCardsWithExtension.setSelected(true);
+			spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(Spice.SPICE_EXTENSION_PREFIX.length()));
+		} else
+		{
+			spiceTrailerCardsFromFile.setSelected(true);
+			spiceTrailerCardFile.setText(spiceTrailerCardInitial);
+		}
+		if (noTrailer)
+			spiceNoTrailerCards.setSelected(true);
 		spiceBrowseHeaderFile.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { spiceBrowseHeaderFileActionPerformed(); }
@@ -255,7 +263,10 @@ public class SpiceTab extends PreferencePanel
         if (!Simulation.getSpiceRunProgramArgs().equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
 
 		// the next section: header and trailer cards
-		String header = "";
+		String header = Spice.SPICE_NOEXTENSION_PREFIX;
+		if (spiceHeaderCardExtension.getText().length() > 0)
+			header += Spice.SPICE_EXTENSION_PREFIX + spiceHeaderCardExtension.getText(); else
+				header += spiceHeaderCardFile.getText();
 		if (spiceHeaderCardsWithExtension.isSelected())
 		{
 			header = Spice.SPICE_EXTENSION_PREFIX + spiceHeaderCardExtension.getText();
@@ -265,7 +276,10 @@ public class SpiceTab extends PreferencePanel
 		}
 		if (!Simulation.getSpiceHeaderCardInfo().equals(header)) Simulation.setSpiceHeaderCardInfo(header);
 
-		String trailer = "";
+		String trailer = Spice.SPICE_NOEXTENSION_PREFIX;
+		if (spiceTrailerCardExtension.getText().length() > 0)
+			trailer += Spice.SPICE_EXTENSION_PREFIX + spiceTrailerCardExtension.getText(); else
+				 trailer += spiceTrailerCardFile.getText();
 		if (spiceTrailerCardsWithExtension.isSelected())
 		{
 			trailer = Spice.SPICE_EXTENSION_PREFIX + spiceTrailerCardExtension.getText();

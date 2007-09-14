@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06e: *******************************
 
+IMP: (9/14/07, SMR) Spice preferences now remember the last header/trailer
+     card setting even if you select "none" (Bug #1382).
+
 IMP: (9/13/07, GVG) Update in splitNode mode. Multithread and single versions.
 
 IMP: (9/13/07, GVG) Arrivals with splitNode option. Multithread and single versions.

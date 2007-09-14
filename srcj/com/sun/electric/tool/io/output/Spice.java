@@ -118,6 +118,7 @@ public class Spice extends Topology
     /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
+	/** Prefix for spice null extension. */                     public static final String SPICE_NOEXTENSION_PREFIX = "N O N E ";
 
     /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
 
@@ -2849,7 +2850,7 @@ public class Spice extends Topology
 
 		// see if spice model/option cards from file if specified
 		String headerFile = Simulation.getSpiceHeaderCardInfo();
-		if (headerFile.length() > 0)
+		if (headerFile.length() > 0 && !headerFile.startsWith(SPICE_NOEXTENSION_PREFIX))
 		{
 			if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
@@ -2909,7 +2910,7 @@ public class Spice extends Topology
 	{
 		// get spice trailer cards from file if specified
 		String trailerFile = Simulation.getSpiceTrailerCardInfo();
-		if (trailerFile.length() > 0)
+		if (trailerFile.length() > 0 && !trailerFile.startsWith(SPICE_NOEXTENSION_PREFIX))
 		{
 			if (trailerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
