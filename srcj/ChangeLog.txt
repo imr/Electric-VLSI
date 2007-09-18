@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06f: *******************************
 
+IMP: (9/18/07, SMR) Object properties dialogs (node, arc, multi Get Info)
+     now remember their size between invocations.
+
+IMP/MAN: (9/18/07, SMR) Cell Properties dialog can now set/clear expansion
+     state on all cells.
+
+IMP: (9/18/07, SMR) When duplicating circuitry, the initial highlighting is
+     in the same position as it was before.
+
+IMP/MAN: (9/18/07, SMR) Icon preferences now allow rotation to be given for
+     each type of port.
+
 BUG: (9/17/07, GVG) NT-N node and NT-N transistor problems in TSMC180 (Bug #1378)
 FIX: Disabled for now.
 

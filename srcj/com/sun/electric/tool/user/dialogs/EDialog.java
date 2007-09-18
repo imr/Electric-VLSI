@@ -23,13 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Client;
 
 import java.awt.Component;
-import java.awt.GraphicsConfiguration;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -60,7 +59,7 @@ import javax.swing.text.JTextComponent;
 public class EDialog extends JDialog
 {
 	private static HashMap<Class,Point> locations = new HashMap<Class,Point>();
-	private static HashMap<Class,Point> sizes = new HashMap<Class,Point>();
+	private static HashMap<Class,Dimension> sizes = new HashMap<Class,Dimension>();
 	private Class thisClass;
     public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
     public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
@@ -95,7 +94,8 @@ public class EDialog extends JDialog
 			public void actionPerformed(ActionEvent event) { escapePressed(); }
 		});
 
-        if (parent == null && !TopLevel.isMDIMode()) {
+        if (parent == null && !TopLevel.isMDIMode())
+        {
             // add a focus listener for SDI mode so dialogs are always on top
             dialogFocusHandler.addEDialog(this);
         }
@@ -107,11 +107,21 @@ public class EDialog extends JDialog
 	 */
 	protected void finishInitialization()
 	{
-		Point sz = sizes.get(thisClass);
+		Dimension sz = sizes.get(thisClass);
 		if (sz != null)
-		{
-			this.setSize(sz.x, sz.y);
-		}
+			setSize(sz);
+	}
+
+	/**
+	 * Method to ensure that the dialog is at least as large as the user-specified size.
+	 */
+	protected void ensureMinimumSize()
+	{
+		Dimension sz = sizes.get(thisClass);
+		if (sz == null) return;
+		Dimension curSz = getSize();
+		if (curSz.width < sz.width || curSz.height < sz.height)
+			setSize(sz);
 	}
 
 	/**
@@ -120,11 +130,13 @@ public class EDialog extends JDialog
 	 */
 	protected void escapePressed() {}
 
-    protected void closeDialog() {
+    protected void closeDialog()
+    {
         setVisible(false);
     }
 
-    protected void focusClearOnTextField(JTextComponent textComponent) {
+    protected void focusClearOnTextField(JTextComponent textComponent)
+    {
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(0);
     }
@@ -152,18 +164,23 @@ public class EDialog extends JDialog
      * highlights any text in that text field.
      * @param textComponent the text field
      */
-    protected void focusOnTextField(JTextComponent textComponent) {
+    protected void focusOnTextField(JTextComponent textComponent)
+    {
 //        textComponent.requestFocus();
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(textComponent.getDocument().getLength());
     }
 
-    private static class TextBoxFocusListener implements FocusListener {
-        public void focusGained(FocusEvent e) {
+    private static class TextBoxFocusListener implements FocusListener
+    {
+        public void focusGained(FocusEvent e)
+        {
             Component source = e.getComponent();
-            if (source instanceof JTextField) {
+            if (source instanceof JTextField)
+            {
                 JTextField textField = (JTextField)source;
-                if (textField.isEnabled() && textField.isEditable()) {
+                if (textField.isEnabled() && textField.isEditable())
+                {
                     int len = textField.getDocument().getLength();
                     textField.setSelectionStart(0);
                     textField.setSelectionEnd(len);
@@ -171,8 +188,9 @@ public class EDialog extends JDialog
             }
         }
 
-        public void focusLost(FocusEvent e) {
-            //To change body of implemented methods use File | Settings | File Templates.
+        public void focusLost(FocusEvent e)
+        {
+            // To change body of implemented methods use File | Settings | File Templates.
         }
     }
 
@@ -209,9 +227,7 @@ public class EDialog extends JDialog
 		{
 			Class cls = e.getSource().getClass();
 			Rectangle bound = ((JDialog)e.getSource()).getBounds();
-			int x = bound.width;
-			int y = bound.height;
-			sizes.put(cls, new Point(x, y));
+			sizes.put(cls, new Dimension(bound.width, bound.height));
 		}
 
 		public void componentMoved(ComponentEvent e)
@@ -230,11 +246,13 @@ public class EDialog extends JDialog
 
         private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
 
-        public synchronized void addEDialog(EDialog dialog) {
+        public synchronized void addEDialog(EDialog dialog)
+        {
             dialogs.add(dialog);
         }
 
-        public synchronized void windowGainedFocus(WindowEvent e) {
+        public synchronized void windowGainedFocus(WindowEvent e)
+        {
             // this seems to be causing problems on windows platforms
             //for (int i=0; i<dialogs.size(); i++) {
                 //EDialog dialog = dialogs.get(i);

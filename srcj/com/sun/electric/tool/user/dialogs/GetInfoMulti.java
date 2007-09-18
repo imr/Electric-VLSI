@@ -179,6 +179,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
         theDialog.loadMultiInfo();
         theDialog.pack();
+        theDialog.ensureMinimumSize();
 		theDialog.setVisible(true);
 		theDialog.toFront();
 	}
@@ -193,6 +194,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		loadMultiInfo();
 		listPane.setPreferredSize(oldDim);
 		pack();
+		ensureMinimumSize();
 	}
 
     /**
@@ -219,10 +221,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				reload = true; break;
 			}
 		}
-        if (reload) {
+        if (reload)
+        {
             // update dialog
             loadMultiInfo();
 			pack();
+        	ensureMinimumSize();
         }
     }
 

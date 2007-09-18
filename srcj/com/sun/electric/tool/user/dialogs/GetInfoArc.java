@@ -99,7 +99,11 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			theDialog = new GetInfoArc(jf, false);
 		}
 		theDialog.loadInfo();
-		if (!theDialog.isVisible()) theDialog.pack();
+		if (!theDialog.isVisible())
+		{
+			theDialog.pack();
+        	theDialog.ensureMinimumSize();
+		}
 		theDialog.setVisible(true);
 		theDialog.toFront();
 	}
@@ -393,7 +397,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			attributesTable.setEnabled(allAttributes.size() != 0);
 			attributesTable.setElectricObject(ai);
 
-			pack();
+//			pack();
 			Job.releaseExamineLock();
 		} catch (Error e) {
 			Job.releaseExamineLock();
