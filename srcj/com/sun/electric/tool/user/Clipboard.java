@@ -304,7 +304,7 @@ public class Clipboard
 		{
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener,
-				inPlace, inPlaceOrient));
+				inPlace, inPlaceOrient, false));
 		} else
 		{
 		    new PasteObjects(parent, geomList, textList, lastDupX, lastDupY,
@@ -340,7 +340,7 @@ public class Clipboard
         if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null));
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null, true));
 		} else
 		{
 			new DuplicateObjects(wnd.getCell(), geomList, textList, User.getAlignmentToGrid());
@@ -1163,7 +1163,7 @@ public class Clipboard
 		 * @param currentListener listener to restore when done
 		 */
 		private PasteListener(EditWindow wnd, List<Geometric> geomList, List<DisplayedText> textList,
-			EventListener currentListener, AffineTransform inPlace, Orientation inPlaceOrient)
+			EventListener currentListener, AffineTransform inPlace, Orientation inPlaceOrient, boolean dup)
 		{
 			this.wnd = wnd;
 			this.geomList = geomList;
@@ -1179,6 +1179,12 @@ public class Clipboard
 			// get starting point from current mouse location
 			Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
 			Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+			if (dup)
+			{
+				pasteBounds.setRect(pasteBounds.getMinX()+mouseDB.getX()-pasteBounds.getCenterX(),
+					pasteBounds.getMinY()+mouseDB.getY()-pasteBounds.getCenterY(),
+					pasteBounds.getWidth(), pasteBounds.getHeight());
+			}
 			Point2D delta = getDelta(mouseDB, false);
 
 			wnd.getHighlighter().pushHighlight();
