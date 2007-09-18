@@ -4,10 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06f: *******************************
 
-IMP: (9/14/07, GVG) Initial time is also global and changes in TimingModeBucketJob so
-report job will be kicked in batch mode.
-
-************************* Version 8.06e: *******************************
+BUG: (9/17/07, GVG) NT-N node and NT-N transistor problems in TSMC180 (Bug #1378)
+FIX: Disabled for now.
 
 IMP: (9/14/07, GVG) Last changes in Oyster before move to SVN. Initial memory is
 global now.
