@@ -2076,10 +2076,17 @@ public class EDIF extends Input
 					int pwrSide = User.getIconGenPowerSide();
 					int gndSide = User.getIconGenGroundSide();
 					int clkSide = User.getIconGenClockSide();
+		            int inputRot = User.getIconGenInputRot();
+		            int outputRot = User.getIconGenOutputRot();
+		            int bidirRot = User.getIconGenBidirRot();
+		            int pwrRot = User.getIconGenPowerRot();
+		            int gndRot = User.getIconGenGroundRot();
+		            int clkRot = User.getIconGenClockRot();
 					nnp = ViewChanges.makeIconForCell(curCell, leadLength, leadSpacing,
 						reverseIconExportOrder, drawBody, drawLeads, placeCellCenter,
 						exportTech, exportStyle, exportLocation,
-						inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
+						inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
+						inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 				} catch (JobException e)
 				{
 				}

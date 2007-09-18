@@ -923,6 +923,90 @@ public class User extends Listener
 	 */
 	public static void setIconGenClockSide(int side) { cacheIconGenClockSide.setInt(side); }
 
+	private static Pref cacheIconGenInputRot = Pref.makeIntPref("IconGenInputRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Input ports should go on generated icons.
+	 * @return information about what angle Input ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenInputRot() { return cacheIconGenInputRot.getInt(); }
+	/**
+	 * Method to set what angle Input ports should go on generated icons.
+	 * @param rot information about what angle Input ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenInputRot(int rot) { cacheIconGenInputRot.setInt(rot); }
+
+	private static Pref cacheIconGenOutputRot = Pref.makeIntPref("IconGenOutputRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Output ports should go on generated icons.
+	 * @return information about what angle Output ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenOutputRot() { return cacheIconGenOutputRot.getInt(); }
+	/**
+	 * Method to set what angle Output ports should go on generated icons.
+	 * @param rot information about what angle Output ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenOutputRot(int rot) { cacheIconGenOutputRot.setInt(rot); }
+
+	private static Pref cacheIconGenBidirRot = Pref.makeIntPref("IconGenBidirRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Bidirectional ports should go on generated icons.
+	 * @return information about what angle Bidirectional ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenBidirRot() { return cacheIconGenBidirRot.getInt(); }
+	/**
+	 * Method to set what angle Bidirectional ports should go on generated icons.
+	 * @param rot information about what angle Bidirectional ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenBidirRot(int rot) { cacheIconGenBidirRot.setInt(rot); }
+
+	private static Pref cacheIconGenPowerRot = Pref.makeIntPref("IconGenPowerRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Power ports should go on generated icons.
+	 * @return information about what angle Power ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenPowerRot() { return cacheIconGenPowerRot.getInt(); }
+	/**
+	 * Method to set what angle Power ports should go on generated icons.
+	 * @param rot information about what angle Power ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenPowerRot(int rot) { cacheIconGenPowerRot.setInt(rot); }
+
+	private static Pref cacheIconGenGroundRot = Pref.makeIntPref("IconGenGroundRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Ground ports should go on generated icons.
+	 * @return information about what angle Ground ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenGroundRot() { return cacheIconGenGroundRot.getInt(); }
+	/**
+	 * Method to set what angle Ground ports should go on generated icons.
+	 * @param rot information about what angle Ground ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenGroundRot(int rot) { cacheIconGenGroundRot.setInt(rot); }
+
+	private static Pref cacheIconGenClockRot = Pref.makeIntPref("IconGenClockRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Clock ports should go on generated icons.
+	 * @return information about what angle Clock ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenClockRot() { return cacheIconGenClockRot.getInt(); }
+	/**
+	 * Method to set what angle Clock ports should go on generated icons.
+	 * @param rot information about what angle Clock ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenClockRot(int rot) { cacheIconGenClockRot.setInt(rot); }
+
 	private static Pref cacheIconGenExportLocation = Pref.makeIntPref("IconGenExportLocation", tool.prefs, 1);
 	/**
 	 * Method to tell where exports should appear along the leads in generated icons.

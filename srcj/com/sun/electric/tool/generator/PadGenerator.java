@@ -1023,8 +1023,11 @@ public class PadGenerator
 				if (leftSide * 2 < rightSide) spacing = leadSpacing * 2;
 				yBBPos = yPos = ySize / 2 - ((ySize - (leftSide - 1) * spacing) / 2 + total * spacing);
 
+				int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
+					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
+					User.getIconGenGroundRot(), User.getIconGenClockRot());
 				if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation))
+					exportTech, drawLeads, exportStyle, exportLocation, rotation))
 						total++;
 			}
 			total = 0;
@@ -1043,8 +1046,11 @@ public class PadGenerator
 				xPos = xBBPos + leadLength;
 				if (rightSide * 2 < leftSide) spacing = leadSpacing * 2;
 				yBBPos = yPos = ySize / 2 - ((ySize - (rightSide - 1) * spacing) / 2 + total * spacing);
+				int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
+					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
+					User.getIconGenGroundRot(), User.getIconGenClockRot());
 				if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation))
+					exportTech, drawLeads, exportStyle, exportLocation, rotation))
 						total++;
 			}
 

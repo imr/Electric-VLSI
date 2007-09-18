@@ -93,17 +93,17 @@ public class IconTab extends PreferencePanel
 
 		// initialize the text rotation for each type of export
 		initRot(iconInputRot);
-//		iconInputRot.setSelectedIndex(User.getIconGenInputSide());
+		iconInputRot.setSelectedIndex(User.getIconGenInputRot());
 		initRot(iconOutputRot);
-//		iconOutputRot.setSelectedIndex(User.getIconGenOutputSide());
+		iconOutputRot.setSelectedIndex(User.getIconGenOutputRot());
 		initRot(iconBidirRot);
-//		iconBidirRot.setSelectedIndex(User.getIconGenBidirSide());
+		iconBidirRot.setSelectedIndex(User.getIconGenBidirRot());
 		initRot(iconPowerRot);
-//		iconPowerRot.setSelectedIndex(User.getIconGenPowerSide());
+		iconPowerRot.setSelectedIndex(User.getIconGenPowerRot());
 		initRot(iconGroundRot);
-//		iconGroundRot.setSelectedIndex(User.getIconGenGroundSide());
+		iconGroundRot.setSelectedIndex(User.getIconGenGroundRot());
 		initRot(iconClockRot);
-//		iconClockRot.setSelectedIndex(User.getIconGenClockSide());
+		iconClockRot.setSelectedIndex(User.getIconGenClockRot());
 
 		iconExportPos.addItem("Body");
 		iconExportPos.addItem("Lead End");
@@ -147,7 +147,6 @@ public class IconTab extends PreferencePanel
 		box.addItem("90");
 		box.addItem("180");
 		box.addItem("270");
-		box.setEnabled(false);
 	}
 
 	/**
@@ -156,30 +155,35 @@ public class IconTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		// save which side each export type goes on
 		int currInt = iconInputPos.getSelectedIndex();
-		if (currInt != User.getIconGenInputSide())
-			User.setIconGenInputSide(currInt);
-
+		if (currInt != User.getIconGenInputSide()) User.setIconGenInputSide(currInt);
 		currInt = iconOutputPos.getSelectedIndex();
-		if (currInt != User.getIconGenOutputSide())
-			User.setIconGenOutputSide(currInt);
-
+		if (currInt != User.getIconGenOutputSide()) User.setIconGenOutputSide(currInt);
 		currInt = iconBidirPos.getSelectedIndex();
-		if (currInt != User.getIconGenBidirSide())
-			User.setIconGenBidirSide(currInt);
-
+		if (currInt != User.getIconGenBidirSide()) User.setIconGenBidirSide(currInt);
 		currInt = iconPowerPos.getSelectedIndex();
-		if (currInt != User.getIconGenPowerSide())
-			User.setIconGenPowerSide(currInt);
-
+		if (currInt != User.getIconGenPowerSide()) User.setIconGenPowerSide(currInt);
 		currInt = iconGroundPos.getSelectedIndex();
-		if (currInt != User.getIconGenGroundSide())
-			User.setIconGenGroundSide(currInt);
-
+		if (currInt != User.getIconGenGroundSide()) User.setIconGenGroundSide(currInt);
 		currInt = iconClockPos.getSelectedIndex();
-		if (currInt != User.getIconGenClockSide())
-			User.setIconGenClockSide(currInt);
+		if (currInt != User.getIconGenClockSide()) User.setIconGenClockSide(currInt);
 
+		// save which angle each export goes on
+		currInt = iconInputRot.getSelectedIndex();
+		if (currInt != User.getIconGenInputRot()) User.setIconGenInputRot(currInt);
+		currInt = iconOutputRot.getSelectedIndex();
+		if (currInt != User.getIconGenOutputRot()) User.setIconGenOutputRot(currInt);
+		currInt = iconBidirRot.getSelectedIndex();
+		if (currInt != User.getIconGenBidirRot()) User.setIconGenBidirRot(currInt);
+		currInt = iconPowerRot.getSelectedIndex();
+		if (currInt != User.getIconGenPowerRot()) User.setIconGenPowerRot(currInt);
+		currInt = iconGroundRot.getSelectedIndex();
+		if (currInt != User.getIconGenGroundRot()) User.setIconGenGroundRot(currInt);
+		currInt = iconClockRot.getSelectedIndex();
+		if (currInt != User.getIconGenClockRot()) User.setIconGenClockRot(currInt);
+
+		// save other factors
 		currInt = iconExportPos.getSelectedIndex();
 		if (currInt != User.getIconGenExportLocation())
 			User.setIconGenExportLocation(currInt);

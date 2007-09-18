@@ -23,18 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import javax.swing.JOptionPane;
-
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -83,6 +71,19 @@ import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
 
 /**
  * Class for view-related changes to the circuit.
@@ -169,12 +170,6 @@ public class ViewChanges
 					Variable var = vIt.next();
 					if (!var.isDisplay()) continue;
                     destCell.addVar(var.withOff(var.getXOff(), var.getYOff() + dY));
-//					Variable cellVar = destCell.newVar(var.getKey(), var.getObject());
-//					if (cellVar != null)
-//					{
-//						cellVar.setTextDescriptor(var.getTextDescriptor());
-//						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
-//					}
 				}
 
 				// delete the original
@@ -240,14 +235,6 @@ public class ViewChanges
         public void terminateOK()
         {
             User.fixStaleCellReferences(idMapper);
-//			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//			{
-//				WindowFrame wf = it.next();
-//				if (wf.getContent().getCell() == cell)
-//				{
-//					wf.getContent().setCell(cell, VarContext.globalContext, null);
-//				}
-//			}
 			EditWindow.repaintAll();
         }
 	}
@@ -397,7 +384,6 @@ public class ViewChanges
 				if (newPp == null || newOPp == null) continue;
 				ArcProto univ = Generic.tech.universal_arc;
 				ArcInst newAI = ArcInst.makeInstance(univ, newPp.getOriginalPort(), newOPp.getOriginalPort());
-//				ArcInst newAI = ArcInst.makeInstanceFull(univ, univ.getDefaultLambdaFullWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
 				if (newAI == null)
 				{
 					System.out.println("Could not create connecting arc");
@@ -416,8 +402,6 @@ public class ViewChanges
 			if (np != Generic.tech.essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
 				ni.getXSize(), ni.getYSize(), skeletonCell, ni.getOrient(), null, 0);
-//			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-//				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -484,9 +468,16 @@ public class ViewChanges
             int pwrSide = User.getIconGenPowerSide();
             int gndSide = User.getIconGenGroundSide();
             int clkSide = User.getIconGenClockSide();
+            int inputRot = User.getIconGenInputRot();
+            int outputRot = User.getIconGenOutputRot();
+            int bidirRot = User.getIconGenBidirRot();
+            int pwrRot = User.getIconGenPowerRot();
+            int gndRot = User.getIconGenGroundRot();
+            int clkRot = User.getIconGenClockRot();
             new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
                 reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
-                inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide, doItNow);
+                inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
+                inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot, doItNow);
         }
         else
         {
@@ -494,7 +485,7 @@ public class ViewChanges
             boolean drawBodyAndLeads = Job.getDebug();
             new MakeIconView(curCell, 0.05, 0, 2.0, 2.0,
             false, drawBodyAndLeads, drawBodyAndLeads, true, 0, 1, 1,
-            0, 1, 2, 3, 3, 0, doItNow);
+            0, 1, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, doItNow);
         }
     }
 
@@ -507,6 +498,7 @@ public class ViewChanges
 		private boolean reverseIconExportOrder, drawBody, drawLeads, placeCellCenter;
 		private int exportTech, exportStyle, exportLocation;
 		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
+		private int inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot;
 		private NodeInst iconNode;
         private boolean doItNow;
 
@@ -515,6 +507,7 @@ public class ViewChanges
 			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
 			int exportTech, int exportStyle, int exportLocation,
 			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
+			int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot,
             boolean doItNow)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -530,12 +523,12 @@ public class ViewChanges
 			this.exportTech = exportTech;
 			this.exportStyle = exportStyle;
 			this.exportLocation = exportLocation;
-			this.inputSide = inputSide;
-			this.outputSide = outputSide;
-			this.bidirSide = bidirSide;
-			this.pwrSide = pwrSide;
-			this.gndSide = gndSide;
-			this.clkSide = clkSide;
+			this.inputSide = inputSide;     this.inputRot = inputRot;
+			this.outputSide = outputSide;   this.outputRot = outputRot;
+			this.bidirSide = bidirSide;     this.bidirRot = bidirRot;
+			this.pwrSide = pwrSide;         this.pwrRot = pwrRot;
+			this.gndSide = gndSide;         this.gndRot = gndRot;
+			this.clkSide = clkSide;         this.clkRot = clkRot;
             this.doItNow = doItNow;
             if (doItNow)
             {
@@ -547,11 +540,10 @@ public class ViewChanges
 
 		public boolean doIt() throws JobException
 		{
-//			Library lib = curCell.getLibrary();
-
 			Cell iconCell = makeIconForCell(curCell, leadLength, leadSpacing, reverseIconExportOrder,
 				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
-				inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
+				inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
+				inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 			if (iconCell == null) return false;
 
 			// place an icon in the schematic
@@ -581,8 +573,6 @@ public class ViewChanges
 			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
             if (!doItNow)
                 fieldVariableChanged("iconNode");
-//            ni.addObserver(curCell); // adding observer to notify icons if there are changes in master cell
-//            curCell.addObserver(ni);
 			return true;
 		}
 
@@ -613,7 +603,8 @@ public class ViewChanges
 	public static Cell makeIconForCell(Cell curCell, double leadLength, double leadSpacing,
 		boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
 		int exportTech, int exportStyle, int exportLocation,
-		int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
+		int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
+		int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot)
 			throws JobException
 	{
 		// make a sorted list of exports
@@ -710,8 +701,9 @@ public class ViewChanges
 					break;
 			}
 
+			int rotation = iconTextRotation(pp, inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell,
-				exportTech, drawLeads, exportStyle, exportLocation))
+				exportTech, drawLeads, exportStyle, exportLocation, rotation))
 					total++;
 		}
 
@@ -725,14 +717,24 @@ public class ViewChanges
 	}
 
 	/**
-	 * Helper method to create an export in icon "np".  The export is from original port "pp",
-	 * is on side "index" (0: left, 1: right, 2: top, 3: bottom), is at (xPos,yPos), and
-	 * connects to the central box at (xBBPos,yBBPos).  Returns TRUE if the export is created.
-	 * It uses icon style "style".
+	 * Helper method to create an export in an icon.
+	 * @param pp the Export to build.
+	 * @param index the side (0: left, 1: right, 2: top, 3: bottom).
+	 * @param xPos the export location
+	 * @param yPos the export location
+	 * @param xBBPos the central box location
+	 * @param yBBPos the central box location.
+	 * @param np the cell in which to create the export.
+	 * @param exportTech the technology to use (generic or schematic)
+	 * @param drawLeads true to draw leads on the icon
+	 * @param exportStyle the icon style
+	 * @param exportLocation
+	 * @param textRotation
+	 * @return true if the export was created.
 	 */
 	public static boolean makeIconExport(Export pp, int index,
 		double xPos, double yPos, double xBBPos, double yBBPos, Cell np,
-		int exportTech, boolean drawLeads, int exportStyle, int exportLocation)
+		int exportTech, boolean drawLeads, int exportStyle, int exportLocation, int textRotation)
 	{
 		// presume "universal" exports (Generic technology)
 		NodeProto pinType = Generic.tech.universalPinNode;
@@ -771,6 +773,7 @@ public class ViewChanges
 		if (port != null)
 		{
 			TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
+			if (textRotation != 0) td = td.withRotation(TextDescriptor.Rotation.getRotationAt(textRotation));
 			switch (exportStyle)
 			{
 				case 0:		// Centered
@@ -831,7 +834,6 @@ public class ViewChanges
 				PortInst head = ni.getOnlyPortInst();
 				PortInst tail = pinNi.getOnlyPortInst();
 				ArcInst ai = ArcInst.makeInstance(wireType,
-//				ArcInst ai = ArcInst.makeInstanceFull(wireType, wireType.getDefaultLambdaFullWidth(),
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
 						new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
@@ -863,6 +865,27 @@ public class ViewChanges
 		if (character == PortCharacteristic.GND) return gndSide;
 		if (character.isClock()) return clkSide;
 		return inputSide;
+	}
+
+	/**
+	 * Method to determine the side of the icon that port "pp" belongs on.
+	 */
+	public static int iconTextRotation(Export pp, int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot)
+	{
+		PortCharacteristic character = pp.getCharacteristic();
+
+		// special detection for power and ground ports
+		if (pp.isPower()) character = PortCharacteristic.PWR;
+		if (pp.isGround()) character = PortCharacteristic.GND;
+
+		// see which side this type of port sits on
+		if (character == PortCharacteristic.IN) return inputRot;
+		if (character == PortCharacteristic.OUT) return outputRot;
+		if (character == PortCharacteristic.BIDIR) return bidirRot;
+		if (character == PortCharacteristic.PWR) return pwrRot;
+		if (character == PortCharacteristic.GND) return gndRot;
+		if (character.isClock()) return clkRot;
+		return inputRot;
 	}
 
 	/****************************** CONVERT TO SCHEMATICS ******************************/
@@ -994,22 +1017,8 @@ public class ViewChanges
 						// set length/width
                         TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5).withOff(-0.5, -1);
 						schemNI.newVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()), td);
-//						Variable lenVar = schemNI.newDisplayVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()));
-//						if (lenVar != null)
-//						{
-//							lenVar.setRelSize(0.5);
-//							lenVar.setOff(-0.5, -1);
-//						}
                         td = TextDescriptor.getNodeTextDescriptor().withRelSize(1).withOff(0.5, -1);
-//                        mtd.setRelSize(1);
-//                        mtd.setOff(0.5, -1);
                         schemNI.newVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()), td);
-//						Variable widVar = schemNI.newDisplayVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()));
-//						if (widVar != null)
-//						{
-//							widVar.setRelSize(1);
-//							widVar.setOff(0.5, -1);
-//						}
 					} else
 					{
 						// set area
@@ -1071,7 +1080,6 @@ public class ViewChanges
 
 			// create the new arc
 			ArcInst schemAI = ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
-//			ArcInst schemAI = ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
 			if (schemAI == null) continue;
 			schemAI.setFixedAngle(false);
 			schemAI.setRigid(false);
@@ -1507,7 +1515,6 @@ public class ViewChanges
                             }
 
                             ArcInst newAi = ArcInst.makeInstanceBase(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
-//                            ArcInst newAi = ArcInst.makeInstanceFull(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
                             if (newAi == null)
                             {
                                 System.out.println("Cell " + newCell.describe(true) + ": can't run " + ratArc + " from " +
