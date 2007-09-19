@@ -69,9 +69,9 @@ public class LayoutText extends EDialog
 	private static String lastMessage = null;
 
 	/** Creates new form Layout Text */
-	public LayoutText(Frame parent, boolean modal)
+	public LayoutText(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

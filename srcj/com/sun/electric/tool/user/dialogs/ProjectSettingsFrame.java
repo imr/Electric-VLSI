@@ -95,14 +95,14 @@ public class ProjectSettingsFrame extends EDialog
 	 */
 	public static void projectSettingsCommand()
 	{
-		ProjectSettingsFrame dialog = new ProjectSettingsFrame(TopLevel.getCurrentJFrame(), true);
+		ProjectSettingsFrame dialog = new ProjectSettingsFrame(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form ProjectSettingsFrame */
-	public ProjectSettingsFrame(Frame parent, boolean modal)
+	public ProjectSettingsFrame(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
         originalContext = Setting.getContext();
         currentContext = new ArrayList<Object>(originalContext);
 		getContentPane().setLayout(new GridBagLayout());

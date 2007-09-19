@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Client;
@@ -67,11 +68,11 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -86,6 +87,7 @@ import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -474,7 +476,7 @@ public class FileMenu {
                     Map<Setting,Object> settingsToReconcile = Setting.reconcileSettings(projectSettings);
                     if (!settingsToReconcile.isEmpty()) {
                         String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-                        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, settingsToReconcile, libName, this);
+                        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), settingsToReconcile, libName, this);
                         dialog.setVisible(true);
                         return; // startJob will be executed by reconcilation dialog
                     }
@@ -896,11 +898,6 @@ public class FileMenu {
         Output.writePanicSnapshot(EDatabase.clientDatabase().backupUnsafe(), oldJelibDir, true);
     }
 
-//    public static boolean saveLibraryNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
-//    {
-//        return SaveLibrary.performTaskNoJob(newName, lib, type, compatibleWith6);
-//    }
-
     /**
      * Class to save a library in a new thread.
      * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
@@ -929,7 +926,6 @@ public class FileMenu {
             boolean success = false;
             try
             {
-//                success = performTaskNoJob(newName, lib, type, compatibleWith6);
                 // rename the library if requested
                 if (newName != null) {
                     URL libURL = TextUtils.makeURLToFile(newName);
@@ -955,20 +951,6 @@ public class FileMenu {
         public void terminateOK() {
             User.fixStaleCellReferences(idMapper);
         }
-//        protected static boolean performTaskNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
-//        {
-//            // rename the library if requested
-//            if (newName != null)
-//            {
-//                URL libURL = TextUtils.makeURLToFile(newName);
-//                lib.setLibFile(libURL);
-//                IdMapper idMapper = lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
-//            }
-//
-//            boolean error = Output.writeLibrary(lib, type, compatibleWith6, false);
-//            if (error) return false;
-//            return true;
-//        }
     }
 
     /**
@@ -1285,6 +1267,12 @@ public class FileMenu {
 		    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 			Dimension oldSize = overall.getSize();
 			ep.setOldSize(oldSize);
+
+	        // determine area to print
+	        EditWindow_ wnd = null;
+	        if (wf.getContent() instanceof EditWindow) wnd = (EditWindow_)wf.getContent();
+	    	Rectangle2D printBounds = Output.getAreaToPrint(cell, false, wnd);
+	    	ep.setRenderArea(printBounds);
 
 			// initialize for content-specific printing
             if (!wf.getContent().initializePrinting(ep, pageFormat))

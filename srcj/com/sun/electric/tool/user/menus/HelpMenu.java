@@ -87,7 +87,7 @@ public class HelpMenu {
 	 */
 	public static void aboutCommand()
     {
-		About dialog = new About(TopLevel.getCurrentJFrame(), true);
+		About dialog = new About(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
     }
 

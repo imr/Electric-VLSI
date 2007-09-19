@@ -38,6 +38,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
+
 import javax.swing.JOptionPane;
 
 
@@ -49,9 +51,9 @@ public class NewExport extends EDialog
 	private static String latestCharacteristic;
 
 	/** Creates new form NewExport */
-	public NewExport(java.awt.Frame parent, boolean modal)
+	public NewExport(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

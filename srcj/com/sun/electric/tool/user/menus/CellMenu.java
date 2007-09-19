@@ -208,7 +208,7 @@ public class CellMenu {
      */
     private static void cellControlCommand()
     {
-        CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame(), true);
+        CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
     }
 
@@ -217,7 +217,7 @@ public class CellMenu {
      */
     private static void newCellCommand()
     {
-		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
+		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
     }
 
@@ -404,7 +404,7 @@ public class CellMenu {
      */
     private static void crossLibraryCopyCommand()
     {
-		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
+		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
     }
 

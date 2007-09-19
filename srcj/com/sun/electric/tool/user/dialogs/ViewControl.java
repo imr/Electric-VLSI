@@ -28,9 +28,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 
+import java.awt.Frame;
 import java.util.List;
-import javax.swing.JList;
+
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 
 
@@ -44,9 +46,9 @@ public class ViewControl extends EDialog
 	private View currentView;
 
 	/** Creates new form View Control */
-	public ViewControl(java.awt.Frame parent, boolean modal)
+	public ViewControl(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		// make the list of Views

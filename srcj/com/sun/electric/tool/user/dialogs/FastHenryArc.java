@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -65,14 +66,14 @@ public class FastHenryArc extends EDialog
 		JFrame jf = null;
 		if (TopLevel.isMDIMode())
 			jf = TopLevel.getCurrentJFrame();
-		FastHenryArc theDialog = new FastHenryArc(jf, true);
+		FastHenryArc theDialog = new FastHenryArc(jf);
 		theDialog.setVisible(true);
 	}
 
 	/** Creates new form FastHenryArc */
-	private FastHenryArc(java.awt.Frame parent, boolean modal)
+	private FastHenryArc(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		// must have a single arc selected

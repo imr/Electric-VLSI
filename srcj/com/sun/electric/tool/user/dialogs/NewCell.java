@@ -34,6 +34,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
@@ -75,9 +76,9 @@ public class NewCell extends EDialog
 	}
 
 	/** Creates new form New Cell */
-	public NewCell(java.awt.Frame parent, boolean modal)
+	public NewCell(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 

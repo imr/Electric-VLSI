@@ -46,14 +46,14 @@ public class ChangeCurrentLib extends EDialog
 
 	public static void showDialog()
 	{
-		ChangeCurrentLib dialog = new ChangeCurrentLib(TopLevel.getCurrentJFrame(), false);
+		ChangeCurrentLib dialog = new ChangeCurrentLib(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Set Current Library */
-	private ChangeCurrentLib(Frame parent, boolean modal)
+	private ChangeCurrentLib(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
         Library currentLib = Library.getCurrent();

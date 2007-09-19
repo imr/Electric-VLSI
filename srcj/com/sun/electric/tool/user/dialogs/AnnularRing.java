@@ -91,14 +91,14 @@ public class AnnularRing extends EDialog
 			System.out.println("The " + Technology.getCurrent().getTechName() + " technology has no pure-layer nodes");
 			return;
 		}
-		AnnularRing dialog = new AnnularRing(TopLevel.getCurrentJFrame(), true, cell);
+		AnnularRing dialog = new AnnularRing(TopLevel.getCurrentJFrame(), cell);
 		dialog.setVisible(true);
 	}
 
     /** Creates new form AnnularRing */
-	private AnnularRing(Frame parent, boolean modal, Cell cell)
+	private AnnularRing(Frame parent, Cell cell)
     {
-		super(parent, modal);
+		super(parent, true);
 		this.cell = cell;
 		initComponents();
 		getRootPane().setDefaultButton(ok);

@@ -25,23 +25,27 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.ActionListener;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
+
+import javax.swing.JFrame;
 
 
 /**
  * Class to handle the "Search and Replace" dialog.
  */
-public class FindText extends EDialog
+public class FindText extends EModelessDialog
 {
+	private static FindText theDialog = null;
     private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
 	private static Pref
 		prefCaseSensitive = Pref.makeBooleanPref("FindText_caseSensitive", prefs, false),
@@ -61,9 +65,25 @@ public class FindText extends EDialog
 
 	public static void findTextDialog()
 	{
-		FindText dialog = new FindText(TopLevel.getCurrentJFrame(), false);
-		dialog.setVisible(true);
-		dialog.toFront();
+        if (Client.getOperatingSystem() == Client.OS.UNIX)
+        {
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+            if (theDialog != null) theDialog.dispose();
+            theDialog = null;
+        }
+		if (theDialog == null)
+		{
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new FindText(jf);
+		}
+
+        theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
     // Method to clean last search
@@ -73,9 +93,9 @@ public class FindText extends EDialog
     }
 
 	/** Creates new form Search and Replace */
-	private FindText(Frame parent, boolean modal)
+	private FindText(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
 		findString.setText(prefFindTextMessage.getString());
 		replaceString.setText(prefReplaceTextMessage.getString());

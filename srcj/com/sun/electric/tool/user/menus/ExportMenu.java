@@ -44,7 +44,7 @@ public class ExportMenu {
         return new EMenu("E_xport",
 
             new EMenuItem("_Create Export...", 'E') { public void run() {
-                new NewExport(TopLevel.getCurrentJFrame(), true); }},
+                new NewExport(TopLevel.getCurrentJFrame()); }},
 
             SEPARATOR,
 

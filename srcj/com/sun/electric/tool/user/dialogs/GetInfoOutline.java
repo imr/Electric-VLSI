@@ -51,7 +51,7 @@ import javax.swing.event.DocumentListener;
 /**
  * Class to handle the "GetInfoOutline" dialog.
  */
-public class GetInfoOutline extends EDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoOutline extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
     private NodeInst ni;
 	private JList list;
@@ -71,17 +71,19 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
             if (theDialog != null) theDialog.dispose();
             theDialog = null;
         }
-        if (theDialog == null) {
-            if (TopLevel.isMDIMode()) {
-                JFrame jf = TopLevel.getCurrentJFrame();
-                theDialog = new GetInfoOutline(jf);
-            } else {
-                theDialog = new GetInfoOutline(null);
-            }
+        if (theDialog == null)
+        {
+        	JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            theDialog = new GetInfoOutline(jf);
         }
         theDialog.loadDialog();
-        if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.setVisible(true);
+        if (!theDialog.isVisible())
+		{
+        	theDialog.pack();
+        	theDialog.ensureMinimumSize();
+    		theDialog.setVisible(true);
+		}
 		theDialog.toFront();
 	}
 

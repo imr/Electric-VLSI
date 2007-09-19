@@ -2117,7 +2117,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		private void newCellAction()
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
-			NewCell dialog = new NewCell(jf, true);
+			NewCell dialog = new NewCell(jf);
             assert !Job.BATCHMODE;
 			dialog.setVisible(true);
 		}

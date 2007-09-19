@@ -26,14 +26,16 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.user.Resources;
 
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
+import java.awt.Frame;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.DefaultListModel;
+import javax.swing.ListSelectionModel;
 
 
 /**
@@ -120,9 +122,9 @@ public class About extends EDialog
 	}
 
 	/** Creates the About dialog. */
-	public About(java.awt.Frame parent, boolean modal)
+	public About(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

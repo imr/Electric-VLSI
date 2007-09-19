@@ -40,9 +40,9 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -83,7 +83,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
-public class GetInfoMulti extends EDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoMulti extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
     private enum ChangeType {
         CHANGEXSIZE, CHANGEYSIZE, CHANGEXPOS, CHANGEYPOS, CHANGEROTATION,
@@ -170,12 +170,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         }
 		if (theDialog == null)
 		{
-            JFrame jf;
-            if (TopLevel.isMDIMode())
-			    jf = TopLevel.getCurrentJFrame();
-            else
-                jf = null;
-			theDialog = new GetInfoMulti(jf, false);
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new GetInfoMulti(jf);
 		}
         theDialog.loadMultiInfo();
         theDialog.pack();
@@ -231,9 +228,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
     }
 
 	/** Creates new form Multi-Object Get Info */
-	private GetInfoMulti(Frame parent, boolean modal)
+	private GetInfoMulti(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		highlightList = new ArrayList<Highlight2>();
 		initComponents();
         getRootPane().setDefaultButton(ok);

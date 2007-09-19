@@ -27,6 +27,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
+import java.awt.Frame;
+
 
 /**
  * Class to handle the dialog for precise control of Waveform window extents.
@@ -37,7 +39,7 @@ public class WaveformZoom extends EDialog
 	private WaveformWindow curWindow;
 
 	/** Creates new form Waveform Zoom */
-	public WaveformZoom(java.awt.Frame parent, double lowVert, double highVert, double lowHoriz, double highHoriz,
+	public WaveformZoom(Frame parent, double lowVert, double highVert, double lowHoriz, double highHoriz,
 		WaveformWindow curWindow, Panel curPanel)
 	{
 		super(parent, true);

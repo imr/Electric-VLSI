@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -74,7 +75,7 @@ import javax.swing.SwingUtilities;
 /**
  * Class to handle the "Change" dialog.
  */
-public class Change extends EDialog implements HighlightListener
+public class Change extends EModelessDialog implements HighlightListener
 {
 	/** Change selected only. */				private static final int CHANGE_SELECTED = 1;
 	/** Change all connected to this. */		private static final int CHANGE_CONNECTED = 2;
@@ -99,9 +100,8 @@ public class Change extends EDialog implements HighlightListener
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode())
-				jf = TopLevel.getCurrentJFrame();
-			theDialog = new Change(jf, false);
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new Change(jf);
 		}
 		theDialog.loadInfo(true);
 		theDialog.setVisible(true);
@@ -109,9 +109,9 @@ public class Change extends EDialog implements HighlightListener
 	}
 
 	/** Creates new form Change */
-	private Change(java.awt.Frame parent, boolean modal)
+	private Change(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
 
 		// build the change list
@@ -484,7 +484,7 @@ public class Change extends EDialog implements HighlightListener
 			changeList.setSelectedIndex(0);
  		}
 		SwingUtilities.invokeLater(new Runnable() {
-            public void run() { centerSelection(changeList); }});
+            public void run() { EDialog.centerSelection(changeList); }});
 	}
 
 	private void doTheChange()

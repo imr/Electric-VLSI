@@ -56,9 +56,9 @@ public class OptionReconcile extends EDialog
     private ReadLibrary job;
 
 	/** Creates new form Project Settings Reconcile */
-	public OptionReconcile(Frame parent, boolean modal, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
+	public OptionReconcile(Frame parent, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
 	{
-		super(parent, modal);
+		super(parent, true);
         this.settingsThatChanged = settingsThatChanged;
         this.job = job;
 		initComponents();

@@ -80,7 +80,7 @@ import javax.swing.UIManager;
 /**
  * Class to handle the "Node Get-Info" dialog.
  */
-public class GetInfoNode extends EDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoNode extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoNode theDialog = null;
 	private NodeInst shownNode = null;
@@ -121,12 +121,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         }
 		if (theDialog == null)
 		{
-            JFrame jf;
-            if (TopLevel.isMDIMode())
-			    jf = TopLevel.getCurrentJFrame();
-            else
-                jf = null;
-			theDialog = new GetInfoNode(jf, false);
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new GetInfoNode(jf);
 		}
         theDialog.loadInfo();
 
@@ -134,8 +131,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
         	theDialog.pack();
         	theDialog.ensureMinimumSize();
+            theDialog.setVisible(true);
 		}
-        theDialog.setVisible(true);
 		theDialog.toFront();
 	}
 
@@ -173,9 +170,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     }
 
 	/** Creates new form Node Get-Info */
-	private GetInfoNode(Frame parent, boolean modal)
+	private GetInfoNode(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -313,7 +310,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		shownNode = ni;
 		shownPort = pp;
 
-        focusClearOnTextField(name);
+        EDialog.focusClearOnTextField(name);
 
 		// in small version
 		NodeProto np = ni.getProto();
@@ -642,7 +639,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-        focusOnTextField(name);
+        EDialog.focusOnTextField(name);
 	}
 
 	private void showProperList()

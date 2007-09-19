@@ -48,7 +48,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "Saved Views" dialog.
  */
-public class SavedViews extends EDialog implements HighlightListener
+public class SavedViews extends EModelessDialog implements HighlightListener
 {
 	private static SavedViews theDialog = null;
 	private JList viewList;
@@ -59,17 +59,18 @@ public class SavedViews extends EDialog implements HighlightListener
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode())
-				jf = TopLevel.getCurrentJFrame();
-			theDialog = new SavedViews(jf, false);
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new SavedViews(jf);
 		}
-		theDialog.setVisible(true);
+
+        theDialog.setVisible(true);
+		theDialog.toFront();
 	}
 
 	/** Creates new form Saved Views */
-	private SavedViews(Frame parent, boolean modal)
+	private SavedViews(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
 
 		Highlighter.addHighlightListener(this);

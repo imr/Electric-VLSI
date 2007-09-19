@@ -599,7 +599,7 @@ public class PaletteFrame implements MouseListener
 			}
 			if (export)
 			{
-				new NewExport(TopLevel.getCurrentJFrame(), true);
+				new NewExport(TopLevel.getCurrentJFrame());
 			}
         }
 	}

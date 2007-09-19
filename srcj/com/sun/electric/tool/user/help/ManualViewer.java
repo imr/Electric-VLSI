@@ -33,6 +33,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
@@ -75,6 +76,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -107,7 +109,7 @@ import javax.swing.tree.TreeSelectionModel;
  * <!-- NEED 2in -->
  * <!-- TRAILER -->
  */
-public class ManualViewer extends EDialog
+public class ManualViewer extends EModelessDialog
 {
 	private static final String RUSSIANMANUALPATH = "plugins/manualRussian";
 
@@ -162,7 +164,9 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, ManualViewer.class, "helphtml");
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theManual = new ManualViewer(jf, null, ManualViewer.class, "helphtml");
 		}
 		theManual.setVisible(true);
 	}
@@ -184,7 +188,9 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, Main.class, RUSSIANMANUALPATH);
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theManual = new ManualViewer(jf, null, Main.class, RUSSIANMANUALPATH);
 		}
 		theManual.setVisible(true);
 	}
@@ -217,7 +223,9 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), dialog+str, ManualViewer.class, "helphtml");
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theManual = new ManualViewer(jf, dialog+str, ManualViewer.class, "helphtml");
 		} else
 		{
 			if (str != null)
@@ -478,6 +486,7 @@ public class ManualViewer extends EDialog
         }
 		// load the title page of the manual
         loadPage(currentIndex);
+        finishInitialization();
     }
 
 	/**
@@ -501,6 +510,7 @@ public class ManualViewer extends EDialog
 		}
 		setJMenuBar(helpMenuBar);
 		pack();
+		ensureMinimumSize();
 
 		StringBuffer sb = new StringBuffer();
 		sb.append("<CENTER><H1>HELP MENU ENABLED</H1></CENTER>\n");
@@ -1190,11 +1200,13 @@ public class ManualViewer extends EDialog
 	private void edit()
 	{
 		PageInfo pi = pageSequence.get(currentIndex);
-		EditHTML dialog = new EditHTML(TopLevel.getCurrentJFrame(), pi.url, this);
+        JFrame jf = null;
+        if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+		EditHTML dialog = new EditHTML(jf, pi.url, this);
 		dialog.setVisible(true);
 	}
 
-	private static class EditHTML extends EDialog
+	private static class EditHTML extends EModelessDialog
 	{
 		private JTextArea textArea;
 		private URL file;

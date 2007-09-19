@@ -33,6 +33,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
+
 
 /**
  * Class to handle the "Spread" dialog.
@@ -47,14 +49,14 @@ public class Spread extends EDialog
 		NodeInst ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 
-		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), true, ni);
+		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), ni);
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Spread */
-	public Spread(java.awt.Frame parent, boolean modal, NodeInst ni)
+	public Spread(Frame parent, NodeInst ni)
 	{
-		super(parent, modal);
+		super(parent, true);
         this.ni = ni;
 		initComponents();
         getRootPane().setDefaultButton(ok);

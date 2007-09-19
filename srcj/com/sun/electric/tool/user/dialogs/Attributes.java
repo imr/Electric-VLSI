@@ -70,7 +70,7 @@ import javax.swing.event.DocumentListener;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes extends EDialog implements HighlightListener, DatabaseChangeListener
+public class Attributes extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
     private static Attributes theDialog = null;
     private DefaultListModel listModel;
@@ -101,16 +101,17 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     {
         if (theDialog == null)
         {
-            if (TopLevel.isMDIMode()) {
-                JFrame jf = TopLevel.getCurrentJFrame();
-                theDialog = new Attributes(jf, false);
-            } else {
-                theDialog = new Attributes(null, false);
-            }
+        	JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            theDialog = new Attributes(jf);
         }
         theDialog.loadAttributesInfo(false);
-        if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.setVisible(true);
+        if (!theDialog.isVisible())
+		{
+        	theDialog.pack();
+        	theDialog.ensureMinimumSize();
+    		theDialog.setVisible(true);
+		}
 		theDialog.toFront();
    }
 
@@ -150,9 +151,9 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Creates new form Attributes.
      */
-    private Attributes(Frame parent, boolean modal)
+    private Attributes(Frame parent)
     {
-        super(parent, modal);
+        super(parent, false);
         initComponents();
 
         UserInterfaceMain.addDatabaseChangeListener(this);

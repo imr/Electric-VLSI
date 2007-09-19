@@ -52,7 +52,7 @@ public class ComponentMenuTab extends PreferencePanel
 	public ComponentMenuTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		theMenu = new ComponentMenu(parent, modal, false);
+		theMenu = new ComponentMenu(parent, false);
 	}
 
 	/** return the panel to use for this preferences tab. */

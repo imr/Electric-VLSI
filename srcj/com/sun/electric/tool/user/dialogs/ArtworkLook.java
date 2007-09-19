@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.HighlightListener;
@@ -46,15 +47,17 @@ import java.awt.GridBagConstraints;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFrame;
+
 /**
  * Class to handle the "Artwork Look" dialog.
  */
-public class ArtworkLook extends EDialog implements HighlightListener
+public class ArtworkLook extends EModelessDialog implements HighlightListener
 {
 	private ColorPatternPanel.Info li;
 	private List<Geometric> artworkObjects;
 	private ColorPatternPanel colorPatternPanel;
-	private static ArtworkLook dialog;
+	private static ArtworkLook theDialog;
 
 	/**
 	 * Method to display a dialog for controlling the appearance of selected artwork primitives.
@@ -69,11 +72,32 @@ public class ArtworkLook extends EDialog implements HighlightListener
 			return;
 		}
 
-		// show the dialog
-		if (dialog == null)
+		if (Client.getOperatingSystem() == Client.OS.UNIX) {
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+            if (theDialog != null) theDialog.dispose();
+            theDialog = null;
+        }
+		if (theDialog == null)
 		{
-			dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artObjects);
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new ArtworkLook(jf, artObjects);
+		} else
+		{
+			theDialog.showArtworkObjects(artObjects);
 		}
+
+        if (!theDialog.isVisible())
+		{
+        	theDialog.pack();
+        	theDialog.ensureMinimumSize();
+            theDialog.setVisible(true);
+		}
+		theDialog.toFront();
 	}
 
 	private static List<Geometric> findSelectedArt()
@@ -128,8 +152,6 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		showArtworkObjects(artObjects);
 		finishInitialization();
 		Highlighter.addHighlightListener(this);
-		setVisible(true);
-		toFront();
 	}
 
 	protected void escapePressed() { cancel(null); }
@@ -346,7 +368,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 		setVisible(false);
 		Highlighter.removeHighlightListener(this);
 		dispose();
-		dialog = null;
+		theDialog = null;
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

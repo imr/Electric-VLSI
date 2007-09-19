@@ -65,7 +65,7 @@ import javax.swing.event.DocumentListener;
 /**
  * Class to handle the "Select Object" dialog.
  */
-public class SelectObject extends EDialog implements DatabaseChangeListener
+public class SelectObject extends EModelessDialog implements DatabaseChangeListener
 {
     private static SelectObject theDialog = null;
 	private static final int NODES   = 1;
@@ -83,12 +83,9 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         if (theDialog == null)
         {
             if (updateOnlyIfVisible) return; // it is not previously open
-            JFrame jf;
-            if (TopLevel.isMDIMode())
-			    jf = TopLevel.getCurrentJFrame();
-            else
-                jf = null;
-            theDialog = new SelectObject(jf, false);
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            theDialog = new SelectObject(jf);
         }
         if (updateOnlyIfVisible && !theDialog.isVisible()) return; // it is not previously visible
 		theDialog.setVisible(true);
@@ -97,9 +94,9 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	}
 
 	/** Creates new form SelectObject */
-	private SelectObject(Frame parent, boolean modal)
+	private SelectObject(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
 		getRootPane().setDefaultButton(done);
 		UserInterfaceMain.addDatabaseChangeListener(this);

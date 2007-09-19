@@ -97,9 +97,9 @@ public class CrossLibCopy extends EDialog
 	}
 
 	/** Creates new form CrossLibCopy */
-	public CrossLibCopy(Frame parent, boolean modal)
+	public CrossLibCopy(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		// determine the two libraries to show

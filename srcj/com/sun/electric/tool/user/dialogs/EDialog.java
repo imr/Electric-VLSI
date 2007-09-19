@@ -27,7 +27,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
@@ -35,21 +35,14 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JList;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
@@ -60,9 +53,7 @@ public class EDialog extends JDialog
 {
 	private static HashMap<Class,Point> locations = new HashMap<Class,Point>();
 	private static HashMap<Class,Dimension> sizes = new HashMap<Class,Dimension>();
-	private Class thisClass;
-    public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
-    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
+//    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
 
 	/** Creates new form */
 	protected EDialog(Frame parent, boolean modal)
@@ -74,14 +65,7 @@ public class EDialog extends JDialog
 
         assert !Job.BATCHMODE;
 
-		thisClass = this.getClass();
-		Point pt = locations.get(thisClass);
-		if (pt == null)
-		{
-			pt = User.getDefaultWindowPos();
-			pt.x += 100;
-			pt.y += 50;
-		}
+		Point pt = getDialogLocation(getClass());
 		setLocation(pt.x, pt.y);
 
 		addComponentListener(new MoveComponentListener());
@@ -94,11 +78,29 @@ public class EDialog extends JDialog
 			public void actionPerformed(ActionEvent event) { escapePressed(); }
 		});
 
-        if (parent == null && !TopLevel.isMDIMode())
-        {
-            // add a focus listener for SDI mode so dialogs are always on top
-            dialogFocusHandler.addEDialog(this);
-        }
+//		// add a focus listener for SDI mode so dialogs are always on top
+//		if (parent == null && !TopLevel.isMDIMode())
+//		{
+//			dialogFocusHandler.addEDialog(this);
+//		}
+	}
+
+	public static Point getDialogLocation(Class clz)
+	{
+		Point pt = locations.get(clz);
+		if (pt == null)
+		{
+			pt = User.getDefaultWindowPos();
+			pt.x += 100;
+			pt.y += 50;
+		}
+		return pt;
+	}
+
+	public static Dimension getDialogSize(Class clz)
+	{
+		Dimension sz = sizes.get(clz);
+		return sz;
 	}
 
 	/**
@@ -107,7 +109,7 @@ public class EDialog extends JDialog
 	 */
 	protected void finishInitialization()
 	{
-		Dimension sz = sizes.get(thisClass);
+		Dimension sz = getDialogSize(getClass());
 		if (sz != null)
 			setSize(sz);
 	}
@@ -117,7 +119,7 @@ public class EDialog extends JDialog
 	 */
 	protected void ensureMinimumSize()
 	{
-		Dimension sz = sizes.get(thisClass);
+		Dimension sz = getDialogSize(getClass());
 		if (sz == null) return;
 		Dimension curSz = getSize();
 		if (curSz.width < sz.width || curSz.height < sz.height)
@@ -135,7 +137,7 @@ public class EDialog extends JDialog
         setVisible(false);
     }
 
-    protected void focusClearOnTextField(JTextComponent textComponent)
+    public static void focusClearOnTextField(JTextComponent textComponent)
     {
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(0);
@@ -164,35 +166,34 @@ public class EDialog extends JDialog
      * highlights any text in that text field.
      * @param textComponent the text field
      */
-    protected void focusOnTextField(JTextComponent textComponent)
+	public static void focusOnTextField(JTextComponent textComponent)
     {
-//        textComponent.requestFocus();
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(textComponent.getDocument().getLength());
     }
 
-    private static class TextBoxFocusListener implements FocusListener
-    {
-        public void focusGained(FocusEvent e)
-        {
-            Component source = e.getComponent();
-            if (source instanceof JTextField)
-            {
-                JTextField textField = (JTextField)source;
-                if (textField.isEnabled() && textField.isEditable())
-                {
-                    int len = textField.getDocument().getLength();
-                    textField.setSelectionStart(0);
-                    textField.setSelectionEnd(len);
-                }
-            }
-        }
-
-        public void focusLost(FocusEvent e)
-        {
-            // To change body of implemented methods use File | Settings | File Templates.
-        }
-    }
+//    private static class TextBoxFocusListener implements FocusListener
+//    {
+//        public void focusGained(FocusEvent e)
+//        {
+//            Component source = e.getComponent();
+//            if (source instanceof JTextField)
+//            {
+//                JTextField textField = (JTextField)source;
+//                if (textField.isEnabled() && textField.isEditable())
+//                {
+//                    int len = textField.getDocument().getLength();
+//                    textField.setSelectionStart(0);
+//                    textField.setSelectionEnd(len);
+//                }
+//            }
+//        }
+//
+//        public void focusLost(FocusEvent e)
+//        {
+//            // To change body of implemented methods use File | Settings | File Templates.
+//        }
+//    }
 
 
 	/**
@@ -203,7 +204,7 @@ public class EDialog extends JDialog
 	 * This method centers the selected item nicely.
 	 * @param list the JList with a selected item to center.
 	 */
-	protected void centerSelection(JList list)
+    public static void centerSelection(JList list)
 	{
 		int curIndex = list.getSelectedIndex();
 		int listSize = list.getLastVisibleIndex() - list.getFirstVisibleIndex();
@@ -218,7 +219,7 @@ public class EDialog extends JDialog
 		list.ensureIndexIsVisible(highIndexToEnsure);
 	}
 
-	private static class MoveComponentListener implements ComponentListener
+	public static class MoveComponentListener implements ComponentListener
 	{
 		public void componentHidden(ComponentEvent e) {}
 		public void componentShown(ComponentEvent e) {}
@@ -226,41 +227,37 @@ public class EDialog extends JDialog
 		public void componentResized(ComponentEvent e)
 		{
 			Class cls = e.getSource().getClass();
-			Rectangle bound = ((JDialog)e.getSource()).getBounds();
+			Rectangle bound = ((Container)e.getSource()).getBounds();
 			sizes.put(cls, new Dimension(bound.width, bound.height));
 		}
 
 		public void componentMoved(ComponentEvent e)
 		{
 			Class cls = e.getSource().getClass();
-			Rectangle bound = ((JDialog)e.getSource()).getBounds();
+			Rectangle bound = ((Container)e.getSource()).getBounds();
 			int x = (int)bound.getMinX();
 			int y = (int)bound.getMinY();
 			locations.put(cls, new Point(x, y));
 		}
 	}
 
-    private static class DialogFocusHandler implements WindowFocusListener {
-
-        private List<EDialog> dialogs;
-
-        private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
-
-        public synchronized void addEDialog(EDialog dialog)
-        {
-            dialogs.add(dialog);
-        }
-
-        public synchronized void windowGainedFocus(WindowEvent e)
-        {
-            // this seems to be causing problems on windows platforms
-            //for (int i=0; i<dialogs.size(); i++) {
-                //EDialog dialog = dialogs.get(i);
-                //dialog.toFront();
-            //}
-        }
-
-        public void windowLostFocus(WindowEvent e) {}
-
-    }
+    // this seems to be causing problems on windows platforms
+//	private static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
+//
+//    private static class DialogFocusHandler implements WindowFocusListener {
+//
+//        private List<EDialog> dialogs;
+//
+//        private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
+//
+//        public synchronized void addEDialog(EDialog dialog) { dialogs.add(dialog); }
+//
+//        public synchronized void windowGainedFocus(WindowEvent e)
+//        {
+//            for (int i=0; i<dialogs.size(); i++)
+//                dialogs.get(i).toFront();
+//        }
+//
+//        public void windowLostFocus(WindowEvent e) {}
+//    }
 }

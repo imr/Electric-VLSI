@@ -125,7 +125,7 @@ public class TopLevel extends JFrame
 		{
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             //setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            addWindowFocusListener(EDialog.dialogFocusHandler);
+//            addWindowFocusListener(EDialog.dialogFocusHandler);
 		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);

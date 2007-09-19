@@ -50,7 +50,7 @@ import javax.swing.JFrame;
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
-public class GetInfoExport extends EDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoExport extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoExport theDialog = null;
 	private Export shownExport;
@@ -77,16 +77,17 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         }
 		if (theDialog == null)
 		{
-            if (TopLevel.isMDIMode()) {
-			    JFrame jf = TopLevel.getCurrentJFrame();
-                theDialog = new GetInfoExport(jf, false);
-            } else {
-                theDialog = new GetInfoExport(null, false);
-            }
+			JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            theDialog = new GetInfoExport(jf);
 		}
         theDialog.loadExportInfo();
-        if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.setVisible(true);
+        if (!theDialog.isVisible())
+		{
+        	theDialog.pack();
+        	theDialog.ensureMinimumSize();
+    		theDialog.setVisible(true);
+		}
 		theDialog.toFront();
 	}
 
@@ -175,7 +176,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         boolean enabled = true;
         if (pp == null) enabled = false;
 
-        focusClearOnTextField(theText);
+        EDialog.focusClearOnTextField(theText);
 
         // set enabled state of dialog
         theText.setEditable(enabled);
@@ -226,7 +227,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         textPanel.setTextDescriptor(Export.EXPORT_NAME, pp);
 
 		shownExport = pp;
-        focusOnTextField(theText);
+        EDialog.focusOnTextField(theText);
 	}
 
     private void disableDialog() {
@@ -238,9 +239,9 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     }
 
 	/** Creates new form Export Get-Info */
-	private GetInfoExport(Frame parent, boolean modal)
+	private GetInfoExport(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

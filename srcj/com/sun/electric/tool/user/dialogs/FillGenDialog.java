@@ -23,6 +23,19 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
+import com.sun.electric.tool.generator.layout.fill.FillGenJob;
+import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
+import com.sun.electric.tool.user.ui.TopLevel;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -41,21 +54,10 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.generator.layout.TechType;
-import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
-import com.sun.electric.tool.generator.layout.fill.FillGenJob;
-import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
 
 /**
  * Unused class to manage fill generators.
@@ -79,8 +81,8 @@ public class FillGenDialog extends EDialog {
     }
 
     /** Creates new form FillGenDialog */
-    public FillGenDialog(Technology tech, Frame parent, boolean modal) {
-        super(parent, modal);
+    public FillGenDialog(Technology tech, Frame parent) {
+        super(parent, true);
 
         this.tech = tech;
 
@@ -247,6 +249,7 @@ public class FillGenDialog extends EDialog {
         }
 
         finishInitialization();
+        setVisible(true);
    }
 
     /** This method is called from within the constructor to
@@ -767,12 +770,12 @@ public class FillGenDialog extends EDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new FillGenDialog(null, new javax.swing.JFrame(), true).setVisible(true);
+        new FillGenDialog(null, new JFrame());
     }
 
     public static void openFillGeneratorDialog(Technology tech)
     {
-        new FillGenDialog(tech, new javax.swing.JFrame(), true).setVisible(true);
+        new FillGenDialog(tech, TopLevel.getCurrentJFrame());
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

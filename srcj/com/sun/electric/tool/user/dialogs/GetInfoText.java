@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Point;
@@ -80,7 +81,7 @@ import javax.swing.text.JTextComponent;
 /**
  * Class to handle the Text "Properties" dialog.
  */
-public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
+public class GetInfoText extends EModelessDialog implements HighlightListener, DatabaseChangeListener {
 	private static GetInfoText theDialog = null;
     private CachedTextInfo cti;
     private TextPropertiesFocusListener dialogFocusListener;
@@ -204,25 +205,28 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             }
             theDialog = null;
         }
-        if (theDialog == null) {
-            if (TopLevel.isMDIMode()) {
-                JFrame jf = TopLevel.getCurrentJFrame();
-                theDialog = new GetInfoText(jf, false);
-            } else {
-                theDialog = new GetInfoText(null, false);
-            }
+        if (theDialog == null)
+        {
+        	JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            theDialog = new GetInfoText(jf);
         }
         theDialog.loadTextInfo();
-        if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.setVisible(true);
+        if (!theDialog.isVisible())
+		{
+        	theDialog.pack();
+        	theDialog.ensureMinimumSize();
+    		theDialog.setVisible(true);
+		}
 		theDialog.toFront();
     }
 
     /**
      * Creates new form Text Get-Info
      */
-	private GetInfoText(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+	private GetInfoText(Frame parent)
+	{
+        super(parent, false);
         initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -314,7 +318,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         if (textCount > 1) textHighlight = null;
         boolean enabled = (textHighlight == null) ? false : true;
 
-        focusClearOnTextField(theText);
+        EDialog.focusClearOnTextField(theText);
 
         // enable or disable everything
         for (int i = 0; i < getComponentCount(); i++) {
@@ -382,7 +386,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         // do this last so everything gets packed right
         changeTextComponent(cti.initialText, multiLine.isSelected());
 
-        focusOnTextField(theText);
+        EDialog.focusOnTextField(theText);
 
 		// if this is a cell instance name, disable editing
 		if (cti.varKey == NodeInst.NODE_PROTO)
@@ -850,6 +854,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
                     JTextArea area = (JTextArea)theText;
                     area.setRows(area.getLineCount());
                     pack();
+                    ensureMinimumSize();
                 }
             });
         } else {

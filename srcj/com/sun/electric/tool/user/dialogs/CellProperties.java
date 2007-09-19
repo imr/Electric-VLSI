@@ -120,9 +120,9 @@ public class CellProperties extends EDialog
 	}
 
 	/** Creates new form Cell Properties */
-	public CellProperties(Frame parent, boolean modal)
+	public CellProperties(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		// cache all information

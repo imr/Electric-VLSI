@@ -36,10 +36,14 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Client;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -57,7 +61,7 @@ import javax.swing.SwingUtilities;
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
-public class GetInfoArc extends EDialog implements HighlightListener, DatabaseChangeListener
+public class GetInfoArc extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
@@ -91,20 +95,17 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         }
 		if (theDialog == null)
 		{
-			JFrame jf;
-			if (TopLevel.isMDIMode())
-				jf = TopLevel.getCurrentJFrame();
-			else
-				jf = null;
-			theDialog = new GetInfoArc(jf, false);
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new GetInfoArc(jf);
 		}
 		theDialog.loadInfo();
 		if (!theDialog.isVisible())
 		{
 			theDialog.pack();
         	theDialog.ensureMinimumSize();
+    		theDialog.setVisible(true);
 		}
-		theDialog.setVisible(true);
 		theDialog.toFront();
 	}
 
@@ -185,9 +186,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 //     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Arc Get-Info */
-	private GetInfoArc(Frame parent, boolean modal)
+	private GetInfoArc(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, false);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 		UserInterfaceMain.addDatabaseChangeListener(this);
@@ -290,7 +291,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		}
 		// else: lock acquired
 		try {
-			focusClearOnTextField(name);
+			EDialog.focusClearOnTextField(name);
 
 			// enable it
 			name.setEditable(true);
@@ -405,7 +406,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		}
 
 		shownArc = ai;
-		focusOnTextField(name);
+		EDialog.focusOnTextField(name);
 	}
 
 	private void disableDialog() {

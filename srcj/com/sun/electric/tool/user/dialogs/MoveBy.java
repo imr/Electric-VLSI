@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.util.prefs.Preferences;
 
 
@@ -41,14 +42,14 @@ public class MoveBy extends EDialog
 
 	public static void showMoveByDialog()
 	{
-		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame(), true);
+		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Move By */
-	public MoveBy(java.awt.Frame parent, boolean modal)
+	public MoveBy(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
         prefs = Preferences.userNodeForPackage(MoveBy.class);

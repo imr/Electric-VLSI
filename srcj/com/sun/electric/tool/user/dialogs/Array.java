@@ -104,14 +104,14 @@ public class Array extends EDialog
 				"Select some objects before arraying them.");
 			return;
 		}
-		Array dialog = new Array(TopLevel.getCurrentJFrame(), true);
+		Array dialog = new Array(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Array */
-	private Array(java.awt.Frame parent, boolean modal)
+	private Array(java.awt.Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

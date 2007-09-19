@@ -84,7 +84,7 @@ public class ComponentMenu extends EDialog
 	public static void showComponentMenuDialog(String techName, Xml.MenuPalette xmp,
 		List<Xml.PrimitiveNode> nodes, List<Xml.ArcProto> arcs)
 	{
-		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true, true);
+		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true);
 		Xml.Technology xTech = new Xml.Technology();
 		for(Xml.PrimitiveNode xnp : nodes)
 			xTech.nodes.add(xnp);
@@ -116,9 +116,9 @@ public class ComponentMenu extends EDialog
 	}
 
 	/** Creates new form ComponentMenu */
-	public ComponentMenu(Frame parent, boolean modal, boolean standAlone)
+	public ComponentMenu(Frame parent, boolean standAlone)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		menuView = new MenuView();

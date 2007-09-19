@@ -87,7 +87,7 @@ public class ViewMenu {
      */
     public static void viewControlCommand()
     {
-         ViewControl dialog = new ViewControl(TopLevel.getCurrentJFrame(), true);
+         ViewControl dialog = new ViewControl(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
     }
 

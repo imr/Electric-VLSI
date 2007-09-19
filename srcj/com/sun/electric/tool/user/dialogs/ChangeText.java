@@ -131,14 +131,14 @@ public class ChangeText extends EDialog
 
     public static void changeTextDialog()
 	{
-		ChangeText dialog = new ChangeText(TopLevel.getCurrentJFrame(), true);
+		ChangeText dialog = new ChangeText(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form Change Text */
-	private ChangeText(Frame parent, boolean modal)
+	private ChangeText(Frame parent)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
 
 		getRootPane().setDefaultButton(ok);
