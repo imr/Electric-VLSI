@@ -552,6 +552,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		{
 			highlightThese = new ArrayList<Geometric>();
 			fieldVariableChanged("highlightThese");
+			Set<Geometric> changedAlready = new HashSet<Geometric>();
 
             for (Geometric geomToChange : geomsToChange)
 			{
@@ -580,15 +581,19 @@ public class Change extends EModelessDialog implements HighlightListener
 					}
 
 					// replace the nodeinsts
-					NodeInst onlyNewNi = CircuitChangeJobs.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
-					if (onlyNewNi == null)
+					if (!changedAlready.contains(ni))
 					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							np + " does not fit in the place of " + oldNType,
-							"Change failed", JOptionPane.ERROR_MESSAGE);
-						return false;
+						changedAlready.add(ni);
+						NodeInst onlyNewNi = CircuitChangeJobs.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
+						if (onlyNewNi == null)
+						{
+							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+								np + " does not fit in the place of " + oldNType,
+								"Change failed", JOptionPane.ERROR_MESSAGE);
+							return false;
+						}
+						highlightThese.add(onlyNewNi);
 					}
-					highlightThese.add(onlyNewNi);
 
 					// do additional replacements if requested
 					int total = 1;
@@ -611,24 +616,28 @@ public class Change extends EModelessDialog implements HighlightListener
 										NodeInst lNi = nIt.next();
 										if (lNi.getProto() != oldNType) continue;
 
-										// do not replace the example icon
-										if (lNi.isIconOfParent())
+										if (!changedAlready.contains(lNi))
 										{
-											System.out.println("Example icon in " + cell + " not replaced");
-											continue;
-										}
+											changedAlready.add(lNi);
+											// do not replace the example icon
+											if (lNi.isIconOfParent())
+											{
+												System.out.println("Example icon in " + cell + " not replaced");
+												continue;
+											}
 
-										// disallow replacing if lock is on
-										int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-										if (errorCode < 0) return false;
-										if (errorCode > 0) continue;
+											// disallow replacing if lock is on
+											int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+											if (errorCode < 0) return false;
+											if (errorCode > 0) continue;
 
-										NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-										if (newNi != null)
-										{
-											total++;
-											found = true;
-											break;
+											NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+											if (newNi != null)
+											{
+												total++;
+												found = true;
+												break;
+											}
 										}
 									}
 								}
@@ -652,17 +661,21 @@ public class Change extends EModelessDialog implements HighlightListener
 									NodeInst lNi = nIt.next();
 									if (lNi.getProto() != oldNType) continue;
 
-									// disallow replacing if lock is on
-									int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-									if (errorCode < 0) return false;
-									if (errorCode > 0) continue;
-
-									NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-									if (newNi != null)
+									if (!changedAlready.contains(lNi))
 									{
-										total++;
-										found = true;
-										break;
+										changedAlready.add(lNi);
+										// disallow replacing if lock is on
+										int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+										if (errorCode < 0) return false;
+										if (errorCode > 0) continue;
+
+										NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+										if (newNi != null)
+										{
+											total++;
+											found = true;
+											break;
+										}
 									}
 								}
 							}
@@ -682,17 +695,21 @@ public class Change extends EModelessDialog implements HighlightListener
 								NodeInst lNi = nIt.next();
 								if (lNi.getProto() != oldNType) continue;
 
-								// disallow replacing if lock is on
-								int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-								if (errorCode < 0) return false;
-								if (errorCode > 0) continue;
-
-								NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-								if (newNi != null)
+								if (!changedAlready.contains(lNi))
 								{
-									total++;
-									found = true;
-									break;
+									changedAlready.add(lNi);
+									// disallow replacing if lock is on
+									int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+									if (errorCode < 0) return false;
+									if (errorCode > 0) continue;
+
+									NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+									if (newNi != null)
+									{
+										total++;
+										found = true;
+										break;
+									}
 								}
 							}
 						}
@@ -704,6 +721,9 @@ public class Change extends EModelessDialog implements HighlightListener
 						Cell curCell = WindowFrame.getCurrentCell();
 						Netlist netlist = curCell.getUserNetlist();
 						List<NodeInst> others = new ArrayList<NodeInst>();
+						NodeInst onlyNewNi = null;
+						if (highlightThese.size() == 1 && highlightThese.get(0) instanceof NodeInst)
+							onlyNewNi = (NodeInst)highlightThese.get(0);
 						for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 						{
 							NodeInst lNi = it.next();
@@ -731,15 +751,19 @@ public class Change extends EModelessDialog implements HighlightListener
 						// make the changes
 						for(NodeInst lNi : others)
 						{
-							// disallow replacing if lock is on
-							int errorCode = CircuitChangeJobs.cantEdit(curCell, lNi, true, false, true);
-							if (errorCode < 0) return false;
-							if (errorCode > 0) continue;
-
-							NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-							if (newNi != null)
+							if (!changedAlready.contains(lNi))
 							{
-								total++;
+								changedAlready.add(lNi);
+								// disallow replacing if lock is on
+								int errorCode = CircuitChangeJobs.cantEdit(curCell, lNi, true, false, true);
+								if (errorCode < 0) return false;
+								if (errorCode > 0) continue;
+
+								NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+								if (newNi != null)
+								{
+									total++;
+								}
 							}
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
