@@ -3821,13 +3821,12 @@ public class EditWindow extends JPanel
 			User.setColorBackground(0xFFFFFF);
 
 			// initialize drawing
-            Rectangle2D cellBounds = getBoundsInWindow();
+            Rectangle2D cellBounds = ep.getRenderArea();
+            if (cellBounds == null) cellBounds = getBoundsInWindow();
     		double width = cellBounds.getWidth();
         	double height = cellBounds.getHeight();
             if (width == 0) width = 2;
             if (height == 0) height = 2;
-//            double scalex = sz.width/width * 0.9;
-//            double scaley = sz.height/height * 0.9;
             double scalex = wid/width;
             double scaley = hei/height;
             double scale = Math.min(scalex, scaley);

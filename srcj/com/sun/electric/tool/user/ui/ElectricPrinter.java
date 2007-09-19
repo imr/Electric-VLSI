@@ -34,7 +34,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
-import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
@@ -55,6 +54,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 	private Graphics graphics;
 	private Dimension oldSize;
 	private int desiredDPI = IOTool.getPrintResolution();
+	private Rectangle2D renderArea;
 	/** text printing: the strings to print */								private String [] allStrings;
 	/** text printing: the starting line in the strings */					private int startLine;
 	/** text printing: the starting character on the current line */		private int startChar;
@@ -84,6 +84,8 @@ public class ElectricPrinter implements Printable, ImageObserver
 	public int getDesiredDPI() { return desiredDPI; }
 	public void setOldSize(Dimension oldSize) { this.oldSize = oldSize; }
 	public Dimension getOldSize() { return oldSize; }
+	public void setRenderArea(Rectangle2D rect) { renderArea = rect; }
+	public Rectangle2D getRenderArea() { return renderArea; }
 
 	public int print(Graphics g, PageFormat pf, int page)
 		throws PrinterException

@@ -696,7 +696,7 @@ public class Output
 	 * Method to determine the area of a cell that is to be printed.
 	 * Returns null if the area cannot be determined.
 	 */
-	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow_ wnd)
+	public static Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow_ wnd)
 	{
 		Rectangle2D bounds = cell.getBounds();
 		if (wnd != null) bounds = wnd.getBoundsInWindow();
