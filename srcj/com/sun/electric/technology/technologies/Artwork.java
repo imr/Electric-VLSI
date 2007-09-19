@@ -735,24 +735,26 @@ public class Artwork extends Technology
 	{
 		if (ni.isCellInstance()) return;
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		double x = ni.getAnchorCenterX();
+		double y = ni.getAnchorCenterY();
 		if (np == openedPolygonNode || np == openedDottedPolygonNode ||
 			np == openedDashedPolygonNode ||  np == openedThickerPolygonNode ||
 			np == splineNode)
 		{
 			EPoint [] outline = new EPoint[4];
-			outline[0] = new EPoint(-3, -3);
-			outline[1] = new EPoint(-1, 3);
-			outline[2] = new EPoint(1, -3);
-			outline[3] = new EPoint(3, 3);
+			outline[0] = new EPoint(x-3, y-3);
+			outline[1] = new EPoint(x-1, y+3);
+			outline[2] = new EPoint(x+1, y-3);
+			outline[3] = new EPoint(x+3, y+3);
 			ni.setTrace(outline);
 		}
 		if (np == closedPolygonNode || np == filledPolygonNode)
 		{
 			Point2D [] outline = new EPoint[4];
-			outline[0] = new EPoint(0, -3);
-			outline[1] = new EPoint(-3, 0);
-			outline[2] = new EPoint(0, 3);
-			outline[3] = new EPoint(3, -3);
+			outline[0] = new EPoint(x+0, y-3);
+			outline[1] = new EPoint(x-3, y+0);
+			outline[2] = new EPoint(x+0, y+3);
+			outline[3] = new EPoint(x+3, y-3);
 			ni.setTrace(outline);
 		}
 	}

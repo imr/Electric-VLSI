@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06f: *******************************
 
+BUG: (9/19/07, SMR) Placing artwork primitives may move them to the origin.
+FIX: In Artwork.setDefaultOutline(), set the outline at the correct location.
+
 IMP: (9/19/07, SMR) Modeless dialogs have "minimize" buttons.
 
 BUG: (9/19/07, SMR) Printing ignores "what to print" preferences.
