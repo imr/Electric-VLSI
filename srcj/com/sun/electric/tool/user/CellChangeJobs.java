@@ -51,6 +51,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowFrame.CellHistory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1162,7 +1163,7 @@ public class CellChangeJobs
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
-					content.setCell(newVersion, VarContext.globalContext, null);
+					wf.setCellWindow(newVersion, null);
 			}
 
 			EditWindow.repaintAll();
@@ -1250,33 +1251,26 @@ public class CellChangeJobs
 		public void terminateOK()
 		{
 			// change the display of old cell to the new one
-			boolean found = false;
 			WindowFrame curWf = WindowFrame.getCurrentWindowFrame();
 			if (curWf != null)
 			{
 				WindowContent content = curWf.getContent();
 				if (content != null && content.getCell() == cell)
 				{
-					content.setCell(dupCell, VarContext.globalContext, null);
-					content.repaint();
-					found = true;
+					curWf.setCellWindow(dupCell, null);
+					return;
 				}
 			}
 
 			// current cell was not duplicated: see if any displayed cell is
-			if (!found)
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 			{
-				for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+				WindowFrame wf = it.next();
+				WindowContent content = wf.getContent();
+				if (content != null && content.getCell() == cell)
 				{
-					WindowFrame wf = it.next();
-					WindowContent content = wf.getContent();
-					if (content == null) continue;
-					if (content.getCell() == cell)
-					{
-						content.setCell(dupCell, VarContext.globalContext, null);
-						content.repaint();
-						break;
-					}
+					curWf.setCellWindow(dupCell, null);
+					return;
 				}
 			}
 		}
