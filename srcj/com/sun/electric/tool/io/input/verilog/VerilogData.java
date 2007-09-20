@@ -286,7 +286,7 @@ public class VerilogData implements Serializable
              // It is unknown how many pins are coming in the stream
             if (name.contains("{"))
             {
-                StringTokenizer parse = new StringTokenizer(name, "{,}", false); // extracting pins
+                StringTokenizer parse = new StringTokenizer(name, "\t{,}", false); // extracting pins
                 while (parse.hasMoreTokens())
                 {
                     String name = parse.nextToken();

@@ -144,7 +144,8 @@ public abstract class Client {
                     Job.getExtendedUserInterface().restoreHighlights(restoredHighlights);
                 }
                 
-                if (ejob.client == Job.getExtendedUserInterface()) {
+                //if (ejob.client == Job.getExtendedUserInterface()) 
+                {
                     Throwable jobException = null;
                     if (ejob.startedByServer)
                         jobException = ejob.deserializeToClient();
