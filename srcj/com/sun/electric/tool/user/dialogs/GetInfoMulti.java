@@ -336,7 +336,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			{
 				Variable.Key varKey = h.getVarKey();
 				if (varKey != null)
-					textList.add(new DisplayedText(eobj, varKey));
+				{
+					if (varKey == Export.EXPORT_NAME)
+						exportList.add((Export)h.getElectricObject()); else
+							textList.add(new DisplayedText(eobj, varKey));
+				}
 			}
 		}
 
