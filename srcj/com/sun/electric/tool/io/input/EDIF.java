@@ -2070,6 +2070,7 @@ public class EDIF extends Input
 					int exportTech = User.getIconGenExportTech();
 					int exportStyle = User.getIconGenExportStyle();
 					int exportLocation = User.getIconGenExportLocation();
+					boolean alwaysDrawn = User.isIconsAlwaysDrawn();
 					int inputSide = User.getIconGenInputSide();
 					int outputSide = User.getIconGenOutputSide();
 					int bidirSide = User.getIconGenBidirSide();
@@ -2084,7 +2085,7 @@ public class EDIF extends Input
 		            int clkRot = User.getIconGenClockRot();
 					nnp = ViewChanges.makeIconForCell(curCell, leadLength, leadSpacing,
 						reverseIconExportOrder, drawBody, drawLeads, placeCellCenter,
-						exportTech, exportStyle, exportLocation,
+						exportTech, exportStyle, exportLocation, alwaysDrawn,
 						inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
 						inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 				} catch (JobException e)

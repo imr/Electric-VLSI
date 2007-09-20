@@ -982,6 +982,7 @@ public class PadGenerator
 			boolean drawLeads = User.isIconGenDrawLeads();
 			int exportStyle = User.getIconGenExportStyle();
 			int exportLocation = User.getIconGenExportLocation();
+    		boolean ad = User.isIconsAlwaysDrawn();
 
 			if (coreAllOnOneSide) {
 				List<Export> padTemp = new ArrayList<Export>();
@@ -1027,7 +1028,7 @@ public class PadGenerator
 					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
 					User.getIconGenGroundRot(), User.getIconGenClockRot());
 				if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation, rotation))
+					exportTech, drawLeads, exportStyle, exportLocation, rotation, ad))
 						total++;
 			}
 			total = 0;
@@ -1050,7 +1051,7 @@ public class PadGenerator
 					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
 					User.getIconGenGroundRot(), User.getIconGenClockRot());
 				if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation, rotation))
+					exportTech, drawLeads, exportStyle, exportLocation, rotation, ad))
 						total++;
 			}
 

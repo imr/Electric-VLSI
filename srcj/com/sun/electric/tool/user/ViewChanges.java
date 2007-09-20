@@ -462,6 +462,7 @@ public class ViewChanges
             int exportTech = User.getIconGenExportTech();
             int exportStyle = User.getIconGenExportStyle();
             int exportLocation = User.getIconGenExportLocation();
+            boolean alwaysDrawn = User.isIconsAlwaysDrawn();
             int inputSide = User.getIconGenInputSide();
             int outputSide = User.getIconGenOutputSide();
             int bidirSide = User.getIconGenBidirSide();
@@ -475,7 +476,7 @@ public class ViewChanges
             int gndRot = User.getIconGenGroundRot();
             int clkRot = User.getIconGenClockRot();
             new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
-                reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
+                reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation, alwaysDrawn,
                 inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
                 inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot, doItNow);
         }
@@ -484,7 +485,7 @@ public class ViewChanges
             // in case of debugging mode, better to draw the body and leads
             boolean drawBodyAndLeads = Job.getDebug();
             new MakeIconView(curCell, 0.05, 0, 2.0, 2.0,
-            false, drawBodyAndLeads, drawBodyAndLeads, true, 0, 1, 1,
+            false, drawBodyAndLeads, drawBodyAndLeads, true, 0, 1, 1, false,
             0, 1, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, doItNow);
         }
     }
@@ -495,7 +496,7 @@ public class ViewChanges
 		private double alignment;
 		private int exampleLocation;
 		private double leadLength, leadSpacing;
-		private boolean reverseIconExportOrder, drawBody, drawLeads, placeCellCenter;
+		private boolean reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, alwaysDrawn;
 		private int exportTech, exportStyle, exportLocation;
 		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
 		private int inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot;
@@ -505,7 +506,7 @@ public class ViewChanges
         // get icon style controls
 		private MakeIconView(Cell cell, double alignment, int exampleLocation,
 			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
-			int exportTech, int exportStyle, int exportLocation,
+			int exportTech, int exportStyle, int exportLocation, boolean alwaysDrawn,
 			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
 			int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot,
             boolean doItNow)
@@ -523,6 +524,7 @@ public class ViewChanges
 			this.exportTech = exportTech;
 			this.exportStyle = exportStyle;
 			this.exportLocation = exportLocation;
+			this.alwaysDrawn = alwaysDrawn;
 			this.inputSide = inputSide;     this.inputRot = inputRot;
 			this.outputSide = outputSide;   this.outputRot = outputRot;
 			this.bidirSide = bidirSide;     this.bidirRot = bidirRot;
@@ -541,7 +543,7 @@ public class ViewChanges
 		public boolean doIt() throws JobException
 		{
 			Cell iconCell = makeIconForCell(curCell, leadLength, leadSpacing, reverseIconExportOrder,
-				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
+				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation, alwaysDrawn,
 				inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
 				inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 			if (iconCell == null) return false;
@@ -602,7 +604,7 @@ public class ViewChanges
 	 */
 	public static Cell makeIconForCell(Cell curCell, double leadLength, double leadSpacing,
 		boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
-		int exportTech, int exportStyle, int exportLocation,
+		int exportTech, int exportStyle, int exportLocation, boolean alwaysDrawn,
 		int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
 		int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot)
 			throws JobException
@@ -703,7 +705,7 @@ public class ViewChanges
 
 			int rotation = iconTextRotation(pp, inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
 			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell,
-				exportTech, drawLeads, exportStyle, exportLocation, rotation))
+				exportTech, drawLeads, exportStyle, exportLocation, rotation, alwaysDrawn))
 					total++;
 		}
 
@@ -730,11 +732,12 @@ public class ViewChanges
 	 * @param exportStyle the icon style
 	 * @param exportLocation
 	 * @param textRotation
+	 * @param alwaysDrawn true to make export text be "always drawn"
 	 * @return true if the export was created.
 	 */
 	public static boolean makeIconExport(Export pp, int index,
 		double xPos, double yPos, double xBBPos, double yBBPos, Cell np,
-		int exportTech, boolean drawLeads, int exportStyle, int exportLocation, int textRotation)
+		int exportTech, boolean drawLeads, int exportStyle, int exportLocation, int textRotation, boolean alwaysDrawn)
 	{
 		// presume "universal" exports (Generic technology)
 		NodeProto pinType = Generic.tech.universalPinNode;
@@ -815,7 +818,7 @@ public class ViewChanges
 					break;
 			}
 			port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
-			port.setAlwaysDrawn(pp.isAlwaysDrawn());
+			port.setAlwaysDrawn(alwaysDrawn);
 			port.setCharacteristic(pp.getCharacteristic());
 			port.copyVarsFrom(pp);
 		}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06f: *******************************
 
+IMP/MAN: (9/20/07, SMR) Icon Preferences now allow specification of "always drawn"
+     for all export text.
+
 BUG: (9/20/07, SMR) Multi-object Properties doesn't handle all fields of exports.
 FIX: In GetInfoMulti.loadMultiInfo(), distinguish exports from text.
 

@@ -229,11 +229,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	    		boolean drawLeads = User.isIconGenDrawLeads();
 	    		int exportStyle = User.getIconGenExportStyle();
 	    		int exportLocation = User.getIconGenExportLocation();
+	    		boolean ad = User.isIconsAlwaysDrawn();
 				int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
 					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
 					User.getIconGenGroundRot(), User.getIconGenClockRot());
 	            if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon,
-	            		exportTech, drawLeads, exportStyle, exportLocation, rotation))
+	            		exportTech, drawLeads, exportStyle, exportLocation, rotation, ad))
 	            {
 	                System.out.println("Warning: Failed to create associated export in icon "+icon.describe(true));
 	            }

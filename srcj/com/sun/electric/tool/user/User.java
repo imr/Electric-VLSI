@@ -809,6 +809,23 @@ public class User extends Listener
 	 */
 	public static void setIconGenDrawLeads(boolean on) { cacheIconGenDrawLeads.setBoolean(on); }
 
+	private static Pref cacheIconsAlwaysDrawn = Pref.makeBooleanPref("IconsAlwaysDrawn", tool.prefs, false);
+	/**
+	 * Method to tell whether generated icon exports should be "always drawn".
+	 * Exports that are "always drawn" have their text shown on instances, even
+	 * when those exports are connected or further exported.
+	 * The default is "false".
+	 * @return true if generated icon exports should be "always drawn".
+	 */
+	public static boolean isIconsAlwaysDrawn() { return cacheIconsAlwaysDrawn.getBoolean(); }
+	/**
+	 * Method to set whether generated icon exports should be "always drawn".
+	 * Exports that are "always drawn" have their text shown on instances, even
+	 * when those exports are connected or further exported.
+	 * @param on true if generated icon exports should be "always drawn".
+	 */
+	public static void setIconsAlwaysDrawn(boolean on) { cacheIconsAlwaysDrawn.setBoolean(on); }
+
 	private static Pref cacheIconGenDrawBody = Pref.makeBooleanPref("IconGenDrawBody", tool.prefs, true);
 	/**
 	 * Method to tell whether generated icons should have a body drawn.

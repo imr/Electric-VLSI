@@ -128,6 +128,7 @@ public class IconTab extends PreferencePanel
 		iconDrawLeads.setSelected(User.isIconGenDrawLeads());
 		iconDrawBody.setSelected(User.isIconGenDrawBody());
 		iconReverseOrder.setSelected(User.isIconGenReverseExportOrder());
+		iconsAlwaysDrawn.setSelected(User.isIconsAlwaysDrawn());
 
 		iconLeadLength.setText(TextUtils.formatDouble(User.getIconGenLeadLength()));
 		iconLeadSpacing.setText(TextUtils.formatDouble(User.getIconGenLeadSpacing()));
@@ -212,6 +213,10 @@ public class IconTab extends PreferencePanel
 		if (currBoolean != User.isIconGenReverseExportOrder())
 			User.setIconGenReverseExportOrder(currBoolean);
 
+		currBoolean = iconsAlwaysDrawn.isSelected();
+		if (currBoolean != User.isIconsAlwaysDrawn())
+			User.setIconsAlwaysDrawn(currBoolean);
+
 		double currDouble = TextUtils.atof(iconLeadLength.getText());
 		if (currDouble != User.getIconGenLeadLength())
 			User.setIconGenLeadLength(currDouble);
@@ -276,6 +281,7 @@ public class IconTab extends PreferencePanel
         iconExportPos = new javax.swing.JComboBox();
         jLabel29 = new javax.swing.JLabel();
         iconExportStyle = new javax.swing.JComboBox();
+        iconsAlwaysDrawn = new javax.swing.JCheckBox();
         iconReverseOrder = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -657,6 +663,17 @@ public class IconTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(iconExportStyle, gridBagConstraints);
 
+        iconsAlwaysDrawn.setText("Make exports \"Always Drawn\"");
+        iconsAlwaysDrawn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        iconsAlwaysDrawn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel6.add(iconsAlwaysDrawn, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -710,6 +727,7 @@ public class IconTab extends PreferencePanel
     private javax.swing.JComboBox iconPowerPos;
     private javax.swing.JComboBox iconPowerRot;
     private javax.swing.JCheckBox iconReverseOrder;
+    private javax.swing.JCheckBox iconsAlwaysDrawn;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
