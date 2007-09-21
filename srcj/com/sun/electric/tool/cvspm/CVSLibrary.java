@@ -187,6 +187,37 @@ public class CVSLibrary {
     }
 
     /**
+     * Get a list of libraries and cells that are in CVS.  This is sorted
+     * in the sense that the libraries returned will be JELIBS, and the
+     * cells returned are cells from DELIBS that are part of the original
+     * set of libs and cells.
+     * @param libs a list of Libraries
+     * @param cells a list of Cells
+     * @return a LibsCells with JELIBS libraries and DELIB cells that are in CVS.
+     */
+    public static LibsCells getInCVSSorted(List<Library> libs, List<Cell> cells) {
+        List<Cell> delibCells = new ArrayList<Cell>();
+        List<Library> jelibs = new ArrayList<Library>();
+
+        for (Library lib : libs) {
+            if (CVS.isDELIB(lib)) {
+                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                    cells.add(it.next());
+                }
+            }
+            else if (!jelibs.contains(lib))
+                jelibs.add(lib);
+        }
+        for (Cell c : cells) {
+            if (CVS.isDELIB(c.getLibrary()))
+                delibCells.add(c);
+            else if (!jelibs.contains(c.getLibrary()))
+                jelibs.add(c.getLibrary());
+        }
+        return getInCVS(jelibs, delibCells);
+    }
+
+    /**
      * Only for DELIBs, check if there are any cells in
      * library that have state "UNKNOWN", and need to be added to CVS.
      * @param lib the Library to examine.

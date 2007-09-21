@@ -31,6 +31,8 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.CellId;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
@@ -41,6 +43,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Listener;
 
 import javax.swing.*;
 import java.io.*;
@@ -59,10 +62,38 @@ import java.net.URI;
  */
 
 /**
- * Only one CVS command can be working at a time.  While CVS is running,
- * the GUI will be tied up.  This is to
+ * The CVS Module
  */
-public class CVS {
+public class CVS extends Listener {
+
+    private static CVS tool = new CVS();
+
+    private CVS() {
+        super("CVS");
+    }
+
+    public void init() {
+        setOn();
+    }
+
+    /**
+      * Handles database changes of a Job.
+      * @param oldSnapshot database snapshot before Job.
+      * @param newSnapshot database snapshot after Job and constraint propagation.
+      * @param undoRedo true if Job was Undo/Redo job.
+      */
+     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
+     {
+         //if (undoRedo) return;
+         if (!CVS.isEnabled()) return;
+         if (newSnapshot.tool == tool) return;
+
+         List changedCells = new ArrayList<Cell>();
+         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+             Cell cell = Cell.inCurrentThread(cellId);
+             changedCells.add(cell);
+         }
+     }
 
 
     public static void checkoutFromRepository() {

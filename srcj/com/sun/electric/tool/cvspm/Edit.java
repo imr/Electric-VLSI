@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,13 @@ public class Edit {
         CVS.runCVSCommand("edit -a none "+file, "Edit",
                 dir, System.out);
         return true;
+    }
+
+    public static void checkEditing(List<Cell> cells) {
+        CVSLibrary.LibsCells libcells = CVSLibrary.getInCVSSorted(new ArrayList<Library>(), cells);
+        if (libcells.cells.size() == 0 && libcells.libs.size() == 0) return;
+        
+        (new CheckEditorsJob(libcells.libs, libcells.cells)).startJob();
     }
 
     // ---------------------- Get Editors ----------------------------
@@ -148,6 +156,45 @@ public class Edit {
         }
     }
 
+    public static class CheckEditorsJob extends Job {
+        private List<Library> libs;
+        private List<Cell> cells;
+        private List<Editor> editors;
+
+        public CheckEditorsJob(List<Library> libs, List<Cell> cells) {
+            super("Check CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.libs = libs;
+            this.cells = cells;
+            if (this.libs == null) this.libs = new ArrayList<Library>();
+            if (this.cells == null) this.cells = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            String useDir = CVS.getUseDir(libs, cells);
+            StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            String args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
+            LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+            editors = parseOutput(reader);
+            fieldVariableChanged("editors");
+            return false;
+        }
+
+        public void terminateOK() {
+            // if there are any editors, let the user know.
+            StringBuffer message = new StringBuffer();
+            message.append("Warning! The following cells you have modified are already being edited:\n");
+            for (Editor editor : editors) {
+                message.append("\t"+editor.getFile()+"\t"+editor.getUser());
+            }
+            JOptionPane.showMessageDialog(null, message.toString(), "Edit Conflict!", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
 /*
     static List<Editor> getEditors(Library lib) {
         File file = new File(lib.getLibFile().getPath());
@@ -212,7 +259,7 @@ public class Edit {
         return false;
     }
 
-    public static class Editor {
+    public static class Editor implements Serializable {
         private final String file;
         private final String user;
         private final Date date;
