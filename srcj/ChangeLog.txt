@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06g: *******************************
+
 ************************* Version 8.06f: *******************************
 
 IMP: (9/20/07, GVG) Cleaning VerilogData in code.  Adding \t to a tokenizer for full design.
