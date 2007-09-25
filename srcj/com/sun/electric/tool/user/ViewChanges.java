@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -43,12 +44,14 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -75,8 +78,10 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -453,40 +458,15 @@ public class ViewChanges
     {
         if (!fixedValues)
         {
-            double leadLength = User.getIconGenLeadLength();
-            double leadSpacing = User.getIconGenLeadSpacing();
-            boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
-            boolean drawBody = User.isIconGenDrawBody();
-            boolean drawLeads = User.isIconGenDrawLeads();
-            boolean placeCellCenter = User.isPlaceCellCenter();
-            int exportTech = User.getIconGenExportTech();
-            int exportStyle = User.getIconGenExportStyle();
-            int exportLocation = User.getIconGenExportLocation();
-            boolean alwaysDrawn = User.isIconsAlwaysDrawn();
-            int inputSide = User.getIconGenInputSide();
-            int outputSide = User.getIconGenOutputSide();
-            int bidirSide = User.getIconGenBidirSide();
-            int pwrSide = User.getIconGenPowerSide();
-            int gndSide = User.getIconGenGroundSide();
-            int clkSide = User.getIconGenClockSide();
-            int inputRot = User.getIconGenInputRot();
-            int outputRot = User.getIconGenOutputRot();
-            int bidirRot = User.getIconGenBidirRot();
-            int pwrRot = User.getIconGenPowerRot();
-            int gndRot = User.getIconGenGroundRot();
-            int clkRot = User.getIconGenClockRot();
-            new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
-                reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation, alwaysDrawn,
-                inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
-                inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot, doItNow);
+        	IconParameters ip = new IconParameters();
+        	ip.initFromUserDefaults();
+            new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), ip, doItNow);
         }
         else
         {
             // in case of debugging mode, better to draw the body and leads
-            boolean drawBodyAndLeads = Job.getDebug();
-            new MakeIconView(curCell, 0.05, 0, 2.0, 2.0,
-            false, drawBodyAndLeads, drawBodyAndLeads, true, 0, 1, 1, false,
-            0, 1, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, doItNow);
+        	IconParameters ip = new IconParameters();
+            new MakeIconView(curCell, 0.05, 0, ip, doItNow);
         }
     }
 
@@ -495,42 +475,18 @@ public class ViewChanges
 		private Cell curCell;
 		private double alignment;
 		private int exampleLocation;
-		private double leadLength, leadSpacing;
-		private boolean reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, alwaysDrawn;
-		private int exportTech, exportStyle, exportLocation;
-		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
-		private int inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot;
+		private IconParameters ip;
 		private NodeInst iconNode;
         private boolean doItNow;
 
         // get icon style controls
-		private MakeIconView(Cell cell, double alignment, int exampleLocation,
-			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
-			int exportTech, int exportStyle, int exportLocation, boolean alwaysDrawn,
-			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
-			int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot,
-            boolean doItNow)
+		private MakeIconView(Cell cell, double alignment, int exampleLocation, IconParameters ip, boolean doItNow)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
 			this.alignment = alignment;
 			this.exampleLocation = exampleLocation;
-			this.leadLength = leadLength;
-			this.leadSpacing = leadSpacing;
-			this.reverseIconExportOrder = reverseIconExportOrder;
-			this.drawBody = drawBody;
-			this.drawLeads = drawLeads;
-			this.placeCellCenter = placeCellCenter;
-			this.exportTech = exportTech;
-			this.exportStyle = exportStyle;
-			this.exportLocation = exportLocation;
-			this.alwaysDrawn = alwaysDrawn;
-			this.inputSide = inputSide;     this.inputRot = inputRot;
-			this.outputSide = outputSide;   this.outputRot = outputRot;
-			this.bidirSide = bidirSide;     this.bidirRot = bidirRot;
-			this.pwrSide = pwrSide;         this.pwrRot = pwrRot;
-			this.gndSide = gndSide;         this.gndRot = gndRot;
-			this.clkSide = clkSide;         this.clkRot = clkRot;
+			this.ip = ip;
             this.doItNow = doItNow;
             if (doItNow)
             {
@@ -542,10 +498,7 @@ public class ViewChanges
 
 		public boolean doIt() throws JobException
 		{
-			Cell iconCell = makeIconForCell(curCell, leadLength, leadSpacing, reverseIconExportOrder,
-				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation, alwaysDrawn,
-				inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
-				inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
+			Cell iconCell = ip.makeIconForCell(curCell);
 			if (iconCell == null) return false;
 
 			// place an icon in the schematic
@@ -597,125 +550,360 @@ public class ViewChanges
         }
 	}
 
-	/**
-	 * Method to create an icon for a cell.
-	 * @param curCell the cell to turn into an icon.
-	 * @return the icon cell (null on error).
-	 */
-	public static Cell makeIconForCell(Cell curCell, double leadLength, double leadSpacing,
-		boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
-		int exportTech, int exportStyle, int exportLocation, boolean alwaysDrawn,
-		int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
-		int inputRot, int outputRot, int bidirRot, int pwrRot, int gndRot, int clkRot)
+    /**
+     * Class to define parameters for automatic icon generation
+     */
+    public static class IconParameters implements Serializable
+    {
+    	/** length of leads from body to export */							double leadLength;
+    	/** spacing between leads (or exports) */							double leadSpacing;
+    	/** true to place exports by location in original cell */			boolean placeByCellLocation;
+    	/** true to reverse placement of exports */							boolean reverseIconExportOrder;
+    	/** true to draw an icon body (a rectangle) */						boolean drawBody;
+    	/** size (in units) of text on body */								double bodyTextSize;
+    	/** true to draw leads between the body and exports */				boolean drawLeads;
+    	/** true to place a cell-center in the icon */						boolean placeCellCenter;
+    	/** technology: 0=generic, 1=schematic */							int exportTech;
+    	/** text style: 0=centered, 1=inward, 2=outward */					int exportStyle;
+    	/** text location: 0=on body, 1=end of lead, 2=middle of lead */	int exportLocation;
+    	/** true to make exports "always drawn" */							boolean alwaysDrawn;
+    	/** side for input ports (when placeByCellLocation false) */		int inputSide;
+    	/** side for output ports (when placeByCellLocation false) */		int outputSide;
+    	/** side for bidir ports (when placeByCellLocation false) */		int bidirSide;
+    	/** side for power ports (when placeByCellLocation false) */		int pwrSide;
+    	/** side for ground ports (when placeByCellLocation false) */		int gndSide;
+    	/** side for clock ports (when placeByCellLocation false) */		int clkSide;
+    	/** rotation of input text (when placeByCellLocation false) */		int inputRot;
+    	/** rotation of output text (when placeByCellLocation false) */		int outputRot;
+    	/** rotation of bidir text (when placeByCellLocation false) */		int bidirRot;
+    	/** rotation of power text (when placeByCellLocation false) */		int pwrRot;
+    	/** rotation of ground text (when placeByCellLocation false) */		int gndRot;
+    	/** rotation of clock text (when placeByCellLocation false) */		int clkRot;
+    	/** rotation of top text (when placeByCellLocation true) */			int topRot;
+    	/** rotation of bottom text (when placeByCellLocation true) */		int bottomRot;
+    	/** rotation of left text (when placeByCellLocation true) */		int leftRot;
+    	/** rotation of right text (when placeByCellLocation true) */		int rightRot;
+
+		public IconParameters()
+		{
+            boolean drawBodyAndLeads = Job.getDebug();
+	    	leadLength = 2.0;
+	    	leadSpacing = 2.0;
+	    	placeByCellLocation = false;
+			reverseIconExportOrder = false;
+			drawBody = drawBodyAndLeads;
+			bodyTextSize = 1.0;
+			drawLeads = drawBodyAndLeads;
+			placeCellCenter = true;
+			exportTech = 0;
+			exportStyle = 1;
+			exportLocation = 1;
+			alwaysDrawn = false;
+			inputSide = 0;
+			outputSide = 1;
+			bidirSide = 2;
+			pwrSide = 3;
+			gndSide = 3;
+			clkSide = 0;
+			inputRot = 0;
+			outputRot = 0;
+			bidirRot = 0;
+			pwrRot = 0;
+			gndRot = 0;
+			clkRot = 0;
+	    	topRot = 0;
+	    	bottomRot = 0;
+	    	leftRot = 0;
+	    	rightRot = 0;
+		}
+
+		public void initFromUserDefaults()
+		{
+			leadLength = User.getIconGenLeadLength();
+			leadSpacing = User.getIconGenLeadSpacing();
+			placeByCellLocation = User.getIconGenExportPlacement() == 1;
+			reverseIconExportOrder = User.isIconGenReverseExportOrder();
+			drawBody = User.isIconGenDrawBody();
+			bodyTextSize = User.getIconGenBodyTextSize();
+			drawLeads = User.isIconGenDrawLeads();
+			placeCellCenter = User.isPlaceCellCenter();
+			exportTech = User.getIconGenExportTech();
+			exportStyle = User.getIconGenExportStyle();
+			exportLocation = User.getIconGenExportLocation();
+			alwaysDrawn = User.isIconsAlwaysDrawn();
+			inputSide = User.getIconGenInputSide();
+			outputSide = User.getIconGenOutputSide();
+			bidirSide = User.getIconGenBidirSide();
+			pwrSide = User.getIconGenPowerSide();
+			gndSide = User.getIconGenGroundSide();
+			clkSide = User.getIconGenClockSide();
+			inputRot = User.getIconGenInputRot();
+			outputRot = User.getIconGenOutputRot();
+			bidirRot = User.getIconGenBidirRot();
+			pwrRot = User.getIconGenPowerRot();
+			gndRot = User.getIconGenGroundRot();
+			clkRot = User.getIconGenClockRot();
+	    	topRot = User.getIconGenTopRot();
+	    	bottomRot = User.getIconGenBottomRot();
+	    	leftRot = User.getIconGenLeftRot();
+	    	rightRot = User.getIconGenRightRot();
+		}
+
+		/**
+		 * Method to create an icon for a cell.
+		 * @param curCell the cell to turn into an icon.
+		 * @return the icon cell (null on error).
+		 */
+		public Cell makeIconForCell(Cell curCell)
 			throws JobException
+		{
+			// create the new icon cell
+			String iconCellName = curCell.getName() + "{ic}";
+			Cell iconCell = Cell.makeInstance(curCell.getLibrary(), iconCellName);
+			if (iconCell == null)
+				throw new JobException("Cannot create Icon cell " + iconCellName);
+			iconCell.setWantExpanded();
+
+			// determine number of ports on each side
+			int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
+			Map<Export,Integer> portIndex = new HashMap<Export,Integer>();
+			Map<Export,Integer> portSide = new HashMap<Export,Integer>();
+			Map<Export,Integer> portRotation = new HashMap<Export,Integer>();
+
+			// make a sorted list of exports
+			List<Export> exportList = new ArrayList<Export>();
+			for(Iterator<PortProto> it = curCell.getPorts(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				if (pp.isBodyOnly()) continue;
+				exportList.add(pp);
+			}
+			if (placeByCellLocation)
+			{
+				// place exports according to their location in the cell
+				Collections.sort(exportList, new ExportsByAngle());
+
+				// figure out how many exports go on each side
+				int numExports = exportList.size();
+				leftSide = rightSide = topSide = bottomSide = numExports / 4;
+				if (leftSide + rightSide + topSide + bottomSide < numExports) leftSide++;
+				if (leftSide + rightSide + topSide + bottomSide < numExports) rightSide++;
+				if (leftSide + rightSide + topSide + bottomSide < numExports) topSide++;
+
+				// cache the location of each export
+				Map<Export,Point2D> portCenters = new HashMap<Export,Point2D>();
+				for(int i=0; i<numExports; i++)
+				{
+					Export pp = exportList.get(i);
+					portCenters.put(pp, pp.getOriginalPort().getCenter());
+				}
+
+				// make an array of points in the middle of each side
+				ERectangle bounds = curCell.getBounds();
+				Point2D leftPoint = new Point2D.Double(bounds.getCenterX() - bounds.getWidth(), bounds.getCenterY());
+				Point2D rightPoint = new Point2D.Double(bounds.getCenterX() + bounds.getWidth(), bounds.getCenterY());
+				Point2D topPoint = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY() + bounds.getWidth());
+				Point2D bottomPoint = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY() - bounds.getWidth());
+				Point2D[] sidePoints = new Point2D[numExports];
+				int fill = 0;
+				for(int i=0; i<leftSide; i++) sidePoints[fill++] = leftPoint;
+				for(int i=0; i<topSide; i++) sidePoints[fill++] = topPoint;
+				for(int i=0; i<rightSide; i++) sidePoints[fill++] = rightPoint;
+				for(int i=0; i<bottomSide; i++) sidePoints[fill++] = bottomPoint;
+
+				// rotate the points and find the rotation with the least distance to the side points
+				double [] totDist = new double[numExports];
+				for(int i=0; i<numExports; i++)
+				{
+					totDist[i] = 0;
+					for(int j=0; j<numExports; j++)
+					{
+						Point2D ppCtr = portCenters.get(exportList.get((j+i)%numExports));
+						double dist = ppCtr.distance(sidePoints[j]);	
+						totDist[i] += dist;
+					}
+				}
+				double bestDist = Double.MAX_VALUE;
+				int bestIndex = -1;
+				for(int i=0; i<numExports; i++)
+				{
+					if (totDist[i] < bestDist)
+					{
+						bestDist = totDist[i];
+						bestIndex = i;
+					}
+				}
+
+				// assign ports along each side
+				for(int i=0; i<leftSide; i++)
+				{
+					Export pp = exportList.get((i+bestIndex)%numExports);
+					portSide.put(pp, new Integer(0));
+					portIndex.put(pp, new Integer(leftSide-i-1));
+					portRotation.put(pp, new Integer(leftRot));
+				}
+				for(int i=0; i<topSide; i++)
+				{
+					Export pp = exportList.get((i+leftSide+bestIndex)%numExports);
+					portSide.put(pp, new Integer(2));
+					portIndex.put(pp, new Integer(topSide-i-1));
+					portRotation.put(pp, new Integer(topRot));
+				}
+				for(int i=0; i<rightSide; i++)
+				{
+					Export pp = exportList.get((i+leftSide+topSide+bestIndex)%numExports);
+					portSide.put(pp, new Integer(1));
+					portIndex.put(pp, new Integer(i));
+					portRotation.put(pp, new Integer(rightRot));
+				}
+				for(int i=0; i<bottomSide; i++)
+				{
+					Export pp = exportList.get((i+leftSide+topSide+rightSide+bestIndex)%numExports);
+					portSide.put(pp, new Integer(3));
+					portIndex.put(pp, new Integer(i));
+					portRotation.put(pp, new Integer(bottomRot));
+				}
+			} else
+			{
+				// place exports according to their characteristics
+				if (reverseIconExportOrder)
+					Collections.reverse(exportList);
+				for(Export pp : exportList)
+				{
+					int index = iconPosition(pp);
+					portSide.put(pp, new Integer(index));
+					switch (index)
+					{
+						case 0: portIndex.put(pp, new Integer(leftSide++));    break;
+						case 1: portIndex.put(pp, new Integer(rightSide++));   break;
+						case 2: portIndex.put(pp, new Integer(topSide++));     break;
+						case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
+					}
+					int rotation = iconTextRotation(pp, inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
+					portRotation.put(pp, new Integer(rotation));
+				}
+			}
+
+			// determine the size of the "black box" core
+			double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
+			double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+
+			// create the "black box"
+			NodeInst bbNi = null;
+			if (drawBody)
+			{
+				bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+				if (bbNi == null) return null;
+				EPoint [] boxOutline = new EPoint[5];
+				boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
+				boxOutline[1] = new EPoint(-xSize/2,  ySize/2);
+				boxOutline[2] = new EPoint( xSize/2,  ySize/2);
+				boxOutline[3] = new EPoint( xSize/2, -ySize/2);
+				boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
+				bbNi.setTrace(boxOutline);
+
+				// put the original cell name on it
+//				bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
+				TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(bodyTextSize);
+				bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName(), td);
+			}
+
+			// place pins around the Black Box
+			int total = 0;
+			for(Export pp : exportList)
+			{
+				// determine location and side of the port
+				int portPosition = portIndex.get(pp).intValue();
+				int index = portSide.get(pp).intValue();
+				double spacing = leadSpacing;
+				double xPos = 0, yPos = 0;
+				double xBBPos = 0, yBBPos = 0;
+				switch (index)
+				{
+					case 0:		// left side
+						xBBPos = -xSize/2;
+						xPos = xBBPos - leadLength;
+						if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition * spacing);
+						break;
+					case 1:		// right side
+						xBBPos = xSize/2;
+						xPos = xBBPos + leadLength;
+						if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition * spacing);
+						break;
+					case 2:		// top
+						if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
+						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition * spacing);
+						yBBPos = ySize/2;
+						yPos = yBBPos + leadLength;
+						break;
+					case 3:		// bottom
+						if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
+						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition * spacing);
+						yBBPos = -ySize/2;
+						yPos = yBBPos - leadLength;
+						break;
+				}
+
+				int rotation = portRotation.get(pp).intValue();
+				if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell,
+					exportTech, drawLeads, exportStyle, exportLocation, rotation, alwaysDrawn))
+						total++;
+			}
+
+			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
+			if (!drawBody && !drawLeads && placeCellCenter && total <= 1)
+			{
+				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+			}
+
+			return iconCell;
+		}
+
+		/**
+		 * Method to determine the side of the icon that port "pp" belongs on.
+		 */
+		private int iconPosition(Export pp)
+		{
+			PortCharacteristic character = pp.getCharacteristic();
+
+			// special detection for power and ground ports
+			if (pp.isPower()) character = PortCharacteristic.PWR;
+			if (pp.isGround()) character = PortCharacteristic.GND;
+
+			// see which side this type of port sits on
+			if (character == PortCharacteristic.IN) return inputSide;
+			if (character == PortCharacteristic.OUT) return outputSide;
+			if (character == PortCharacteristic.BIDIR) return bidirSide;
+			if (character == PortCharacteristic.PWR) return pwrSide;
+			if (character == PortCharacteristic.GND) return gndSide;
+			if (character.isClock()) return clkSide;
+			return inputSide;
+		}
+    }
+
+	/**
+	 * Comparator class for sorting Exports by their angle about the cell center.
+	 */
+	private static class ExportsByAngle implements Comparator<Export>
 	{
-		// make a sorted list of exports
-		List<Export> exportList = new ArrayList<Export>();
-		for(Iterator<PortProto> it = curCell.getPorts(); it.hasNext(); )
-			exportList.add((Export)it.next());
-		if (reverseIconExportOrder)
-			Collections.reverse(exportList);
-
-		// create the new icon cell
-		String iconCellName = curCell.getName() + "{ic}";
-		Cell iconCell = Cell.makeInstance(curCell.getLibrary(), iconCellName);
-		if (iconCell == null)
+		/**
+		 * Method to sort Exports by their angle about the cell center.
+		 */
+		public int compare(Export p1, Export p2)
 		{
-			throw new JobException("Cannot create Icon cell " + iconCellName);
+			Cell cell = p1.getParent();
+			ERectangle bounds = cell.getBounds();
+			Point2D cellCtr = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+			Point2D p1Ctr = p1.getOriginalPort().getCenter();
+			Point2D p2Ctr = p2.getOriginalPort().getCenter();
+			double angle1 = DBMath.figureAngleRadians(cellCtr, p1Ctr);
+			double angle2 = DBMath.figureAngleRadians(cellCtr, p2Ctr);
+			if (angle1 < angle2) return 1;
+			if (angle1 > angle2) return -1;
+			return 0;
 		}
-		iconCell.setWantExpanded();
-
-		// determine number of inputs and outputs
-		int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
-		HashMap<Export,Integer> portIndex = new HashMap<Export,Integer>();
-		for(Export pp : exportList)
-		{
-			if (pp.isBodyOnly()) continue;
-			int index = iconPosition(pp, inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
-			switch (index)
-			{
-				case 0: portIndex.put(pp, new Integer(leftSide++));    break;
-				case 1: portIndex.put(pp, new Integer(rightSide++));   break;
-				case 2: portIndex.put(pp, new Integer(topSide++));     break;
-				case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
-			}
-		}
-
-		// determine the size of the "black box" core
-		double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
-		double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
-
-		// create the "black box"
-		NodeInst bbNi = null;
-		if (drawBody)
-		{
-			bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
-			if (bbNi == null) return null;
-			EPoint [] boxOutline = new EPoint[5];
-			boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
-			boxOutline[1] = new EPoint(-xSize/2,  ySize/2);
-			boxOutline[2] = new EPoint( xSize/2,  ySize/2);
-			boxOutline[3] = new EPoint( xSize/2, -ySize/2);
-			boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
-			bbNi.setTrace(boxOutline);
-
-			// put the original cell name on it
-			bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
-		}
-
-		// place pins around the Black Box
-		int total = 0;
-		for(Export pp : exportList)
-		{
-			if (pp.isBodyOnly()) continue;
-			Integer portPosition = portIndex.get(pp);
-
-			// determine location of the port
-			int index = iconPosition(pp, inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
-			double spacing = leadSpacing;
-			double xPos = 0, yPos = 0;
-			double xBBPos = 0, yBBPos = 0;
-			switch (index)
-			{
-				case 0:		// left side
-					xBBPos = -xSize/2;
-					xPos = xBBPos - leadLength;
-					if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
-					yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-					break;
-				case 1:		// right side
-					xBBPos = xSize/2;
-					xPos = xBBPos + leadLength;
-					if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
-					yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-					break;
-				case 2:		// top
-					if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
-					xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-					yBBPos = ySize/2;
-					yPos = yBBPos + leadLength;
-					break;
-				case 3:		// bottom
-					if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
-					xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-					yBBPos = -ySize/2;
-					yPos = yBBPos - leadLength;
-					break;
-			}
-
-			int rotation = iconTextRotation(pp, inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
-			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell,
-				exportTech, drawLeads, exportStyle, exportLocation, rotation, alwaysDrawn))
-					total++;
-		}
-
-		// if no body, leads, or cell center is drawn, and there is only 1 export, add more
-		if (!drawBody && !drawLeads && placeCellCenter && total <= 1)
-		{
-			NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
-		}
-
-		return iconCell;
 	}
 
 	/**
@@ -847,27 +1035,6 @@ public class ViewChanges
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Method to determine the side of the icon that port "pp" belongs on.
-	 */
-	private static int iconPosition(Export pp, int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
-	{
-		PortCharacteristic character = pp.getCharacteristic();
-
-		// special detection for power and ground ports
-		if (pp.isPower()) character = PortCharacteristic.PWR;
-		if (pp.isGround()) character = PortCharacteristic.GND;
-
-		// see which side this type of port sits on
-		if (character == PortCharacteristic.IN) return inputSide;
-		if (character == PortCharacteristic.OUT) return outputSide;
-		if (character == PortCharacteristic.BIDIR) return bidirSide;
-		if (character == PortCharacteristic.PWR) return pwrSide;
-		if (character == PortCharacteristic.GND) return gndSide;
-		if (character.isClock()) return clkSide;
-		return inputSide;
 	}
 
 	/**
@@ -1926,13 +2093,13 @@ public class ViewChanges
                 private static Location getRelativeLocation(Point2D p, Point2D referenceP) {
                     double xDist = p.getX() - referenceP.getX();
                     double yDist = p.getY() - referenceP.getY();
-                    if (Math.abs(xDist) >= Math.abs(yDist)) {
+                    if (Math.abs(xDist) >= Math.abs(yDist))
+                    {
                         if (xDist < 0) return Location.LEFT;
                         return Location.RIGHT;
-                    } else {
-                        if (yDist < 0) return Location.BELOW;
-                        return Location.ABOVE;
                     }
+                    if (yDist < 0) return Location.BELOW;
+                    return Location.ABOVE;
                 }
                 protected Point2D getCenter(boolean lay) {
                     Rectangle2D bounds;

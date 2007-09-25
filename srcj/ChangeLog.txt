@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP/MAN: (9/25/07, SMR) Icon preferences now allow exports to be placed according
+     to the placement in the original cell.  Also allow control of text size
+     on icon body.
+
+BUG: (9/25/07, SMR) Offset exports now display properly on instances.
+
 ************************* Version 8.06f: *******************************
 
 IMP: (9/20/07, GVG) Cleaning VerilogData in code.  Adding \t to a tokenizer for full design.

@@ -2061,33 +2061,9 @@ public class EDIF extends Input
 				Cell nnp = null;
 				try
 				{
-					double leadLength = User.getIconGenLeadLength();
-					double leadSpacing = User.getIconGenLeadSpacing();
-					boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
-					boolean drawBody = User.isIconGenDrawBody();
-					boolean drawLeads = User.isIconGenDrawLeads();
-					boolean placeCellCenter = User.isPlaceCellCenter();
-					int exportTech = User.getIconGenExportTech();
-					int exportStyle = User.getIconGenExportStyle();
-					int exportLocation = User.getIconGenExportLocation();
-					boolean alwaysDrawn = User.isIconsAlwaysDrawn();
-					int inputSide = User.getIconGenInputSide();
-					int outputSide = User.getIconGenOutputSide();
-					int bidirSide = User.getIconGenBidirSide();
-					int pwrSide = User.getIconGenPowerSide();
-					int gndSide = User.getIconGenGroundSide();
-					int clkSide = User.getIconGenClockSide();
-		            int inputRot = User.getIconGenInputRot();
-		            int outputRot = User.getIconGenOutputRot();
-		            int bidirRot = User.getIconGenBidirRot();
-		            int pwrRot = User.getIconGenPowerRot();
-		            int gndRot = User.getIconGenGroundRot();
-		            int clkRot = User.getIconGenClockRot();
-					nnp = ViewChanges.makeIconForCell(curCell, leadLength, leadSpacing,
-						reverseIconExportOrder, drawBody, drawLeads, placeCellCenter,
-						exportTech, exportStyle, exportLocation, alwaysDrawn,
-						inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide,
-						inputRot, outputRot, bidirRot, pwrRot, gndRot, clkRot);
+					ViewChanges.IconParameters ip = new ViewChanges.IconParameters();
+					ip.initFromUserDefaults();
+					nnp = ip.makeIconForCell(curCell);
 				} catch (JobException e)
 				{
 				}

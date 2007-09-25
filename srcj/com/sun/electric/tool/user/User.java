@@ -841,6 +841,19 @@ public class User extends Listener
 	 */
 	public static void setIconGenDrawBody(boolean on) { cacheIconGenDrawBody.setBoolean(on); }
 
+	private static Pref cacheIconGenBodyTextSize = Pref.makeDoublePref("IconGenBodyTextSize", tool.prefs, 2.0);
+	/**
+	 * Method to tell the size of body text on generated icons.
+	 * The default is 2 unit.
+	 * @return the size of body text on generated icons.
+	 */
+	public static double getIconGenBodyTextSize() { return cacheIconGenBodyTextSize.getDouble(); }
+	/**
+	 * Method to set the size of body text on generated icons.
+	 * @param s the size of body text on generated icons.
+	 */
+	public static void setIconGenBodyTextSize(double s) { cacheIconGenBodyTextSize.setDouble(s); }
+
 	private static Pref cacheIconGenReverseExportOrder = Pref.makeBooleanPref("IconGenReverseExportOrder", tool.prefs, false);
 	/**
 	 * Method to tell whether generated icons should reverse the order of exports.
@@ -940,15 +953,31 @@ public class User extends Listener
 	 */
 	public static void setIconGenClockSide(int side) { cacheIconGenClockSide.setInt(side); }
 
+	private static Pref cacheIconGenExportPlacement = Pref.makeIntPref("IconGenExportPlacement", tool.prefs, 0);
+	/**
+	 * Method to tell how exports are placed in generated icons.
+	 * @return information about how exports are placed in generated icons.
+	 * 0: by characteristic   1: by location in original cell
+	 */
+	public static int getIconGenExportPlacement() { return cacheIconGenExportPlacement.getInt(); }
+	/**
+	 * Method to set how exports are placed in generated icons.
+	 * @param rot information about how exports are placed in generated icons.
+	 * 0: by characteristic   1: by location in original cell
+	 */
+	public static void setIconGenExportPlacement(int rot) { cacheIconGenExportPlacement.setInt(rot); }
+
 	private static Pref cacheIconGenInputRot = Pref.makeIntPref("IconGenInputRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Input ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Input ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenInputRot() { return cacheIconGenInputRot.getInt(); }
 	/**
 	 * Method to set what angle Input ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Input ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
@@ -957,12 +986,14 @@ public class User extends Listener
 	private static Pref cacheIconGenOutputRot = Pref.makeIntPref("IconGenOutputRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Output ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Output ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenOutputRot() { return cacheIconGenOutputRot.getInt(); }
 	/**
 	 * Method to set what angle Output ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Output ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
@@ -971,12 +1002,14 @@ public class User extends Listener
 	private static Pref cacheIconGenBidirRot = Pref.makeIntPref("IconGenBidirRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Bidirectional ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Bidirectional ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenBidirRot() { return cacheIconGenBidirRot.getInt(); }
 	/**
 	 * Method to set what angle Bidirectional ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Bidirectional ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
@@ -985,12 +1018,14 @@ public class User extends Listener
 	private static Pref cacheIconGenPowerRot = Pref.makeIntPref("IconGenPowerRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Power ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Power ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenPowerRot() { return cacheIconGenPowerRot.getInt(); }
 	/**
 	 * Method to set what angle Power ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Power ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
@@ -999,12 +1034,14 @@ public class User extends Listener
 	private static Pref cacheIconGenGroundRot = Pref.makeIntPref("IconGenGroundRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Ground ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Ground ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenGroundRot() { return cacheIconGenGroundRot.getInt(); }
 	/**
 	 * Method to set what angle Ground ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Ground ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
@@ -1013,16 +1050,82 @@ public class User extends Listener
 	private static Pref cacheIconGenClockRot = Pref.makeIntPref("IconGenClockRot", tool.prefs, 0);
 	/**
 	 * Method to tell what angle Clock ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @return information about what angle Clock ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static int getIconGenClockRot() { return cacheIconGenClockRot.getInt(); }
 	/**
 	 * Method to set what angle Clock ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
 	 * @param rot information about what angle Clock ports should go on generated icons.
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenClockRot(int rot) { cacheIconGenClockRot.setInt(rot); }
+
+	private static Pref cacheIconGenTopRot = Pref.makeIntPref("IconGenTopRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Top ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Top ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenTopRot() { return cacheIconGenTopRot.getInt(); }
+	/**
+	 * Method to set what angle Top ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @param rot information about what angle Top ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenTopRot(int rot) { cacheIconGenTopRot.setInt(rot); }
+
+	private static Pref cacheIconGenBottomRot = Pref.makeIntPref("IconGenBottomRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Bottom ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Bottom ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenBottomRot() { return cacheIconGenBottomRot.getInt(); }
+	/**
+	 * Method to set what angle Bottom ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @param rot information about what angle Bottom ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenBottomRot(int rot) { cacheIconGenBottomRot.setInt(rot); }
+
+	private static Pref cacheIconGenLeftRot = Pref.makeIntPref("IconGenLeftRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Left ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Left ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenLeftRot() { return cacheIconGenLeftRot.getInt(); }
+	/**
+	 * Method to set what angle Left ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @param rot information about what angle Left ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenLeftRot(int rot) { cacheIconGenLeftRot.setInt(rot); }
+
+	private static Pref cacheIconGenRightRot = Pref.makeIntPref("IconGenRightRot", tool.prefs, 0);
+	/**
+	 * Method to tell what angle Right ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Right ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getIconGenRightRot() { return cacheIconGenRightRot.getInt(); }
+	/**
+	 * Method to set what angle Right ports should go on generated icons.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @param rot information about what angle Right ports should go on generated icons.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static void setIconGenRightRot(int rot) { cacheIconGenRightRot.setInt(rot); }
 
 	private static Pref cacheIconGenExportLocation = Pref.makeIntPref("IconGenExportLocation", tool.prefs, 1);
 	/**

@@ -57,6 +57,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -593,17 +594,17 @@ public class VectorCache {
             AffineTransform trans = orient.pureRotate();
             for(int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
                 Export pp = cell.getPort(i);
-                Poly portPoly = pp.getOriginalPort().getPoly();
+//                Poly portPoly = pp.getOriginalPort().getPoly();
+                Poly portPoly = pp.getNamePoly();
                 portPoly.transform(trans);
-                
+
                 TextDescriptor descript = portPoly.getTextDescriptor();
-                TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME);
                 Poly.Type style = Poly.Type.FILLED;
-                if (descript != null) {
-                    portDescript = portDescript.withColorIndex(descript.getColorIndex());
-                    style = descript.getPos().getPolyType();
-                }
-descript = portDescript;
+//                TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME);
+//                if (descript != null) {
+//                    portDescript = portDescript.withColorIndex(descript.getColorIndex());
+//                    style = descript.getPos().getPolyType();
+//                }
                 VectorText vt = new VectorText(portPoly.getBounds2D(), style, /*portDescript*/descript, null, VectorText.TEXTTYPEPORT, pp,
                         null, null);
                 portShapes.add(vt);

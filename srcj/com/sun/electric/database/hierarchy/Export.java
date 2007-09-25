@@ -25,14 +25,11 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ExportId;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -45,6 +42,7 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -179,7 +177,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
         boolean bodyOnly = false;
-//        int userBits;
 		if (originalProto instanceof Export) {
             Export e = (Export)originalProto;
             alwaysDrawn = e.isAlwaysDrawn();
@@ -473,7 +470,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		// must untransform the node to apply the offset
 		NodeInst ni = getOriginalPort().getNodeInst();
 		if (!ni.getOrient().equals(Orientation.IDENT))
-//		if (ni.getAngle() != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
 		{
 			pointList[0] = new Point2D.Double(cX, cY);
 			AffineTransform trans = ni.rotateIn();

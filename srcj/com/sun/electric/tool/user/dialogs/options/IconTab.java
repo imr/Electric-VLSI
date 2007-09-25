@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -41,7 +42,7 @@ import javax.swing.JPanel;
 public class IconTab extends PreferencePanel
 {
 	/** Creates new form IconTab */
-	public IconTab(java.awt.Frame parent, boolean modal)
+	public IconTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -77,6 +78,21 @@ public class IconTab extends PreferencePanel
 			iconMakeIcon.setEnabled(true);
 		}
 
+		iconPlaceByChar.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { placementChanged(); }
+		});
+		iconPlaceByLoc.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { placementChanged(); }
+		});
+
+		// set how exports are placed (by characteristic or by location in original cell)
+		int how = User.getIconGenExportPlacement();
+		if (how == 0) iconPlaceByChar.setSelected(true); else
+			if (how == 1) iconPlaceByLoc.setSelected(true);
+		placementChanged();
+
 		// initialize the side for each type of export
 		initSide(iconInputPos);
 		iconInputPos.setSelectedIndex(User.getIconGenInputSide());
@@ -105,6 +121,15 @@ public class IconTab extends PreferencePanel
 		initRot(iconClockRot);
 		iconClockRot.setSelectedIndex(User.getIconGenClockRot());
 
+		initRot(iconTopRot);
+		iconTopRot.setSelectedIndex(User.getIconGenTopRot());
+		initRot(iconBottomRot);
+		iconBottomRot.setSelectedIndex(User.getIconGenBottomRot());
+		initRot(iconLeftRot);
+		iconLeftRot.setSelectedIndex(User.getIconGenLeftRot());
+		initRot(iconRightRot);
+		iconRightRot.setSelectedIndex(User.getIconGenRightRot());
+
 		iconExportPos.addItem("Body");
 		iconExportPos.addItem("Lead End");
 		iconExportPos.addItem("Lead Middle");
@@ -127,11 +152,51 @@ public class IconTab extends PreferencePanel
 
 		iconDrawLeads.setSelected(User.isIconGenDrawLeads());
 		iconDrawBody.setSelected(User.isIconGenDrawBody());
+		iconTextSize.setText(TextUtils.formatDouble(User.getIconGenBodyTextSize()));
 		iconReverseOrder.setSelected(User.isIconGenReverseExportOrder());
 		iconsAlwaysDrawn.setSelected(User.isIconsAlwaysDrawn());
 
 		iconLeadLength.setText(TextUtils.formatDouble(User.getIconGenLeadLength()));
 		iconLeadSpacing.setText(TextUtils.formatDouble(User.getIconGenLeadSpacing()));
+	}
+
+	private void placementChanged()
+	{
+		boolean charEnabled = iconPlaceByChar.isSelected();
+		iconCharLabel1.setEnabled(charEnabled);
+		iconCharLabel2.setEnabled(charEnabled);
+		iconCharLabel3.setEnabled(charEnabled);
+		iconCharLabel4.setEnabled(charEnabled);
+		iconCharLabel5.setEnabled(charEnabled);
+		iconCharLabel6.setEnabled(charEnabled);
+		iconCharLabel7.setEnabled(charEnabled);
+		iconCharLabel8.setEnabled(charEnabled);
+		iconCharLabel9.setEnabled(charEnabled);
+		iconCharLabel10.setEnabled(charEnabled);
+		iconCharLabel11.setEnabled(charEnabled);
+		iconCharLabel12.setEnabled(charEnabled);
+		iconInputPos.setEnabled(charEnabled);
+		iconInputRot.setEnabled(charEnabled);
+		iconOutputPos.setEnabled(charEnabled);
+		iconOutputRot.setEnabled(charEnabled);
+		iconBidirPos.setEnabled(charEnabled);
+		iconBidirRot.setEnabled(charEnabled);
+		iconPowerPos.setEnabled(charEnabled);
+		iconPowerRot.setEnabled(charEnabled);
+		iconGroundPos.setEnabled(charEnabled);
+		iconGroundRot.setEnabled(charEnabled);
+		iconClockPos.setEnabled(charEnabled);
+		iconClockRot.setEnabled(charEnabled);
+		iconReverseOrder.setEnabled(charEnabled);
+
+		iconLocLabel1.setEnabled(!charEnabled);
+		iconLocLabel2.setEnabled(!charEnabled);
+		iconLocLabel3.setEnabled(!charEnabled);
+		iconLocLabel4.setEnabled(!charEnabled);
+		iconLeftRot.setEnabled(!charEnabled);
+		iconRightRot.setEnabled(!charEnabled);
+		iconTopRot.setEnabled(!charEnabled);
+		iconBottomRot.setEnabled(!charEnabled);
 	}
 
 	private void initSide(JComboBox box)
@@ -156,8 +221,12 @@ public class IconTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		int currInt = 0;
+		if (iconPlaceByLoc.isSelected()) currInt = 1;
+		if (currInt != User.getIconGenExportPlacement()) User.setIconGenExportPlacement(currInt);
+
 		// save which side each export type goes on
-		int currInt = iconInputPos.getSelectedIndex();
+		currInt = iconInputPos.getSelectedIndex();
 		if (currInt != User.getIconGenInputSide()) User.setIconGenInputSide(currInt);
 		currInt = iconOutputPos.getSelectedIndex();
 		if (currInt != User.getIconGenOutputSide()) User.setIconGenOutputSide(currInt);
@@ -184,6 +253,15 @@ public class IconTab extends PreferencePanel
 		currInt = iconClockRot.getSelectedIndex();
 		if (currInt != User.getIconGenClockRot()) User.setIconGenClockRot(currInt);
 
+		currInt = iconTopRot.getSelectedIndex();
+		if (currInt != User.getIconGenTopRot()) User.setIconGenTopRot(currInt);
+		currInt = iconBottomRot.getSelectedIndex();
+		if (currInt != User.getIconGenBottomRot()) User.setIconGenBottomRot(currInt);
+		currInt = iconLeftRot.getSelectedIndex();
+		if (currInt != User.getIconGenLeftRot()) User.setIconGenLeftRot(currInt);
+		currInt = iconRightRot.getSelectedIndex();
+		if (currInt != User.getIconGenRightRot()) User.setIconGenRightRot(currInt);
+
 		// save other factors
 		currInt = iconExportPos.getSelectedIndex();
 		if (currInt != User.getIconGenExportLocation())
@@ -209,6 +287,10 @@ public class IconTab extends PreferencePanel
 		if (currBoolean != User.isIconGenDrawBody())
 			User.setIconGenDrawBody(currBoolean);
 
+		double currDouble = TextUtils.atof(iconTextSize.getText());
+		if (currDouble != User.getIconGenBodyTextSize())
+			User.setIconGenBodyTextSize(currDouble);
+		
 		currBoolean = iconReverseOrder.isSelected();
 		if (currBoolean != User.isIconGenReverseExportOrder())
 			User.setIconGenReverseExportOrder(currBoolean);
@@ -217,7 +299,7 @@ public class IconTab extends PreferencePanel
 		if (currBoolean != User.isIconsAlwaysDrawn())
 			User.setIconsAlwaysDrawn(currBoolean);
 
-		double currDouble = TextUtils.atof(iconLeadLength.getText());
+		currDouble = TextUtils.atof(iconLeadLength.getText());
 		if (currDouble != User.getIconGenLeadLength())
 			User.setIconGenLeadLength(currDouble);
 
@@ -235,6 +317,7 @@ public class IconTab extends PreferencePanel
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        exportPlace = new javax.swing.ButtonGroup();
         icon = new javax.swing.JPanel();
         jLabel48 = new javax.swing.JLabel();
         jLabel54 = new javax.swing.JLabel();
@@ -243,31 +326,6 @@ public class IconTab extends PreferencePanel
         jSeparator11 = new javax.swing.JSeparator();
         iconInstancePos = new javax.swing.JComboBox();
         jLabel30 = new javax.swing.JLabel();
-        jPanel5 = new javax.swing.JPanel();
-        jLabel20 = new javax.swing.JLabel();
-        iconInputPos = new javax.swing.JComboBox();
-        jLabel21 = new javax.swing.JLabel();
-        iconPowerPos = new javax.swing.JComboBox();
-        iconGroundPos = new javax.swing.JComboBox();
-        jLabel23 = new javax.swing.JLabel();
-        iconOutputPos = new javax.swing.JComboBox();
-        jLabel22 = new javax.swing.JLabel();
-        jLabel24 = new javax.swing.JLabel();
-        iconBidirPos = new javax.swing.JComboBox();
-        jLabel25 = new javax.swing.JLabel();
-        iconClockPos = new javax.swing.JComboBox();
-        jLabel1 = new javax.swing.JLabel();
-        iconInputRot = new javax.swing.JComboBox();
-        jLabel2 = new javax.swing.JLabel();
-        iconOutputRot = new javax.swing.JComboBox();
-        jLabel3 = new javax.swing.JLabel();
-        iconBidirRot = new javax.swing.JComboBox();
-        jLabel4 = new javax.swing.JLabel();
-        iconPowerRot = new javax.swing.JComboBox();
-        jLabel5 = new javax.swing.JLabel();
-        iconGroundRot = new javax.swing.JComboBox();
-        jLabel6 = new javax.swing.JLabel();
-        iconClockRot = new javax.swing.JComboBox();
         jLabel31 = new javax.swing.JLabel();
         iconExportTechnology = new javax.swing.JComboBox();
         jPanel6 = new javax.swing.JPanel();
@@ -282,6 +340,44 @@ public class IconTab extends PreferencePanel
         jLabel29 = new javax.swing.JLabel();
         iconExportStyle = new javax.swing.JComboBox();
         iconsAlwaysDrawn = new javax.swing.JCheckBox();
+        jLabel11 = new javax.swing.JLabel();
+        iconTextSize = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        iconPlaceByChar = new javax.swing.JRadioButton();
+        iconPlaceByLoc = new javax.swing.JRadioButton();
+        iconCharLabel1 = new javax.swing.JLabel();
+        iconInputPos = new javax.swing.JComboBox();
+        iconCharLabel4 = new javax.swing.JLabel();
+        iconPowerPos = new javax.swing.JComboBox();
+        iconGroundPos = new javax.swing.JComboBox();
+        iconCharLabel5 = new javax.swing.JLabel();
+        iconOutputPos = new javax.swing.JComboBox();
+        iconCharLabel2 = new javax.swing.JLabel();
+        iconCharLabel3 = new javax.swing.JLabel();
+        iconBidirPos = new javax.swing.JComboBox();
+        iconCharLabel6 = new javax.swing.JLabel();
+        iconClockPos = new javax.swing.JComboBox();
+        iconCharLabel7 = new javax.swing.JLabel();
+        iconInputRot = new javax.swing.JComboBox();
+        iconCharLabel8 = new javax.swing.JLabel();
+        iconOutputRot = new javax.swing.JComboBox();
+        iconCharLabel9 = new javax.swing.JLabel();
+        iconBidirRot = new javax.swing.JComboBox();
+        iconCharLabel10 = new javax.swing.JLabel();
+        iconPowerRot = new javax.swing.JComboBox();
+        iconCharLabel11 = new javax.swing.JLabel();
+        iconGroundRot = new javax.swing.JComboBox();
+        iconCharLabel12 = new javax.swing.JLabel();
+        iconClockRot = new javax.swing.JComboBox();
+        jSeparator1 = new javax.swing.JSeparator();
+        iconLocLabel1 = new javax.swing.JLabel();
+        iconLocLabel2 = new javax.swing.JLabel();
+        iconLocLabel3 = new javax.swing.JLabel();
+        iconLocLabel4 = new javax.swing.JLabel();
+        iconTopRot = new javax.swing.JComboBox();
+        iconBottomRot = new javax.swing.JComboBox();
+        iconLeftRot = new javax.swing.JComboBox();
+        iconRightRot = new javax.swing.JComboBox();
         iconReverseOrder = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -308,7 +404,7 @@ public class IconTab extends PreferencePanel
         jLabel54.setText("Current cell:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(jLabel54, gridBagConstraints);
 
@@ -323,13 +419,13 @@ public class IconTab extends PreferencePanel
         iconMakeIcon.setText("Make Icon");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(iconMakeIcon, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -337,7 +433,7 @@ public class IconTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -352,212 +448,10 @@ public class IconTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(jLabel30, gridBagConstraints);
 
-        jPanel5.setLayout(new java.awt.GridBagLayout());
-
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Export location by Characteristic"));
-        jLabel20.setText("Inputs on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel5.add(jLabel20, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel5.add(iconInputPos, gridBagConstraints);
-
-        jLabel21.setText("Power on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel21, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconPowerPos, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconGroundPos, gridBagConstraints);
-
-        jLabel23.setText("Ground on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel23, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconOutputPos, gridBagConstraints);
-
-        jLabel22.setText("Outputs on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel22, gridBagConstraints);
-
-        jLabel24.setText("Bidir. on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel24, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconBidirPos, gridBagConstraints);
-
-        jLabel25.setText("Clock on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel25, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconClockPos, gridBagConstraints);
-
-        jLabel1.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel5.add(jLabel1, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel5.add(iconInputRot, gridBagConstraints);
-
-        jLabel2.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel2, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconOutputRot, gridBagConstraints);
-
-        jLabel3.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconBidirRot, gridBagConstraints);
-
-        jLabel4.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel4, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconPowerRot, gridBagConstraints);
-
-        jLabel5.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel5, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconGroundRot, gridBagConstraints);
-
-        jLabel6.setText("Text rotated:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(jLabel6, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel5.add(iconClockRot, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        icon.add(jPanel5, gridBagConstraints);
-
         jLabel31.setText("Instance location:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(jLabel31, gridBagConstraints);
@@ -595,7 +489,7 @@ public class IconTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel26, gridBagConstraints);
 
@@ -623,7 +517,7 @@ public class IconTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel27, gridBagConstraints);
 
@@ -667,12 +561,27 @@ public class IconTab extends PreferencePanel
         iconsAlwaysDrawn.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         iconsAlwaysDrawn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(iconsAlwaysDrawn, gridBagConstraints);
+
+        jLabel11.setText("Text size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel6.add(jLabel11, gridBagConstraints);
+
+        iconTextSize.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel6.add(iconTextSize, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -681,14 +590,311 @@ public class IconTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         icon.add(jPanel6, gridBagConstraints);
 
-        iconReverseOrder.setText("Place Exports in Reverse Alphabetical Order");
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Export location"));
+        exportPlace.add(iconPlaceByChar);
+        iconPlaceByChar.setText("Place by Characteristic");
+        iconPlaceByChar.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        iconPlaceByChar.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel1.add(iconPlaceByChar, gridBagConstraints);
+
+        exportPlace.add(iconPlaceByLoc);
+        iconPlaceByLoc.setText("Place by Location in Cell");
+        iconPlaceByLoc.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        iconPlaceByLoc.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel1.add(iconPlaceByLoc, gridBagConstraints);
+
+        iconCharLabel1.setText("Inputs on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconCharLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconInputPos, gridBagConstraints);
+
+        iconCharLabel4.setText("Power on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconPowerPos, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconGroundPos, gridBagConstraints);
+
+        iconCharLabel5.setText("Ground on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconOutputPos, gridBagConstraints);
+
+        iconCharLabel2.setText("Outputs on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel2, gridBagConstraints);
+
+        iconCharLabel3.setText("Bidir. on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconBidirPos, gridBagConstraints);
+
+        iconCharLabel6.setText("Clock on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel6, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconClockPos, gridBagConstraints);
+
+        iconCharLabel7.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconCharLabel7, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconInputRot, gridBagConstraints);
+
+        iconCharLabel8.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel8, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconOutputRot, gridBagConstraints);
+
+        iconCharLabel9.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel9, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconBidirRot, gridBagConstraints);
+
+        iconCharLabel10.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel10, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconPowerRot, gridBagConstraints);
+
+        iconCharLabel11.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel11, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconGroundRot, gridBagConstraints);
+
+        iconCharLabel12.setText("Text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconCharLabel12, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconClockRot, gridBagConstraints);
+
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(jSeparator1, gridBagConstraints);
+
+        iconLocLabel1.setText("Top text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconLocLabel1, gridBagConstraints);
+
+        iconLocLabel2.setText("Bottom text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconLocLabel2, gridBagConstraints);
+
+        iconLocLabel3.setText("Left text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconLocLabel3, gridBagConstraints);
+
+        iconLocLabel4.setText("Right text rotated:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconLocLabel4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(iconTopRot, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconBottomRot, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconLeftRot, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(iconRightRot, gridBagConstraints);
+
+        iconReverseOrder.setText("Place Exports in Reverse Alphabetical Order");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        icon.add(iconReverseOrder, gridBagConstraints);
+        jPanel1.add(iconReverseOrder, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        icon.add(jPanel1, gridBagConstraints);
 
         getContentPane().add(icon, new java.awt.GridBagConstraints());
 
@@ -703,9 +909,23 @@ public class IconTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup exportPlace;
     private javax.swing.JPanel icon;
     private javax.swing.JComboBox iconBidirPos;
     private javax.swing.JComboBox iconBidirRot;
+    private javax.swing.JComboBox iconBottomRot;
+    private javax.swing.JLabel iconCharLabel1;
+    private javax.swing.JLabel iconCharLabel10;
+    private javax.swing.JLabel iconCharLabel11;
+    private javax.swing.JLabel iconCharLabel12;
+    private javax.swing.JLabel iconCharLabel2;
+    private javax.swing.JLabel iconCharLabel3;
+    private javax.swing.JLabel iconCharLabel4;
+    private javax.swing.JLabel iconCharLabel5;
+    private javax.swing.JLabel iconCharLabel6;
+    private javax.swing.JLabel iconCharLabel7;
+    private javax.swing.JLabel iconCharLabel8;
+    private javax.swing.JLabel iconCharLabel9;
     private javax.swing.JComboBox iconClockPos;
     private javax.swing.JComboBox iconClockRot;
     private javax.swing.JLabel iconCurrentCell;
@@ -721,35 +941,35 @@ public class IconTab extends PreferencePanel
     private javax.swing.JComboBox iconInstancePos;
     private javax.swing.JTextField iconLeadLength;
     private javax.swing.JTextField iconLeadSpacing;
+    private javax.swing.JComboBox iconLeftRot;
+    private javax.swing.JLabel iconLocLabel1;
+    private javax.swing.JLabel iconLocLabel2;
+    private javax.swing.JLabel iconLocLabel3;
+    private javax.swing.JLabel iconLocLabel4;
     private javax.swing.JButton iconMakeIcon;
     private javax.swing.JComboBox iconOutputPos;
     private javax.swing.JComboBox iconOutputRot;
+    private javax.swing.JRadioButton iconPlaceByChar;
+    private javax.swing.JRadioButton iconPlaceByLoc;
     private javax.swing.JComboBox iconPowerPos;
     private javax.swing.JComboBox iconPowerRot;
     private javax.swing.JCheckBox iconReverseOrder;
+    private javax.swing.JComboBox iconRightRot;
+    private javax.swing.JTextField iconTextSize;
+    private javax.swing.JComboBox iconTopRot;
     private javax.swing.JCheckBox iconsAlwaysDrawn;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
-    private javax.swing.JLabel jLabel25;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel48;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel54;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator11;
     // End of variables declaration//GEN-END:variables
 

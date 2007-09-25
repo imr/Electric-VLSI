@@ -733,7 +733,6 @@ class VectorDrawing
 			lX = hX = cX;
 			lY = hY = cY;
 
-        	int rot = vt.descript.getRotation().getAngle();
 			textCount++;
 			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 			offscreen.drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
