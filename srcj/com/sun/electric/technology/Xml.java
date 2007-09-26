@@ -1775,8 +1775,8 @@ public class Xml {
             
             for(int j=0; j<ni.nodeLayers.size(); j++) {
                 Xml.NodeLayer nl = ni.nodeLayers.get(j);
-                Integer portNum = nl.portNum != 0 ? Integer.valueOf(nl.portNum) : null;
-                b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name()); a(" portNum", portNum);
+                b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
+                if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     a("electrical", nl.inElectricalLayers);
                 cl();

@@ -36,19 +36,18 @@ import com.sun.electric.technology.technologies.Generic;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Iterator;
-import java.util.TreeSet;
+import java.util.List;
 
 /**
  * This class defines graphical node and arc examples during conversion of libraries to technologies.
  */
 public class Example
 {
-	List<Sample> samples;				/* head of list of samples in example */
-	Sample       studySample;			/* sample under analysis */
-	double       lx, hx, ly, hy;		/* bounding box of example */
-	Example      nextExample;			/* next example in list */
+	/** head of list of samples in example */	List<Sample> samples;
+	/** sample under analysis */				Sample       studySample;
+	/** bounding box of example */				double       lx, hx, ly, hy;
+	/** next example in list */					Example      nextExample;
 
 	/**
 	 * Method to parse the node examples in cell "np" and return a list of
@@ -98,13 +97,13 @@ public class Example
 				foundOne = false;
 
 				// begin to search the area so far
-                TreeSet<NodeInst> sortedNodes = new TreeSet<NodeInst>();
+                List<NodeInst> sortedNodes = new ArrayList<NodeInst>();
 				for(Iterator<RTBounds> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
 					RTBounds geom = oIt.next();
 					if (geom == null) break;
-					if (!(geom instanceof NodeInst)) continue;
-                    sortedNodes.add((NodeInst)geom);
+					if (geom instanceof NodeInst)
+                    	sortedNodes.add((NodeInst)geom);
                 }
 				for(NodeInst otherNi: sortedNodes)
 				{
@@ -115,6 +114,7 @@ public class Example
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
 					if (!GenMath.rectsIntersect(otherRect, soFar)) continue;
+
 					// make sure the node is valid
 					Object otherAssn = nodeExamples.get(otherNi);
 					if (otherAssn != null)
@@ -212,10 +212,7 @@ public class Example
 			return neList;
 		}
 
-		/*
-		 * now search the list for the smallest, most upper-right example
-		 * (the "main" example)
-		 */
+		// now search the list for the smallest, most upper-right example (the "main" example)
 		double sizeX = neList.hx - neList.lx;
 		double sizeY = neList.hy - neList.ly;
 		double locX = (neList.lx + neList.hx) / 2;
@@ -251,4 +248,4 @@ public class Example
 		// done
 		return neList;
 	}
-};
+}

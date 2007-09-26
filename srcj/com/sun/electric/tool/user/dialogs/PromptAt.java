@@ -208,6 +208,7 @@ public class PromptAt extends EDialog
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, fields, null);
 		dialog.setVisible(true);
+		if (!dialog.goodClicked) return null;
 		return (String)fields[0].finalValue;
 	}
 
@@ -228,6 +229,7 @@ public class PromptAt extends EDialog
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, fields, null);
 		dialog.setVisible(true);
+		if (!dialog.goodClicked) return null;
 		return (String)fields[0].finalValue;
 	}
 
@@ -244,6 +246,7 @@ public class PromptAt extends EDialog
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, fields, null);
 		dialog.setVisible(true);
+		if (!dialog.goodClicked) return null;
 		return dialog.value;
 	}
 
@@ -260,6 +263,7 @@ public class PromptAt extends EDialog
 		PromptAt dialog = new PromptAt(false);
 		dialog.initComponents(wnd, ni, title, null, fields);
 		dialog.setVisible(true);
+		if (!dialog.goodClicked) return null;
 		return dialog.value;
 	}
 

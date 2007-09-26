@@ -77,6 +77,39 @@ public class NodeInfo extends Info
 		double                 lWidth, rWidth, extendT, extendB;		/* serpentine transistor information */
         String                 message;
         TextDescriptor         descriptor;
+
+        public LayerDetails()
+        {
+        	inLayers = true;
+        	inElectricalLayers = true;
+        }
+
+        public LayerDetails duplicate()
+        {
+        	LayerDetails dup = new LayerDetails();
+        	dup.layer = layer;
+        	dup.style = style;
+        	dup.representation = representation;
+        	dup.values = new Technology.TechPoint[values.length];
+        	for(int i=0; i<values.length; i++) dup.values[i] = values[i].duplicate();
+        	dup.ns = ns;
+        	dup.portIndex = portIndex;
+        	dup.inLayers = inLayers;
+        	dup.inElectricalLayers = inElectricalLayers;
+        	dup.multiCut = multiCut;
+        	dup.multiXS = multiXS;
+        	dup.multiYS = multiYS;
+        	dup.multiIndent = multiIndent;
+        	dup.multiSep = multiSep;
+        	dup.multiSep2D = multiSep2D;
+        	dup.lWidth = lWidth;
+        	dup.rWidth = rWidth;
+        	dup.extendT = extendT;
+        	dup.extendB = extendB;
+        	dup.message = message;
+        	dup.descriptor = descriptor;
+        	return dup;
+        }
 	}
 
 	String                 name;

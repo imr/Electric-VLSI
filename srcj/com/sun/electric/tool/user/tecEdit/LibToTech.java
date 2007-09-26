@@ -48,6 +48,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -59,6 +61,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -310,7 +313,7 @@ public class LibToTech
 		}
 
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
-        if (fileName != null)
+		if (fileName != null)
             t.writeXml(fileName);
         Technology tech = new Technology(t);
         tech.setup();
@@ -673,7 +676,7 @@ public class LibToTech
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab1, gbc);
 
 			newName = new JTextField(Library.getCurrent().getName());
@@ -683,7 +686,7 @@ public class LibToTech
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.weightx = 1;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(newName, gbc);
 			TechNameDocumentListener myDocumentListener = new TechNameDocumentListener(this);
 			newName.getDocument().addDocumentListener(myDocumentListener);
@@ -693,14 +696,14 @@ public class LibToTech
 			gbc.gridx = 0;   gbc.gridy = 1;
 			gbc.gridwidth = 3;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab2, gbc);
 
 			lab3 = new JLabel("Rename existing technology to:");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 2;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab3, gbc);
 
 			renameName = new JTextField();
@@ -710,14 +713,14 @@ public class LibToTech
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.weightx = 1;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(renameName, gbc);
 
 			alsoXML = new JCheckBox("Also write XML code");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 3;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(alsoXML, gbc);
 
 			// OK and Cancel
@@ -725,7 +728,7 @@ public class LibToTech
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 3;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(cancel, gbc);
 			cancel.addActionListener(new ActionListener()
 			{
@@ -734,14 +737,14 @@ public class LibToTech
 
 			JButton ok = new JButton("OK");
 			getRootPane().setDefaultButton(ok);
-			gbc = new java.awt.GridBagConstraints();
+			gbc = new GridBagConstraints();
 			gbc.gridx = 2;
 			gbc.gridy = 3;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(ok, gbc);
-			ok.addActionListener(new java.awt.event.ActionListener()
+			ok.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+				public void actionPerformed(ActionEvent evt) { exit(true); }
 			});
 
 			pack();
@@ -1434,6 +1437,46 @@ public class LibToTech
 					return null;
 				}
 
+				// find width and extension from comparison to poly layer
+				Sample polNs = nIn.nodeLayers[polIndex].ns;
+				Rectangle2D polNodeBounds = polNs.node.getBounds();
+				Sample difNs = nIn.nodeLayers[difIndex].ns;
+				Rectangle2D difNodeBounds = difNs.node.getBounds();
+				for(int k=0; k<nIn.nodeLayers.length; k++)
+				{
+					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+					Sample ns = nld.ns;
+					Rectangle2D nodeBounds = ns.node.getBounds();
+					if (polNodeBounds.getWidth() > polNodeBounds.getHeight())
+					{
+						// horizontal layer
+						nld.lWidth = nodeBounds.getMaxY() - (ns.parent.ly + ns.parent.hy)/2;
+						nld.rWidth = (ns.parent.ly + ns.parent.hy)/2 - nodeBounds.getMinY();
+						nld.extendT = difNodeBounds.getMinX() - nodeBounds.getMinX();
+					} else
+					{
+						// vertical layer
+						nld.lWidth = nodeBounds.getMaxX() - (ns.parent.lx + ns.parent.hx)/2;
+						nld.rWidth = (ns.parent.lx + ns.parent.hx)/2 - nodeBounds.getMinX();
+						nld.extendT = difNodeBounds.getMinY() - nodeBounds.getMinY();
+					}
+					nld.extendB = nld.extendT;
+				}
+
+				// add in electrical layers for diffusion
+				NodeInfo.LayerDetails [] addedLayers = new NodeInfo.LayerDetails[nIn.nodeLayers.length+2];
+				for(int k=0; k<nIn.nodeLayers.length; k++)
+					addedLayers[k] = nIn.nodeLayers[k];
+				NodeInfo.LayerDetails diff1 = nIn.nodeLayers[difIndex].duplicate();
+				NodeInfo.LayerDetails diff2 = nIn.nodeLayers[difIndex].duplicate();
+				addedLayers[nIn.nodeLayers.length] = diff1;
+				addedLayers[nIn.nodeLayers.length+1] = diff2;
+				nIn.nodeLayers = addedLayers;
+				diff1.inLayers = diff2.inLayers = false;
+				nIn.nodeLayers[difIndex].inElectricalLayers = false;
+				diff1.portIndex = dif1Port;
+				diff2.portIndex = dif2Port;
+				
 				// compute port extension factors
 				nIn.specialValues = new double[6];
 				nIn.specialValues[0] = layerCount+1;
@@ -1465,6 +1508,14 @@ public class LibToTech
 						nIn.nodeLayers[difIndex].values[0].getX().getAdder()) -
 						(nIn.xSize * nIn.nodePortDetails[pol1Port].values[1].getX().getMultiplier() +
 						nIn.nodePortDetails[pol1Port].values[1].getX().getAdder());
+
+					// setup electrical layers for diffusion
+					diff1.values[0].getY().setMultiplier(0);
+					diff1.values[0].getY().setAdder(0);
+					diff1.rWidth = 0;
+					diff2.values[1].getY().setMultiplier(0);
+					diff2.values[1].getY().setAdder(0);
+					diff2.lWidth = 0;
 				} else
 				{
 					// horizontal diffusion layer: determine polysilicon width
@@ -1492,32 +1543,14 @@ public class LibToTech
 						nIn.nodeLayers[difIndex].values[0].getY().getAdder()) -
 						(nIn.ySize * nIn.nodePortDetails[pol1Port].values[1].getY().getMultiplier() +
 						nIn.nodePortDetails[pol1Port].values[1].getY().getAdder());
-				}
 
-				// find width and extension from comparison to poly layer
-				for(int k=0; k<nIn.nodeLayers.length; k++)
-				{
-					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
-					Sample ns = nld.ns;
-					Rectangle2D nodeBounds = ns.node.getBounds();
-					Sample polNs = nIn.nodeLayers[polIndex].ns;
-					Rectangle2D polNodeBounds = polNs.node.getBounds();
-					Sample difNs = nIn.nodeLayers[difIndex].ns;
-					Rectangle2D difNodeBounds = difNs.node.getBounds();
-					if (polNodeBounds.getWidth() > polNodeBounds.getHeight())
-					{
-						// horizontal layer
-						nld.lWidth = nodeBounds.getMaxY() - (ns.parent.ly + ns.parent.hy)/2;
-						nld.rWidth = (ns.parent.ly + ns.parent.hy)/2 - nodeBounds.getMinY();
-						nld.extendT = difNodeBounds.getMinX() - nodeBounds.getMinX();
-					} else
-					{
-						// vertical layer
-						nld.lWidth = nodeBounds.getMaxX() - (ns.parent.lx + ns.parent.hx)/2;
-						nld.rWidth = (ns.parent.lx + ns.parent.hx)/2 - nodeBounds.getMinX();
-						nld.extendT = difNodeBounds.getMinY() - nodeBounds.getMinY();
-					}
-					nld.extendB = nld.extendT;
+					// setup electrical layers for diffusion
+					diff1.values[0].getX().setMultiplier(0);
+					diff1.values[0].getX().setAdder(0);
+					diff1.rWidth = 0;
+					diff2.values[1].getX().setMultiplier(0);
+					diff2.values[1].getX().setAdder(0);
+					diff2.lWidth = 0;
 				}
 			}
 
@@ -1793,7 +1826,7 @@ public class LibToTech
 	static void pointOutError(NodeInst ni, Cell cell)
 	{
 		Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
-		EditWindow_ wnd = Job.getUserInterface().needCurrentEditWindow_();
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 		if (wnd != null && ni != null)
 		{
 			wnd.clearHighlighting();
@@ -2470,6 +2503,10 @@ public class LibToTech
 				pointOutError(ns.node, ns.node.getParent());
 				System.out.println("Cannot determine X stretching rule for layer " + getSampleName(ns.layer) +
 					" in " + np);
+//System.out.println("Total points is " +pts.length+", point "+i+" is at ("+pts[i].getX()+","+pts[i].getY()+")");
+//System.out.println("Factor is "+factor[i]);
+//for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
+//	System.out.println("EXAMPLE RUNS FROM "+ne.lx+"<=X<="+ne.hx+" AND "+ne.ly+"<=Y<="+ne.hy);
 				return null;
 			}
 
@@ -3707,7 +3744,7 @@ public class LibToTech
             pn.sizeOffset = so;
             for(int j=0; j<ni.nodeLayers.length; j++) {
                 NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-                pn.nodeLayers.add(makeNodeLayerDetails(nl, false, minFullSize, true, true));
+                pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
             }
             for (int j = 0; j < ni.nodePortDetails.length; j++) {
                 NodeInfo.PortDetails pd = ni.nodePortDetails[j];
@@ -3792,13 +3829,13 @@ public class LibToTech
         return t;
     }
     
-    private static Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+    private static Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
         Xml.NodeLayer nld = new Xml.NodeLayer();
         nld.layer = nl.layer.name;
         nld.style = nl.style;
         nld.portNum = nl.portIndex;
-        nld.inLayers = inLayers;
-        nld.inElectricalLayers = inElectricalLayers;
+        nld.inLayers = nl.inLayers;
+        nld.inElectricalLayers = nl.inElectricalLayers;
         nld.representation = nl.representation;
         Technology.TechPoint[] points = nl.values;
         if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {

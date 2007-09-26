@@ -1018,14 +1018,22 @@ public class Manipulate
 
 		switch (opt)
 		{
-			case Info.TECHDESCRIPT:
-				return "The technology description";
+			case Info.TECHSHORTNAME:
+				return "The technology name";
 			case Info.TECHSCALE:
 				return "The technology scale";
+			case Info.TECHFOUNDRY:
+				return "The technology's foundry";
+			case Info.TECHDEFMETALS:
+				return "The number of metal layers in the technology";
+			case Info.TECHDESCRIPT:
+				return "The technology description";
 			case Info.TECHSPICEMINRES:
 				return "Minimum resistance of SPICE elements";
 			case Info.TECHSPICEMINCAP:
 				return "Minimum capacitance of SPICE elements";
+			case Info.TECHMAXSERIESRES:
+				return "Maximum series resistance of SPICE elements";
 			case Info.TECHGATESHRINK:
 				return "The shrinkage of gates, in um";
 			case Info.TECHGATEINCLUDED:
@@ -1144,10 +1152,14 @@ public class Manipulate
 		// handle other cases
 		switch (opt)
 		{
-			case Info.TECHDESCRIPT:      modTechDescription(wnd, ni);        break;
+			case Info.TECHSHORTNAME:     modTechShortName(wnd, ni);          break;
 			case Info.TECHSCALE:         modTechScale(wnd, ni);              break;
+			case Info.TECHFOUNDRY:       modTechFoundry(wnd, ni);            break;
+			case Info.TECHDEFMETALS:     modTechNumMetals(wnd, ni);          break;
+			case Info.TECHDESCRIPT:      modTechDescription(wnd, ni);        break;
 			case Info.TECHSPICEMINRES:   modTechMinResistance(wnd, ni);      break;
 			case Info.TECHSPICEMINCAP:   modTechMinCapacitance(wnd, ni);     break;
+			case Info.TECHMAXSERIESRES:  modTechMaxSeriesResistance(wnd, ni);break;
 			case Info.TECHGATESHRINK:    modTechGateShrinkage(wnd, ni);      break;
 			case Info.TECHGATEINCLUDED:  modTechGateIncluded(wnd, ni);       break;
 			case Info.TECHGROUNDINCLUDED:modTechGroundIncluded(wnd, ni);     break;
@@ -1212,6 +1224,14 @@ public class Manipulate
 		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Minimum Capacitance",
 			"Minimum capacitance (for parasitics):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Minimum Capacitance: " + newUnit);
+	}
+
+	private static void modTechMaxSeriesResistance(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Maximum Series Resistance",
+			"Maximum Series Resistance (for parasitics):", initialMsg);
+		if (newUnit != null) new SetTextJob(ni, "Maximum Series Resistance: " + newUnit);
 	}
 
 	private static void modArcAntennaRatio(EditWindow wnd, NodeInst ni)
@@ -1768,9 +1788,12 @@ public class Manipulate
 				{
 					// found the name, set the patch
 					LayerInfo li = LayerInfo.parseCell(layerCells[i]);
-					if (li == null) return true;
-					setPatch(ni, li.desc);
-					ni.newVar(Info.LAYER_KEY, layerCells[i].getId());
+					if (li != null)
+					{
+						setPatch(ni, li.desc);
+						ni.newVar(Info.LAYER_KEY, layerCells[i].getId());
+					}
+					return true;
 				}
 			}
 			System.out.println("Cannot find layer primitive " + choice);
@@ -2000,12 +2023,36 @@ public class Manipulate
 		}
 	}
 
+	private static void modTechShortName(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Short Name",
+			"The Short Name of this technology:", initialMsg);
+		if (newUnit != null) new SetTextJob(ni, "Short Name: " + newUnit);
+	}
+
 	private static void modTechScale(EditWindow wnd, NodeInst ni)
 	{
 		String initialMsg = Info.getValueOnNode(ni);
 		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Unit Size",
 			"The scale of this technology (nanometers per grid unit):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Lambda: " + newUnit);
+	}
+
+	private static void modTechFoundry(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Default Foundry",
+			"The default foundry for this technology:", initialMsg);
+		if (newUnit != null) new SetTextJob(ni, "Foundry: " + newUnit);
+	}
+
+	private static void modTechNumMetals(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newDesc = PromptAt.showPromptAt(wnd, ni, "Set Number of Metal Layers",
+			"Number of Metal Layers in this technology:", initialMsg);
+		if (newDesc != null) new SetTextJob(ni, "Number of Metal Layers: " + newDesc);
 	}
 
 	private static void modTechDescription(EditWindow wnd, NodeInst ni)

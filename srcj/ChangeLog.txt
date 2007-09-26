@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+BUG: (9/26/07, SMR) Technology editor doesn't handle transistors right.
+FIX: Many small improvements to tech editor.
+
 IMP/MAN: (9/25/07, SMR) Icon preferences now allow exports to be placed according
      to the placement in the original cell.  Also allow control of text size
      on icon body.
