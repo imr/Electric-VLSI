@@ -75,7 +75,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 /**
- * Class to handle the "ProjectSettings Frame" dialog.
+ * Class to handle the "Project Settings" dialog.
  */
 public class ProjectSettingsFrame extends EDialog
 {
@@ -83,11 +83,10 @@ public class ProjectSettingsFrame extends EDialog
 	private JTree optionTree;
     private List<Object> originalContext;
     private List<Object> currentContext;
-	JButton cancel;
-	JButton ok;
-
-    ProjSettingsPanel currentOptionPanel;
-
+    private JButton cancel;
+    private JButton ok;
+    private ProjSettingsPanel currentOptionPanel;
+	private DefaultMutableTreeNode currentDMTN;
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
 
 	/**
@@ -110,10 +109,7 @@ public class ProjectSettingsFrame extends EDialog
 		setName("");
 		addWindowListener(new WindowAdapter()
 		{
-			public void windowClosing(WindowEvent evt)
-			{
-				closeDialog(evt);
-			}
+			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
 
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Project Settings");
@@ -123,19 +119,19 @@ public class ProjectSettingsFrame extends EDialog
 		optionTree.addMouseListener(handler);
 		optionTree.addTreeExpansionListener(handler);
 
-		rootNode.add(new DefaultMutableTreeNode("Added Technologies"));
-		rootNode.add(new DefaultMutableTreeNode("CIF"));
-		rootNode.add(new DefaultMutableTreeNode("GDS"));
-		rootNode.add(new DefaultMutableTreeNode("DXF"));
-//		rootNode.add(new DefaultMutableTreeNode("Gate Layout Generator"));
-		rootNode.add(new DefaultMutableTreeNode("Logical Effort"));
-		rootNode.add(new DefaultMutableTreeNode("Netlists"));
-		rootNode.add(new DefaultMutableTreeNode("Parasitic"));
-		rootNode.add(new DefaultMutableTreeNode("Scale"));
+		addTreeNode(rootNode, "Added Technologies");
+		addTreeNode(rootNode, "CIF");
+		addTreeNode(rootNode, "GDS");
+		addTreeNode(rootNode, "DXF");
+//		addTreeNode(rootNode, "Gate Layout Generator");
+		addTreeNode(rootNode, "Logical Effort");
+		addTreeNode(rootNode, "Netlists");
+		addTreeNode(rootNode, "Parasitic");
+		addTreeNode(rootNode, "Scale");
 		if (IOTool.hasSkill())
-			rootNode.add(new DefaultMutableTreeNode("Skill"));
-		rootNode.add(new DefaultMutableTreeNode("Technology"));
-		rootNode.add(new DefaultMutableTreeNode("Verilog"));
+			addTreeNode(rootNode, "Skill");
+		addTreeNode(rootNode, "Technology");
+		addTreeNode(rootNode, "Verilog");
 
 		// pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
@@ -217,6 +213,7 @@ public class ProjectSettingsFrame extends EDialog
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 		loadOptionPanel();
+		recursivelyHighlight(optionTree, rootNode, currentDMTN, optionTree.getPathForRow(0));
 		splitPane.setLeftComponent(leftPanel);
 
 		gbc = new GridBagConstraints();
@@ -228,6 +225,14 @@ public class ProjectSettingsFrame extends EDialog
 
 		pack();
 		finishInitialization();
+	}
+
+	private void addTreeNode(DefaultMutableTreeNode rootNode, String name)
+	{
+		DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(name);
+		rootNode.add(dmtn);
+		if (name.equals(currentTabName))
+			currentDMTN = dmtn;
 	}
 
     public List<Object> getContext() { return currentContext; }
@@ -257,23 +262,23 @@ public class ProjectSettingsFrame extends EDialog
 	{
         Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
         boolean checkAndRepair = false;
+
         // gather preference changes on the client
-        if (currentOptionPanel != null) {
+        if (currentOptionPanel != null)
+        {
             currentOptionPanel.term();
             currentOptionPanel = null;
         }
-//        for(ProjSettingsPanel ti : optionPanes) {
-//            if (ti.isInited())
-//                ti.term();
-//        }
-        for (Setting setting: Setting.getSettings()) {
+        for (Setting setting: Setting.getSettings())
+        {
             Object v = setting.getValue(currentContext);
             if (setting.getValue(originalContext).equals(v)) continue;
             changeBatch.add(setting, v);
             if (setting instanceof Technology.TechSetting)
                 checkAndRepair = true;
         }
-        if (changeBatch.changesForSettings.isEmpty()) {
+        if (changeBatch.changesForSettings.isEmpty())
+        {
             closeDialog(null);
             return;
         }
@@ -331,11 +336,8 @@ public class ProjectSettingsFrame extends EDialog
         splitPane.setRightComponent(ti.getPanel());
 	}
     
-    private ProjSettingsPanel createOptionPanel(boolean modal) {
-
-//		AddedTechnologiesTab att = new AddedTechnologiesTab(parent, modal);
-//		optionPanes.add(att);
-//		techSet.add(new DefaultMutableTreeNode(att.getName()));
+    private ProjSettingsPanel createOptionPanel(boolean modal)
+    {
         if (currentTabName.equals("Added Technologies"))
             return new AddedTechnologiesTab(this, modal);
         if (currentTabName.equals("CIF"))

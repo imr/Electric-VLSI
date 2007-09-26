@@ -79,6 +79,7 @@ public class PreferencesFrame extends EDialog
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
+	private DefaultMutableTreeNode currentDMTN;
 
 	/**
 	 * This method implements the command to show the PreferencesFrame dialog.
@@ -114,57 +115,25 @@ public class PreferencesFrame extends EDialog
 		// the "General" section of the Preferences
 		DefaultMutableTreeNode generalSet = new DefaultMutableTreeNode("General ");
 		rootNode.add(generalSet);
-
-		GeneralTab gt = new GeneralTab(parent, true);
-		optionPanes.add(gt);
-		generalSet.add(new DefaultMutableTreeNode(gt.getName()));
-
-		SelectionTab st = new SelectionTab(parent, true);
-		optionPanes.add(st);
-		generalSet.add(new DefaultMutableTreeNode(st.getName()));
-
+		addTreeNode(new GeneralTab(parent, true), generalSet);
+		addTreeNode(new SelectionTab(parent, true), generalSet);
         TopLevel top = TopLevel.getCurrentJFrame();
-        if ((top != null) && (top.getEMenuBar() != null)) {
-            EditKeyBindings keys = new EditKeyBindings(top.getEMenuBar(), parent, true);
-            optionPanes.add(keys);
-            generalSet.add(new DefaultMutableTreeNode(keys.getName()));
-        }
-
-        ComponentMenuTab cmt = new ComponentMenuTab(parent, true);
-		optionPanes.add(cmt);
-		generalSet.add(new DefaultMutableTreeNode(cmt.getName()));
-
-		NewNodesTab nnt = new NewNodesTab(parent, true);
-		optionPanes.add(nnt);
-		generalSet.add(new DefaultMutableTreeNode(nnt.getName()));
-
-		NewArcsTab nat = new NewArcsTab(parent, true);
-		optionPanes.add(nat);
-		generalSet.add(new DefaultMutableTreeNode(nat.getName()));
-
-		ProjectManagementTab pmt = new ProjectManagementTab(parent, true);
-		optionPanes.add(pmt);
-		generalSet.add(new DefaultMutableTreeNode(pmt.getName()));
-
-        CVSTab cvst = new CVSTab(parent, true);
-        optionPanes.add(cvst);
-        generalSet.add(new DefaultMutableTreeNode(cvst.getName()));
-
-		PrintingTab prt = new PrintingTab(parent, true);
-		optionPanes.add(prt);
-		generalSet.add(new DefaultMutableTreeNode(prt.getName()));
-
-        /// Open test tab only if plugin is available and in debug mode
-        // Using reflection to not force the loading of test plugin
+        if (top != null && top.getEMenuBar() != null)
+    		addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
+		addTreeNode(new ComponentMenuTab(parent, true), generalSet);
+		addTreeNode(new NewNodesTab(parent, true), generalSet);
+		addTreeNode(new NewArcsTab(parent, true), generalSet);
+		addTreeNode(new ProjectManagementTab(parent, true), generalSet);
+		addTreeNode(new CVSTab(parent, true), generalSet);
+		addTreeNode(new PrintingTab(parent, true), generalSet);
         if (Job.getDebug())
         {
+            // Open test tab only if plugin is available and in debug mode
             try
             {
                 Class<?> testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
                 Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
-                PreferencePanel tesT = (PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)});
-                optionPanes.add(tesT);
-                generalSet.add(new DefaultMutableTreeNode(tesT.getName()));
+        		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)}), generalSet);
             }
             catch (Exception ex) { /* do nothing */ };
         }
@@ -172,195 +141,69 @@ public class PreferencesFrame extends EDialog
 		// the "Display" section of the Preferences
 		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display ");
 		rootNode.add(displaySet);
-
-		DisplayControlTab dct = new DisplayControlTab(parent, true);
-		optionPanes.add(dct);
-		displaySet.add(new DefaultMutableTreeNode(dct.getName()));
-
-		LayersTab lt = new LayersTab(parent, true);
-		optionPanes.add(lt);
-		displaySet.add(new DefaultMutableTreeNode(lt.getName()));
-
-		TextTab txtt = new TextTab(parent, true);
-		optionPanes.add(txtt);
-		displaySet.add(new DefaultMutableTreeNode(txtt.getName()));
-
-		SmartTextTab stxtt = new SmartTextTab(parent, true);
-		optionPanes.add(stxtt);
-		displaySet.add(new DefaultMutableTreeNode(stxtt.getName()));
-
-		GridAndAlignmentTab gat = new GridAndAlignmentTab(parent, true);
-		optionPanes.add(gat);
-		displaySet.add(new DefaultMutableTreeNode(gat.getName()));
-
-		PortsAndExportsTab pet = new PortsAndExportsTab(parent, true);
-		optionPanes.add(pet);
-		displaySet.add(new DefaultMutableTreeNode(pet.getName()));
-
-		FrameTab ft = new FrameTab(parent, true);
-		optionPanes.add(ft);
-		displaySet.add(new DefaultMutableTreeNode(ft.getName()));
-
-		ThreeDTab tdt = ThreeDTab.create3DTab(parent, true);
-		optionPanes.add(tdt);
-		displaySet.add(new DefaultMutableTreeNode(tdt.getName()));
-
+		addTreeNode(new DisplayControlTab(parent, true), displaySet);
+		addTreeNode(new LayersTab(parent, true), displaySet);
+		addTreeNode(new TextTab(parent, true), displaySet);
+		addTreeNode(new SmartTextTab(parent, true), displaySet);
+		addTreeNode(new GridAndAlignmentTab(parent, true), displaySet);
+		addTreeNode(new PortsAndExportsTab(parent, true), displaySet);
+		addTreeNode(new FrameTab(parent, true), displaySet);
+		addTreeNode(ThreeDTab.create3DTab(parent, true), displaySet);
 
 		// the "I/O" section of the Preferences
 		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O ");
 		rootNode.add(ioSet);
-
-		CIFTab cit = new CIFTab(parent, true);
-		optionPanes.add(cit);
-		ioSet.add(new DefaultMutableTreeNode(cit.getName()));
-
-		GDSTab gdt = new GDSTab(parent, true);
-		optionPanes.add(gdt);
-		ioSet.add(new DefaultMutableTreeNode(gdt.getName()));
-
-		EDIFTab edt = new EDIFTab(parent, true);
-		optionPanes.add(edt);
-		ioSet.add(new DefaultMutableTreeNode(edt.getName()));
-
-		DEFTab det = new DEFTab(parent, true);
-		optionPanes.add(det);
-		ioSet.add(new DefaultMutableTreeNode(det.getName()));
-
-		CDLTab cdt = new CDLTab(parent, true);
-		optionPanes.add(cdt);
-		ioSet.add(new DefaultMutableTreeNode(cdt.getName()));
-
-		DXFTab dxt = new DXFTab(parent, true);
-		optionPanes.add(dxt);
-		ioSet.add(new DefaultMutableTreeNode(dxt.getName()));
-
-		SUETab sut = new SUETab(parent, true);
-		optionPanes.add(sut);
-		ioSet.add(new DefaultMutableTreeNode(sut.getName()));
-
+		addTreeNode(new CIFTab(parent, true), ioSet);
+		addTreeNode(new GDSTab(parent, true), ioSet);
+		addTreeNode(new EDIFTab(parent, true), ioSet);
+		addTreeNode(new DEFTab(parent, true), ioSet);
+		addTreeNode(new CDLTab(parent, true), ioSet);
+		addTreeNode(new DXFTab(parent, true), ioSet);
+		addTreeNode(new SUETab(parent, true), ioSet);
 		if (IOTool.hasDais())
-		{
-			DaisTab dat = new DaisTab(parent, true);
-			optionPanes.add(dat);
-			ioSet.add(new DefaultMutableTreeNode(dat.getName()));
-		}
-
+			addTreeNode(new DaisTab(parent, true), ioSet);
 		if (IOTool.hasSkill())
-		{
-			SkillTab skt = new SkillTab(parent, true);
-			optionPanes.add(skt);
-			ioSet.add(new DefaultMutableTreeNode(skt.getName()));
-		}
-
-		LibraryTab lit = new LibraryTab(parent, true);
-		optionPanes.add(lit);
-		ioSet.add(new DefaultMutableTreeNode(lit.getName()));
-
+			addTreeNode(new SkillTab(parent, true), ioSet);
+		addTreeNode(new LibraryTab(parent, true), ioSet);
 
 		// the "Tools" section of the Preferences
 		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools ");
 		rootNode.add(toolSet);
-
-		AntennaRulesTab art = new AntennaRulesTab(parent, true);
-		optionPanes.add(art);
-		toolSet.add(new DefaultMutableTreeNode(art.getName()));
-
-		CompactionTab comt = new CompactionTab(parent, true);
-		optionPanes.add(comt);
-		toolSet.add(new DefaultMutableTreeNode(comt.getName()));
-
-        CoverageTab covt = new CoverageTab(parent, true);
-		optionPanes.add(covt);
-		toolSet.add(new DefaultMutableTreeNode(covt.getName()));
-
-		DRCTab drct = new DRCTab(parent, true);
-		optionPanes.add(drct);
-		toolSet.add(new DefaultMutableTreeNode(drct.getName()));
-
-		FastHenryTab fht = new FastHenryTab(parent, true);
-		optionPanes.add(fht);
-		toolSet.add(new DefaultMutableTreeNode(fht.getName()));
-
-		NCCTab nct = new NCCTab(parent, true);
-		optionPanes.add(nct);
-		toolSet.add(new DefaultMutableTreeNode(nct.getName()));
-
-		if(Pie.hasPie()){
+		addTreeNode(new AntennaRulesTab(parent, true), toolSet);
+		addTreeNode(new CompactionTab(parent, true), toolSet);
+		addTreeNode(new CoverageTab(parent, true), toolSet);
+		addTreeNode(new DRCTab(parent, true), toolSet);
+		addTreeNode(new FastHenryTab(parent, true), toolSet);
+		addTreeNode(new NCCTab(parent, true), toolSet);
+		if (Pie.hasPie())
+		{
 	        try
 	        {
 	            Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
 	            Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
-	            PreferencePanel pieT = (PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)});
-	            optionPanes.add(pieT);
-	            toolSet.add(new DefaultMutableTreeNode(pieT.getName()));
+	    		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)}), toolSet);
 	        }
 	        catch (Exception ex) { /* do nothing */ };
 		}
-		
-		NetworkTab net = new NetworkTab(parent, true);
-		optionPanes.add(net);
-		toolSet.add(new DefaultMutableTreeNode(net.getName()));
-
-		ParasiticTab parat = new ParasiticTab(parent, true);
-		optionPanes.add(parat);
-		toolSet.add(new DefaultMutableTreeNode(parat.getName()));
-
-		RoutingTab rot = new RoutingTab(parent, true);
-		optionPanes.add(rot);
-		toolSet.add(new DefaultMutableTreeNode(rot.getName()));
-
-		SiliconCompilerTab sct = new SiliconCompilerTab(parent, true);
-		optionPanes.add(sct);
-		toolSet.add(new DefaultMutableTreeNode(sct.getName()));
-
-		SimulatorsTab smt = new SimulatorsTab(parent, true);
-		optionPanes.add(smt);
-		toolSet.add(new DefaultMutableTreeNode(smt.getName()));
-
-		SpiceTab spt = new SpiceTab(parent, true);
-		optionPanes.add(spt);
-		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
-
-        CellModelTab spt2 = new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs);
-        optionPanes.add(spt2);
-        toolSet.add(new DefaultMutableTreeNode(spt2.getName()));
-
+		addTreeNode(new NetworkTab(parent, true), toolSet);
+		addTreeNode(new ParasiticTab(parent, true), toolSet);
+		addTreeNode(new RoutingTab(parent, true), toolSet);
+		addTreeNode(new SiliconCompilerTab(parent, true), toolSet);
+		addTreeNode(new SimulatorsTab(parent, true), toolSet);
+		addTreeNode(new SpiceTab(parent, true), toolSet);
+		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs), toolSet);
 		if (Routing.hasSunRouter())
-		{
-			SunRouterTab srt = new SunRouterTab(parent, true);
-			optionPanes.add(srt);
-			toolSet.add(new DefaultMutableTreeNode(srt.getName()));
-		}
-
-		//VerilogTab vet = new VerilogTab(parent, true);
-		CellModelTab vet = new CellModelTab(parent, true, CellModelPrefs.verilogModelPrefs);
-		optionPanes.add(vet);
-		toolSet.add(new DefaultMutableTreeNode(vet.getName()));
-
-		WellCheckTab wct = new WellCheckTab(parent, true);
-		optionPanes.add(wct);
-		toolSet.add(new DefaultMutableTreeNode(wct.getName()));
-
+			addTreeNode(new SunRouterTab(parent, true), toolSet);
+		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.verilogModelPrefs), toolSet);
+		addTreeNode(new WellCheckTab(parent, true), toolSet);
 
 		// the "Technology" section of the Preferences
 		DefaultMutableTreeNode techSet = new DefaultMutableTreeNode("Technology ");
 		rootNode.add(techSet);
-
-		TechnologyTab tect = new TechnologyTab(parent, true);
-		optionPanes.add(tect);
-		techSet.add(new DefaultMutableTreeNode(tect.getName()));
-
-		DesignRulesTab drt = new DesignRulesTab(parent, true);
-		optionPanes.add(drt);
-		techSet.add(new DefaultMutableTreeNode(drt.getName()));
-
-		UnitsTab ut = new UnitsTab(parent, true);
-		optionPanes.add(ut);
-		techSet.add(new DefaultMutableTreeNode(ut.getName()));
-
-		IconTab ict = new IconTab(parent, true);
-		optionPanes.add(ict);
-		techSet.add(new DefaultMutableTreeNode(ict.getName()));
+		addTreeNode(new TechnologyTab(parent, true), techSet);
+		addTreeNode(new DesignRulesTab(parent, true), techSet);
+		addTreeNode(new UnitsTab(parent, true), techSet);
+		addTreeNode(new IconTab(parent, true), techSet);
 
 		// pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
@@ -445,6 +288,7 @@ public class PreferencesFrame extends EDialog
 
 		loadOptionPanel();
 		splitPane.setLeftComponent(leftPanel);
+		recursivelyHighlight(optionTree, rootNode, currentDMTN, optionTree.getPathForRow(0));
 
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 0;
@@ -455,6 +299,17 @@ public class PreferencesFrame extends EDialog
 
 		pack();
 		finishInitialization();
+	}
+
+	private void addTreeNode(PreferencePanel panel, DefaultMutableTreeNode theSet)
+	{
+		optionPanes.add(panel);
+		String sectionName = (String)theSet.getUserObject();
+		String name = panel.getName();
+		DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(name);
+		theSet.add(dmtn);
+		if (sectionName.equals(currentSectionName) && name.equals(currentTabName))
+			currentDMTN = dmtn;
 	}
 
     private boolean openSelectedPath(DefaultMutableTreeNode rootNode)

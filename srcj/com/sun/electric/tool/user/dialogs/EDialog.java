@@ -43,8 +43,11 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JList;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * Superclass for all dialogs that handles remembering the last location.
@@ -159,6 +162,33 @@ public class EDialog extends JDialog
         }
         if (!found)
         	fontBox.addItem(font);
+	}
+
+	/**
+	 * Method to highlight a node in a tree.
+	 * @param tree the tree to highlight.
+	 * @param start the current node of the tree.
+	 * @param objWanted the node that is to be highlighted.
+	 * @param topPath current path in the tree.
+	 * @return true if highlighted, false if not.
+	 */
+	public static boolean recursivelyHighlight(JTree tree, DefaultMutableTreeNode curNode,
+		DefaultMutableTreeNode objWanted, TreePath topPath)
+	{
+		for(int i=0; i<curNode.getChildCount(); i++)
+		{
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode)curNode.getChildAt(i);
+			if (node == objWanted)
+			{
+				TreePath lowerPath = topPath.pathByAddingChild(node);
+				tree.setSelectionPath(lowerPath);
+				tree.scrollPathToVisible(lowerPath);
+				return true;
+			}
+			TreePath lowerPath = topPath.pathByAddingChild(node);
+			if (recursivelyHighlight(tree, node, objWanted, lowerPath)) return true;
+		}
+		return false;
 	}
 
     /**

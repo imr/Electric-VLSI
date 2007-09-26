@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP: (9/26/07, SMR) Preferences, Project Settings, and User's Manual now
+     highlight current tree element on the left.
+
 BUG: (9/26/07, SMR) Technology editor doesn't handle transistors right.
 FIX: Many small improvements to tech editor.
 

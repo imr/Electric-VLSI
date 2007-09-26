@@ -146,14 +146,15 @@ public class ManualViewer extends EModelessDialog
     private JEditorPane editorPane;
 	private JSplitPane splitPane;
 	private JTextField searchField;
-	private JTree optionTree;
+	private JTree manualTree;
 	private DefaultMutableTreeNode rootNode;
 	private List<PageInfo> pageSequence;
+	private List<DefaultMutableTreeNode> pageNodeSequence;
 	private int currentIndex;
 	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
 	private static HashMap<String,String> menuMap = null;
-	private static HashMap<String,String> preferenceMap = null;
+	private static HashMap<String,String> keywordMap = null;
 	private List<Object> history = new ArrayList<Object>();
 	private static ManualViewer theManual = null;
 
@@ -230,7 +231,7 @@ public class ManualViewer extends EModelessDialog
 		{
 			if (str != null)
 			{
-				String prefFileName = preferenceMap.get(dialog+str);
+				String prefFileName = keywordMap.get(dialog+str);
 			    if (prefFileName == null)
 			    {
 			    	Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
@@ -377,7 +378,7 @@ public class ManualViewer extends EModelessDialog
         String prefFileName = null;
         if (preference != null)
         {
-            prefFileName = preferenceMap.get(preference);
+            prefFileName = keywordMap.get(preference);
 		    if (prefFileName == null)
 		    	Job.getUserInterface().showErrorMessage("No help for " + preference + " settings", "Missing documentation");
         }
@@ -393,6 +394,7 @@ public class ManualViewer extends EModelessDialog
         }
 		InputStreamReader is = new InputStreamReader(stream);
 		pageSequence = new ArrayList<PageInfo>();
+		pageNodeSequence = new ArrayList<DefaultMutableTreeNode>();
 		DefaultMutableTreeNode [] stack = new DefaultMutableTreeNode[20];
 		stack[0] = rootNode;
 		boolean newAtLevel = false;
@@ -460,6 +462,7 @@ public class ManualViewer extends EModelessDialog
                 }
 				stack[indent].add(node);
 				pageSequence.add(pi);
+				pageNodeSequence.add(node);
 				newAtLevel = false;
 			}
 		}
@@ -472,17 +475,19 @@ public class ManualViewer extends EModelessDialog
 		}
 
         // No preference page given
-        if (preference == null)
+        if (preference == null || thisNode != null)
         {
             // pre-expand the tree
-            TreePath topPath = optionTree.getPathForRow(0);
-            optionTree.expandPath(topPath);
-            topPath = optionTree.getPathForRow(1);
-            optionTree.expandPath(topPath);
-        }
-        else
+            TreePath topPath = manualTree.getPathForRow(0);
+            manualTree.expandPath(topPath);
+            topPath = manualTree.getPathForRow(1);
+            manualTree.expandPath(topPath);
+            manualTree.setSelectionPath(topPath);
+        } else
         {
-            optionTree.scrollPathToVisible(new TreePath(thisNode.getPath()));
+        	TreePath tp = new TreePath(thisNode.getPath());
+        	manualTree.scrollPathToVisible(tp);
+        	manualTree.setSelectionPath(tp);
         }
 		// load the title page of the manual
         loadPage(currentIndex);
@@ -526,11 +531,11 @@ public class ManualViewer extends EModelessDialog
 	private void loadPointers()
 	{
 		// stop if already done
-		if (preferenceMap != null) return;
+		if (keywordMap != null) return;
 
 		menuMap = new HashMap<String,String>();
 		HashMap<String,String> menuMapCheck = null;
-		preferenceMap = new HashMap<String,String>();
+		keywordMap = new HashMap<String,String>();
 		if (Job.getDebug())
 		{
 			menuMapCheck = new HashMap<String,String>();
@@ -607,12 +612,12 @@ public class ManualViewer extends EModelessDialog
 						continue;
 					}
 					String preferenceName = "PREF" + pageLine.substring(16, endPt).trim();
-					String already = preferenceMap.get(preferenceName);
+					String already = keywordMap.get(preferenceName);
 					if (already != null && Job.getDebug())
 					{
 						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
 					}
-					preferenceMap.put(preferenceName, fileName);
+					keywordMap.put(preferenceName, fileName);
 					continue;
 				}
 				if (pageLine.startsWith("<!-- PROJECTSETTING "))
@@ -623,13 +628,13 @@ public class ManualViewer extends EModelessDialog
 						System.out.println("No end comment on line: "+pageLine);
 						continue;
 					}
-					String preferenceName = "PROJ" + pageLine.substring(20, endPt).trim();
-					String already = preferenceMap.get(preferenceName);
+					String projSettingName = "PROJ" + pageLine.substring(20, endPt).trim();
+					String already = keywordMap.get(projSettingName);
 					if (already != null && Job.getDebug())
 					{
-						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
+						System.out.println("ERROR: command " + projSettingName + " is keyed to both " + already + " and " + fileName);
 					}
-					preferenceMap.put(preferenceName, fileName);
+					keywordMap.put(projSettingName, fileName);
 					continue;
 				}
 			}
@@ -768,6 +773,8 @@ public class ManualViewer extends EModelessDialog
 		lastPageVisited = index;
 		PageInfo pi = pageSequence.get(index);
         if (pi.url == null) return; // error reading the html file
+        DefaultMutableTreeNode node = pageNodeSequence.get(index);
+    	EDialog.recursivelyHighlight(manualTree, rootNode, node, manualTree.getPathForRow(0));
         
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
         InputStreamReader is;
@@ -1368,10 +1375,10 @@ public class ManualViewer extends EModelessDialog
 		// setup tree pane for chapter selection (on the left)
 		rootNode = new DefaultMutableTreeNode("Manual");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-		optionTree = new ManualTree(treeModel, this);
+		manualTree = new ManualTree(treeModel, this);
 		TreeHandler handler = new TreeHandler(this);
-		optionTree.addMouseListener(handler);
-		JScrollPane scrolledTree = new JScrollPane(optionTree);
+		manualTree.addMouseListener(handler);
+		JScrollPane scrolledTree = new JScrollPane(manualTree);
 
 		// the left side of the options dialog: a tree
 		JPanel leftHalf = new JPanel();
@@ -1580,10 +1587,10 @@ public class ManualViewer extends EModelessDialog
 
 		public void mousePressed(MouseEvent e)
 		{
-			TreePath currentPath = dialog.optionTree.getPathForLocation(e.getX(), e.getY());
+			TreePath currentPath = dialog.manualTree.getPathForLocation(e.getX(), e.getY());
 			if (currentPath == null) return;
-			dialog.optionTree.setSelectionPath(currentPath);
-			dialog.optionTree.expandPath(currentPath);
+			dialog.manualTree.expandPath(currentPath);
+			dialog.manualTree.setSelectionPath(currentPath);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
 			Object obj = node.getUserObject();
 			if (obj instanceof Integer)
