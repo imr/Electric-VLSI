@@ -408,7 +408,7 @@ public class Manipulate
 	 * Method to complete the creation of a new node in a technology edit cell.
 	 * @param newNi the node that was just created.
 	 */
-	public static void completeNodeCreation(NodeInst newNi, NodeInst niTemplate)
+	public static void completeNodeCreation(NodeInst newNi, Variable v)
 	{
 		// postprocessing on the nodes
 		String portName = null;
@@ -419,16 +419,12 @@ public class Manipulate
 			if (portName == null) return;
 		}
 		boolean isHighlight = false;
-		if (niTemplate != null)
+		if (v != null)
 		{
-			Variable v = niTemplate.getVar(Info.OPTION_KEY);
-			if (v != null)
+			if (v.getObject() instanceof Integer &&
+				((Integer)v.getObject()).intValue() == Info.HIGHLIGHTOBJ)
 			{
-				if (v.getObject() instanceof Integer &&
-					((Integer)v.getObject()).intValue() == Info.HIGHLIGHTOBJ)
-				{
-					isHighlight = true;
-				}
+				isHighlight = true;
 			}
 		}
 		new AddTechEditMarks(newNi, isHighlight, portName);
@@ -1727,10 +1723,7 @@ public class Manipulate
 		{
 			CellId cID = (CellId)curLay.getObject();
 			Cell cell = EDatabase.serverDatabase().getCell(cID);
-			initial = cell.getName().substring(6);
-		} else
-		{
-			
+			if (cell != null) initial = cell.getName().substring(6);
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
 		if (choice == null) return;

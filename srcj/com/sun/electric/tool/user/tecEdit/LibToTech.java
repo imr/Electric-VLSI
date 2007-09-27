@@ -1152,11 +1152,6 @@ public class LibToTech
 							}
 						}
 					}
-					if (validArcCells.size() != arcCells.length)
-					{
-						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Warning: Invalid connection list on port in " + np);
-					}
 					ArcInfo [] connections = new ArcInfo[validArcCells.size()];
 					nIn.nodePortDetails[i].connections = connections;
 					for(int j=0; j<validArcCells.size(); j++)
@@ -1474,8 +1469,8 @@ public class LibToTech
 				nIn.nodeLayers = addedLayers;
 				diff1.inLayers = diff2.inLayers = false;
 				nIn.nodeLayers[difIndex].inElectricalLayers = false;
-				diff1.portIndex = dif1Port;
-				diff2.portIndex = dif2Port;
+				diff1.portIndex = dif2Port;
+				diff2.portIndex = dif1Port;
 				
 				// compute port extension factors
 				nIn.specialValues = new double[6];
@@ -2502,7 +2497,7 @@ public class LibToTech
 			{
 				pointOutError(ns.node, ns.node.getParent());
 				System.out.println("Cannot determine X stretching rule for layer " + getSampleName(ns.layer) +
-					" in " + np);
+					" (node " + ns.node.describe(false) + ") in " + np);
 //System.out.println("Total points is " +pts.length+", point "+i+" is at ("+pts[i].getX()+","+pts[i].getY()+")");
 //System.out.println("Factor is "+factor[i]);
 //for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
@@ -2538,7 +2533,7 @@ public class LibToTech
 			{
 				pointOutError(ns.node, ns.node.getParent());
 				System.out.println("Cannot determine Y stretching rule for layer " + getSampleName(ns.layer) +
-					" in " + np);
+					" (node " + ns.node.describe(false) + ") in " + np);
 				return null;
 			}
 			newRule[i] = new Technology.TechPoint(horiz, vert);

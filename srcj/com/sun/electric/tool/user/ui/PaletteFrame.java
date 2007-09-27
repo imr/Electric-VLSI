@@ -41,6 +41,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.awt.Container;
@@ -57,8 +58,10 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
@@ -461,6 +464,7 @@ public class PaletteFrame implements MouseListener
 	public static class PlaceNewNode extends Job
 	{
 		private NodeProto np;
+		private Variable techEditVar;
 		private int techBits = 0;
         private Orientation defOrient = Orientation.IDENT;
         private double [] angles = null;
@@ -475,12 +479,14 @@ public class PaletteFrame implements MouseListener
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.np = np;
-			// get default creation angle
+
+			// get default creation information
             if (ni != null)
             {
                 defOrient = ni.getOrient();
 				techBits = ni.getTechSpecific();
                 angles = ni.getArcDegrees();
+                techEditVar = ni.getVar(Info.OPTION_KEY);
             } else if (np instanceof PrimitiveNode)
 			{
                 defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
@@ -595,7 +601,7 @@ public class PaletteFrame implements MouseListener
 			// for technology edit cells, mark the new geometry specially
 			if (cell.isInTechnologyLibrary())
 			{
-				Manipulate.completeNodeCreation((NodeInst)objToHighlight, null); // ni);
+				Manipulate.completeNodeCreation((NodeInst)objToHighlight, techEditVar);
 			}
 			if (export)
 			{
