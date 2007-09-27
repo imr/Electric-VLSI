@@ -26,17 +26,21 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ToolBar;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.Date;
 import java.text.DateFormat;
 import java.net.InetAddress;
+import java.awt.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -80,13 +84,6 @@ public class Edit {
         CVS.runCVSCommand("edit -a none "+file, "Edit",
                 dir, System.out);
         return true;
-    }
-
-    public static void checkEditing(List<Cell> cells) {
-        CVSLibrary.LibsCells libcells = CVSLibrary.getInCVSSorted(new ArrayList<Library>(), cells);
-        if (libcells.cells.size() == 0 && libcells.libs.size() == 0) return;
-        
-        (new CheckEditorsJob(libcells.libs, libcells.cells)).startJob();
     }
 
     // ---------------------- Get Editors ----------------------------
@@ -156,45 +153,6 @@ public class Edit {
         }
     }
 
-    public static class CheckEditorsJob extends Job {
-        private List<Library> libs;
-        private List<Cell> cells;
-        private List<Editor> editors;
-
-        public CheckEditorsJob(List<Library> libs, List<Cell> cells) {
-            super("Check CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.libs = libs;
-            this.cells = cells;
-            if (this.libs == null) this.libs = new ArrayList<Library>();
-            if (this.cells == null) this.cells = new ArrayList<Cell>();
-        }
-        public boolean doIt() {
-            String useDir = CVS.getUseDir(libs, cells);
-            StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
-            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
-
-            String args = libsBuf + " " + cellsBuf;
-            if (args.trim().equals("")) return true;
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
-            editors = parseOutput(reader);
-            fieldVariableChanged("editors");
-            return false;
-        }
-
-        public void terminateOK() {
-            // if there are any editors, let the user know.
-            StringBuffer message = new StringBuffer();
-            message.append("Warning! The following cells you have modified are already being edited:\n");
-            for (Editor editor : editors) {
-                message.append("\t"+editor.getFile()+"\t"+editor.getUser());
-            }
-            JOptionPane.showMessageDialog(null, message.toString(), "Edit Conflict!", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
 /*
     static List<Editor> getEditors(Library lib) {
         File file = new File(lib.getLibFile().getPath());
@@ -226,6 +184,173 @@ public class Edit {
         return parseOutput(result);
     }
 */
+
+    // ----------------------- Editing Modified Cells -----------------------
+
+    private static Map<CellId,CellId> modifiedCells = new HashMap<CellId,CellId>();
+
+    /**
+      * Handles database changes of a Job.
+      * @param oldSnapshot database snapshot before Job.
+      * @param newSnapshot database snapshot after Job and constraint propagation.
+      * @param undoRedo true if Job was Undo/Redo job.
+      */
+    static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo) {
+        //if (undoRedo) return;
+
+        // keep track of which cells are newly modified
+        List<Cell> newlyModifiedCells = new ArrayList<Cell>();
+        List<Cell> newlyUnmodifiedCells = new ArrayList<Cell>();
+        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+            Cell cell = Cell.inCurrentThread(cellId);
+            if (cell == null) {
+                modifiedCells.remove(cellId);
+                continue;
+            }
+            if (cell.isModified(false) && !modifiedCells.containsKey(cellId)) {
+                modifiedCells.put(cellId, cellId);
+                newlyModifiedCells.add(cell);
+            }
+            if (!cell.isModified(false) && modifiedCells.containsKey(cellId)) {
+                // undo or save
+                modifiedCells.remove(cellId);
+                newlyUnmodifiedCells.add(cell);
+            }
+        }
+
+        // mark for edit any newly modified cells that are not modified in CVS
+        // (if they are modified in CVS, they have already been marked for edit
+        List<Cell> markForEdit = new ArrayList<Cell>();
+        for (Cell cell : newlyModifiedCells) {
+            State state = CVSLibrary.getState(cell);
+            if (state == State.NONE)
+                markForEdit.add(cell);
+        }
+
+        // unmark for edit any newly unmodified cells that are not modified in CVS
+        // (this will only happen if you undo to the point of being unmodified,
+        //  and the cell is then consistent with what is in CVS)
+        List<Cell> unmarkForEdit = new ArrayList<Cell>();
+        for (Cell cell : newlyUnmodifiedCells) {
+            State state = CVSLibrary.getState(cell);
+            if (state == State.NONE)
+                unmarkForEdit.add(cell);
+        }
+
+        // condense jelibs cells into jelibs
+        CVSLibrary.LibsCells modified = CVSLibrary.getInCVSSorted(new ArrayList<Library>(), markForEdit);
+        if (modified.libs.size() != 0 || modified.cells.size() != 0) {
+            (new MarkForEditJob(modified.libs, modified.cells, true, false)).startJob();
+        }
+        CVSLibrary.LibsCells unmodified = CVSLibrary.getInCVSSorted(new ArrayList<Library>(), unmarkForEdit);
+        if (unmodified.libs.size() != 0 || unmodified.cells.size() != 0) {
+            (new MarkForEditJob(unmodified.libs, unmodified.cells, false, true)).startJob();
+        }
+    }
+
+    public static class MarkForEditJob extends Job {
+        private List<Library> libs;
+        private List<Cell> cells;
+        private boolean unedit;         // true to unmark rather than mark
+        private boolean checkConflicts;
+        private List<Editor> editors;
+
+        public MarkForEditJob(List<Library> libs, List<Cell> cells, boolean checkConflicts, boolean unedit) {
+            super("Check CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.libs = libs;
+            this.cells = cells;
+            this.checkConflicts = checkConflicts;
+            this.unedit = unedit;
+            this.editors = new ArrayList<Editor>();
+            if (this.libs == null) this.libs = new ArrayList<Library>();
+            if (this.cells == null) this.cells = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            String useDir = CVS.getUseDir(libs, cells);
+            StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            String args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
+
+            if (unedit) {
+                // just run unedit
+                System.out.println("Unmarking CVS edit: "+args);
+                CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
+                return true;
+            }
+
+            if (checkConflicts) {
+                System.out.println("Checking editors for: "+args);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
+                LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+                editors = parseOutput(reader);
+                fieldVariableChanged("editors");
+            } else {
+                System.out.println("Marking for CVS edit: "+args);
+                CVS.runCVSCommand("edit -a none "+args, "CVS Edit", useDir, System.out);
+            }
+            return true;
+        }
+
+        public void terminateOK() {
+            if (!unedit && checkConflicts) {
+                // if there are any editors, let the user know.
+                List<Editor> filteredEditors = new ArrayList<Editor>();
+                for (Editor e : editors) {
+                    if (e.getUser().equals(System.getProperty("user.name"))) continue;
+                    filteredEditors.add(e);
+                }
+                editors = filteredEditors;
+
+                if (editors.size() > 0) {
+                    JPanel panel = new JPanel(new GridBagLayout());
+                    GridBagConstraints constraints = new GridBagConstraints();
+                    constraints.gridx = 0;
+                    constraints.gridy = 0;
+                    constraints.ipady = 20;
+                    constraints.anchor = GridBagConstraints.WEST;
+                    JLabel label = new JLabel("Other Users are already Editing the following:");
+                    panel.add(label, constraints);
+
+                    // table of edit conflicts
+                    String [] headers = {"File", "User"};
+                    Object [][] data = new Object[editors.size()][2];
+                    for (int i=0; i<editors.size(); i++) {
+                        Editor editor = editors.get(i);
+                        data[i][0] = editor.getAbbrevFile();
+                        data[i][1] = editor.getUser();
+                    }
+
+                    JTable table = new JTable(data, headers);
+                    table.getColumnModel().getColumn(0).setPreferredWidth(300);
+                    table.getColumnModel().getColumn(1).setPreferredWidth(100);
+                    table.setPreferredScrollableViewportSize(new Dimension(400,100));
+                    table.setFocusable(false);
+                    JScrollPane scrollpane = new JScrollPane(table);
+                    scrollpane.setPreferredSize(new Dimension(400,100));
+                    Font font = new Font("Courier", Font.PLAIN, 12);
+                    table.setFont(font);
+                    constraints = new GridBagConstraints();
+                    constraints.gridx = 0;
+                    constraints.gridy = 1;
+                    panel.add(scrollpane, constraints);
+
+                    Object [] options = { "UNDO CHANGES", "CONTINUE ANYWAY" };
+                    int ret = JOptionPane.showOptionDialog(null, panel, "Edit Conflict!",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+                    if (ret == 0) {
+                        // undo
+                        Undo.undo();
+                        return;
+                    }
+                }
+                (new MarkForEditJob(libs, cells, false, unedit)).startJob();
+            }
+        }
+    }
+
 
     // ----------------------- Edit Output Parsing --------------------------
 

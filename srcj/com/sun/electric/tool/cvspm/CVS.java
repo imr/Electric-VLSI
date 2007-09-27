@@ -76,6 +76,8 @@ public class CVS extends Listener {
         setOn();
     }
 
+    public static CVS getCVSTool() { return tool; }
+
     /**
       * Handles database changes of a Job.
       * @param oldSnapshot database snapshot before Job.
@@ -84,15 +86,9 @@ public class CVS extends Listener {
       */
      public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
      {
-         //if (undoRedo) return;
          if (!CVS.isEnabled()) return;
          if (newSnapshot.tool == tool) return;
-
-         List changedCells = new ArrayList<Cell>();
-         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-             Cell cell = Cell.inCurrentThread(cellId);
-             changedCells.add(cell);
-         }
+         Edit.endBatch(oldSnapshot, newSnapshot, undoRedo);
      }
 
 

@@ -411,47 +411,6 @@ public class CVSLibrary {
                 }
             }
         }
-
-        if (!CVS.isDELIB(lib)) {
-            if (lib.getLibFile() == null) return;
-            File file = TextUtils.getFile(lib.getLibFile());
-            if (file == null) return;
-            if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
-            if (getState(lib) == State.ADDED) return;       // not actually in cvs yet
-            if (!isEditing(lib)) {
-                Edit.edit(file.getName(), file.getParentFile().getPath());
-                setEditing(lib, true);
-            }
-            if (lib.isChanged()) {
-                setState(lib, State.MODIFIED);
-            }
-            return;
-        }
-        // all modifies cells must have edit turned on
-        List<Cell> modifiedCells = new ArrayList<Cell>();
-        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell cell = it.next();
-            if (getState(cell) == State.ADDED) continue;        // not actually in cvs yet
-            if (cell.isModified(true)) modifiedCells.add(cell);
-        }
-        // turn on edit for cells that are not being edited
-        StringBuffer buf = new StringBuffer();
-        for (Cell cell : modifiedCells) {
-            if (!CVS.isFileInCVS(CVS.getCellFile(cell))) continue;
-            // make sure state of cell is 'modified'
-            setState(cell, State.MODIFIED);
-            if (!isEditing(cell)) {
-                buf.append(DELIB.getCellFile(cell)+" ");
-                setEditing(cell, true);
-            }
-        }
-        if (buf.length() == 0) return;      // nothing to 'edit'
-        // turn on edit for files to be modified
-        // note that header is never to have edit on or off
-        File file = TextUtils.getFile(lib.getLibFile());
-        if (file != null) {
-            Edit.edit(buf.toString(), file.getPath());
-        }
     }
 
     /**

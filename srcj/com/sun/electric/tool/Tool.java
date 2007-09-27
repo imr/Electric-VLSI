@@ -44,6 +44,8 @@ import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.generator.layout.GateLayGenSettings;
+import com.sun.electric.tool.cvspm.CVS;
+
 import java.lang.reflect.Field;
 
 import java.util.ArrayList;
@@ -126,6 +128,7 @@ public class Tool implements Comparable
         Simulation.getSimulationTool().init();
         LayerCoverageTool.getLayerCoverageTool().init();
         GateLayGenSettings.tool.init();
+        CVS.getCVSTool().init();
         
         for (Tool tool: tools.values())
             tool.initProjectSettings();
