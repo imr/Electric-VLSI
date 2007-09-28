@@ -253,7 +253,11 @@ public class CVSLibrary {
         if (cvslib == null) return;
         if (state == null)
             return;
-        cvslib.cellStates.put(cell, state);
+        if (!CVS.isDELIB(cell.getLibrary())) {
+            cvslib.libState = state;
+        } else {
+            cvslib.cellStates.put(cell, state);
+        }
     }
 
     /**
@@ -492,6 +496,20 @@ public class CVSLibrary {
         if (CVS.isInCVS(lib)) {
             Update.statusNoJob(libs, null, false);
         }
+    }
+
+    /**
+     * Command to run after saving library for non-delib type libraries
+     * @param lib the library
+     */
+    public static void savedLibrary(Library lib) {
+        // run update on the library to see if there are now any conflicts, and
+        // recolor added cells
+        List<Library> libs = new ArrayList<Library>();
+        libs.add(lib);
+        if (CVS.isInCVS(lib)) {
+            Update.statusNoJob(libs, null, false);
+        }        
     }
 
     /**

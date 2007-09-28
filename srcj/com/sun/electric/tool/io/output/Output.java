@@ -341,6 +341,9 @@ public class Output
                 }
 				if (elib.writeLib(snapshot, libId)) return true;
 				if (elib.closeBinaryOutputStream()) return true;
+                if (CVS.isEnabled()) {
+                    CVSLibrary.savedLibrary(lib);
+                }
 			} else
 			{
 				JELIB jelib = new JELIB();
@@ -351,6 +354,9 @@ public class Output
                 }
 				if (jelib.writeLib(snapshot, libId, null, false)) return true;
 				if (jelib.closeTextOutputStream()) return true;
+                if (CVS.isEnabled()) {
+                    CVSLibrary.savedLibrary(lib);
+                }
 			}
  		} else if (type == FileType.READABLEDUMP)
 		{
