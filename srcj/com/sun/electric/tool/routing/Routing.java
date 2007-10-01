@@ -57,6 +57,7 @@ import com.sun.electric.tool.user.User;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -77,20 +78,16 @@ public class Routing extends Listener
 	public static class Activity
 	{
 		int numCreatedArcs, numCreatedNodes;
-		ArcInst [] createdArcs;
-		NodeInst [] createdNodes;
+		ImmutableArcInst [] createdArcs = new ImmutableArcInst[3];
+        CellId createdArcsParents [] = new CellId[3];
+		ImmutableNodeInst [] createdNodes = new ImmutableNodeInst[3];
 		int numDeletedArcs, numDeletedNodes;
 		ImmutableArcInst deletedArc;
 		CellId deletedArcParent;
-		PortProtoId [] deletedPorts;
+		PortProtoId [] deletedPorts = new PortProtoId[2];
 
 		Activity()
 		{
-			numCreatedArcs = numCreatedNodes = 0;
-			numDeletedArcs = numDeletedNodes = 0;
-			createdArcs = new ArcInst[3];
-			createdNodes = new NodeInst[3];
-			deletedPorts = new PortProtoId[2];
 		}
 	}
 
@@ -136,12 +133,13 @@ public class Routing extends Listener
 		current = new Activity();
 		checkAutoStitch = false;
 		for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-			Cell cell = Cell.inCurrentThread(cellId);
-			if (cell == null) continue;
 			CellBackup oldBackup = oldSnapshot.getCell(cellId);
 			if (oldBackup == null) continue; // Don't route in new cells
-			if (oldBackup == cell.backup()) continue;
+            CellBackup newBackup = newSnapshot.getCell(cellId);
+            if (newBackup == null) continue;
+			if (oldBackup == newBackup) continue;
             CellRevision oldRevision = oldBackup.cellRevision;
+            CellRevision newRevision = newBackup.cellRevision;
 			ArrayList<ImmutableNodeInst> oldNodes = new ArrayList<ImmutableNodeInst>();
 			for (ImmutableNodeInst n: oldRevision.nodes) {
 				while (n.nodeId >= oldNodes.size()) oldNodes.add(null);
@@ -152,37 +150,37 @@ public class Routing extends Listener
 				while (a.arcId >= oldArcs.size()) oldArcs.add(null);
 				oldArcs.set(a.arcId, a);
 			}
-			for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-				NodeInst ni = it.next();
-				ImmutableNodeInst d = ni.getD();
+            BitSet newNodes = new BitSet();
+			for (ImmutableNodeInst d: newRevision.nodes) {
+                newNodes.set(d.nodeId);
 				ImmutableNodeInst oldD = d.nodeId < oldNodes.size() ? oldNodes.get(d.nodeId) : null;
 				if (oldD == null) {
 					if (current.numCreatedNodes < 3)
-						current.createdNodes[current.numCreatedNodes++] = ni;
+						current.createdNodes[current.numCreatedNodes++] = d;
 				} else if (oldD != d) {
 					checkAutoStitch = true;
 				}
 			}
-			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-				ArcInst ai = it.next();
-				ImmutableArcInst d = ai.getD();
+            BitSet newArcs = new BitSet();
+			for (ImmutableArcInst d: newRevision.arcs) {
+                newArcs.set(d.arcId);
 				ImmutableArcInst oldD = d.arcId < oldArcs.size( ) ? oldArcs.get(d.arcId) : null;
 				if (oldD == null) {
-					if (current.numCreatedArcs < 3)
-						current.createdArcs[current.numCreatedArcs++] = ai;
+					if (current.numCreatedArcs < 3) {
+                        current.createdArcsParents[current.numCreatedArcs] = cellId;
+						current.createdArcs[current.numCreatedArcs++] = d;
+                    }
 				}
 			}
-			for (ImmutableArcInst nid: oldRevision.arcs) {
-				if (nid == null) continue;
-				if (cell.getNodeById(nid.arcId) == null)
+			for (ImmutableNodeInst nid: oldRevision.nodes) {
+				if (!newNodes.get(nid.nodeId))
 					current.numDeletedNodes++;
 			}
 			for (ImmutableArcInst aid: oldRevision.arcs) {
-				if (aid == null) continue;
-				if (cell.getArcById(aid.arcId) == null) {
+				if (!newArcs.get(aid.arcId)) {
 					if (current.numDeletedArcs == 0) {
 						current.deletedArc = aid;
-						current.deletedArcParent = cell.getId();
+						current.deletedArcParent = cellId;
 						current.deletedPorts[0] = aid.headPortId;
 						current.deletedPorts[1] = aid.tailPortId;
 					}
@@ -222,7 +220,8 @@ public class Routing extends Listener
 		ArcInst ai = (ArcInst)wnd.getOneElectricObject(ArcInst.class);
 		if (ai == null) return;
 		past = new Activity();
-		past.createdArcs[past.numCreatedArcs++] = ai;
+        past.createdArcsParents[past.numCreatedArcs] = ai.getParent().getId();
+		past.createdArcs[past.numCreatedArcs++] = ai.getD();
 		MimicStitch.mimicStitch(true);
 	}
 

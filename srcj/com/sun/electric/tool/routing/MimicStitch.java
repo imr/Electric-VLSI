@@ -29,6 +29,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
@@ -156,7 +157,8 @@ public class MimicStitch
 		// if a single arc was just created, mimic that
 		if (lastActivity.numCreatedArcs == 1)
 		{
-			ArcInst ai = lastActivity.createdArcs[0];
+            ArcInst ai = EDatabase.clientDatabase().getCell(lastActivity.createdArcsParents[0]).getArcById(lastActivity.createdArcs[0].arcId);
+//			ArcInst ai = lastActivity.createdArcs[0];
 			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaBaseWidth(), ai.getProto(), 0, 0, forced);
 //			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaFullWidth(), ai.getProto(), 0, 0, forced);
 			lastActivity.numCreatedArcs = 0;
@@ -171,7 +173,8 @@ public class MimicStitch
 			HashSet<NodeInst> gotMany = new HashSet<NodeInst>();
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
 			{
-				ArcInst ai = lastActivity.createdArcs[i];
+                ArcInst ai = EDatabase.clientDatabase().getCell(lastActivity.createdArcsParents[i]).getArcById(lastActivity.createdArcs[i].arcId);
+//				ArcInst ai = lastActivity.createdArcs[i];
 				for(int e=0; e<2; e++)
 				{
 					NodeInst ni = ai.getPortInst(e).getNodeInst();
@@ -190,7 +193,8 @@ public class MimicStitch
 			double width = 0;
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
 			{
-				ArcInst ai = lastActivity.createdArcs[i];
+                ArcInst ai = EDatabase.clientDatabase().getCell(lastActivity.createdArcsParents[i]).getArcById(lastActivity.createdArcs[i].arcId);
+//				ArcInst ai = lastActivity.createdArcs[i];
 				for(int e=0; e<2; e++)
 				{
 					NodeInst ni = ai.getPortInst(e).getNodeInst();
@@ -219,8 +223,8 @@ public class MimicStitch
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefX = lastActivity.createdNodes[0].getAnchorCenterX() - (x0+x1) / 2;
-					prefY = lastActivity.createdNodes[0].getAnchorCenterY() - (y0+y1) / 2;
+					prefX = lastActivity.createdNodes[0].anchor.getLambdaX() - (x0+x1) / 2;
+					prefY = lastActivity.createdNodes[0].anchor.getLambdaY() - (y0+y1) / 2;
 				} else if (lastActivity.numCreatedNodes == 2)
 				{
 					Poly portPoly0 = ends[0].getPortInst().getPoly();
@@ -229,10 +233,10 @@ public class MimicStitch
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefX = (lastActivity.createdNodes[0].getAnchorCenterX() +
-						lastActivity.createdNodes[1].getAnchorCenterX()) / 2 - (x0+x1) / 2;
-					prefY = (lastActivity.createdNodes[0].getAnchorCenterY() +
-						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 - (y0+y1) / 2;
+					prefX = (lastActivity.createdNodes[0].anchor.getLambdaX() +
+						lastActivity.createdNodes[1].anchor.getLambdaX()) / 2 - (x0+x1) / 2;
+					prefY = (lastActivity.createdNodes[0].anchor.getLambdaY() +
+						lastActivity.createdNodes[1].anchor.getLambdaY()) / 2 - (y0+y1) / 2;
 				}
 				new MimicStitchJob(ends[0].getArc(), ends[0].getEndIndex(), ends[1].getArc(), ends[1].getEndIndex(),
 					width, null, prefX, prefY, forced);
