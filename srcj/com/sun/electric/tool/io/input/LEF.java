@@ -841,7 +841,7 @@ public class LEF extends LEFDEF
 					return true;
 				}
 
-				if (first && cell.findExport(portname) == null)
+				if (first)
 				{
 					// create the port on the first pin
 					first = false;
@@ -877,7 +877,7 @@ public class LEF extends LEFDEF
 			}
 		}
 
-		if (lefPaths == null && singlePathPoint != null && ap != null && first && cell.findExport(portname) == null)
+		if (lefPaths == null && singlePathPoint != null && ap != null && first)
 		{
 			// path was a single point: plot it
 			NodeProto pin = ap.findPinProto();
