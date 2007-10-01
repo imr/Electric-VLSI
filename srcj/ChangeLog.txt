@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+BUG: (10/1/07, SMR) Very large instance name text may draw outside box.
+FIX: In PixelDrawing.RenderTextInfo.buildInfo(), use shift factor.
+
 BUG: (10/1/07, SMR) Changing cell expansion from Object Properties dialog doesn't work.
 FIXL: In GetInfoNode.ChangeNode class, added TerminateOK() to handle expansion.
 

@@ -2912,7 +2912,7 @@ class PixelDrawing
 		long startTime = 0;
         if (DEBUGRENDERTIMING) System.currentTimeMillis();
 		RenderTextInfo renderInfo = new RenderTextInfo();
-		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
+		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, shiftUp))
 			return;
 
 		// if text was made "greek", just draw a line
@@ -3162,7 +3162,7 @@ class PixelDrawing
 	    private boolean underline;
 
 	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation)
+	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, int shiftUp)
 	    {
 			font = getFont(msg, fontName, tSize, italic, bold, underline);
 			this.underline = underline;
@@ -3179,8 +3179,8 @@ class PixelDrawing
 			if (width <= 0 || height <= 0) return false;
 			int fontStyle = font.getStyle();
 
-			int boxedWidth = (int)probableBoxedBounds.getWidth();
-			int boxedHeight = (int)probableBoxedBounds.getHeight();
+			int boxedWidth = (int)probableBoxedBounds.getWidth() >> shiftUp;
+			int boxedHeight = (int)probableBoxedBounds.getHeight() >> shiftUp;
 
 			// if text is to be "boxed", make sure it fits
 			if (boxedWidth > 1 && boxedHeight > 1)
