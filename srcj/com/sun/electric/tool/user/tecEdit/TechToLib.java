@@ -126,7 +126,7 @@ public class TechToLib
 			if (lib == null) return false;
 
 			// switch to the library and show a cell
-			lib.setCurrent();
+            User.setCurrentLibrary(lib);
             if (!doItNow)
             fieldVariableChanged("libraryName");
             libraryName = lib.getName();

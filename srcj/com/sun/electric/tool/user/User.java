@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -40,8 +41,10 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.user.tecEdit.GeneralInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.VectorCache;
@@ -731,6 +734,38 @@ public class User extends Listener
 
 		// play the sound
 		clickSound.play();
+	}
+
+	/**
+	 * Method to switch libraries and handle technology editing details.
+	 */
+	public static void setCurrentLibrary(Library lib)
+	{
+		lib.setCurrent();
+
+		// if switching to a technology library, load its colormap into the Artwork technology
+		Cell techLibFactors = null;
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = it.next();
+			if (cell.isInTechnologyLibrary() && cell.getName().equals("factors")) { techLibFactors = cell;   break; }
+		}
+		if (techLibFactors != null)
+		{
+			for(Iterator<NodeInst> it = techLibFactors.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				Color [] colors = GeneralInfo.getTransparentColors(ni);
+				if (colors == null) continue;
+				if (colors != null)
+				{
+					Color [] map = Technology.getColorMap(colors, colors.length);
+					Artwork.tech.setColorMap(map);
+					Artwork.tech.setNumTransparentLayers(colors.length);
+					break;
+				}
+			}
+		}
 	}
 
 	/****************************** PROJECT SETTINGS *****************************************/

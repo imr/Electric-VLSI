@@ -838,15 +838,16 @@ public class Manipulate
 		}
 
 		// get examples
-		Example neList = null;
+		List<Example> neList = null;
 		if (np.getName().startsWith("node-"))
 			neList = Example.getExamples(np, true); else
 				neList = Example.getExamples(np, false);
-		if (neList == null) return;
+		if (neList == null || neList.size() == 0) return;
+		Example firstEx = neList.get(0);
 
 		// count the number of appropriate samples in the main example
 		int total = 0;
-		for(Sample ns : neList.samples)
+		for(Sample ns : firstEx.samples)
 		{
 			if (!doPorts)
 			{
@@ -905,7 +906,7 @@ public class Manipulate
 
 		// fill in sample associations
 		int k = 0;
-		for(Sample ns : neList.samples)
+		for(Sample ns : firstEx.samples)
 		{
 			if (!doPorts)
 			{
@@ -1280,9 +1281,8 @@ public class Manipulate
 
 	private static void modTechTransparentColors(EditWindow wnd, NodeInst ni)
 	{
-		Variable var = ni.getVar(Info.TRANSLAYER_KEY);
-		if (var == null) return;
-		Color [] colors = GeneralInfo.getTransparentColors((String)var.getObject());
+		Color [] colors = GeneralInfo.getTransparentColors(ni);
+		if (colors == null) return;
 		for(;;)
 		{
 			PromptAt.Field [][] fields = new PromptAt.Field[colors.length+1][2];

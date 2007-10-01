@@ -29,7 +29,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.tecEdit.Info.SpecialTextDescr;
 
 import java.awt.Color;
 import java.util.Iterator;
@@ -157,38 +156,31 @@ public class GeneralInfo extends Info
 					gi.includeGround = str.equalsIgnoreCase("yes");
 					break;
 				case TECHTRANSPCOLORS:
-					Variable var = ni.getVar(TRANSLAYER_KEY);
-					if (var != null)
-					{
-						Color [] colors = getTransparentColors((String)var.getObject());
-						if (colors != null) gi.transparentColors = colors;
-					}
+					Color [] colors = getTransparentColors(ni);
+					if (colors != null) gi.transparentColors = colors;
 					break;
 				case CENTEROBJ:
 					break;
 				default:
-					LibToTech.pointOutError(ni, np);
-					System.out.println("Unknown object in miscellaneous-information cell (" + ni + ")");
+					LibToTech.pointOutError(ni, np, "Unknown node in miscellaneous-information cell");
 					break;
 			}
 		}
 		return gi;
 	}
 
-	static Color [] getTransparentColors(String str)
+	/**
+	 * Method to get the transparent color information from a NodeInst.
+	 * @param ni the NodeInst to examine.
+	 * @return an array of Color values.  Returns null if no such data exists on the NodeInst.
+	 */
+	public static Color[] getTransparentColors(NodeInst ni)
 	{
-		String [] colorNames = str.split("/");
-		Color [] colors = new Color[colorNames.length];
-		for(int i=0; i<colorNames.length; i++)
-		{
-			String colorName = colorNames[i].trim();
-			String [] rgb = colorName.split(",");
-			if (rgb.length != 3) return null;
-			int r = TextUtils.atoi(rgb[0]);
-			int g = TextUtils.atoi(rgb[1]);
-			int b = TextUtils.atoi(rgb[2]);
-			colors[i] = new Color(r, g, b);
-		}
+		int opt = Manipulate.getOptionOnNode(ni);
+		if (opt != TECHTRANSPCOLORS) return null;
+		Variable var = ni.getVar(TRANSLAYER_KEY);
+		if (var == null) return null;
+		Color [] colors = TextUtils.getTransparentColors((String)var.getObject());
 		return colors;
 	}
 

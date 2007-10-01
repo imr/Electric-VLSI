@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -48,8 +49,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Technology.NodeLayer;
-import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -72,7 +71,10 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -126,6 +128,8 @@ public class LibToTech
 //	static INTBIG          *us_tecnode_grab = 0;
 //	static INTBIG           us_tecnode_grabcount;
 
+	/************************************* API AND USER INTERFACE *************************************/
+
 	/**
 	 * Method invoked for the "technology edit library-to-tech" command.  Dumps
 	 * code if "dumpformat" is nonzero
@@ -136,481 +140,6 @@ public class LibToTech
 		dialog.initComponents();
 		dialog.setVisible(true);
 	}
-
-//	private static class SoftTech extends Technology
-//	{
-//		private SoftTech(String name, String foundryName, int numMetals)
-//		{
-//			super(name, Foundry.Type.valueOf(foundryName), numMetals);
-//			setNoNegatedArcs();
-//		}
-//
-//        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, ArcInfo.LayerDetails [] ad) {
-//			ArcLayer [] arcLayers = new ArcLayer[ad.length];
-//			for(int j=0; j<ad.length; j++)
-//				arcLayers[j] = new ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
-//            return newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, arcLayers);
-//        }
-//        
-//        private void setTheScale(double scale)
-//		{
-//			setFactoryScale(scale, true);
-//		}
-//
-//        protected void setTechShortName(String techShortName)
-//		{
-//			super.setTechShortName(techShortName);
-//		}
-//
-//		private void setTransparentColors(Color [] colors)
-//		{
-//			setFactoryTransparentLayers(colors);
-//		}
-//        
-//        protected void newFoundry(Foundry.Type mode, URL fileURL, String... gdsLayers) {
-//            super.newFoundry(mode, fileURL, gdsLayers);
-//        }
-//	}
-
-	/**
-	 * Class to create a technology-library from a technology (in a Job).
-	 */
-	private static class TechFromLibJob extends Job
-	{
-        private String newName;
-        private String fileName;
-
-        private TechFromLibJob(String newName, boolean alsoXML) {
-            super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.newName = newName;
-            if (alsoXML) {
-                // print the technology as XML
-                fileName = OpenFile.chooseOutputFile(FileType.XML, "File for Technology's XML Code",
-                        newName + ".xml");
-            }
-            startJob();
-		}
-        
-        @Override
-		public boolean doIt()
-		{
-			makeTech(newName, fileName);
-			return true;
-		}
-    }
-
-	public static Technology makeTech(String newName, String fileName)
-	{
-		Library lib = Library.getCurrent();
-
-		// get a new name for the technology
-		String newTechName = newName;
-		boolean modified = false;
-		for(;;)
-		{
-			// search by hand because "gettechnology" handles partial matches
-			if (Technology.findTechnology(newTechName) == null) break;
-			newTechName += "X";
-			modified = true;
-		}
-		if (modified)
-			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newTechName);
-
-		// get list of dependent libraries
-		Library [] dependentLibs = Info.getDependentLibraries(lib);
-
-		// get general information from the "factors" cell
-		Cell np = null;
-		for(int i=dependentLibs.length-1; i>=0; i--)
-		{
-			np = dependentLibs[i].findNodeProto("factors");
-			if (np != null) break;
-		}
-		if (np == null)
-		{
-			System.out.println("Cell with general information, called 'factors', is missing");
-			return null;
-		}
-		GeneralInfo gi = GeneralInfo.parseCell(np);
-
-		// get layer information
-		LayerInfo [] lList = extractLayers(dependentLibs);
-		if (lList == null) return null;
-
-		// get arc information
-		ArcInfo [] aList = extractArcs(dependentLibs, lList);
-		if (aList == null) return null;
-
-		// get node information
-		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
-		if (nList == null) return null;
-
-		for(NodeInfo ni: nList)
-			ni.arcsShrink = ni.func == PrimitiveNode.Function.PIN && !ni.wipes;
-
-		// create the pure-layer associations
-		for(int i=0; i<lList.length; i++)
-		{
-			if (lList[i].pseudo) continue;
-
-			// find the pure layer node
-			for(int j=0; j<nList.length; j++)
-			{
-				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
-				NodeInfo.LayerDetails nld = nList[j].nodeLayers[0];
-				if (nld.layer == lList[i])
-				{
-					lList[i].pureLayerNode = nList[j];
-					break;
-				}
-			}
-		}
-
-		// add the component menu information if available
-		Variable var = Library.getCurrent().getVar(Info.COMPMENU_KEY);
-		if (var != null)
-		{
-			String compMenuXML = (String)var.getObject();
-		    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
-			for(int i=0; i<nList.length; i++)
-			{
-				Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
-				xnp.name = nList[i].name;
-				xnp.function = nList[i].func;
-				nodes.add(xnp);
-			}
-		    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
-			for(int i=0; i<aList.length; i++)
-			{
-				Xml.ArcProto xap = new Xml.ArcProto();
-				xap.name = aList[i].name;
-				arcs.add(xap);
-			}
-		    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
-		    int menuWid = xmp.numColumns;
-		    int menuHei = xmp.menuBoxes.size() / menuWid;
-			gi.menuPalette = new Object[menuHei][menuWid];
-			int i = 0;
-			for(int y=0; y<menuHei; y++)
-			{
-				for(int x=0; x<menuWid; x++)
-				{
-					List<Object> items = xmp.menuBoxes.get(i++);
-					Object item = null;
-					if (items.size() == 1)
-					{
-						item = items.get(0);
-					} else if (items.size() > 1)
-					{
-						List<Object> convItems = new ArrayList<Object>();
-						for(Object obj : items)
-							convItems.add(obj);
-						item = convItems;
-					}
-					gi.menuPalette[y][x] = item;
-				}
-			}
-		}
-
-		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
-		if (fileName != null)
-            t.writeXml(fileName);
-        Technology tech = new Technology(t);
-        tech.setup();
-        
-		// switch to this technology
-		System.out.println("Technology " + tech.getTechName() + " built.");
-		WindowFrame.updateTechnologyLists();
-		return tech;
-    }
-
-	//	public static Technology makeTech(String newName, String fileName)
-//	{
-//		Library lib = Library.getCurrent();
-//
-//		// get a new name for the technology
-//		String newTechName = newName;
-//		boolean modified = false;
-//		for(;;)
-//		{
-//			// search by hand because "gettechnology" handles partial matches
-//			if (Technology.findTechnology(newTechName) == null) break;
-//			newTechName += "X";
-//			modified = true;
-//		}
-//		if (modified)
-//			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newTechName);
-//
-//		// get list of dependent libraries
-//		Library [] dependentLibs = Info.getDependentLibraries(lib);
-//
-//		// initialize the state of this technology
-////		us_tecflags = 0;
-//
-//		// get general information from the "factors" cell
-//		Cell np = null;
-//		for(int i=dependentLibs.length-1; i>=0; i--)
-//		{
-//			np = dependentLibs[i].findNodeProto("factors");
-//			if (np != null) break;
-//		}
-//		if (np == null)
-//		{
-//			System.out.println("Cell with general information, called 'factors', is missing");
-//			return null;
-//		}
-//		GeneralInfo gi = GeneralInfo.parseCell(np);
-//
-//		// get layer information
-//		LayerInfo [] lList = extractLayers(dependentLibs);
-//		if (lList == null) return null;
-//
-//		// get arc information
-//		ArcInfo [] aList = extractArcs(dependentLibs, lList);
-//		if (aList == null) return null;
-//
-//		// get node information
-//		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
-//		if (nList == null) return null;
-//
-//		// create the technology
-//		SoftTech tech = new SoftTech(newTechName, gi.defaultFoundry, gi.defaultNumMetals);
-//        tech.setTechShortName(gi.shortName);
-//		tech.setTheScale(gi.scale);
-//		tech.setTechDesc(gi.description);
-//        tech.setFactoryParasitics(gi.minRes, gi.minCap);
-////		tech.setMinResistance(gi.minRes);
-////		tech.setMinCapacitance(gi.minCap);
-//        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-//        changeBatch.add(tech.getMaxSeriesResistanceSetting(), Double.valueOf(gi.maxSeriesResistance));
-//        changeBatch.add(tech.getGateLengthSubtractionSetting(), Double.valueOf(gi.gateShrinkage));
-//		changeBatch.add(tech.getGateIncludedSetting(), Boolean.valueOf(gi.includeGateInResistance));
-//		changeBatch.add(tech.getGroundNetIncludedSetting(), Boolean.valueOf(gi.includeGround));
-////		tech.setGateLengthSubtraction(gi.gateShrinkage);
-////		tech.setGateIncluded(gi.includeGateInResistance);
-////		tech.setGroundNetIncluded(gi.includeGround);
-//		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
-//
-//		// create the layers
-//        String[] gdsLayers = new String[lList.length];
-//		for(int i=0; i<lList.length; i++)
-//		{
-//            LayerInfo li = lList[i];
-//			Layer lay = Layer.newInstance(tech, li.name, li.desc);
-//			lay.setFunction(li.fun, li.funExtra, li.pseudo);
-//			lay.setFactoryCIFLayer(li.cif);
-//            gdsLayers[i] = li.name + " " + li.gds;
-////            mosis.setGDSLayer(lay, li.gds);
-//            lay.setFactoryParasitics(li.spiRes, li.spiCap, li.spiECap);
-////			lay.setResistance(li.spiRes);
-////			lay.setCapacitance(li.spiCap);
-////			lay.setEdgeCapacitance(li.spiECap);
-//			lay.setDistance(li.height3d);
-//			lay.setThickness(li.thick3d);
-//			li.generated = lay;
-//		}
-//        
-//        tech.newFoundry(Foundry.Type.MOSIS, null, gdsLayers);
-//        
-//        Setting.implementSettingChanges(changeBatch);
-//        
-//		// create the arcs
-//		for(int i=0; i<aList.length; i++)
-//		{
-//			ArcInfo.LayerDetails [] ad = aList[i].arcDetails;
-//			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, ad);
-//			newArc.setFactoryFixedAngle(aList[i].fixAng);
-//			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
-//			newArc.setFactoryAngleIncrement(aList[i].angInc);
-//			newArc.setFactoryExtended(!aList[i].noExtend);
-//            if (aList[i].curvable) newArc.setCurvable();
-//			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
-//			aList[i].generated = newArc;
-//		}
-//
-//		// create the nodes
-//		for(int i=0; i<nList.length; i++)
-//		{
-//			NodeInfo.LayerDetails [] nd = nList[i].nodeLayers;
-//			Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[nd.length];
-//			for(int j=0; j<nd.length; j++)
-//			{
-//				LayerInfo li = nd[j].layer;
-//				Layer lay = li.generated;
-//				Technology.TechPoint [] points = nd[j].values;
-//				if (nd[j].representation == Technology.NodeLayer.MULTICUTBOX)
-//				{
-//					nodeLayers[j] = Technology.NodeLayer.makeMulticut(lay, nd[j].portIndex, nd[j].style, points,
-//						nd[j].multiXS, nd[j].multiYS, nd[j].multiSep, nd[j].multiSep2D);
-//				} else if (nList[i].specialType == PrimitiveNode.SERPTRANS)
-//				{
-//					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
-//						nd[j].lWidth, nd[j].rWidth, nd[j].extendB, nd[j].extendT);
-//				} else
-//				{
-//					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points);
-//				}
-//			}
-//			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
-//			nList[i].generated = prim;
-//			prim.setFunction(nList[i].func);
-//			if (nList[i].wipes) prim.setWipeOn1or2();
-//			if (nList[i].square) prim.setSquare();
-//			if (nList[i].lockable) prim.setLockedPrim();
-//
-//			// add special information if present
-//			switch (nList[i].specialType)
-//			{
-//				case PrimitiveNode.SERPTRANS:
-//					prim.setHoldsOutline();
-//					prim.setCanShrink();
-//					prim.setSpecialValues(nList[i].specialValues);
-//					prim.setSpecialType(nList[i].specialType);
-//					break;
-////				case PrimitiveNode.MULTICUT:
-////					prim.setSpecialValues(nList[i].specialValues);
-////					prim.setSpecialType(nList[i].specialType);
-////					break;
-//				case PrimitiveNode.POLYGONAL:
-//					prim.setHoldsOutline();
-//					prim.setSpecialType(nList[i].specialType);
-//					break;
-//			}
-//
-//			// analyze special node function circumstances
-//			if (nList[i].func == PrimitiveNode.Function.NODE)
-//			{
-//				prim.setHoldsOutline();
-//			} else if (nList[i].func == PrimitiveNode.Function.PIN)
-//			{
-//				if (!prim.isWipeOn1or2())
-//				{
-//					prim.setArcsWipe();
-//					prim.setArcsShrink();
-//					nList[i].arcsShrink = true;
-//				}
-//			}
-//
-//			int numPorts = nList[i].nodePortDetails.length;
-//			PrimitivePort [] portList = new PrimitivePort[numPorts];
-//			for(int j=0; j<numPorts; j++)
-//			{
-//				NodeInfo.PortDetails portDetail = nList[i].nodePortDetails[j];
-//				int numConns = portDetail.connections.length;
-//				ArcProto [] cons = new ArcProto[numConns];
-//				for(int k=0; k<numConns; k++)
-//					cons[k] = portDetail.connections[k].generated;
-//				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name,
-//					portDetail.angle, portDetail.range, portDetail.netIndex, PortCharacteristic.UNKNOWN,
-//					portDetail.values[0].getX(), portDetail.values[0].getY(),
-//					portDetail.values[1].getX(), portDetail.values[1].getY());
-//			}
-//			prim.addPrimitivePorts(portList);
-//		}
-//
-//		// create the pure-layer associations
-//		for(int i=0; i<lList.length; i++)
-//		{
-//			if (lList[i].pseudo) continue;
-//
-//			// find the pure layer node
-//			for(int j=0; j<nList.length; j++)
-//			{
-//				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
-//				NodeInfo.LayerDetails nld = nList[j].nodeLayers[0];
-//				if (nld.layer == lList[i])
-//				{
-//					lList[i].generated.setPureLayerNode(nList[j].generated);
-//					lList[i].pureLayerNode = nList[j];
-//					break;
-//				}
-//			}
-//		}
-//
-//		// setup the generic technology to handle all connections
-//		Generic.tech.makeUnivList();
-//
-//		// check technology for consistency
-//		checkAndWarn(lList, aList, nList);
-//
-//        if (fileName != null)
-//        	LibToTech.writeXml(fileName, newTechName, gi, lList, nList, aList);
-////            dumpToJava(fileName, newTechName, gi, lList, nList, aList);
-//
-////		// finish initializing the technology
-////		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
-////		{
-////			us_tecvariables[0].name = x_("prototype_center");
-////			us_tecvariables[0].value = (CHAR *)us_tecnode_grab;
-////			us_tecvariables[0].type = us_tecnode_grabcount/3;
-////		}
-//
-//		// switch to this technology
-//		System.out.println("Technology " + tech.getTechName() + " built.");
-//		WindowFrame.updateTechnologyLists();
-//		return tech;
-//	}
-
-//	private static void checkAndWarn(LayerInfo [] lList, ArcInfo [] aList, NodeInfo [] nList)
-//	{
-//		// make sure there is a pure-layer node for every nonpseudo layer
-//		for(int i=0; i<lList.length; i++)
-//		{
-//			if (lList[i].pseudo) continue;
-//			boolean found = false;
-//			for(int j=0; j<nList.length; j++)
-//			{
-//				NodeInfo nIn = nList[j];
-//				if (nIn.func != PrimitiveNode.Function.NODE) continue;
-//				if (nIn.nodeLayers[0].layer == lList[i])
-//				{
-//					found = true;
-//					break;
-//				}
-//			}
-//			if (found) continue;
-//			System.out.println("Warning: Layer " + lList[i].name + " has no associated pure-layer node");
-//		}
-//
-//		// make sure there is a pin for every arc and that it uses pseudo-layers
-//		for(int i=0; i<aList.length; i++)
-//		{
-//			// find that arc's pin
-//			boolean found = false;
-//			for(int j=0; j<nList.length; j++)
-//			{
-//				NodeInfo nIn = nList[j];
-//				if (nIn.func != PrimitiveNode.Function.PIN) continue;
-//
-//				for(int k=0; k<nIn.nodePortDetails.length; k++)
-//				{
-//					ArcInfo [] connections = nIn.nodePortDetails[k].connections;
-//					for(int l=0; l<connections.length; l++)
-//					{
-//						if (connections[l] == aList[i])
-//						{
-//							// pin found: make sure it uses pseudo-layers
-//							boolean allPseudo = true;
-//							for(int m=0; m<nIn.nodeLayers.length; m++)
-//							{
-//								LayerInfo lin = nIn.nodeLayers[m].layer;
-//								if (!lin.pseudo) { allPseudo = false;   break; }
-//							}
-//							if (!allPseudo)
-//								System.out.println("Warning: Pin " + nIn.name + " is not composed of pseudo-layers");
-//
-//							found = true;
-//							break;
-//						}
-//					}
-//					if (found) break;
-//				}
-//				if (found) break;
-//			}
-//			if (!found)
-//				System.out.println("Warning: Arc " + aList[i].name + " has no associated pin node");
-//		}
-//	}
 
 	/**
 	 * This class displays a dialog for converting a library to a technology.
@@ -626,8 +155,6 @@ public class LibToTech
 		{
 			super(null, true);
 		}
-
-//		private void ok() { exit(true); }
 
 		protected void escapePressed() { exit(false); }
 
@@ -765,6 +292,225 @@ public class LibToTech
 		}
 	}
 
+	/************************************* BUILDING TECHNOLOGY FROM LIBRARY *************************************/
+
+	/**
+	 * Class to create a technology-library from a technology (in a Job).
+	 */
+	private static class TechFromLibJob extends Job
+	{
+        private String newName;
+        private String fileName;
+
+        private TechFromLibJob(String newName, boolean alsoXML) {
+            super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.newName = newName;
+            if (alsoXML) {
+                // print the technology as XML
+                fileName = OpenFile.chooseOutputFile(FileType.XML, "File for Technology's XML Code",
+                        newName + ".xml");
+            }
+            startJob();
+		}
+        
+        @Override
+		public boolean doIt()
+		{
+			Technology tech = makeTech(newName, fileName);
+			if (tech == null)
+				System.out.println("Failed to convert the library to a technology");
+			return true;
+		}
+    }
+
+	public static Technology makeTech(String newName, String fileName)
+	{
+		Library lib = Library.getCurrent();
+
+		// get a new name for the technology
+		String newTechName = newName;
+		boolean modified = false;
+		for(;;)
+		{
+			// search by hand because "gettechnology" handles partial matches
+			if (Technology.findTechnology(newTechName) == null) break;
+			newTechName += "X";
+			modified = true;
+		}
+		if (modified)
+			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newTechName);
+
+		// get list of dependent libraries
+		Library [] dependentLibs = Info.getDependentLibraries(lib);
+
+		// get general information from the "factors" cell
+		Cell np = null;
+		for(int i=dependentLibs.length-1; i>=0; i--)
+		{
+			np = dependentLibs[i].findNodeProto("factors");
+			if (np != null) break;
+		}
+		if (np == null)
+		{
+			System.out.println("Cell with general information, called 'factors', is missing");
+			return null;
+		}
+		GeneralInfo gi = GeneralInfo.parseCell(np);
+
+		// get layer information
+		LayerInfo [] lList = extractLayers(dependentLibs);
+		if (lList == null) return null;
+
+		// get arc information
+		ArcInfo [] aList = extractArcs(dependentLibs, lList);
+		if (aList == null) return null;
+
+		// get node information
+		NodeInfo [] nList = extractNodes(dependentLibs, lList, aList);
+		if (nList == null) return null;
+
+		for(NodeInfo ni: nList)
+			ni.arcsShrink = ni.func == PrimitiveNode.Function.PIN && !ni.wipes;
+
+		// create the pure-layer associations
+		for(int i=0; i<lList.length; i++)
+		{
+			if (lList[i].pseudo) continue;
+
+			// find the pure layer node
+			for(int j=0; j<nList.length; j++)
+			{
+				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
+				NodeInfo.LayerDetails nld = nList[j].nodeLayers[0];
+				if (nld.layer == lList[i])
+				{
+					lList[i].pureLayerNode = nList[j];
+					break;
+				}
+			}
+		}
+
+		// add the component menu information if available
+		Variable var = Library.getCurrent().getVar(Info.COMPMENU_KEY);
+		if (var != null)
+		{
+			String compMenuXML = (String)var.getObject();
+		    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+			for(int i=0; i<nList.length; i++)
+			{
+				Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
+				xnp.name = nList[i].name;
+				xnp.function = nList[i].func;
+				nodes.add(xnp);
+			}
+		    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
+			for(int i=0; i<aList.length; i++)
+			{
+				Xml.ArcProto xap = new Xml.ArcProto();
+				xap.name = aList[i].name;
+				arcs.add(xap);
+			}
+		    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
+		    int menuWid = xmp.numColumns;
+		    int menuHei = xmp.menuBoxes.size() / menuWid;
+			gi.menuPalette = new Object[menuHei][menuWid];
+			int i = 0;
+			for(int y=0; y<menuHei; y++)
+			{
+				for(int x=0; x<menuWid; x++)
+				{
+					List<Object> items = xmp.menuBoxes.get(i++);
+					Object item = null;
+					if (items.size() == 1)
+					{
+						item = items.get(0);
+					} else if (items.size() > 1)
+					{
+						List<Object> convItems = new ArrayList<Object>();
+						for(Object obj : items)
+							convItems.add(obj);
+						item = convItems;
+					}
+					gi.menuPalette[y][x] = item;
+				}
+			}
+		}
+
+		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
+		if (fileName != null)
+            t.writeXml(fileName);
+        Technology tech = new Technology(t);
+        tech.setup();
+        
+		// switch to this technology
+		System.out.println("Technology " + tech.getTechName() + " built.");
+		WindowFrame.updateTechnologyLists();
+		return tech;
+    }
+
+//	private static void checkAndWarn(LayerInfo [] lList, ArcInfo [] aList, NodeInfo [] nList)
+//	{
+//		// make sure there is a pure-layer node for every nonpseudo layer
+//		for(int i=0; i<lList.length; i++)
+//		{
+//			if (lList[i].pseudo) continue;
+//			boolean found = false;
+//			for(int j=0; j<nList.length; j++)
+//			{
+//				NodeInfo nIn = nList[j];
+//				if (nIn.func != PrimitiveNode.Function.NODE) continue;
+//				if (nIn.nodeLayers[0].layer == lList[i])
+//				{
+//					found = true;
+//					break;
+//				}
+//			}
+//			if (found) continue;
+//			System.out.println("Warning: Layer " + lList[i].name + " has no associated pure-layer node");
+//		}
+//
+//		// make sure there is a pin for every arc and that it uses pseudo-layers
+//		for(int i=0; i<aList.length; i++)
+//		{
+//			// find that arc's pin
+//			boolean found = false;
+//			for(int j=0; j<nList.length; j++)
+//			{
+//				NodeInfo nIn = nList[j];
+//				if (nIn.func != PrimitiveNode.Function.PIN) continue;
+//
+//				for(int k=0; k<nIn.nodePortDetails.length; k++)
+//				{
+//					ArcInfo [] connections = nIn.nodePortDetails[k].connections;
+//					for(int l=0; l<connections.length; l++)
+//					{
+//						if (connections[l] == aList[i])
+//						{
+//							// pin found: make sure it uses pseudo-layers
+//							boolean allPseudo = true;
+//							for(int m=0; m<nIn.nodeLayers.length; m++)
+//							{
+//								LayerInfo lin = nIn.nodeLayers[m].layer;
+//								if (!lin.pseudo) { allPseudo = false;   break; }
+//							}
+//							if (!allPseudo)
+//								System.out.println("Warning: Pin " + nIn.name + " is not composed of pseudo-layers");
+//
+//							found = true;
+//							break;
+//						}
+//					}
+//					if (found) break;
+//				}
+//				if (found) break;
+//			}
+//			if (!found)
+//				System.out.println("Warning: Arc " + aList[i].name + " has no associated pin node");
+//		}
+//	}
+
+	/************************************* LAYER ANALYSIS *************************************/
+
 	/**
 	 * Method to scan the "dependentlibcount" libraries in "dependentLibs",
 	 * and build the layer structures for it in technology "tech".  Returns true on error.
@@ -786,7 +532,7 @@ public class LibToTech
 			lis[i] = LayerInfo.parseCell(layerCells[i]);
 			if (lis[i] == null)
 			{
-				System.out.println("Error parsing description for " + layerCells[i].describe(false));
+				pointOutError(null, layerCells[i], "Error parsing layer information");
 				continue;
 			}
 		}
@@ -907,6 +653,8 @@ public class LibToTech
 		return lis;
 	}
 
+	/************************************* ARC ANALYSIS *************************************/
+
 	/**
 	 * Method to scan the "dependentlibcount" libraries in "dependentLibs",
 	 * and build the arc structures for it in technology "tech".  Returns true on error.
@@ -928,19 +676,19 @@ public class LibToTech
 			allArcs[i] = ArcInfo.parseCell(np);
 
 			// build a list of examples found in this arc
-			Example neList = Example.getExamples(np, false);
+			List<Example> neList = Example.getExamples(np, false);
 			if (neList == null) return null;
-			if (neList.nextExample != null)
+			if (neList.size() > 1)
 			{
-				pointOutError(null, np);
-				System.out.println("Can only be one example of " + np + " but more were found");
+				pointOutError(null, np, "Can only be one drawing of an arc, but more were found");
 				return null;
 			}
+			Example arcEx = neList.get(0);
 
 			// get width and polygon count information
 			double maxWid = -1, hWid = -1;
 			int count = 0;
-			for(Sample ns : neList.samples)
+			for(Sample ns : arcEx.samples)
 			{
 				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
 				if (wid > maxWid) maxWid = wid;
@@ -952,8 +700,7 @@ public class LibToTech
 			// error if there is no highlight box
 			if (hWid < 0)
 			{
-				pointOutError(null, np);
-				System.out.println("No highlight layer found in " + np);
+				pointOutError(null, np, "No highlight layer found");
 				return null;
 			}
 			allArcs[i].arcDetails = new ArcInfo.LayerDetails[count];
@@ -962,7 +709,7 @@ public class LibToTech
 			int layerIndex = 0;
 			for(int k=0; k<2; k++)
 			{
-				for(Sample ns : neList.samples)
+				for(Sample ns : arcEx.samples)
 				{
 					if (ns.layer == null) continue;
 
@@ -975,7 +722,7 @@ public class LibToTech
 					}
 					if (li == null)
 					{
-						System.out.println("Cannot find layer " + sampleLayer + ", used in " + np);
+						pointOutError(ns.node, np, "Unknown layer: " + sampleLayer);
 						return null;
 					}
 
@@ -1006,6 +753,8 @@ public class LibToTech
 		}
 		return allArcs;
 	}
+
+	/************************************* NODE ANALYSIS *************************************/
 
 	/**
 	 * Method to scan the "dependentlibcount" libraries in "dependentLibs",
@@ -1045,8 +794,7 @@ public class LibToTech
 			{
 				if (nIn.serp)
 				{
-					pointOutError(null, np);
-					System.out.println("Pure layer " + nIn.name + " can not be serpentine");
+					pointOutError(null, np, "Pure layer " + nIn.name + " can not be serpentine");
 					return null;
 				}
 				nIn.specialType = PrimitiveNode.POLYGONAL;
@@ -1056,64 +804,32 @@ public class LibToTech
 			nIn.name = np.getName().substring(5);
 
 			// build a list of examples found in this node
-			Example neList = Example.getExamples(np, true);
-			if (neList == null)
+			List<Example> neList = Example.getExamples(np, true);
+			if (neList == null || neList.size() == 0)
 			{
 				System.out.println("Cannot analyze " + np);
 				return null;
 			}
-			nIn.xSize = neList.hx - neList.lx;
-			nIn.ySize = neList.hy - neList.ly;
+			Example firstEx = neList.get(0);
+			nIn.xSize = firstEx.hx - firstEx.lx;
+			nIn.ySize = firstEx.hy - firstEx.ly;
 
 			// associate the samples in each example
-			if (associateExamples(neList, np))
-			{
-				System.out.println("Cannot match different examples in " + np);
-				return null;
-			}
+			if (associateExamples(neList, np)) return null;
 
 			// derive primitives from the examples
 			nIn.nodeLayers = makePrimitiveNodeLayers(neList, np, lList);
-			if (nIn.nodeLayers == null)
-			{
-				System.out.println("Cannot derive stretching rules for " + np);
-				return null;
-			}
-
-			// handle multicut layers
-//			for(int i=0; i<nIn.nodeLayers.length; i++)
-//			{
-//				NodeInfo.LayerDetails nld = nIn.nodeLayers[i];
-//				if (nld.multiCut)
-//				{
-//					nIn.specialType = PrimitiveNode.MULTICUT;
-//					nIn.specialValues = new double[6];
-//					nIn.specialValues[0] = nIn.nodeLayers[i].multiXS;
-//					nIn.specialValues[1] = nIn.nodeLayers[i].multiYS;
-//					nIn.specialValues[2] = nIn.nodeLayers[i].multiIndent;
-//					nIn.specialValues[3] = nIn.nodeLayers[i].multiIndent;
-//					nIn.specialValues[4] = nIn.nodeLayers[i].multiSep;
-//					nIn.specialValues[5] = nIn.nodeLayers[i].multiSep;
-//
-//					// make the multicut layer the last one
-//					NodeInfo.LayerDetails nldLast = nIn.nodeLayers[nIn.nodeLayers.length-1];
-//					NodeInfo.LayerDetails nldMC = nIn.nodeLayers[i];
-//					nIn.nodeLayers[i] = nldLast;
-//					nIn.nodeLayers[nIn.nodeLayers.length-1] = nldMC;
-//					break;
-//				}
-//			}
+			if (nIn.nodeLayers == null) return null;
 
 			// count the number of ports on this node
 			int portCount = 0;
-			for(Sample ns : neList.samples)
+			for(Sample ns : firstEx.samples)
 			{
 				if (ns.layer == Generic.tech.portNode) portCount++;
 			}
 			if (portCount == 0)
 			{
-				pointOutError(null, np);
-				System.out.println("No ports found in " + np);
+				pointOutError(null, np, "No ports found");
 				return null;
 			}
 
@@ -1123,7 +839,7 @@ public class LibToTech
 			// fill the port structures
 			int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
 			int i = 0;
-			for(Sample ns : neList.samples)
+			for(Sample ns : firstEx.samples)
 			{
 				if (ns.layer != Generic.tech.portNode) continue;
 
@@ -1194,8 +910,7 @@ public class LibToTech
 				String portName = Info.getPortName(ns.node);
 				if (portName == null)
 				{
-					pointOutError(ns.node, np);
-					System.out.println("Cell " + np.describe(true) + ": port does not have a name");
+					pointOutError(ns.node, np, "Port does not have a name");
 					return null;
 				}
 				for(int c=0; c<portName.length(); c++)
@@ -1203,8 +918,7 @@ public class LibToTech
 					char str = portName.charAt(c);
 					if (str <= ' ' || str >= 0177)
 					{
-						pointOutError(ns.node, np);
-						System.out.println("Invalid port name '" + portName + "' in " + np);
+						pointOutError(ns.node, np, "Invalid port name");
 						return null;
 					}
 				}
@@ -1227,7 +941,7 @@ public class LibToTech
 					ArcInst ai1 = ns.node.getConnections().next().getArc();
 					Network net1 = netList.getNetwork(ai1, 0);
 					int j = 0;
-					for(Sample oNs : neList.samples)
+					for(Sample oNs : firstEx.samples)
 					{
 						if (oNs == ns) break;
 						if (oNs.layer != Generic.tech.portNode) continue;
@@ -1257,8 +971,7 @@ public class LibToTech
 			{
 				if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
 				{
-					pointOutError(null, np);
-					System.out.println("Need 2 gate and 2 active ports on field-effect transistor " + np.describe(true));
+					pointOutError(null, np, "Need 2 gate and 2 active ports on field-effect transistor");
 					return null;
 				}
 				if (pol1Port != 0)
@@ -1390,7 +1103,7 @@ public class LibToTech
 
 			// count the number of layers on the node
 			int layerCount = 0;
-			for(Sample ns : neList.samples)
+			for(Sample ns : firstEx.samples)
 			{
 				if (ns.values != null && ns.layer != Generic.tech.portNode &&
 					ns.layer != Generic.tech.cellCenterNode && ns.layer != null)
@@ -1427,8 +1140,7 @@ public class LibToTech
 				}
 				if (difIndex < 0 || polIndex < 0)
 				{
-					pointOutError(null, np);
-					System.out.println("No diffusion and polysilicon layers in transistor " + np);
+					pointOutError(null, np, "No diffusion and polysilicon layers in transistor");
 					return null;
 				}
 
@@ -1552,7 +1264,7 @@ public class LibToTech
 			// extract width offset information from highlight box
 			double lX = 0, hX = 0, lY = 0, hY = 0;
 			boolean found = false;
-			for(Sample ns : neList.samples)
+			for(Sample ns : firstEx.samples)
 			{
 				if (ns.layer != null) continue;
 				found = true;
@@ -1589,21 +1301,18 @@ public class LibToTech
 					} else err = true;
 					if (err)
 					{
-						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Highlighting cannot scale from center in " + np);
+						pointOutError(ns.node, np, "Highlighting cannot scale from center");
 						return null;
 					}
 				} else
 				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("No rule found for highlight in " + np);
+					pointOutError(ns.node, np, "No rule found for highlight");
 					return null;
 				}
 			}
 			if (!found)
 			{
-				pointOutError(null, np);
-				System.out.println("No highlight found in " + np);
+				pointOutError(null, np, "No highlight found");
 				return null;
 			}
 			if (lX != 0 || hX != 0 || lY != 0 || hY != 0)
@@ -1632,448 +1341,18 @@ public class LibToTech
 		return nList;
 	}
 
-	/**
-	 * Method to associate the samples of example "neList" in cell "np"
-	 * Returns true if there is an error
-	 */
-	private static boolean associateExamples(Example neList, Cell np)
-	{
-		// if there is only one example, no association
-		if (neList.nextExample == null) return false;
-
-		// associate each example "ne" with the original in "neList"
-		for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
-		{
-			// clear associations for every sample "ns" in the example "ne"
-			for(Sample ns : ne.samples)
-			{
-				ns.assoc = null;
-			}
-
-			// associate every sample "ns" in the example "ne"
-			for(Sample ns : ne.samples)
-			{
-				if (ns.assoc != null) continue;
-
-				// cannot have center in other examples
-				if (ns.layer == Generic.tech.cellCenterNode)
-				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Grab point should only be in main example of " + np);
-					return true;
-				}
-
-				// count number of similar layers in original example "neList"
-				int total = 0;
-				Sample nsFound = null;
-				for(Sample nsList : neList.samples)
-				{
-					if (nsList.layer != ns.layer) continue;
-					total++;
-					nsFound = nsList;
-				}
-
-				// no similar layer found in the original: error
-				if (total == 0)
-				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Layer " + getSampleName(ns.layer) + " not found in main example of " + np);
-					return true;
-				}
-
-				// just one in the original: simple association
-				if (total == 1)
-				{
-					ns.assoc = nsFound;
-					continue;
-				}
-
-				// if it is a port, associate by port name
-				if (ns.layer == Generic.tech.portNode)
-				{
-					String name = Info.getPortName(ns.node);
-					if (name == null)
-					{
-						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Cell " + np.describe(true) + ": port does not have a name");
-						return true;
-					}
-
-					// search the original for that port
-					boolean found = false;
-					for(Sample nsList : neList.samples)
-					{
-						if (nsList.layer == Generic.tech.portNode)
-						{
-							String otherName = Info.getPortName(nsList.node);
-							if (otherName == null)
-							{
-								pointOutError(nsList.node, nsList.node.getParent());
-								System.out.println("Cell " + np.describe(true) + ": port does not have a name");
-								return true;
-							}
-							if (!name.equalsIgnoreCase(otherName)) continue;
-							ns.assoc = nsList;
-							found = true;
-							break;
-						}
-					}
-					if (!found)
-					{
-						pointOutError(null, np);
-						System.out.println("Could not find port " + name + " in all examples of " + np);
-						return true;
-					}
-					continue;
-				}
-
-				// count the number of this layer in example "ne"
-				int i = 0;
-				for(Sample nsList : ne.samples)
-				{
-					if (nsList.layer == ns.layer) i++;
-				}
-
-				// if number of similar layers differs: error
-				if (total != i)
-				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Layer " + getSampleName(ns.layer) + " found " + total + " times in main example, " + i + " in other");
-					System.out.println("Make the counts consistent");
-					return true;
-				}
-
-				// make a list of samples on this layer in original
-				List<Sample> mainList = new ArrayList<Sample>();
-				i = 0;
-				for(Sample nsList : neList.samples)
-				{
-					if (nsList.layer == ns.layer) mainList.add(nsList);
-				}
-
-				// make a list of samples on this layer in example "ne"
-				List<Sample> thisList = new ArrayList<Sample>();
-				i = 0;
-				for(Sample nsList : ne.samples)
-				{
-					if (nsList.layer == ns.layer) thisList.add(nsList);
-				}
-
-				// sort each list in X/Y/shape
-				Collections.sort(mainList, new SampleCoordAscending());
-				Collections.sort(thisList, new SampleCoordAscending());
-
-				// see if the lists have duplication
-				for(i=1; i<total; i++)
-				{
-					Sample thisSample = thisList.get(i);
-					Sample lastSample = thisList.get(i-1);
-					Sample thisMainSample = mainList.get(i);
-					Sample lastMainSample = mainList.get(i-1);
-					if ((thisSample.xPos == lastSample.xPos &&
-							thisSample.yPos == lastSample.yPos &&
-							thisSample.node.getProto() == lastSample.node.getProto()) ||
-						(thisMainSample.xPos == lastMainSample.xPos &&
-							thisMainSample.yPos == lastMainSample.yPos &&
-							thisMainSample.node.getProto() == lastMainSample.node.getProto())) break;
-				}
-				if (i >= total)
-				{
-					// association can be made in X
-					for(i=0; i<total; i++)
-					{
-						Sample thisSample = thisList.get(i);
-						thisSample.assoc = mainList.get(i);
-					}
-					continue;
-				}
-
-				// don't know how to associate this sample
-				Sample thisSample = thisList.get(i);
-				pointOutError(thisSample.node, thisSample.node.getParent());
-				System.out.println("Sample " + getSampleName(thisSample.layer) + " is unassociated in " + np);
-				return true;
-			}
-
-			// final check: make sure every sample in original example associates
-			for(Sample nsList : neList.samples)
-			{
-				nsList.assoc = null;
-			}
-			for(Sample ns : ne.samples)
-			{
-				ns.assoc.assoc = ns;
-			}
-			for(Sample nsList : neList.samples)
-			{
-				if (nsList.assoc == null)
-				{
-					if (nsList.layer == Generic.tech.cellCenterNode) continue;
-					pointOutError(nsList.node, nsList.node.getParent());
-					System.out.println("Layer " + getSampleName(nsList.layer) + " found in main example, but not others in " + np);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	static void pointOutError(NodeInst ni, Cell cell)
-	{
-		Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
-		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
-		if (wnd != null && ni != null)
-		{
-			wnd.clearHighlighting();
-			wnd.addElectricObject(ni, cell);
-			wnd.finishedHighlighting();
-		}
-	}
-
-	private static class SampleCoordAscending implements Comparator<Sample>
-	{
-		public int compare(Sample s1, Sample s2)
-		{
-			if (s1.xPos != s2.xPos) return (int)(s1.xPos - s2.xPos);
-			if (s1.yPos != s2.yPos) return (int)(s1.yPos - s2.yPos);
-			return s1.node.getName().compareTo(s2.node.getName());
-		}
-	}
-
-	/* flags about the edge positions in the examples */
-	private static final int TOEDGELEFT     =   01;		/* constant to left edge */
-	private static final int TOEDGERIGHT    =   02;		/* constant to right edge */
-	private static final int TOEDGETOP      =   04;		/* constant to top edge */
-	private static final int TOEDGEBOT      =  010;		/* constant to bottom edge */
-	private static final int FROMCENTX      =  020;		/* constant in X to center */
-	private static final int FROMCENTY      =  040;		/* constant in Y to center */
-	private static final int RATIOCENTX     = 0100;		/* fixed ratio from X center to edge */
-	private static final int RATIOCENTY     = 0200;		/* fixed ratio from Y center to edge */
-
-	private static Poly.Type getStyle(NodeInst ni)
-	{
-		// layer style
-		Poly.Type sty = null;
-		if (ni.getProto() == Artwork.tech.filledBoxNode)             sty = Poly.Type.FILLED; else
-		if (ni.getProto() == Artwork.tech.boxNode)                   sty = Poly.Type.CLOSED; else
-		if (ni.getProto() == Artwork.tech.crossedBoxNode)            sty = Poly.Type.CROSSED; else
-		if (ni.getProto() == Artwork.tech.filledPolygonNode)         sty = Poly.Type.FILLED; else
-		if (ni.getProto() == Artwork.tech.closedPolygonNode)         sty = Poly.Type.CLOSED; else
-		if (ni.getProto() == Artwork.tech.openedPolygonNode)         sty = Poly.Type.OPENED; else
-		if (ni.getProto() == Artwork.tech.openedDottedPolygonNode)   sty = Poly.Type.OPENEDT1; else
-		if (ni.getProto() == Artwork.tech.openedDashedPolygonNode)   sty = Poly.Type.OPENEDT2; else
-		if (ni.getProto() == Artwork.tech.openedThickerPolygonNode)  sty = Poly.Type.OPENEDT3; else
-		if (ni.getProto() == Artwork.tech.filledCircleNode)          sty = Poly.Type.DISC; else
-		if (ni.getProto() == Artwork.tech.circleNode)
-		{
-			sty = Poly.Type.CIRCLE;
-			double [] angles = ni.getArcDegrees();
-			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.CIRCLEARC;
-		} else if (ni.getProto() == Artwork.tech.thickCircleNode)
-		{
-			sty = Poly.Type.THICKCIRCLE;
-			double [] angles = ni.getArcDegrees();
-			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.THICKCIRCLEARC;
-		} else if (ni.getProto() == Generic.tech.invisiblePinNode)
-		{
-			Variable var = ni.getVar(Artwork.ART_MESSAGE);
-			if (var != null)
-			{
-				TextDescriptor.Position pos = var.getTextDescriptor().getPos();
-				if (pos == TextDescriptor.Position.BOXED)     sty = Poly.Type.TEXTBOX; else
-				if (pos == TextDescriptor.Position.CENT)      sty = Poly.Type.TEXTCENT; else
-				if (pos == TextDescriptor.Position.UP)        sty = Poly.Type.TEXTBOT; else
-				if (pos == TextDescriptor.Position.DOWN)      sty = Poly.Type.TEXTTOP; else
-				if (pos == TextDescriptor.Position.LEFT)      sty = Poly.Type.TEXTRIGHT; else
-				if (pos == TextDescriptor.Position.RIGHT)     sty = Poly.Type.TEXTLEFT; else
-				if (pos == TextDescriptor.Position.UPLEFT)    sty = Poly.Type.TEXTBOTRIGHT; else
-				if (pos == TextDescriptor.Position.UPRIGHT)   sty = Poly.Type.TEXTBOTLEFT; else
-				if (pos == TextDescriptor.Position.DOWNLEFT)  sty = Poly.Type.TEXTTOPRIGHT; else
-				if (pos == TextDescriptor.Position.DOWNRIGHT) sty = Poly.Type.TEXTTOPLEFT;
-			}
-		}
-		if (sty == null)
-			System.out.println("Cannot determine style to use for " + ni.getProto() +
-				" node in " + ni.getParent());
-		return sty;
-	}
-
-	private static NodeInfo.LayerDetails [] makeNodeScaledUniformly(Example neList, NodeProto np, LayerInfo [] lis)
-	{
-		// count the number of real layers in the node
-		int count = 0;
-		for(Sample ns : neList.samples)
-		{
-			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
-		}
-
-		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
-		count = 0;
-		for(Sample ns : neList.samples)
-		{
-			Rectangle2D nodeBounds = getBoundingBox(ns.node);
-			AffineTransform trans = ns.node.rotateOut();
-
-			// see if there is polygonal information
-			Point2D [] pointList = null;
-			int [] pointFactor = null;
-			Point2D [] points = null;
-			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
-				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
-			{
-				points = ns.node.getTrace();
-			}
-			if (points != null)
-			{
-				// fill the array
-				pointList = new Point2D[points.length];
-				pointFactor = new int[points.length];
-				for(int i=0; i<points.length; i++)
-				{
-					pointList[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
-						nodeBounds.getCenterY() + points[i].getY());
-					trans.transform(pointList[i], pointList[i]);
-					pointFactor[i] = RATIOCENTX|RATIOCENTY;
-				}
-			} else
-			{
-				// see if it is an arc of a circle
-				double [] angles = null;
-				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
-				{
-					angles = ns.node.getArcDegrees();
-					if (angles[0] == 0 && angles[1] == 0) angles = null;
-				}
-
-				// set sample description
-				if (angles != null)
-				{
-					// handle circular arc sample
-					pointList = new Point2D[3];
-					pointFactor = new int[3];
-					pointList[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
-					double dist = nodeBounds.getMaxX() - nodeBounds.getCenterX();
-					pointList[1] = new Point2D.Double(nodeBounds.getCenterX() + dist * Math.cos(angles[0]),
-						nodeBounds.getCenterY() + dist * Math.sin(angles[0]));
-					trans.transform(pointList[1], pointList[1]);
-					pointFactor[0] = FROMCENTX|FROMCENTY;
-					pointFactor[1] = RATIOCENTX|RATIOCENTY;
-					pointFactor[2] = RATIOCENTX|RATIOCENTY;
-				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
-					ns.node.getProto() == Artwork.tech.filledCircleNode)
-				{
-					// handle circular sample
-					pointList = new Point2D[2];
-					pointFactor = new int[2];
-					pointList[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
-					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
-					pointFactor[0] = FROMCENTX|FROMCENTY;
-					pointFactor[1] = TOEDGERIGHT|FROMCENTY;
-				} else
-				{
-					// rectangular sample: get the bounding box in (px, py)
-					pointList = new Point2D[2];
-					pointFactor = new int[2];
-					pointList[0] = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY());
-					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
-
-					// preset stretch factors to go to the edges of the box
-					pointFactor[0] = TOEDGELEFT|TOEDGEBOT;
-					pointFactor[1] = TOEDGERIGHT|TOEDGETOP;
-				}
-			}
-
-			// add the rule to the collection
-			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList);
-			if (newRule == null)
-			{
-				System.out.println("Error creating stretch point in " + np);
-				return null;
-			}
-			ns.msg = Info.getValueOnNode(ns.node);
-			if (ns.msg != null && ns.msg.length() == 0) ns.msg = null;
-			ns.values = newRule;
-
-			// stop now if a highlight or port object
-			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
-
-			// determine the layer
-			LayerInfo layer = null;
-			String desiredLayer = ns.layer.getName().substring(6);
-			for(int i=0; i<lis.length; i++)
-			{
-				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
-			}
-			if (layer == null)
-			{
-				System.out.println("Cannot find layer " + desiredLayer);
-				return null;
-			}
-			nodeLayers[count] = new NodeInfo.LayerDetails();
-			nodeLayers[count].layer = layer;
-			nodeLayers[count].ns = ns;
-			nodeLayers[count].style = getStyle(ns.node);
-			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			nodeLayers[count].values = fixValues(np, ns.values);
-			if (nodeLayers[count].values.length == 2)
-			{
-				if (nodeLayers[count].style == Poly.Type.CROSSED ||
-					nodeLayers[count].style == Poly.Type.FILLED ||
-					nodeLayers[count].style == Poly.Type.CLOSED)
-				{
-					nodeLayers[count].representation = Technology.NodeLayer.BOX;
-//					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-//					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
-				}
-			}
-			count++;
-		}
-		return nodeLayers;
-	}
-
-	private static Technology.TechPoint [] fixValues(NodeProto np, Technology.TechPoint [] currentList)
-	{
-		EdgeH h1 = null, h2 = null, h3 = null;
-		EdgeV v1 = null, v2 = null, v3 = null;
-		for(int p=0; p<currentList.length; p++)
-		{
-			EdgeH h = currentList[p].getX();
-			if (h.equals(h1) || h.equals(h2) || h.equals(h3)) continue;
-			if (h1 == null) h1 = h; else
-				if (h2 == null) h2 = h; else
-					h3 = h;	
-			EdgeV v = currentList[p].getY();
-			if (v.equals(v1) || v.equals(v2) || v.equals(v3)) continue;
-			if (v1 == null) v1 = v; else
-				if (v2 == null) v2 = v; else
-					v3 = v;				
-		}
-		if (h1 != null && h2 != null && h3 == null &&
-			v1 != null && v2 != null && v3 == null)
-		{
-			// reduce to a box with two points
-			currentList = new Technology.TechPoint[2];
-			currentList[0] = new Technology.TechPoint(h1, v1);
-			currentList[1] = new Technology.TechPoint(h2, v2);
-		}
-		return currentList;
-	}
-	
-	private static NodeInfo.LayerDetails [] makePrimitiveNodeLayers(Example neList, Cell np, LayerInfo [] lis)
+	private static NodeInfo.LayerDetails [] makePrimitiveNodeLayers(List<Example> neList, Cell np, LayerInfo [] lis)
 	{
 		// if there is only one example: make sample scale with edge
-		if (neList.nextExample == null)
+		Example firstEx = neList.get(0);
+		if (neList.size() <= 1)
 		{
 			return makeNodeScaledUniformly(neList, np, lis);
 		}
 
 		// count the number of real layers in the node
 		int count = 0;
-		for(Sample ns : neList.samples)
+		for(Sample ns : firstEx.samples)
 		{
 			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
 		}
@@ -2082,7 +1361,7 @@ public class LibToTech
 		count = 0;
 
 		// look at every sample "ns" in the main example "neList"
-		for(Sample ns : neList.samples)
+		for(Sample ns : firstEx.samples)
 		{
 			// ignore grab point specification
 			if (ns.layer == Generic.tech.cellCenterNode) continue;
@@ -2106,10 +1385,12 @@ public class LibToTech
 			}
 
 			// look at other examples and find samples associated with this
-			neList.studySample = ns;
+			firstEx.studySample = ns;
 			NodeInfo.LayerDetails multiRule = null;
-			for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
+			for(int n=1; n<neList.size(); n++)
 			{
+				Example ne = neList.get(n);
+
 				// count number of samples associated with the main sample
 				int total = 0;
 				for(Sample nso : ne.samples)
@@ -2122,8 +1403,7 @@ public class LibToTech
 				}
 				if (total == 0)
 				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Still unassociated sample in " + np + " (shouldn't happen)");
+					pointOutError(ns.node, np, "Still unassociated sample (shouldn't happen)");
 					return null;
 				}
 
@@ -2133,8 +1413,7 @@ public class LibToTech
 					// make sure the layer is real geometry, not highlight or a port
 					if (ns.layer == null || ns.layer == Generic.tech.portNode)
 					{
-						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Only contact layers may be iterated in examples of " + np);
+						pointOutError(ns.node, np, "Only contact layers may be iterated in examples");
 						return null;
 					}
 
@@ -2239,16 +1518,16 @@ public class LibToTech
 			double [] pointYRatio = new double[pointFactor.length];
 			for(int i=0; i<pointFactor.length; i++)
 			{
-				pointLeftDist[i] = pointList[i].getX() - neList.lx;
-				pointRightDist[i] = neList.hx - pointList[i].getX();
-				pointBottomDist[i] = pointList[i].getY() - neList.ly;
-				pointTopDist[i] = neList.hy - pointList[i].getY();
-				centerXDist[i] = pointList[i].getX() - (neList.lx+neList.hx)/2;
-				centerYDist[i] = pointList[i].getY() - (neList.ly+neList.hy)/2;
-				if (neList.hx == neList.lx) pointXRatio[i] = 0; else
-					pointXRatio[i] = (pointList[i].getX() - (neList.lx+neList.hx)/2) / (neList.hx-neList.lx);
-				if (neList.hy == neList.ly) pointYRatio[i] = 0; else
-					pointYRatio[i] = (pointList[i].getY() - (neList.ly+neList.hy)/2) / (neList.hy-neList.ly);
+				pointLeftDist[i] = pointList[i].getX() - firstEx.lx;
+				pointRightDist[i] = firstEx.hx - pointList[i].getX();
+				pointBottomDist[i] = pointList[i].getY() - firstEx.ly;
+				pointTopDist[i] = firstEx.hy - pointList[i].getY();
+				centerXDist[i] = pointList[i].getX() - (firstEx.lx+firstEx.hx)/2;
+				centerYDist[i] = pointList[i].getY() - (firstEx.ly+firstEx.hy)/2;
+				if (firstEx.hx == firstEx.lx) pointXRatio[i] = 0; else
+					pointXRatio[i] = (pointList[i].getX() - (firstEx.lx+firstEx.hx)/2) / (firstEx.hx-firstEx.lx);
+				if (firstEx.hy == firstEx.ly) pointYRatio[i] = 0; else
+					pointYRatio[i] = (pointList[i].getY() - (firstEx.ly+firstEx.hy)/2) / (firstEx.hy-firstEx.ly);
 				if (i < trueCount)
 					pointFactor[i] = TOEDGELEFT | TOEDGERIGHT | TOEDGETOP | TOEDGEBOT | FROMCENTX |
 						FROMCENTY | RATIOCENTX | RATIOCENTY; else
@@ -2256,8 +1535,9 @@ public class LibToTech
 			}
 
 			Point2D [] pointCoords = new Point2D[pointFactor.length];
-			for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
+			for(int n = 1; n<neList.size(); n++)
 			{
+				Example ne = neList.get(n);
 				NodeInst ni = ne.studySample.node;
 				AffineTransform oTrans = ni.rotateOut();
 				Rectangle2D oNodeBounds = getBoundingBox(ni);
@@ -2328,9 +1608,8 @@ public class LibToTech
 				}
 				if (newCount != trueCount)
 				{
-					pointOutError(ni, ni.getParent());
-					System.out.println("Main example of " + getSampleName(ne.studySample.layer) +
-						" has " + trueCount + " points but this has " + newCount + " in " + np);
+					pointOutError(ni, np, "Main example of layer " + getSampleName(ne.studySample.layer) +
+						" has " + trueCount + " points but this has " + newCount);
 					return null;
 				}
 
@@ -2364,7 +1643,6 @@ public class LibToTech
 				Variable var2 = ni.getVar(Info.PORTANGLE_KEY);
 				if (var == null && var2 != null)
 				{
-					pointOutError(null, np);
 					System.out.println("Warning: moving port angle to main example of " + np);
 					ns.node.newVar(Info.PORTANGLE_KEY, var2.getObject());
 				}
@@ -2374,7 +1652,6 @@ public class LibToTech
 				var2 = ni.getVar(Info.PORTRANGE_KEY);
 				if (var == null && var2 != null)
 				{
-					pointOutError(null, np);
 					System.out.println("Warning: moving port range to main example of " + np);
 					ns.node.newVar(Info.PORTRANGE_KEY, var2.getObject());
 				}
@@ -2384,7 +1661,6 @@ public class LibToTech
 				var2 = ni.getVar(Info.CONNECTION_KEY);
 				if (var == null && var2 != null)
 				{
-					pointOutError(null, np);
 					System.out.println("Warning: moving port connections to main example of " + np);
 					ns.node.newVar(Info.CONNECTION_KEY, var2.getObject());
 				}
@@ -2397,8 +1673,7 @@ public class LibToTech
 					if ((pointFactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
 						(pointFactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
 				{
-					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Highlight must be constant distance from edge in " + np);
+					pointOutError(ns.node, np, "Highlight must be constant distance from edge");
 					return null;
 				}
 			}
@@ -2435,133 +1710,153 @@ public class LibToTech
 			count++;
 		}
 		if (count != nodeLayers.length)
-			System.out.println("Generated only " + count + " of " + nodeLayers.length + " layers for " + np);
+			System.out.println("Warning: Generated only " + count + " of " + nodeLayers.length + " layers for " + np);
 		return nodeLayers;
 	}
 
-	/**
-	 * Method to return the actual bounding box of layer node "ni" in the
-	 * reference variables "lx", "hx", "ly", and "hy"
-	 */
-	private static Rectangle2D getBoundingBox(NodeInst ni)
+	private static NodeInfo.LayerDetails [] makeNodeScaledUniformly(List<Example> neList, Cell np, LayerInfo [] lis)
 	{
-		Rectangle2D bounds = ni.getBounds();
-		if (ni.getProto() == Generic.tech.portNode)
+		Example firstEx = neList.get(0);
+		// count the number of real layers in the node
+		int count = 0;
+		for(Sample ns : firstEx.samples)
 		{
-			double portShrink = 2;
-			bounds.setRect(bounds.getMinX() + portShrink, bounds.getMinY() + portShrink,
-				bounds.getWidth()-portShrink*2, bounds.getHeight()-portShrink*2);
+			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
 		}
-		bounds.setRect(DBMath.round(bounds.getMinX()), DBMath.round(bounds.getMinY()),
-			DBMath.round(bounds.getWidth()), DBMath.round(bounds.getHeight()));
-		return bounds;
-	}
 
-	/**
-	 * Method to adjust the "count"-long array of points in "px" and "py" according
-	 * to the stretch factor bits in "factor" and return an array that describes
-	 * these points.  Returns zero on error.
-	 */
-	private static Technology.TechPoint [] stretchPoints(Point2D [] pts, int [] factor,
-		Sample ns, NodeProto np, Example neList)
-	{
-		Technology.TechPoint [] newRule = new Technology.TechPoint[pts.length];
-
-		for(int i=0; i<pts.length; i++)
+		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
+		count = 0;
+		for(Sample ns : firstEx.samples)
 		{
-			// determine the X algorithm
-			EdgeH horiz = null;
-			if ((factor[i]&TOEDGELEFT) != 0)
+			Rectangle2D nodeBounds = getBoundingBox(ns.node);
+			AffineTransform trans = ns.node.rotateOut();
+
+			// see if there is polygonal information
+			Point2D [] pointList = null;
+			int [] pointFactor = null;
+			Point2D [] points = null;
+			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
+				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
 			{
-				// left edge rule
-				horiz = EdgeH.fromLeft(pts[i].getX()-neList.lx);
-			} else if ((factor[i]&TOEDGERIGHT) != 0)
+				points = ns.node.getTrace();
+			}
+			if (points != null)
 			{
-				// right edge rule
-				horiz = EdgeH.fromRight(neList.hx-pts[i].getX());
-			} else if ((factor[i]&FROMCENTX) != 0)
-			{
-				// center rule
-				horiz = EdgeH.fromCenter(pts[i].getX()-(neList.lx+neList.hx)/2);
-			} else if ((factor[i]&RATIOCENTX) != 0)
-			{
-				// constant stretch rule
-				if (neList.hx == neList.lx)
+				// fill the array
+				pointList = new Point2D[points.length];
+				pointFactor = new int[points.length];
+				for(int i=0; i<points.length; i++)
 				{
-					horiz = EdgeH.makeCenter();
-				} else
-				{
-					horiz = new EdgeH((pts[i].getX()-(neList.lx+neList.hx)/2) / (neList.hx-neList.lx), 0);
+					pointList[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
+						nodeBounds.getCenterY() + points[i].getY());
+					trans.transform(pointList[i], pointList[i]);
+					pointFactor[i] = RATIOCENTX|RATIOCENTY;
 				}
 			} else
 			{
-				pointOutError(ns.node, ns.node.getParent());
-				System.out.println("Cannot determine X stretching rule for layer " + getSampleName(ns.layer) +
-					" (node " + ns.node.describe(false) + ") in " + np);
-//System.out.println("Total points is " +pts.length+", point "+i+" is at ("+pts[i].getX()+","+pts[i].getY()+")");
-//System.out.println("Factor is "+factor[i]);
-//for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
-//	System.out.println("EXAMPLE RUNS FROM "+ne.lx+"<=X<="+ne.hx+" AND "+ne.ly+"<=Y<="+ne.hy);
-				return null;
-			}
-
-			// determine the Y algorithm
-			EdgeV vert = null;
-			if ((factor[i]&TOEDGEBOT) != 0)
-			{
-				// bottom edge rule
-				vert = EdgeV.fromBottom(pts[i].getY()-neList.ly);
-			} else if ((factor[i]&TOEDGETOP) != 0)
-			{
-				// top edge rule
-				vert = EdgeV.fromTop(neList.hy-pts[i].getY());
-			} else if ((factor[i]&FROMCENTY) != 0)
-			{
-				// center rule
-				vert = EdgeV.fromCenter(pts[i].getY()-(neList.ly+neList.hy)/2);
-			} else if ((factor[i]&RATIOCENTY) != 0)
-			{
-				// constant stretch rule
-				if (neList.hy == neList.ly)
+				// see if it is an arc of a circle
+				double [] angles = null;
+				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
 				{
-					vert = EdgeV.makeCenter();
+					angles = ns.node.getArcDegrees();
+					if (angles[0] == 0 && angles[1] == 0) angles = null;
+				}
+
+				// set sample description
+				if (angles != null)
+				{
+					// handle circular arc sample
+					pointList = new Point2D[3];
+					pointFactor = new int[3];
+					pointList[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					double dist = nodeBounds.getMaxX() - nodeBounds.getCenterX();
+					pointList[1] = new Point2D.Double(nodeBounds.getCenterX() + dist * Math.cos(angles[0]),
+						nodeBounds.getCenterY() + dist * Math.sin(angles[0]));
+					trans.transform(pointList[1], pointList[1]);
+					pointFactor[0] = FROMCENTX|FROMCENTY;
+					pointFactor[1] = RATIOCENTX|RATIOCENTY;
+					pointFactor[2] = RATIOCENTX|RATIOCENTY;
+				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
+					ns.node.getProto() == Artwork.tech.filledCircleNode)
+				{
+					// handle circular sample
+					pointList = new Point2D[2];
+					pointFactor = new int[2];
+					pointList[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
+					pointFactor[0] = FROMCENTX|FROMCENTY;
+					pointFactor[1] = TOEDGERIGHT|FROMCENTY;
 				} else
 				{
-					vert = new EdgeV((pts[i].getY()-(neList.ly+neList.hy)/2) / (neList.hy-neList.ly), 0);
+					// rectangular sample: get the bounding box in (px, py)
+					pointList = new Point2D[2];
+					pointFactor = new int[2];
+					pointList[0] = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY());
+					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
+
+					// preset stretch factors to go to the edges of the box
+					pointFactor[0] = TOEDGELEFT|TOEDGEBOT;
+					pointFactor[1] = TOEDGERIGHT|TOEDGETOP;
 				}
-			} else
+			}
+
+			// add the rule to the collection
+			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList);
+			if (newRule == null) return null;
+			ns.msg = Info.getValueOnNode(ns.node);
+			if (ns.msg != null && ns.msg.length() == 0) ns.msg = null;
+			ns.values = newRule;
+
+			// stop now if a highlight or port object
+			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+
+			// determine the layer
+			LayerInfo layer = null;
+			String desiredLayer = ns.layer.getName().substring(6);
+			for(int i=0; i<lis.length; i++)
 			{
-				pointOutError(ns.node, ns.node.getParent());
-				System.out.println("Cannot determine Y stretching rule for layer " + getSampleName(ns.layer) +
-					" (node " + ns.node.describe(false) + ") in " + np);
+				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
+			}
+			if (layer == null)
+			{
+				pointOutError(ns.node, np, "Unknown layer: " + desiredLayer);
 				return null;
 			}
-			newRule[i] = new Technology.TechPoint(horiz, vert);
+			nodeLayers[count] = new NodeInfo.LayerDetails();
+			nodeLayers[count].layer = layer;
+			nodeLayers[count].ns = ns;
+			nodeLayers[count].style = getStyle(ns.node);
+			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
+			nodeLayers[count].values = fixValues(np, ns.values);
+			if (nodeLayers[count].values.length == 2)
+			{
+				if (nodeLayers[count].style == Poly.Type.CROSSED ||
+					nodeLayers[count].style == Poly.Type.FILLED ||
+					nodeLayers[count].style == Poly.Type.CLOSED)
+				{
+					nodeLayers[count].representation = Technology.NodeLayer.BOX;
+//					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
+//					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+				}
+			}
+			count++;
 		}
-		return newRule;
-	}
-
-	private static Sample needHighlightLayer(Example neList, Cell np)
-	{
-		// find the highlight layer
-		for(Sample ns : neList.samples)
-		{
-			if (ns.layer == null) return ns;
-		}
-
-		pointOutError(null, np);
-		System.out.println("No highlight layer on contact " + np.describe(true));
-		return null;
+		return nodeLayers;
 	}
 
 	/**
 	 * Method to build a rule for multiple contact-cut sample "ns" from the
 	 * overall example list in "neList".  Returns true on error.
 	 */
-	private static NodeInfo.LayerDetails getMultiCutRule(Sample ns, Example neList, Cell np)
+	private static NodeInfo.LayerDetails getMultiCutRule(Sample ns, List<Example> neList, Cell np)
 	{
 		// find the highlight layer
-		Sample hs = needHighlightLayer(neList, np);
+		Example firstEx = neList.get(0);
+		Sample hs = needHighlightLayer(firstEx, np);
 		if (hs == null) return null;
 		Rectangle2D highlightBounds = hs.node.getBounds();
 
@@ -2572,21 +1867,22 @@ public class LibToTech
 
 		// determine indentation of cuts
 		double multiIndent = nodeBounds.getMinX() - highlightBounds.getMinX();
-		double realIndentX = nodeBounds.getMinX() - neList.lx + multiXS/2;
-		double realIndentY = nodeBounds.getMinY() - neList.ly + multiYS/2;
+		double realIndentX = nodeBounds.getMinX() - firstEx.lx + multiXS/2;
+		double realIndentY = nodeBounds.getMinY() - firstEx.ly + multiYS/2;
 		if (highlightBounds.getMaxX() - nodeBounds.getMaxX() != multiIndent ||
 			nodeBounds.getMinY() - highlightBounds.getMinY() != multiIndent ||
 			highlightBounds.getMaxY() - nodeBounds.getMaxY() != multiIndent)
 		{
-			pointOutError(ns.node, ns.node.getParent());
-			System.out.println("Multiple contact cuts must be indented uniformly in " + np);
+			pointOutError(ns.node, np, "Multiple contact cuts must be indented uniformly");
 			return null;
 		}
 
 		// look at every example after the first
 		double xSep = -1, ySep = -1;
-		for(Example ne = neList.nextExample; ne != null; ne = ne.nextExample)
+		for(int n=1; n<neList.size(); n++)
 		{
+			Example ne = neList.get(n);
+
 			// count number of samples equivalent to the main sample
 			int total = 0;
 			for(Sample nso : ne.samples)
@@ -2597,8 +1893,7 @@ public class LibToTech
 					Rectangle2D oNodeBounds = nso.node.getBounds();
 					if (multiXS != oNodeBounds.getWidth() || multiYS != oNodeBounds.getHeight())
 					{
-						pointOutError(nso.node, nso.node.getParent());
-						System.out.println("Multiple contact cuts must not differ in size in " + np);
+						pointOutError(nso.node, np, "Multiple contact cuts must not differ in size");
 						return null;
 					}
 					total++;
@@ -2627,8 +1922,7 @@ public class LibToTech
 				// check for validity
 				if (sepX < multiXS && sepY < multiYS)
 				{
-					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cuts must not overlap in " + np);
+					pointOutError(nsList[i].node, np, "Multiple contact cuts must not overlap");
 					return null;
 				}
 
@@ -2659,16 +1953,14 @@ public class LibToTech
 				double sepY = Math.abs(lastNodeBounds.getCenterY() - thisNodeBounds.getCenterY());
 				if (sepX / xSep * xSep != sepX)
 				{
-					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cut X spacing must be uniform in " + np);
+					pointOutError(nsList[i].node, np, "Multiple contact cut X spacing must be uniform");
 					return null;
 				}
 
 				// find Y separation
 				if (sepY / ySep * ySep != sepY)
 				{
-					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cut Y spacing must be uniform in " + np);
+					pointOutError(nsList[i].node, np, "Multiple contact cut Y spacing must be uniform");
 					return null;
 				}
 			}
@@ -2677,8 +1969,7 @@ public class LibToTech
 		double multiSepY = ySep - multiYS;
 		if (multiSepX != multiSepY)
 		{
-			pointOutError(null, np);
-			System.out.println("Multiple contact cut X and Y spacing must be the same in " + np);
+			pointOutError(null, np, "Multiple contact cut X and Y spacing must be the same");
 			return null;
 		}
 		ns.values = new Technology.TechPoint[2];
@@ -2708,8 +1999,679 @@ public class LibToTech
 		return multiDetails;
 	}
 
-//	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
-//
+	/**
+	 * Method to adjust the "count"-long array of points in "px" and "py" according
+	 * to the stretch factor bits in "factor" and return an array that describes
+	 * these points.  Returns zero on error.
+	 */
+	private static Technology.TechPoint [] stretchPoints(Point2D [] pts, int [] factor,
+		Sample ns, NodeProto np, List<Example> neList)
+	{
+		Example firstEx = neList.get(0);
+		Technology.TechPoint [] newRule = new Technology.TechPoint[pts.length];
+
+		for(int i=0; i<pts.length; i++)
+		{
+			// determine the X algorithm
+			EdgeH horiz = null;
+			if ((factor[i]&TOEDGELEFT) != 0)
+			{
+				// left edge rule
+				horiz = EdgeH.fromLeft(pts[i].getX()-firstEx.lx);
+			} else if ((factor[i]&TOEDGERIGHT) != 0)
+			{
+				// right edge rule
+				horiz = EdgeH.fromRight(firstEx.hx-pts[i].getX());
+			} else if ((factor[i]&FROMCENTX) != 0)
+			{
+				// center rule
+				horiz = EdgeH.fromCenter(pts[i].getX()-(firstEx.lx+firstEx.hx)/2);
+			} else if ((factor[i]&RATIOCENTX) != 0)
+			{
+				// constant stretch rule
+				if (firstEx.hx == firstEx.lx)
+				{
+					horiz = EdgeH.makeCenter();
+				} else
+				{
+					horiz = new EdgeH((pts[i].getX()-(firstEx.lx+firstEx.hx)/2) / (firstEx.hx-firstEx.lx), 0);
+				}
+			} else
+			{
+				explainStretchProblem(neList, ns, np, pts[i].getX(), true);
+				return null;
+			}
+
+			// determine the Y algorithm
+			EdgeV vert = null;
+			if ((factor[i]&TOEDGEBOT) != 0)
+			{
+				// bottom edge rule
+				vert = EdgeV.fromBottom(pts[i].getY()-firstEx.ly);
+			} else if ((factor[i]&TOEDGETOP) != 0)
+			{
+				// top edge rule
+				vert = EdgeV.fromTop(firstEx.hy-pts[i].getY());
+			} else if ((factor[i]&FROMCENTY) != 0)
+			{
+				// center rule
+				vert = EdgeV.fromCenter(pts[i].getY()-(firstEx.ly+firstEx.hy)/2);
+			} else if ((factor[i]&RATIOCENTY) != 0)
+			{
+				// constant stretch rule
+				if (firstEx.hy == firstEx.ly)
+				{
+					vert = EdgeV.makeCenter();
+				} else
+				{
+					vert = new EdgeV((pts[i].getY()-(firstEx.ly+firstEx.hy)/2) / (firstEx.hy-firstEx.ly), 0);
+				}
+			} else
+			{
+				explainStretchProblem(neList, ns, np, pts[i].getY(), false);
+				return null;
+			}
+			newRule[i] = new Technology.TechPoint(horiz, vert);
+		}
+		return newRule;
+	}
+
+	private static Technology.TechPoint [] fixValues(NodeProto np, Technology.TechPoint [] currentList)
+	{
+		EdgeH h1 = null, h2 = null, h3 = null;
+		EdgeV v1 = null, v2 = null, v3 = null;
+		for(int p=0; p<currentList.length; p++)
+		{
+			EdgeH h = currentList[p].getX();
+			if (h.equals(h1) || h.equals(h2) || h.equals(h3)) continue;
+			if (h1 == null) h1 = h; else
+				if (h2 == null) h2 = h; else
+					h3 = h;	
+			EdgeV v = currentList[p].getY();
+			if (v.equals(v1) || v.equals(v2) || v.equals(v3)) continue;
+			if (v1 == null) v1 = v; else
+				if (v2 == null) v2 = v; else
+					v3 = v;				
+		}
+		if (h1 != null && h2 != null && h3 == null &&
+			v1 != null && v2 != null && v3 == null)
+		{
+			// reduce to a box with two points
+			currentList = new Technology.TechPoint[2];
+			currentList[0] = new Technology.TechPoint(h1, v1);
+			currentList[1] = new Technology.TechPoint(h2, v2);
+		}
+		return currentList;
+	}
+
+	/************************************* SUPPORT *************************************/
+
+	/**
+	 * Method to associate the samples of example "neList" in cell "np"
+	 * Returns true if there is an error
+	 */
+	private static boolean associateExamples(List<Example> neList, Cell np)
+	{
+		// if there is only one example, no association
+		if (neList.size() <= 1) return false;
+
+		// associate each example "ne" with the original in "neList"
+		Example firstEx = neList.get(0);
+		for(int n=1; n<neList.size(); n++)
+		{
+			Example ne = neList.get(n);
+
+			// clear associations for every sample "ns" in the example "ne"
+			for(Sample ns : ne.samples)
+				ns.assoc = null;
+
+			// associate every sample "ns" in the example "ne"
+			for(Sample ns : ne.samples)
+			{
+				if (ns.assoc != null) continue;
+
+				// cannot have center in other examples
+				if (ns.layer == Generic.tech.cellCenterNode)
+				{
+					pointOutError(ns.node, np, "Grab point should only be in main example");
+					return true;
+				}
+
+				// count number of similar layers in original example "neList"
+				int total = 0;
+				Sample nsFound = null;
+				for(Sample nsList : firstEx.samples)
+				{
+					if (nsList.layer != ns.layer) continue;
+					total++;
+					nsFound = nsList;
+				}
+
+				// no similar layer found in the original: error
+				if (total == 0)
+				{
+					pointOutError(ns.node, np, "Layer " + getSampleName(ns.layer) + " not found in main example");
+					return true;
+				}
+
+				// just one in the original: simple association
+				if (total == 1)
+				{
+					ns.assoc = nsFound;
+					continue;
+				}
+
+				// if it is a port, associate by port name
+				if (ns.layer == Generic.tech.portNode)
+				{
+					String name = Info.getPortName(ns.node);
+					if (name == null)
+					{
+						pointOutError(ns.node, np, "Port does not have a name");
+						return true;
+					}
+
+					// search the original for that port
+					boolean found = false;
+					for(Sample nsList : firstEx.samples)
+					{
+						if (nsList.layer == Generic.tech.portNode)
+						{
+							String otherName = Info.getPortName(nsList.node);
+							if (otherName == null)
+							{
+								pointOutError(nsList.node, np, "Port does not have a name");
+								return true;
+							}
+							if (!name.equalsIgnoreCase(otherName)) continue;
+							ns.assoc = nsList;
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+					{
+						pointOutError(null, np, "Could not find port " + name + " in all examples");
+						return true;
+					}
+					continue;
+				}
+
+				// count the number of this layer in example "ne"
+				int i = 0;
+				for(Sample nsList : ne.samples)
+				{
+					if (nsList.layer == ns.layer) i++;
+				}
+
+				// if number of similar layers differs: error
+				if (total != i)
+				{
+					pointOutError(ns.node, np, "Layer " + getSampleName(ns.layer) +
+						" found " + total + " times in main example, " + i + " in others");
+					return true;
+				}
+
+				// make a list of samples on this layer in original
+				List<Sample> mainList = new ArrayList<Sample>();
+				i = 0;
+				for(Sample nsList : firstEx.samples)
+				{
+					if (nsList.layer == ns.layer) mainList.add(nsList);
+				}
+
+				// make a list of samples on this layer in example "ne"
+				List<Sample> thisList = new ArrayList<Sample>();
+				i = 0;
+				for(Sample nsList : ne.samples)
+				{
+					if (nsList.layer == ns.layer) thisList.add(nsList);
+				}
+
+				// sort each list in X/Y/shape
+				Collections.sort(mainList, new SampleCoordAscending());
+				Collections.sort(thisList, new SampleCoordAscending());
+
+				// see if the lists have duplication
+				for(i=1; i<total; i++)
+				{
+					Sample thisSample = thisList.get(i);
+					Sample lastSample = thisList.get(i-1);
+					Sample thisMainSample = mainList.get(i);
+					Sample lastMainSample = mainList.get(i-1);
+					if ((thisSample.xPos == lastSample.xPos &&
+							thisSample.yPos == lastSample.yPos &&
+							thisSample.node.getProto() == lastSample.node.getProto()) ||
+						(thisMainSample.xPos == lastMainSample.xPos &&
+							thisMainSample.yPos == lastMainSample.yPos &&
+							thisMainSample.node.getProto() == lastMainSample.node.getProto())) break;
+				}
+				if (i >= total)
+				{
+					// association can be made in X
+					for(i=0; i<total; i++)
+					{
+						Sample thisSample = thisList.get(i);
+						thisSample.assoc = mainList.get(i);
+					}
+					continue;
+				}
+
+				// don't know how to associate this sample
+				Sample thisSample = thisList.get(i);
+				pointOutError(thisSample.node, np, "Sample " + getSampleName(thisSample.layer) + " is unassociated");
+				return true;
+			}
+
+			// final check: make sure every sample in original example associates
+			for(Sample nsList : firstEx.samples)
+			{
+				nsList.assoc = null;
+			}
+			for(Sample ns : ne.samples)
+			{
+				ns.assoc.assoc = ns;
+			}
+			for(Sample nsList : firstEx.samples)
+			{
+				if (nsList.assoc == null)
+				{
+					if (nsList.layer == Generic.tech.cellCenterNode) continue;
+					pointOutError(nsList.node, np, "Layer " + getSampleName(nsList.layer) + " found in main example, but not others");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static class SampleCoordAscending implements Comparator<Sample>
+	{
+		public int compare(Sample s1, Sample s2)
+		{
+			if (s1.xPos != s2.xPos) return (int)(s1.xPos - s2.xPos);
+			if (s1.yPos != s2.yPos) return (int)(s1.yPos - s2.yPos);
+			return s1.node.getName().compareTo(s2.node.getName());
+		}
+	}
+
+	/* flags about the edge positions in the examples */
+	private static final int TOEDGELEFT     =   01;		/* constant to left edge */
+	private static final int TOEDGERIGHT    =   02;		/* constant to right edge */
+	private static final int TOEDGETOP      =   04;		/* constant to top edge */
+	private static final int TOEDGEBOT      =  010;		/* constant to bottom edge */
+	private static final int FROMCENTX      =  020;		/* constant in X to center */
+	private static final int FROMCENTY      =  040;		/* constant in Y to center */
+	private static final int RATIOCENTX     = 0100;		/* fixed ratio from X center to edge */
+	private static final int RATIOCENTY     = 0200;		/* fixed ratio from Y center to edge */
+
+	private static Poly.Type getStyle(NodeInst ni)
+	{
+		// layer style
+		Poly.Type sty = null;
+		if (ni.getProto() == Artwork.tech.filledBoxNode)             sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech.boxNode)                   sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech.crossedBoxNode)            sty = Poly.Type.CROSSED; else
+		if (ni.getProto() == Artwork.tech.filledPolygonNode)         sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech.closedPolygonNode)         sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech.openedPolygonNode)         sty = Poly.Type.OPENED; else
+		if (ni.getProto() == Artwork.tech.openedDottedPolygonNode)   sty = Poly.Type.OPENEDT1; else
+		if (ni.getProto() == Artwork.tech.openedDashedPolygonNode)   sty = Poly.Type.OPENEDT2; else
+		if (ni.getProto() == Artwork.tech.openedThickerPolygonNode)  sty = Poly.Type.OPENEDT3; else
+		if (ni.getProto() == Artwork.tech.filledCircleNode)          sty = Poly.Type.DISC; else
+		if (ni.getProto() == Artwork.tech.circleNode)
+		{
+			sty = Poly.Type.CIRCLE;
+			double [] angles = ni.getArcDegrees();
+			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.CIRCLEARC;
+		} else if (ni.getProto() == Artwork.tech.thickCircleNode)
+		{
+			sty = Poly.Type.THICKCIRCLE;
+			double [] angles = ni.getArcDegrees();
+			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.THICKCIRCLEARC;
+		} else if (ni.getProto() == Generic.tech.invisiblePinNode)
+		{
+			Variable var = ni.getVar(Artwork.ART_MESSAGE);
+			if (var != null)
+			{
+				TextDescriptor.Position pos = var.getTextDescriptor().getPos();
+				if (pos == TextDescriptor.Position.BOXED)     sty = Poly.Type.TEXTBOX; else
+				if (pos == TextDescriptor.Position.CENT)      sty = Poly.Type.TEXTCENT; else
+				if (pos == TextDescriptor.Position.UP)        sty = Poly.Type.TEXTBOT; else
+				if (pos == TextDescriptor.Position.DOWN)      sty = Poly.Type.TEXTTOP; else
+				if (pos == TextDescriptor.Position.LEFT)      sty = Poly.Type.TEXTRIGHT; else
+				if (pos == TextDescriptor.Position.RIGHT)     sty = Poly.Type.TEXTLEFT; else
+				if (pos == TextDescriptor.Position.UPLEFT)    sty = Poly.Type.TEXTBOTRIGHT; else
+				if (pos == TextDescriptor.Position.UPRIGHT)   sty = Poly.Type.TEXTBOTLEFT; else
+				if (pos == TextDescriptor.Position.DOWNLEFT)  sty = Poly.Type.TEXTTOPRIGHT; else
+				if (pos == TextDescriptor.Position.DOWNRIGHT) sty = Poly.Type.TEXTTOPLEFT;
+			}
+		}
+		if (sty == null)
+		{
+			System.out.println("Warning: Cannot determine style to use for " + ni.describe(false) +
+				" node in " + ni.getParent() + ", assuming FILLED");
+			sty = Poly.Type.FILLED;
+		}
+		return sty;
+	}
+
+	/**
+	 * Method to return the actual bounding box of layer node "ni" in the
+	 * reference variables "lx", "hx", "ly", and "hy"
+	 */
+	private static Rectangle2D getBoundingBox(NodeInst ni)
+	{
+		Rectangle2D bounds = ni.getBounds();
+		if (ni.getProto() == Generic.tech.portNode)
+		{
+			double portShrink = 2;
+			bounds.setRect(bounds.getMinX() + portShrink, bounds.getMinY() + portShrink,
+				bounds.getWidth()-portShrink*2, bounds.getHeight()-portShrink*2);
+		}
+		bounds.setRect(DBMath.round(bounds.getMinX()), DBMath.round(bounds.getMinY()),
+			DBMath.round(bounds.getWidth()), DBMath.round(bounds.getHeight()));
+		return bounds;
+	}
+
+	private static Sample needHighlightLayer(Example neList, Cell np)
+	{
+		// find the highlight layer
+		for(Sample ns : neList.samples)
+		{
+			if (ns.layer == null) return ns;
+		}
+
+		pointOutError(null, np, "No highlight layer on contact");
+		return null;
+	}
+
+	private static String getSampleName(NodeProto layerCell)
+	{
+		if (layerCell == Generic.tech.portNode) return "PORT";
+		if (layerCell == Generic.tech.cellCenterNode) return "GRAB";
+		if (layerCell == null) return "HIGHLIGHT";
+		return layerCell.getName().substring(6);
+	}
+
+	/************************************* ERRORS *************************************/
+
+	/**
+	 * Method to give an error message associated with a NodeInst and Cell.
+	 * @param ni the NodeInst (may be null)
+	 * @param cell the Cell.
+	 * @param errorMessage the error to display.
+	 */
+	static void pointOutError(NodeInst ni, Cell cell, String errorMessage)
+	{
+//		Job.getUserInterface().displayCell(cell);
+		Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		if (wnd != null && ni != null)
+		{
+			wnd.clearHighlighting();
+			wnd.addElectricObject(ni, cell);
+			wnd.finishedHighlighting();
+		}
+		String fullErrorMsg = "Cell " + cell.describe(false);
+		if (ni != null) fullErrorMsg += ", node " + ni.describe(false);
+		fullErrorMsg += ": " + errorMessage;
+		Job.getUserInterface().showErrorMessage(fullErrorMsg, "Analysis Failure");
+		System.out.println(fullErrorMsg);
+	}
+
+	/**
+	 * Method to explain a stretching rule problem.
+	 * @param neList the list of Examples
+	 * @param ns the sample in the main Example
+	 * @param np the Cell.
+	 * @param sampleCoord the coordinate of the stretching failure.
+	 * @param xDir true if this is in the X direction, false for Y.
+	 */
+	private static void explainStretchProblem(List<Example> neList, Sample ns, NodeProto np, double sampleCoord, boolean xDir)
+	{
+		Cell cell = ns.node.getParent();
+//		Job.getUserInterface().displayCell(cell);
+		Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		if (wnd == null) return;
+		wnd.clearHighlighting();
+		Map<Sample,double[]> factorList = new HashMap<Sample,double[]>();
+		double[] factors = showSampleInExample(wnd, ns, neList.get(0), sampleCoord, xDir, true);
+		factorList.put(ns, factors);
+		for(int n=1; n<neList.size(); n++)
+		{
+			Example e = neList.get(n);
+			for(Sample s : e.samples)
+			{
+				if (s.assoc == ns)
+				{
+					factors = showSampleInExample(wnd, s, e, sampleCoord, xDir, false);
+					factorList.put(s, factors);
+				}
+			}
+		}
+
+		// see if the offending sample can be guessed
+		Set<Sample> allSamples = factorList.keySet();
+		Map<Sample,Integer> offendingSample = new HashMap<Sample,Integer>();
+		for(int i=0; i<4; i++)
+		{
+			double v1 = 0, v2 = 0;
+			int v1Count = 0, v2Count = 0;
+			Sample s1 = null, s2 = null;
+			for(Sample s : allSamples)
+			{
+				factors = factorList.get(s);
+				if (v1Count == 0)
+				{
+					v1Count++;
+					v1 = factors[i];
+					s1 = s;
+					continue;
+				}
+				if (v1 == factors[i])
+				{
+					v1Count++;
+					continue;
+				}
+				if (v2Count == 0)
+				{
+					v2Count++;
+					v2 = factors[i];
+					s2 = s;
+					continue;
+				}
+				if (v2 == factors[i])
+				{
+					v2Count++;
+					continue;
+				}
+			}
+			if (v1Count+v2Count != allSamples.size()) continue;
+			Sample offendingSamp = null;
+			if (v1Count == 1) offendingSamp = s1;
+			if (v2Count == 1) offendingSamp = s2;
+			if (offendingSamp != null)
+			{
+				Integer prev = offendingSample.get(offendingSamp);
+				if (prev == null) prev = new Integer(1); else prev = new Integer(prev.intValue()+1);
+				offendingSample.put(offendingSamp, prev);
+			}
+		}
+		Sample offendingSamp = null;
+		int num = 0;
+		for(Sample s : offendingSample.keySet())
+		{
+			int numTimes = offendingSample.get(s).intValue();
+			if (numTimes > num)
+			{
+				num = numTimes;
+				offendingSamp = s;
+			}
+		}
+
+		// show the offending sample if found, all if not
+		String err = "Cannot determine " + (xDir?"X":"Y") + " stretching rule for layer " + getSampleName(ns.layer) +
+			" in " + np;
+		String additional = "\nOne of these stretching rules must be the same for every example:" +
+			"\nOut (the distance from the center to the point)" +
+			"\nIn (the distance from the edge to the point)" +
+			"\nPer (the percentage of the point from the center to the edge)" +
+			"\nOpp (the distance from the opposite edge to the point)";
+		if (offendingSamp == null)
+		{
+			offendingSamp = ns;
+			for(Sample s : allSamples)
+				wnd.addElectricObject(s.node, cell);
+		} else
+		{
+			wnd.addElectricObject(offendingSamp.node, cell);
+			additional += "\n\nThe error is probably with node " + offendingSamp.node.describe(false);
+		}
+		wnd.finishedHighlighting();
+
+		Job.getUserInterface().showErrorMessage(err+additional, "Analysis Failure");
+		System.out.println(err);
+	}
+
+	private static double[] showSampleInExample(EditWindow_ wnd, Sample ns, Example e, double sampleCoord,
+		boolean xDir, boolean mainExample)
+	{
+		Cell cell = ns.node.getParent();
+		Rectangle2D exampleBounds = wnd.getCell().getBounds();
+		double singleStep = Math.max(exampleBounds.getHeight(), exampleBounds.getWidth()) / 45;
+		double doubleStep = singleStep * 2;
+		double halfStep = singleStep / 2;
+		double exampleHalfSize = (xDir ? (e.hx - e.lx) : (e.hy - e.ly)) / 2;
+		double exampleCtr = (xDir ? (e.lx + e.hx) : (e.ly + e.hy)) / 2;
+
+		// first draw bold bars above/below example at the edges and center
+		Point2D pt1 = makeDisplayPoint(e, 0, exampleCtr-exampleHalfSize, xDir);
+		Point2D pt2 = makeDisplayPoint(e, singleStep, exampleCtr-exampleHalfSize, xDir);
+		wnd.addHighlightLine(pt1, pt2, cell, true);
+		pt1 = makeDisplayPoint(e, 0, exampleCtr+exampleHalfSize, xDir);
+		pt2 = makeDisplayPoint(e, singleStep, exampleCtr+exampleHalfSize, xDir);
+		wnd.addHighlightLine(pt1, pt2, cell, true);
+		pt1 = makeDisplayPoint(e, 0, exampleCtr, xDir);
+		pt2 = makeDisplayPoint(e, doubleStep, exampleCtr, xDir);
+		wnd.addHighlightLine(pt1, pt2, cell, true);
+
+		Rectangle2D mainSampleBounds = ns.assoc.node.getBounds();
+		Rectangle2D sampleBounds = ns.node.getBounds();
+		boolean adjusted = false;
+		if (mainExample) adjusted = true; else
+		{
+			if (xDir)
+			{
+				if (sampleCoord == mainSampleBounds.getMinX())
+					{ adjusted = true;   sampleCoord = sampleBounds.getMinX(); }
+				if (sampleCoord == mainSampleBounds.getMaxX())
+					{ adjusted = true;   sampleCoord = sampleBounds.getMaxX(); }
+			} else
+			{
+				if (sampleCoord == mainSampleBounds.getMinY())
+					{ adjusted = true;   sampleCoord = sampleBounds.getMinY(); }
+				if (sampleCoord == mainSampleBounds.getMaxY())
+					{ adjusted = true;   sampleCoord = sampleBounds.getMaxY(); }
+			}
+		}
+
+		// determine the 4 stretching factors (out, in, %, opp)
+		double [] factors = new double[4];
+		double percentOut = Math.abs(sampleCoord-exampleCtr) / exampleHalfSize;
+		double distOut = Math.abs(sampleCoord-exampleCtr);
+		factors[0] = distOut;
+		factors[1] = exampleHalfSize-distOut;
+		factors[2] = Math.round(percentOut*100);
+		factors[3] = distOut+exampleHalfSize;
+
+		if (adjusted)
+		{
+			double arrowCoord = sampleCoord;
+			double arrowCoordInv = sampleCoord;
+			double farEnd, closeEnd;
+			if (sampleCoord > exampleCtr)
+			{
+				arrowCoord -= singleStep;
+				arrowCoordInv += singleStep;
+				closeEnd = exampleCtr + exampleHalfSize;
+				farEnd = exampleCtr - exampleHalfSize;
+			} else
+			{
+				arrowCoord += singleStep;
+				arrowCoordInv -= singleStep;
+				closeEnd = exampleCtr - exampleHalfSize;
+				farEnd = exampleCtr + exampleHalfSize;
+			}
+
+			// now draw bar where problem is
+			pt1 = makeDisplayPoint(e, halfStep, sampleCoord, xDir);
+			pt2 = makeDisplayPoint(e, doubleStep+singleStep, sampleCoord, xDir);
+			wnd.addHighlightLine(pt1, pt2, cell, false);
+
+			// draw arrow from opposite edge to problem location
+			if (sampleCoord != farEnd)
+			{
+				pt1 = makeDisplayPoint(e, singleStep, farEnd, xDir);
+				pt2 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, singleStep-singleStep/3, arrowCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, singleStep+singleStep/3, arrowCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+			}
+
+			// draw arrow from center to problem location
+			if (sampleCoord != exampleCtr)
+			{
+				pt1 = makeDisplayPoint(e, doubleStep, exampleCtr, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep-singleStep/3, arrowCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep+singleStep/3, arrowCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+			}
+
+			// draw arrow from close edge to problem location
+			if (sampleCoord != closeEnd)
+			{
+				pt1 = makeDisplayPoint(e, doubleStep, closeEnd, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep-singleStep/3, arrowCoordInv, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
+				pt2 = makeDisplayPoint(e, doubleStep+singleStep/3, arrowCoordInv, xDir);
+				wnd.addHighlightLine(pt1, pt2, cell, false);
+			}
+
+			// write factors
+			pt2 = makeDisplayPoint(e, doubleStep+halfStep, xDir ? exampleCtr : (exampleCtr-halfStep), xDir);
+			wnd.addHighlightMessage(cell, "Out="+TextUtils.formatDouble(factors[0])+
+				" Per="+((int)factors[2]), pt2);
+			pt2 = makeDisplayPoint(e, doubleStep-halfStep, xDir ? closeEnd+halfStep : (closeEnd-halfStep), xDir);
+			wnd.addHighlightMessage(cell, "In="+TextUtils.formatDouble(factors[1]), pt2);
+			pt2 = makeDisplayPoint(e, singleStep+halfStep, xDir ? farEnd : (farEnd-halfStep), xDir);
+			wnd.addHighlightMessage(cell, "Opp="+TextUtils.formatDouble(factors[3]), pt2);
+		}
+		return factors;
+	}
+
+	private static Point2D makeDisplayPoint(Example e, double offsetOrtho, double sampleCoord, boolean xDir)
+	{
+		if (xDir) return new Point2D.Double(sampleCoord, e.hy+offsetOrtho);
+		return new Point2D.Double(e.hx+offsetOrtho, sampleCoord);
+	}
+
+	/************************************* WRITE TECHNOLOGY AS "JAVA" CODE *************************************/
+
 //    private static int NUM_FRACTIONS = 0; // was 3
 //
 //    /**
@@ -3596,13 +3558,7 @@ public class LibToTech
 //		return infstr.toString();
 //	}
 
-	private static String getSampleName(NodeProto layerCell)
-	{
-		if (layerCell == Generic.tech.portNode) return "PORT";
-		if (layerCell == Generic.tech.cellCenterNode) return "GRAB";
-		if (layerCell == null) return "HIGHLIGHT";
-		return layerCell.getName().substring(6);
-	}
+	/************************************* WRITE TECHNOLOGY AS "XML" *************************************/
     
     /**
      * Dump technology information to Xml
@@ -3685,10 +3641,10 @@ public class LibToTech
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
             if (ai.widthOffset != 0) {
-                ap.diskOffset.put(Integer.valueOf(1), DBMath.round(0.5*ai.maxWidth));
-                ap.diskOffset.put(Integer.valueOf(2), DBMath.round(0.5*(ai.maxWidth - ai.widthOffset)));
+                ap.diskOffset.put(Integer.valueOf(1), new Double(DBMath.round(0.5*ai.maxWidth)));
+                ap.diskOffset.put(Integer.valueOf(2), new Double(DBMath.round(0.5*(ai.maxWidth - ai.widthOffset))));
             } else {
-                ap.diskOffset.put(Integer.valueOf(2), DBMath.round(0.5*ai.maxWidth));
+                ap.diskOffset.put(Integer.valueOf(2), new Double(DBMath.round(0.5*ai.maxWidth)));
             }
             ap.defaultWidth.value = 0;
             for (ArcInfo.LayerDetails al: ai.arcDetails) {

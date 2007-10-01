@@ -647,8 +647,8 @@ public class Technology implements Comparable<Technology>
                     ArcProto ap = arcs.get(xap.name);
                     double correction = 0;
                     for (Map.Entry<Integer,Double> e: xap.diskOffset.entrySet()) {
-                        if (techVersion < e.getKey()) {
-                            correction = e.getValue();
+                        if (techVersion < e.getKey().intValue()) {
+                            correction = e.getValue().doubleValue();
                             break;
                         }
                     }
@@ -658,7 +658,7 @@ public class Technology implements Comparable<Technology>
                     PrimitiveNode pn = nodes.get(xpn.name);
                     EPoint correction = EPoint.ORIGIN;
                     for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
-                        if (techVersion < e.getKey()) {
+                        if (techVersion < e.getKey().intValue()) {
                             correction = e.getValue();
                             break;
                         }
@@ -691,11 +691,11 @@ public class Technology implements Comparable<Technology>
         }
 
         public long getExtendFromDisk(ArcProto ap, double width) {
-            return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap);
+            return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap).longValue();
         }
 
         public long getWidthToDisk(ImmutableArcInst a) {
-            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoType));
+            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoType).intValue());
         }
 
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
@@ -889,7 +889,7 @@ public class Technology implements Comparable<Technology>
             }
             double widthOffset = 0;
             if (!a.diskOffset.isEmpty())
-                widthOffset = a.diskOffset.values().iterator().next()*2;
+                widthOffset = a.diskOffset.values().iterator().next().doubleValue()*2;
 //            for (Map.Entry<Integer,Double> e: a.widthOffset.entrySet()) {
 //                if (e.getKey() <= techVersion)
 //                    widthOffset = e.getValue();
@@ -4088,9 +4088,9 @@ public class Technology implements Comparable<Technology>
                 layer.getGraphics().recachePrefs();
             }
 
-            if (tech.transparentLayers <= 0) continue;
-            Color [] layers = new Color[tech.transparentLayers];
-            for(int i=0; i<tech.transparentLayers; i++)
+            if (tech.transparentColorPrefs == null || tech.transparentColorPrefs.length <= 0) continue;
+            Color [] layers = new Color[tech.transparentColorPrefs.length];
+            for(int i=0; i<tech.transparentColorPrefs.length; i++)
             {
                 layers[i] = new Color(tech.transparentColorPrefs[i].getInt());
             }
@@ -4100,11 +4100,11 @@ public class Technology implements Comparable<Technology>
 
 	public Color [] getFactoryColorMap()
 	{
-        if (transparentLayers <= 0) return null;
-        Color [] layers = new Color[transparentLayers];
-        for(int i=0; i<transparentLayers; i++)
+        if (transparentColorPrefs == null || transparentColorPrefs.length <= 0) return null;
+        Color [] layers = new Color[transparentColorPrefs.length];
+        for(int i=0; i<transparentColorPrefs.length; i++)
             layers[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
-		Color [] map = getColorMap(layers);
+		Color [] map = getColorMap(layers, transparentColorPrefs.length);
 		return map;
 	}
 
@@ -4119,6 +4119,12 @@ public class Technology implements Comparable<Technology>
 	public int getNumTransparentLayers() { return transparentLayers; }
 
 	/**
+	 * Sets the number of transparent layers in this technology.
+	 * @param nl the number of transparent layers in this technology.
+	 */
+	public void setNumTransparentLayers(int nl) { transparentLayers = nl; }
+
+	/**
 	 * Sets the color map for transparent layers in this technology.
 	 * @param map the color map for transparent layers in this technology.
 	 * There must be a number of entries in this map equal to 2 to the power "getNumTransparentLayers()".
@@ -4126,23 +4132,6 @@ public class Technology implements Comparable<Technology>
 	public void setColorMap(Color [] map)
 	{
 		colorMap = map;
-	}
-
-	/**
-	 * Method to normalize a color stored in a 3-long array.
-	 * @param a the array of 3 doubles that holds the color.
-	 * All values range from 0 to 1.
-	 * The values are adjusted so that they are normalized.
-	 */
-	private void normalizeColor(double [] a)
-	{
-		double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-		if (mag > 1.0e-11f)
-		{
-			a[0] /= mag;
-			a[1] /= mag;
-			a[2] /= mag;
-		}
 	}
 
 	/**
@@ -4163,19 +4152,19 @@ public class Technology implements Comparable<Technology>
 				    pref.setInt(layers[i].getRGB());
 			}
 		}
-		Color [] map = getColorMap(layers);
+		Color [] map = getColorMap(layers, transparentLayers);
 		setColorMap(map);
 	}
 
-	private Color [] getColorMap(Color [] layers)
+	public static Color [] getColorMap(Color [] layers, int numLayers)
 	{
-		int numEntries = 1 << transparentLayers;
+		int numEntries = 1 << numLayers;
 		Color [] map = new Color[numEntries];
 		for(int i=0; i<numEntries; i++)
 		{
 			int r=200, g=200, b=200;
 			boolean hasPrevious = false;
-			for(int j=0; j<transparentLayers; j++)
+			for(int j=0; j<numLayers; j++)
 			{
 				if ((i & (1<<j)) == 0) continue;
 				if (hasPrevious)
@@ -4211,6 +4200,23 @@ public class Technology implements Comparable<Technology>
 			map[i] = new Color(r, g, b);
 		}
 		return map;
+	}
+
+	/**
+	 * Method to normalize a color stored in a 3-long array.
+	 * @param a the array of 3 doubles that holds the color.
+	 * All values range from 0 to 1.
+	 * The values are adjusted so that they are normalized.
+	 */
+	private static void normalizeColor(double [] a)
+	{
+		double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+		if (mag > 1.0e-11f)
+		{
+			a[0] /= mag;
+			a[1] /= mag;
+			a[2] /= mag;
+		}
 	}
 
 	/**

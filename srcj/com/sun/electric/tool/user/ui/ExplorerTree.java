@@ -2021,7 +2021,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		private void setCurLibAction()
 		{
 			Library lib = (Library)getCurrentlySelectedObject(0);
-			lib.setCurrent();
+            User.setCurrentLibrary(lib);
             ChangeCurrentLib.repaintAllAfterCurLibAction();
 		}
 

@@ -39,10 +39,10 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
-
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;

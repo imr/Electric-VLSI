@@ -231,26 +231,26 @@ public class NodeInfo extends Info
 	static void compactCell(Cell cell)
 	{
 		// move the examples
-		Example neList = Example.getExamples(cell, true);
-		if (neList == null) return;
-		int numExamples = 0;
-		Example smallest = neList;
-		Example biggest = neList;
-		for(Example ne = neList; ne != null; ne = ne.nextExample)
+		List<Example> neList = Example.getExamples(cell, true);
+		if (neList == null || neList.size() == 0) return;
+		Example firstEx = neList.get(0);
+		int numExamples = neList.size();
+		Example smallest = firstEx;
+		Example biggest = firstEx;
+		for(Example ne : neList)
 		{
-			numExamples++;
 			if (ne.hx-ne.lx > biggest.hx-biggest.lx) biggest = ne;
 		}
 		if (numExamples == 1)
 		{
-			moveExample(neList, -(neList.lx + neList.hx) / 2, -neList.hy);
+			moveExample(firstEx, -(firstEx.lx + firstEx.hx) / 2, -firstEx.hy);
 			return;
 		}
 		if (numExamples != 4) return;
 
 		Example stretchX = null;
 		Example stretchY = null;
-		for(Example ne = neList; ne != null; ne = ne.nextExample)
+		for(Example ne : neList)
 		{
 			if (ne == biggest || ne == smallest) continue;
 			if (stretchX == null) stretchX = ne; else

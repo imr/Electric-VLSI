@@ -515,7 +515,7 @@ public class FileMenu {
                     noname.kill("delete");
                 }
             }
-            lib.setCurrent();
+            User.setCurrentLibrary(lib);
 			return true;
 		}
 
@@ -600,7 +600,7 @@ public class FileMenu {
 
 		public void terminateOK()
         {
-            createLib.setCurrent();
+    		User.setCurrentLibrary(createLib);
         	Cell showThisCell = Job.getUserInterface().getCurrentCell(createLib);
         	doneOpeningLibrary(showThisCell);
 			if (type == FileType.DAIS)
@@ -783,7 +783,8 @@ public class FileMenu {
         	if (Library.getCurrent() == null)
         	{
 	        	List<Library> remainingLibs = Library.getVisibleLibraries();
-	        	if (remainingLibs.size() > 0) remainingLibs.get(0).setCurrent();
+	        	if (remainingLibs.size() > 0)
+	        		User.setCurrentLibrary(remainingLibs.get(0));
         	}
 
         	WindowFrame.wantToRedoTitleNames();

@@ -231,7 +231,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             PrimitiveNode np = (PrimitiveNode)item;
             return (np.getName());
         }
-        else if (item instanceof NodeInst)
+        if (item instanceof NodeInst)
         {
             NodeInst ni = (NodeInst)item;
             Variable var = ni.getVar(Technology.TECH_TMPVAR);
@@ -239,12 +239,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 return (var.getObject().toString());
             }
-            else // At least case for well contacts
-            {
-               return (ni.getProto().getName());
-            }
+            // At least case for well contacts
+            return (ni.getProto().getName());
         }
-        else if (item instanceof ArcProto)
+        if (item instanceof ArcProto)
         {
             ArcProto ap = (ArcProto)item;
             return (ap.getName());

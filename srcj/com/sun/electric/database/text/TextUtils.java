@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -360,6 +361,30 @@ public class TextUtils
 		return 0;
 	}
 
+	/**
+	 * Method to convert a string with color values into an array of colors.
+	 * @param str the string, with colors separated by "/" and the RGB values in
+	 * a color separated by ",".  For example, "255,0,0/0,0,255" describes two
+	 * colors: red and blue.
+	 * @return an array of Color values.
+	 */
+	public static Color [] getTransparentColors(String str)
+	{
+		String [] colorNames = str.split("/");
+		Color [] colors = new Color[colorNames.length];
+		for(int i=0; i<colorNames.length; i++)
+		{
+			String colorName = colorNames[i].trim();
+			String [] rgb = colorName.split(",");
+			if (rgb.length != 3) return null;
+			int r = TextUtils.atoi(rgb[0]);
+			int g = TextUtils.atoi(rgb[1]);
+			int b = TextUtils.atoi(rgb[2]);
+			colors[i] = new Color(r, g, b);
+		}
+		return colors;
+	}
+
 	private static NumberFormat numberFormatPostFix = null;
 
 	/**
@@ -580,26 +605,19 @@ public class TextUtils
 			long timeleft = intTime / 1000;
 			long timeright = intTime % 1000;
 			if (timeright == 0)
-			{
 				return negative + timeleft + secType;
-			} else
+			if ((timeright%100) == 0)
+				return negative + timeleft + "." + timeright/100 + secType;
+			if ((timeright%10) == 0)
 			{
-				if ((timeright%100) == 0)
-				{
-					return negative + timeleft + "." + timeright/100 + secType;
-				} else if ((timeright%10) == 0)
-				{
-					String tensDigit = "";
-					if (timeright < 100) tensDigit = "0";
-					return negative + timeleft + "." + tensDigit + timeright/10 + secType;
-				} else
-				{
-					String tensDigit = "";
-					if (timeright < 10) tensDigit = "00"; else
-						if (timeright < 100) tensDigit = "0";
-					return negative + timeleft + "." + tensDigit + timeright + secType;
-				}
+				String tensDigit = "";
+				if (timeright < 100) tensDigit = "0";
+				return negative + timeleft + "." + tensDigit + timeright/10 + secType;
 			}
+			String tensDigit = "";
+			if (timeright < 10) tensDigit = "00"; else
+				if (timeright < 100) tensDigit = "0";
+			return negative + timeleft + "." + tensDigit + timeright + secType;
 		}
 
 		// does not fit into 3-digit range easily: drop down a factor of 1000 and use bigger numbers
@@ -1534,8 +1552,7 @@ public class TextUtils
     private static int digit(char ch) {
         if (ch < '\u0080')
             return ch >= '0' && ch <= '9' ? ch - '0' : -1;
-        else
-            return Character.digit((int)ch, 10);
+        return Character.digit((int)ch, 10);
     }
 
 //	/**

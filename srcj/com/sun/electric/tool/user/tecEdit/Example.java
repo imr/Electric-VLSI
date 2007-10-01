@@ -47,14 +47,13 @@ public class Example
 	/** head of list of samples in example */	List<Sample> samples;
 	/** sample under analysis */				Sample       studySample;
 	/** bounding box of example */				double       lx, hx, ly, hy;
-	/** next example in list */					Example      nextExample;
 
 	/**
 	 * Method to parse the node examples in cell "np" and return a list of
 	 * EXAMPLEs (one per example).  "isNode" is true if this is a node
 	 * being examined.  Returns NOEXAMPLE on error.
 	 */
-	static Example getExamples(Cell np, boolean isNode)
+	static List<Example> getExamples(Cell np, boolean isNode)
 	{
 		HashMap<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
@@ -69,7 +68,7 @@ public class Example
 			}
 		}
 
-		Example neList = null;
+		List<Example> neList = new ArrayList<Example>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -78,15 +77,17 @@ public class Example
 			// get a new cluster of nodes
 			Example ne = new Example();
 			ne.samples = new ArrayList<Sample>();
-			ne.nextExample = neList;
-			neList = ne;
+			neList.add(ne);
 
+//System.out.println("IN CELL "+np.describe(false)+" NEW EXAMPLE "+ne);
 			SizeOffset so = ni.getSizeOffset();
 			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
 				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
 				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
 			poly.transform(ni.rotateOut());
 			Rectangle2D soFar = poly.getBounds2D();
+//System.out.println("IN CELL "+np.describe(false)+" CONSIDER "+ni.describe(false)+" FROM "+soFar.getMinX()+"<=X<="+
+//	soFar.getMaxX()+" AND "+soFar.getMinY()+"<=Y<="+soFar.getMaxY());
 
 			// now find all others that touch this area
 			boolean gotBBox = false;
@@ -98,6 +99,8 @@ public class Example
 
 				// begin to search the area so far
                 List<NodeInst> sortedNodes = new ArrayList<NodeInst>();
+//System.out.println("IN CELL "+np.describe(false)+" SEARCHING "+soFar.getMinX()+"<=X<="+
+//	soFar.getMaxX()+" AND "+soFar.getMinY()+"<=Y<="+soFar.getMaxY());
 				for(Iterator<RTBounds> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
 					RTBounds geom = oIt.next();
@@ -113,6 +116,8 @@ public class Example
 						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
+//System.out.println("IN CELL "+np.describe(false)+" FOUND "+otherNi.describe(false)+" FROM "+otherRect.getMinX()+"<=X<="+
+//	otherRect.getMaxX()+" AND "+otherRect.getMinY()+"<=Y<="+otherRect.getMaxY());
 					if (!GenMath.rectsIntersect(otherRect, soFar)) continue;
 
 					// make sure the node is valid
@@ -121,8 +126,8 @@ public class Example
 					{
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
-						LibToTech.pointOutError(otherNi, np);
-						System.out.println("Examples are too close in " + np);
+//System.out.println("IN CELL "+np.describe(false)+" CONFLICTS WITH EXAMPLE "+otherAssn);
+						LibToTech.pointOutError(otherNi, np, "Examples are too close");
 						return null;
 					}
 					nodeExamples.put(otherNi, ne);
@@ -143,8 +148,7 @@ public class Example
 						case Info.PORTOBJ:
 							if (!isNode)
 							{
-								LibToTech.pointOutError(otherNi, np);
-								System.out.println(np + " cannot have ports.  Delete this");
+								LibToTech.pointOutError(otherNi, np, "Ports can only exist in nodes");
 								return null;
 							}
 							ns.layer = Generic.tech.portNode;
@@ -152,8 +156,7 @@ public class Example
 						case Info.CENTEROBJ:
 							if (!isNode)
 							{
-								LibToTech.pointOutError(otherNi, np);
-								System.out.println(np + " cannot have a grab point.  Delete this");
+								LibToTech.pointOutError(otherNi, np, "Grab points can only exist in nodes");
 								return null;
 							}
 							ns.layer = Generic.tech.cellCenterNode;
@@ -165,8 +168,7 @@ public class Example
 							ns.layer = Manipulate.getLayerCell(otherNi);
 							if (ns.layer == null)
 							{
-								LibToTech.pointOutError(otherNi, np);
-								System.out.println("No layer information on " + otherNi + " in " + np);
+								LibToTech.pointOutError(otherNi, np, "Node has no layer information");
 								return null;
 							}
 							break;
@@ -194,37 +196,37 @@ public class Example
 			}
 			if (hCount == 0)
 			{
-				LibToTech.pointOutError(null, np);
-				System.out.println("No highlight layer in " + np + " example");
+				LibToTech.pointOutError(null, np, "No highlight layer found");
 				return null;
 			}
 			if (hCount != 1)
 			{
-				LibToTech.pointOutError(null, np);
-				System.out.println("Too many highlight layers in " + np + " example.  Delete some");
+				LibToTech.pointOutError(null, np, "Too many highlight layers found");
 				return null;
 			}
 		}
 		if (neList == null)
 		{
-			LibToTech.pointOutError(null, np);
-			System.out.println("No examples found in " + np);
+			LibToTech.pointOutError(null, np, "No examples found");
 			return neList;
 		}
 
 		// now search the list for the smallest, most upper-right example (the "main" example)
-		double sizeX = neList.hx - neList.lx;
-		double sizeY = neList.hy - neList.ly;
-		double locX = (neList.lx + neList.hx) / 2;
-		double locY = (neList.ly + neList.hy) / 2;
-		Example bestNe = neList;
-		for(Example ne = neList; ne != null; ne = ne.nextExample)
+		double sizeX = 0;
+		double sizeY = 0;
+		double locX = 0;
+		double locY = 0;
+		Example bestNe = null;
+		for(Example ne : neList)
 		{
 			double newSize = ne.hx-ne.lx;
 			newSize *= ne.hy-ne.ly;
-			if (newSize > sizeX*sizeY) continue;
-			if (newSize == sizeX*sizeY && (ne.lx+ne.hx)/2 >= locX && (ne.ly+ne.hy)/2 <= locY)
-				continue;
+			if (bestNe != null)
+			{
+				if (newSize > sizeX*sizeY) continue;
+				if (newSize == sizeX*sizeY && (ne.lx+ne.hx)/2 >= locX && (ne.ly+ne.hy)/2 <= locY)
+					continue;
+			}
 			sizeX = ne.hx - ne.lx;
 			sizeY = ne.hy - ne.ly;
 			locX = (ne.lx + ne.hx) / 2;
@@ -233,16 +235,10 @@ public class Example
 		}
 
 		// place the main example at the top of the list
-		if (bestNe != neList)
+		if (bestNe != null && bestNe != neList)
 		{
-			for(Example ne = neList; ne != null; ne = ne.nextExample)
-				if (ne.nextExample == bestNe)
-			{
-				ne.nextExample = bestNe.nextExample;
-				break;
-			}
-			bestNe.nextExample = neList;
-			neList = bestNe;
+			neList.remove(bestNe);
+			neList.add(0, bestNe);
 		}
 
 		// done

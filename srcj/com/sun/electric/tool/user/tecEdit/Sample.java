@@ -44,6 +44,5 @@ public class Sample
 	String    msg;					/* string (null if none) */
 
 	Example   parent;				/* example containing this sample */
-	Sample    nextSample;			/* next sample in list */
 };
 
