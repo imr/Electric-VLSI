@@ -34,13 +34,16 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
+import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.text.Highlighter.Highlight;
 
 
 /**
@@ -63,7 +66,29 @@ public class NewExport extends EDialog
 		{
 			exportCharacteristics.addItem(ch.getName());
 		}
-		if (last != null)
+		boolean setDefaultChar = false;
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd != null)
+		{
+			Highlighter h = wnd.getHighlighter();
+			List<Highlight2> highs = h.getHighlights();
+			if (highs.size() == 1)
+			{
+				Highlight2 high = highs.get(0);
+				ElectricObject eObj = high.getElectricObject();
+				if (eObj instanceof PortInst)
+				{
+					NodeInst ni = ((PortInst)eObj).getNodeInst();
+					if (ni.isCellInstance())
+					{
+						Export e = (Export)((PortInst)eObj).getPortProto();
+						exportCharacteristics.setSelectedItem(e.getCharacteristic().getName());
+						setDefaultChar = true;
+					}
+				}
+			}
+		}
+		if (!setDefaultChar && last != null)
 			exportCharacteristics.setSelectedItem(last);
 		referenceExport.setEditable(false);
 		exportName.grabFocus();
