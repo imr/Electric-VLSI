@@ -771,6 +771,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		private String initialPopupEntry, currentPopupEntry;
 		private boolean scalableTrans;
 		private boolean swapXY;
+		private boolean expansionChanged;
 
 		public ChangeNode(NodeInst ni,
 			double initialXPos, double currentXPos, double initialYPos, double currentYPos,
@@ -814,6 +815,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		public boolean doIt() throws JobException
 		{
 			boolean changed = false;
+			expansionChanged = false;
 			NodeProto np = ni.getProto();
 
 			if (!currentName.equals(initialName))
@@ -830,6 +832,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					if (currentExpansion) ni.setExpanded(); else
 						ni.clearExpanded();
 					changed = true;
+					expansionChanged = true;
 				}
 			}
 
@@ -1092,8 +1095,20 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					DBMath.round(Math.abs(currXSize) - Math.abs(initXSize)),
                     DBMath.round(Math.abs(currYSize) - Math.abs(initYSize)), orient);
 			}
+            fieldVariableChanged("expansionChanged");
 
 			return true;
+		}
+
+		public void terminateOK()
+		{
+			if (expansionChanged)
+			{
+				if (User.getDisplayAlgorithm() == 0)
+	                User.markCellForRedraw(ni.getParent(), false);
+				EditWindow.clearSubCellCache();
+				EditWindow.repaintAllContents();
+			}
 		}
 	}
 
