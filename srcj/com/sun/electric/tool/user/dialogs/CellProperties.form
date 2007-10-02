@@ -2,8 +2,6 @@
 
 <Form version="1.0" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <NonVisualComponents>
-    <Component class="javax.swing.ButtonGroup" name="expansion">
-    </Component>
     <Component class="javax.swing.ButtonGroup" name="frameOrientation">
     </Component>
   </NonVisualComponents>
