@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP: (10/2/07, SMR) Multi-object Properties now shows a "Color and Pattern"
+     button if there are Artwork components (Bug #801).
+
 IMP: (10/1/07, SMR) LEF input handles multiple ports on a single path.
 
 BUG: (10/1/07, SMR) Very large instance name text may draw outside box.

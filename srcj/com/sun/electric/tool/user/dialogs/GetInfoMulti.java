@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -58,6 +59,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -70,6 +73,7 @@ import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -264,11 +268,10 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
 		// copy the selected objects to a private list and sort it
 		highlightList.clear();
-        if (wnd != null) {
+        if (wnd != null)
+        {
             for(Highlight2 h: wnd.getHighlighter().getHighlights())
-            {
                 highlightList.add(h);
-            }
             Collections.sort(highlightList, new SortMultipleHighlights());
         }
 
@@ -577,6 +580,30 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				}
 				changePanel.add(onePanel);
 			}
+
+			// add a "Color and Pattern..." button if there are artwork components
+			boolean hasArtwork = false;
+			for(NodeInst ni : nodeList)
+			{
+				if (ni.isCellInstance()) continue;
+				if (ni.getProto().getTechnology() == Artwork.tech) hasArtwork = true;
+			}
+			for(ArcInst ai : arcList)
+			{
+				if (ai.getProto().getTechnology() == Artwork.tech) hasArtwork = true;
+			}
+			if (hasArtwork)
+			{
+				JPanel butPanel = new JPanel();
+				butPanel.setLayout(new GridBagLayout());
+				JButton sh = new JButton("Color and Pattern...");
+				sh.addActionListener(new ActionListener()
+		        {
+		            public void actionPerformed(ActionEvent evt) { ArtworkLook.showArtworkLookDialog(); }
+		        });
+				addChangePossibility(null, sh, null, butPanel);
+				changePanel.add(butPanel);
+			}
 		}
 	}
 
@@ -585,15 +612,21 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		int bottom = 4;
 		if (msg != null) bottom = 0;
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 0;
-        gbc.insets = new Insets(4, 4, bottom, 4);
-		onePanel.add(new JLabel(label), gbc);
-
-		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 0;
 		gbc.weightx = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(4, 4, bottom, 4);
+		if (label == null)
+		{
+			gbc.gridx = 0;
+			gbc.gridwidth = 2;
+		} else
+		{
+			GridBagConstraints lgbc = new GridBagConstraints();
+			lgbc.gridx = 0;   lgbc.gridy = 0;
+			lgbc.insets = new Insets(4, 4, bottom, 4);
+			onePanel.add(new JLabel(label), lgbc);
+		}
 		onePanel.add(comp, gbc);
 
 		if (msg != null)
