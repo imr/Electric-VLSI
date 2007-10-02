@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP: (10/2/07, SMR) Generalized the file name decoding scheme in TextUtils.URLtoString().
+
 IMP: (10/2/07, SMR) When moving objects, movement is shown in status area,
      not in the screen center.
 

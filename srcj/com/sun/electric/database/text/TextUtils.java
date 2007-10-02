@@ -36,10 +36,12 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -1269,9 +1271,14 @@ public class TextUtils
 			filePath = uri.getPath();
 		} catch (URISyntaxException e) {}
 
-		// hack to fix Windows file names with spaces in them
-		if (Client.getOperatingSystem() == Client.OS.WINDOWS)
-			filePath = filePath.replaceAll("%20", " ");
+		// fix encoded file names (for example, with "%20" instead of spaces)
+//		if (Client.getOperatingSystem() == Client.OS.WINDOWS)
+		{
+			try
+			{
+				filePath = URLDecoder.decode(filePath, "UTF-8");
+			} catch (UnsupportedEncodingException e) {}
+		}
 		return filePath;
     }
 
