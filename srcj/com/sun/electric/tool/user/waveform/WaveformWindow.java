@@ -2376,14 +2376,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             contextStr = "x"+context.getInstPath("/x");
         }
         contextStr = TextUtils.canonicString(contextStr);
-		if (net == null)
-			return contextStr;
-		else {
-			if (context == VarContext.globalContext || isGlobal)
-				return getSpiceNetName(net);
-            else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
-            else return contextStr + "." + getSpiceNetName(net);
-		}
+		if (net == null) return contextStr;
+		if (context == VarContext.globalContext || isGlobal)
+			return getSpiceNetName(net);
+        else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
+        else return contextStr + "." + getSpiceNetName(net);
 	}
 
     /**
@@ -4334,45 +4331,44 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					dtde.dropComplete(true);
 					ww.saveSignalOrder();
 					return;
-				} else
-				{
-					// moving/copying a signal (analog only)
-					int sigPos = Math.max(sigMovePos, sigCopyPos);
-					String signalName = sigNames[0].substring(sigPos + 11);
-					Signal sSig = null;
-					Color oldColor = null;
-					for(WaveSignal ws : sourcePanel.getSignals())
-					{
-						if (!ws.getSignal().getFullName().equals(signalName)) continue;
-						sSig = ws.getSignal();
-						if (sSig.getAnalysis().getAnalysisType() != panel.getAnalysisType())
-						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
-								"First convert the panel with the popup in the upper-left.",
-								"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
-							dtde.dropComplete(true);
-							return;					
-						}
-						oldColor = ws.getColor();
-						if (sigCopyPos < 0)
-						{
-							sourcePanel.removeHighlightedSignal(ws, true);
-							sourcePanel.removeSignal(ws.getButton());
-						}
-						break;
-					}
-					if (sSig != null)
-					{
-						sourcePanel.getSignalButtons().validate();
-						sourcePanel.getSignalButtons().repaint();
-						sourcePanel.repaintContents();
-						WaveSignal.addSignalToPanel(sSig, panel, oldColor);
-					}
-					ww.saveSignalOrder();
-					dtde.dropComplete(true);
-					return;
 				}
+
+				// moving/copying a signal (analog only)
+				int sigPos = Math.max(sigMovePos, sigCopyPos);
+				String signalName = sigNames[0].substring(sigPos + 11);
+				Signal sSig = null;
+				Color oldColor = null;
+				for(WaveSignal ws : sourcePanel.getSignals())
+				{
+					if (!ws.getSignal().getFullName().equals(signalName)) continue;
+					sSig = ws.getSignal();
+					if (sSig.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
+							"First convert the panel with the popup in the upper-left.",
+							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+						dtde.dropComplete(true);
+						return;					
+					}
+					oldColor = ws.getColor();
+					if (sigCopyPos < 0)
+					{
+						sourcePanel.removeHighlightedSignal(ws, true);
+						sourcePanel.removeSignal(ws.getButton());
+					}
+					break;
+				}
+				if (sSig != null)
+				{
+					sourcePanel.getSignalButtons().validate();
+					sourcePanel.getSignalButtons().repaint();
+					sourcePanel.repaintContents();
+					WaveSignal.addSignalToPanel(sSig, panel, oldColor);
+				}
+				ww.saveSignalOrder();
+				dtde.dropComplete(true);
+				return;
 			}
 
 			// not rearranging: dropped a signal onto a panel

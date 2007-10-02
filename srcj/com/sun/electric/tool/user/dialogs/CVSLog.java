@@ -159,8 +159,7 @@ public class CVSLog extends EDialog implements MouseListener {
                 case 0: {
                     if (entry.version.equals(workingVersion))
                         return entry.version+" (current)";
-                    else
-                        return entry.version;
+                    return entry.version;
                 }
                 //case 0: return entry.version;
                 case 1: return entry.branch;

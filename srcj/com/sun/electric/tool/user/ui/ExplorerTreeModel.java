@@ -379,11 +379,9 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         
         /* Check for null, in case someone passed in a null node, or
            they passed in an element that isn't rooted at root. */
-        if(aNode == null) {
-            if(depth == 0)
-                return null;
-            else
-                retNodes = new TreeNode[depth];
+        if (aNode == null) {
+            if (depth == 0) return null;
+            retNodes = new TreeNode[depth];
         } else {
             depth++;
             if(aNode == root)

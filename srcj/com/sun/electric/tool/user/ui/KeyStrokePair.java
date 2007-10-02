@@ -128,8 +128,8 @@ public class KeyStrokePair {
      */
     public String toString() {
         if (stroke == null) return "";
-        if (prefixStroke == null) return keyStrokeToString(stroke); else
-            return keyStrokeToString(prefixStroke)+ sep + keyStrokeToString(stroke);
+        if (prefixStroke == null) return keyStrokeToString(stroke);
+        return keyStrokeToString(prefixStroke)+ sep + keyStrokeToString(stroke);
     }
 
     public static String getStringFromKeyStroke(KeyStroke key)

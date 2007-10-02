@@ -683,6 +683,8 @@ public class ClickZoomWireListener
                     if (moveDRC != null) highlighter.remove(moveDRC);
                     String deltaMessage = "Moved (" + TextUtils.formatDouble(dbDelta.getX()) + "," +
                     	TextUtils.formatDouble(dbDelta.getY()) + ")";
+            		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+                    StatusBar.setCoordinates(deltaMessage, wf);
                 	if (ws.validSpacing())
                 	{
 	                	// display worst design rule violation
@@ -712,17 +714,11 @@ public class ClickZoomWireListener
 	                		if (i == 0 || points[i].getY() > maxY)
 	                			maxY = points[i].getY();
 	                	}
-	                    moveDelta = highlighter.addMessage(cell, deltaMessage + ", " + message,
+	                    moveDelta = highlighter.addMessage(cell, message,
 	                    	new Point2D.Double(minX + dbDelta.getX(), maxY + dbDelta.getY()));
 	                    Point2D end1 = new Point2D.Double(ws.getOnePoint().getX() - dbDelta.getX(), ws.getOnePoint().getY() - dbDelta.getY());
 	                    Point2D end2 = new Point2D.Double(ws.getOtherPoint().getX() - dbDelta.getX(), ws.getOtherPoint().getY() - dbDelta.getY());
 	                    moveDRC = highlighter.addLine(end1, end2, cell, tooClose);
-                	} else
-                	{
-	                	// display amount to be moved in center of screen
-                        Rectangle2D bounds = wnd.getDisplayedBounds();
-	                    moveDelta = highlighter.addMessage(cell, deltaMessage,
-	                        new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
                 	}
 	                wnd.repaint();
 	            }
@@ -1485,8 +1481,7 @@ public class ClickZoomWireListener
         ydist = Math.abs(mousePoint.getY() - startPoint.getY());
         if (ydist > xdist)
             return new Point2D.Double(startPoint.getX(), mousePoint.getY());
-        else
-            return new Point2D.Double(mousePoint.getX(), startPoint.getY());
+        return new Point2D.Double(mousePoint.getX(), startPoint.getY());
     }
 
     // ********************************* Wiring Stuff ********************************

@@ -487,14 +487,10 @@ public class WindowFrame extends Observable
 
 	public Component getComponent()
 	{
-		if (TopLevel.isMDIMode())
-		{
-			return jif;
-		} else
-		{
-			return jf;
-		}
+		if (TopLevel.isMDIMode()) return jif;
+		return jf;
 	}
+
 	/**
 	 * Depopulate the JFrame.  Currently this is only used in SDI mode when
 	 * moving a WindowFrame from one display to another.  A new JFrame on the
@@ -978,7 +974,7 @@ public class WindowFrame extends Observable
         if (e instanceof InternalFrameEvent) {
             JInternalFrame source = ((InternalFrameEvent)e).getInternalFrame();
             if (source == jif) return true;
-            else return false;
+            return false;
         }
         return false;
     }

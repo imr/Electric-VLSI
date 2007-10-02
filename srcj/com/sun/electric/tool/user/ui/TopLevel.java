@@ -454,15 +454,11 @@ public class TopLevel extends JFrame
 	 */
 	public static TopLevel getCurrentJFrame()
 	{
-		if (isMDIMode())
-        {
-			return topLevel;
- 		} else
-        {
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-            if (wf == null) return null;
-			return wf.getFrame();
-        }
+		if (isMDIMode()) return topLevel;
+
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return null;
+		return wf.getFrame();
 	}
 
 //	/**

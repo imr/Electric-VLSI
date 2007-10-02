@@ -365,7 +365,6 @@ public class CellProperties extends EDialog
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        expansion = new javax.swing.ButtonGroup();
         frameOrientation = new javax.swing.ButtonGroup();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
@@ -1325,7 +1324,6 @@ public class CellProperties extends EDialog
     private javax.swing.JCheckBox disallowModAnyInCell;
     private javax.swing.JCheckBox disallowModInstInCell;
     private javax.swing.JCheckBox expandNewInstances;
-    private javax.swing.ButtonGroup expansion;
     private javax.swing.JTextField frameDesigner;
     private javax.swing.JRadioButton frameLandscape;
     private javax.swing.ButtonGroup frameOrientation;

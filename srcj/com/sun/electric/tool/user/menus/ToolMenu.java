@@ -1168,8 +1168,7 @@ public class ToolMenu {
             System.out.println("No network in " + cell + " selected");
             return;
         }
-	    else
-            LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode);
+        LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode);
     }
 
     private static final double SQSIZE = 0.4;

@@ -184,7 +184,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         private int getCodeColumn() {
             if (!showCode) return -1;
-            else return 2;
+            return 2;
         }
 
         private int getDispColumn() {

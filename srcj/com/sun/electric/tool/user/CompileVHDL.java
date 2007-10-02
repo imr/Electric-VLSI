@@ -5981,7 +5981,8 @@ public class CompileVHDL
 					} else
 						System.out.println("ERROR - interface " + inst.compo.name + "not found.");
 					continue;
-				} else genQuiscInterface((DBInterface)symbol.pointer, netlist);
+				}
+				genQuiscInterface((DBInterface)symbol.pointer, netlist);
 			}
 		}
 
@@ -6451,22 +6452,21 @@ public class CompileVHDL
 						port.next = node.ports;
 						node.ports = port;
 						return;
+					}
+
+					int tindex;
+					if (node.start > node.end)
+					{
+						tindex = node.start - indexC;
 					} else
 					{
-						int tindex;
-						if (node.start > node.end)
-						{
-							tindex = node.start - indexC;
-						} else
-						{
-							tindex = indexC - node.start;
-						}
-						if (tindex >= 0 && tindex < node.size)
-						{
-							port.next = node.table[tindex];
-							node.table[tindex] = port;
-							return;
-						}
+						tindex = indexC - node.start;
+					}
+					if (tindex >= 0 && tindex < node.size)
+					{
+						port.next = node.table[tindex];
+						node.table[tindex] = port;
+						return;
 					}
 				}
 			}

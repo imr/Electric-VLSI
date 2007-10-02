@@ -459,9 +459,8 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
                     listModel.addElement(var.getKey());
                 }
                 continue;
-            } else {
-                listModel.addElement(var.getKey());
             }
+            listModel.addElement(var.getKey());
         }
     }
 

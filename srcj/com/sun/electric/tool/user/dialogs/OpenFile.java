@@ -224,18 +224,17 @@ public class OpenFile
 				return file.getPath();
 			}
 			return null;
-		} else
-		{
-			// the AWT way
-			FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
-			dialog.setDirectory(User.getWorkingDirectory());
-			if (type != null) dialog.setFilenameFilter(type.getFileFilterAWT());
-			dialog.setVisible(true);
-			String fileName = dialog.getFile();
-			if (fileName == null) return null;
-			User.setWorkingDirectory(dialog.getDirectory());
-			return dialog.getDirectory() + fileName;
 		}
+
+		// the AWT way
+		FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
+		dialog.setDirectory(User.getWorkingDirectory());
+		if (type != null) dialog.setFilenameFilter(type.getFileFilterAWT());
+		dialog.setVisible(true);
+		String fileName = dialog.getFile();
+		if (fileName == null) return null;
+		User.setWorkingDirectory(dialog.getDirectory());
+		return dialog.getDirectory() + fileName;
 	}
 
 //	private static class MoveComponentListener implements ComponentListener
@@ -332,19 +331,18 @@ public class OpenFile
 				return fileName;
 			}
 			return null;
-		} else
-		{
-			// the AWT way
-			FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
-			awtDialog.setDirectory(initialDir);
-			awtDialog.setFile(defaultFile);
-			awtDialog.setFilenameFilter(types[0].getFileFilterAWT());
-			awtDialog.setVisible(true);
-			String fileName = awtDialog.getFile();
-			if (fileName == null) return null;
-            types[0].setGroupPath(awtDialog.getDirectory());
-			return awtDialog.getDirectory() + fileName;
 		}
+
+		// the AWT way
+		FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
+		awtDialog.setDirectory(initialDir);
+		awtDialog.setFile(defaultFile);
+		awtDialog.setFilenameFilter(types[0].getFileFilterAWT());
+		awtDialog.setVisible(true);
+		String fileName = awtDialog.getFile();
+		if (fileName == null) return null;
+        types[0].setGroupPath(awtDialog.getDirectory());
+		return awtDialog.getDirectory() + fileName;
 	}
 
 	/**

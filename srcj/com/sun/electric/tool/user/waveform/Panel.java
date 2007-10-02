@@ -845,12 +845,11 @@ public class Panel extends JPanel
 			double logWinMaxX = Math.log10(winMaxX);
 			double x = (logValue - logWinMinX) / (logWinMaxX - logWinMinX) * (sz.width - vertAxisPos) + vertAxisPos;
 			return (int)x;
-		} else
-		{
-			// linear axes
-			double x = (value - minXPosition) / (maxXPosition - minXPosition) * (sz.width - vertAxisPos) + vertAxisPos;
-			return (int)x;
 		}
+
+		// linear axes
+		double x = (value - minXPosition) / (maxXPosition - minXPosition) * (sz.width - vertAxisPos) + vertAxisPos;
+		return (int)x;
 	}
 
 	/**
@@ -874,12 +873,11 @@ public class Panel extends JPanel
 			double logWinMaxX = Math.log10(winMaxX);
 			double xValue = Math.pow(10, ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (logWinMaxX - logWinMinX) + logWinMinX);
 			return xValue;
-		} else
-		{
-			// linear axes
-			double xValue = ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (maxXPosition - minXPosition) + minXPosition;
-			return xValue;
 		}
+
+		// linear axes
+		double xValue = ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (maxXPosition - minXPosition) + minXPosition;
+		return xValue;
 	}
 
 	/**
@@ -902,12 +900,11 @@ public class Panel extends JPanel
 			double logWinMaxY = Math.log10(winMaxY);
 			double y = sz.height - 1 - (logValue - logWinMinY) / (logWinMaxY - logWinMinY) * (sz.height-1);
 			return (int)y;
-		} else
-		{
-			// linear axes
-			double y = sz.height - 1 - (value - analogLowValue) / analogRange * (sz.height-1);
-			return (int)y;
 		}
+
+		// linear axes
+		double y = sz.height - 1 - (value - analogLowValue) / analogRange * (sz.height-1);
+		return (int)y;
 	}
 
 	/**
@@ -928,12 +925,11 @@ public class Panel extends JPanel
 			double logWinMaxY = Math.log10(winMaxY);
 			double yValue = Math.pow(10, logWinMinY - (y - sz.height + 1) * (logWinMaxY - logWinMinY) / (sz.height-1));
 			return yValue;
-		} else
-		{
-			// linear axes
-			double value = analogLowValue - (y - sz.height + 1) * analogRange / (sz.height-1);
-			return value;
 		}
+
+		// linear axes
+		double value = analogLowValue - (y - sz.height + 1) * analogRange / (sz.height-1);
+		return value;
 	}
 
 	// ************************************* DISPLAY CONTROL *************************************
@@ -1700,15 +1696,14 @@ public class Panel extends JPanel
 					poly.setLayer(Artwork.tech.defaultLayer);
 					forPs.add(poly);
 					return false;
-				} else
-				{
-					WaveSelection wSel = new WaveSelection();
-					wSel.ws = ws;
-					wSel.controlPoint = controlPoint;
-					wSel.controlXValue = controlXValue;
-					result.add(wSel);
-					return true;
 				}
+
+				WaveSelection wSel = new WaveSelection();
+				wSel.ws = ws;
+				wSel.controlPoint = controlPoint;
+				wSel.controlXValue = controlXValue;
+				result.add(wSel);
+				return true;
 			}
 			return false;
 		}
@@ -1736,14 +1731,13 @@ public class Panel extends JPanel
 				{
 					forPs.add(new PolyBase(new Point2D[] {from, to}));
 					return false;
-				} else
-				{
-					WaveSelection wSel = new WaveSelection();
-					wSel.ws = ws;
-					wSel.controlPoint = false;
-					result.add(wSel);
-					return true;
 				}
+
+				WaveSelection wSel = new WaveSelection();
+				wSel.ws = ws;
+				wSel.controlPoint = false;
+				result.add(wSel);
+				return true;
 			}
 			return false;
 		}

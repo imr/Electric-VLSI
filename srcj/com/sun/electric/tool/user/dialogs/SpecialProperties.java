@@ -112,13 +112,12 @@ public class SpecialProperties
 				NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Transistor area", null, Schematics.ATTR_AREA);
 				if (npd.wantMore()) return -1;
 				return 1;
-			} else
-			{
-				// show length and width for other transistors
-				TransistorPropertiesDialog tpd = new TransistorPropertiesDialog(wnd, ni);
-				if (tpd.wantMore()) return -1;
-				return 1;
 			}
+
+			// show length and width for other transistors
+			TransistorPropertiesDialog tpd = new TransistorPropertiesDialog(wnd, ni);
+			if (tpd.wantMore()) return -1;
+			return 1;
 		}
 
 		// if double-clicked on a schematic global, show special dialog

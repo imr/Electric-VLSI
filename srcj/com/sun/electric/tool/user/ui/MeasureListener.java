@@ -299,8 +299,9 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		double xdist, ydist;
 		xdist = Math.abs(mousePoint.getX() - startPoint.getX());
 		ydist = Math.abs(mousePoint.getY() - startPoint.getY());
-		if (ydist > xdist) return new Point2D.Double(startPoint.getX(), mousePoint.getY());
-		else return new Point2D.Double(mousePoint.getX(), startPoint.getY());
+		if (ydist > xdist)
+			return new Point2D.Double(startPoint.getX(), mousePoint.getY());
+		return new Point2D.Double(mousePoint.getX(), startPoint.getY());
 	}
 
 }

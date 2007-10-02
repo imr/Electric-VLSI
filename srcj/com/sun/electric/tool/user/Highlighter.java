@@ -546,11 +546,9 @@ public class Highlighter implements DatabaseChangeListener {
             }
         }
 
-        if (currentHighlights.size() > 0) {
+        if (currentHighlights.size() > 0)
             return currentHighlights.get(currentHighlights.size()-1);
-        } else {
-            return lastHighlightListEndObj;
-        }
+        return lastHighlightListEndObj;
     }
 
     /**

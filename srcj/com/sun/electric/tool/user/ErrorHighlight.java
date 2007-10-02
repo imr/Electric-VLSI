@@ -70,8 +70,7 @@ public abstract class ErrorHighlight implements Serializable {
     public static ErrorHighlight newInstance(VarContext context, Geometric geom) {
         if (geom instanceof NodeInst)
             return new ErrorHighNode(context, (NodeInst)geom);
-        else
-            return new ErrorHighArc(context, (ArcInst)geom);
+        return new ErrorHighArc(context, (ArcInst)geom);
     }
     
     public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {

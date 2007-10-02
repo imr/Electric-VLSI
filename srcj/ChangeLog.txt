@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP: (10/2/07, SMR) When moving objects, movement is shown in status area,
+     not in the screen center.
+
 IMP: (10/2/07, SMR) Multi-object Properties now shows a "Color and Pattern"
      button if there are Artwork components (Bug #801).
 

@@ -143,12 +143,8 @@ public class MessagesWindow
 	public boolean isFocusOwner()
 	{
 		if (TopLevel.isMDIMode())
-		{
 			return ((JInternalFrame)jf).isSelected();
-		} else
-		{
-			return jf.isFocusOwner();
-		}
+		return jf.isFocusOwner();
 	}
 
 	/**
