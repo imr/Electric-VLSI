@@ -1484,10 +1484,9 @@ public class Connectivity
 						cutList.remove(cut);
 						foundCut = true;
 						break;
-					} else
-					{
-						reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
 					}
+
+					reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
 				}
 				if (!foundCut)
 				{

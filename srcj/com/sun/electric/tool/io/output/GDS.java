@@ -636,9 +636,8 @@ public class GDS extends Geometry
                 if (!existing.contains(libname)) {
                     System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
                     return libname;
-                } else {
-                    baseName = libname;
                 }
+                baseName = libname;
             }
         }
 		for(int index = 1; ; index++)

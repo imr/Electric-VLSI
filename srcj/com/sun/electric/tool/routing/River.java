@@ -1237,14 +1237,13 @@ public class River
 			ccLast.next = cc;
 			cc.total = 1;
 			return ccInit;
-		} else
-		{
-			if (cc.total < 0)
-			{
-				cc.val = c;
-				cc.total = 1;
-			} else cc.total++;
 		}
+
+		if (cc.total < 0)
+		{
+			cc.val = c;
+			cc.total = 1;
+		} else cc.total++;
 		return ccInit;
 	}
 

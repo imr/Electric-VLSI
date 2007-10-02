@@ -84,15 +84,14 @@ public class CheckInJob extends Job
 				Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
 					" is not in the project.  Add it before checking it in or out.", "Check-In Error");
 				return;
-			} else
+			}
+
+			// see if it is available
+			if (!pc.getOwner().equals(Project.getCurrentUserName()))
 			{
-				// see if it is available
-				if (!pc.getOwner().equals(Project.getCurrentUserName()))
-				{
-					Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
-						"You cannot check-in " + aCell + " because it is checked out to '" + pc.getOwner() + "', not you.", "Check-In Error");
-					return;
-				}
+				Job.getUserInterface().showErrorMessage("Cell " + aCell.describe(true) +
+					"You cannot check-in " + aCell + " because it is checked out to '" + pc.getOwner() + "', not you.", "Check-In Error");
+				return;
 			}
 		}
 	

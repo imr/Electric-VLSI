@@ -282,11 +282,9 @@ public class RTNode
 			RTBounds geom = (RTBounds)pointers[child];
 			// @TODO: GVG if pointers is null (bad file read in), we get an exception
 			return geom.getBounds();
-		} else
-		{
-			RTNode subrtn = (RTNode)pointers[child];
-			return subrtn.getBounds();
 		}
+		RTNode subrtn = (RTNode)pointers[child];
+		return subrtn.getBounds();
 	}
 
 

@@ -406,10 +406,10 @@ public class PCB extends Technology
 			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 		};
-		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
-		};
+//		Technology.TechPoint [] box_2 = new Technology.TechPoint[] {
+//			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+//			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
+//		};
 
 		//******************** NODES ********************
         PrimitiveNode[] spinNodes = new PrimitiveNode[8];

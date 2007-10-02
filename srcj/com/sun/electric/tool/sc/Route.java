@@ -1875,21 +1875,20 @@ public class Route
 			// been here before
 			found.setValue(0);
 			return lastNode;
-		} else
-		{
-			// check others
-			node.flags |= ROUTETEMPNUSE;
-			RouteVCG saveNode = lastNode;
-			for (RouteVCGEdge edge = node.edges; edge != null; edge = edge.next)
-			{
-				lastNode = node;
-				lastNode = vcgSingleCycle(edge.node, lastNode, found);
-				if (found.intValue() != 0) return lastNode;
-			}
-			lastNode = saveNode;
-			found.setValue(0);
-			return lastNode;
 		}
+
+		// check others
+		node.flags |= ROUTETEMPNUSE;
+		RouteVCG saveNode = lastNode;
+		for (RouteVCGEdge edge = node.edges; edge != null; edge = edge.next)
+		{
+			lastNode = node;
+			lastNode = vcgSingleCycle(edge.node, lastNode, found);
+			if (found.intValue() != 0) return lastNode;
+		}
+		lastNode = saveNode;
+		found.setValue(0);
+		return lastNode;
 	}
 
 	/**
@@ -2022,11 +2021,10 @@ public class Route
 				if (list[i] == null) return false;
 			}
 			return true;
-		} else
-		{
-			// no current channel nodes, so compatible
-			return true;
 		}
+
+		// no current channel nodes, so compatible
+		return true;
 	}
 
 	/**

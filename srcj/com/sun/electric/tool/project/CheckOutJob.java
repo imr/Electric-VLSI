@@ -494,11 +494,9 @@ public class CheckOutJob extends Job
 				{
 					throw new JobException(
 						"You already checked-out cell " + oldVers.describe(false) + ", but the changes are not in the current library.  Do an update first.");
-				} else
-				{
-					throw new JobException(
-						"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.getOwner() + "'");
 				}
+				throw new JobException(
+					"Cannot check-out cell " + oldVers.describe(false) + ".  It is checked-out to '" + newestProjectCell.getOwner() + "'");
 			}
 
 			// find this cell in the project file
@@ -517,11 +515,9 @@ public class CheckOutJob extends Job
 					Project.markLocked(oldVers, false);		// CHANGES DATABASE
 					throw new JobException(
 						"Cell " + oldVers.describe(false) + " is already checked out to you.");
-				} else
-				{
-					throw new JobException(
-						"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.getOwner() + "'");
 				}
+				throw new JobException(
+					"Cannot check cell " + oldVers.describe(false) + " out because it is already checked out to '" + pc.getOwner() + "'");
 			}
 
 			// make sure we have the latest version

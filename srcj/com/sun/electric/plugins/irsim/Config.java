@@ -143,7 +143,6 @@ public class Config
 					{
 						Sim.reportError(fileName, lineReader.getLineNumber(), "syntax error in resistance spec");
 					}
-					continue;
 				} else
 				{
 					if (targ[0].equals("capm2a")) CM2A = TextUtils.atof(targ[1]); else

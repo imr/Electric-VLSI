@@ -1461,8 +1461,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     return sch;
                 }
                 return proto;
-            } else
-                return proto;
+            }
+            return proto;
         }
         return null;
     }

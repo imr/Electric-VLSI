@@ -96,23 +96,23 @@ public class ALS extends Engine
 	private double    randomDef;
 	private double    absDef;
 
-	/**
-	 * DelayTypes is a typesafe enum class that describes types of delay.
-	 */
-	private static class DelayTypes
-	{
-		private DelayTypes() {}
-
-		/**
-		 * Returns a printable version of this DelayTypes.
-		 * @return a printable version of this DelayTypes.
-		 */
-		public String toString() { return ""; }
-
-		/** Describes a minimum delay. */		public static final DelayTypes DELAY_MIN = new DelayTypes();
-		/** Describes a typical delay. */		public static final DelayTypes DELAY_TYP = new DelayTypes();
-		/** Describes a maximum delay. */		public static final DelayTypes DELAY_MAX = new DelayTypes();
-	}
+//	/**
+//	 * DelayTypes is a typesafe enum class that describes types of delay.
+//	 */
+//	private static class DelayTypes
+//	{
+//		private DelayTypes() {}
+//
+//		/**
+//		 * Returns a printable version of this DelayTypes.
+//		 * @return a printable version of this DelayTypes.
+//		 */
+//		public String toString() { return ""; }
+//
+//		/** Describes a minimum delay. */		public static final DelayTypes DELAY_MIN = new DelayTypes();
+//		/** Describes a typical delay. */		public static final DelayTypes DELAY_TYP = new DelayTypes();
+//		/** Describes a maximum delay. */		public static final DelayTypes DELAY_MAX = new DelayTypes();
+//	}
 
 	static class Model
 	{
@@ -673,10 +673,9 @@ public class ALS extends Engine
 								lastSet.right= nextSet;
 							found = true;
 							break;
-						} else
-						{
-							lastSet = thisSet;
 						}
+
+						lastSet = thisSet;
 					}
 				}
 			}

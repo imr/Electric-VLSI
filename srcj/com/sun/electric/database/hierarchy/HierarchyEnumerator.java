@@ -100,9 +100,8 @@ public final class HierarchyEnumerator {
 			Iterator<String> it = net.getNames();
 			if (it.hasNext()) {
 				return it.next();
-			} else {
-				return "netIndex"+net.getNetIndex();
 			}
+			return "netIndex"+net.getNetIndex();
 		}
 		public Iterator<String> leafNames() {return net.getNames();}
 		public NetNameProxy(VarContext context, String sep, Network net) {
@@ -732,9 +731,8 @@ public final class HierarchyEnumerator {
 					netIDs[i] = shorts.net2id[netlist.getNetwork(e, i).getNetIndex()];
 				}
 				return netIDs;
-			} else {
-				return exportNdxToNetIDs[e.getPortIndex() + 1];
 			}
+			return exportNdxToNetIDs[e.getPortIndex() + 1];
 		}
 
 		/** Map any net inside the current cell to a net

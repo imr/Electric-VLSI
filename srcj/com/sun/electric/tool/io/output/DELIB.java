@@ -309,10 +309,9 @@ public class DELIB extends JELIB {
      * @return the Cell subdirectory name.
      */
     public static String getCellSubDir(CellId cellId) {
-        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
+        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0)
             return "";
-        } else
-            return cellId.cellName.getName();
+        return cellId.cellName.getName();
     }
 
     /**
@@ -328,14 +327,13 @@ public class DELIB extends JELIB {
             String cellName = cellId.cellName.getName();
             View view = cellId.cellName.getView();
             return cellName + "." + view.getAbbreviation();
-        } else {
-            String dir = getCellSubDir(cellId);
-            String cellName = cellId.cellName.getName();
-            //int version = cellId.cellName.getVersion();
-            View view = cellId.cellName.getView();
-            //if (version > 1) cellName = cellName + "_" + version;
-            return dir + File.separator + cellName + "." + view.getAbbreviation();
         }
+        String dir = getCellSubDir(cellId);
+        String cellName = cellId.cellName.getName();
+        //int version = cellId.cellName.getVersion();
+        View view = cellId.cellName.getView();
+        //if (version > 1) cellName = cellName + "_" + version;
+        return dir + File.separator + cellName + "." + view.getAbbreviation();
     }
 
     /**
@@ -353,15 +351,14 @@ public class DELIB extends JELIB {
         if (lib.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // library version is greater than 8.04m
             return getCellFile(cellId);
-        } else {
-            // in version 8.04m and earlier, cell files were in subdirs
-            String dir = cellId.cellName.getName();
-            String cellName = cellId.cellName.getName();
-            //int version = cellId.cellName.getVersion();
-            View view = cellId.cellName.getView();
-            //if (version > 1) cellName = cellName + "_" + version;
-            return dir + File.separator + cellName + "." + view.getAbbreviation();
         }
+        // in version 8.04m and earlier, cell files were in subdirs
+        String dir = cellId.cellName.getName();
+        String cellName = cellId.cellName.getName();
+        //int version = cellId.cellName.getVersion();
+        View view = cellId.cellName.getView();
+        //if (version > 1) cellName = cellName + "_" + version;
+        return dir + File.separator + cellName + "." + view.getAbbreviation();
     }
 
     /**

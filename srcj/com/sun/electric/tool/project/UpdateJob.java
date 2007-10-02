@@ -345,47 +345,46 @@ public class UpdateJob extends Job
 							System.out.println("WARNING: " + oldCell + " is checked-out to " + pc.getOwner());
 						}
 						continue;
+					}
+
+					// the cell is not in the library
+					if (!pc.getOwner().equals(Project.getCurrentUserName())) continue;
+
+					System.out.println("WARNING: Cell " + pl.getLibrary().getName() + ":" + pc.describe() +
+						" is checked-out to you but is missing from this library.  Re-building it.");
+					// prevent tools (including this one) from seeing the changes
+					Project.setChangeStatus(true);
+
+					oldCell = pl.getLibrary().findNodeProto(pc.describe());
+					Library lib = oldCell.getLibrary();
+					String newName = oldCell.getName() + ";" + pc.getVersion() + pc.getView().getAbbreviationExtension();
+					if (oldCell != null)
+					{
+						Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);
+						if (newVers == null)
+						{
+							System.out.println("Error making new version of cell " + oldCell.describe(false));
+							Project.setChangeStatus(false);
+							continue;
+						}
+
+						// replace former usage with new version
+						if (Project.useNewestVersion(oldCell, newVers))		// CHANGES DATABASE
+						{
+							System.out.println("Error replacing instances of cell " + oldCell.describe(false));
+							Project.setChangeStatus(false);
+							continue;
+						}
+						pl.ignoreCell(oldCell);
+						pl.linkProjectCellToCell(pc, newVers);
+						Project.markLocked(newVers, false);		// CHANGES DATABASE
 					} else
 					{
-						// the cell is not in the library
-						if (!pc.getOwner().equals(Project.getCurrentUserName())) continue;
-
-						System.out.println("WARNING: Cell " + pl.getLibrary().getName() + ":" + pc.describe() +
-							" is checked-out to you but is missing from this library.  Re-building it.");
-						// prevent tools (including this one) from seeing the changes
-						Project.setChangeStatus(true);
-
-						oldCell = pl.getLibrary().findNodeProto(pc.describe());
-						Library lib = oldCell.getLibrary();
-						String newName = oldCell.getName() + ";" + pc.getVersion() + pc.getView().getAbbreviationExtension();
-						if (oldCell != null)
-						{
-							Cell newVers = Cell.copyNodeProto(oldCell, lib, newName, true);
-							if (newVers == null)
-							{
-								System.out.println("Error making new version of cell " + oldCell.describe(false));
-								Project.setChangeStatus(false);
-								continue;
-							}
-
-							// replace former usage with new version
-							if (Project.useNewestVersion(oldCell, newVers))		// CHANGES DATABASE
-							{
-								System.out.println("Error replacing instances of cell " + oldCell.describe(false));
-								Project.setChangeStatus(false);
-								continue;
-							}
-							pl.ignoreCell(oldCell);
-							pl.linkProjectCellToCell(pc, newVers);
-							Project.markLocked(newVers, false);		// CHANGES DATABASE
-						} else
-						{
-							// the cell never existed before: create it
-							Cell newVers = Cell.makeInstance(lib, newName);
-							pl.linkProjectCellToCell(pc, newVers);
-						}
-						Project.setChangeStatus(false);
+						// the cell never existed before: create it
+						Cell newVers = Cell.makeInstance(lib, newName);
+						pl.linkProjectCellToCell(pc, newVers);
 					}
+					Project.setChangeStatus(false);
 				}
 			}
 			versionToGet.put(cellName, pc);

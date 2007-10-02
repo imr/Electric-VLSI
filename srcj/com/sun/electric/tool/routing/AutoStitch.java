@@ -612,11 +612,10 @@ public class AutoStitch
 					// compare arc "geom" against arc "oAi"
 					compareTwoArcs((ArcInst)geom, oAi, stayInside, top, limitBound);
 					continue;
-				} else
-				{
-					// compare node "ni" against arc "oAi"
-					compareNodeWithArc(ni, oAi, stayInside, top, limitBound);
 				}
+
+				// compare node "ni" against arc "oAi"
+				compareNodeWithArc(ni, oAi, stayInside, top, limitBound);
 			} else
 			{
 				// other geometric a NodeInst

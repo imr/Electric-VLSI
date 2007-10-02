@@ -428,13 +428,12 @@ public class ERCAntenna
 				{
 					// touching the diffusion side of the transistor
 					return ERCANTPATHACTIVE;
-				} else
-				{
-					// touching the gate side of the transistor
-					TransistorSize dim = thisni.getTransistorSize(VarContext.globalContext);
-					totalGateArea += dim.getDoubleLength() * dim.getDoubleWidth();
-					ret = ERCANTPATHGATE;
 				}
+
+				// touching the gate side of the transistor
+				TransistorSize dim = thisni.getTransistorSize(VarContext.globalContext);
+				totalGateArea += dim.getDoubleLength() * dim.getDoubleWidth();
+				ret = ERCANTPATHGATE;
 			} else
 			{
 				// normal primitive: propagate

@@ -557,10 +557,8 @@ public class DEF extends LEFDEF
 			Matcher m_rightbracket = pat_rightbracket.matcher(tmpa);
 			tmpb = m_rightbracket.replaceAll("]");
 			return(tmpb);
-		} else
-		{
-			return name;
 		}
+		return name;
 	}
 
 	private boolean readPin(Cell cell)

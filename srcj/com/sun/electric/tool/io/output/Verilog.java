@@ -690,14 +690,13 @@ public class Verilog extends Topology
                                     wholeNegated = true;
                                 }
                                 break;
-                            } else
-                            {
-                                if (!first)
-                                    infstr.append(op);
-                                first = false;
-                                if (isNegated) infstr.append("~");
-                                infstr.append(sigName);
                             }
+
+                            if (!first)
+                                infstr.append(op);
+                            first = false;
+                            if (isNegated) infstr.append("~");
+                            infstr.append(sigName);
                         }
                     }
                     if (wholeNegated)
@@ -719,7 +718,7 @@ public class Verilog extends Topology
 
                 nodeName = parameterizedName(no, context);
                 // cells defined as "primitives" in Verilog View must have implicit port ordering
-                if (definedPrimitives.containsKey((Cell)niProto)) {
+                if (definedPrimitives.containsKey(niProto)) {
                     implicitPorts = 3;
                 }
             } else
@@ -886,7 +885,7 @@ public class Verilog extends Topology
                     break;
                 case 3:         // implicit ports ordering for cells defined as primitives in Verilog View
                     ni = no.getNodeInst();
-                    VerilogData.VerilogModule module = definedPrimitives.get((Cell)niProto);
+                    VerilogData.VerilogModule module = definedPrimitives.get(niProto);
                     if (module == null) break;
                     System.out.print(cell.getName()+" ports: ");
                     for (VerilogData.VerilogPort port : module.getPorts()) {

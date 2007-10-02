@@ -2611,15 +2611,13 @@ public class ELIB extends LibraryFiles
 		{
 			updateProgressDialog(4);
 			return dataInputStream.readFloat();
-		} else
-		{
-			readBytes(rawData, sizeOfBig, 4, true);
-			bb.put(0, rawData[3]);
-			bb.put(1, rawData[2]);
-			bb.put(2, rawData[1]);
-			bb.put(3, rawData[0]);
-			return bb.getFloat(0);
 		}
+		readBytes(rawData, sizeOfBig, 4, true);
+		bb.put(0, rawData[3]);
+		bb.put(1, rawData[2]);
+		bb.put(2, rawData[1]);
+		bb.put(3, rawData[0]);
+		return bb.getFloat(0);
 	}
 
 	/**
@@ -2632,19 +2630,17 @@ public class ELIB extends LibraryFiles
 		{
 			updateProgressDialog(8);
 			return dataInputStream.readDouble();
-		} else
-		{
-			readBytes(rawData, sizeOfBig, 8, true);
-			bb.put(0, rawData[7]);
-			bb.put(1, rawData[2]);
-			bb.put(2, rawData[3]);
-			bb.put(3, rawData[4]);
-			bb.put(4, rawData[3]);
-			bb.put(5, rawData[2]);
-			bb.put(6, rawData[1]);
-			bb.put(7, rawData[0]);
-			return bb.getDouble(0);
 		}
+		readBytes(rawData, sizeOfBig, 8, true);
+		bb.put(0, rawData[7]);
+		bb.put(1, rawData[2]);
+		bb.put(2, rawData[3]);
+		bb.put(3, rawData[4]);
+		bb.put(4, rawData[3]);
+		bb.put(5, rawData[2]);
+		bb.put(6, rawData[1]);
+		bb.put(7, rawData[0]);
+		return bb.getDouble(0);
 	}
 
 	/**
@@ -2687,23 +2683,22 @@ public class ELIB extends LibraryFiles
 //			tempstr = io_gettempstring();
 //			if (allocstring(&name, tempstr, cluster)) return(0);
 			return null;
-		} else
-		{
-			// disk and memory match: read the data
-			int len = readBigInteger();
-			if (len <= 0) return "";
-			if (len > fileLength - byteCount)
-			{
-				System.out.println("Corrupt ELIB file requests string that is " + len + " long");
-				throw new IOException();
-			}
-			byte [] stringBytes = new byte[len];
-            int ret = dataInputStream.read(stringBytes, 0, len);
-            if (ret != len) throw new IOException();
-			updateProgressDialog(len);
-			String theString = new String(stringBytes);
-			return theString;
 		}
+
+		// disk and memory match: read the data
+		int len = readBigInteger();
+		if (len <= 0) return "";
+		if (len > fileLength - byteCount)
+		{
+			System.out.println("Corrupt ELIB file requests string that is " + len + " long");
+			throw new IOException();
+		}
+		byte [] stringBytes = new byte[len];
+        int ret = dataInputStream.read(stringBytes, 0, len);
+        if (ret != len) throw new IOException();
+		updateProgressDialog(len);
+		String theString = new String(stringBytes);
+		return theString;
 	}
 
 	/**

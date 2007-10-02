@@ -2868,8 +2868,7 @@ public class Spice extends Topology
                     System.out.println("Spice Header Card '" + fileName + "' is included");
                     return;
 				}
-                else
-                    System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
+                System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
             } else
 			{
 				// normal header file specified
@@ -3176,10 +3175,9 @@ public class Spice extends Topology
                 if (cellIsEmpty(schCell)) {
                     if (CELLISEMPTYDEBUG) emptyCells.add(schCell);
                     continue;
-                } else {
-                    empty = false;
-                    break;
                 }
+                empty = false;
+                break;
             }
 
             // otherwise, this is a primitive

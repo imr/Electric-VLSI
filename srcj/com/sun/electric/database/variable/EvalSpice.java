@@ -104,9 +104,8 @@ public class EvalSpice {
                 Object value = eq.eval();
                 if (value instanceof String) {
                     return new SimpleEq("("+value.toString()+")", null, null);
-                } else {
-                    return new SimpleEq(value, null, null);
                 }
+                return new SimpleEq(value, null, null);
             }
             else if (tt == '(') {       // begin new eq
                 openParens++;
@@ -481,11 +480,10 @@ public class EvalSpice {
                     if (condval.negrh) valf = -1.0 * valf;
                     if (cond == 0) return valf;
                     return valt;
-                } else {
-                    String neglhstr = condval.neglh ? "-" : "";
-                    String negrhstr = condval.negrh ? "-" : "";
-                    rhop = neglhstr + format(condval.lhop) + " : " + negrhstr + format(condval.rhop);
                 }
+                String neglhstr = condval.neglh ? "-" : "";
+                String negrhstr = condval.negrh ? "-" : "";
+                rhop = neglhstr + format(condval.lhop) + " : " + negrhstr + format(condval.rhop);
             }
             else if ((lhop instanceof Double) && (rhop instanceof Double)) {
                 double lh = ((Double)lhop).doubleValue();
@@ -509,8 +507,8 @@ public class EvalSpice {
                 if (neglh) {
                     if (lhop instanceof Double) {
                         return -1.0 * ((Double)lhop).doubleValue();
-                    } else
-                        return "-"+lhop.toString();
+                    }
+                    return "-"+lhop.toString();
                 }
                 return lhop;
             }

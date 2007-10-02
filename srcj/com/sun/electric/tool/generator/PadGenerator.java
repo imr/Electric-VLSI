@@ -554,28 +554,32 @@ public class PadGenerator
 		return keyword;
 	}
 
-	private String getRHS(String keyword, StringTokenizer str) {
-		if (keyword.indexOf("=") != -1) {
-			if (keyword.substring(keyword.indexOf("=") + 1).equals("")) {
+	private String getRHS(String keyword, StringTokenizer str)
+	{
+		if (keyword.indexOf("=") != -1)
+		{
+			if (keyword.substring(keyword.indexOf("=") + 1).equals(""))
+			{
 				// LHS= RHS
 				if (!str.hasMoreTokens()) return null;
 				return str.nextToken();
-			} else {
-				// LHS=RHS
-				return keyword.substring(keyword.indexOf("=") + 1);
 			}
-		} else {
-			if (!str.hasMoreTokens()) return null;
-			keyword = str.nextToken();
-			if (keyword.equals("=")) {
-				// LHS = RHS
-				if (!str.hasMoreTokens()) return null;
-				return str.nextToken();
-			} else {
-				// LHS =RHS
-				return keyword.substring(keyword.indexOf("=") + 1);
-			}
+
+			// LHS=RHS
+			return keyword.substring(keyword.indexOf("=") + 1);
 		}
+
+		if (!str.hasMoreTokens()) return null;
+		keyword = str.nextToken();
+		if (keyword.equals("="))
+		{
+			// LHS = RHS
+			if (!str.hasMoreTokens()) return null;
+			return str.nextToken();
+		}
+
+		// LHS =RHS
+		return keyword.substring(keyword.indexOf("=") + 1);
 	}
 
 	/**

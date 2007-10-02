@@ -2090,11 +2090,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 							instProto.libDescribe() + " because it would create a circular library dependence: ");
 						System.out.println(libDep.toString());
 						return true;
-					} else {
-						System.out.println("WARNING: "+ libDescribe() + " instantiates " +
-							instProto.libDescribe() + " which causes a circular library dependence: ");
-						System.out.println(libDep.toString());
 					}
+					System.out.println("WARNING: "+ libDescribe() + " instantiates " +
+						instProto.libDescribe() + " which causes a circular library dependence: ");
+					System.out.println(libDep.toString());
 				}
 			}
 		}

@@ -389,8 +389,8 @@ public abstract class InteractiveRouter extends Router {
         if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject,
                 extendArcHead, extendArcTail)) {
             return route;
-        } else
-            return new Route();             // error, return empty route
+        }
+        return new Route();             // error, return empty route
     }
 
     // -------------------- Internal Router Utility Methods --------------------

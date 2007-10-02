@@ -1193,12 +1193,11 @@ public abstract class LibraryFiles extends Input
             Cell cell = (Cell)np;
             ExportId exportId = cell.getId().newExportId(portId);
             return cell.getExportChron(exportId.chronIndex);
-        } else {
-            pp = np.findPortProto(portId);
-            if (pp == null) {
-                PrimitiveNode primNode = (PrimitiveNode)np;
-                pp = primNode.getTechnology().convertOldPortName(portId, primNode);
-            }
+        }
+        pp = np.findPortProto(portId);
+        if (pp == null) {
+            PrimitiveNode primNode = (PrimitiveNode)np;
+            pp = primNode.getTechnology().convertOldPortName(portId, primNode);
         }
         return pp;
     }

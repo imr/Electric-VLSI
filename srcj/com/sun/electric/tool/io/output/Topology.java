@@ -950,11 +950,10 @@ public abstract class Topology extends Output
 			}
             if (aggregateNamesSupported)
 			    return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
-            else {
-                // Sort by simple string comparison, otherwise it is impossible
-                // to stitch this together with netlists from other tools
-                return cs1.name.compareTo(cs2.name);
-            }
+
+            // Sort by simple string comparison, otherwise it is impossible
+            // to stitch this together with netlists from other tools
+            return cs1.name.compareTo(cs2.name);
 		}
 	}
 
@@ -1137,10 +1136,9 @@ public abstract class Topology extends Output
         }
 
         private String getDefaultName(Cell cell) {
-            if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell)) {
+            if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell))
                 return cell.getLibrary().getName() + "__" + cell.getName();
-            } else
-                return cell.getName();
+            return cell.getName();
         }
 
         private void resolveConflicts(int whichPass) {

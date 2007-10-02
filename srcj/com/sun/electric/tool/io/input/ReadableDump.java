@@ -1895,17 +1895,16 @@ public class ReadableDump extends LibraryFiles
 					// just an integer specification
 					int cindex = Integer.parseInt(name);
 					return allCellsArray[cindex] != null ? allCellsArray[cindex].getId() : null;
-				} else
-				{
-					// parse primitive nodeproto name
-					NodeProto np = Cell.findNodeProto(name);
-					if (np == null)
-					{
-						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
-						return null;
-					}
-					return np;
 				}
+
+				// parse primitive nodeproto name
+				NodeProto np = Cell.findNodeProto(name);
+				if (np == null)
+				{
+					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
+					return null;
+				}
+				return np;
 			case ELIBConstants.VPORTPROTO:
 				int ppIndex = TextUtils.atoi(name);
 				PortProto pp = exportList[curCellNumber].exportList[ppIndex];

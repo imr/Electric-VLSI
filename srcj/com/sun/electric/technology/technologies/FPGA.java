@@ -566,24 +566,23 @@ public class FPGA extends Technology
 				if (arcEndActive(oAi, newEnd, down)) return true;
 			}
 			return false;
-		} else
+		}
+
+		// primitive: see if it is one of ours
+		if (np instanceof FPGANode)
 		{
-			// primitive: see if it is one of ours
-			if (np instanceof FPGANode)
+			FPGANode fn = (FPGANode)np;
+//			VarContext down = curContext.push(ni);
+			reEvaluatePips(ni, fn, curContext);
+			for(int i = 0; i < fn.numPorts(); i++)
 			{
-				FPGANode fn = (FPGANode)np;
-//				VarContext down = curContext.push(ni);
-				reEvaluatePips(ni, fn, curContext);
-				for(int i = 0; i < fn.numPorts(); i++)
+				if (fn.portList[i].pp != pp) continue;
+				int index = fn.portList[i].con;
+				if (index >= 0 && fn.netList != null)
 				{
-					if (fn.portList[i].pp != pp) continue;
-					int index = fn.portList[i].con;
-					if (index >= 0 && fn.netList != null)
-					{
-						if ((fn.netList[index].segActive&ACTIVEPART) != 0) return true;
-					}
-					break;
+					if ((fn.netList[index].segActive&ACTIVEPART) != 0) return true;
 				}
+				break;
 			}
 		}
 

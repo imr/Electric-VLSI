@@ -135,8 +135,7 @@ public class CellName implements Comparable<CellName>
 
 		if (version > 0)
 			return that.version > 0 ? that.version - version : 1;
-		else
-			return that.version > 0 ? -1 : 0;
+		return that.version > 0 ? -1 : 0;
     }
 
 	/**
@@ -147,8 +146,7 @@ public class CellName implements Comparable<CellName>
 	{
 		if (version > 0)
 			return name + ";" + version + view.getAbbreviationExtension();
-		else
-			return name + view.getAbbreviationExtension();
+		return name + view.getAbbreviationExtension();
 	}
 
 	/**

@@ -457,7 +457,7 @@ public abstract class Router {
             connectedWidth = reArc.getArcBaseWidth();
         }
         if (width > connectedWidth) return width;
-        else return connectedWidth;
+        return connectedWidth;
     }
 
     /**
