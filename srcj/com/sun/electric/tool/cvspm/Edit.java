@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -351,6 +352,104 @@ public class Edit {
         }
     }
 
+    // ---------------------- Edit State Consistency Check ------------------
+
+    /**
+     * Consistency check - a cell that is either modified in Electric,
+     * or that is CVS modified, should be marked for Edit.  A cell
+     * that both unmodified in Electric and CVS should not be marked
+     * for Edit.
+     */
+    public static void editConsistencyCheck() {
+        List<Library> allLibs = new ArrayList<Library>();
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            allLibs.add(lib);
+        }
+        editConsistencyCheck(allLibs, new ArrayList<Cell>());
+    }
+
+    public static void editConsistencyCheck(List<Library> libs, List<Cell> cells) {
+/*
+        // get jelibs and delib cells in cvs
+        CVSLibrary.LibsCells incvs = CVSLibrary.getInCVSSorted(libs, cells);
+        // get unmodified in both Electric and CVS
+        CVSLibrary.LibsCells unmodified = new CVSLibrary.LibsCells();
+        for (Library lib : incvs.libs) {
+            if (!lib.isChanged() && CVSLibrary.getState(lib) == State.NONE)
+                unmodified.libs.add(lib);
+        }
+        for (Cell cell : incvs.cells) {
+            if (!cell.isModified(false) && CVSLibrary.getState(cell) == State.NONE)
+                unmodified.cells.add(cell);
+        }
+        // make sure unmodified libs/cells are not being edited by me
+        (new EditConsistencyCheckJob(unmodified.libs, unmodified.cells)).startJob();
+        // I don't make sure that modified cells are marked Edit,
+        // as that will be fixed once the user commits and then edits again
+*/
+        (new EditConsistencyCheckJob(libs, cells)).startJob();
+    }
+
+    public static class EditConsistencyCheckJob extends Job {
+        private List<Library> libs;
+        private List<Cell> cells;
+        private List<Editor> editors;
+
+        public EditConsistencyCheckJob(List<Library> libs, List<Cell> cells) {
+            super("CVS Editors Check", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.libs = libs;
+            this.cells = cells;
+            this.editors = new ArrayList<Editor>();
+            if (this.libs == null) this.libs = new ArrayList<Library>();
+            if (this.cells == null) this.cells = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            String useDir = CVS.getUseDir(libs, cells);
+            StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            String args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
+
+            // get editors
+            //System.out.println("Checking editors for: "+args);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
+            LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+            editors = parseOutput(reader);
+
+            // unmark if marked for edit and unmodified in both electric and cvs
+            libs.clear();
+            cells.clear();
+            for (Editor e : editors) {
+                if (!e.getUser().equals(System.getProperty("user.name"))) continue;
+                ElectricObject eobj = e.findObject();
+                if (eobj == null) continue;
+                if (eobj instanceof Library) {
+                    Library lib = (Library)eobj;
+                    if (!lib.isChanged() && CVSLibrary.getState(lib) == State.NONE)
+                        libs.add(lib);
+                }
+                if (eobj instanceof Cell) {
+                    Cell cell = (Cell)eobj;
+                    if (!cell.isModified(false) && CVSLibrary.getState(cell) == State.NONE)
+                        cells.add(cell);
+                }
+            }
+            libsBuf = CVS.getLibraryFiles(libs, useDir);
+            cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
+            //System.out.println("Unmarking CVS edit: "+args);
+            CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
+            return true;
+        }
+    }
+
 
     // ----------------------- Edit Output Parsing --------------------------
 
@@ -426,6 +525,26 @@ public class Edit {
         public String getHostname() { return hostname; }
         public File getFile() { return FD; }
         public String getDir() { return dir; }
+        public ElectricObject findObject() {
+            String file = getAbbrevFile();
+            Library lib = findLibraryWithExt(file);
+            if (lib != null) return lib;
+            // must be delib cell
+            String [] parts = file.split("/");
+            lib = findLibraryWithExt(parts[0]);
+            if (lib == null) return null;
+            String cellname = parts[1].replaceAll("\\.", "{") + "}";
+            return lib.findNodeProto(cellname);
+        }
+        private static Library findLibraryWithExt(String libname) {
+            if (libname.endsWith(".delib") || libname.endsWith(".jelib")) {
+                return Library.findLibrary(libname.substring(0, libname.length()-6));
+            }
+            if (libname.endsWith(".elib")) {
+                return Library.findLibrary(libname.substring(0, libname.length()-5));
+            }
+            return null;
+        }
     }
 
     private static final String hostName;

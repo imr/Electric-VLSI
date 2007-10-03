@@ -67,7 +67,7 @@ public class Update {
             if (lib.getName().equals("spiceparts")) continue;
             allLibs.add(lib);
         }
-        update(allLibs, null, type, true);
+        update(allLibs, null, type, true, true);
     }
 
     /**
@@ -83,7 +83,7 @@ public class Update {
             if (lib.getName().equals("spiceparts")) continue;
             allLibs.add(lib);
         }
-        update(allLibs, null, type, false);
+        update(allLibs, null, type, false, true);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Update {
     public static void updateLibrary(Library lib, int type) {
         List<Library> libsToUpdate = new ArrayList<Library>();
         libsToUpdate.add(lib);
-        update(libsToUpdate, null, type, false);
+        update(libsToUpdate, null, type, false, false);
     }
 
     /**
@@ -105,7 +105,7 @@ public class Update {
     public static void updateCell(Cell cell, int type) {
         List<Cell> cellsToUpdate = new ArrayList<Cell>();
         cellsToUpdate.add(cell);
-        update(null, cellsToUpdate, type, false);
+        update(null, cellsToUpdate, type, false, false);
     }
 
     /**
@@ -114,8 +114,10 @@ public class Update {
      * @param cells
      * @param type
      * @param updateProject
+     * @param checkEditors
      */
-    public static void update(List<Library> libs, List<Cell> cells, int type, boolean updateProject) {
+    public static void update(List<Library> libs, List<Cell> cells, int type,
+                              boolean updateProject, boolean checkEditors) {
         if (libs == null) libs = new ArrayList<Library>();
         if (cells == null) cells = new ArrayList<Cell>();
 
@@ -172,7 +174,7 @@ public class Update {
             if (choice == 1) return;
         }
 
-        (new UpdateJob(good.cells, good.libs, type, updateProject)).startJob();
+        (new UpdateJob(good.cells, good.libs, type, updateProject, checkEditors)).startJob();
     }
 
     private static class UpdateJob extends Job {
@@ -183,18 +185,20 @@ public class Update {
         private boolean updateProject;                // update whole project
         private int exitVal;
         private boolean inJob;
+        private boolean checkEditors;
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
          * @param librariesToUpdate
          */
         private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
-                          int type, boolean updateProject) {
+                          int type, boolean updateProject, boolean checkEditors) {
             super("CVS Update Library", User.getUserTool(), ((type==STATUS)?Job.Type.EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
             this.cellsToUpdate = cellsToUpdate;
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;
             this.updateProject = updateProject;
+            this.checkEditors = checkEditors;
             exitVal = -1;
             inJob = true;
             if (this.cellsToUpdate == null) this.cellsToUpdate = new ArrayList<Cell>();
@@ -313,11 +317,14 @@ public class Update {
             }
             WindowFrame.wantToRedoLibraryTree();
             CVS.fixStaleCellReferences(libsToReload);
+            if (checkEditors) {
+                Edit.editConsistencyCheck(librariesToUpdate, cellsToUpdate);
+            }
         }
     }
 
     static void statusNoJob(List<Library> libs, List<Cell> cells, boolean updateProject) {
-        UpdateJob job = new UpdateJob(cells, libs, STATUS, updateProject);
+        UpdateJob job = new UpdateJob(cells, libs, STATUS, updateProject, false);
         job.inJob = false;
         job.doIt();
     }
