@@ -4,8 +4,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: tftXX.xml
- * tftXX technology description
+ * File: tft.xml
+ * tftnew technology description
  * Generated automatically from a library
  *
  * Copyright (c) 2007 Sun Microsystems and Static Free Software
@@ -32,7 +32,7 @@
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
-    <shortName>bicmos</shortName>
+    <shortName>tft</shortName>
     <description>Thin Film</description>
     <version tech="1" electric="8.05g"/>
     <version tech="2" electric="8.05o"/>
@@ -102,7 +102,7 @@
 
     <layer name="Metal-1" fun="METAL1">
         <transparentColor transparent="1"/>
-        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnDisplay>false</patternedOnDisplay>
         <patternedOnPrinter>false</patternedOnPrinter>
         <pattern>XXXXXXXXXXXXXXXX</pattern>
         <pattern>                </pattern>
@@ -120,7 +120,7 @@
         <pattern>                </pattern>
         <pattern>XXXXXXXXXXXXXXXX</pattern>
         <pattern>                </pattern>
-        <outlined>PAT_S</outlined>
+        <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="CMF"/>
@@ -374,19 +374,19 @@
 
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
         <nodeLayer layer="Metal-2" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="HiK" style="CLOSED">
+        <nodeLayer layer="Via1" style="CLOSED">
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal-1-metal-2">
@@ -400,7 +400,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="P-Transistor" fun="TRAPMOS">
+    <primitiveNode name="capacitor" fun="CAPAC">
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <sizeOffset lx="4.0" hx="4.0" ly="4.0" hy="4.0"/>
@@ -409,64 +409,6 @@
                 <lambdaBox klx="-4.5" khx="4.5" kly="-4.5" khy="4.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <box>
-                <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Via1" style="FILLED">
-            <box>
-                <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <box khy="-1.0">
-                <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="-0.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <box kly="1.0">
-                <lambdaBox klx="-2.5" khx="2.5" kly="0.5" khy="2.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="trans-met2-top">
-            <portAngle primary="0" range="90"/>
-            <portTopology>2</portTopology>
-            <box klx="0.0" khx="0.0" kly="1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="2.5" khy="2.5"/>
-            </box>
-            <portArc>Metal_2</portArc>
-        </primitivePort>
-        <primitivePort name="trans-via1-right">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box klx="1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="3.5" khx="3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Via1</portArc>
-        </primitivePort>
-        <primitivePort name="trans-met2-bot">
-            <portAngle primary="0" range="180"/>
-            <portTopology>2</portTopology>
-            <box klx="0.0" khx="0.0" khy="-1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="-2.5" khy="-2.5"/>
-            </box>
-            <portArc>Metal_2</portArc>
-        </primitivePort>
-        <primitivePort name="trans-via1-left">
-            <portAngle primary="0" range="180"/>
-            <portTopology>1</portTopology>
-            <box khx="-1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Via1</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="capacitor" fun="CAPAC">
-        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <sizeOffset lx="4.0" hx="4.0" ly="4.0" hy="4.0"/>
         <nodeLayer layer="Metal-2" style="FILLED">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
@@ -482,11 +424,6 @@
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="HiK" style="FILLED">
-            <box>
-                <lambdaBox klx="-4.5" khx="4.5" kly="-4.5" khy="4.5"/>
-            </box>
-        </nodeLayer>
         <primitivePort name="cap-metal2-top">
             <portAngle primary="0" range="90"/>
             <portTopology>0</portTopology>
@@ -495,14 +432,6 @@
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
-        <primitivePort name="cap-via1-left">
-            <portAngle primary="0" range="180"/>
-            <portTopology>1</portTopology>
-            <box khx="-1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Via1</portArc>
-        </primitivePort>
         <primitivePort name="cap-metal2-bot">
             <portAngle primary="180" range="90"/>
             <portTopology>0</portTopology>
@@ -510,6 +439,14 @@
                 <lambdaBox klx="0.0" khx="0.0" kly="-2.5" khy="-2.5"/>
             </box>
             <portArc>Metal_2</portArc>
+        </primitivePort>
+        <primitivePort name="cap-via1-left">
+            <portAngle primary="0" range="180"/>
+            <portTopology>2</portTopology>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Via1</portArc>
         </primitivePort>
         <primitivePort name="cap-via1-right">
             <portAngle primary="0" range="180"/>
@@ -521,20 +458,70 @@
         </primitivePort>
     </primitiveNode>
 
+    <primitiveNode name="P-Transistor" fun="TRAPMOS">
+        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
+        <diskOffset untilVersion="2" x="2.5" y="0.5"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="5.0" hy="5.0"/>
+        <nodeLayer layer="HiK" style="FILLED">
+            <box>
+                <lambdaBox klx="-4.5" khx="4.5" kly="-4.5" khy="4.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <box kly="1.0">
+                <lambdaBox klx="-2.5" khx="2.5" kly="0.5" khy="2.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Via1" style="FILLED">
+            <box>
+                <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <box>
+                <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <box khy="-1.0">
+                <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="-0.5"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="trans-met2-top">
+            <portAngle primary="0" range="90"/>
+            <portTopology>0</portTopology>
+            <box klx="0.0" khx="0.0" kly="1.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="2.5" khy="2.5"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+        <primitivePort name="trans-met1-right">
+            <portAngle primary="0" range="180"/>
+            <portTopology>2</portTopology>
+            <box klx="1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="5.5" khx="5.5" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <primitivePort name="trans-met2-bot">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box klx="0.0" khx="0.0" khy="-1.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="-2.5" khy="-2.5"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+        <primitivePort name="trans-met1-left">
+            <portAngle primary="0" range="180"/>
+            <portTopology>3</portTopology>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-5.5" khx="-5.5" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <Foundry name="MOSIS">
-        <LayerRule ruleName="1.1" layerName="Metal-1" type="MINWID" when="ALL" value="2.0"/>
-        <LayersRule ruleName="1.2" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayerRule ruleName="2.1" layerName="HiK" type="MINWID" when="ALL" value="4.0"/>
-        <LayersRule ruleName="2.2" layerNames="{HiK,Metal-1}" type="SURROUND" when="ALL" value="1.0"/>
-        <LayerRule ruleName="3.1" layerName="Pent" type="MINWID" when="ALL" value="4.0"/>
-        <LayersRule ruleName="3.2" layerNames="{Pent,Metal-1}" type="SURROUND" when="ALL" value="1.0"/>
-        <LayerRule ruleName="4.1" layerName="Via1" type="MINWID" when="ALL" value="2.0"/>
-        <LayersRule ruleName="4.2" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="4.3" layerNames="{Via1,Metal-1}" type="SURROUND" when="ALL" value="1.0"/>
-        <LayersRule ruleName="4.4" layerNames="{Via1,HiK}" type="SURROUND" when="ALL" value="1.0"/>
-        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/> 
-        <LayersRule ruleName="5.2" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayersRule ruleName="5.3" layerNames="{Metal-2,Via1}" type="SURROUND" when="ALL" value="1.0"/>
 
         <layerGds layer="HiK" gds="4"/>
         <layerGds layer="Metal-1" gds="10"/>
