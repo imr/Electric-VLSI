@@ -2431,7 +2431,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
         private void cvsUpdate(int type) {
             List<Library> libs = getCurrentlySelectedLibraries();
             List<Cell> cells = getCurrentlySelectedCells();
-            Update.update(libs, cells, type, false);
+            Update.update(libs, cells, type, false, true);
         }
 
         private void cvsListEditors() {
