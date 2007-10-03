@@ -199,23 +199,23 @@ public class Analyzer extends Engine
 //		new StartIRSIM(theAnalyzer);
 	}
 
-	private static class StartIRSIM extends Job
-	{
-		private Analyzer analyzer;
-
-		public StartIRSIM(Analyzer analyzer)
-		{
-			super("Simulate cell", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.analyzer = analyzer;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            startIrsim(analyzer);
-			return true;
-		}
-	}
+//	private static class StartIRSIM extends Job
+//	{
+//		private Analyzer analyzer;
+//
+//		public StartIRSIM(Analyzer analyzer)
+//		{
+//			super("Simulate cell", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+//			this.analyzer = analyzer;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//            startIrsim(analyzer);
+//			return true;
+//		}
+//	}
     
     private static void startIrsim(Analyzer analyzer) {
         synchronized(analyzer) {

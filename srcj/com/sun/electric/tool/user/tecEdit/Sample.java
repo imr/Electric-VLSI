@@ -29,11 +29,12 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology;
 
+import java.io.Serializable;
 
 /**
  * This class defines graphical layer samples during conversion of libraries to technologies.
  */
-public class Sample
+public class Sample implements Serializable
 {
 	NodeInst  node;					/* true node used for sample */
 	NodeProto layer;				/* type of node used for sample */
@@ -44,5 +45,4 @@ public class Sample
 	String    msg;					/* string (null if none) */
 
 	Example   parent;				/* example containing this sample */
-};
-
+}

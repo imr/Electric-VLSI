@@ -562,20 +562,38 @@ public class TechToLib
 						if (connects[i].getTechnology() != tech) continue;
 						Cell cell = arcCells.get(connects[i]);
 						if (cell != null) validConns.add(cell);
-                        for (int k = 0; k < aList.length; k++) {
-                            if (aList[k].name.equals(connects[i].getName())) {
-                                break;
-                            }
-                        }
+//                        for (int k = 0; k < aList.length; k++) {
+//                            if (aList[k].name.equals(connects[i].getName())) {
+//                                break;
+//                            }
+//                        }
 					}
+					int meaning = 0;
 					if (validConns.size() > 0)
 					{
 						CellId [] aplist = new CellId[validConns.size()];
-						for(int i=0; i<validConns.size(); i++) {
+						for(int i=0; i<validConns.size(); i++)
+						{
                             Cell cell = validConns.get(i);
 							aplist[i] = cell.getId();
+							String arcName = cell.getName().substring(4);
+							for (int k = 0; k < aList.length; k++)
+							{
+								if (aList[k].name.equals(arcName))
+								{
+									if (aList[k].func.isDiffusion()) meaning = 2; else
+										if (aList[k].func.isPoly()) meaning = 1;
+									break;
+								}
+							}
                         }
 						pNi.newVar(Info.CONNECTION_KEY, aplist);
+					}
+
+					// add in gate/gated factor for transistors
+					if (pnp.getFunction().isTransistor())
+					{
+						pNi.newVar(Info.PORTMEANING_KEY, new Integer(meaning));
 					}
 
 					// connect the connected ports

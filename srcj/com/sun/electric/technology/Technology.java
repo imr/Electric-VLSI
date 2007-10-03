@@ -66,6 +66,7 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.ArrayList;
@@ -222,7 +223,7 @@ public class Technology implements Comparable<Technology>
 	 * @see EdgeH
 	 * @see EdgeV
 	 */
-	public static class TechPoint
+	public static class TechPoint implements Serializable
 	{
 		private EdgeH x;
 		private EdgeV y;

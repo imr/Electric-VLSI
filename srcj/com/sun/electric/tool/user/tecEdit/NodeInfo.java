@@ -36,9 +36,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.tecEdit.Info.SpecialTextDescr;
-import java.awt.geom.Dimension2D;
 
+import java.awt.geom.Dimension2D;
 import java.util.Iterator;
 import java.util.List;
 
@@ -231,7 +230,9 @@ public class NodeInfo extends Info
 	static void compactCell(Cell cell)
 	{
 		// move the examples
-		List<Example> neList = Example.getExamples(cell, true);
+		TechConversionResult tcr = new TechConversionResult();
+		List<Example> neList = Example.getExamples(cell, true, tcr);
+   		if (tcr.failed()) tcr.showError();
 		if (neList == null || neList.size() == 0) return;
 		Example firstEx = neList.get(0);
 		int numExamples = neList.size();

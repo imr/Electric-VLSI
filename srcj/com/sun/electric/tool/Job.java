@@ -59,7 +59,7 @@ import java.util.logging.Logger;
  * <p>"doIt" may return true, may return false, may throw JobException or any other Exception/Error.
  *    Return true is considered normal termination.
  *    Return false and throwing any Exception/Throwable are failure terminations.
- * <p>On normal termination in CHANGE or REMOTE_EXAMINE mode "fieldVariableChange" variables are serialized.
+ * <p>On normal termination in CHANGE or REMOTE_EXAMINE mode "fieldVariableChanged" variables are serialized.
  *    In case of REMOTE_EXAMINE they are serialized on read-only database state.
  *    In case of CHANGE they are serialized on database state after Constraint propagation.
  *    In case of EXAMINE they are not serialized, but they are checked for valid field names.
@@ -618,8 +618,7 @@ public abstract class Job implements Serializable {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
             return ((EThread)currentThread).getUserInterface();
-        else
-            return currentUI;
+        return currentUI;
     }
 
     /**
@@ -633,8 +632,7 @@ public abstract class Job implements Serializable {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
             return ((EThread)currentThread).database;
-        else
-            return EDatabase.clientDatabase();
+        return EDatabase.clientDatabase();
     }
     
     public EDatabase getDatabase() {

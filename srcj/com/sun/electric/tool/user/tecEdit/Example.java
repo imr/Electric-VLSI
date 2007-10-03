@@ -34,6 +34,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ import java.util.List;
 /**
  * This class defines graphical node and arc examples during conversion of libraries to technologies.
  */
-public class Example
+public class Example implements Serializable
 {
 	/** head of list of samples in example */	List<Sample> samples;
 	/** sample under analysis */				Sample       studySample;
@@ -53,7 +54,7 @@ public class Example
 	 * EXAMPLEs (one per example).  "isNode" is true if this is a node
 	 * being examined.  Returns NOEXAMPLE on error.
 	 */
-	static List<Example> getExamples(Cell np, boolean isNode)
+	public static List<Example> getExamples(Cell np, boolean isNode, TechConversionResult tcr)
 	{
 		HashMap<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
@@ -127,7 +128,7 @@ public class Example
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
 //System.out.println("IN CELL "+np.describe(false)+" CONFLICTS WITH EXAMPLE "+otherAssn);
-						LibToTech.pointOutError(otherNi, np, "Examples are too close");
+						tcr.markError(otherNi, np, "Examples are too close");
 						return null;
 					}
 					nodeExamples.put(otherNi, ne);
@@ -148,7 +149,7 @@ public class Example
 						case Info.PORTOBJ:
 							if (!isNode)
 							{
-								LibToTech.pointOutError(otherNi, np, "Ports can only exist in nodes");
+								tcr.markError(otherNi, np, "Ports can only exist in nodes");
 								return null;
 							}
 							ns.layer = Generic.tech.portNode;
@@ -156,7 +157,7 @@ public class Example
 						case Info.CENTEROBJ:
 							if (!isNode)
 							{
-								LibToTech.pointOutError(otherNi, np, "Grab points can only exist in nodes");
+								tcr.markError(otherNi, np, "Grab points can only exist in nodes");
 								return null;
 							}
 							ns.layer = Generic.tech.cellCenterNode;
@@ -168,7 +169,7 @@ public class Example
 							ns.layer = Manipulate.getLayerCell(otherNi);
 							if (ns.layer == null)
 							{
-								LibToTech.pointOutError(otherNi, np, "Node has no layer information");
+								tcr.markError(otherNi, np, "Node has no layer information");
 								return null;
 							}
 							break;
@@ -196,18 +197,18 @@ public class Example
 			}
 			if (hCount == 0)
 			{
-				LibToTech.pointOutError(null, np, "No highlight layer found");
+				tcr.markError(null, np, "No highlight layer found");
 				return null;
 			}
 			if (hCount != 1)
 			{
-				LibToTech.pointOutError(null, np, "Too many highlight layers found");
+				tcr.markError(null, np, "Too many highlight layers found");
 				return null;
 			}
 		}
 		if (neList == null)
 		{
-			LibToTech.pointOutError(null, np, "No examples found");
+			tcr.markError(null, np, "No examples found");
 			return neList;
 		}
 

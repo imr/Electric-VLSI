@@ -60,8 +60,10 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -680,7 +682,7 @@ public class Manipulate
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab1, gbc);
 
 			JScrollPane depLibsPane = new JScrollPane();
@@ -693,7 +695,7 @@ public class Manipulate
 			gbc.gridheight = 4;
 			gbc.fill = GridBagConstraints.BOTH;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(depLibsPane, gbc);
 			depLibsModel.clear();
 			Library [] libs = Info.getDependentLibraries(Library.getCurrent());
@@ -707,14 +709,14 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 5;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab2, gbc);
 
 			JLabel lab3 = new JLabel("Libraries are examined from bottom up");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 6;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab3, gbc);
 
 
@@ -723,7 +725,7 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 1;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(remove, gbc);
 			remove.addActionListener(new ActionListener()
 			{
@@ -734,7 +736,7 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 2;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(add, gbc);
 			add.addActionListener(new ActionListener()
 			{
@@ -747,7 +749,7 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 2;   gbc.gridy = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab4, gbc);
 
 			JScrollPane allLibsPane = new JScrollPane();
@@ -760,7 +762,7 @@ public class Manipulate
 			gbc.gridheight = 2;
 			gbc.fill = GridBagConstraints.BOTH;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(allLibsPane, gbc);
 			allLibsModel.clear();
 			for(Library lib : Library.getVisibleLibraries())
@@ -772,7 +774,7 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 2;   gbc.gridy = 3;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab5, gbc);
 
 			libToAdd = new JTextField("");
@@ -781,7 +783,7 @@ public class Manipulate
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.weightx = 1;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(libToAdd, gbc);
 
 			// OK and Cancel
@@ -789,7 +791,7 @@ public class Manipulate
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 6;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(cancel, gbc);
 			cancel.addActionListener(new ActionListener()
 			{
@@ -798,14 +800,14 @@ public class Manipulate
 
 			JButton ok = new JButton("OK");
 			getRootPane().setDefaultButton(ok);
-			gbc = new java.awt.GridBagConstraints();
+			gbc = new GridBagConstraints();
 			gbc.gridx = 2;
 			gbc.gridy = 6;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(ok, gbc);
-			ok.addActionListener(new java.awt.event.ActionListener()
+			ok.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+				public void actionPerformed(ActionEvent evt) { exit(true); }
 			});
 
 			pack();
@@ -839,9 +841,11 @@ public class Manipulate
 
 		// get examples
 		List<Example> neList = null;
+		TechConversionResult tcr = new TechConversionResult();
 		if (np.getName().startsWith("node-"))
-			neList = Example.getExamples(np, true); else
-				neList = Example.getExamples(np, false);
+			neList = Example.getExamples(np, true, tcr); else
+				neList = Example.getExamples(np, false, tcr);
+   		if (tcr.failed()) tcr.showError();
 		if (neList == null || neList.size() == 0) return;
 		Example firstEx = neList.get(0);
 
@@ -1821,7 +1825,7 @@ public class Manipulate
 		}
 
 		// build an array of arc connections
-		PromptAt.Field [] fields = new PromptAt.Field[allArcs.size()+2];
+		PromptAt.Field [] fields = new PromptAt.Field[allArcs.size()+3];
 		for(int i=0; i<allArcs.size(); i++)
 		{
 			Cell cell = allArcs.get(i);
@@ -1835,8 +1839,13 @@ public class Manipulate
 		Variable rangeVar = ni.getVar(Info.PORTRANGE_KEY);
 		int range = 180;
 		if (rangeVar != null) range = ((Integer)rangeVar.getObject()).intValue();
+		Variable meaningVar = ni.getVar(Info.PORTMEANING_KEY);
+		int meaning = 0;
+		if (meaningVar != null) meaning = ((Integer)meaningVar.getObject()).intValue();
 		fields[allArcs.size()] = new PromptAt.Field("Angle:", TextUtils.formatDouble(ang));
-		fields[allArcs.size()+1] = new PromptAt.Field("Angle Range:", TextUtils.formatDouble(range));
+		fields[allArcs.size()+1] = new PromptAt.Field("Angle range:", TextUtils.formatDouble(range));
+		String[] meanings = new String[]{"No meaning", "Gate", "Gated"};
+		fields[allArcs.size()+2] = new PromptAt.Field("Transistor meaning:", meanings, meanings[meaning]);
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Port", fields);
 		if (choice == null) return;
 
@@ -1890,6 +1899,11 @@ public class Manipulate
 			ni.newVar(Info.PORTANGLE_KEY, new Integer(newAngle));
 			int newRange = TextUtils.atoi(fieldValues[allArcs.size()+1]);
 			ni.newVar(Info.PORTRANGE_KEY, new Integer(newRange));
+			String newMeaning = fieldValues[allArcs.size()+2];
+			int meaning = 0;
+			if (newMeaning.equals("Gate")) meaning = 1; else
+				if (newMeaning.equals("Gated")) meaning = 2;
+			ni.newVar(Info.PORTMEANING_KEY, new Integer(meaning));
 			return true;
 		}
 	}
@@ -2342,7 +2356,7 @@ public class Manipulate
 
 		/**
 		 * Call when an up/down button is pressed.
-		 * @param direction -2: far down   -1: down   1: up   2: far up
+		 * @param direction: -2=far down, -1=down, 1=up, 2=far up
 		 */
 		private void moveSelected(int direction)
 		{
@@ -2382,14 +2396,14 @@ public class Manipulate
 			});
 
 			JScrollPane center = new JScrollPane();
-			center.setMinimumSize(new java.awt.Dimension(100, 50));
-			center.setPreferredSize(new java.awt.Dimension(300, 200));
+			center.setPreferredSize(new Dimension(300, 150));
 			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 1;
+			gbc.gridx = 0;      gbc.gridy = 0;
 			gbc.weightx = 1;    gbc.weighty = 1;
 			gbc.gridwidth = 2;  gbc.gridheight = 4;
-			gbc.anchor = java.awt.GridBagConstraints.WEST;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(center, gbc);
 
 			model = new DefaultListModel();
@@ -2410,8 +2424,9 @@ public class Manipulate
 
 			JButton farUp = new JButton("Far Up");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 1;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.gridx = 2;   gbc.gridy = 0;
+			gbc.weighty = 0.25;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(farUp, gbc);
 			farUp.addActionListener(new ActionListener()
 			{
@@ -2420,8 +2435,9 @@ public class Manipulate
 
 			JButton up = new JButton("Up");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 2;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.gridx = 2;   gbc.gridy = 1;
+			gbc.weighty = 0.25;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(up, gbc);
 			up.addActionListener(new ActionListener()
 			{
@@ -2430,8 +2446,9 @@ public class Manipulate
 
 			JButton down = new JButton("Down");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 3;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.gridx = 2;   gbc.gridy = 2;
+			gbc.weighty = 0.25;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(down, gbc);
 			down.addActionListener(new ActionListener()
 			{
@@ -2440,8 +2457,9 @@ public class Manipulate
 
 			JButton farDown = new JButton("Far Down");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 4;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.gridx = 2;   gbc.gridy = 3;
+			gbc.weighty = 0.25;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(farDown, gbc);
 			farDown.addActionListener(new ActionListener()
 			{
@@ -2451,9 +2469,8 @@ public class Manipulate
 			// OK and Cancel
 			JButton cancel = new JButton("Cancel");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 0;
-			gbc.gridy = 5;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc.gridx = 0;   gbc.gridy = 4;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(cancel, gbc);
 			cancel.addActionListener(new ActionListener()
 			{
@@ -2462,14 +2479,13 @@ public class Manipulate
 
 			JButton ok = new JButton("OK");
 			getRootPane().setDefaultButton(ok);
-			gbc = new java.awt.GridBagConstraints();
-			gbc.gridx = 1;
-			gbc.gridy = 5;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 4;
+			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(ok, gbc);
-			ok.addActionListener(new java.awt.event.ActionListener()
+			ok.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+				public void actionPerformed(ActionEvent evt) { exit(true); }
 			});
 
 			pack();

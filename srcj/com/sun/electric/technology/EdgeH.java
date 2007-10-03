@@ -25,6 +25,8 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.DBMath;
 
+import java.io.Serializable;
+
 /**
  * An EdgeH is a scalable X coordinate that converts a NodeInst bounds to a location inside of that NodeInst.
  * It consists of two numbers: a <I>multiplier</I> and an <I>adder</I>.
@@ -37,7 +39,7 @@ import com.sun.electric.database.geometry.DBMath;
  * The point that is 2 left of the right edge has multiplier = 0.5 and adder = -2.
  * The point that is 3 right of the center has multiplier = 0 and adder = 3.
  */
-public class EdgeH
+public class EdgeH implements Serializable
 {
 	/** The multiplier (scales the width by this amount). */	private double multiplier;
 	/** The adder (adds this amount to the scaled width). */	private double adder;

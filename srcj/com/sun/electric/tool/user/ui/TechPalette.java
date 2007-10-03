@@ -916,11 +916,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         g.setColor(new Color(User.getColorGrid()));
         g.fillPolygon(arrowX, arrowY, 3);
     }
-    
-    private static final EditWindow0 dummyWnd = new EditWindow0() {
-        public VarContext getVarContext() { return null; }
-        public double getScale() { return 1; }
-    };
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".

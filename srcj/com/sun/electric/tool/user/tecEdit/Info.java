@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -130,6 +131,7 @@ public class Info
 	/** key of Variable with color map table. */		static final Variable.Key COLORMAP_KEY = Variable.newKey("EDTEC_colormap");
 	/** key of Variable with color map table. */		static final Variable.Key DEPENDENTLIB_KEY = Variable.newKey("EDTEC_dependent_libraries");
 	/** key of Variable with transparent color list. */	static final Variable.Key TRANSLAYER_KEY = Variable.newKey("EDTEC_transparent_layers");
+	/** key of Variable holding port meaning. */		static final Variable.Key PORTMEANING_KEY = Variable.newKey("EDTEC_portmeaning");
 
 	/**
 	 * Class for describing special text in a cell
@@ -459,5 +461,13 @@ public class Info
 			if (colonPos > 0) initial = initial.substring(colonPos+2);
 		}
 		return initial;
+	}
+
+	static String getSampleName(NodeProto layerCell)
+	{
+		if (layerCell == Generic.tech.portNode) return "PORT";
+		if (layerCell == Generic.tech.cellCenterNode) return "GRAB";
+		if (layerCell == null) return "HIGHLIGHT";
+		return layerCell.getName().substring(6);
 	}
 }

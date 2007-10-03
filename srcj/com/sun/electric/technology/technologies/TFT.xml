@@ -400,7 +400,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="Transistor" fun="TRANS">
+    <primitiveNode name="P-Transistor" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <sizeOffset lx="4.0" hx="4.0" ly="4.0" hy="4.0"/>
@@ -429,19 +429,19 @@
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.5" khy="2.5"/>
             </box>
         </nodeLayer>
+        <primitivePort name="trans-met2-top">
+            <portAngle primary="0" range="90"/>
+            <portTopology>2</portTopology>
+            <box klx="0.0" khx="0.0" kly="1.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="2.5" khy="2.5"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
         <primitivePort name="trans-via1-right">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box klx="1.0" kly="0.0" khy="0.0">
                 <lambdaBox klx="3.5" khx="3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Via1</portArc>
-        </primitivePort>
-        <primitivePort name="trans-via1-left">
-            <portAngle primary="0" range="180"/>
-            <portTopology>1</portTopology>
-            <box khx="-1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Via1</portArc>
         </primitivePort>
@@ -453,13 +453,13 @@
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
-        <primitivePort name="trans-met2-top">
-            <portAngle primary="0" range="90"/>
-            <portTopology>2</portTopology>
-            <box klx="0.0" khx="0.0" kly="1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="2.5" khy="2.5"/>
+        <primitivePort name="trans-via1-left">
+            <portAngle primary="0" range="180"/>
+            <portTopology>1</portTopology>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
             </box>
-            <portArc>Metal_2</portArc>
+            <portArc>Via1</portArc>
         </primitivePort>
     </primitiveNode>
 

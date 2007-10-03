@@ -107,69 +107,6 @@ public class GeneralInfo extends Info
 	}
 
 	/**
-	 * Method to parse the miscellaneous-info cell in "np" and return a GeneralInfo object that describes it.
-	 */
-	static GeneralInfo parseCell(Cell np)
-	{
-		// create and initialize the GRAPHICS structure
-		GeneralInfo gi = new GeneralInfo();
-
-		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			int opt = Manipulate.getOptionOnNode(ni);
-			String str = getValueOnNode(ni);
-			switch (opt)
-			{
-				case TECHSHORTNAME:
-					gi.shortName = str;
-					break;
-				case TECHSCALE:
-					gi.scale = TextUtils.atof(str);
-                    gi.scaleRelevant = true;
-					break;
-				case TECHFOUNDRY:
-					gi.defaultFoundry = str;
-					break;
-				case TECHDEFMETALS:
-					gi.defaultNumMetals = TextUtils.atoi(str);
-					break;
-				case TECHDESCRIPT:
-					gi.description = str;
-					break;
-				case TECHSPICEMINRES:
-					gi.minRes = TextUtils.atof(str);
-					break;
-				case TECHSPICEMINCAP:
-					gi.minCap = TextUtils.atof(str);
-					break;
-				case TECHMAXSERIESRES:
-					gi.maxSeriesResistance = TextUtils.atof(str);
-					break;
-				case TECHGATESHRINK:
-					gi.gateShrinkage = TextUtils.atof(str);
-					break;
-				case TECHGATEINCLUDED:
-					gi.includeGateInResistance = str.equalsIgnoreCase("yes");
-					break;
-				case TECHGROUNDINCLUDED:
-					gi.includeGround = str.equalsIgnoreCase("yes");
-					break;
-				case TECHTRANSPCOLORS:
-					Color [] colors = getTransparentColors(ni);
-					if (colors != null) gi.transparentColors = colors;
-					break;
-				case CENTEROBJ:
-					break;
-				default:
-					LibToTech.pointOutError(ni, np, "Unknown node in miscellaneous-information cell");
-					break;
-			}
-		}
-		return gi;
-	}
-
-	/**
 	 * Method to get the transparent color information from a NodeInst.
 	 * @param ni the NodeInst to examine.
 	 * @return an array of Color values.  Returns null if no such data exists on the NodeInst.
