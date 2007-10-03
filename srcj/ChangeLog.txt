@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06g: *******************************
 
+IMP: (10/3/07, RK) Add Skewed tree generator for Fleet
+
 IMP/MAN: (10/3/07, SMR) Technology editor now has port option for "gate/gated"
      to handle nonstandard transistors.
 
