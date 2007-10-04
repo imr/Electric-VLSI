@@ -412,13 +412,6 @@ public class TechToLib
                 xsc[3] = min2X;
                 ysc[2] = min2Y;
                 ysc[3] = min2Y;
-//				double [] values = pnp.getSpecialValues();
-//				double min2X = values[0]*2 + values[2]*2 + values[5];
-//				double min2Y = values[1]*2 + values[3]*2 + values[5];
-//				xsc[1] = min2X;
-//				xsc[3] = min2X;
-//				ysc[2] = min2Y;
-//				ysc[3] = min2Y;
 			}
 			Cell nNp = null;
 			Rectangle2D mainBounds = null;

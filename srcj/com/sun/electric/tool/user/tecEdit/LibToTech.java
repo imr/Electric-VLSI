@@ -765,6 +765,9 @@ public class LibToTech
 			}
 			Example arcEx = neList.get(0);
 
+			// sort the layers in the example
+			Collections.sort(arcEx.samples, new SamplesByLayerOrder(lList));
+
 			// get width and polygon count information
 			double maxWid = -1, hWid = -1;
 			int count = 0;
@@ -894,6 +897,9 @@ public class LibToTech
 			nIn.xSize = firstEx.hx - firstEx.lx;
 			nIn.ySize = firstEx.hy - firstEx.ly;
 
+			// sort the layers in the main example
+			Collections.sort(firstEx.samples, new SamplesByLayerOrder(lList));
+
 			// associate the samples in each example
 			if (associateExamples(neList, np)) return null;
 
@@ -913,19 +919,60 @@ public class LibToTech
 				return null;
 			}
 
-			// allocate space for the ports
-			nIn.nodePortDetails = new NodeInfo.PortDetails[portCount];
-
 			// fill the port structures
-			int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
-			int i = 0;
+			List<NodeInfo.PortDetails> ports = new ArrayList<NodeInfo.PortDetails>();
+			Map<NodeInfo.PortDetails,Sample> portSamples = new HashMap<NodeInfo.PortDetails,Sample>();
 			for(Sample ns : firstEx.samples)
 			{
 				if (ns.layer != Generic.tech.portNode) continue;
 
 				// port connections
-				nIn.nodePortDetails[i] = new NodeInfo.PortDetails();
-				nIn.nodePortDetails[i].connections = new ArcInfo[0];
+				NodeInfo.PortDetails nipd = new NodeInfo.PortDetails();
+				portSamples.put(nipd, ns);
+
+				// port name
+				nipd.name = Info.getPortName(ns.node);
+				if (nipd.name == null)
+				{
+					error.markError(ns.node, np, "Port does not have a name");
+					return null;
+				}
+				for(int c=0; c<nipd.name.length(); c++)
+				{
+					char str = nipd.name.charAt(c);
+					if (str <= ' ' || str >= 0177)
+					{
+						error.markError(ns.node, np, "Invalid port name");
+						return null;
+					}
+				}
+
+				// port angle and range
+				nipd.angle = 0;
+				Variable varAngle = ns.node.getVar(Info.PORTANGLE_KEY);
+				if (varAngle != null)
+					nipd.angle = ((Integer)varAngle.getObject()).intValue();
+				nipd.range = 180;
+				Variable varRange = ns.node.getVar(Info.PORTRANGE_KEY);
+				if (varRange != null)
+					nipd.range = ((Integer)varRange.getObject()).intValue();
+
+				// port area rule
+				nipd.values = ns.values;
+				ports.add(nipd);
+			}
+
+			// sort the ports by name within angle
+			Collections.sort(ports, new PortsByAngleAndName());
+
+			// now find the poly/active ports for transistor rearranging
+			int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
+			for(int i=0; i<ports.size(); i++)
+			{
+				NodeInfo.PortDetails nipd = ports.get(i);
+				Sample ns = portSamples.get(nipd);
+				
+				nipd.connections = new ArcInfo[0];
 				Variable var = ns.node.getVar(Info.CONNECTION_KEY);
 				if (var != null)
 				{
@@ -949,15 +996,12 @@ public class LibToTech
 						}
 					}
 					ArcInfo [] connections = new ArcInfo[validArcCells.size()];
-					nIn.nodePortDetails[i].connections = connections;
+					nipd.connections = connections;
 					for(int j=0; j<validArcCells.size(); j++)
 						connections[j] = validArcCells.get(j);
-					boolean portChecked = false;
 					for(int j=0; j<connections.length; j++)
 					{
 						// find port characteristics for possible transistors
-						if (portChecked) continue;
-
 						Variable meaningVar = ns.node.getVar(Info.PORTMEANING_KEY);
 						int meaning = 0;
 						if (meaningVar != null) meaning = ((Integer)meaningVar.getObject()).intValue();
@@ -966,148 +1010,41 @@ public class LibToTech
 							if (pol1Port < 0)
 							{
 								pol1Port = i;
-								portChecked = true;
+								break;
 							} else if (pol2Port < 0)
 							{
 								pol2Port = i;
-								portChecked = true;
+								break;
 							}
 						} else if (connections[j].func.isDiffusion() || meaning == 2)
 						{
 							if (dif1Port < 0)
 							{
 								dif1Port = i;
-								portChecked = true;
+								break;
 							} else if (dif2Port < 0)
 							{
 								dif2Port = i;
-								portChecked = true;
-							}
-						}
-					}
-				}
-
-				// link connection list to the port
-				if (nIn.nodePortDetails[i].connections == null) return null;
-
-				// port name
-				String portName = Info.getPortName(ns.node);
-				if (portName == null)
-				{
-					error.markError(ns.node, np, "Port does not have a name");
-					return null;
-				}
-				for(int c=0; c<portName.length(); c++)
-				{
-					char str = portName.charAt(c);
-					if (str <= ' ' || str >= 0177)
-					{
-						error.markError(ns.node, np, "Invalid port name");
-						return null;
-					}
-				}
-				nIn.nodePortDetails[i].name = portName;
-
-				// port angle and range
-				nIn.nodePortDetails[i].angle = 0;
-				Variable varAngle = ns.node.getVar(Info.PORTANGLE_KEY);
-				if (varAngle != null)
-					nIn.nodePortDetails[i].angle = ((Integer)varAngle.getObject()).intValue();
-				nIn.nodePortDetails[i].range = 180;
-				Variable varRange = ns.node.getVar(Info.PORTRANGE_KEY);
-				if (varRange != null)
-					nIn.nodePortDetails[i].range = ((Integer)varRange.getObject()).intValue();
-
-				// port connectivity
-				nIn.nodePortDetails[i].netIndex = i;
-				if (ns.node.hasConnections())
-				{
-					ArcInst ai1 = ns.node.getConnections().next().getArc();
-					Network net1 = netList.getNetwork(ai1, 0);
-					int j = 0;
-					for(Sample oNs : firstEx.samples)
-					{
-						if (oNs == ns) break;
-						if (oNs.layer != Generic.tech.portNode) continue;
-						if (oNs.node.hasConnections())
-						{
-							ArcInst ai2 = oNs.node.getConnections().next().getArc();
-							Network net2 = netList.getNetwork(ai2, 0);
-							if (net1 == net2)
-							{
-								nIn.nodePortDetails[i].netIndex = j;
 								break;
 							}
 						}
-						j++;
 					}
 				}
-
-				// port area rule
-				nIn.nodePortDetails[i].values = ns.values;
-				i++;
 			}
 
-			// on MOS transistors, make sure ports 0 and 2 are poly
+			// save the ports in an array
+			nIn.nodePortDetails = new NodeInfo.PortDetails[ports.size()];
+			for(int j=0; j<ports.size(); j++) nIn.nodePortDetails[j] = ports.get(j);
+
+			// on MOS transistors, make sure the first 4 ports are poly/active/poly/active
 			if (nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRADMOS ||
 				nIn.func == PrimitiveNode.Function.TRAPMOS || nIn.func == PrimitiveNode.Function.TRADMES ||
 				nIn.func == PrimitiveNode.Function.TRAEMES)
 			{
 				if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
 				{
-					error.markError(null, np, "Need 2 gate and 2 gated (active) ports on field-effect transistor");
+					error.markError(null, np, "Need 2 gate (poly) and 2 gated (active) ports on field-effect transistor");
 					return null;
-				}
-				if (pol1Port != 0)
-				{
-					if (pol2Port == 0)
-					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[pol2Port];
-						int swap = pol1Port;   pol1Port = pol2Port;   pol2Port = swap;
-						nIn.nodePortDetails[pol1Port] = formerPortA;
-						nIn.nodePortDetails[pol2Port] = formerPortB;
-					} else if (dif1Port == 0)
-					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif1Port];
-						int swap = pol1Port;   pol1Port = dif1Port;   dif1Port = swap;
-						nIn.nodePortDetails[pol1Port] = formerPortA;
-						nIn.nodePortDetails[dif1Port] = formerPortB;
-					} else if (dif2Port == 0)
-					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif2Port];
-						int swap = pol1Port;   pol1Port = dif2Port;   dif2Port = swap;
-						nIn.nodePortDetails[pol1Port] = formerPortA;
-						nIn.nodePortDetails[dif2Port] = formerPortB;
-					}
-				}
-				if (pol2Port != 2)
-				{
-					if (dif1Port == 2)
-					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol2Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif1Port];
-						int swap = pol2Port;   pol2Port = dif1Port;   dif1Port = swap;
-						nIn.nodePortDetails[pol2Port] = formerPortA;
-						nIn.nodePortDetails[dif1Port] = formerPortB;
-					} else if (dif2Port == 2)
-					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol2Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif2Port];
-						int swap = pol2Port;   pol2Port = dif2Port;   dif2Port = swap;
-						nIn.nodePortDetails[pol2Port] = formerPortA;
-						nIn.nodePortDetails[dif2Port] = formerPortB;
-					}
-				}
-				if (dif1Port != 1)
-				{
-					NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[dif1Port];
-					NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif2Port];
-					int swap = dif1Port;   dif1Port = dif2Port;   dif2Port = swap;
-					nIn.nodePortDetails[dif1Port] = formerPortA;
-					nIn.nodePortDetails[dif2Port] = formerPortB;
 				}
 
 				// also make sure that dif1Port is positive and dif2Port is negative
@@ -1131,19 +1068,13 @@ public class LibToTech
 				{
 					if (x1Pos < x2Pos)
 					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[dif1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif2Port];
-						nIn.nodePortDetails[dif1Port] = formerPortA;
-						nIn.nodePortDetails[dif2Port] = formerPortB;
+						int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
 					}
 				} else
 				{
 					if (y1Pos < y2Pos)
 					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[dif1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[dif2Port];
-						nIn.nodePortDetails[dif1Port] = formerPortA;
-						nIn.nodePortDetails[dif2Port] = formerPortB;
+						int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
 					}
 				}
 
@@ -1168,20 +1099,69 @@ public class LibToTech
 				{
 					if (x1Pos > x2Pos)
 					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[pol2Port];
-						nIn.nodePortDetails[pol1Port] = formerPortA;
-						nIn.nodePortDetails[pol2Port] = formerPortB;
+						int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
 					}
 				} else
 				{
 					if (y1Pos > y2Pos)
 					{
-						NodeInfo.PortDetails formerPortA = nIn.nodePortDetails[pol1Port];
-						NodeInfo.PortDetails formerPortB = nIn.nodePortDetails[pol2Port];
-						nIn.nodePortDetails[pol1Port] = formerPortA;
-						nIn.nodePortDetails[pol2Port] = formerPortB;
+						int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
 					}
+				}
+
+				// gather extra ports that go at the end
+				List<NodeInfo.PortDetails> extras = new ArrayList<NodeInfo.PortDetails>();
+				for(int j=0; j<ports.size(); j++)
+				{
+					if (j != pol1Port && j != dif1Port && j != pol2Port && j != dif2Port)
+						extras.add(ports.get(j));
+				}
+
+				// rearrange the ports
+				NodeInfo.PortDetails port0 = nIn.nodePortDetails[pol1Port];
+				NodeInfo.PortDetails port1 = nIn.nodePortDetails[dif1Port];
+				NodeInfo.PortDetails port2 = nIn.nodePortDetails[pol2Port];
+				NodeInfo.PortDetails port3 = nIn.nodePortDetails[dif2Port];
+				nIn.nodePortDetails[pol1Port=0] = port0;
+				nIn.nodePortDetails[dif1Port=1] = port1;
+				nIn.nodePortDetails[pol2Port=2] = port2;
+				nIn.nodePortDetails[dif2Port=3] = port3;
+				for(int j=0; j<extras.size(); j++)
+					nIn.nodePortDetails[j+4] = extras.get(j);
+
+				// establish port connectivity
+				for(int i=0; i<nIn.nodePortDetails.length; i++)
+				{
+					NodeInfo.PortDetails nipd = nIn.nodePortDetails[i];
+					Sample ns = portSamples.get(nipd);
+					nipd.netIndex = i;
+					if (ns.node.hasConnections())
+					{
+						ArcInst ai1 = ns.node.getConnections().next().getArc();
+						Network net1 = netList.getNetwork(ai1, 0);
+						for(int j=0; j<i; j++)
+						{
+							NodeInfo.PortDetails onipd = nIn.nodePortDetails[j];
+							Sample oNs = portSamples.get(onipd);
+							if (oNs.node.hasConnections())
+							{
+								ArcInst ai2 = oNs.node.getConnections().next().getArc();
+								Network net2 = netList.getNetwork(ai2, 0);
+								if (net1 == net2)
+								{
+									nipd.netIndex = j;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				// make sure implant layers are not connected to ports
+				for(int k=0; k<nIn.nodeLayers.length; k++)
+				{
+					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+					if (nld.layer.fun.isSubstrate()) nld.portIndex = -1;
 				}
 			}
 
@@ -2367,6 +2347,39 @@ public class LibToTech
 		return false;
 	}
 
+	private static class SamplesByLayerOrder implements Comparator<Sample>
+	{
+		private LayerInfo [] lList;
+
+		SamplesByLayerOrder(LayerInfo [] lList) { this.lList = lList; }
+
+		public int compare(Sample s1, Sample s2)
+		{
+			int i1 = -1;
+			if (s1.layer != null && s1.layer != Generic.tech.portNode)
+			{
+				String s1Name = s1.layer.getName().substring(6);
+				for(int i = 0; i < lList.length; i++) if (lList[i].name.equals(s1Name)) { i1 = i;   break; }
+			}
+			int i2 = -1;
+			if (s2.layer != null && s2.layer != Generic.tech.portNode)
+			{
+				String s2Name = s2.layer.getName().substring(6);
+				for(int i = 0; i < lList.length; i++) if (lList[i].name.equals(s2Name)) { i2 = i;   break; }
+			}
+			return i1-i2;
+		}
+	}
+
+	private static class PortsByAngleAndName implements Comparator<NodeInfo.PortDetails>
+	{
+		public int compare(NodeInfo.PortDetails s1, NodeInfo.PortDetails s2)
+		{
+			if (s1.angle != s2.angle) return s1.angle - s2.angle;
+			return s1.name.compareTo(s2.name);
+		}
+	}
+	
 	private static class SampleCoordAscending implements Comparator<Sample>
 	{
 		public int compare(Sample s1, Sample s2)

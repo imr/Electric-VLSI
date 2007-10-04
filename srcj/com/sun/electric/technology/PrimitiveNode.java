@@ -1165,7 +1165,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 *   </UL>
 	 * <LI>for SERPTRANS:
 	 *   <UL>
-	 *   <LI>layer count is [0]
+	 *   <LI>layer count is [0] (never used)
 	 *   <LI>active port inset [1] from end of serpentine path
 	 *   <LI>active port is [2] from poly edge
 	 *   <LI>poly width is [3]
