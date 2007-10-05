@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06h: *******************************
 
+TEC: (10/5/07, SMR) Technologies represented as XML fail DRC.
+FIX: Added electrical layers to transistors, fixed N-Active size in "mocmossub".
+     Also rearranged layers to satisfy technology-edit regressions.
+
 ************************* Version 8.06g: *******************************
 
 IMP: (10/3/07, RK) Add Skewed tree generator for Fleet
