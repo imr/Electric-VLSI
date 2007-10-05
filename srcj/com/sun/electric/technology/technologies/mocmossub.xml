@@ -1001,16 +1001,16 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="13.5"/>
-        <diskOffset untilVersion="2" width="7.5"/>
+        <diskOffset untilVersion="1" width="7.5"/>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="N-Active" style="FILLED">
-            <lambda>7.5</lambda>
+            <lambda>1.5</lambda>
         </arcLayer>
         <arcLayer layer="N-Select" style="FILLED">
-            <lambda>9.5</lambda>
+            <lambda>3.5</lambda>
         </arcLayer>
         <arcLayer layer="P-Well" style="FILLED">
-            <lambda>13.5</lambda>
+            <lambda>7.5</lambda>
         </arcLayer>
     </arcProto>
 
@@ -1104,7 +1104,7 @@
 
     <primitiveNode name="Metal-5-Pin" fun="PIN">
         <shrinkArcs/>
-        <diskOffset untilVersion="2" x="0.0" y="0.0"/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <nodeLayer layer="Metal-5" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1433,7 +1433,7 @@
                 <lambdaBox klx="-4.0" khx="4.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED">
+        <nodeLayer layer="P-Active" style="FILLED" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1446,6 +1446,16 @@
         <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="P-Active" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.5" khx="1.5" kly="0.0" khy="4.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="0.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="p-trans-poly-left">
@@ -1481,7 +1491,7 @@
             <portArc>P-Active</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0416667</specialValue>
+            <specialValue>5.0</specialValue>
             <specialValue>1.5</specialValue>
             <specialValue>2.5</specialValue>
             <specialValue>2.0</specialValue>
@@ -1499,7 +1509,7 @@
                 <lambdaBox klx="-4.0" khx="4.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED">
+        <nodeLayer layer="N-Active" style="FILLED" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1512,6 +1522,16 @@
         <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="N-Active" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.5" khx="1.5" kly="0.0" khy="4.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="0.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="n-trans-poly-left">
@@ -1547,7 +1567,7 @@
             <portArc>N-Active</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0416667</specialValue>
+            <specialValue>5.0</specialValue>
             <specialValue>1.5</specialValue>
             <specialValue>2.5</specialValue>
             <specialValue>2.0</specialValue>

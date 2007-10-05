@@ -159,35 +159,6 @@
         </pureLayerNode>
     </layer>
 
-    <layer name="P-Plus" fun="IMPLANTP">
-        <transparentColor transparent="4"/>
-        <patternedOnDisplay>false</patternedOnDisplay>
-        <patternedOnPrinter>false</patternedOnPrinter>
-        <pattern>   X            </pattern>
-        <pattern>          X     </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>               X</pattern>
-        <pattern>      X         </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>   X            </pattern>
-        <pattern>          X     </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>               X</pattern>
-        <pattern>      X         </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <outlined>NOPAT</outlined>
-        <opacity>0.8</opacity>
-        <foreground>true</foreground>
-        <cifLayer cif="CS"/>
-        <pureLayerNode name="P-Node" port="p+">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
-    </layer>
-
     <layer name="Contact-Cut" fun="CONTACT1">
         <opaqueColor r="180" g="130" b="0"/>
         <patternedOnDisplay>false</patternedOnDisplay>
@@ -242,6 +213,60 @@
         <foreground>true</foreground>
         <cifLayer cif="CC"/>
         <pureLayerNode name="Ohmic-Cut-Node" style="CROSSED" port="ohmic-cut">
+            <lambda>2.0</lambda>
+        </pureLayerNode>
+    </layer>
+
+    <layer name="Transistor" fun="TRANSISTOR">
+        <opaqueColor r="200" g="200" b="200"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+    </layer>
+
+    <layer name="P-Plus" fun="IMPLANTP">
+        <transparentColor transparent="4"/>
+        <patternedOnDisplay>false</patternedOnDisplay>
+        <patternedOnPrinter>false</patternedOnPrinter>
+        <pattern>   X            </pattern>
+        <pattern>          X     </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>               X</pattern>
+        <pattern>      X         </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>   X            </pattern>
+        <pattern>          X     </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>               X</pattern>
+        <pattern>      X         </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>NOPAT</outlined>
+        <opacity>0.8</opacity>
+        <foreground>true</foreground>
+        <cifLayer cif="CS"/>
+        <pureLayerNode name="P-Node" port="p+">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>
@@ -302,31 +327,6 @@
         <pureLayerNode name="Overglass-Node" port="overglass">
             <lambda>2.0</lambda>
         </pureLayerNode>
-    </layer>
-
-    <layer name="Transistor" fun="TRANSISTOR">
-        <opaqueColor r="200" g="200" b="200"/>
-        <patternedOnDisplay>false</patternedOnDisplay>
-        <patternedOnPrinter>false</patternedOnPrinter>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <pattern>                </pattern>
-        <outlined>NOPAT</outlined>
-        <opacity>0.8</opacity>
-        <foreground>true</foreground>
     </layer>
 
     <!-- ******************** ARCS ******************** -->
@@ -428,14 +428,14 @@
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P-Plus" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
-            </box>
-        </nodeLayer>
         <nodeLayer layer="Diffusion" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Plus" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="diff-p">
@@ -453,14 +453,14 @@
         <diskOffset untilVersion="1" x="4.0" y="4.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
-        <nodeLayer layer="P-Well" style="CROSSED">
-            <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
-            </box>
-        </nodeLayer>
         <nodeLayer layer="Diffusion" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Well" style="CROSSED">
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="diff-w">
@@ -475,12 +475,12 @@
 
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <nodeLayer layer="Polysilicon" style="FILLED">
+        <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal" style="FILLED">
+        <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
@@ -505,11 +505,6 @@
         <diskOffset untilVersion="1" x="4.0" y="4.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P-Plus" style="FILLED">
-            <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
-            </box>
-        </nodeLayer>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -524,6 +519,11 @@
             <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </multicutbox>
+        </nodeLayer>
+        <nodeLayer layer="P-Plus" style="FILLED">
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+            </box>
         </nodeLayer>
         <primitivePort name="metal-diff-p">
             <portAngle primary="0" range="180"/>
@@ -550,15 +550,15 @@
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED">
-            <box>
-                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
-            </box>
-        </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CLOSED">
             <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
             </multicutbox>
+        </nodeLayer>
+        <nodeLayer layer="P-Well" style="FILLED">
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
+            </box>
         </nodeLayer>
         <primitivePort name="metal-diff-w">
             <portAngle primary="0" range="180"/>
@@ -580,14 +580,24 @@
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Diffusion" style="FILLED">
+        <nodeLayer layer="Diffusion" style="FILLED" electrical="false">
             <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Plus" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Plus" style="FILLED" portNum="-1">
             <serpbox lWidth="3.0" rWidth="3.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="3.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="0.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="0.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="trans-poly-left">
@@ -600,7 +610,7 @@
         </primitivePort>
         <primitivePort name="trans-diff-top">
             <portAngle primary="90" range="85"/>
-            <portTopology>2</portTopology>
+            <portTopology>1</portTopology>
             <box kly="1.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="2.0" khy="2.0"/>
             </box>
@@ -623,7 +633,7 @@
             <portArc>Diffusion-p</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0333333</specialValue>
+            <specialValue>4.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>2.0</specialValue>
@@ -641,19 +651,29 @@
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Diffusion" style="FILLED">
+        <nodeLayer layer="Diffusion" style="FILLED" electrical="false">
             <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="3.0" bExtent="3.0">
                 <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="3.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="0.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="0.0"/>
+            </serpbox>
+        </nodeLayer>
         <primitivePort name="transw-poly-left">
             <portAngle primary="180" range="85"/>
-            <portTopology>2</portTopology>
+            <portTopology>0</portTopology>
             <box khx="-1.0">
                 <lambdaBox klx="-2.0" khx="-2.0" kly="0.0" khy="0.0"/>
             </box>
@@ -661,7 +681,7 @@
         </primitivePort>
         <primitivePort name="transw-diff-top">
             <portAngle primary="90" range="85"/>
-            <portTopology>0</portTopology>
+            <portTopology>1</portTopology>
             <box kly="1.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="2.0" khy="2.0"/>
             </box>
@@ -669,7 +689,7 @@
         </primitivePort>
         <primitivePort name="transw-poly-right">
             <portAngle primary="0" range="85"/>
-            <portTopology>2</portTopology>
+            <portTopology>0</portTopology>
             <box klx="1.0">
                 <lambdaBox klx="2.0" khx="2.0" kly="0.0" khy="0.0"/>
             </box>
@@ -677,14 +697,14 @@
         </primitivePort>
         <primitivePort name="transw-diff-bottom">
             <portAngle primary="270" range="85"/>
-            <portTopology>1</portTopology>
+            <portTopology>3</portTopology>
             <box khy="-1.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="-2.0" khy="-2.0"/>
             </box>
             <portArc>Diffusion-well</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0333333</specialValue>
+            <specialValue>4.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>2.0</specialValue>
@@ -697,9 +717,24 @@
         <diskOffset untilVersion="1" x="7.0" y="5.0"/>
         <diskOffset untilVersion="2" x="4.0" y="2.0"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeLayer layer="Metal" style="FILLED">
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box>
                 <lambdaBox klx="-4.0" khx="4.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Contact-Cut" style="CLOSED">
+            <box klx="0.0">
+                <lambdaBox klx="0.0" khx="3.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Ohmic-Cut" style="CROSSED">
+            <box khx="0.0">
+                <lambdaBox klx="-3.0" khx="0.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="P-Plus" style="FILLED">
@@ -712,29 +747,6 @@
                 <lambdaBox klx="-7.0" khx="7.0" kly="-5.0" khy="5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal" style="FILLED">
-            <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Contact-Cut" style="CLOSED"  portNum="1">
-            <box klx="0.0">
-                <lambdaBox klx="0.0" khx="3.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Ohmic-Cut" style="CROSSED">
-            <box khx="0.0">
-                <lambdaBox klx="-3.0" khx="0.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-diff-splw-l">
-            <portAngle primary="180" range="90"/>
-            <portTopology>0</portTopology>
-            <box khx="0.0">
-                <lambdaBox klx="-3.0" khx="-1.0" kly="-1.0" khy="1.0"/>
-            </box>
-            <portArc>Metal</portArc>
-        </primitivePort>
         <primitivePort name="metal-diff-splw-r">
             <portAngle primary="0" range="90"/>
             <portTopology>0</portTopology>
@@ -744,23 +756,26 @@
             <portArc>Diffusion-well</portArc>
             <portArc>Metal</portArc>
         </primitivePort>
+        <primitivePort name="metal-diff-splw-l">
+            <portAngle primary="180" range="90"/>
+            <portTopology>0</portTopology>
+            <box khx="0.0">
+                <lambdaBox klx="-3.0" khx="-1.0" kly="-1.0" khy="1.0"/>
+            </box>
+            <portArc>Metal</portArc>
+        </primitivePort>
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-SplitN-Cut" fun="SUBSTRATE">
         <diskOffset untilVersion="1" x="5.0" y="4.0"/>
         <diskOffset untilVersion="2" x="4.0" y="2.0"/>
         <sizeOffset lx="2.0" hx="0.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="P-Plus" style="FILLED">
-            <box khx="0.0">
-                <lambdaBox klx="-5.0" khx="1.0" kly="-4.0" khy="4.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Diffusion" style="FILLED">
+        <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-3.0" khx="5.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal" style="FILLED">
+        <nodeLayer layer="Diffusion" style="FILLED">
             <box>
                 <lambdaBox klx="-3.0" khx="5.0" kly="-2.0" khy="2.0"/>
             </box>
@@ -770,9 +785,14 @@
                 <lambdaBox klx="-2.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Ohmic-Cut" style="CROSSED"  portNum="1">
+        <nodeLayer layer="Ohmic-Cut" style="CROSSED">
             <box klx="0.0">
                 <lambdaBox klx="1.0" khx="4.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Plus" style="FILLED">
+            <box khx="0.0">
+                <lambdaBox klx="-5.0" khx="1.0" kly="-4.0" khy="4.0"/>
             </box>
         </nodeLayer>
         <primitivePort name="metal-diff-splp-l">
@@ -864,9 +884,9 @@
         <LayersRule ruleName="U_0_0" layerNames="{Metal,Metal}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="U_1_1" layerNames="{Polysilicon,Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_1_2" layerNames="{Polysilicon,Diffusion}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
+<!--        <LayersRule ruleName="U_1_3" layerNames="{Polysilicon,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>    -->
         <LayersRule ruleName="U_2_2" layerNames="{Diffusion,Diffusion}" type="UCONSPA" when="ALL" value="3.0"/>
-        <LayersRule ruleName="U_2_3" layerNames="{Diffusion,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
+<!--        <LayersRule ruleName="U_2_3" layerNames="{Diffusion,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>    -->
         <LayersRule ruleName="U_2_5" layerNames="{Diffusion,Ohmic-Cut}" type="UCONSPA" when="ALL" value="5.0"/>
         <LayersRule ruleName="U_3_3" layerNames="{P-Plus,P-Plus}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_4_8" layerNames="{Contact-Cut,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>

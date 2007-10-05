@@ -896,7 +896,7 @@
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="S-Active" style="FILLED">
+        <nodeLayer layer="S-Active" style="FILLED" electrical="false">
             <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
@@ -904,6 +904,16 @@
         <nodeLayer layer="P-Select" style="FILLED"  portNum="-1">
             <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-5.0" khy="5.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="S-Active" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="3.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="0.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="S-Active" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="0.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="s-trans-poly-left">
@@ -916,7 +926,7 @@
         </primitivePort>
         <primitivePort name="s-trans-diff-top">
             <portAngle primary="90" range="90"/>
-            <portTopology>2</portTopology>
+            <portTopology>1</portTopology>
             <box kly="1.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="2.0" khy="3.0"/>
             </box>
@@ -939,7 +949,7 @@
             <portArc>S-Active</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0333333</specialValue>
+            <specialValue>4.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>2.0</specialValue>
@@ -957,19 +967,29 @@
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
+        <nodeLayer layer="D-Active" style="FILLED" electrical="false">
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
         <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
             <serpbox lWidth="7.0" rWidth="7.0" tExtent="4.0" bExtent="4.0">
                 <lambdaBox klx="-5.0" khx="5.0" kly="-7.0" khy="7.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="D-Active" style="FILLED">
-            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
+        <nodeLayer layer="D-Active" style="FILLED" portNum="3" electrical="true">
+            <serpbox kly="0.0" lWidth="3.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="0.0" khy="3.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="D-Active" style="FILLED" portNum="1" electrical="true">
+            <serpbox khy="0.0" lWidth="0.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="0.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="d-trans-poly-left">
             <portAngle primary="180" range="90"/>
-            <portTopology>1</portTopology>
+            <portTopology>0</portTopology>
             <box khx="-1.0">
                 <lambdaBox klx="-3.0" khx="-2.0" kly="0.0" khy="0.0"/>
             </box>
@@ -977,7 +997,7 @@
         </primitivePort>
         <primitivePort name="d-trans-diff-top">
             <portAngle primary="90" range="90"/>
-            <portTopology>0</portTopology>
+            <portTopology>1</portTopology>
             <box kly="1.0">
                 <lambdaBox klx="0.0" khx="0.0" kly="2.0" khy="3.0"/>
             </box>
@@ -985,7 +1005,7 @@
         </primitivePort>
         <primitivePort name="d-trans-poly-right">
             <portAngle primary="0" range="90"/>
-            <portTopology>1</portTopology>
+            <portTopology>0</portTopology>
             <box klx="1.0">
                 <lambdaBox klx="2.0" khx="3.0" kly="0.0" khy="0.0"/>
             </box>
@@ -1000,7 +1020,7 @@
             <portArc>D-Active</portArc>
         </primitivePort>
         <serpTrans>
-            <specialValue>0.0333333</specialValue>
+            <specialValue>4.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>1.0</specialValue>
             <specialValue>2.0</specialValue>

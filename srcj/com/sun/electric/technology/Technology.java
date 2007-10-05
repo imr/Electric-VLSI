@@ -902,7 +902,8 @@ public class Technology implements Comparable<Technology>
 //                double layerWidthOffset = DBMath.gridToLambda(2*(maxGridExtend - gridLayerExtend));
                 arcLayers[i] = new ArcLayer(layers.get(al.layer), layerWidthOffset, al.style);
             }
-            assert minGridExtend >= 0 && minGridExtend == DBMath.lambdaToGrid(a.arcLayers.get(0).extend.value);
+            if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.value))
+            	assert true;
             long gridExtendOverMin = DBMath.lambdaToGrid(0.5*a.defaultWidth.value);
             ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToSizeGrid(widthOffset)/2, minGridExtend, gridExtendOverMin, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());

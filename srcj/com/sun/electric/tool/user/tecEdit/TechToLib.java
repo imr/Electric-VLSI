@@ -232,8 +232,7 @@ public class TechToLib
 			// make sure the layer doesn't exist
 			if (lib.findNodeProto(fName) != null)
 			{
-				System.out.println("Warning: multiple layers named '" + fName + "'");
-				break;
+				System.out.println("Warning: already a cell '" + fName + "'.  Creating a new version");
 			}
 
 			Cell lNp = Cell.newInstance(lib, fName);
@@ -278,6 +277,10 @@ public class TechToLib
 			li.generate(lNp);
 			layerSequence.add(lNp.getName().substring(6));
 		}
+		if (layIndex != layerTotal)
+		{
+			System.out.println("INTERNAL ERROR: ");
+		}
 
 		// save the layer sequence
         String[] layerSequenceArray = layerSequence.toArray(new String[layerSequence.size()]);
@@ -307,8 +310,7 @@ public class TechToLib
 			// make sure the arc doesn't exist
 			if (lib.findNodeProto(fName) != null)
 			{
-				System.out.println("Warning: multiple arcs named '" + fName + "'");
-				break;
+				System.out.println("Warning: already a cell '" + fName + "'.  Creating a new version");
 			}
 
 			Cell aNp = Cell.makeInstance(lib, fName);
@@ -391,7 +393,6 @@ public class TechToLib
 			pos[1] = new Point2D.Double(nodeXPos + xS, -5 + yS);
 			pos[2] = new Point2D.Double(nodeXPos - xS, -5 - yS);
 			pos[3] = new Point2D.Double(nodeXPos + xS, -5 - yS);
-
 			SizeOffset so = pnp.getProtoSizeOffset();
 			xS = pnp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 			yS = pnp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
@@ -457,8 +458,7 @@ public class TechToLib
 						// make sure the node doesn't exist
 						if (lib.findNodeProto(fName) != null)
 						{
-							System.out.println("Warning: multiple nodes named '" + fName + "'");
-							break;
+							System.out.println("Warning: already a cell '" + fName + "'.  Creating a new version");
 						}
 
 						// use "newInstance" instead of "makeInstance" so that cell center is not placed
