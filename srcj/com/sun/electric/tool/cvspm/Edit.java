@@ -224,7 +224,7 @@ public class Edit {
         List<Cell> markForEdit = new ArrayList<Cell>();
         for (Cell cell : newlyModifiedCells) {
             State state = CVSLibrary.getState(cell);
-            if (state == State.NONE)
+            if (state == State.NONE || state == State.CONFLICT || state == State.UPDATE)
                 markForEdit.add(cell);
         }
 
@@ -234,7 +234,7 @@ public class Edit {
         List<Cell> unmarkForEdit = new ArrayList<Cell>();
         for (Cell cell : newlyUnmodifiedCells) {
             State state = CVSLibrary.getState(cell);
-            if (state == State.NONE)
+            if (state == State.NONE || state == State.CONFLICT || state == State.UPDATE)
                 unmarkForEdit.add(cell);
         }
 
@@ -276,20 +276,30 @@ public class Edit {
 
             if (unedit) {
                 // just run unedit
-                System.out.println("Unmarking CVS edit: "+args);
+                //System.out.println("Unmarking CVS edit: "+args);
                 CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
                 return true;
             }
 
             if (checkConflicts) {
-                System.out.println("Checking editors for: "+args);
+                //System.out.println("Checking editors for: "+args);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
                 editors = parseOutput(reader);
+                // also run status to see if they need an update
+                Update.StatusResult status = Update.update(args, useDir, Update.STATUS);
+                for (Cell cell : status.getCells(State.CONFLICT)) {
+                    Editor e = new Editor(cell.describe(false), "CONFLICT", new Date(), "", "");
+                    editors.add(e);
+                }
+                for (Cell cell : status.getCells(State.UPDATE)) {
+                    Editor e = new Editor(cell.describe(false), "NEEDS UPDATE", new Date(), "", "");
+                    editors.add(e);
+                }
                 fieldVariableChanged("editors");
             } else {
-                System.out.println("Marking for CVS edit: "+args);
+                //System.out.println("Marking for CVS edit: "+args);
                 CVS.runCVSCommand("edit -a none "+args, "CVS Edit", useDir, System.out);
             }
             return true;
