@@ -500,6 +500,8 @@ public class Edit {
         }
         static Editor parse(String editorResultLine) {
             // parse editor command result
+            if (editorResultLine.startsWith("?")) // running remotely lists unknown files
+                return null;
             String parts[] = editorResultLine.split("\\t");
             if (parts.length == 5) {
                 String abbreviatedFile = parts[0];
