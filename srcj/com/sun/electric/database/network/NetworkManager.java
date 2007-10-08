@@ -194,6 +194,20 @@ public class NetworkManager {
             else
                 new NetCell(cell);
         }
+        // recreated Cells
+        for (int i = 0; i < maxCells; i++) {
+            CellRevision oldRevision = oldSnapshot.getCellRevision(i);
+            CellRevision newRevision = newSnapshot.getCellRevision(i);
+            if (newRevision == null || oldRevision == null) continue;
+            CellId cellId = newRevision.d.cellId;
+            Cell cell = database.getCell(cellId);
+            NetCell netCell = getNetCell(cell);
+            if (netCell.cell == cell) continue;
+            if (cell.isIcon() || cell.isSchematic())
+                new NetSchem(cell);
+            else
+                new NetCell(cell);
+        }
         // Changed CellGroups
         if (oldSnapshot.cellGroups != newSnapshot.cellGroups) {
             int maxOldGroupIndex = -1;
