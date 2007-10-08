@@ -847,6 +847,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //		lib.removeCell(this);
 //		cellGroup.remove(this);
 
+		// remember the expansion state of instances of the cell
+		Map<CellId,Map<Name,Boolean>> expansionRemap = new HashMap<CellId,Map<Name,Boolean>>();
+		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			Cell cell = ni.getParent();
+			Map<Name,Boolean> cellExpansionRemap = expansionRemap.get(cell.getId());
+			if (cellExpansionRemap == null)
+			{
+				cellExpansionRemap = new HashMap<Name,Boolean>();
+				expansionRemap.put(cell.getId(), cellExpansionRemap);
+			}
+			Boolean isExpanded = new Boolean(ni.isExpanded());
+			cellExpansionRemap.put(ni.getNameKey(), isExpanded);
+		}
+
 		// do the rename
         cellName = makeUnique(lib, cellName);
 //        setD(getD().withCellName(cellName));
@@ -860,6 +876,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         database.undo(newSnapshot);
         database.lowLevelSetCanUndoing(false);
         Constraints.getCurrent().renameIds(idMapper);
+
+		// restore the expansion state of instances of the cell
+        for(CellId cid : expansionRemap.keySet())
+        {
+			Map<Name,Boolean> cellExpansionRemap = expansionRemap.get(cid);
+			Cell cell = cid.inDatabase(database);
+        	for(Name name : cellExpansionRemap.keySet())
+        	{
+        		NodeInst ni = cell.findNode(name.toString());
+        		if (ni != null)
+        			ni.setExpanded(cellExpansionRemap.get(name).booleanValue());
+        	}
+        }
 
         return idMapper;
 //
