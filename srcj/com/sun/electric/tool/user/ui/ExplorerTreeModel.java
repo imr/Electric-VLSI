@@ -26,16 +26,22 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.tecEdit.ArcInfo;
 import com.sun.electric.tool.user.tecEdit.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.NodeInfo;
+
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -57,12 +63,13 @@ public class ExplorerTreeModel extends DefaultTreeModel {
     private final Object[] rootPath;
     final Object[] jobPath;
     final Object[] errorPath;
-    
+
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
 	private static final int SHOWBYHIERARCHY    = 3;
 	private static int howToShow = SHOWBYCELLGROUP;
-    
+	private static boolean sortLexically = false;
+
 	static class CellAndCount
 	{
 		private Cell cell;
@@ -70,7 +77,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 		CellAndCount(Cell cell, int count) { this.cell = cell;   this.count = count; }
 		Cell getCell() { return cell; }
 		int getCount() { return count; }
-        
+
         public String toString() { return cell.noLibDescribe() + " (" + count + ")"; }
 	}
 
@@ -80,7 +87,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 		private int pageNo;
         Cell getCell() { return cell; }
         int getPageNo() { return pageNo; }
-        
+
         public String toString() { return cell.noLibDescribe() + " Page " + (pageNo+1); }
 	}
 
@@ -92,9 +99,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         jobPath = new Object[] { rootNode, jobExplorerNode };
         errorPath = new Object[] { rootNode, errorExplorerNode };
     }
-    
-    
-    
+
     /**
      * Returns the root of the tree.  Returns <code>null</code>
      * only if the tree has no nodes.
@@ -102,8 +107,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
      * @return  the root of the tree
      */
     public Object getRoot() { return rootNode; }
-    
-    
+
     /**
      * Returns the child of <code>parent</code> at index <code>index</code>
      * in the parent's
@@ -124,8 +128,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         }
         return super.getChild(parent, index);
     }
-    
-    
+
     /**
      * Returns the number of children of <code>parent</code>.
      * Returns 0 if the node
@@ -139,8 +142,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (parent == rootNode) return contentExplorerNodes.size() + 2;
         return super.getChildCount(parent);
     }
-    
-    
+
     /**
      * Returns <code>true</code> if <code>node</code> is a leaf.
      * It is possible for this method to return <code>false</code>
@@ -156,7 +158,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (node == rootNode) return false;
         return super.isLeaf(node);
     }
-    
+
     /**
      * Messaged when the user has altered the value for the item identified
      * by <code>path</code> to <code>newValue</code>.
@@ -167,7 +169,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
      * @param newValue the new value from the TreeCellEditor
      */
     public void valueForPathChanged(TreePath path, Object newValue) { super.valueForPathChanged(path, newValue); }
-    
+
     /**
      * Returns the index of child in parent.  If either <code>parent</code>
      * or <code>child</code> is <code>null</code>, returns -1.
@@ -190,11 +192,11 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         }
         return super.getIndexOfChild(parent, child);
     }
-    
+
 //
 //  Change Events
 //
-    
+
     /**
      * Adds a listener for the <code>TreeModelEvent</code>
      * posted after the tree changes.
@@ -207,7 +209,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         allListeners.add(l);
         super.addTreeModelListener(l);
     }
-    
+
     /**
      * Removes a listener previously added with
      * <code>addTreeModelListener</code>.
@@ -220,7 +222,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         allListeners.remove(l);
         super.removeTreeModelListener(l);
     }
-    
+
     /**
      * Notifies all listeners that have registered interest for notification on this event type.
      * @param source source of event
@@ -278,7 +280,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
             l.treeStructureChanged(e);
         }
     }
-    
+
     /**
      * Invoke this method if you've modified the TreeNodes upon which this
      * model depends.  The model will notify all of its listeners that the
@@ -293,7 +295,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (path != null)
             fireTreeStructureChanged(this, path, null, null);
     }
-    
+
     /**
      * Invoke this method after you've inserted some TreeNodes into
      * node.  childIndices should be the index of the new elements and
@@ -303,14 +305,14 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (listenerList != null && path != null && path.length > 0 && childIndices != null && childIndices.length > 0) {
             int cCount = childIndices.length;
             Object[] newChildren = new Object[cCount];
-            
+
             Object parent = path[path.length - 1];
             for (int counter = 0; counter < cCount; counter++)
                 newChildren[counter] = getChild(parent, childIndices[counter]);
             fireTreeNodesInserted(this, path, childIndices, newChildren);
         }
     }
-    
+
     /**
      * Invoke this method after you've removed some TreeNodes from
      * node.  childIndices should be the index of the removed elements and
@@ -321,7 +323,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (path != null && childIndices != null)
             fireTreeNodesRemoved(this, path, childIndices, removedChildren);
     }
-    
+
     /**
      * Invoke this method after you've changed how the children identified by
      * childIndicies are to be represented in the tree.
@@ -332,10 +334,10 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         if (node != null) {
             if (childIndices != null) {
                 int cCount = childIndices.length;
-                
+
                 if (cCount > 0) {
                     Object[] cChildren = new Object[cCount];
-                    
+
                     for (int counter = 0; counter < cCount; counter++)
                         cChildren[counter] = getChild(node, childIndices[counter]);
                     fireTreeNodesChanged(this, path, childIndices, cChildren);
@@ -345,7 +347,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
             }
         }
     }
-    
+
     /**
      * Builds the parents of node up to and including the root node,
      * where the original node is the last element in the returned array.
@@ -358,7 +360,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         TreeNode[] path = super.getPathToRoot(aNode);
         return path;
     }
-    
+
     /**
      * Builds the parents of node up to and including the root node,
      * where the original node is the last element in the returned array.
@@ -376,7 +378,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         // This method recurses, traversing towards the root in order
         // size the array. On the way back, it fills in the nodes,
         // starting from the root and working back to the original node.
-        
+
         /* Check for null, in case someone passed in a null node, or
            they passed in an element that isn't rooted at root. */
         if (aNode == null) {
@@ -399,41 +401,71 @@ public class ExplorerTreeModel extends DefaultTreeModel {
         }
         return retNodes;
     }
-    
+
     void updateContentExplorerNodes(List<MutableTreeNode> newContentExplorerNodes) {
         Object[] children = contentExplorerNodes.toArray();
         int[] childIndices = new int[children.length];
         for (int i = 0; i < children.length; i++) childIndices[i] = i;
         contentExplorerNodes.clear();
         nodesWereRemoved(rootPath, childIndices, children);
-        
+
         contentExplorerNodes.addAll(newContentExplorerNodes);
         childIndices = new int[contentExplorerNodes.size()];
         for (int i = 0; i < childIndices.length; i++) childIndices[i] = i;
         nodesWereInserted(rootPath, childIndices);
     }
-    
+
     /**
 	 * A static object is used so that its open/closed tree state can be maintained.
 	 */
 	private static String libraryNode = "LIBRARIES";
 
-    static void showAlphabeticallyAction() {
+    static boolean isShownAlphabetically()
+    {
+        return howToShow == SHOWALPHABETICALLY;
+    }
+
+    static void showAlphabeticallyAction()
+    {
         howToShow = SHOWALPHABETICALLY;
         WindowFrame.wantToRedoLibraryTree();
     }
-    
-    static void showByGroupAction() {
+
+    static boolean isShownByGroup()
+    {
+        return howToShow == SHOWBYCELLGROUP;
+    }
+
+    static void showByGroupAction()
+    {
         howToShow = SHOWBYCELLGROUP;
         WindowFrame.wantToRedoLibraryTree();
     }
-    
-    static void showByHierarchyAction() {
+
+    static boolean isShownByHierarchy()
+    {
+        return howToShow == SHOWBYHIERARCHY;
+    }
+
+    static void showByHierarchyAction()
+    {
         howToShow = SHOWBYHIERARCHY;
         WindowFrame.wantToRedoLibraryTree();
     }
 
-	public static DefaultMutableTreeNode makeLibraryTree()
+    static boolean getSortLexically()
+    {
+    	return sortLexically;
+    }
+
+    static void setSortLexically(ActionEvent e)
+    {
+    	JCheckBoxMenuItem sl = (JCheckBoxMenuItem)e.getSource();
+    	sortLexically = !sl.isSelected();
+        WindowFrame.wantToRedoLibraryTree();
+    }
+
+    public static DefaultMutableTreeNode makeLibraryTree()
 	{
 		DefaultMutableTreeNode libraryExplorerTree = new DefaultMutableTreeNode(libraryNode);
 
@@ -460,12 +492,16 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
+				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
-				{
-					Cell cell = eit.next();
+					cellList.add(eit.next());
+				if (sortLexically)
+		        	Collections.sort(cellList, new TextUtils.CellsByName());
+	        	for(Cell cell : cellList)
+	        	{
 					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
 					libTree.add(cellTree);
-				}
+	        	}
 			}
 			libraryExplorerTree.add(libTree);
 		}
@@ -529,10 +565,13 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
+				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
-				{
-					Cell cell = eit.next();
-	
+					cellList.add(eit.next());
+				if (sortLexically)
+		        	Collections.sort(cellList, new TextUtils.CellsByName());
+	        	for(Cell cell : cellList)
+	        	{	
 					// ignore icons and text views
 					if (cell.isIcon()) continue;
 					if (cell.getView().isTextView()) continue;
@@ -610,9 +649,13 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 					Cell cell = eit.next();
 					cellsSeen.remove(cell);
 				}
+				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
-				{
-					Cell cell = eit.next();
+					cellList.add(eit.next());
+				if (sortLexically)
+		        	Collections.sort(cellList, new TextUtils.CellsByName());
+	        	for(Cell cell : cellList)
+	        	{
 					if (cell.getNewestVersion() != cell) continue;
 					Cell.CellGroup group = cell.getCellGroup();
 					int numNewCells = 0;

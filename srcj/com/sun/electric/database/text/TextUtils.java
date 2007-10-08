@@ -1662,6 +1662,22 @@ public class TextUtils
 	}
 
 	/**
+	 * Comparator class for sorting Cells by their name (NOT considering numbers in the names).
+	 */
+	public static class CellsByName implements Comparator<Cell>
+	{
+		/**
+		 * Method to sort Cells by their name.
+		 */
+		public int compare(Cell c1, Cell c2)
+		{
+			String r1 = c1.getName();
+			String r2 = c2.getName();
+			return r1.compareTo(r2);
+		}
+	}
+
+	/**
 	 * Comparator class for sorting Cells by their date.
 	 */
 	public static class CellsByDate implements Comparator<Cell>

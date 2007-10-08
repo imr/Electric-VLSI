@@ -29,12 +29,17 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -69,6 +74,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private static final String prefSelectedView = "CellBrowser-SelectedView";
     private static final String prefSelectedCell = "CellBrowser-SelectedCell";
     private static final String prefEditInNewWindow = "CellBrowser-EditInNewWindow";
+    private static final String prefSortLexically = "CellBrowser-SortLexically";
 
     private String lastSelectedLib = null;
     private String lastSelectedView = null;
@@ -77,7 +83,6 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private static Pattern lastPattern = null;
     private static boolean confirmDelete = true;
 	private boolean cancelled;
-
 
     private DoAction action;
     private List<Cell> cellList = null;                       // list of cells displayed
@@ -106,7 +111,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     }
 
     /** Creates new form CellBrowser */
-    public CellBrowser(java.awt.Frame parent, boolean modal, DoAction action) {
+    public CellBrowser(Frame parent, boolean modal, DoAction action) {
         super(parent, modal);
         this.action = action;
 		cancelled = false;
@@ -119,8 +124,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         lastPattern = Pattern.compile(lastFilter);
         lastSelectedCell = prefs.get(action+prefSelectedCell, null);
         cellFilter.setText(lastFilter);         // restore last filter
-        initComboBoxes();                       // set up the combo boxes
         initExtras();                           // set up an extra components
+        initComboBoxes();                       // set up the combo boxes
 
         UserInterfaceMain.addDatabaseChangeListener(this);
 		finishInitialization();
@@ -382,6 +387,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
     }
 
+    private JCheckBox sortNumerically;
     // ---- Edit Cell extras ----
     private JCheckBox editInNewWindow;
     // ---- Rename Cell extras ----
@@ -390,10 +396,25 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     // ---- Delete Cell extras ----
     private JCheckBox confirmDeletions;
 
-    private void initExtras() {
+    private void initExtras()
+    {
         // extras should be added in gridboxlayout inside JPanel "extrasPanel",
         //  starting with gridx = 0, gridy=0.
-        java.awt.GridBagConstraints gridBagConstraints;
+        GridBagConstraints gridBagConstraints;
+        int yPos = 0;
+
+        // add in a check box to choose cell sorting method
+        boolean lexSort = prefs.getBoolean(prefSortLexically, false);
+        sortNumerically = new JCheckBox("Evaluate Numbers when Sorting Names", !lexSort);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = yPos++;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        extrasPanel.add(sortNumerically, gridBagConstraints);
+        sortNumerically.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent evt) { updateCellList(); }
+        });
 
         if (action == DoAction.newInstance) {
             doAction.setText("New Instance");
@@ -403,11 +424,11 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             // add in a check box to open in a new window
             boolean checked = prefs.getBoolean(prefEditInNewWindow, false);
             editInNewWindow = new JCheckBox("Edit in New Window", checked);
-            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 0;
+            gridBagConstraints.gridy = yPos++;
             gridBagConstraints.gridwidth = 2;
-            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+            gridBagConstraints.fill = GridBagConstraints.BOTH;
             extrasPanel.add(editInNewWindow, gridBagConstraints);
 
             // remove done button, this is a one-shot action button
@@ -418,11 +439,11 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         else if (action == DoAction.renameCell) {
             // add in a text box for the new name
             newCellNameLabel = new JLabel("New Cell Name:  ");
-            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 0;
+            gridBagConstraints.gridy = yPos;
             gridBagConstraints.gridwidth = 1;
-            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+            gridBagConstraints.fill = GridBagConstraints.BOTH;
             extrasPanel.add(newCellNameLabel, gridBagConstraints);
 
             newCellName = new JTextField();
@@ -431,10 +452,10 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 newCellName.setText(nameOnly);
             }
             gridBagConstraints.gridx = 1;
-            gridBagConstraints.gridy = 0;
+            gridBagConstraints.gridy = yPos++;
             gridBagConstraints.gridwidth = 1;
             gridBagConstraints.weightx = 1.0;
-            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+            gridBagConstraints.fill = GridBagConstraints.BOTH;
             extrasPanel.add(newCellName, gridBagConstraints);
 
             // not a one-shot action:
@@ -442,11 +463,11 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         }
         else if (action == DoAction.deleteCell) {
             confirmDeletions = new JCheckBox("Confirm Deletions", confirmDelete);
-            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 0;
+            gridBagConstraints.gridy = yPos++;
             gridBagConstraints.gridwidth = 2;
-            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+            gridBagConstraints.fill = GridBagConstraints.BOTH;
             extrasPanel.add(confirmDeletions, gridBagConstraints);
 
             // set current cell as the default
@@ -529,7 +550,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             prefs.put(action+prefSelectedCell, (String)jList1.getSelectedValue());
         }
         prefs.put(action+prefFilter, lastFilter);
-
+        prefs.putBoolean(prefSortLexically, !sortNumerically.isSelected());
         if (action == DoAction.editCell)
         {
             prefs.putBoolean(prefEditInNewWindow, editInNewWindow.isSelected());
@@ -713,7 +734,17 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 cellList.add(c);
             }
         }
-        Collections.sort(cellList);      // sort list by name
+
+        // sort appropriately
+        if (sortNumerically.isSelected())
+        {
+        	// sort list by name, considering numbers
+        	Collections.sort(cellList);
+        } else
+        {
+        	// sort list by name, not considering numbers
+        	Collections.sort(cellList, new TextUtils.CellsByName());
+        }
 
         cellListNames = new ArrayList<String>();
         for (Cell c : cellList) {

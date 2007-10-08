@@ -58,8 +58,8 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
-import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
+import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -104,14 +104,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -1898,17 +1901,27 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 
 					menu.addSeparator();
 
-					menuItem = new JMenuItem("Show Cells Alphabetically");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showAlphabeticallyAction(); } });
+					ButtonGroup bg = new ButtonGroup();
+					JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem("Show Cells Alphabetically", ExplorerTreeModel.isShownAlphabetically());
+					menu.add(rbMenuItem);
+					rbMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showAlphabeticallyAction(); } });
+					bg.add(rbMenuItem);
 
-					menuItem = new JMenuItem("Show Cells by Group");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showByGroupAction(); } });
+					rbMenuItem = new JRadioButtonMenuItem("Show Cells by Group", ExplorerTreeModel.isShownByGroup());
+					menu.add(rbMenuItem);
+					rbMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showByGroupAction(); } });
+					bg.add(rbMenuItem);
 
-					menuItem = new JMenuItem("Show Cells by Hierarchy");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showByHierarchyAction(); } });
+					rbMenuItem = new JRadioButtonMenuItem("Show Cells by Hierarchy", ExplorerTreeModel.isShownByHierarchy());
+					menu.add(rbMenuItem);
+					rbMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.showByHierarchyAction(); } });
+					bg.add(rbMenuItem);
+
+					menu.addSeparator();
+
+					JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("Evaluate Numbers when Sorting Names", !ExplorerTreeModel.getSortLexically());
+					menu.add(cbMenuItem);
+					cbMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ExplorerTreeModel.setSortLexically(e); } });
 
 					menu.addSeparator();
 
