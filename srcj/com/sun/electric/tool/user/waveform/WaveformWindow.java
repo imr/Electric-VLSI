@@ -2065,7 +2065,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		List<Signal> signals = an.getSignals();
 		if (signals.size() == 0) return null;
-		if (an instanceof EpicAnalysis) {
+		if (an instanceof EpicAnalysis)
+		{
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
 			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
 			return analysisNode;
@@ -2077,7 +2078,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
 
-
 		// add branches first
 		char separatorChar = sd.getSeparatorChar();
 		for(Signal sSig : signals)
@@ -2087,13 +2087,47 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
+		// make a list of signal names with "#" in them
+		Set<String> sharpSet = new HashSet<String>();
+		for(Signal sSig : signals)
+		{
+			if (!(sSig instanceof TimedSignal)) continue;
+			String sigName = sSig.getSignalName();
+			int hashPos = sigName.indexOf('#');
+			if (hashPos > 0)
+			{
+				String nodeName = sSig.getSignalContext();
+				if (nodeName == null) nodeName = ""; else nodeName += separatorChar;
+				nodeName += sigName.substring(0, hashPos);
+				sharpSet.add(nodeName);
+			}
+		}
+
 		// add all signals to the tree
 		for(Signal sSig : signals)
 		{
 			if (!(sSig instanceof TimedSignal)) continue;
 			TreePath thisTree = analysisPath;
-			if (sSig.getSignalContext() != null)
-				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
+
+			String nodeName = sSig.getSignalContext();
+			String nodeNameStr = nodeName;
+			if (nodeNameStr == null) nodeNameStr = ""; else nodeNameStr += separatorChar;
+			String sigName = sSig.getSignalName();
+			int hashPos = sigName.indexOf('#');
+			if (hashPos > 0)
+			{
+				// force a branch with the proper name
+				nodeName = nodeNameStr + sigName.substring(0, hashPos+1);
+			} else
+			{
+				// if this is the pure name of a hash set, force a branch
+				String pureSharpName = nodeNameStr + sigName;
+				if (sharpSet.contains(pureSharpName))
+					nodeName = pureSharpName + "#";
+			}
+			if (nodeName != null)
+				thisTree = makeContext(nodeName, contextMap, separatorChar);
+
 			DefaultMutableTreeNode sigLeaf = new DefaultMutableTreeNode(sSig);
 			((DefaultMutableTreeNode)thisTree.getLastPathComponent()).add(sigLeaf);
 		}
