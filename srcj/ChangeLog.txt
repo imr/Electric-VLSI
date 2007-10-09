@@ -7,12 +7,13 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (10/8/07, SMR) When cells are renamed, expansion is lost (Bug #1384).
 FIX: In Cell.rename(), save expansion information and restore it later.
 
-IMP/MAN: (10/8/07, SMR) Cell lists ("Edit Cell", "Place Cell Instance",
+IMP: (10/8/07, SMR) Cell lists ("Edit Cell", "Place Cell Instance",
      "Rename Cell", "Duplicate Cell", "Delete Cell", and cell selection)
      now have "Evaluate Numbers when Sorting Names" checkbox to control
      whether numbers in cell names are sorted numerically or lexically.
      Also, the Cell Explorer's context menu for "LIBRARIES" has the same
-     checkbox for sorting within the explorer (Bug #1346).
+     checkbox for sorting within the explorer.  Also, the "General Cell Lists"
+     dialog has the checkbox. (Bug #1346).
 
 BUG: (10/8/07, DN) Exception after reading library twice).
 FIX: In NetworkManager.updateAll check for recreated Cells.
