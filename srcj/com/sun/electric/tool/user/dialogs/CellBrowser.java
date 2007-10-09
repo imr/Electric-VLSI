@@ -30,10 +30,12 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
@@ -42,14 +44,17 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
@@ -565,12 +570,14 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
     private void performAction() {
 
-        if (action == DoAction.newInstance) {
+        if (action == DoAction.newInstance)
+        {
             Cell cell = getSelectedCell();
             if (cell == null) return;
 
             PaletteFrame.placeInstance(cell, null, false);
-        } else if (action == DoAction.editCell) {
+        } else if (action == DoAction.editCell)
+        {
             boolean newWindow = editInNewWindow.isSelected();
 
             List<Cell> cells = getSelectedCells();
@@ -589,30 +596,57 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 newWindow = true;
             }
             closeDialog(null);                     // we have performed the action
-
-        } else if (action == DoAction.deleteCell) {
+        } else if (action == DoAction.deleteCell)
+        {
         	confirmDelete = confirmDeletions.isSelected();
 
             List<Cell> cells = getSelectedCells();
-            String lastDeleted = null;
-            for (Cell cell : cells) {
-                if (CircuitChanges.deleteCell(cell, confirmDelete, false)) {
-                    lastDeleted = cell.noLibDescribe();
+            Set<String> deletedCells = new HashSet<String>();
+            for(Cell cell : cells)
+            {
+	    		// make sure the user really wants to delete the cell
+	    		if (confirmDelete)
+	    		{
+	    			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+	    				"Are you sure you want to delete " + cell + "?", "Confirm Cell Deletion", JOptionPane.YES_NO_OPTION);
+	    			if (response != JOptionPane.YES_OPTION) return;
+	    		}
+
+	    		// delete references to cell
+	    		CircuitChanges.cleanCellRef(cell);
+	    		deletedCells.add(cell.noLibDescribe());
+            }
+
+            // delete all requested cells
+    		new CellChangeJobs.DeleteManyCells(cells);
+
+    		// pick a new selected cell
+        	lastSelectedCell = null;
+            for (int i=cellListNames.size()-2; i>=0; i--)
+            {
+                String name = cellListNames.get(i);
+                String nextName = cellListNames.get(i+1);
+                if (deletedCells.contains(name) && !deletedCells.contains(nextName))
+                {
+                    lastSelectedCell = nextName;
+                    break;
                 }
             }
-            if (lastDeleted != null) {
-                for (Iterator<String> it = cellListNames.iterator(); it.hasNext(); ) {
-                    String name = it.next();
-                    if (name.equals(lastDeleted)) {
-                        if (it.hasNext())
-                            lastSelectedCell = it.next();
+            if (lastSelectedCell == null)
+            {
+                for (int i=0; i<cellListNames.size(); i++)
+                {
+                    String name = cellListNames.get(i);
+                    if (!deletedCells.contains(name))
+                    {
+                        lastSelectedCell = name;
                         break;
                     }
                 }
             }
             updateCellList();
-
-        } else if (action == DoAction.renameCell) {
+        } else if (action == DoAction.renameCell)
+        {
             Cell cell = getSelectedCell();
             if (cell == null) return;
 
@@ -622,8 +656,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             CircuitChanges.renameCellInJob(cell, newName);
             lastSelectedCell = newName + cell.getView().getAbbreviationExtension();
             //setCell(cell);
-
-        } else if (action == DoAction.duplicateCell) {
+        } else if (action == DoAction.duplicateCell)
+        {
             Cell cell = getSelectedCell();
             if (cell == null) return;
             CellMenu.duplicateCell(cell, false);
@@ -633,7 +667,6 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 		{
             closeDialog(null);                     // we have performed the action
 		}
-
     }
 
     // -------------------------------- Set State of Dialog ------------------------------

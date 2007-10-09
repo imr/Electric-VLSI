@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06h: *******************************
 
+BUG: (10/9/07, SMR) Multiple cell deletions may fail if dependencies
+     exist between them.
+FIX: Improved CellChangeJobs.DeleteManyCells to delete cells in appropriate order.
+     Use this in CellBrowser.performAction().
+
 IMP: (10/9/07, RK) Skew tree generator adds external arc
 
 BUG: (10/8/07, SMR) When cells are renamed, expansion is lost (Bug #1384).

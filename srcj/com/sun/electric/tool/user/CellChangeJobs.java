@@ -113,11 +113,36 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			for(Cell cell : cellsToDelete)
-			{
-				System.out.println("Deleting " + cell);
-				cell.kill();
-			}
+			// iteratively delete, allowing cells in use to be deferred
+            boolean didDelete = true;
+            while (didDelete)
+            {
+            	didDelete = false;
+	            for (int i=0; i<cellsToDelete.size(); i++)
+	            {
+	            	Cell cell = cellsToDelete.get(i);
+
+	            	// if the cell is in use, defer
+	        		if (cell.isInUse(null, true)) continue;
+
+	        		// cell not in use: remove it from the list and delete it
+	        		cellsToDelete.remove(i);
+	        		i--;
+	        		System.out.println("Deleting " + cell);
+					cell.kill();
+	                didDelete = true;
+	            }
+            }
+
+            // warn about remaining cells that were in use
+            for(Cell cell : cellsToDelete)
+        		cell.isInUse("delete", false);
+
+//            for(Cell cell : cellsToDelete)
+//			{
+//				System.out.println("Deleting " + cell);
+//				cell.kill();
+//			}
 			return true;
 		}
 
