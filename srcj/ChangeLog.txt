@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06h: *******************************
 
+BUG: (9/17/07, GVG) NT-N node and NT-N transistor problems in TSMC180 (Bug #1378)
+FIX: Disabled for now in tsmc180.xml
+
 IMP: (10/9/07, SMR) Waveform window now groups signals with "#" variations (Bug #1172).
 
 BUG: (10/9/07, SMR) Multiple cell deletions may fail if dependencies
