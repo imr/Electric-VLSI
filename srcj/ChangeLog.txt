@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06h: *******************************
 
+IMP: (10/9/07, RK) Skew tree generator adds external arc
+
 BUG: (10/8/07, SMR) When cells are renamed, expansion is lost (Bug #1384).
 FIX: In Cell.rename(), save expansion information and restore it later.
 

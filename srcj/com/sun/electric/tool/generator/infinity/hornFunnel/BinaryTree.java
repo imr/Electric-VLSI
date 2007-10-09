@@ -18,12 +18,14 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class BinaryTree {
-	public static final Variable.Key ID_KEY = Variable.newKey("ATTR_ID");
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
+	private final boolean SLANTED_EDGES = true;
 	private static final Technology SCHEM_TECH = 
 		Technology.findTechnology("schematic");
 	private static final PrimitiveNode SCH_ICON_PROTO = 
 		SCHEM_TECH.findNodeProto("Buffer");
+	private static final PrimitiveNode DOT_ICON_PROTO =
+		SCHEM_TECH.findNodeProto("Wire_Pin");
 	private static final ArcProto LINE_PROTO = 
 		SCHEM_TECH.findArcProto("Wire"); 
 
@@ -42,15 +44,33 @@ public class BinaryTree {
 		for (int i=0; i<nbSlots; i++) slots.add(null);
 		return slots;
 	}
+	
+	private void drawExternalArc(Cell c, Map<Node, NodeInst> nodeToInst) {
+		int dotX = -SLOT_WID;
+		int dotY = (height+1) * (SLOT_HEI);
+		NodeInst dot = LayoutLib.newNodeInst(DOT_ICON_PROTO, dotX, dotY, 
+                                             DEF_SIZE, DEF_SIZE, 
+                                             0, c);
+		PortInst dotPi = dot.getOnlyPortInst();
+		PortInst inPi = nodeToInst.get(root).findPortInst("a");
+		drawArc(dotPi, inPi);
+	}
+	private void drawArc(PortInst p1, PortInst p2) {
+		if (SLANTED_EDGES) {
+			ArcInst aL = ArcInst.makeInstance(LINE_PROTO, p1, p2);
+			aL.setFixedAngle(false);
+		} else {
+			LayoutLib.newArcInst(LINE_PROTO, DEF_SIZE, p1, p2);
+		}
+	}
 	private void drawArcs(Node n, Map<Node, NodeInst> nodeToInst) {
 		if (n.isLeaf()) return;
 		PortInst cur = nodeToInst.get(n).findPortInst("y");
 		PortInst left = nodeToInst.get(n.getLeftChild()).findPortInst("a");
 		PortInst right = nodeToInst.get(n.getRightChild()).findPortInst("a");
-		ArcInst aL = ArcInst.makeInstance(LINE_PROTO, cur, left);
-		aL.setFixedAngle(false);
-		ArcInst aR = ArcInst.makeInstance(LINE_PROTO, cur, right);
-		aR.setFixedAngle(false);
+		
+		drawArc(cur, left);
+		drawArc(cur, right);
 		
 		drawArcs(n.getLeftChild(), nodeToInst);
 		drawArcs(n.getRightChild(), nodeToInst);
@@ -111,7 +131,7 @@ public class BinaryTree {
 	}
 	/** Label each node with it's identifier */
 	public void addId(NodeInst ni, int id) {
-		ni.setName("id"+id);
+		ni.setName(""+id);
 	}
 	
 	/** Draw a schematic Cell for this tree */
@@ -130,6 +150,7 @@ public class BinaryTree {
 			LayoutLib.error(nodeToInst.containsKey(n), "duplicate entry");
 			nodeToInst.put(n, ni);
 		}
+		drawExternalArc(c, nodeToInst);
 		drawArcs(root, nodeToInst);
 		printStats();
 	}
@@ -182,8 +203,13 @@ public class BinaryTree {
 	public void printStats() {
 		pr("Track counts: ");
 		int[] counts = countTracks();
-		for (int count : counts) pr(count+" ");
+		int maxNbTracks = -1;
+		for (int count : counts) {
+			pr(count+" ");
+			maxNbTracks = Math.max(maxNbTracks, count);
+		}
 		prln("");
+		prln("Max numb tracks: "+maxNbTracks);
 		
 		prln("Total wire length: "+calcWireLength());
 		

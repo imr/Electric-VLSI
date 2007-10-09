@@ -1,9 +1,7 @@
 package com.sun.electric.tool.generator.infinity.hornFunnel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -16,41 +14,6 @@ public class SkewTree {
 	static void prln(String s) {System.out.println(s);}
 	private int pass = 1;
 
-	/** Strategy: equalize the length of the wires that
-	 * connect to the nodes along the upper right boundary
-	 * of the tree. */
-	private void skew(BinaryTree tree) {
-		int height = tree.getHeight();
-		int nbSlots = tree.getNumSlots();
-		
-		int segLen = (int) Math.ceil(((double)nbSlots) / height);
-		
-		int pos = -1 + segLen;
-		for (Node n=tree.getRoot(); n!=null; n=n.getRightChild()) {
-			if (pos>=n.getSlot()) break;
-			tree.moveTo(n, pos, Integer.MAX_VALUE);
-			pos += segLen;
-		}
-	}
-	/** Make space in slot dstSlot for a node of level srcLevel */
-	private void makeSpace(BinaryTree tree, int dstSlot, int moveableHeight) {
-		Node n = tree.getNodeInSlot(dstSlot);
-		LayoutLib.error(n.getHeight()>moveableHeight, 
-				        "can't make space because destintation is locked: "+
-				        n.toString());
-		// if desired slot is occupied by a Node that is lower in the tree then
-		// push that Node to the right.
-		if (n.getHeight()<moveableHeight) return;
-		// Node in desired slot is the same height as src Node. Push
-		// it to the left.
-		for (int i=dstSlot; i>=0; i--) {
-			Node hole = tree.getNodeInSlot(i);
-			if (hole.getHeight()<moveableHeight) {
-				tree.moveTo(hole, dstSlot, moveableHeight);
-				break;
-			}
-		}
-	}
 	private void drawTree(Library outLib, BinaryTree tree, int pass) {
 		Cell c = Cell.newInstance(outLib, "skewTree"+tree.getHeight()+
 				                  "pass"+pass+"{sch}");
@@ -59,42 +22,10 @@ public class SkewTree {
 		tree.draw(c);
 		
 	}
-	private List<Node> findNodesToMove(BinaryTree tree, 
-			                           int nodeHeight, int maxSlot) {
-		List<Node> toMove = new ArrayList<Node>();
-		for (int i=0; i<tree.getNumSlots(); i++) {
-			Node n = tree.getNodeInSlot(i);
-			if (n.getHeight()==nodeHeight &&
-				n.getSlot()>maxSlot) {
-				toMove.add(n);
-			}
-		}
-		return toMove;
-	}
 	private void printNodesToMove(List<Node> nodes, int h) {
 		prln("Nodes to move at height "+h);
 		for (Node n : nodes) {
 			prln("  "+n.toString());
-		}
-	}
-	private void moveNodes(BinaryTree tree, List<Node> nodes, 
-                           int dstSlot, int moveableHeight) {
-		for (Node n : nodes) {
-			makeSpace(tree, dstSlot, moveableHeight);
-			tree.moveTo(n, dstSlot, moveableHeight);
-		}
-	}
-	private void skew2(BinaryTree tree, Library outLib) {
-		int height = tree.getHeight();
-		int nbSlots = tree.getNumSlots();
-		int segLen = (int) Math.ceil(((double)nbSlots) / height);
-		
-		for (int h=height; h>=2; h--) {
-			int maxSlot = -1 + segLen*(1+height-h);
-			List<Node> mustMove = findNodesToMove(tree, h, maxSlot);
-			printNodesToMove(mustMove, h);
-			moveNodes(tree, mustMove, maxSlot, h);
-			drawTree(outLib, tree, h);
 		}
 	}
 	/** Make space in slot dstSlot for a node of level moveableHeight */
