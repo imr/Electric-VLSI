@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -121,7 +122,7 @@ public class SeaOfGates
 	/** favoritism for each metal layer. */										private boolean [] favorArcs;
 	/** avoidance for each metal layer. */										private boolean [] preventArcs;
 	/** vias to use to go up from each metal layer. */							private MetalVias [] metalVias;
-	/** minimum spacing between this metal and itself. */						private double [] layerSurround;
+	/** minimum spacing between this metal and itself. */						private Map<Integer,Double>[] layerSurround;
 	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** intermediate seach vertices during Dijkstra search. */					private Map<Integer,Map<Integer,SearchVertex>> [] searchVertexPlanes;
 	/** destination coordinate for the current Dijkstra path. */				private int destX, destY, destZ;
@@ -554,15 +555,9 @@ public class SeaOfGates
 		}
 
 		// compute design rule spacings
-		layerSurround = new double[numMetalLayers];
+		layerSurround = new Map[numMetalLayers];
 		for(int i=0; i<numMetalLayers; i++)
-		{
-			Layer lay = metalLayers[i];
-			layerSurround[i] = 1;
-			double arcWidth = metalArcs[i].getDefaultLambdaBaseWidth();
-			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, arcWidth, 50);
-			if (rule != null) layerSurround[i] = rule.getValue(0);
-		}
+			layerSurround[i] = new HashMap<Integer,Double>();
 		viaSurround = new double[numMetalLayers-1];
 		for(int i=0; i<numMetalLayers-1; i++)
 		{
@@ -573,13 +568,61 @@ public class SeaOfGates
 			DRCTemplate ruleSpacing = DRC.getSpacingRule(lay, null, lay, null, false, -1, arcWidth, 50);
 			if (ruleSpacing != null) spacing = ruleSpacing.getValue(0);
 
-			double width = 2;
+			// determine cut size
+			double width = 0;
 			DRCTemplate ruleWidth = DRC.getMinValue(lay, DRCTemplate.DRCRuleType.NODSIZ);
 			if (ruleWidth != null) width = ruleWidth.getValue(0);
+
+			// extend to the size of the largest cut
+			List<MetalVia> nps = metalVias[i].getVias();
+			for(MetalVia mv : nps)
+			{
+				NodeInst dummyNi = NodeInst.makeDummyInstance(mv.via);
+				Poly [] conPolys = tech.getShapeOfNode(dummyNi);
+				for(int p=0; p<conPolys.length; p++)
+				{
+					Poly conPoly = conPolys[p];
+					if (conPoly.getLayer().getFunction().isContact())
+					{
+						Rectangle2D bounds = conPoly.getBounds2D();
+						width = Math.max(width, bounds.getWidth());
+						width = Math.max(width, bounds.getHeight());
+					}
+				}
+			}
 
 			viaSurround[i] = spacing + width;
 		}
 		return false;
+	}
+
+	/**
+	 * Method to determine the design rule spacing between two pieces of a given layer.
+	 * @param layer the layer index.
+	 * @param width the width of one of the pieces (-1 to use default).
+	 * @return the design rule spacing (0 if none).
+	 */
+	private double getSpacingRule(int layer, double width)
+	{
+		// use default width if none specified
+		if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
+
+		// convert this to the next largest integer
+		int wid = Integer.valueOf((int)Math.ceil(width));
+
+		// see if the rule is cached
+		Double value = layerSurround[layer].get(wid);
+		if (value == null)
+		{
+			// rule not cached: compute it
+			Layer lay = metalLayers[layer];
+			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, width, 50);
+			double v = 0;
+			if (rule != null) v = rule.getValue(0);
+			value = new Double(v);
+			layerSurround[layer].put(wid, value);
+		}
+		return value.doubleValue();
 	}
 
 	private double getMinWidth(List<PortInst> orderedPorts)
@@ -712,7 +755,7 @@ public class SeaOfGates
 						if (!layer.getFunction().isMetal()) continue;
 						Rectangle2D viaBounds = viaPoly.getBounds2D();
 						SOGBound already = getMetalBlockage(netID, layer, viaBounds.getWidth()/2, viaBounds.getHeight()/2,
-							0, polyBounds.getMinX(), polyBounds.getMinY());
+							0, polyBounds.getMinX(), polyBounds.getMinY(), null, minWidth);
 						if (already != null) continue;
 						Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX() + polyBounds.getCenterX(),
 							viaBounds.getMinY() + polyBounds.getCenterY(), viaBounds.getWidth(), viaBounds.getHeight());
@@ -886,7 +929,8 @@ public class SeaOfGates
 
 		// see if access is blocked
 		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, layerSurround[fromZ], fromX, fromY);
+		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing,
+			getSpacingRule(fromZ, -1), fromX, fromY, null, minWidth);
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
@@ -897,7 +941,7 @@ public class SeaOfGates
 			return false;
 		}
 		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, layerSurround[toZ], toX, toY);
+		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, getSpacingRule(toZ, -1), toX, toY, null, minWidth);
 		if (block != null)
 		{
 			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
@@ -908,12 +952,12 @@ public class SeaOfGates
 			return false;
 		}
 
-		// do the Dijkstra
-//System.out.println("========== SEARCH 1 FROM ("+fromX+","+fromY+","+fromZ+")");
+		// do the Dijkstra one way
 		List<SearchVertex> vertices = doDijkstra(fromX, fromY, fromZ, toX, toY, toZ, netID, minWidth);
 		Map<Integer,Map<Integer,SearchVertex>> [] saveD1Planes = null;
 		if (DEBUGFAILURE && firstFailure) saveD1Planes = searchVertexPlanes;
-//System.out.println("========== SEARCH 2 FROM ("+toX+","+toY+","+toZ+")");
+
+		// do the Dijkstra the other way
 		List<SearchVertex> verticesRev = doDijkstra(toX, toY, toZ, fromX, fromY, fromZ, netID, minWidth);
 		int verLength = getVertexLength(vertices);
 		int verLengthRev = getVertexLength(verticesRev);
@@ -991,10 +1035,8 @@ public class SeaOfGates
 				SearchVertex svNext = vertices.get(i+1);
 				if (sv.getX() != svNext.getX() || sv.getY() != svNext.getY() || sv.getZ() == svNext.getZ()) break;
 				List<MetalVia> nps = metalVias[Math.min(sv.getZ(), svNext.getZ())].getVias();
-				int cutNo = sv.getCutNo();
-//System.out.println("CUT RUNS FROM ("+sv.getX()+","+sv.getY()+","+sv.getZ()+"), CUT "+sv.getCutNo()+
-//	" TO ("+svNext.getX()+","+svNext.getY()+","+svNext.getZ()+"), CUT "+svNext.getCutNo());
-				MetalVia mv = nps.get(cutNo);
+				int whichContact = sv.getContactNo();
+				MetalVia mv = nps.get(whichContact);
 				PrimitiveNode np = mv.via;
 				Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
 				SizeOffset so = np.getProtoSizeOffset();
@@ -1103,11 +1145,13 @@ public class SeaOfGates
 		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell, orient, null, 0);
 		if (ni != null)
 		{
+			AffineTransform trans = ni.rotateOut();
 			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, false, null);
 			for(int i=0; i<nodeInstPolyList.length; i++)
 			{
 				PolyBase poly = nodeInstPolyList[i];
 				if (poly.getPort() == null) continue;
+				poly.transform(trans);
 				addLayer(poly, GenMath.MATID, netID, false);
 			}
 		}
@@ -1167,7 +1211,7 @@ public class SeaOfGates
 		destX = toX;   destY = toY;   destZ = toZ;
 		int numSearchVertices = 0;
 
-		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0);
+		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0, null, 0);
 		svStart.cost = 0;
 		setVertex(fromX, fromY, fromZ, svStart);
 		TreeSet<SearchVertex> active = new TreeSet<SearchVertex>();
@@ -1197,7 +1241,7 @@ public class SeaOfGates
 					case 4: dz = -1;   break;
 					case 5: dz =  1;   break;
 				}
-//System.out.println("FROM ("+curX+","+curY+","+curZ+") searching ("+dx+","+dy+","+dz+")");
+
 				// extend the distance if heading toward the goal
 				if (SEARCHINJUMPS && dz == 0)
 				{
@@ -1247,7 +1291,7 @@ public class SeaOfGates
 								hi = toY - curY;
 							}
 							double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), minWidth);
-							double metalSpacing = width / 2 + layerSurround[curZ];
+							double metalSpacing = width / 2 + getSpacingRule(curZ, width);
 							while (Math.abs(hi-lo) > 1)
 							{
 								int med = (hi + lo) / 2;
@@ -1262,7 +1306,7 @@ public class SeaOfGates
 									cY = curY + (dy + med) / 2;
 									halfHei += Math.abs(med-dy)/2;
 								}
-								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, 0, cX, cY) == null)
+								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, 0, cX, cY, svCurrent, minWidth) == null)
 								{
 									lo = med;
 								} else
@@ -1287,26 +1331,26 @@ public class SeaOfGates
 				if (getVertex(nX, nY, nZ) != null) continue;
 
 				// see if the space is available
-				int cutIndex = 0;
+				int whichContact = 0;
+				Point2D [] cuts = null;
 				if (dz == 0)
 				{
 					// running on one layer: check surround
 					double width = Math.max(metalArcs[nZ].getDefaultLambdaBaseWidth(), minWidth);
-					double metalToMetal = layerSurround[nZ];
-//				DRCTemplate rule = DRC.getSpacingRule(metalLayers[nZ], null, metalLayers[nZ], null, false, -1, width, 50);
-//				if (rule != null) metalToMetal = rule.getValue(0);
+					double metalToMetal = getSpacingRule(nZ, width);
 					double metalSpacing = width / 2;
-					SOGBound sb = getMetalBlockage(netID, metalLayers[nZ], metalSpacing, metalSpacing, metalToMetal, nX, nY);
+					SOGBound sb = getMetalBlockage(netID, metalLayers[nZ], metalSpacing+Math.abs(dx), metalSpacing+Math.abs(dy),
+						metalToMetal, (curX+nX)/2, (curY+nY)/2, svCurrent, minWidth);
 					if (sb != null) continue;
 				} else
 				{
 					int lowMetal = Math.min(curZ, nZ);
 					int highMetal = Math.max(curZ, nZ);
 					List<MetalVia> nps = metalVias[lowMetal].getVias();
-					cutIndex = -1;
-					for(int cutNo = 0; cutNo < nps.size(); cutNo++)
+					whichContact = -1;
+					for(int contactNo = 0; contactNo < nps.size(); contactNo++)
 					{
-						MetalVia mv = nps.get(cutNo);
+						MetalVia mv = nps.get(contactNo);
 						PrimitiveNode np = mv.via;
 						Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
 						SizeOffset so = np.getProtoSizeOffset();
@@ -1318,6 +1362,14 @@ public class SeaOfGates
 						Poly [] conPolys = tech.getShapeOfNode(dummyNi);
 						AffineTransform trans = null;
 						if (orient != Orientation.IDENT) trans = dummyNi.rotateOut();
+
+						// count the number of cuts and make an array for the data
+						int cutCount = 0;
+						for(int p=0; p<conPolys.length; p++)
+							if (conPolys[p].getLayer().getFunction().isContact()) cutCount++;
+						Point2D [] curCuts = new Point2D[cutCount];
+						cutCount = 0;
+
 						boolean failed = false;
 						for(int p=0; p<conPolys.length; p++)
 						{
@@ -1330,25 +1382,27 @@ public class SeaOfGates
 								Rectangle2D conRect = conPoly.getBounds2D();
 								int metalNo = lFun.getLevel() - 1;
 								if (getMetalBlockage(netID, conLayer, conRect.getWidth()/2, conRect.getHeight()/2,
-									layerSurround[metalNo], conRect.getCenterX(), conRect.getCenterY()) != null)
+									getSpacingRule(metalNo, Math.max(conRect.getWidth(), conRect.getHeight())),
+										conRect.getCenterX(), conRect.getCenterY(), svCurrent, minWidth) != null)
 								{
-//System.out.println("CANNOT PLACE "+np.describe(false)+" AT ("+nX+","+nY+") BECAUSE LAYER "+conLayer.getName()+" IS BLOCKED");
-//System.out.println("  SEARCHED "+(conRect.getWidth()/2)+"x"+(conRect.getHeight()/2)+" WITH LAYER SURROUND "+layerSurround[metalNo]+" ABOUT ("+(nX+conRect.getCenterX())+","+(nY+conRect.getCenterY())+")");
 									failed = true;
 									break;
 								}
-//else System.out.println("--Can place layer "+conLayer.getName()+" of "+np.describe(false)+" at ("+conRect.getCenterX()+","+conRect.getCenterY()+") size "+
-//	TextUtils.formatDouble(conRect.getWidth())+"x"+TextUtils.formatDouble(conRect.getHeight()));
 							} else if (lFun.isContact())
 							{
 								// make sure vias don't get too close
 								Rectangle2D conRect = conPoly.getBounds2D();
+								double conCX = conRect.getCenterX();
+								double conCY = conRect.getCenterY();
 								double surround = viaSurround[lowMetal];
-								if (getViaBlockage(netID, conLayer, surround, surround, conRect.getCenterX(), conRect.getCenterY()) != null)
+								if (getViaBlockage(netID, conLayer, surround, surround, conCX, conCY) != null)
 								{
 									failed = true;
 									break;
 								}
+								curCuts[cutCount++] = new Point2D.Double(conCX, conCY);
+
+								// look at all previous cuts in this path
 								for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
 								{
 									SearchVertex lastSv = sv.last;
@@ -1357,27 +1411,35 @@ public class SeaOfGates
 										Math.max(sv.getZ(), lastSv.getZ()) == highMetal)
 									{
 										// make sure the cut isn't too close
-										if (Math.abs(sv.getX() - nX) < surround && Math.abs(sv.getY() - nY) < surround)
+										Point2D [] svCuts;
+										if (sv.getCutLayer() == lowMetal) svCuts = sv.getCuts(); else
+											svCuts = lastSv.getCuts();
+										if (svCuts != null)
 										{
-											failed = true;
-											break;
+											for(Point2D cutPt : svCuts)
+											{
+												if (Math.abs(cutPt.getX() - conCX) >= surround ||
+													Math.abs(cutPt.getY() - conCY) >= surround) continue;
+												failed = true;
+												break;
+											}
 										}
+										if (failed) break;
 									}
 								}
 								if (failed) break;
 							}
 						}
 						if (failed) continue;
-						cutIndex = cutNo;
-//System.out.println("Considering "+np.describe(false)+" WHICH IS NUMBER "+cutNo+" AT ("+nX+","+nY+")");
+						whichContact = contactNo;
+						cuts = curCuts;
 						break;
 					}
-					if (cutIndex < 0) continue;
+					if (whichContact < 0) continue;
 				}
 
 				// we have a candidate next-point
-				SearchVertex svNext = new SearchVertex(nX, nY, nZ, cutIndex);
-//System.out.println("Adding search vertex at ("+nX+","+nY+","+nZ+") with cut index "+cutIndex);
+				SearchVertex svNext = new SearchVertex(nX, nY, nZ, whichContact, cuts, Math.min(curZ, nZ));
 				svNext.last = svCurrent;
 
 				// stop if we found the destination
@@ -1497,9 +1559,7 @@ public class SeaOfGates
 	private int getJumpSize(int curX, int curY, int curZ, int dx, int dy, Rectangle jumpBound, int netID, double minWidth)
 	{				
 		double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), minWidth);
-		double metalToMetal = layerSurround[curZ];
-//	DRCTemplate rule = DRC.getSpacingRule(metalLayers[curZ], null, metalLayers[curZ], null, false, -1, width, 50);
-//	if (rule != null) metalToMetal = rule.getValue(0);
+		double metalToMetal = getSpacingRule(curZ, width);
 		double metalSpacing = width / 2 + metalToMetal;
 		double lX = curX - metalSpacing, hX = curX + metalSpacing;
 		double lY = curY - metalSpacing, hY = curY + metalSpacing;
@@ -1606,6 +1666,8 @@ public class SeaOfGates
 		public String toString() { return "SOGVia on net " + netID; }
 	}
 
+	private static final int LEFT = 0, RIGHT = 1, TOP = 2, BOTTOM = 3;
+
 	/**
 	 * Method to find a metal blockage in the R-Tree.
 	 * @param netID the network ID of the desired space (blockages on this netID are ignored).
@@ -1615,10 +1677,12 @@ public class SeaOfGates
 	 * @param surround is the surround around the area that will be filled.
 	 * @param x the X coordinate at the center of the area to examine.
 	 * @param y the Y coordinate at the center of the area to examine.
+	 * @param svCurrent the list of SearchVertex's for finding notch errors in the current path.
 	 * @return a blocking SOGBound object that is in the area.
 	 * Returns null if the area is clear.
 	 */
-	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double surround, double x, double y)
+	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double surround, double x, double y,
+		SearchVertex svCurrent, double minWidth)
 	{
 		RTNode rtree = metalTrees.get(layer);
 		if (rtree == null) return null;
@@ -1626,12 +1690,18 @@ public class SeaOfGates
 		// compute the notch area
 		double lXNotch = x - halfWidth, hXNotch = x + halfWidth;
 		double lYNotch = y - halfHeight, hYNotch = y + halfHeight;
-		SOGBound notchError = null;
-		boolean possibleNotch = true;
+		Rectangle2D notchBound = new Rectangle2D.Double(lXNotch, lYNotch, hXNotch-lXNotch, hYNotch-lYNotch);
+		SOGBound [] notchErrors = new SOGBound[4];
+		double [] notchRangeLow = new double[4];
+		double [] notchRangeHigh = new double[4];
+		notchRangeLow[LEFT] = notchRangeLow[RIGHT] = hYNotch;
+		notchRangeHigh[LEFT] = notchRangeHigh[RIGHT] = lYNotch;
+		notchRangeLow[TOP] = notchRangeLow[BOTTOM] = hXNotch;
+		notchRangeHigh[TOP] = notchRangeHigh[BOTTOM] = lXNotch;
 
 		// see if there is anything in that area
-		double lX = x - halfWidth - surround, hX = x + halfWidth + surround;
-		double lY = y - halfHeight - surround, hY = y + halfHeight + surround;
+		double lX = lXNotch - surround, hX = hXNotch + surround;
+		double lY = lYNotch - surround, hY = hYNotch + surround;
 		Rectangle2D searchArea = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 		for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
 		{
@@ -1643,16 +1713,7 @@ public class SeaOfGates
 			// if on the same net, make sure there is no notch error
 			if (sBound.getNetID() == netID)
 			{
-				if (bound.getMaxX() <= lXNotch || bound.getMinX() >= hXNotch ||
-					bound.getMaxY() <= lYNotch || bound.getMinY() >= hYNotch) notchError = sBound; else
-				{
-					if (sBound instanceof SOGPoly)
-					{
-						PolyBase poly = ((SOGPoly)sBound).getPoly();
-						if (!poly.contains(searchArea)) continue;
-					}
-					possibleNotch = false;
-				}
+				processNotch(notchBound, sBound, bound, notchErrors, notchRangeLow, notchRangeHigh);
 				continue;
 			}
 
@@ -1664,8 +1725,102 @@ public class SeaOfGates
 			}
 			return sBound;
 		}
-		if (possibleNotch) return notchError;
+
+		// TODO consider notch errors in the existing path
+		if (svCurrent != null)
+		{
+			for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
+			{
+				SearchVertex lastSv = sv.last;
+				if (lastSv == null) break;
+				if (sv.getZ() != lastSv.getZ()) continue;
+				if (metalLayers[sv.getZ()] != layer) continue;
+				ArcProto type = metalArcs[sv.getZ()];
+				double width = Math.max(type.getDefaultLambdaBaseWidth(), minWidth);
+				Point2D head = new Point2D.Double(sv.getX(), sv.getY());
+				Point2D tail = new Point2D.Double(lastSv.getX(), lastSv.getY());
+				int ang = 0;
+				if (head.getX() != tail.getX() || head.getY() != tail.getY())
+					ang = GenMath.figureAngle(tail, head);
+				Poly poly = Poly.makeEndPointPoly(head.distance(tail), width, ang,
+					head, width/2, tail, width/2, Poly.Type.FILLED);
+				Rectangle2D bound = poly.getBounds2D();
+				if (bound.getMaxX() <= lX || bound.getMinX() >= hX ||
+					bound.getMaxY() <= lY || bound.getMinY() >= hY) continue;
+				SOGBound sBound = new SOGBound(bound, netID);
+				processNotch(notchBound, sBound, bound, notchErrors, notchRangeLow, notchRangeHigh);
+			}
+		}
+
+		// report any notch errors
+		if (notchErrors[LEFT] != null && (notchRangeLow[LEFT] > lYNotch || notchRangeHigh[LEFT] < hYNotch))
+			return notchErrors[LEFT];
+		if (notchErrors[RIGHT] != null && (notchRangeLow[RIGHT] > lYNotch || notchRangeHigh[RIGHT] < hYNotch))
+			return notchErrors[RIGHT];
+		if (notchErrors[TOP] != null && (notchRangeLow[TOP] > lXNotch || notchRangeHigh[TOP] < hXNotch))
+			return notchErrors[TOP];
+		if (notchErrors[BOTTOM] != null && (notchRangeLow[BOTTOM] > lXNotch || notchRangeHigh[BOTTOM] < hXNotch))
+			return notchErrors[BOTTOM];
 		return null;
+	}
+
+	private void processNotch(Rectangle2D notchBound, SOGBound sBound, Rectangle2D bound, SOGBound [] notchErrors,
+		double [] notchRangeLow, double [] notchRangeHigh)
+	{
+		boolean touches = true;
+		if (bound.getMaxX() < notchBound.getMinX())
+		{
+			// could be a notch to the left of the area
+			notchErrors[LEFT] = sBound;
+			touches = false;
+		}
+		if (bound.getMinX() > notchBound.getMaxX())
+		{
+			// could be a notch to the right of the area
+			notchErrors[RIGHT] = sBound;
+			touches = false;
+		}
+		if (bound.getMinY() > notchBound.getMaxY())
+		{
+			// could be a notch to the top of the area
+			notchErrors[TOP] = sBound;
+			touches = false;
+		}
+		if (bound.getMaxY() < notchBound.getMinY())
+		{
+			// could be a notch to the bottom of the area
+			notchErrors[BOTTOM] = sBound;
+			touches = false;
+		}
+
+		// if objects touch, update notch bounds
+		if (touches)
+		{
+			if (bound.getMinX() < notchBound.getMinX())
+			{
+				// extends on the left: update notch bounds
+				notchRangeLow[LEFT] = Math.min(notchRangeLow[LEFT], bound.getMinY());
+				notchRangeHigh[LEFT] = Math.max(notchRangeHigh[LEFT], bound.getMaxY());
+			}
+			if (bound.getMaxX() > notchBound.getMaxX())
+			{
+				// extends on the right: update notch bounds
+				notchRangeLow[RIGHT] = Math.min(notchRangeLow[RIGHT], bound.getMinY());
+				notchRangeHigh[RIGHT] = Math.max(notchRangeHigh[RIGHT], bound.getMaxY());
+			}
+			if (bound.getMinY() < notchBound.getMinY())
+			{
+				// extends on the bottom: update notch bounds
+				notchRangeLow[BOTTOM] = Math.min(notchRangeLow[BOTTOM], bound.getMinX());
+				notchRangeHigh[BOTTOM] = Math.max(notchRangeHigh[BOTTOM], bound.getMaxX());
+			}
+			if (bound.getMaxY() > notchBound.getMaxY())
+			{
+				// extends on the top: update notch bounds
+				notchRangeLow[TOP] = Math.min(notchRangeLow[TOP], bound.getMinX());
+				notchRangeHigh[TOP] = Math.max(notchRangeHigh[TOP], bound.getMaxX());
+			}
+		}
 	}
 
 	/**
@@ -1924,9 +2079,18 @@ public class SeaOfGates
 	{
 		/** the coordinate of the search vertex. */	private int xv, yv, zv;
 		/** the cost of search to this vertex. */	private int cost;
+		/** the layer of cuts in "cuts". */			private int cutLayer;
+		/** the cuts in the contact. */				private Point2D [] cuts;
 		/** the previous vertex in the search. */	private SearchVertex last;
 
-		SearchVertex(int x, int y, int z, int cutNo) { xv = x;   yv = y;   zv = (z<<8) + (cutNo & 0xFF); }
+		SearchVertex(int x, int y, int z, int whichContact, Point2D [] cuts, int cl)
+		{
+			xv = x;
+			yv = y;
+			zv = (z<<8) + (whichContact & 0xFF);
+			this.cuts = cuts;
+			cutLayer = cl;
+		}
 
 		int getX() { return xv; }
 
@@ -1934,7 +2098,11 @@ public class SeaOfGates
 
 		int getZ() { return zv >> 8; }
 
-		int getCutNo() { return zv & 0xFF; }
+		int getContactNo() { return zv & 0xFF; }
+
+		Point2D [] getCuts() { return cuts; }
+
+		int getCutLayer() { return cutLayer; }
 
 		/**
 		 * Method to sort SearchVertex objects by their cost.
