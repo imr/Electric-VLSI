@@ -167,6 +167,7 @@
             <xsd:enumeration value="enhancement_light"/>
             <xsd:enumeration value="vt"/>
             <xsd:enumeration value="thick"/>
+            <xsd:enumeration value="native"/>
         </xsd:restriction>
     </xsd:simpleType>
     

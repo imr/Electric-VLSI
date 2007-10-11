@@ -1834,7 +1834,9 @@ public class Technology implements Comparable<Technology>
 	public boolean sameLayer(Layer layer1, Layer layer2)
 	{
 		if (layer1 == layer2) return true;
-        if (layer1.getFunction() == layer2.getFunction()) return true;
+        // Only when the function and the extra bits match. Case of active and active well
+        if (layer1.getFunction() == layer2.getFunction() &&
+            layer1.getFunctionExtras() == layer2.getFunctionExtras()) return true;
         if (layer1.getFunction() == Layer.Function.POLY1 && layer2.getFunction() == Layer.Function.GATE) return true;
 		if (layer2.getFunction() == Layer.Function.POLY1 && layer1.getFunction() == Layer.Function.GATE) return true;
 		return false;

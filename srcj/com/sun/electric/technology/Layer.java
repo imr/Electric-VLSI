@@ -69,6 +69,7 @@ public class Layer
     /** Describes a layer that contacts metal (used to identify contacts/vias). */	private static final int CONMETAL =     040000;
     /** Describes a layer that contacts polysilicon (used to identify contacts). */	private static final int CONPOLY =     0100000;
     /** Describes a layer that contacts diffusion (used to identify contacts). */	private static final int CONDIFF =     0200000;
+    /** Describes a layer that is native. */	                                    private static final int NATIVE =      0400000;
     /** Describes a layer that is VTH or VTL */								        private static final int HLVT =      010000000;
     /** Describes a layer that is inside transistor. */								private static final int INTRANS =   020000000;
     /** Describes a thick layer. */								                    private static final int THICK =     040000000;
@@ -152,8 +153,9 @@ public class Layer
         /** Describes a layer that is VTH or VTL */								        public static final int HLVT = Layer.HLVT;
 //        /** Describes a layer that is inside transistor. */								public static final int INTRANS = Layer.INTRANS;
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
+        /** Describes a native layer. */								                public static final int NATIVE = Layer.NATIVE;
 
-		private final String name;
+        private final String name;
         private final boolean isMetal;
         private final boolean isContact;
         private final boolean isPoly;
@@ -249,7 +251,8 @@ public class Layer
             if (extra == HLVT) return "vt";
 			if (extra == INTRANS) return "inside-transistor";
 			if (extra == THICK) return "thick";
-			return "";
+            if (extra == NATIVE) return "native";
+            return "";
 		}
 
 		/**
@@ -274,7 +277,8 @@ public class Layer
             if (extra == HLVT) return "HLVT";
 			if (extra == INTRANS) return "INTRANS";
 			if (extra == THICK) return "THICK";
-			return "";
+            if (extra == NATIVE) return "NATIVE";
+            return "";
 		}
 
 		/**
@@ -298,7 +302,8 @@ public class Layer
 			if (name.equalsIgnoreCase("inside-transistor")) return INTRANS;
 			if (name.equalsIgnoreCase("thick")) return THICK;
             if (name.equalsIgnoreCase("vt")) return HLVT;
-			return 0;
+            if (name.equalsIgnoreCase("native")) return NATIVE;
+            return 0;
 		}
 
 		/**

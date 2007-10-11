@@ -3078,7 +3078,7 @@ public class Quick
 				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
-                // and poly.polySame(poly1) will never be true.
+                // and poly.polySame(poly1) will never be true. CONTRADICTION!
 				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
@@ -3100,7 +3100,7 @@ public class Quick
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					if (j == pointsFound.length) return true;
                     // No need of checking rest of the layers
-                    break;
+                    break; // assuming only 1 polygon per layer (non-electrical)
 				}
 			} else
 			{
