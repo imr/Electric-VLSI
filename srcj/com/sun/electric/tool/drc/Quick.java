@@ -2543,7 +2543,8 @@ public class Quick
         }
 
         // checking if geometry complains with overlap condition
-        String[] layers = TextUtils.parseString(minWidthRuleCond.condition, "overlap{,}");
+        // Skipping "overlap"
+        String[] layers = TextUtils.parseString(minWidthRuleCond.condition.substring(7), "{,}");
         boolean found = false;
 
         for (String la : layers)
