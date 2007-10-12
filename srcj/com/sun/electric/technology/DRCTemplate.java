@@ -315,14 +315,19 @@ public class DRCTemplate implements Serializable
         }
         assert when == rule.when;
         if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
+        String condition = "";
+
         switch(rule.ruleType)
         {
+            case MINWIDCOND:
+                condition = " condition=\"" + rule.condition + "\"";
             case MINWID:
             case MINAREA:
             case MINENCLOSEDAREA:
                 out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
                         + " layerName=\"" + rule.name1 + "\""
                         + " type=\""+rule.ruleType+"\""
+                        + condition
                         + " when=\"" + whenName + "\""
                         + " value=\"" + rule.getValue(0) + "\""
                         + "/>");
