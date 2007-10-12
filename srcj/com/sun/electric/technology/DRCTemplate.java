@@ -91,6 +91,7 @@ public class DRCTemplate implements Serializable
     // the meaning of "ruletype" in the DRC table
         /** nothing chosen */			    NONE,
         /** a minimum-width rule */			MINWID,
+        /** a conditional minimum-width rule */			MINWIDCOND,
         /** a node size rule */				NODSIZ,
         /** a general surround rule */		SURROUND,
         /** a spacing rule */				SPACING,
@@ -121,6 +122,7 @@ public class DRCTemplate implements Serializable
     public double minLength;       /* min paralell distance for spacing rule */
     public String nodeName;		/* the node that is used by the rule */
 	public int multiCuts;         /* -1=dont care, 0=no cuts, 1=with cuts multi cut rule */
+    public String condition;
 
     private void copyValues(double[] vals)
     {
@@ -152,9 +154,11 @@ public class DRCTemplate implements Serializable
         this.minLength = rule.minLength;
         this.nodeName = rule.nodeName;
         this.multiCuts = rule.multiCuts;
+        this.condition = rule.condition;
     }
 
-    public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double[] vals, String nodeName)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double[] vals,
+                       String nodeName, String condition)
     {
         this.ruleName = rule;
         this.when = when;
@@ -163,6 +167,7 @@ public class DRCTemplate implements Serializable
         this.name2 = name2;
         copyValues(vals);
         this.nodeName = nodeName;
+        this.condition = condition;
         this.multiCuts = -1; // don't care
 
         switch (ruleType)
@@ -431,7 +436,7 @@ public class DRCTemplate implements Serializable
 
         if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return;
 
-        String ruleName = "", layerNames = "", nodeNames = null;
+        String ruleName = "", layerNames = "", nodeNames = null, condition = null;
         int when = DRCTemplate.DRCMode.ALL.mode();
         DRCTemplate.DRCRuleType type = DRCTemplate.DRCRuleType.NONE;
         double[] values = new double[2];
@@ -445,6 +450,8 @@ public class DRCTemplate implements Serializable
                 layerNames = attributes.getValue(i);
             else if (attributes.getQName(i).startsWith("nodeName"))
                 nodeNames = attributes.getValue(i);
+            else if (attributes.getQName(i).startsWith("condition"))
+                condition = attributes.getValue(i);
             else if (attributes.getQName(i).equals("type"))
                 type = DRCTemplate.DRCRuleType.valueOf(attributes.getValue(i));
             else if (attributes.getQName(i).equals("when"))
@@ -479,7 +486,7 @@ public class DRCTemplate implements Serializable
                 if (nodeNames == null)
                 {
                     DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
-                            null, values, null);
+                            null, values, null, condition);
                     drcRules.add(tmp);
                 }
                 else
@@ -488,7 +495,7 @@ public class DRCTemplate implements Serializable
                     for (String name : names)
                     {
                         DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
-                                null, values, name);
+                                null, values, name, null);
                         drcRules.add(tmp);
                     }
                 }
@@ -498,7 +505,7 @@ public class DRCTemplate implements Serializable
         {
             if (nodeNames == null)
             {
-                DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, values, null);
+                DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, values, null, null);
                 drcRules.add(tmp);
             }
             else
@@ -507,7 +514,7 @@ public class DRCTemplate implements Serializable
                 for (String name : names)
                 {
                     DRCTemplate tmp = new DRCTemplate(ruleName, when, type,
-                            null, null, values, name);
+                            null, null, values, name, null);
                     drcRules.add(tmp);
                 }
             }
@@ -523,7 +530,7 @@ public class DRCTemplate implements Serializable
                 {
                     DRCTemplate tmp;
                     if (maxW == null)
-                        tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null);
+                        tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null, null);
                     else
                         tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], values, -1);
                     drcRules.add(tmp);
@@ -536,7 +543,7 @@ public class DRCTemplate implements Serializable
                         DRCTemplate tmp = null;
                         if (maxW == null)
                             tmp = new DRCTemplate(ruleName, when, type,
-                                    pair[0], pair[1], values, name);
+                                    pair[0], pair[1], values, name, null);
                         else
                             System.out.println("When do I have this case?");
                         drcRules.add(tmp);

@@ -12,9 +12,10 @@
  <!ATTLIST LayerRule
     ruleName CDATA #REQUIRED
     layerName CDATA #REQUIRED
-    type (MINWID | MINAREA | MINENCLOSEDAREA) #REQUIRED
+    type (MINWID | MINWIDCOND | MINAREA | MINENCLOSEDAREA) #REQUIRED
     when CDATA #REQUIRED
     value CDATA #REQUIRED
+    condition CDATA #IMPLIED
  >
  <!-- value in LayersRule is implied due to COMBINATION -->
  <!ATTLIST LayersRule

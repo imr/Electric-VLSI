@@ -944,6 +944,7 @@ public class XMLRules implements DRCRules {
         {
             case MINWID:
                 tech.setLayerMinWidth(theRule.name1, theRule.ruleName, distance);
+            case MINWIDCOND:
                 addRule(index1, theRule);
                 break;
             case FORBIDDEN:
@@ -1181,7 +1182,7 @@ public class XMLRules implements DRCRules {
             {
                 if (buttedTop && buttedRightLeft)
                 {
-                    double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);
+//                    double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);
                     double distFromCenterY = cutSize.getValue(1)/2 + activeSurround.getValue(1);
                     pts = new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(so.getHighXOffset()), EdgeV.fromCenter(-distFromCenterY)),

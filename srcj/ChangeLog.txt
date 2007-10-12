@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP/MAN: (10/12/07, GVG) First version of conditional DRC rules (Bug #1366).
+Full overlapping is the first type implemented. Not supported by TechEditor.
+
 ************************* Version 8.06h: *******************************
 
 IMP: (10/11/07, SMR) Sea of Gates router now avoids DRC errors (Bug #1344).

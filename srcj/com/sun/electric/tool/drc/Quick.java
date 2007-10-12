@@ -1236,7 +1236,7 @@ public class Quick
 			    cell, globalIndex, DBMath.MATID, baseMulti, true);
 	}
 
-	/**
+    /**
 	 * Method to recursively examine a polygon to see if it has any errors with its surrounding area.
 	 * The polygon is "poly" on layer "layer" from technology "tech" on network "net" from object "geom"
 	 * which is associated with global index "globalIndex".
@@ -1664,7 +1664,7 @@ public class Quick
         // looking if points around the overlapping area are inside another region
         // to avoid the error
         lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false);
+                pt1d, pt2d, null, pointsFound, false, false);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -2407,7 +2407,7 @@ public class Quick
      * @return true if error was found (not warning)
      */
     private boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
-                                                DRCTemplate minWidthRule, int dir, boolean onlyOne)
+                                                DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError)
     {
         double actual = 0;
         Point2D left1, left2, left3, right1, right2, right3;
@@ -2469,22 +2469,105 @@ public class Quick
             rule = null;
         }
 
-        reportError(errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
+        if (reportError)
+            reportError(errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
                 (onlyOne) ? null : poly, geom, layer, null, null, null);
         return !overlapLayer;
     }
 
-	/**
+    /**
+     * Function to look for conditional layers that will 100% overlap with the given region.
+     * @param poly
+     * @param layer
+     * @param cell
+     * @param bounds
+     * @param upTrans
+     * @return true if conditional layers are found for the test points
+     */
+    private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell, Rectangle2D bounds, AffineTransform upTrans)
+    {
+        Rectangle2D polyBnd = poly.getBounds2D();
+        double midPointX = (polyBnd.getMinX() + polyBnd.getMaxX())/2;
+        double midPointY = (polyBnd.getMinY()+polyBnd.getMaxY())/2;
+        Point2D pt1 = new Point2D.Double(midPointX, polyBnd.getMinY());
+        Point2D pt2 = new Point2D.Double(midPointX, polyBnd.getMaxY());
+        Point2D pt3 = new Point2D.Double(midPointX, midPointY);
+        // compute bounds for searching inside the given polygon
+		Rectangle2D bnd = new Rectangle2D.Double(DBMath.round(polyBnd.getMinX()-TINYDELTA),
+                DBMath.round(polyBnd.getMinY()-TINYDELTA),
+                DBMath.round(polyBnd.getWidth()+2*TINYDELTA), DBMath.round(polyBnd.getHeight()+2*TINYDELTA));
+        // looking if points around the overlapping area are inside another region
+        // to avoid the error
+        boolean [] pointsFound = new boolean[3];
+		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+        // Test first with a vertical line
+        boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
+                pointsFound, false, true);
+        if (!found)
+            return found; // no need of checking horizontal line if the vertical test was not positive
+        pt1.setLocation(polyBnd.getMinX(), midPointY);
+        pt2.setLocation(polyBnd.getMaxX(), midPointY);
+        pointsFound[0] = pointsFound[1] = false;
+        //pointsFound[2] = true; // no testing pt3 again
+        found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
+                pointsFound, false, true);
+        return found;
+    }
+
+    /**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
 	 * in the vicinity are checked to be sure it is indeed an error.  Returns true
 	 * if an error is found.
 	 */
-	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
+    private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
+    {
+        DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
+        boolean errorDefault = false;
+
+        // Only if there is one default size
+        if (minWidthRule != null)
+        {    
+            errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false);
+            if (!errorDefault) return false; // the default condition is the valid one.
+        }
+
+        DRCTemplate minWidthRuleCond = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWIDCOND);
+        // No appropiate overlapping condition
+        if (minWidthRuleCond == null || !minWidthRuleCond.condition.startsWith("overlap{"))
+        {
+            // Now the error is reporte. Not very efficient
+            if (errorDefault)
+                checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true);
+            return errorDefault;
+        }
+
+        // checking if geometry complains with overlap condition
+        String[] layers = TextUtils.parseString(minWidthRuleCond.condition, "overlap{,}");
+        boolean found = false;
+
+        for (String la : layers)
+        {
+            Layer l = layer.getTechnology().findLayer(la);
+            found = searchForCondLayer(geom, poly, l, geom.getParent(), null, null);
+            if (!found)
+                break; // no need to check the next layer
+        }
+        // If condition is met then the new rule applied.
+        if (found)
+           errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true);
+        else if (errorDefault) // report the errors here in case of default values
+            checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true);
+        return errorDefault;
+    }
+
+    private boolean checkMinWidthInternal(Geometric geom, Layer layer, Poly poly, boolean onlyOne,
+                                          DRCTemplate minWidthRule, boolean reportError)
 	{
 		Cell cell = geom.getParent();
-		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
-		if (minWidthRule == null) return false;
+//		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
+        if (minWidthRule == null) return false;
+
         double minWidthValue = minWidthRule.getValue(0);
 		// simpler analysis if manhattan
 		Rectangle2D bounds = poly.getBox();
@@ -2495,9 +2578,11 @@ public class Quick
 			if (!tooSmallWidth && !tooSmallHeight) return false;
 
             boolean foundError = false;
-            if (tooSmallWidth && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule, 0, onlyOne))
+            if (tooSmallWidth && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
+                    0, onlyOne, reportError))
                 foundError = true;
-            if (tooSmallHeight && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule, 1, onlyOne))
+            if (tooSmallHeight && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
+                    1, onlyOne, reportError))
                 foundError = true;
             return foundError;
 		}
@@ -2513,7 +2598,8 @@ public class Quick
 		double actual = Math.min(bounds.getWidth(), bounds.getHeight());
 		if (actual < minWidthValue)
 		{
-			reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
+            if (reportError)
+                reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
 				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
@@ -2561,17 +2647,20 @@ public class Quick
 
 				if (actual < minWidthValue)
 				{
-					// look between the points to see if it is minimum width or notch
-					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
-					{
-						reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
-							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
-					} else
-					{
-						reportError(DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
-							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
-					}
-					return true;
+                    if (reportError)
+                    {
+                        // look between the points to see if it is minimum width or notch
+                        if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
+                        {
+                            reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
+                                actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
+                        } else
+                        {
+                            reportError(DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
+                                actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
+                        }
+                    }
+                    return true;
 				}
 			}
 		}
@@ -2929,7 +3018,7 @@ public class Quick
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
 		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap);
+		        pt1, pt2, null, pointsFound, overlap, false);
 
 		return allFound;
 	}
@@ -3038,9 +3127,9 @@ public class Quick
 	 * If all locations are found, returns true.
 	 */
 	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
-	                                Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
-	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                    boolean overlap)
+                                    Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
+                                    Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
+                                    boolean overlap, boolean ignoreSameGeometry)
 	{
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
@@ -3049,10 +3138,11 @@ public class Quick
 		{
 			RTBounds g = it.next();
 
-            // Skipping the same geometry only when looking for notches in min distance
-//			if (ignoreSameGeometry && (g == geo1 || g == geo2)) //not valid condition
-//                continue;
-			// I can't skip geometries to exclude from the search
+            // Skipping the same geometry only when looking for conditional overlaps
+			if (ignoreSameGeometry && (g == geo1 || g == geo2))
+                continue;
+            
+            // I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -3070,7 +3160,7 @@ public class Quick
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, overlap))
+						pt1, pt2, pt3, pointsFound, overlap, false))
 							return true;
 					continue;
 				}
@@ -3126,7 +3216,7 @@ public class Quick
 			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 			if (j == pointsFound.length)
             {
-                System.out.println("When?");
+                assert(false); // test when otherwise the calculation is useless! System.out.println("When?");
                 return true;
             }
 		}

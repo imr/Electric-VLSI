@@ -343,6 +343,7 @@
     <xsd:simpleType name="LayerRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="MINWID"/>
+            <xsd:enumeration value="MINWIDCOND"/>
             <xsd:enumeration value="MINAREA"/>
             <xsd:enumeration value="MINENCLOSEDAREA"/>
         </xsd:restriction>
@@ -386,7 +387,11 @@
     <xsd:simpleType name="DesignRuleWhen">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
-    
+
+    <xsd:simpleType name="DesignRuleCondition">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
     <xsd:complexType name="TechPoint">
         <xsd:attribute name="xm" type="xsd:double" use="required"/>
         <xsd:attribute name="xa" type="xsd:double" use="required"/>
@@ -768,6 +773,7 @@
                                         <xsd:attribute name="layerName" type="tns:LayerName" use="required"/>
                                         <xsd:attribute name="type" type="tns:LayerRuleType" use="required"/>
                                         <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="condition" type="tns:DesignRuleCondition"/>
                                         <xsd:attribute name="value" type="xsd:double" use="required"/>
                                     </xsd:complexType>
                                 </xsd:element>

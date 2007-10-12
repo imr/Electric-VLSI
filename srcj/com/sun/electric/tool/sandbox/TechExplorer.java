@@ -669,7 +669,7 @@ public class TechExplorer extends ESandBox {
                         int multiCuts = (Integer)DRCTemplate_multiCuts.get(rule);
                         DRCTemplate r = null;
                         if (nodeName != null)
-                            r = new DRCTemplate(ruleName, when, type, name1, name2, values, nodeName);
+                            r = new DRCTemplate(ruleName, when, type, name1, name2, values, nodeName, null);
                         else
                             r = new DRCTemplate(ruleName, when, type, maxWidth, minLength, name1, name2, values, multiCuts);
                         f.rules.add(r);
