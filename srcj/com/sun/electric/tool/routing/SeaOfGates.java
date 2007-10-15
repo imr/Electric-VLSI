@@ -59,6 +59,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -128,6 +129,7 @@ public class SeaOfGates
 	/** destination coordinate for the current Dijkstra path. */				private int destX, destY, destZ;
 	/** the total length of wires routed */										private double totalWireLength;
 	/** true if this is the first failure of a route (for debugging) */			private boolean firstFailure;
+	/** for logging errors */													private ErrorLogger errorLogger;
 
 	/************************************** CONTROL **************************************/
 
@@ -306,7 +308,10 @@ public class SeaOfGates
         Job.getUserInterface().startProgressDialog("Routing " + arcsToRoute.size() + " nets", null);
 		Job.getUserInterface().setProgressNote("Building blockage information...");
 
-		// get all blockage information into R-Trees
+		// create an error logger
+        errorLogger = ErrorLogger.newInstance("Routing (Sea of gates)");
+
+        // get all blockage information into R-Trees
 		metalTrees = new HashMap<Layer, RTNode>();
 		viaTrees = new HashMap<Layer, RTNode>();
 		netIDs = new HashMap<ArcInst,Integer>();
@@ -428,6 +433,7 @@ public class SeaOfGates
 		}
 
 		// clean up at end
+        errorLogger.termLogging(true);
 		long stopTime = System.currentTimeMillis();
         Job.getUserInterface().stopProgressDialog();
         System.out.println("Routed " + numRoutedSegments + " out of " + numSegments +
@@ -755,7 +761,7 @@ public class SeaOfGates
 						if (!layer.getFunction().isMetal()) continue;
 						Rectangle2D viaBounds = viaPoly.getBounds2D();
 						SOGBound already = getMetalBlockage(netID, layer, viaBounds.getWidth()/2, viaBounds.getHeight()/2,
-							0, polyBounds.getMinX(), polyBounds.getMinY(), null, minWidth);
+							0, polyBounds.getMinX(), polyBounds.getMinY(), true, null, minWidth);
 						if (already != null) continue;
 						Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX() + polyBounds.getCenterX(),
 							viaBounds.getMinY() + polyBounds.getCenterY(), viaBounds.getWidth(), viaBounds.getHeight());
@@ -929,26 +935,47 @@ public class SeaOfGates
 
 		// see if access is blocked
 		double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing,
-			getSpacingRule(fromZ, -1), fromX, fromY, null, minWidth);
+		double surround = getSpacingRule(fromZ, -1);
+		SOGBound block = getMetalBlockage(netID, metalLayers[fromZ], metalSpacing, metalSpacing, surround, fromX, fromY, false, null, minWidth);
 		if (block != null)
 		{
-			System.out.println("CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing) +
+			String errorMsg = "CANNOT Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
+				" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing+surround) +
 				" all around, has blockage at (" + TextUtils.formatDouble(block.bound.getCenterX()) + "," +
 				TextUtils.formatDouble(block.bound.getCenterY()) + ") that is " + TextUtils.formatDouble(block.bound.getWidth()) +
-				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]");
+				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]";
+			System.out.println(errorMsg);
+			List<PolyBase> polyList = new ArrayList<PolyBase>();
+			polyList.add(new PolyBase(fromX, fromY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
+			polyList.add(new PolyBase(block.bound));
+			List<EPoint> lineList = new ArrayList<EPoint>();
+			lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+			lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+			lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+			lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+		    errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
 			return false;
 		}
 		metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, getSpacingRule(toZ, -1), toX, toY, null, minWidth);
+		surround = getSpacingRule(toZ, -1);
+		block = getMetalBlockage(netID, metalLayers[toZ], metalSpacing, metalSpacing, surround, toX, toY, false, null, minWidth);
 		if (block != null)
 		{
-			System.out.println("CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
-				" because it is blocked on layer " + metalLayers[toZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing) +
+			String errorMsg = "CANNOT Route to port " + toPi.getPortProto().getName() + " of node " + toPi.getNodeInst().describe(false) +
+				" because it is blocked on layer " + metalLayers[toZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing+surround) +
 				" all around, has blockage at (" + TextUtils.formatDouble(block.bound.getCenterX()) + "," +
 				TextUtils.formatDouble(block.bound.getCenterY()) + ") that is " + TextUtils.formatDouble(block.bound.getWidth()) +
-				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]");
+				"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]";
+			System.out.println(errorMsg);
+			List<PolyBase> polyList = new ArrayList<PolyBase>();
+			polyList.add(new PolyBase(toX, toY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
+			polyList.add(new PolyBase(block.bound));
+			List<EPoint> lineList = new ArrayList<EPoint>();
+			lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+			lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+			lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+			lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+		    errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
 			return false;
 		}
 
@@ -1306,7 +1333,7 @@ public class SeaOfGates
 									cY = curY + (dy + med) / 2;
 									halfHei += Math.abs(med-dy)/2;
 								}
-								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, 0, cX, cY, svCurrent, minWidth) == null)
+								if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, 0, cX, cY, true, svCurrent, minWidth) == null)
 								{
 									lo = med;
 								} else
@@ -1340,7 +1367,7 @@ public class SeaOfGates
 					double metalToMetal = getSpacingRule(nZ, width);
 					double metalSpacing = width / 2;
 					SOGBound sb = getMetalBlockage(netID, metalLayers[nZ], metalSpacing+Math.abs(dx), metalSpacing+Math.abs(dy),
-						metalToMetal, (curX+nX)/2, (curY+nY)/2, svCurrent, minWidth);
+						metalToMetal, (curX+nX)/2, (curY+nY)/2, true, svCurrent, minWidth);
 					if (sb != null) continue;
 				} else
 				{
@@ -1383,7 +1410,7 @@ public class SeaOfGates
 								int metalNo = lFun.getLevel() - 1;
 								if (getMetalBlockage(netID, conLayer, conRect.getWidth()/2, conRect.getHeight()/2,
 									getSpacingRule(metalNo, Math.max(conRect.getWidth(), conRect.getHeight())),
-										conRect.getCenterX(), conRect.getCenterY(), svCurrent, minWidth) != null)
+										conRect.getCenterX(), conRect.getCenterY(), true, svCurrent, minWidth) != null)
 								{
 									failed = true;
 									break;
@@ -1677,12 +1704,14 @@ public class SeaOfGates
 	 * @param surround is the surround around the area that will be filled.
 	 * @param x the X coordinate at the center of the area to examine.
 	 * @param y the Y coordinate at the center of the area to examine.
+	 * @param findNotches true to look for notch errors.
 	 * @param svCurrent the list of SearchVertex's for finding notch errors in the current path.
+	 * @param minWidth the minimum arc width on the current path.
 	 * @return a blocking SOGBound object that is in the area.
 	 * Returns null if the area is clear.
 	 */
 	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double surround, double x, double y,
-		SearchVertex svCurrent, double minWidth)
+		boolean findNotches, SearchVertex svCurrent, double minWidth)
 	{
 		RTNode rtree = metalTrees.get(layer);
 		if (rtree == null) return null;
@@ -1713,7 +1742,8 @@ public class SeaOfGates
 			// if on the same net, make sure there is no notch error
 			if (sBound.getNetID() == netID)
 			{
-				processNotch(notchBound, sBound, bound, notchErrors, notchRangeLow, notchRangeHigh);
+				if (findNotches)
+					processNotch(notchBound, sBound, bound, notchErrors, notchRangeLow, notchRangeHigh);
 				continue;
 			}
 
@@ -1727,7 +1757,7 @@ public class SeaOfGates
 		}
 
 		// TODO consider notch errors in the existing path
-		if (svCurrent != null)
+		if (findNotches && svCurrent != null)
 		{
 			for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
 			{
@@ -1753,14 +1783,17 @@ public class SeaOfGates
 		}
 
 		// report any notch errors
-		if (notchErrors[LEFT] != null && (notchRangeLow[LEFT] > lYNotch || notchRangeHigh[LEFT] < hYNotch))
-			return notchErrors[LEFT];
-		if (notchErrors[RIGHT] != null && (notchRangeLow[RIGHT] > lYNotch || notchRangeHigh[RIGHT] < hYNotch))
-			return notchErrors[RIGHT];
-		if (notchErrors[TOP] != null && (notchRangeLow[TOP] > lXNotch || notchRangeHigh[TOP] < hXNotch))
-			return notchErrors[TOP];
-		if (notchErrors[BOTTOM] != null && (notchRangeLow[BOTTOM] > lXNotch || notchRangeHigh[BOTTOM] < hXNotch))
-			return notchErrors[BOTTOM];
+		if (findNotches)
+		{
+			if (notchErrors[LEFT] != null && (notchRangeLow[LEFT] > lYNotch || notchRangeHigh[LEFT] < hYNotch))
+				return notchErrors[LEFT];
+			if (notchErrors[RIGHT] != null && (notchRangeLow[RIGHT] > lYNotch || notchRangeHigh[RIGHT] < hYNotch))
+				return notchErrors[RIGHT];
+			if (notchErrors[TOP] != null && (notchRangeLow[TOP] > lXNotch || notchRangeHigh[TOP] < hXNotch))
+				return notchErrors[TOP];
+			if (notchErrors[BOTTOM] != null && (notchRangeLow[BOTTOM] > lXNotch || notchRangeHigh[BOTTOM] < hXNotch))
+				return notchErrors[BOTTOM];
+		}
 		return null;
 	}
 

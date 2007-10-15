@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/15/07, SMR) Export text is in the wrong place (Bug #1396).
+FIX: In VectorCache.initPortShapes(), set the text style.
+
 IMP/MAN: (10/12/07, GVG) First version of conditional DRC rules (Bug #1366).
 Full overlapping is the first type implemented. Not supported by TechEditor.
 

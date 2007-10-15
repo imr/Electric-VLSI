@@ -601,10 +601,10 @@ public class VectorCache {
                 TextDescriptor descript = portPoly.getTextDescriptor();
                 Poly.Type style = Poly.Type.FILLED;
 //                TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME);
-//                if (descript != null) {
+                if (descript != null) {
 //                    portDescript = portDescript.withColorIndex(descript.getColorIndex());
-//                    style = descript.getPos().getPolyType();
-//                }
+                    style = descript.getPos().getPolyType();
+                }
                 VectorText vt = new VectorText(portPoly.getBounds2D(), style, /*portDescript*/descript, null, VectorText.TEXTTYPEPORT, pp,
                         null, null);
                 portShapes.add(vt);
