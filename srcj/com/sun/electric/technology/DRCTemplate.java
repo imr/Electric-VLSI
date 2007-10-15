@@ -339,6 +339,9 @@ public class DRCTemplate implements Serializable
             case SPACINGE:
             case EXTENSION:
             case EXTENSIONGATE:
+                if (rule.condition != null)
+                    condition = " condition=\"" + rule.condition + "\"";
+
                 String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
                 String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
                         + " minLen=\"" + rule.minLength + "\"") : "";
@@ -349,6 +352,7 @@ public class DRCTemplate implements Serializable
                         + " value=\"" + rule.getValue(0) + "\""
                         + wideValues
                         + noName
+                        + condition
                         + "/>");
                 break;
             case SURROUND: // if nodeName==null -> LayersRule
@@ -535,7 +539,7 @@ public class DRCTemplate implements Serializable
                 {
                     DRCTemplate tmp;
                     if (maxW == null)
-                        tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null, null);
+                        tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null, condition);
                     else
                         tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], values, -1);
                     drcRules.add(tmp);

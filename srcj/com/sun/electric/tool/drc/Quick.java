@@ -1403,25 +1403,26 @@ public class Quick
 						boolean edge = false;
                         // @TODO check if previous spacing rule was composed of same layers!
                         DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, npoly, ni, con, multiInt);
+
+                        // Try edge rules
                         if (theRule == null)
                         {
 						    theRule = DRC.getEdgeRule(layer, nLayer);
                             edge = true;
                         }
 
-						if (theRule != null)
+                        if (theRule == null) continue;
+
+                        ret = checkDist(tech, topCell, topGlobalIndex,
+                            poly, layer, net, geom, trans, globalIndex,
+                            npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
+                            con, theRule, edge);
+                        if (ret)
                         {
-                            ret = checkDist(tech, topCell, topGlobalIndex,
-                                poly, layer, net, geom, trans, globalIndex,
-                                npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
-                                con, theRule, edge);
-                            if (ret)
-                            {
-                                foundError = true;
-                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
-                            }
+                            foundError = true;
+                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
-					}
+                    }
 				}
 			} else
 			{
@@ -1433,9 +1434,6 @@ public class Quick
 
 				// see if this type of arc can interact with this layer
 				if (!checkLayerWithArc(layer, ap)) continue;
-
-//                System.out.println("Checking Arc " + ai.getName() + " " + layer.getName() + " " +
-//                            geom);
 
                 // see if the objects directly touch
 				boolean touch = sameInstance && nGeom.isConnected(geom);
@@ -1500,6 +1498,7 @@ public class Quick
 					// see how close they can get
                     boolean edge = false;
                     DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, nPoly, ai, con, multiInt);
+
                     if (theRule == null)
                     {
                         theRule = DRC.getEdgeRule(layer, nLayer);
@@ -2534,7 +2533,7 @@ public class Quick
 
         DRCTemplate minWidthRuleCond = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWIDCOND);
         // No appropiate overlapping condition
-        if (minWidthRuleCond == null || !minWidthRuleCond.condition.startsWith("overlap{"))
+        if (minWidthRuleCond == null || !minWidthRuleCond.condition.startsWith("overlap("))
         {
             // Now the error is reporte. Not very efficient
             if (errorDefault)
@@ -2544,7 +2543,7 @@ public class Quick
 
         // checking if geometry complains with overlap condition
         // Skipping "overlap"
-        String[] layers = TextUtils.parseString(minWidthRuleCond.condition.substring(7), "{,}");
+        String[] layers = TextUtils.parseString(minWidthRuleCond.condition.substring(7), "(,)");
         boolean found = false;
 
         for (String la : layers)
@@ -4144,7 +4143,7 @@ public class Quick
 	/**
 	 * Method to determine the minimum distance between "layer1" and "layer2" in technology
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
-	 * connectivity for same-implant layers.
+	 * connectivity for same-implant layers. Returns conditional rules if not standard rules were found
 	 */
 	private DRCTemplate getSpacingRule(Layer layer1, Poly poly1, Geometric geo1,
                                        Layer layer2, Poly poly2, Geometric geo2,
@@ -4160,8 +4159,31 @@ public class Quick
 
         double[] values = layer1.getTechnology().getSpacingDistances(poly1, poly2);
 
-		return (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1]));
-	}
+        // try conditional or standard
+        DRCTemplate theRule = (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1]));
+
+        if (theRule != null && theRule.condition != null) // conditional rules
+        {
+            String[] conds = TextUtils.parseString(theRule.condition, "{,}");
+            assert(conds.length == 2); // {layerName1, cond(layerName2)}
+            String layerName1 = conds[0];
+            String[] parameters = TextUtils.parseString(conds[1], "()");
+            assert(parameters.length == 2); // cond(layerName2)
+            assert(parameters[0].equals("no_overlap")); // only function implemented
+            String layerName2 = parameters[1];
+            if (!layer1.getName().equals(layerName1))
+                theRule = null; // doesn't apply
+            else
+            {
+                Layer l = layer1.getTechnology().findLayer(layerName2);
+                boolean found = searchForCondLayer(geo1, poly1, l, geo1.getParent(), null, null);
+                if (found)
+                    theRule = null; // doesn't apply
+            }
+        }
+
+        return theRule;
+    }
 
     /**
      * Method to retrieve network from a Geometric object (NodeInst, ArcInst)

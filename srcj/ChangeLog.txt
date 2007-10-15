@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP/MAN: (10/15/07, GVG) Conditional spacing rules implemented (Bug #1378).
+Not supported by TechEditor.
+
 IMP/MAN: (10/15/07, SMR) "Find Text" now has "Limit Search to the Highlighted Area"
      checkbox (Bug #1392).
 

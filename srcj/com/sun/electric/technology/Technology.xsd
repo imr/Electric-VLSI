@@ -789,6 +789,7 @@
                                         <xsd:attribute name="maxW" type="xsd:double"/>
                                         <xsd:attribute name="minLen" type="xsd:double"/>
                                         <xsd:attribute name="nodeName" type="tns:PrimitiveNodeName"/>
+                                        <xsd:attribute name="condition" type="tns:DesignRuleCondition"/>
                                     </xsd:complexType>
                                 </xsd:element>
                                 <xsd:element name="NodeLayersRule">

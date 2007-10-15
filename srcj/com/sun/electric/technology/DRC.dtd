@@ -29,6 +29,7 @@
     maxW CDATA #IMPLIED
     minLen CDATA #IMPLIED
     nodeName CDATA #IMPLIED
+    condition CDATA #IMPLIED
  >
  <!ATTLIST NodeLayersRule
     ruleName CDATA #REQUIRED
