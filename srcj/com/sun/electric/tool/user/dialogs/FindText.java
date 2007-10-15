@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,7 +61,8 @@ public class FindText extends EModelessDialog
 	    prefSearchExportNames = Pref.makeBooleanPref("FindText_searchExportNames", prefs, true),
 	    prefSearchExportVars = Pref.makeBooleanPref("FindText_searchExportVars", prefs, true),
 	    prefSearchCellVars = Pref.makeBooleanPref("FindText_searchCellVars", prefs, true),
-	    prefSearchTempNames = Pref.makeBooleanPref("FindText_searchTempNames", prefs, false);
+	    prefSearchTempNames = Pref.makeBooleanPref("FindText_searchTempNames", prefs, false),
+	    prefSearchHighlighted = Pref.makeBooleanPref("FindText_searchHighlighted", prefs, false);
 	private String lastSearch = null;
 
 	public static void findTextDialog()
@@ -86,12 +88,6 @@ public class FindText extends EModelessDialog
 		theDialog.toFront();
 	}
 
-    // Method to clean last search
-    private void cleanLastSearch()
-    {
-        lastSearch = null;
-    }
-
 	/** Creates new form Search and Replace */
 	private FindText(Frame parent)
 	{
@@ -110,12 +106,11 @@ public class FindText extends EModelessDialog
 		searchExportVars.setSelected(prefSearchExportVars.getBoolean());
 		searchCellVars.setSelected(prefSearchCellVars.getBoolean());
 		searchTempNames.setSelected(prefSearchTempNames.getBoolean());
+		searchHighlighted.setSelected(prefSearchHighlighted.getBoolean());
 
-        // adding correct callback
-        ActionListener action = new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cleanLastSearch();
-            }
+        // changes to any checkboxes cause the search to start fresh
+        ActionListener action = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) { lastSearch = null; }
         };
         searchNodeNames.addActionListener(action);
         searchNodeVars.addActionListener(action);
@@ -125,6 +120,7 @@ public class FindText extends EModelessDialog
         searchExportVars.addActionListener(action);
         searchCellVars.addActionListener(action);
         searchTempNames.addActionListener(action);
+        searchHighlighted.addActionListener(action);        
 
 		getRootPane().setDefaultButton(find);
 		finishInitialization();
@@ -188,6 +184,7 @@ public class FindText extends EModelessDialog
         searchExportVars = new javax.swing.JCheckBox();
         searchCellVars = new javax.swing.JCheckBox();
         searchTempNames = new javax.swing.JCheckBox();
+        searchHighlighted = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -415,6 +412,14 @@ public class FindText extends EModelessDialog
         gridBagConstraints.gridwidth = 4;
         whatToSearch.add(searchTempNames, gridBagConstraints);
 
+        searchHighlighted.setText("Limit Search to the Highlighted Area");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        whatToSearch.add(searchHighlighted, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -450,8 +455,8 @@ public class FindText extends EModelessDialog
 		String search = findString.getText();
 		String replace = replaceString.getText();
 		WindowContent content = wf.getContent();
-		content.initTextSearch(search, caseSensitive.isSelected(),
-		                       regExp.isSelected(), getWhatToSearch());
+		content.initTextSearch(search, caseSensitive.isSelected(), regExp.isSelected(),
+			getWhatToSearch(), searchHighlighted.isSelected());
 		content.replaceAllText(replace);
 	}//GEN-LAST:event_replaceAllActionPerformed
 
@@ -492,8 +497,8 @@ public class FindText extends EModelessDialog
 		}
 		if (lastSearch == null)
 		{
-			content.initTextSearch(search, caseSensitive.isSelected(),
-			                       regExp.isSelected(), getWhatToSearch());
+			content.initTextSearch(search, caseSensitive.isSelected(), regExp.isSelected(),
+				getWhatToSearch(), searchHighlighted.isSelected());
 		}
 		lastSearch = search;
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;
@@ -516,6 +521,7 @@ public class FindText extends EModelessDialog
 		prefSearchExportVars.setBoolean(searchExportVars.isSelected());
 		prefSearchCellVars.setBoolean(searchCellVars.isSelected());
 		prefSearchTempNames.setBoolean(searchTempNames.isSelected());
+		prefSearchHighlighted.setBoolean(searchHighlighted.isSelected());
 
 		setVisible(false);
 		dispose();
@@ -542,6 +548,7 @@ public class FindText extends EModelessDialog
     private javax.swing.JCheckBox searchCellVars;
     private javax.swing.JCheckBox searchExportNames;
     private javax.swing.JCheckBox searchExportVars;
+    private javax.swing.JCheckBox searchHighlighted;
     private javax.swing.JCheckBox searchNodeNames;
     private javax.swing.JCheckBox searchNodeVars;
     private javax.swing.JCheckBox searchTempNames;

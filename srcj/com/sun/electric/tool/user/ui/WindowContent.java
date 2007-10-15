@@ -45,10 +45,12 @@ public interface WindowContent
 	 * Method to initialize for a new text search.
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
-	 * @param regExp true if the search string is a regular expression
+	 * @param regExp true if the search string is a regular expression.
+	 * @param whatToSearch a collection of text types to consider.
+	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
 	public abstract void initTextSearch(String search, boolean caseSensitive,
-	                                    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch);
+	                                    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly);
 
 	/**
 	 * Method to find the next occurrence of a string.

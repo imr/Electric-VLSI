@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP/MAN: (10/15/07, SMR) "Find Text" now has "Limit Search to the Highlighted Area"
+     checkbox (Bug #1392).
+
 BUG: (10/15/07, SMR) Export text is in the wrong place (Bug #1396).
 FIX: In VectorCache.initPortShapes(), set the text style.
 

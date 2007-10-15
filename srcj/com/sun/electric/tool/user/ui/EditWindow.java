@@ -2043,8 +2043,8 @@ public class EditWindow extends JPanel
 			return p;
 		}
 
-		private void searchTextNodes(Cell cell, String search, boolean caseSensitive,
-									boolean regExp, Set whatToSearch, Pattern pattern)
+		private void searchTextNodes(Cell cell, String search, boolean caseSensitive, boolean regExp,
+			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
 			TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
@@ -2052,6 +2052,7 @@ public class EditWindow extends JPanel
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
+				if (examineThis != null && !examineThis.contains(ni)) continue;
 				if (what != null)
 				{
 					Name name = ni.getNameKey();
@@ -2065,8 +2066,8 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextArcs(Cell cell, String search, boolean caseSensitive,
-									boolean regExp, Set whatToSearch, Pattern pattern)
+		private void searchTextArcs(Cell cell, String search, boolean caseSensitive, boolean regExp,
+			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
 			TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
@@ -2074,6 +2075,7 @@ public class EditWindow extends JPanel
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
+				if (examineThis != null && !examineThis.contains(ai)) continue;
 				if (what != null)
 				{
 					Name name = ai.getNameKey();
@@ -2088,14 +2090,15 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextExports(Cell cell, String search, boolean caseSensitive,
-									   boolean regExp, Set whatToSearch, Pattern pattern)
+		private void searchTextExports(Cell cell, String search, boolean caseSensitive, boolean regExp,
+			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
 		{
 			WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
 			TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
 			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 			{
 				Export pp = it.next();
+				if (examineThis != null && !examineThis.contains(pp.getOriginalPort().getNodeInst())) continue;
 				if (what != null)
 				{
 					Name name = pp.getNameKey();
@@ -2106,8 +2109,8 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive,
-										boolean regExp, Set whatToSearch, Pattern pattern)
+		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive, boolean regExp,
+			Set whatToSearch, Pattern pattern, Rectangle2D highBounds)
 		{
 			WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
 			if (whatVar != null)
@@ -2116,6 +2119,11 @@ public class EditWindow extends JPanel
 				{
 					Variable var = it.next();
 					if (!var.isDisplay()) continue;
+					if (highBounds != null)
+					{
+						if (var.getXOff() < highBounds.getMinX() || var.getXOff() > highBounds.getMaxX() ||
+							var.getYOff() < highBounds.getMinY() || var.getYOff() > highBounds.getMaxY()) continue;
+					}
 					findAllMatches(null, var.getKey(), -1, var.getPureValue(-1),
 							search, caseSensitive, regExp, pattern);
 				}
@@ -2239,9 +2247,13 @@ public class EditWindow extends JPanel
 		 * Method to initialize for a new text
 		 * @param search the string to locate.
 		 * @param caseSensitive true to match only where the case is the same.
+		 * @param regExp true if the search string is a regular expression.
+		 * @param whatToSearch a collection of text types to consider.
+		 * @param highlightedOnly true to search only in the highlighted area.
+		 * @param wnd the window in which search is being done (used if "highlightedOnly" is true).
 		 */
-		public void initTextSearch(Cell cell, String search, boolean caseSensitive,
-								   boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
+		public void initTextSearch(Cell cell, String search, boolean caseSensitive, boolean regExp,
+			Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly, EditWindow wnd)
 		{
 			foundInCell = new ArrayList<StringsInCell>();
 			if (cell == null)
@@ -2258,10 +2270,22 @@ public class EditWindow extends JPanel
 				if (pattern == null) return; // errror
 			}
 
-			searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch, pattern);
-			searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch, pattern);
-			searchTextExports(cell, search, caseSensitive, regExp, whatToSearch, pattern);
-			searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch, pattern);
+			// see if searching the highlighted area only
+			Set<Geometric> examineThis = null;
+			Rectangle2D highBounds = null;
+			if (highlightedOnly)
+			{
+				examineThis = new HashSet<Geometric>();
+				List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
+				highBounds = wnd.getHighlightedArea();
+				for(Geometric g : highs) examineThis.add(g);
+			}
+
+			// initialize the search
+			searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
+			searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
+			searchTextExports(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
+			searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch, pattern, highBounds);
 			if (foundInCell.size()==0) System.out.println("Nothing found");
 			currentFindPosition = -1;
 		}
@@ -2421,11 +2445,14 @@ public class EditWindow extends JPanel
 	 * Method to initialize for a new text
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
+	 * @param regExp true if the search string is a regular expression.
+	 * @param whatToSearch a collection of text types to consider.
+	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
-		boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
+		boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly)
 	{
-		textSearch.initTextSearch(cell, search, caseSensitive, regExp, whatToSearch);
+		textSearch.initTextSearch(cell, search, caseSensitive, regExp, whatToSearch, highlightedOnly, this);
 	}
 
 	private static String repeatChar(char c, int num) {
