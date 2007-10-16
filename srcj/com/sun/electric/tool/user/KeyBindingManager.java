@@ -393,7 +393,7 @@ public class KeyBindingManager {
 		// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
 		// because they are always delivered as SHIFT-'<'.
 //      if (stroke.getKeyCode() == KeyEvent.VK_UNDEFINED)
-		if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()))
+		if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
 			stroke = KeyStroke.getKeyStroke(e.getKeyChar());
         if (DEBUG) System.out.println("  Current key is "+stroke+", last prefix key is "+lastPrefix);
 
