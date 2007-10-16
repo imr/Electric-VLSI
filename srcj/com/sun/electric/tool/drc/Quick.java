@@ -4338,7 +4338,10 @@ public class Quick
 			{
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings
+                AffineTransform trans = ni.rotateOut();
                 Poly [] list = cell.getTechnology().getShapeOfNode(ni, true, true, null);
+                assert(list.length == 1);
+                list[0].transform(trans);
                 Area thisArea = new Area(list[0]);
                 if (area == null)
                     area = thisArea;
@@ -4372,8 +4375,12 @@ public class Quick
             boolean found = area.contains(thisPoly.getBounds2D());
 
             if (found) count++;
-            else DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain " +
-                        geomList.get(i) + ")");
+            else
+            {
+                Rectangle2D rect = (geomList.get(i) != null) ? geomList.get(i).getBounds() : thisPoly.getBounds2D();
+                DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain element (" +
+                        rect.getMinX() + "," + rect.getMinY()+") (" + rect.getMaxX() + "," + rect.getMaxY()+"))");
+            }
         }
         // At least one DRC exclusion that contains both
 //        if (count == polyList.size())

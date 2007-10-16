@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/16/07, GVG) Rotated DRC exclusion regions don't get correct
+set of points from NodeInst.getShapeOfNode() (Bug #1258).
+Extra test in regression added.
+FIX: Apply transformation in Quick.accumulateExclusion()
+
 IMP/MAN: (10/15/07, GVG) Conditional spacing rules implemented (Bug #1378).
 Not supported by TechEditor.
 
