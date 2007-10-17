@@ -260,7 +260,7 @@ public class JELIB extends LibraryFiles
             protoName = protoNames.get(groupName);
             if (protoName == null)
             {
-                protoName = cell.getName();
+                protoName = groupName;
                 protoNames.put(protoName, protoName);
             }
             transitive.theseAreRelated(cell, protoName);
