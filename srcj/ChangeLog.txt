@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP/MAN: (10/17/07, SMR) EPIC reader now always uses separate process (Bug #1371)
+
 BUG: (10/17/07, DN) JELIB/DELIB reader doesn't read cell groupping(Bug #1393).
 FIX: In input.JELIB.readTheLibrary consider groupName fields correctly.
 

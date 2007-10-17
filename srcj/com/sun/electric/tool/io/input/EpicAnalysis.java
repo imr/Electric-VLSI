@@ -29,6 +29,7 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.geom.Rectangle2D;
@@ -42,8 +43,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.Vector;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -352,6 +356,51 @@ public class EpicAnalysis extends Analysis {
             super(name);
             this.an = an;
             Vector<EpicTreeNode> children = new Vector<EpicTreeNode>();
+
+//    		// make a list of signal names with "#" in them
+//    		Map<String,DefaultMutableTreeNode> sharpMap = new HashMap<String,DefaultMutableTreeNode>();
+//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+//    		{
+//    			String sigName = tn.name;
+//    			int hashPos = sigName.indexOf('#');
+//    			if (hashPos <= 0) continue;
+//    			String sharpName = sigName.substring(0, hashPos);
+//    			DefaultMutableTreeNode parent = sharpMap.get(sharpName);
+//    			if (parent == null)
+//    			{
+//    				parent = new DefaultMutableTreeNode(sharpName + "#");
+//    				sharpMap.put(sharpName, parent);
+//    				this.add(parent);
+//    			}
+//    		}
+//
+//    		// add all signals to the tree
+//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+//    		{
+//    			String nodeName = null;
+//    			String sigName = tn.name;
+//    			int hashPos = sigName.indexOf('#');
+//    			if (hashPos > 0)
+//    			{
+//    				// force a branch with the proper name
+//    				nodeName = sigName.substring(0, hashPos);
+//    			} else
+//    			{
+//    				// if this is the pure name of a hash set, force a branch
+//    				String pureSharpName = sigName;
+//    				if (sharpMap.get(pureSharpName) != null)
+//    					nodeName = pureSharpName;
+//    			}
+//    			if (nodeName != null)
+//    			{
+//    				DefaultMutableTreeNode parent = sharpMap.get(nodeName);
+//    				parent.add(new DefaultMutableTreeNode(tn));
+//    			} else
+//    			{
+//                    children.add(tn);
+//    			}
+//    		}
+
             for (EpicTreeNode tn: an.rootContext.sortedNodes)
                 children.add(tn);
             this.children = children;

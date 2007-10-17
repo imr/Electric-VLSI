@@ -125,10 +125,10 @@ public class Simulate extends Input
             is = new SpiceOut();
         } else if (type == FileType.EPIC)
         {
-            if (Simulation.isSpiceEpicReaderProcess())
+//            if (Simulation.isSpiceEpicReaderProcess())
                 is = new EpicOutProcess();
-            else
-               is = new EpicOut();
+//            else
+//               is = new EpicOut();
         } else if (type == FileType.VERILOGOUT)
         {
             is = new VerilogOut();

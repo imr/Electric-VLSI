@@ -4,6 +4,7 @@
  *
  * File: EpicOut.java
  * Input/output tool: reader for EPIC output (.out)
+ * This module is not used anymore because EPIC data is read in a separate process.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -308,6 +309,9 @@ public class EpicOut extends Simulate
 		// read the actual signal data from the .spo file
 		Stimuli sd = readEpicFile(new EpicReader(fileURL));
         sd.setCell(cell);
+//		EpicOutProcess eop = new EpicOutProcess();
+//		eop.setSeparateProcess(false);
+//		Stimuli sd = eop.readSimulationOutput(fileURL, cell);
 
 		// stop progress dialog
 		stopProgressDialog();
@@ -455,7 +459,8 @@ public class EpicOut extends Simulate
                 if (firstLine == null || !firstLine.equals(VERSION_STRING)) {
                     System.out.println("Unknown Epic Version: " + firstLine);
                 }
-                for (;;) {
+                for (;;)
+                {
                     if (bufP >= bufL && readBuf()) break;
                     int startLine = bufP;
                     if (parseNumLineFast()) continue;
