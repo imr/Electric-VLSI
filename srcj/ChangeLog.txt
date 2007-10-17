@@ -4,13 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP/MAN: (10/16/07, JG) If you hit shift-#, it changes the visibility to
+     metal# and metal#-1 (including contacts of those levels).  If you hit
+     shift-0, it shows everything.  This makes it easy to quickly check metal
+     layers without having to click on the layers tab, especially for global routing.
+
 BUG: (10/16/07, GVG) Rotated DRC exclusion regions don't get correct
-set of points from NodeInst.getShapeOfNode() (Bug #1258).
-Extra test in regression added.
+     set of points from NodeInst.getShapeOfNode() (Bug #1258).
+     Extra test in regression added.
 FIX: Apply transformation in Quick.accumulateExclusion()
 
 IMP/MAN: (10/15/07, GVG) Conditional spacing rules implemented (Bug #1378).
-Not supported by TechEditor.
+     Not supported by TechEditor.
 
 IMP/MAN: (10/15/07, SMR) "Find Text" now has "Limit Search to the Highlighted Area"
      checkbox (Bug #1392).
@@ -19,7 +24,7 @@ BUG: (10/15/07, SMR) Export text is in the wrong place (Bug #1396).
 FIX: In VectorCache.initPortShapes(), set the text style.
 
 IMP/MAN: (10/12/07, GVG) First version of conditional DRC rules (Bug #1366).
-Full overlapping is the first type implemented. Not supported by TechEditor.
+     Full overlapping is the first type implemented. Not supported by TechEditor.
 
 ************************* Version 8.06h: *******************************
 
@@ -27,7 +32,7 @@ IMP: (10/11/07, SMR) Sea of Gates router now avoids DRC errors (Bug #1344).
 
 BUG: (10/10/07, GVG) Bogus spacing errors for NT-N layers (Bug #1395)
 FIX: Wrong description of non-electrical layers in NT-N Transistors. This is important
-in Quick.lookForLayerNew().
+     in Quick.lookForLayerNew().
 
 BUG: (10/10/07, GVG) Bogus spacing errors for select layers (bug #1394)
 FIX: Added extra bit to NT-N layer and Technology.sameLayer will check the extra bits.
@@ -146,13 +151,13 @@ IMP/MAN: (9/18/07, SMR) Icon preferences now allow rotation to be given for
 BUG: (9/17/07, GVG) NT-N node and NT-N transistor problems in TSMC180 (Bug #1378)
 FIX: Disabled for now.
 
-IMP: (9/14/07, GVG) Initial time is also global and changes in TimingModeBucketJob so
-report job will be kicked in batch mode.
+IMP: (9/14/07, GVG) Initial time is also global and changes in TimingModeBucketJob
+     so report job will be kicked in batch mode.
 
 ************************* Version 8.06e: *******************************
 
 IMP: (9/14/07, GVG) Last changes in Oyster before move to SVN. Initial memory is
-global now.
+     global now.
 
 BUG: (9/14/07, SMR) Exports don't show rotation, size, etc at higher levels.
 FIX: In VectorCache.VectorCell.initPortShapes(), use "portDescript", not "descript".
@@ -168,8 +173,8 @@ IMP: (9/13/07, GVG) Update in splitNode mode. Multithread and single versions.
 IMP: (9/13/07, GVG) Arrivals with splitNode option. Multithread and single versions.
 
 IMP: (9/13/07, DN) A small change in CircuitChangeJobs.CleenupChanges.doIt to
-    speed up bulky arcs kill. Command "Tests|Dima|cleenup arcs" to remove
-    duplicate arcs.
+     speed up bulky arcs kill. Command "Tests|Dima|cleenup arcs" to remove
+     duplicate arcs.
 
 IMP: (9/12/07, GVG) splitNodes in Oyster.
 
@@ -193,7 +198,7 @@ IMP: (9/10/07, SMR) Key binding preferences now warn when binding to ALT keys
      that are attached to menus (Bug #1108).
 
 IMP: (9/10/07, GVG) Sorting wires and ports in Oyster. Sorting pinNames.
-New names for supply pins: name + "@0". No extracting single pins in busses for benchmarks
+     New names for supply pins: name + "@0". No extracting single pins in busses for benchmarks
 
 IMP: (9/8/07, GVG) No icon for benchmarks in Oyster
 
@@ -289,15 +294,15 @@ FIX: fixed
 ************************* Version 8.06c: *******************************
 
 IMP: (8/16/07, SAF) PIE: Independent ports are now treated as single
-islands instead of a group, which allows factoring to propegate up
-the hierarchy better.
+     islands instead of a group, which allows factoring to propegate up
+     the hierarchy better.
 
 BUG: (8/16/07, SAF) PIE: Leftover hash codes were breaking port to port
-matrix computation for subsequent matrix columns.
+     matrix computation for subsequent matrix columns.
 FIX: Properly zero and reinitialize all hash codes.
 
 BUG: (8/16/07, SAF) PIE: Partition tree objects didn't know parents upon
-restore for sub-NCC.
+     restore for sub-NCC.
 FIX: Have all partition tree records adopt their children after backtrack.
 
 IMP: (8/16/07, SAF) PIE: Added annotation to prevent interchange.
@@ -379,7 +384,7 @@ BUG: (8/1/07, DN) Print command throws exception on Solaris.
 FIX: In EditWindow.getPrintImage test if ColorSupported attribute is absent on platform.
 
 IMP: (7/31/07, SAF) PIE: Added benchmarking counters and made 
-	 performance optimizations.
+     performance optimizations.
 
 BUG: (7/25/07, RK) Make NCC's joinGroup annotation work on schematic 
      Cells as well as layout Cells (Bug #1345)
@@ -395,12 +400,12 @@ FIX: In GDS.CellBuilder.makeInstances(), accumulate duplicate names and
      write NCC annotation.
 
 IMP: (7/11/07, SAF) PIE: Changed subcircuit factoring to compose 
-hierarchically and use internal hierarchy connections.
+     hierarchically and use internal hierarchy connections.
 
 IMP: (7/3/07, SAF) PIE: Added options to control backtracking search.
 
 IMP: (7/2/07, SAF) PIE: Switched from internal to external stimulus for
-port to port matrix creation (stimulus on port,as if attached to wire).
+     port to port matrix creation (stimulus on port,as if attached to wire).
 
 BUG: (7/2/07, SMR) Spice decks truncate NPN area value.
 FIX: In Spice.writeCellTopology(), do not limit digits in "AREA=" output.
@@ -409,18 +414,18 @@ BUG: (7/2/07, SMR) Schematic DRC complains about touching artwork ports.
 FIX: In Schematic.checkPortOverlap(), ignore Artwork technology.
 
 BUG: (6/29/07, SAF) PIE/NCC: Hash used for computing port multipliers
-was always 0.
+     was always 0.
 FIX: Modified name hashing code to return different hashes.
 
 BUG: (6/29/07, SAF) PIE: All transistor port multipliers are the same,
-including NMOS vs. PMOS multipliers.
+     including NMOS vs. PMOS multipliers.
 FIX: Port multipliers now generated in PartType to be unique for each
-type of part.
+     type of part.
 
 IMP: (6/28/07, SAF) PIE: Added full backtracking support to algorithm.
 
 BUG: (6/28/07, SAF) PIE: With subcircuit factoring on, unique pins did
-not update their hash codes properly.
+     not update their hash codes properly.
 FIX: Hash code update code in CSwapPart amended.
 
 BUG: (6/27/07, DN) Netlist problem for NPN transistor in MOCMOS technology (Bug #1341).
@@ -444,16 +449,16 @@ BUG: (6/26/07, DN) "ant jarForGNUSource" doesn't work in GNU Source distribution
 FIX: In "build.xml:jarWithVersion" don't exclude "packaging/electric.mf" and "packaging/*.txt".
 
 BUG: (6/25/07, SAF) NMOS stacks with incorrectly interchanged gates can
-be matched by local partitioning and are never re-examined, which leads
-to false NCC passes in hierarchical mode.
+     be matched by local partitioning and are never re-examined, which leads
+     to false NCC passes in hierarchical mode.
 FIX: Forced one hashing step of all parts after any operation that could 
-cause the bug behavior to detect the faulty interchange. 
+     cause the bug behavior to detect the faulty interchange. 
 
 BUG: (6/25/07, SAF) PIE: If only one instance of a part exists it was
-automatically matched by local partitioning without verifying proper 
-interchange.
+     automatically matched by local partitioning without verifying proper 
+     interchange.
 FIX: Any place where the algorithm can return without having checked
-interchange, all parts are forced to be examined for interchange first.
+     interchange, all parts are forced to be examined for interchange first.
 
 BUG: (6/25/07, SAF) PIE: CSwapPart hash sets were not properly compared.
 FIX: Code now properly compares the signals.
@@ -474,15 +479,15 @@ BUG: (6/22/07, SMR) Closing the current library doesn't select another (Bug #133
 FIX: In FileMenu.CloseLibrary.terminateOK(), select another library if there is no current one.
 
 IMP: (6/22/07, GVG) GUI option to run Sea-of-Gates as router in the fill cell generator
-instead of the built-in one.
+     instead of the built-in one.
 
 IMP: (6/21/07, SAF) PIE: Updated to reflect progress made at UofW.
-	Added preferences panel for PIE specific options.  Added port
-	permutation to NCCResult for saving the permutation found via
-	isomorphic mapping.  PIE now uses a permutation caching algorithm
-	with caching implemented via base and strong generating set with
-	Schreier-Sims Algorithm.
-	
+     Added preferences panel for PIE specific options.  Added port
+     permutation to NCCResult for saving the permutation found via
+     isomorphic mapping.  PIE now uses a permutation caching algorithm
+     with caching implemented via base and strong generating set with
+     Schreier-Sims Algorithm.
+
 IMP/MAN: (6/20/07, SMR) New extraction option to ignore select/well layers.
 
 BUG: (6/20/07, SMR) Sea-of-gates router uses larger contacts which cause DRC errors ([Bug #1334)
