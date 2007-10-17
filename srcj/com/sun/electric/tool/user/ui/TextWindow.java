@@ -78,7 +78,6 @@ public class TextWindow implements WindowContent
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
-	/** true if text in the window changed. */				private boolean dirty;
 	/** true if text in the window is closing. */			private boolean finishing;
 	/** true if text in the window is being reloaded. */	private boolean reloading;
 	private JTextArea textArea;
@@ -229,26 +228,28 @@ public class TextWindow implements WindowContent
 		TextWindowDocumentListener(TextWindow tw) { this.tw = tw; }
 
 		public void changedUpdate(DocumentEvent e) { tw.textWindowContentChanged(); }
+
 		public void insertUpdate(DocumentEvent e) { tw.textWindowContentChanged(); }
+
 		public void removeUpdate(DocumentEvent e) { tw.textWindowContentChanged(); }
+
 		public void focusGained(FocusEvent e)
 		{
 			TopLevel top = TopLevel.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(true);
 		}
+
 		public void focusLost(FocusEvent e)
 		{
 			TopLevel top = TopLevel.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(false);
-			if (tw.dirty)
-				new SaveCellText(tw);
 		}
 	}
 
 	private void textWindowContentChanged()
 	{
 		if (!reloading)
-			new ChangedCellText(this);
+			new SaveCellText(this);
 	}
 
 	public List<MutableTreeNode> loadExplorerTrees()
@@ -266,16 +267,7 @@ public class TextWindow implements WindowContent
 	 * Method to get rid of this EditWindow.  Called by WindowFrame when
 	 * that windowFrame gets closed.
 	 */
-	public void finished()
-	{
-		if (dirty)
-		{
-			dirty = false;
-			finishing = true;
-			if (cell == null) return;
-			new SaveCellText(this);
-		}
-	}
+	public void finished() {}
 
 	/**
 	 * Class to save a cell's text in a new Job.
@@ -284,12 +276,10 @@ public class TextWindow implements WindowContent
 	{
 		private Cell cell;
 		private String [] strings;
-		private transient TextWindow tw;
 
 		private SaveCellText(TextWindow tw)
 		{
 			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.tw = tw;
 			this.cell = tw.cell;
 			this.strings = tw.convertToStrings();
 			startJob();
@@ -299,36 +289,6 @@ public class TextWindow implements WindowContent
 		{
 			if (cell != null) cell.setTextViewContents(strings);
 			return true;
-		}
-
-		public void terminateOK()
-		{
-			tw.dirty = false;
-		}
-	}
-
-    private static class ChangedCellText extends Job
-	{
-		private Cell cell;
-		private transient TextWindow tw;
-
-		private ChangedCellText(TextWindow tw)
-		{
-			super("Change Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.tw = tw;
-			this.cell = tw.cell;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            if (cell != null) cell.getLibrary().setChanged();
-			return true;
-		}
-
-		public void terminateOK()
-		{
-			tw.dirty = true;
 		}
 	}
 
@@ -363,7 +323,6 @@ public class TextWindow implements WindowContent
 		textArea.setSelectionStart(0);
 		textArea.setSelectionEnd(0);
 		reloading = false;
-		dirty = false;
 		setWindowTitle();
 	}
 
@@ -518,7 +477,6 @@ public class TextWindow implements WindowContent
     private void updateText(String [] strings)
     {
         textArea.setText(makeOneString(strings));
-        dirty = false;
     }
 
 	/**

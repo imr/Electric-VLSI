@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/17/07, SMR) Changes to a text window are not remembered if
+     save is issued while in the window.
+FIX: Store all changes immediately instead of marking the text "dirty".
+
 IMP/MAN: (10/16/07, JG) If you hit shift-#, it changes the visibility to
      metal# and metal#-1 (including contacts of those levels).  If you hit
      shift-0, it shows everything.  This makes it easy to quickly check metal
