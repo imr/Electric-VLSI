@@ -428,7 +428,27 @@ public class LayerTab extends JPanel
 		if (doUpdate) update();
 	}
 
-	/**
+    /**
+     * Set the metal layer at the given level visible,
+     * and turn off all other layers.  Layer 0 turns on all
+     * layers.
+     * @param level metal level
+     */
+    public void setVisibilityLevel(int level) {
+        int len = layerListModel.size();
+        for (int i=0; i<len; i++) {
+            Layer layer = getSelectedLayer(i);
+            Boolean b = new Boolean(false);
+            if (layer.getFunction().getLevel() == level ||
+                layer.getFunction().getLevel() == (level-1) || level == 0)
+                b = new Boolean(true);
+            visibility.put(layer, b);
+            layerListModel.set(i, lineName(layer));
+        }
+        update();
+    }
+
+    /**
 	 * Method to change a line of the layer list.
 	 * @param i the line number to change.
 	 * @param how 1: toggle highlighting; 0: clear highlighting.

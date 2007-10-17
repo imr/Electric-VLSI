@@ -26,12 +26,17 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.Job;
+import com.sun.electric.technology.Technology;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import javax.swing.KeyStroke;
 import java.util.List;
 import java.util.ArrayList;
@@ -136,7 +141,42 @@ public final class MenuCommands
             new EMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)) { public void run() {
                 ClickZoomWireListener.theOne.switchWiringTarget(); }},
             EMenuItem.SEPARATOR,
-            WindowMenu.getHiddenWindowCycleMenuItem());            
+            new EMenuItem("Set M1 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(1); }},
+            new EMenuItem("Set M2 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(2); }},
+            new EMenuItem("Set M3 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(3); }},
+            new EMenuItem("Set M4 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(4); }},
+            new EMenuItem("Set M5 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_5, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(5); }},
+            new EMenuItem("Set M6 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_6, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(6); }},
+            new EMenuItem("Set M7 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_7, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(7); }},
+            new EMenuItem("Set M8 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_8, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(8); }},
+            new EMenuItem("Set M9 Visible", KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(9); }},
+            new EMenuItem("Set All Visible", KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.SHIFT_MASK)) { public void run() {
+                setLayerVisible(0); }},
+            EMenuItem.SEPARATOR,
+            WindowMenu.getHiddenWindowCycleMenuItem());
+    }
+
+    public static void setLayerVisible(int level) {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        WindowFrame frame = wnd.getWindowFrame();
+        if (frame == null) return;
+        LayerTab layerTab = frame.getLayersTab();
+        if (layerTab == null) return;
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+        Technology tech = cell.getTechnology();
+        if (!tech.isLayout()) return;
+        layerTab.setVisibilityLevel(level);
     }
     
     /**
