@@ -99,8 +99,7 @@ public class SpiceTab extends PreferencePanel
         spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
 		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(Simulation.getSpiceOutputFormat()));
 
-        // IF Reader JVM is on and the memoery
-        epicCheckBox.setSelected(Simulation.isSpiceEpicReaderProcess());
+        // Epic memory size
         epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
 
 		spiceUseParasitics.setSelected(Simulation.isSpiceUseParasitics());
@@ -214,10 +213,7 @@ public class SpiceTab extends PreferencePanel
 
         // Setting EPIC values
         if (formatVal == SpiceOutFormat.Epic)
-        {
-            Simulation.setSpiceEpicReaderProcess(epicCheckBox.isSelected());
             Simulation.setSpiceEpicMemorySize(TextUtils.atoi(epicText.getText()));
-        }
 
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
 		if (!Simulation.getSpicePartsLibrary().equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
@@ -342,7 +338,6 @@ public class SpiceTab extends PreferencePanel
         spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
         spiceWriteSubcktTopCell = new javax.swing.JCheckBox();
         epicFrame = new javax.swing.JPanel();
-        epicCheckBox = new javax.swing.JCheckBox();
         epicLabel = new javax.swing.JLabel();
         epicText = new javax.swing.JTextField();
         spice2 = new javax.swing.JPanel();
@@ -495,24 +490,14 @@ public class SpiceTab extends PreferencePanel
 
         epicFrame.setLayout(new java.awt.GridBagLayout());
 
-        epicFrame.setBorder(javax.swing.BorderFactory.createTitledBorder("Epic Format"));
-        epicCheckBox.setText("Use External Reader JVM");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        epicFrame.add(epicCheckBox, gridBagConstraints);
-
         epicLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        epicLabel.setText("Reader Memory Size: ");
+        epicLabel.setText("Epic Reader Memory Size: ");
         epicLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         epicFrame.add(epicLabel, gridBagConstraints);
 
         epicText.setColumns(5);
@@ -835,7 +820,6 @@ public class SpiceTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox epicCheckBox;
     private javax.swing.JPanel epicFrame;
     private javax.swing.JLabel epicLabel;
     private javax.swing.JTextField epicText;

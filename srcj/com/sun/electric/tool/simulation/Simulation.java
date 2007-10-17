@@ -1719,9 +1719,9 @@ public class Simulation extends Tool
     public static boolean isSpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBoolean(); }
     public static void setSpiceWriteFinalDotEnd(boolean b) { cacheSpiceWriteFinalDotEnd.setBoolean(b); }
 
-    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, true);
-    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
-    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
+//    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, true);
+//    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
+//    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
     
 	private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
 	/**
