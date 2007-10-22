@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
@@ -623,12 +624,26 @@ public class ToolBar extends JToolBar
     public static final EToolBarButton undoCommand = new EToolBarButton("_Undo", 'Z', "ButtonUndo") {
         public void run() {
             WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-            if (wf != null && wf.getContent() instanceof TextWindow) {
+            if (wf != null && wf.getContent() instanceof TextWindow)
+            {
                 // handle undo in text windows specially
                 TextWindow tw = (TextWindow)wf.getContent();
                 tw.undo();
-            } else {
-                // do database undo
+            } else
+            {
+            	// if there is edit-in-place going on, undo that
+            	EditWindow wnd = EditWindow.getCurrent();
+            	if (wnd != null)
+            	{
+            		GetInfoText.EditInPlaceListener eip = wnd.getInPlaceTextObject();
+            		if (eip != null)
+            		{
+            			eip.undo();
+            			return;
+            		}
+            	}
+
+            	// do database undo
                 Undo.undo();
             }
         }
@@ -638,12 +653,26 @@ public class ToolBar extends JToolBar
     public static final EToolBarButton redoCommand = new EToolBarButton("Re_do", 'Y', "ButtonRedo") {
         public void run() {
             WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-            if (wf != null && wf.getContent() instanceof TextWindow) {
-                // handle undo in text windows specially
+            if (wf != null && wf.getContent() instanceof TextWindow)
+            {
+                // handle redo in text windows specially
                 TextWindow tw = (TextWindow)wf.getContent();
                 tw.redo();
-            } else {
-                // do database undo
+            } else
+            {
+            	// if there is edit-in-place going on, redo that
+            	EditWindow wnd = EditWindow.getCurrent();
+            	if (wnd != null)
+            	{
+            		GetInfoText.EditInPlaceListener eip = wnd.getInPlaceTextObject();
+            		if (eip != null)
+            		{
+            			eip.redo();
+            			return;
+            		}
+            	}
+
+            	// do database redo
                 Undo.redo();
             }
         }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/22/07, SMR) Undoing in-place text editing does not work.
+FIX: Made all changes to in-place text editing happen immediately.
+
 BUG: (10/22/07, SMR) "Bus Parameters" dialog may crash.
 FIX: In BusParameters constructor, test for null pointer.
 

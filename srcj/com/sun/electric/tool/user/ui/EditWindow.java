@@ -1377,6 +1377,16 @@ public class EditWindow extends JPanel
 	}
 
 	/**
+	 * Method to return the current "in-place" text editing object on this EditWindow.
+	 * @return the current "in-place" text editing object on this EditWindow.
+	 */
+	public GetInfoText.EditInPlaceListener getInPlaceTextObject()
+	{
+		if (inPlaceTextObjects.size() == 0) return null;
+		return inPlaceTextObjects.get(inPlaceTextObjects.size()-1);
+	}
+
+	/**
 	 * Method to remove a "in-place" text editing object from this EditWindow.
 	 * @param tl the Listener that is no longer sitting on top of this EditWindow.
 	 */

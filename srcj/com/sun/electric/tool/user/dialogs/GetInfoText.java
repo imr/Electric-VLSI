@@ -76,7 +76,14 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 /**
  * Class to handle the Text "Properties" dialog.
@@ -494,6 +501,20 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	}
 
 	/**
+	 * Class to handle special changes to changes to an edit-in-place object.
+	 */
+	private static class EIPDocumentListener implements DocumentListener
+	{
+		private EditInPlaceListener eipListener;
+
+		EIPDocumentListener(EditInPlaceListener l) { eipListener = l; }
+
+		public void changedUpdate(DocumentEvent e) { eipListener.documentChanged(); }
+		public void insertUpdate(DocumentEvent e) { eipListener.documentChanged(); }
+		public void removeUpdate(DocumentEvent e) { eipListener.documentChanged(); }
+	}
+
+	/**
 	 * Class to handle edit-in-place of text.
 	 */
 	public static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
@@ -503,6 +524,8 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		private EventListener oldListener;
 		private JTextComponent tc;
 		private EMenuBar.Instance mb;
+		private EIPDocumentListener docListener;
+		private UndoManager undo;
 
 		public EditInPlaceListener(CachedTextInfo cti, EditWindow wnd, Font theFont, int lowX, int lowY)
 		{
@@ -523,8 +546,18 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				});
 				tc = tf;
 			}
+			docListener = new EIPDocumentListener(this);
+		    Document doc = tc.getDocument();
+		    doc.addDocumentListener(docListener);
 
-			tc.addKeyListener(this);
+			// Listen for undo and redo events
+			undo = new UndoManager();
+			doc.addUndoableEditListener(new UndoableEditListener()
+			{
+				public void undoableEditHappened(UndoableEditEvent evt) { undo.addEdit(evt.getEdit()); }
+			});
+
+		    tc.addKeyListener(this);
 			tc.setSize(figureSize());
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
@@ -548,6 +581,32 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		 * @return the  JTextComponent associated with this listener.
 		 */
 		public JTextComponent getTextComponent() { return tc; }
+
+		/**
+		 * Method to undo the last change to the in-place edit session.
+		 */
+		public void undo()
+		{
+			try
+			{
+				if (undo.canUndo()) undo.undo();
+			} catch (CannotUndoException e)
+			{
+			}
+		}
+
+		/**
+		 * Method to redo the last change to the in-place edit session.
+		 */
+		public void redo()
+		{
+			try
+			{
+				if (undo.canRedo()) undo.redo();
+			} catch (CannotUndoException e)
+			{
+			}
+		}
 
 		/**
 		 * Method to determine the size of the in-place edit.
@@ -579,37 +638,38 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		public void closeEditInPlace()
 		{
 			tc.removeKeyListener(this);
+			tc.getDocument().removeDocumentListener(docListener);
 			WindowFrame.setListener(oldListener);
 			wnd.removeInPlaceTextObject(this);
 			wnd.repaint();
 			wnd.requestFocus();
 			mb.setIgnoreTextEditKeys(false);
+		}
 
+		public void documentChanged()
+		{
 			String currentText = tc.getText();
-			if (!currentText.equals(cti.initialText))
+			String[] textArray = currentText.split("\\n");
+			ArrayList<String> textList = new ArrayList<String>();
+			for (int i=0; i<textArray.length; i++)
 			{
-				String[] textArray = currentText.split("\\n");
-				ArrayList<String> textList = new ArrayList<String>();
-				for (int i=0; i<textArray.length; i++)
-				{
-					String str = textArray[i];
-					str = str.trim();
-					if (str.equals("")) continue;
-					textList.add(str);
-				}
+				String str = textArray[i];
+				str = str.trim();
+				if (str.equals("")) continue;
+				textList.add(str);
+			}
 
-				textArray = new String[textList.size()];
-				for (int i=0; i<textList.size(); i++)
-				{
-					String str = textList.get(i);
-					textArray[i] = str;
-				}
+			textArray = new String[textList.size()];
+			for (int i=0; i<textList.size(); i++)
+			{
+				String str = textList.get(i);
+				textArray[i] = str;
+			}
 
-				if (textArray.length > 0)
-				{
-					// generate job to change text
-					new ChangeText(cti.owner, cti.varKey, textArray);
-				}
+			if (textArray.length > 0)
+			{
+				// generate job to change text
+				new ChangeText(cti.owner, cti.varKey, textArray);
 			}
 		}
  
