@@ -143,7 +143,7 @@ public class BusParameters extends EDialog
 		}
 		Library curLib = Library.getCurrent();
 		String [] parameterList = libParameters.get(curLib);
-		if (parameterList.length > 0 || bestLib == null) bestLib = curLib;
+		if ((parameterList != null && parameterList.length > 0) || bestLib == null) bestLib = curLib;
 
 		parametersList.addMouseListener(new MouseAdapter()
 		{

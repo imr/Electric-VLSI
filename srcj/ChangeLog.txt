@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/22/07, SMR) "Bus Parameters" dialog may crash.
+FIX: In BusParameters constructor, test for null pointer.
+
 IMP/MAN: (10/19/07, RK) Add "FLAG" Fleet LAyout Generator
 
 IMP/MAN: (10/17/07, SMR) EPIC reader now always uses separate process (Bug #1371)
