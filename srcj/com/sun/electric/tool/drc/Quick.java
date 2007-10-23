@@ -3138,9 +3138,10 @@ public class Quick
 		{
 			RTBounds g = it.next();
 
-            // Skipping the same geometry only when looking for conditional overlaps
-			if (ignoreSameGeometry && (g == geo1 || g == geo2))
-                continue;
+            // You can't skip the same geometry otherwise layers in the same Geometric won't
+	    // be tested.
+//			if (ignoreSameGeometry && (g == geo1 || g == geo2))
+//                continue;
             
             // I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)

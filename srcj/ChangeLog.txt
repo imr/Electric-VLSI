@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/23/07, GVG) Conditional spacing rules still giving bogus errors (Bug #1378).
+FIX: Do not skip the primitive whose layer is under evaluation in Quick:lookForLayerNew()
+
 BUG: (10/23/07, SMR) Cannot tell the connectivity of the selected port (Bug #1399)
 FIX: In the "Node Properties" dialog, highlight the line that shows the
      selected port.
