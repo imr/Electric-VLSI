@@ -78,7 +78,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 
 /**
- * Class to handle the "Node Get-Info" dialog.
+ * Class to handle the "Node Properties" dialog.
  */
 public class GetInfoNode extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
@@ -105,7 +105,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
 	/**
-	 * Method to show the Node Get-Info dialog.
+	 * Method to show the Node Properties dialog.
 	 */
 	public static void showDialog()
 	{
@@ -169,7 +169,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
     }
 
-	/** Creates new form Node Get-Info */
+	/** Creates new form Node Properties */
 	private GetInfoNode(Frame parent)
 	{
 		super(parent, false);
@@ -204,10 +204,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		list = new JList(listModel);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listPane.setViewportView(list);
-		list.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { listClick(); }
-		});
 		allAttributes = new ArrayList<AttributesTable.AttValPair>();
 		portObjects = new ArrayList<ArcInst>();
 
@@ -653,6 +649,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
             listPane.setViewportView(list);
 			NodeProto np = shownNode.getProto();
 			List<String> portMessages = new ArrayList<String>();
+			int selectedLine = 0;
 			for(Iterator<PortInst> it = shownNode.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = it.next();
@@ -661,7 +658,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				String description;
 				if (ch == PortCharacteristic.UNKNOWN) description = "Port "; else
 					description = ch.getName() + " port ";
-				description += pp.getName() + " connects to";
+				description += pp.getName();
+
+				// mention if it is highlighted
+				if (pp == shownPort)
+				{
+					selectedLine = portMessages.size();
+					description += " (Highlighted)";
+				}
+
+				description += " connects to";
 				ArcProto [] connList = pp.getBasePort().getConnections();
 				int count = 0;
 				for(int i=0; i<connList.length; i++)
@@ -689,13 +695,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				portMessages.add(description);
 				portObjects.add(null);
 
-				// mention if it is highlighted
-				if (pp == shownPort)
-				{
-					portMessages.add("  Highlighted port");
-					portObjects.add(null);
-				}
-
 				// talk about any arcs on this prototype
 				for(Iterator<Connection> aIt = shownNode.getConnections(); aIt.hasNext(); )
 				{
@@ -720,38 +719,13 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			}
 			see.setEnabled(true);
 			list.setListData(portMessages.toArray());
-            list.setSelectedIndex(0);
-            listClick();
+            list.setSelectedIndex(selectedLine);
+            list.ensureIndexIsVisible(selectedLine);
 		}
 		if (attributes.isSelected())
 		{
             listPane.setViewportView(attributesTable);
 		}
-	}
-
-	private void listClick()
-	{
-//		int index = list.getSelectedIndex();
-//		if (attributes.isSelected())
-//		{
-//			AttributesTable.AttValPair avp = allAttributes.get(index);
-//			listEditLabel.setText("Attribute '" + avp.trueName + "'");
-//			initialListTextField = new String(avp.value);
-//			listEdit.setText(initialListTextField);
-//			if (avp.code)
-//			{
-//				initialListPopupEntry = TextDescriptor.Code.JAVA;
-//				listEvalLabel.setText("Evaluation:");
-//				Variable var = shownNode.getVar(avp.key);
-//				listEval.setText(var.describe(-1, VarContext.globalContext, shownNode));
-//			} else
-//			{
-//				initialListPopupEntry = TextDescriptor.Code.NONE;
-//				listEvalLabel.setText("");
-//				listEval.setText("");
-//			}
-//			listPopup.setSelectedItem(initialListPopupEntry);
-//		}
 	}
 
 	private static class ChangeNode extends Job

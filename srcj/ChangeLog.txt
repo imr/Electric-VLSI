@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/23/07, SMR) Cannot tell the connectivity of the selected port (Bug #1399)
+FIX: In the "Node Properties" dialog, highlight the line that shows the
+     selected port.
+
 BUG: (10/22/07, SMR) Undoing in-place text editing does not work.
 FIX: Made all changes to in-place text editing happen immediately.
 
