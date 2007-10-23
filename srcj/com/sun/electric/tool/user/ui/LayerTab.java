@@ -439,6 +439,8 @@ public class LayerTab extends JPanel
         for (int i=0; i<len; i++) {
             Layer layer = getSelectedLayer(i);
             Boolean b = new Boolean(false);
+            if (level == 1 && layer.getFunction().getLevel() <= 1)
+                b = new Boolean(true);
             if (layer.getFunction().getLevel() == level ||
                 layer.getFunction().getLevel() == (level-1) || level == 0)
                 b = new Boolean(true);
