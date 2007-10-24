@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -2289,6 +2290,16 @@ public class EditWindow extends JPanel
 				List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
 				highBounds = wnd.getHighlightedArea();
 				for(Geometric g : highs) examineThis.add(g);
+
+		        Rectangle2D selection = wnd.getHighlightedArea();
+		        Highlighter hi = wnd.getHighlighter();
+		        List<Highlight2> inArea = Highlighter.findAllInArea(hi, cell, false, false, false, false, true, true, selection, wnd);
+		        for(Highlight2 h : inArea)
+		        {
+		        	ElectricObject eo = h.getElectricObject();
+		        	if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
+		        	if (eo instanceof Geometric) examineThis.add((Geometric)eo);
+		        }
 			}
 
 			// initialize the search
@@ -2339,10 +2350,13 @@ public class EditWindow extends JPanel
 			{
 				ElectricObject eObj = (ElectricObject)sic.object;
 				Variable.Key key = sic.key;
-				if (eObj instanceof Export) key = Export.EXPORT_NAME;
-				else if (eObj instanceof ArcInst) key = ArcInst.ARC_NAME;
-				else if (eObj instanceof NodeInst) key = NodeInst.NODE_NAME;
-				assert(key != null);
+				if (key == null)
+				{
+					if (eObj instanceof Export) key = Export.EXPORT_NAME;
+					else if (eObj instanceof ArcInst) key = ArcInst.ARC_NAME;
+					else if (eObj instanceof NodeInst) key = NodeInst.NODE_NAME;
+					assert(key != null);
+				}
 				highlighter.addText(eObj, cell, key);
 			}
 			highlighter.finished();
