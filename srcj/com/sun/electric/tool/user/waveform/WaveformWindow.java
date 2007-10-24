@@ -1194,21 +1194,32 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
-	 * Method to return the associated schematics or layout window for this WaveformWindow.
-	 * @return the other window that is cross-linked to this.
+	 * Method to return the waveform window associated with a Cell.
+	 * There may be multiple such windows, and the most recently used is returned.
+	 * @param cell the Cell whose waveform window is desired.
+	 * @return the waveform window that is linked to a cell.
 	 * Returns null if none can be found.
 	 */
 	public static WaveformWindow findWaveformWindow(Cell cell)
 	{
 		// look for the original cell to highlight it
+		WaveformWindow found = null;
+		int bestClock = 0;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
 			if (wf.getContent().getCell() != cell) continue;
 			if (wf.getContent() instanceof WaveformWindow)
-				return (WaveformWindow)wf.getContent();
+			{
+				WaveformWindow ww = (WaveformWindow)wf.getContent();
+				if (found == null || wf.getUsageClock() > bestClock)
+				{
+					found = ww;
+					bestClock = wf.getUsageClock();
+				}
+			}
 		}
-		return null;
+		return found;
 	}
 
 	/**
