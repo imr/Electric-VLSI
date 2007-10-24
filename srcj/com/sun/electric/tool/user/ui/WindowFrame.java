@@ -32,8 +32,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
@@ -61,9 +61,23 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EventListener;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Observable;
 
-import javax.swing.*;
+import javax.swing.InputMap;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.MutableTreeNode;
@@ -73,6 +87,8 @@ import javax.swing.tree.MutableTreeNode;
  */
 public class WindowFrame extends Observable
 {
+	/** offset between newly created windows */			private static final int WINDOW_OFFSET = 0;		// was 150
+
 	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
@@ -86,8 +102,10 @@ public class WindowFrame extends Observable
 	/** the layers tab */								private LayerTab layersTab;
     /** true if this window is finished */              private boolean finished = false;
     /** the index of this window */						private int index;
+	/** indicator of the most recent used window */		private int usageClock;
     /** the dynamic menu to hold WindowMenus */			private JMenu dynamicMenu;
 
+	/** the overall usage counter */					private static int usageCounter = 0;
     /** the unique index number of all windows */		private static int windowIndexCounter = 0;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List<WindowFrame> windowList = new ArrayList<WindowFrame>();
@@ -98,7 +116,7 @@ public class WindowFrame extends Observable
     /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
-    /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
+    /** library tree updater */                         static { new LibraryTreeUpdater(); }
 
     public static class DisplayAttributes
     {
@@ -375,11 +393,10 @@ public class WindowFrame extends Observable
 		return sz;
 	}
 
-	private static final int WINDOW_OFFSET = 0;		// was 150
-
 	/**
-	 * Create the JFrame that will hold all the Components in
-	 * this WindowFrame.
+	 * Method to create a JFrame that will hold all the Components in this WindowFrame.
+	 * @param title the window title.
+	 * @param gc the GraphicsConfiguration (which screen the window is on).
 	 * @return the size of the frame.
 	 */
 	private Dimension createJFrame(String title, GraphicsConfiguration gc)
@@ -421,40 +438,6 @@ public class WindowFrame extends Observable
 		layersTab.updateLayersTab();
 	}
 
-//	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
-//	{
-//		if (TopLevel.isMDIMode())
-//		{
-////			JInternalFrame newJIF = new JInternalFrame();
-////			newJIF.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
-////			newJIF.setSize(new Dimension(width, height));
-////			newJIF.setLocation(300, 300);
-////			newJIF.getContentPane().add(js);
-////			newJIF.show();
-////			TopLevel.addToDesktop(newJIF);
-////			try
-////			{
-////				newJIF.setSelected(true);
-////			} catch (java.beans.PropertyVetoException e) {}
-//
-//			js.setSize(new Dimension(width, height));
-//			js.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
-//			js.setLocation(lowX, lowY);
-//			js.setVisible(true);
-//			js.requestFocus();
-//			js.requestFocusInWindow();
-//			TopLevel.getDesktop().add(js, 0);
-////			try
-////			{
-////				js.setSelected(true);
-////			} catch (java.beans.PropertyVetoException e) {}
-//		} else
-//		{
-//			jf.getContentPane().add(js);
-//			if (!Main.BATCHMODE) jf.setVisible(true);
-//		}
-//	}
-
 	/**
 	 * Populate the JFrame with the Components
 	 */
@@ -489,6 +472,17 @@ public class WindowFrame extends Observable
 	{
 		if (TopLevel.isMDIMode()) return jif;
 		return jf;
+	}
+
+	/**
+	 * Method to return the usage clock of this WindowFrame.
+	 * Each activation of the WindowFrame increments the value, so the WindowFrame
+	 * with the highest value is the one most recently activated.
+	 * @return the usage clock of this WindowFrame.
+	 */
+	public int getUsageClock()
+	{
+		return usageClock;
 	}
 
 	/**
@@ -1347,7 +1341,7 @@ public class WindowFrame extends Observable
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).
 	 */
-	static class WindowsEvents extends WindowAdapter
+	private class WindowsEvents extends WindowAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference<WindowFrame> wf;
@@ -1360,7 +1354,9 @@ public class WindowFrame extends Observable
 
 		public void windowActivated(WindowEvent evt)
 		{
-			WindowFrame.setCurrentWindowFrame(wf.get());
+			WindowFrame realWF = wf.get();
+			realWF.usageClock = usageCounter++;
+			WindowFrame.setCurrentWindowFrame(realWF);
 		}
 
 		public void windowClosing(WindowEvent evt)
@@ -1372,7 +1368,7 @@ public class WindowFrame extends Observable
 	/**
 	 * This class handles activation and close events for JInternalFrame objects (used in MDI mode).
 	 */
-	class InternalWindowsEvents extends InternalFrameAdapter
+	private class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference<WindowFrame> wf;
@@ -1390,8 +1386,10 @@ public class WindowFrame extends Observable
 
 		public void internalFrameActivated(InternalFrameEvent evt)
 		{
-			WindowFrame.setCurrentWindowFrame(wf.get());
-			(wf.get()).fireCellHistoryStatus();                // update tool bar history buttons
+			WindowFrame realWF = wf.get();
+			realWF.usageClock = usageCounter++;
+			WindowFrame.setCurrentWindowFrame(realWF);
+			realWF.fireCellHistoryStatus();                // update tool bar history buttons
 		}
 	}
 
