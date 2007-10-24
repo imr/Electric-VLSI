@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+IMP: (10/24/07, GVG) Modification in Quick:lookForLayerNew to not evaluate
+points if it was already found.
+
 IMP: (10/24/07, SMR) When multiple waveform windows are opened on the same cell,
      crossprobing references from the schematic/layout use the most recently
      referenced (activated) waveform window (Bug #1400).

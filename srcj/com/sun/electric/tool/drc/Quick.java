@@ -3185,9 +3185,9 @@ public class Quick
 					if (poly2 != null && !overlap && poly.polySame(poly2))
 						continue;
 
-					if (poly.isInside(pt1)) pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
+					if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
+					if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					if (j == pointsFound.length) return true;
                     // No need of checking rest of the layers
@@ -3204,9 +3204,9 @@ public class Quick
 					Poly poly = layerLookPolyList[i];
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
 					poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-					if (poly.isInside(pt1)) pointsFound[0] = true;
-					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true;
+					if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
+					if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					if (j == pointsFound.length) return true;
                     // No need of checking rest of the layers
