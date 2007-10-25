@@ -2219,24 +2219,21 @@ public class EditWindow extends JPanel
 				}
 			}
 
+			// because the replacement changes things, must update other search strings that point to the same place
 			int delta = newString.length() - oldString.length();
-			if (delta != 0)
+			for(StringsInCell oSIC : foundInCell)
 			{
-				// because the replacement changes the line length, must update other search strings
-				for(StringsInCell oSIC : foundInCell)
-				{
-					if (oSIC == sic) continue;
-					if (oSIC.object != sic.object) continue;
-					if (oSIC.key != sic.key) continue;
-					if (oSIC.lineInVariable != sic.lineInVariable) continue;
+				if (oSIC == sic) continue;
+				if (oSIC.object != sic.object) continue;
+				if (oSIC.key != sic.key) continue;
+				if (oSIC.lineInVariable != sic.lineInVariable) continue;
 
-					// part of the same string: update it
-					oSIC.theLine = newString;
-					if (oSIC.startPosition > sic.startPosition)
-					{
-						oSIC.startPosition += delta;
-						oSIC.endPosition += delta;
-					}
+				// part of the same string: update it
+				oSIC.theLine = newString;
+				if (oSIC.startPosition > sic.startPosition)
+				{
+					oSIC.startPosition += delta;
+					oSIC.endPosition += delta;
 				}
 			}
 		}
@@ -2292,13 +2289,16 @@ public class EditWindow extends JPanel
 				for(Geometric g : highs) examineThis.add(g);
 
 		        Rectangle2D selection = wnd.getHighlightedArea();
-		        Highlighter hi = wnd.getHighlighter();
-		        List<Highlight2> inArea = Highlighter.findAllInArea(hi, cell, false, false, false, false, true, true, selection, wnd);
-		        for(Highlight2 h : inArea)
+		        if (selection != null)
 		        {
-		        	ElectricObject eo = h.getElectricObject();
-		        	if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
-		        	if (eo instanceof Geometric) examineThis.add((Geometric)eo);
+			        List<Highlight2> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
+			        	false, false, true, true, selection, wnd);
+			        for(Highlight2 h : inArea)
+			        {
+			        	ElectricObject eo = h.getElectricObject();
+			        	if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
+			        	if (eo instanceof Geometric) examineThis.add((Geometric)eo);
+			        }
 		        }
 			}
 

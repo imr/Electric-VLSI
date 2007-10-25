@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/25/07, SMR) Multiple text replacements in one string may fail (Bug #1405).
+FIX: In EditWindow.StringSearch.changeOneText(), always update other strings.
+
 BUG: (10/24/07, SMR) Finding text in an area does not work for annotation text (Bug #1404).
 FIX: Consider areas as well as selected nodes.
 
