@@ -354,31 +354,43 @@ public class TopLevel extends JFrame
 	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
 	 * @param jif the internal frame to add.
 	 */
-	public static void addToDesktop(JInternalFrame jif) {
-        AddToDesktopSafe addsafe = new AddToDesktopSafe(jif);
-        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new AddToDesktopSafe(jif));
-        } else {
-            addsafe.run();
-        }
-    }
-
-    private static class AddToDesktopSafe implements Runnable {
-        private JInternalFrame jif;
-        private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
-        public void run() {
-            desktop.add(jif);
-	        jif.show();
-        }
+	public static void addToDesktop(JInternalFrame jif)
+	{
+        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread())
+            SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, true)); else
+            	(new ModifyToDesktopSafe(jif, true)).run();
     }
 
 	/**
-	 * Method to add an internal frame to the desktop.
+	 * Method to remove an internal frame from the desktop.
 	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
-	 * @param jif the internal frame to add.
+	 * @param jif the internal frame to remove.
 	 */
-	public static void removeFromDesktop(JInternalFrame jif) {
-        desktop.remove(jif);
+	public static void removeFromDesktop(JInternalFrame jif)
+	{
+        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread())
+            SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, false)); else
+            	(new ModifyToDesktopSafe(jif, false)).run();
+    }
+
+    private static class ModifyToDesktopSafe implements Runnable
+    {
+        private JInternalFrame jif;
+        private boolean add;
+
+        private ModifyToDesktopSafe(JInternalFrame jif, boolean add) { this.jif = jif;  this.add = add; }
+
+        public void run()
+        {
+        	if (add)
+        	{
+	            desktop.add(jif);
+		        jif.show();
+        	} else
+        	{
+                desktop.remove(jif);
+        	}
+        }
     }
 
 	public static JDesktopPane getDesktop() { return desktop; }
