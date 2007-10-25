@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/25/07, RK) Implement highlighting for Export Assertion failures. 
+      These are broken exportsConnectedByParent promises (Bug #1397)
+FIX:  Highlight network
+
 BUG: (10/25/07, SMR) Multiple text replacements in one string may fail (Bug #1405).
 FIX: In EditWindow.StringSearch.changeOneText(), always update other strings.
 

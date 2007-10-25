@@ -110,6 +110,10 @@ public class HighlightTools {
     
     public static void highlightPortExports(Highlighter highlighter, Cell cell, PortReport p) {
         String name = p.getWireName();
+        highlightNetworkByName(highlighter, cell, name);
+    }
+
+    public static void highlightNetworkByName(Highlighter highlighter, Cell cell, String netName) {
         Netlist netlist = cell.acquireUserNetlist();
         if (netlist == null) {
             System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
@@ -118,15 +122,15 @@ public class HighlightTools {
         
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network net = it.next();
-            if (! net.hasName(name)) continue;
+            if (! net.hasName(netName)) continue;
             highlighter.addNetwork(net, cell);
             // All the following appear to have no affect
-            //for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
-                //Export exp = it2.next();
-                //highlighter.addText(exp, cell, null);
-                //highlighter.addElectricObject(exp, cell);
-                //highlighter.addObject(exp, cell);
-            //}
+//            for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
+//                Export exp = it2.next();
+//                //highlighter.addText(exp, cell, null);
+//                highlighter.addElectricObject(exp, cell);
+//                //highlighter.addObject(exp, cell);
+//            }
         }
     }
 

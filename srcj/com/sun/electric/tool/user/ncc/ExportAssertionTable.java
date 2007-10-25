@@ -147,19 +147,27 @@ class AssertionTableModel extends ExportTableModel {
         
         ExportAssertionFailures eaf = failures[row];
         Object obj = eaf.getExportsGlobals()[line][item];
+        String nm = eaf.getNames()[line][item];
         Cell cell = eaf.getCell();
         VarContext context = eaf.getContext();
         
         // find the highlighter corresponding to the cell
         Highlighter highlighter = HighlightTools.getHighlighter(cell, context);
         if (highlighter == null) return;
-            
-        // find what to highlight 
-        if (obj instanceof Export) {
-            highlighter.addText((Export)obj, cell, null);
-        } else if (obj instanceof Network) {
-            highlighter.addNetwork((Network)obj, cell);
-        }
+        
+        // I changed this to highlight nets rather than Exports.
+        // First, I don't know how to highlight Exports. Second,
+        // a net is finer grain; many nets may correspond to a single
+        // Export.
+        HighlightTools.highlightNetworkByName(highlighter, cell, nm);
+//        // find what to highlight 
+//        if (obj instanceof Export) {
+//        	Export e = (Export) obj;
+//        	HighlightTools.highlightExportsByName(highlighter, cell, e.getName());
+//            highlighter.addText((Export)obj, cell, null);
+//        } else if (obj instanceof Network) {
+//            highlighter.addNetwork((Network)obj, cell);
+//        }
         highlighter.finished();
     }
 
