@@ -1233,8 +1233,8 @@ public class LibToTech
 				nIn.nodeLayers = addedLayers;
 				diff1.inLayers = diff2.inLayers = false;
 				nIn.nodeLayers[difIndex].inElectricalLayers = false;
-				diff1.portIndex = dif2Port;
-				diff2.portIndex = dif1Port;
+				diff1.portIndex = dif1Port;
+				diff2.portIndex = dif2Port;
 
 				// compute port extension factors
 				nIn.specialValues = new double[6];
