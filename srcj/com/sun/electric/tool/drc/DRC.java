@@ -81,7 +81,7 @@ public class DRC extends Listener
     /** key of Variable for last valid DRC bit on a Cell. */
     public static final Variable.Key DRC_LAST_GOOD_BIT = Variable.newKey("DRC_last_good_drc_bit");
     private static final int DRC_BIT_AREA = 01; /* Min area condition */
-    private static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
+    private static final int DRC_BIT_EXTENSION = 02;   /* Coverage DRC condition */
     private static final int DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
     private static final int DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
     private static final int DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */
@@ -523,7 +523,21 @@ public class DRC extends Listener
         return (rules.getSpacingRule(layer1, geo1, layer2, geo2, connected, multiCut, wideS, length));
 	}
 
-	/**
+    /**
+     * Method to find all possible rules of DRCRuleType type associated to layer1
+     * @param layer1
+     * @return
+     */
+    public static List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
+    {
+        Technology tech = layer1.getTechnology();
+        DRCRules rules = getRules(tech);
+		if (rules == null)
+            return null;
+		return (rules.getRules(layer1, type));
+    }
+
+    /**
 	 * Method to find the extension rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.
@@ -781,12 +795,12 @@ public class DRC extends Listener
         if (fromDisk)
             assert(thisByte!=0);
         boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
-        boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
+        boolean extension = (thisByte & DRC_BIT_EXTENSION) == (activeBits & DRC_BIT_EXTENSION);
         // DRC date is invalid if conditions were checked for another foundry
         boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
                 (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY) &&
                 (thisByte & DRC_BIT_MOSIS_FOUNDRY) == (activeBits & DRC_BIT_MOSIS_FOUNDRY);
-        if (activeBits != 0 && (!area || !coverage || !sameManufacturer))
+        if (activeBits != 0 && (!area || !extension || !sameManufacturer))
             return null;
 
         // If in memory, date doesn't matter
@@ -811,8 +825,8 @@ public class DRC extends Listener
         String msg = "area bit ";
         msg += on ? "on" : "off";
 
-        on = (bits & DRC_BIT_COVERAGE) != 0;
-        msg += ", coverage bit ";
+        on = (bits & DRC_BIT_EXTENSION) != 0;
+        msg += ", extension bit ";
         msg += on ? "on" : "off";
 
         if ((bits & DRC_BIT_TSMC_FOUNDRY) != 0)
@@ -828,7 +842,7 @@ public class DRC extends Listener
     {
         int bits = 0;
         if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
-        if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
+        if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_EXTENSION;
         // Adding foundry to bits set
         Foundry foundry = tech.getSelectedFoundry();
         if (foundry != null)

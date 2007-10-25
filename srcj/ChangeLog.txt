@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG/MAN: (10/25/07, GVG) DRC and Extension rule PP.EN.1 (Bug #1286)
+FIX: New version of Quick.checkExtensionRules by using conditional rules.
+The code will be slower with the extension checkings.
+
 BUG: (10/25/07, RK) Implement highlighting for Export Assertion failures. 
       These are broken exportsConnectedByParent promises (Bug #1397)
 FIX:  Highlight network

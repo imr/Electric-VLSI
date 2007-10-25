@@ -491,6 +491,42 @@ public class XMLRules implements DRCRules {
 	}
 
     /**
+     * Method to find all extension rules associated to Layer layer1
+     * @param layer1
+     * @return
+     */
+    public List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
+    {
+        List<DRCTemplate> tempList = new ArrayList<DRCTemplate>();
+        HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[layer1.getIndex()];
+        if (map == null) return tempList;
+
+        for (XMLRule rule : map.values())
+        {
+            if (rule.ruleType == type)
+                tempList.add(rule);
+        }
+
+//        List<DRCTemplate> tempList = new ArrayList<DRCTemplate>();
+//        int layerIndex = layer1.getIndex();
+//		int tot = tech.getNumLayers();
+//        List<String> list = new ArrayList<String>(2);
+//
+//        for(int i=0; i<tot; i++)
+//		{
+//			int pIndex = getRuleIndex(layerIndex, i);
+//            list.clear();
+//            list.add(tech.getLayer(i).getName());  // layer1 must be the second name
+//            list.add(layer1.getName());
+//            DRCTemplate temp = getRule(pIndex, type, 0, 0, -1, null, list);
+//            if (temp != null)
+//                tempList.add(temp);
+//        }
+
+		return tempList;
+    }
+
+    /**
 	 * Method to find the extension rule between two layer.
 	 * @param layer1 the first layer.
      * @param layer2 the second layer.
@@ -909,6 +945,10 @@ public class XMLRules implements DRCRules {
         int index = -1;
         if (index1 >= 0 && index2 >= 0)
             index = getRuleIndex(index1, index2);
+        else if (index1 >= 0)
+            index = index1;
+        else if (index2 >= 0)
+            assert(false); // check this case
 
         // get more information about the rule
         double distance = theRule.getValue(0);

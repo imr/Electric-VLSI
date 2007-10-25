@@ -716,7 +716,7 @@ public class Quick
                 return false;
             }
         }
-        System.out.println("DRC Exclusion found in coverByExclusion");
+//        System.out.println("DRC Exclusion found in coverByExclusion");
         return true;
     }
 
@@ -806,18 +806,19 @@ public class Quick
 			}
 			// Check select over transistor poly
 			// Assumes polys on transistors fulfill condition by construction
-			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
-			if (ret)
-			{
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
-            ret = checkExtensionRule(ni, layer, poly, cell);
+//			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
+            ret = !isTransistor && checkExtensionRules(ni, layer, poly, cell);
             if (ret)
 			{
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
+//            ret = checkExtensionRule(ni, layer, poly, cell);
+//            if (ret)
+//			{
+//				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+//				errorsFound = true;
+//			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
 				reportError(DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
@@ -959,8 +960,9 @@ public class Quick
 				errorsFound = true;
 			}
 			// Check select over transistor poly
-			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
-			if (ret)
+//			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
+            ret = checkExtensionRules(ai, layer, poly, ai.getParent());
+            if (ret)
 			{
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
@@ -1663,7 +1665,7 @@ public class Quick
         // looking if points around the overlapping area are inside another region
         // to avoid the error
         lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false, false);
+                pt1d, pt2d, null, pointsFound, false);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -2501,15 +2503,15 @@ public class Quick
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
         // Test first with a vertical line
         boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, false, true);
+                pointsFound, true);
         if (!found)
             return found; // no need of checking horizontal line if the vertical test was not positive
         pt1.setLocation(polyBnd.getMinX(), midPointY);
         pt2.setLocation(polyBnd.getMaxX(), midPointY);
         pointsFound[0] = pointsFound[1] = false;
-        //pointsFound[2] = true; // no testing pt3 again
+        pointsFound[2] = true; // no testing pt3 again
         found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, false, true);
+                pointsFound, true);
         return found;
     }
 
@@ -2526,7 +2528,7 @@ public class Quick
 
         // Only if there is one default size
         if (minWidthRule != null)
-        {    
+        {
             errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false);
             if (!errorDefault) return false; // the default condition is the valid one.
         }
@@ -2565,7 +2567,6 @@ public class Quick
                                           DRCTemplate minWidthRule, boolean reportError)
 	{
 		Cell cell = geom.getParent();
-//		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
         if (minWidthRule == null) return false;
 
         double minWidthValue = minWidthRule.getValue(0);
@@ -3018,7 +3019,7 @@ public class Quick
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
 		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap, false);
+		        pt1, pt2, null, pointsFound, overlap);
 
 		return allFound;
 	}
@@ -3126,10 +3127,114 @@ public class Quick
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
 	 * If all locations are found, returns true.
 	 */
+	private boolean lookForLayerWithPoints(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
+                                           Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
+                                           Point2D[] pts, boolean[] pointsFound, int length,
+                                           boolean overlap)
+	{
+        assert (pts.length == pointsFound.length);
+
+        int j;
+        Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
+
+		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
+		{
+			RTBounds g = it.next();
+
+            // You can't skip the same geometry otherwise layers in the same Geometric won't
+            // be tested.
+//			if (ignoreSameGeometry && (g == geo1 || g == geo2))
+//                continue;
+
+            // I can't skip geometries to exclude from the search
+			if (g instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)g;
+				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
+				if (ni.isCellInstance())
+				{
+					// compute bounding area inside of sub-cell
+					AffineTransform rotI = ni.rotateIn();
+					AffineTransform transI = ni.translateIn();
+					rotI.preConcatenate(transI);
+					newBounds.setRect(bounds);
+					DBMath.transformRect(newBounds, rotI);
+
+					// compute new matrix for sub-cell examination
+					AffineTransform trans = ni.translateOut(ni.rotateOut());
+					trans.preConcatenate(moreTrans);
+					if (lookForLayerWithPoints(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
+                            pts, pointsFound, length, overlap))
+							return true;
+					continue;
+				}
+				AffineTransform bound = ni.rotateOut();
+				bound.preConcatenate(moreTrans);
+				Technology tech = ni.getProto().getTechnology();
+                // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
+                // and poly.polySame(poly1) will never be true. CONTRADICTION!
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+				int tot = layerLookPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = layerLookPolyList[i];
+					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+
+                    // Should be the transform before?
+					poly.transform(bound);
+
+					if (poly1 != null && !overlap && poly.polySame(poly1))
+						continue;
+					if (poly2 != null && !overlap && poly.polySame(poly2))
+						continue;
+
+                    for (j = 0; j < length; j++)
+                    {
+                        if (pointsFound[j]) continue; // point covered
+                        if (poly.isInside(pts[j])) pointsFound[j] = true;
+                    }
+					for (j = 0; j < length && pointsFound[j]; j++);
+					if (j == length) return true;
+                    // No need of checking rest of the layers
+                    break; // assuming only 1 polygon per layer (non-electrical)
+				}
+			} else
+			{
+				ArcInst ai = (ArcInst)g;
+				Technology tech = ai.getProto().getTechnology();
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+				int tot = layerLookPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = layerLookPolyList[i];
+					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					poly.transform(moreTrans);
+
+                    for (j = 0; j < length; j++)
+                    {
+                        if (pointsFound[j]) continue; // point covered
+                        if (poly.isInside(pts[j])) pointsFound[j] = true;
+                    }
+					for (j = 0; j < length && pointsFound[j]; j++);
+					if (j == length) return true;
+                    // No need of checking rest of the layers
+                    break;
+				}
+			}
+		}
+		return false;
+	}
+
+    /**
+	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
+	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
+	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
+	 * If all locations are found, returns true.
+	 */
 	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
                                     Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
                                     Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                    boolean overlap, boolean ignoreSameGeometry)
+                                    boolean overlap)
 	{
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
@@ -3139,10 +3244,10 @@ public class Quick
 			RTBounds g = it.next();
 
             // You can't skip the same geometry otherwise layers in the same Geometric won't
-	    // be tested.
+            // be tested.
 //			if (ignoreSameGeometry && (g == geo1 || g == geo2))
 //                continue;
-            
+
             // I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)
 			{
@@ -3161,7 +3266,7 @@ public class Quick
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, overlap, false))
+						pt1, pt2, pt3, pointsFound, overlap))
 							return true;
 					continue;
 				}
@@ -3223,7 +3328,6 @@ public class Quick
 		}
 		return false;
 	}
-//    checkCutSizes
 
     /****************************** Cut Rule Functions ***************************/
     private boolean checkCutSizes(NodeProto np, Geometric geom, Layer layer, Poly poly,
@@ -3285,21 +3389,18 @@ public class Quick
     private boolean checkExtensionGateRule(Geometric geom, Layer layer, Poly poly, Layer nLayer,
                                            Poly nPoly, Netlist netlist)
 	{
+        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+
         return false;
-//        if(DRC.isIgnoreExtensionRuleChecking()) return false;
-//
-//        DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, true);
-//        // Checking extension, it could be slow
+//        DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, true);
+        // Checking extension, it could be slow
 //        if (extensionRule == null) return false;
 //
-//        List list = extensionRule.getNodesInRule();
-//        // Layers order is revelant, the first element is the one to check for the extension in the second one
-//        if (list != null && list.size() == 2)
-//        {
-//            // Not the correct order
-//            if (list.get(0) != layer || list.get(1) != nLayer) return false;
-//        }
-//
+//        if (!layer.getName().equals(extensionRule.name1) ||
+//            !nLayer.getName().equals(extensionRule.name2))
+//            return false; // no match in names
+
+
 //        Area firstArea = new Area(poly);
 //        Area nPolyArea = new Area(nPoly);
 //        Area inter = (Area)nPolyArea.clone();
@@ -3336,25 +3437,25 @@ public class Quick
      * @param layer
      * @return Array of Geometric objects
      */
-    private Poly[] getShapeOfGeometric(Geometric geom, Layer layer)
-    {
-        Poly [] primPolyList = null;
-        Layer.Function.Set drcLayers = new Layer.Function.Set(layer.getFunction());
-
-        if (geom instanceof NodeInst)
-        {
-            NodeInst ni = (NodeInst)geom;
-            NodeProto np = ni.getProto();
-            Technology tech = np.getTechnology();
-            primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
-        }
-        else if (geom instanceof ArcInst)
-        {
-            ArcInst ai = (ArcInst)geom;
-            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, drcLayers);
-        }
-        return primPolyList;
-    }
+//    private Poly[] getShapeOfGeometric(Geometric geom, Layer layer)
+//    {
+//        Poly [] primPolyList = null;
+//        Layer.Function.Set drcLayers = new Layer.Function.Set(layer.getFunction());
+//
+//        if (geom instanceof NodeInst)
+//        {
+//            NodeInst ni = (NodeInst)geom;
+//            NodeProto np = ni.getProto();
+//            Technology tech = np.getTechnology();
+//            primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
+//        }
+//        else if (geom instanceof ArcInst)
+//        {
+//            ArcInst ai = (ArcInst)geom;
+//            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, drcLayers);
+//        }
+//        return primPolyList;
+//    }
 
     /**
      * Method to search for a transistor connected to this network that is not geom. This is to implement
@@ -3384,117 +3485,117 @@ public class Quick
     /**
 	 * Method to check extension rules in general
 	 */
-	private boolean checkExtensionRule(Geometric geom, Layer layer, Poly poly, Cell cell)
-	{
-        return false;
-//        if(DRC.isIgnoreExtensionRuleChecking()) return false;
-//
-//		Rectangle2D polyBnd = poly.getBounds2D();
-//        Set layerSet = new HashSet(); // to avoid repeated elements
-//
-//        // Search among all possible neighbors and to get the layers
-//        for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext();)
-//        {
-//            Geometric g = (Geometric)sIt.next();
-//	        if (g == geom) continue;
-//			if ((g instanceof ArcInst))
-//            {
-//                ArcProto ap = ((ArcInst)g).getProto();
-//                for (int i = 0; i < ap.getLayers().length; i++)
-//                    layerSet.add(pa.getLayers()[i].getLayer());
-//            }
-//            else
-//            {
-//                NodeInst ni = (NodeInst)g;
-//                NodeProto np = ni.getProto();
-//                if (NodeInst.isSkipSizeInPalette(ni)) continue; // Nov 4;
-//                if (np instanceof Cell)
-//                {
-//                    System.out.println("Not implemented in checkExtensionRule");
-//                }
-//                else
-//                {
-//                    if (np instanceof PrimitiveNode)
-//                    {
-//                        PrimitiveNode pn = (PrimitiveNode)np;
-//                        for (int i = 0; i < pn.getLayers().length; i++)
-//                            layerSet.add(pn.getLayers()[i].getLayer());
-//                    }
-//                    else
-//                        System.out.println("When do we have this case");
-//                }
-//            }
-//        }
-//        boolean error = false;
-//
-//        Object[] layerArray = layerSet.toArray();
-//        for (int i = 0; i < layerArray.length; i++)
-//        {
-//            Layer nLayer = (Layer)layerArray[i];
-//            DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, false);
-//            // Checking extension, it could be slow
-//            if (extensionRule == null) continue;
-//
-//            List list = extensionRule.getNodesInRule();
-//            // Layers order is revelant, the first element is the one to check for the extension in the second one
-//            if (list != null && list.size() == 2)
-//            {
-//                // Not the correct order
-//                if (list.get(0) != layer || list.get(1) != nLayer) continue;
-//            }
-//
-//            Area baseArea = new Area(poly);
-//            Area overlapArea = new Area(); // start empty
-//            Area extensionArea = new Area(); // start empty
-//
-//            checkExtensionOverlapRule(geom, nLayer, cell, baseArea, extensionArea, overlapArea, polyBnd);
-//
-//            // get the area outside nLayer
-//            if (!extensionArea.isEmpty())
-//            {
-//                List polyList = PolyBase.getPointsInArea(extensionArea, layer, true, true, null);
-//
-//                for (Iterator it = polyList.iterator(); it.hasNext(); )
-//                {
-//                    PolyBase nPoly = (PolyBase)it.next();
-//                    Rectangle2D rect = nPoly.getBounds2D();
-//                    int dir = 0; // X  assume the intersection edge is Y oriented
-//                    // Determine how they touch. This is to get the perpendicular direction to the common edge.
-//                    if ((rect.getMaxY() == poly.getBounds2D().getMinY()) ||
-//                        (rect.getMinY() == poly.getBounds2D().getMaxY()) )
-//                        dir = 1; // Y
-//
-//                    // not easy to determine along which axis they are touching
-//                    if ((dir == 1 && rect.getHeight() < extensionRule.value) || (dir == 0 && rect.getWidth() < extensionRule.value))
-//                    {
-//                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough extension, ", cell, extensionRule.value, -1, extensionRule.ruleName,
-//                                nPoly, geom, layer, null, null, nLayer);
-//                        error = true;
-//                    }
-//                }
-//            }
-//
-//            // There is overlap
-//            if (!overlapArea.isEmpty())
-//            {
-//                List polyList = PolyBase.getPointsInArea(overlapArea, layer, true, true, null);
-//
-//                for (Iterator it = polyList.iterator(); it.hasNext(); )
-//                {
-//                    PolyBase nPoly = (PolyBase)it.next();
-//                    Rectangle2D rect = nPoly.getBounds2D();
-//                    // not easy to determine along which axis they are touching
-//                    if (rect.getHeight() < extensionRule.value || rect.getWidth() < extensionRule.value)
-//                    {
-//                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough overlap, ", cell, extensionRule.value, -1, extensionRule.ruleName,
-//                                nPoly, geom, layer, null, null, nLayer);
-//                        error = true;
-//                    }
-//                }
-//            }
-//        }
-//		return (error);
-	}
+//	private boolean checkExtensionRule(Geometric geom, Layer layer, Poly poly, Cell cell)
+//	{
+//        return false;
+////        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+////
+////		Rectangle2D polyBnd = poly.getBounds2D();
+////        Set layerSet = new HashSet(); // to avoid repeated elements
+////
+////        // Search among all possible neighbors and to get the layers
+////        for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext();)
+////        {
+////            Geometric g = (Geometric)sIt.next();
+////	        if (g == geom) continue;
+////			if ((g instanceof ArcInst))
+////            {
+////                ArcProto ap = ((ArcInst)g).getProto();
+////                for (int i = 0; i < ap.getLayers().length; i++)
+////                    layerSet.add(pa.getLayers()[i].getLayer());
+////            }
+////            else
+////            {
+////                NodeInst ni = (NodeInst)g;
+////                NodeProto np = ni.getProto();
+////                if (NodeInst.isSkipSizeInPalette(ni)) continue; // Nov 4;
+////                if (np instanceof Cell)
+////                {
+////                    System.out.println("Not implemented in checkExtensionRule");
+////                }
+////                else
+////                {
+////                    if (np instanceof PrimitiveNode)
+////                    {
+////                        PrimitiveNode pn = (PrimitiveNode)np;
+////                        for (int i = 0; i < pn.getLayers().length; i++)
+////                            layerSet.add(pn.getLayers()[i].getLayer());
+////                    }
+////                    else
+////                        System.out.println("When do we have this case");
+////                }
+////            }
+////        }
+////        boolean error = false;
+////
+////        Object[] layerArray = layerSet.toArray();
+////        for (int i = 0; i < layerArray.length; i++)
+////        {
+////            Layer nLayer = (Layer)layerArray[i];
+////            DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, false);
+////            // Checking extension, it could be slow
+////            if (extensionRule == null) continue;
+////
+////            List list = extensionRule.getNodesInRule();
+////            // Layers order is revelant, the first element is the one to check for the extension in the second one
+////            if (list != null && list.size() == 2)
+////            {
+////                // Not the correct order
+////                if (list.get(0) != layer || list.get(1) != nLayer) continue;
+////            }
+////
+////            Area baseArea = new Area(poly);
+////            Area overlapArea = new Area(); // start empty
+////            Area extensionArea = new Area(); // start empty
+////
+////            checkExtensionOverlapRule(geom, nLayer, cell, baseArea, extensionArea, overlapArea, polyBnd);
+////
+////            // get the area outside nLayer
+////            if (!extensionArea.isEmpty())
+////            {
+////                List polyList = PolyBase.getPointsInArea(extensionArea, layer, true, true, null);
+////
+////                for (Iterator it = polyList.iterator(); it.hasNext(); )
+////                {
+////                    PolyBase nPoly = (PolyBase)it.next();
+////                    Rectangle2D rect = nPoly.getBounds2D();
+////                    int dir = 0; // X  assume the intersection edge is Y oriented
+////                    // Determine how they touch. This is to get the perpendicular direction to the common edge.
+////                    if ((rect.getMaxY() == poly.getBounds2D().getMinY()) ||
+////                        (rect.getMinY() == poly.getBounds2D().getMaxY()) )
+////                        dir = 1; // Y
+////
+////                    // not easy to determine along which axis they are touching
+////                    if ((dir == 1 && rect.getHeight() < extensionRule.value) || (dir == 0 && rect.getWidth() < extensionRule.value))
+////                    {
+////                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough extension, ", cell, extensionRule.value, -1, extensionRule.ruleName,
+////                                nPoly, geom, layer, null, null, nLayer);
+////                        error = true;
+////                    }
+////                }
+////            }
+////
+////            // There is overlap
+////            if (!overlapArea.isEmpty())
+////            {
+////                List polyList = PolyBase.getPointsInArea(overlapArea, layer, true, true, null);
+////
+////                for (Iterator it = polyList.iterator(); it.hasNext(); )
+////                {
+////                    PolyBase nPoly = (PolyBase)it.next();
+////                    Rectangle2D rect = nPoly.getBounds2D();
+////                    // not easy to determine along which axis they are touching
+////                    if (rect.getHeight() < extensionRule.value || rect.getWidth() < extensionRule.value)
+////                    {
+////                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough overlap, ", cell, extensionRule.value, -1, extensionRule.ruleName,
+////                                nPoly, geom, layer, null, null, nLayer);
+////                        error = true;
+////                    }
+////                }
+////            }
+////        }
+////		return (error);
+//	}
 
     /**
      *
@@ -3504,251 +3605,380 @@ public class Quick
      * @param overlapArea
      * @param polyBnd
      */
-    private void checkExtensionOverlapRule(Geometric geom, Layer layer, Cell cell, Area baseArea,
-                                              Area extensionArea, Area overlapArea,
-                                              Rectangle2D polyBnd)
+//    private void checkExtensionOverlapRule(Geometric geom, Layer layer, Cell cell, Area baseArea,
+//                                              Area extensionArea, Area overlapArea,
+//                                              Rectangle2D polyBnd)
+//    {
+//        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
+//		{
+//			Geometric g = (Geometric)sIt.next();
+//	        if (g == geom) continue;
+//			if ((g instanceof NodeInst))
+//            {
+//                NodeInst ni = (NodeInst)g;
+//                NodeProto np = ni.getProto();
+//                if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
+//                if (ni.isCellInstance())
+//                {
+//                    AffineTransform cellDownTrans = ni.transformIn();
+//                    AffineTransform	cellUpTrans = ni.transformOut();
+//                    DBMath.transformRect(polyBnd, cellDownTrans);
+//                    extensionArea.transform(cellDownTrans);
+//                    overlapArea.transform(cellDownTrans);
+//                    checkExtensionOverlapRule(geom, layer, (Cell)np, baseArea, extensionArea, overlapArea, polyBnd);
+//                    DBMath.transformRect(polyBnd, cellUpTrans);
+//                    extensionArea.transform(cellUpTrans);
+//                    overlapArea.transform(cellUpTrans);
+//                    continue;
+//                }
+//            }
+//
+//            Poly [] primPolyList = getShapeOfGeometric(g, layer);
+//            int tot = primPolyList.length;
+//            for(int j=0; j<tot; j++)
+//            {
+//                Poly nPoly = primPolyList[j];
+//
+//                // Checking if are covered by select is surrounded by minOverlapRule
+//                Area nPolyArea = new Area(nPoly);
+//                Area interPolyArea = (Area)nPolyArea.clone();
+//                interPolyArea.intersect(baseArea);
+//                overlapArea.add(interPolyArea);
+//                Area extenPolyArea = (Area)nPolyArea.clone();
+//                extenPolyArea.subtract(interPolyArea);
+//                extensionArea.add(extenPolyArea);
+//            }
+//		}
+//    }
+
+    /**
+     * Method to check if extension rules are met
+     * @param geom
+     * @param layer
+     * @param poly
+     * @param cell
+     * @return  true if there are not met
+     */
+    private boolean checkExtensionRules(Geometric geom, Layer layer, Poly poly, Cell cell)
     {
-        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
-		{
-			Geometric g = (Geometric)sIt.next();
-	        if (g == geom) continue;
-			if ((g instanceof NodeInst))
+        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+
+        List<DRCTemplate> rules = DRC.getRules(layer, DRCTemplate.DRCRuleType.SURROUND);
+
+        //A              AB               B
+        // +----------------------------+
+        // |                            |
+        //A|                            | B
+        //D|                            | C
+        // |                            |
+        // |                            |
+        // +----------------------------+
+        //D              DC               C
+        Point2D[] basePts = new Point2D[4];
+        boolean[] baseFound = new boolean[4];  // all false at the beginning
+        // NOTE: Enough to find a point matching 1 rule to be OK.
+        Rectangle2D polyBnd = poly.getBounds2D();
+        basePts[0] = new Point2D.Double(polyBnd.getMinX(), polyBnd.getMinY());
+        basePts[1] = new Point2D.Double(polyBnd.getMinX(), polyBnd.getMaxY());
+        basePts[2] = new Point2D.Double(polyBnd.getMaxX(), polyBnd.getMaxY());
+        basePts[3] = new Point2D.Double(polyBnd.getMaxX(), polyBnd.getMinY());
+
+        for (DRCTemplate rule : rules)
+        {
+            if (rule.nodeName != null) continue; // ignore these ones, only use to resize primitives
+            if (rule.condition == null) continue; // must be conditional
+            if (!rule.name1.equals(layer.getName())) continue; // it has to be the first name
+            String[] layersS = TextUtils.parseString(rule.condition.substring(2), "(,)"); // 2 to skip "or"
+            Layer[] layers = new Layer[layersS.length];
+            for (int i = 0; i < layersS.length; i++)
             {
-                NodeInst ni = (NodeInst)g;
-                NodeProto np = ni.getProto();
-                if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-                if (ni.isCellInstance())
+                layers[i] = layer.getTechnology().findLayer(layersS[i]);
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                boolean[] basicFound = new boolean[3];
+                Point2D[] basicPts = new Point2D[3];
+                basicFound[0] = false;
+                basicPts[0] = basePts[j];
+
+                Rectangle2D basicBnd = new Rectangle2D.Double(DBMath.round(basicPts[0].getX()-TINYDELTA),
+                                DBMath.round(basicPts[0].getY()-TINYDELTA),
+                                2*(TINYDELTA), 2*(TINYDELTA));
+                boolean f = false;
+                for (int i = 0; i < layers.length; i++)
                 {
-                    AffineTransform cellDownTrans = ni.transformIn();
-                    AffineTransform	cellUpTrans = ni.transformOut();
-                    DBMath.transformRect(polyBnd, cellDownTrans);
-                    extensionArea.transform(cellDownTrans);
-                    overlapArea.transform(cellDownTrans);
-                    checkExtensionOverlapRule(geom, layer, (Cell)np, baseArea, extensionArea, overlapArea, polyBnd);
-                    DBMath.transformRect(polyBnd, cellUpTrans);
-                    extensionArea.transform(cellUpTrans);
-                    overlapArea.transform(cellUpTrans);
-                    continue;
+                    f = lookForLayerWithPoints(geom, poly, null, null, cell, layers[i], DBMath.MATID, basicBnd,
+                            basicPts, basicFound, 1, true);
+                    if (f)
+                        break; // found
+                }
+                if (!f)
+                    continue; // no point in layers found
+                
+                // now testing the rule
+                basicFound[0] = basicFound[1] = basicFound[2] = false;
+                double cos45 = 1.0/Math.sqrt(2);
+                double xValue = rule.getValue(0);  // on the diagonal, 45 degrees
+                double yValue = rule.getValue(1);
+                double x45Value = xValue * cos45;  // on the diagonal, 45 degrees
+                double y45Value = yValue * cos45;
+                Point2D basicBndPoint = null;
+
+                // Sample 3 points per vertex to detect corners.
+                switch (j)
+                {
+                    case 0:
+                        // Diagonal
+                        basicPts[0] = new Point2D.Double(polyBnd.getMinX()-x45Value, polyBnd.getMinY()-y45Value);
+                        // left
+                        basicPts[1] = new Point2D.Double(polyBnd.getMinX()-xValue, polyBnd.getMinY());
+                        // bottom
+                        basicPts[2] = new Point2D.Double(polyBnd.getMinX(), polyBnd.getMinY()-yValue);
+                        basicBndPoint = new Point2D.Double(polyBnd.getMinX()-xValue, polyBnd.getMinY()-yValue);
+                        break;
+                    case 1:
+                        basicPts[0] = new Point2D.Double(polyBnd.getMinX()-x45Value, polyBnd.getMaxY()+y45Value);
+                        basicPts[1] = new Point2D.Double(polyBnd.getMinX()-xValue, polyBnd.getMaxY());
+                        basicPts[2] = new Point2D.Double(polyBnd.getMinX(), polyBnd.getMaxY()+yValue);
+                        basicBndPoint = basicPts[1];
+                        break;
+                    case 2:
+                        basicPts[0] = new Point2D.Double(polyBnd.getMaxX()+x45Value, polyBnd.getMaxY()+y45Value);
+                        basicPts[1] = new Point2D.Double(polyBnd.getMaxX()+xValue, polyBnd.getMaxY());
+                        basicPts[2] = new Point2D.Double(polyBnd.getMaxX(), polyBnd.getMaxY()+yValue);
+                        basicBndPoint = new Point2D.Double(polyBnd.getMaxX(), polyBnd.getMaxY());
+                        break;
+                    case 3:
+                        basicPts[0] = new Point2D.Double(polyBnd.getMaxX()+x45Value, polyBnd.getMinY()-y45Value);
+                        basicPts[1] = new Point2D.Double(polyBnd.getMaxX()+xValue, polyBnd.getMinY());
+                        basicPts[2] = new Point2D.Double(polyBnd.getMaxX(), polyBnd.getMinY()-yValue);
+                        basicBndPoint = basicPts[2];
+                        break;
+                }
+                basicBnd = new Rectangle2D.Double(DBMath.round(basicBndPoint.getX()-TINYDELTA),
+                                DBMath.round(basicBndPoint.getY()-TINYDELTA),
+                                DBMath.round(xValue+2*(TINYDELTA)), DBMath.round(yValue+2*(TINYDELTA)));
+
+                for (int i = 0; i < layers.length; i++)
+                {
+                    f = lookForLayerWithPoints(geom, poly, null, null, cell, layers[i], DBMath.MATID, basicBnd,
+                            basicPts, basicFound, 3, true);
+                    if (f)
+                        break; // found
+                }
+
+                if (!f)
+                {
+                    reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
+                            -1, rule.ruleName, poly, geom, layer, null, null, null);
+                    if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true; // no need of checking other combinations
+                    break; // with next rule
                 }
             }
-
-            Poly [] primPolyList = getShapeOfGeometric(g, layer);
-            int tot = primPolyList.length;
-            for(int j=0; j<tot; j++)
-            {
-                Poly nPoly = primPolyList[j];
-
-                // Checking if are covered by select is surrounded by minOverlapRule
-                Area nPolyArea = new Area(nPoly);
-                Area interPolyArea = (Area)nPolyArea.clone();
-                interPolyArea.intersect(baseArea);
-                overlapArea.add(interPolyArea);
-                Area extenPolyArea = (Area)nPolyArea.clone();
-                extenPolyArea.subtract(interPolyArea);
-                extensionArea.add(extenPolyArea);
-            }
-		}
+        }
+        return false;
     }
 
     /****************************** Select Over Polysilicon Functions ***************************/
 	/**
 	 * Method to check if non-transistor polysilicons are completed covered by N++/P++ regions
 	 */
-	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell)
-	{
-        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+//	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell)
+//	{
+//        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+//
+//		if (!layer.getFunction().isPoly()) return false;
+//		// One layer must be select and other polysilicon. They are not connected
+//
+//		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.EXTENSION);
+//		if (minOverlapRule == null) return false;
+//        double minOverlapValue = minOverlapRule.getValue(0);
+//		Rectangle2D polyBnd = poly.getBounds2D();
+//        Area polyArea = new Area(poly);
+//        boolean found = polyArea.isEmpty();
+//		List<Point2D> checkExtraPoints = new ArrayList<Point2D>();
+//
+//        found = checkThisCellExtensionRule(geom, layer, poly, null, cell, polyArea, polyBnd, minOverlapRule,
+//                found, checkExtraPoints);
+//
+//		// error if the merged area doesn't contain 100% the search area.
+//		if (!found)
+//		{
+//            List<PolyBase> polyList = PolyBase.getPointsInArea(polyArea, layer, true, true, null);
+//
+//            for (PolyBase nPoly : polyList)
+//            {
+//                reportError(DRCErrorType.LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapValue, -1,
+//                        minOverlapRule.ruleName, nPoly, geom, layer, null, null, null);
+//            }
+//		}
+//		else
+//		{
+//			// Checking if not enough coverage
+//			Point2D[] extraPoints = new Point2D[checkExtraPoints.size()];
+//			checkExtraPoints.toArray(extraPoints);
+//			boolean[] founds = new boolean[checkExtraPoints.size()];
+//			Arrays.fill(founds, false);
+//			Rectangle2D ruleBnd = new Rectangle2D.Double(polyBnd.getMinX()-minOverlapValue,
+//								polyBnd.getMinY()-minOverlapValue,
+//								polyBnd.getWidth() + minOverlapValue*2,
+//								polyBnd.getHeight() + minOverlapValue*2);
+//			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
+//
+//			if (!foundAll)
+//				reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
+//                        -1, minOverlapRule.ruleName, poly, geom, layer, null, null, null);
+//		}
+//		return (!found);
+//	}
 
-		if (!layer.getFunction().isPoly()) return false;
-		// One layer must be select and other polysilicon. They are not connected
-
-		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.EXTENSION);
-		if (minOverlapRule == null) return false;
-        double minOverlapValue = minOverlapRule.getValue(0);
-		Rectangle2D polyBnd = poly.getBounds2D();
-        Area polyArea = new Area(poly);
-        boolean found = polyArea.isEmpty();
-		List<Point2D> checkExtraPoints = new ArrayList<Point2D>();
-
-        found = checkThisCellExtensionRule(geom, layer, poly, null, cell, polyArea, polyBnd, minOverlapRule,
-                found, checkExtraPoints);
-
-		// error if the merged area doesn't contain 100% the search area.
-		if (!found)
-		{
-            List<PolyBase> polyList = PolyBase.getPointsInArea(polyArea, layer, true, true, null);
-
-            for (PolyBase nPoly : polyList)
-            {
-                reportError(DRCErrorType.LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapValue, -1,
-                        minOverlapRule.ruleName, nPoly, geom, layer, null, null, null);
-            }
-		}
-		else
-		{
-			// Checking if not enough coverage
-			Point2D[] extraPoints = new Point2D[checkExtraPoints.size()];
-			checkExtraPoints.toArray(extraPoints);
-			boolean[] founds = new boolean[checkExtraPoints.size()];
-			Arrays.fill(founds, false);
-			Rectangle2D ruleBnd = new Rectangle2D.Double(polyBnd.getMinX()-minOverlapValue,
-								polyBnd.getMinY()-minOverlapValue,
-								polyBnd.getWidth() + minOverlapValue*2,
-								polyBnd.getHeight() + minOverlapValue*2);
-			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
-
-			if (!foundAll)
-				reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
-                        -1, minOverlapRule.ruleName, poly, geom, layer, null, null, null);
-		}
-		return (!found);
-	}
-
-    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, Layer.Function.Set drcLayers, Cell cell, Area polyArea,
-                                               Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
-                                               List<Point2D> checkExtraPoints)
-    {
-        boolean[] founds = new boolean[4];
-
-        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
-		{
-        	RTBounds g = sIt.next();
-	        if (g == geom) continue;
-			if (!(g instanceof NodeInst))
-            {
-                if (Job.LOCALDEBUGFLAG && !DRC.isIgnoreExtensionRuleChecking())
-                    System.out.println("Skipping arcs!");
-                continue; // Skipping arcs!!!!
-            }
-			NodeInst ni = (NodeInst)g;
-			NodeProto np = ni.getProto();
-			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-			if (ni.isCellInstance())
-			{
-				AffineTransform cellDownTrans = ni.transformIn();
-				AffineTransform	cellUpTrans = ni.transformOut();
-				DBMath.transformRect(polyBnd, cellDownTrans);
-				polyArea.transform(cellDownTrans);
-				poly.transform(cellDownTrans);
-				List<Point2D> newExtraPoints = new ArrayList<Point2D>();
-				found = checkThisCellExtensionRule(geom, layer, poly, drcLayers, (Cell)np, polyArea, polyBnd, minOverlapRule,
-				        found, newExtraPoints);
-                for (Point2D point : newExtraPoints)
-//				for (Iterator<Point2D> it = newExtraPoints.iterator(); it.hasNext();)
-				{
-//					Point2D point = it.next();
-					cellUpTrans.transform(point, point);
-					checkExtraPoints.add(point);
-				}
-				DBMath.transformRect(polyBnd, cellUpTrans);
-				polyArea.transform(cellUpTrans);
-				poly.transform(cellUpTrans);
-			}
-			else
-			{
-				Technology tech = np.getTechnology();
-				Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
-				int tot = primPolyList.length;
-				for(int j=0; j<tot; j++)
-				{
-					Poly nPoly = primPolyList[j];
-                    if (drcLayers == null)
-                        if (!nPoly.getLayer().getFunction().isImplant()) continue;
-
-                    // Checking if are covered by select is surrounded by minOverlapRule
-                    Area distPolyArea = (Area)polyArea.clone();
-                    Area nPolyArea = new Area(nPoly);
-                    polyArea.subtract(nPolyArea);
-
-                    distPolyArea.subtract(polyArea);
-					if (distPolyArea.isEmpty())
-						continue;  // no intersection
-                    Rectangle2D interRect = distPolyArea.getBounds2D();
-                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-minOverlapRule.getValue(0),
-                            interRect.getMinY()-minOverlapRule.getValue(0),
-                            interRect.getWidth() + minOverlapRule.getValue(0)*2,
-                            interRect.getHeight() + minOverlapRule.getValue(0)*2);
-                    PolyBase extPoly = new PolyBase(ruleBnd);
-					PolyBase distPoly = new PolyBase(interRect);
-                    Arrays.fill(founds, false);
-					// Removing points on original polygon. No very efficient though
-					Point2D[] points = extPoly.getPoints();
-					Point2D[] distPoints = distPoly.getPoints();
-					// Only valid for 4-point polygons!!
-					if (distPoints.length != points.length)
-						System.out.println("This case is not valid in Quick.checkThisCellExtensionRule");
-					for (int i = 0; i < points.length; i++)
-					{
-						// Check if point is corner
-						found = poly.isPointOnCorner(distPoints[i]);
-						// Point along edge
-						if (!found)
-							founds[i] = true;
-					}
-
-                    boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, drcLayers, points, founds);
-                    if (!foundAll)
-                    {
-	                    // Points that should be checked from geom parent
-	                    for (int i = 0; i < founds.length; i++)
-	                    {
-		                    if (!founds[i]) checkExtraPoints.add(points[i]);
-	                    }
-                    }
-				}
-			}
-			found = polyArea.isEmpty();
-		}
-        return (found);
-    }
+//    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, Layer.Function.Set drcLayers, Cell cell, Area polyArea,
+//                                               Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
+//                                               List<Point2D> checkExtraPoints)
+//    {
+//        boolean[] founds = new boolean[4];
+//
+//        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
+//		{
+//        	RTBounds g = sIt.next();
+//	        if (g == geom) continue;
+//			if (!(g instanceof NodeInst))
+//            {
+//                if (Job.LOCALDEBUGFLAG && !DRC.isIgnoreExtensionRuleChecking())
+//                    System.out.println("Skipping arcs!");
+//                continue; // Skipping arcs!!!!
+//            }
+//			NodeInst ni = (NodeInst)g;
+//			NodeProto np = ni.getProto();
+//			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
+//			if (ni.isCellInstance())
+//			{
+//				AffineTransform cellDownTrans = ni.transformIn();
+//				AffineTransform	cellUpTrans = ni.transformOut();
+//				DBMath.transformRect(polyBnd, cellDownTrans);
+//				polyArea.transform(cellDownTrans);
+//				poly.transform(cellDownTrans);
+//				List<Point2D> newExtraPoints = new ArrayList<Point2D>();
+//				found = checkThisCellExtensionRule(geom, layer, poly, drcLayers, (Cell)np, polyArea, polyBnd, minOverlapRule,
+//				        found, newExtraPoints);
+//                for (Point2D point : newExtraPoints)
+////				for (Iterator<Point2D> it = newExtraPoints.iterator(); it.hasNext();)
+//				{
+////					Point2D point = it.next();
+//					cellUpTrans.transform(point, point);
+//					checkExtraPoints.add(point);
+//				}
+//				DBMath.transformRect(polyBnd, cellUpTrans);
+//				polyArea.transform(cellUpTrans);
+//				poly.transform(cellUpTrans);
+//			}
+//			else
+//			{
+//				Technology tech = np.getTechnology();
+//				Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
+//				int tot = primPolyList.length;
+//				for(int j=0; j<tot; j++)
+//				{
+//					Poly nPoly = primPolyList[j];
+//                    if (drcLayers == null)
+//                        if (!nPoly.getLayer().getFunction().isImplant()) continue;
+//
+//                    // Checking if are covered by select is surrounded by minOverlapRule
+//                    Area distPolyArea = (Area)polyArea.clone();
+//                    Area nPolyArea = new Area(nPoly);
+//                    polyArea.subtract(nPolyArea);
+//
+//                    distPolyArea.subtract(polyArea);
+//					if (distPolyArea.isEmpty())
+//						continue;  // no intersection
+//                    Rectangle2D interRect = distPolyArea.getBounds2D();
+//                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-minOverlapRule.getValue(0),
+//                            interRect.getMinY()-minOverlapRule.getValue(0),
+//                            interRect.getWidth() + minOverlapRule.getValue(0)*2,
+//                            interRect.getHeight() + minOverlapRule.getValue(0)*2);
+//                    PolyBase extPoly = new PolyBase(ruleBnd);
+//					PolyBase distPoly = new PolyBase(interRect);
+//                    Arrays.fill(founds, false);
+//					// Removing points on original polygon. No very efficient though
+//					Point2D[] points = extPoly.getPoints();
+//					Point2D[] distPoints = distPoly.getPoints();
+//					// Only valid for 4-point polygons!!
+//					if (distPoints.length != points.length)
+//						System.out.println("This case is not valid in Quick.checkThisCellExtensionRule");
+//					for (int i = 0; i < points.length; i++)
+//					{
+//						// Check if point is corner
+//						found = poly.isPointOnCorner(distPoints[i]);
+//						// Point along edge
+//						if (!found)
+//							founds[i] = true;
+//					}
+//
+//                    boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, drcLayers, points, founds);
+//                    if (!foundAll)
+//                    {
+//	                    // Points that should be checked from geom parent
+//	                    for (int i = 0; i < founds.length; i++)
+//	                    {
+//		                    if (!founds[i]) checkExtraPoints.add(points[i]);
+//	                    }
+//                    }
+//				}
+//			}
+//			found = polyArea.isEmpty();
+//		}
+//        return (found);
+//    }
 
     /**
      * Method to check if certain poly rectangle is fully covered by any select regoin
      */
-    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Layer.Function.Set drcLayers, Point2D[] points, boolean[] founds)
-    {
-        for(Iterator<RTBounds> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
-        {
-        	RTBounds g = sIt.next();
-	        if (g == geom) continue;
-            if (!(g instanceof NodeInst)) continue;
-            NodeInst ni = (NodeInst)g;
-            NodeProto np = ni.getProto();
-	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-            if (ni.isCellInstance())
-            {
-				AffineTransform cellDownTrans = ni.transformIn();
-				AffineTransform	cellUpTrans = ni.transformOut();
-				DBMath.transformRect(ruleBnd, cellDownTrans);
-	            cellDownTrans.transform(points, 0, points, 0, points.length);
-                boolean allFound = allPointsContainedInLayer(geom, (Cell)np, ruleBnd, drcLayers, points, founds);
-				DBMath.transformRect(ruleBnd, cellUpTrans);
-	            cellUpTrans.transform(points, 0, points, 0, points.length);
-	            if (allFound)
-	                return true;
-            }
-            else
-            {
-                Technology tech = np.getTechnology();
-                Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
-                int tot = primPolyList.length;
-                for(int j=0; j<tot; j++)
-                {
-                    Poly nPoly = primPolyList[j];
-                    if (!nPoly.getLayer().getFunction().isImplant()) continue;
-                    boolean allFound = true;
-	                // No need of looping if one of them is already out
-                    for (int i = 0; i < points.length; i++)
-                    {
-                        if (!founds[i]) founds[i] = nPoly.contains(points[i]);
-	                    if (!founds[i]) allFound = false;
-                    }
-                    if (allFound) return true;
-                }
-            }
-        }
-
-        return (false);
-    }
+//    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Layer.Function.Set drcLayers, Point2D[] points, boolean[] founds)
+//    {
+//        for(Iterator<RTBounds> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
+//        {
+//        	RTBounds g = sIt.next();
+//	        if (g == geom) continue;
+//            if (!(g instanceof NodeInst)) continue;
+//            NodeInst ni = (NodeInst)g;
+//            NodeProto np = ni.getProto();
+//	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
+//            if (ni.isCellInstance())
+//            {
+//				AffineTransform cellDownTrans = ni.transformIn();
+//				AffineTransform	cellUpTrans = ni.transformOut();
+//				DBMath.transformRect(ruleBnd, cellDownTrans);
+//	            cellDownTrans.transform(points, 0, points, 0, points.length);
+//                boolean allFound = allPointsContainedInLayer(geom, (Cell)np, ruleBnd, drcLayers, points, founds);
+//				DBMath.transformRect(ruleBnd, cellUpTrans);
+//	            cellUpTrans.transform(points, 0, points, 0, points.length);
+//	            if (allFound)
+//	                return true;
+//            }
+//            else
+//            {
+//                Technology tech = np.getTechnology();
+//                Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
+//                int tot = primPolyList.length;
+//                for(int j=0; j<tot; j++)
+//                {
+//                    Poly nPoly = primPolyList[j];
+//                    if (!nPoly.getLayer().getFunction().isImplant()) continue;
+//                    boolean allFound = true;
+//	                // No need of looping if one of them is already out
+//                    for (int i = 0; i < points.length; i++)
+//                    {
+//                        if (!founds[i]) founds[i] = nPoly.contains(points[i]);
+//	                    if (!founds[i]) allFound = false;
+//                    }
+//                    if (allFound) return true;
+//                }
+//            }
+//        }
+//
+//        return (false);
+//    }
     /***************************END of Select Over Polysilicn Functions ************************************/
 
 	/**

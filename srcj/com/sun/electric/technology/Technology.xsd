@@ -346,6 +346,7 @@
             <xsd:enumeration value="MINWIDCOND"/>
             <xsd:enumeration value="MINAREA"/>
             <xsd:enumeration value="MINENCLOSEDAREA"/>
+            <xsd:enumeration value="SURROUND"/>
         </xsd:restriction>
     </xsd:simpleType>
     

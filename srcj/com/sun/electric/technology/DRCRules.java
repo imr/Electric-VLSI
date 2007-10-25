@@ -42,7 +42,8 @@ public interface DRCRules
     public boolean isAnySpacingRule(Layer layer1, Layer layer2);
     public DRCTemplate getExtensionRule(Layer layer1, Layer layer2,
                                         boolean isGateExtension);
-	public int getNumberOfRules();
+    public List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type);
+    public int getNumberOfRules();
     public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type);
 
     /**

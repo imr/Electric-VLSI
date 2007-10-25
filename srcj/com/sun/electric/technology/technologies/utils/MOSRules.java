@@ -356,6 +356,16 @@ public class MOSRules implements DRCRules {
 
 		return worstLayerRule;
 	}
+    
+    /**
+     * Method to find all extension rules associated to Layer layer1
+     * @param layer1
+     * @return
+     */
+    public List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
+    {
+        return null; // not available for CMOS
+    }
 
     /**
 	 * Method to find the extension rule between two layer.

@@ -173,7 +173,7 @@ public class DRCTemplate implements Serializable
         switch (ruleType)
         {
             case SPACING:
-            case SURROUND:
+//            case SURROUND:
             {
                 if (name1 == null || name2 == null)
                 {
