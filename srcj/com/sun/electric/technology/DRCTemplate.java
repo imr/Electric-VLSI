@@ -359,19 +359,25 @@ public class DRCTemplate implements Serializable
             case ASURROUND:
                 String ruleType = "NodeLayersRule";
                 String value = " value=\"" + rule.getValue(0) + "\"";
-
+                String layersName = " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\"";
                 if (rule.getValue(0) != rule.getValue(1)) // x and y values
                 {
                     value = " valueX=\"" + rule.getValue(0) + "\"" + " valueY=\"" + rule.getValue(1) + "\"";
                 }
                 noName = " nodeName=\"" + rule.nodeName + "\"";
-                if (rule.nodeName == null)  // LayersRule
+                if (rule.name2 == null) // conditional surround
+                {
+                    noName = "";
+                    ruleType = "LayerRule";
+                    layersName = " layerName=\"" + rule.name1 + "\" condition=\"" + rule.condition + "\"";
+                }
+                else if (rule.nodeName == null)  // LayersRule
                 {
                     noName = "";
                     ruleType = "LayersRule";
                 }
                 out.println("        <" + ruleType + " ruleName=\"" + rule.ruleName + "\""
-                        + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                        + layersName
                         + " type=\""+rule.ruleType+"\""
                         + " when=\"" + whenName + "\""
                         + value
