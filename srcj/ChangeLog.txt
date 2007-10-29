@@ -38,6 +38,11 @@ FIX: Made all changes to in-place text editing happen immediately.
 BUG: (10/22/07, SMR) "Bus Parameters" dialog may crash.
 FIX: In BusParameters constructor, test for null pointer.
 
+BUG: (10/22/07, DN) NetworkTool doesn't consider isBusAscending option.
+FIX: Stephen Friedman's fix is inserted into NetSchem. It is disabled by
+  DESCENDING_BUS key for now, because it is necessary to implement
+  refreshing of networks after changing this option.
+
 IMP/MAN: (10/19/07, RK) Add "FLAG" Fleet LAyout Generator
 
 IMP/MAN: (10/17/07, SMR) EPIC reader now always uses separate process (Bug #1371)
