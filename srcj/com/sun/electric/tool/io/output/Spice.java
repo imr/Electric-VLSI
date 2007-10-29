@@ -555,7 +555,6 @@ public class Spice extends Topology
                     ignoreArc = true;
                 double length = ai.getLambdaLength() * scale / 1000;      // length in microns
                 double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
-//                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
                 double area = length * width;
                 double fringe = length*2;
                 double cap = 0;
@@ -650,7 +649,6 @@ public class Spice extends Topology
                         }
                     }
                 } else {
-                    //System.out.println("Shorting shorted exports");
                     // short together pins if shorted by subcell
                     Cell subCell = (Cell)ni.getProto();
                     SegmentedNets subNets = getSegmentedNets(subCell);
@@ -872,25 +870,18 @@ public class Spice extends Topology
 			multiLinePrint(false, infstr.toString());
 
 			// generate pin descriptions for reference (when not using node names)
-			for(int i=0; i<globalSize; i++)
+			if (USE_GLOBALS)
 			{
-				Global global = globals.get(i);
-				Network net = netList.getNetwork(global);
-				CellSignal cs = cni.getCellSignal(net);
-				multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
-			}
-
-			// write exports to this cell
-			for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
-			{
-				CellSignal cs = sIt.next();
-
-				// ignore networks that aren't exported
-				PortProto pp = cs.getExport();
-				if (pp == null) continue;
-
-				if (cs.isGlobal()) continue;
-				//multiLinePrint(true, "** PORT " + cs.getName() + "\n");
+				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+				{
+					for(int i=0; i<globalSize; i++)
+					{
+						Global global = globals.get(i);
+						Network net = netList.getNetwork(global);
+						CellSignal cs = cni.getCellSignal(net);
+						multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
+					}
+				}
 			}
 		}
 
@@ -1034,7 +1025,8 @@ public class Spice extends Topology
 							net = netList.getNetwork(no, pp, exportIndex);
 					}
 					CellSignal cs = cni.getCellSignal(net);
-                    // special case for parasitic extraction
+
+					// special case for parasitic extraction
                     if (useParasitics && !cs.isGlobal()) {
                         // connect to all exports (except power and ground of subcell net)
                         SegmentedNets subSegmentedNets = getSegmentedNets((Cell)no.getProto());
@@ -1149,11 +1141,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
-                        } else if (TextUtils.isANumberPostFix(extra)) {
-                            // do nothing
-                        } else {
-                            extra = "'"+extra+"'";
-                        }
+                        } else
+                            extra = formatParam(extra);
 					} else {
                         if (fun == PrimitiveNode.Function.PRESIST) {
                             partName = "XR";
@@ -1162,7 +1151,7 @@ public class Spice extends Topology
                             SizeOffset offset = ni.getSizeOffset();
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
-                            extra = " L='"+length+"*LAMBDA' W='"+width+"*LAMBDA'";
+                            extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
                             if (layoutTechnology == Technology.getCMOS90Technology() ||
                                (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
                                 if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
@@ -1202,11 +1191,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
-                        } else if (TextUtils.isANumberPostFix(extra)) {
-                            // do nothing
-						} else {
-                            extra = "'"+extra+"'";
-                        }
+                        } else
+                            extra = formatParam(extra);
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.INDUCT)
@@ -1229,11 +1215,8 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
-                        } else if (TextUtils.isANumberPostFix(extra)) {
-                            // do nothing
-                        } else {
-                            extra = "'"+extra+"'";
-                        }
+                        } else
+                            extra = formatParam(extra);
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
@@ -1562,11 +1545,10 @@ public class Spice extends Topology
 		{
 			if (Simulation.isSpiceUseParasitics() && cell.getView() == View.LAYOUT)
 			{
-                if (useNewParasitics) {
-
-                    int capCount = 0;
-                    int resCount = 0;
+                if (useNewParasitics)
+                {
                     // write caps
+                    int capCount = 0;
                     multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
                     for (SegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
                         if (netInfo.cap > cell.getTechnology().getMinCapacitance()) {
@@ -1575,7 +1557,9 @@ public class Spice extends Topology
                             capCount++;
                         }
                     }
+
                     // write resistors
+                    int resCount = 0;
                     multiLinePrint(true, "** Extracted Parasitic Resistors ***\n");
                     for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
                         ArcInst ai = it.next();
@@ -1611,7 +1595,8 @@ public class Spice extends Topology
                             resCount++;
                         }
                     }
-                } else {
+                } else
+                {
                     // print parasitic capacitances
                     boolean first = true;
                     int capacNum = 1;
@@ -1686,13 +1671,11 @@ public class Spice extends Topology
                 }
                 // connect all nets in list of nets to connect
                 String name = null;
-//                int i=0;
                 for (Network net : netsToConnect) {
                     if (name != null) {
                         multiLinePrint(false, "R"+name+" "+name+" "+net.getName()+" 0.001\n");
                     }
                     name = net.getName();
-//                    i++;
                 }
             }
         }
@@ -2991,17 +2974,31 @@ public class Spice extends Topology
      * @param param the string param value (without the name= part).
      * @return a param string with single quotes around it
      */
-    private static String formatParam(String param) {
+    private String formatParam(String param)
+    {
+    	// first remove quotes
         String value = trimSingleQuotes(param);
+
+        // if Spice engine cannot handle quotes, return stripped value
+		switch (spiceEngine)
+		{
+			case SPICE_ENGINE_2:
+			case SPICE_ENGINE_3:
+				return value;
+		}
+
+        // see if the result evaluates to a number
+		if (TextUtils.isANumberPostFix(value)) return value;
         try {
             Double.valueOf(value);
             return value;
-        } catch (NumberFormatException e) {
-            return ("'"+value+"'");
-        }
+        } catch (NumberFormatException e) {}
+
+        // not a number, enclose it in quotes
+        return "'" + value + "'";
     }
 
-    private static String trimSingleQuotes(String param) {
+    private String trimSingleQuotes(String param) {
         if (param.startsWith("'") && param.endsWith("'")) {
             return param.substring(1, param.length()-1);
         }
@@ -3127,23 +3124,6 @@ public class Spice extends Topology
 //    }
 
     /******************** SUPPORT ********************/
-
-	/**
-	 * Method to return value if arc contains device active diffusion
-	 */
-//	private boolean arcIsDiff(ArcInst ai)
-//	{
-//		ArcProto.Function fun = ai.getProto().getFunction();
-//        boolean newV = ai.isDiffusionArc();
-//        boolean oldV = (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN ||
-//                fun == ArcProto.Function.DIFF || fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW);
-//        if (newV != oldV)
-//            System.out.println("Difference in arcIsDiff");
-//        return oldV;
-////		if (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN || fun == ArcProto.Function.DIFF) return true;
-////		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
-////		return false;
-//	}
 
     private static final boolean CELLISEMPTYDEBUG = false;
     private HashMap<Cell,Boolean> checkedCells = new HashMap<Cell,Boolean>();
