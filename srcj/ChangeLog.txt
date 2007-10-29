@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06j: *******************************
+
 ************************* Version 8.06i: *******************************
 
 BUG: (10/29/07, GVG) Delib not loading (Bug #998)
