@@ -47,6 +47,7 @@ public class OpenFile
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
         /** True to set new dir as working dir (default is true) */     private boolean setSelectedDirAsWorkingDir;
+        /** Holds the last DELIB file visited in isTraversable */ File lastDELIBVisit = null;
         private FileType fileType;
 
 		/** Private constructor, use factory methods chooseInputFile or
@@ -108,7 +109,13 @@ public class OpenFile
          * @return true if the file is traversable, false otherwise
          */
         public boolean isTraversable(File f) {
+            lastDELIBVisit = null;
             if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+                lastDELIBVisit = f; // has to remember this value otherwise BasicFileChooserUI:actionPerformed will
+                // not ready DELIB file just typed in the TextField because isDir=true and isDirSelEnabled=false
+                // if ((isDir || !isFileSelEnabled)
+			    //   && (!isDir || !isDirSelEnabled)
+			    //   && (!isDirSelEnabled || selectedFile.exists()))
                 return false;
             }
             return super.isTraversable(f);
@@ -122,6 +129,8 @@ public class OpenFile
         public boolean isDirectorySelectionEnabled() {
 
             File file = getSelectedFile();
+            if (file == null && lastDELIBVisit != null)
+                file = lastDELIBVisit;
             // return true if a .delib file is selected, otherwise call the parent method
             if (file != null &&
                 (super.getFileSelectionMode() != JFileChooser.DIRECTORIES_ONLY) &&
