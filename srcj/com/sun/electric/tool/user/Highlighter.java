@@ -1063,6 +1063,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	private static Poly.Type getHighlightTextStyleBounds(EditWindow wnd, ElectricObject eObj, Variable.Key varKey, Rectangle2D bounds)
 	{
+        if (eObj == null) return null; // in case of massive delete -> Swing accesses objects that are currently being modified
         Poly poly = eObj.computeTextPoly(wnd, varKey);
         if (poly == null) return null;
         bounds.setRect(poly.getBounds2D());
@@ -1453,7 +1454,8 @@ public class Highlighter implements DatabaseChangeListener {
 	            			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 	            			{
 	            				Export pp = eIt.next();
-	                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
+                                if (pp == null) continue; // in case of massive delete -> Swing accesses objects that are currently being modified
+                                Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
 	                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
 		                    		list.add(new HighlightText(pp, cell, Export.EXPORT_NAME));
 

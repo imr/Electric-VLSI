@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06i: *******************************
 
+BUG: (10/29/07, GVG) Exception in ElectricObject after massive delete (bug #1170)
+FIX: Detect cases where objects are accessed by Swing but are being modified at the same time.
+
 BUG/MAN: (10/25/07, GVG) DRC and Extension rule PP.EN.1 (Bug #1286)
 FIX: New version of Quick.checkExtensionRules by using conditional rules.
 The code will be slower with the extension checkings.
