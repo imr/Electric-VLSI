@@ -754,7 +754,16 @@ public class Layer
 		return !isPseudoLayer() && getFunction().isDiff();
     }
 
-	/**
+    /**
+     * Method to determine if the layer corresponds to a VT layer. Used in DRC
+     * @return true if this layer is a VT layer.
+     */
+    public boolean isVTImplantLayer()
+    {
+        return (function.isImplant() && (functionExtras&Layer.Function.HLVT) != 0);
+    }
+
+    /**
 	 * Method to return true if this is pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.
 	 * @return true if this is pseudo-layer.
