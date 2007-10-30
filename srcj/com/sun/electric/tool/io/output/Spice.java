@@ -130,6 +130,7 @@ public class Spice extends Topology
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
     /** if CDL writes out empty subckt definitions */           private static final boolean CDLWRITESEMPTYSUBCKTS = false;
     /** if use spice globals */                                 private static final boolean USE_GLOBALS = true;
+    /** new way to handle spice globals */                      private static final boolean NEW_GLOBALS = true;
 
 	/** default Technology to use. */				private Technology layoutTechnology;
 	/** Mask shrink factor (default =1) */			private double  maskScale;
@@ -237,7 +238,6 @@ public class Spice extends Topology
 			out.printWriter.print(")\n");
 			if (out.closeTextOutputStream()) return;
 			System.out.println(templateFile + " written");
-//			ttyputmsg(x_("Now type: exec nino CDLIN %s &"), templatefile);
 		}
 
         String runSpice = Simulation.getSpiceRunChoice();
@@ -291,15 +291,6 @@ public class Spice extends Topology
         if (Simulation.isParasiticsBackAnnotateLayout() && Simulation.isSpiceUseParasitics()) {
             out.backAnnotateLayout();
         }
-//		// run spice (if requested)
-//		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_dontrunkey);
-//		if (var != NOVARIABLE && var->addr != SIMRUNNO)
-//		{
-//			ttyputmsg(_("Running SPICE..."));
-//			var = getvalkey((INTBIG)sim_tool, VTOOL, VSTRING, sim_spice_listingfilekey);
-//			if (var == NOVARIABLE) sim_spice_execute(deckfile, x_(""), np); else
-//				sim_spice_execute(deckfile, (CHAR *)var->addr, np);
-//		}
 	}
 
 	/**
@@ -390,34 +381,6 @@ public class Spice extends Topology
             String headerPath = TextUtils.getFilePath(topCell.getLibrary().getLibFile());
             exemptedNets = new ExemptedNets(new File(headerPath + File.separator + "exemptedNets.txt"));
         }
-
-		// gather all global signal names
-/*
-		if (USE_GLOBALS)
-		{
-			Netlist netList = getNetlistForCell(topCell);
-			Global.Set globals = netList.getGlobals();
-			int globalSize = globals.size();
-			if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SPICE_ENGINE_3)
-			{
-				if (globalSize > 0)
-				{
-					StringBuffer infstr = new StringBuffer();
-					infstr.append("\n.global");
-					for(int i=0; i<globalSize; i++)
-					{
-						Global global = globals.get(i);
-						String name = global.getName();
-						if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
-						if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
-						infstr.append(" " + name);
-					}
-					infstr.append("\n");
-					multiLinePrint(false, infstr.toString());
-				}
-			}
-		}
-*/
 	}
 
 	protected void done()
@@ -442,8 +405,10 @@ public class Spice extends Topology
         Object value = context.evalVar(mVar);
 
         // check for M=@M, and warn user that this is a bad idea, and we will not write it out
-        if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")"))) {
-            System.out.println("Warning: M=@M [eval="+value+"] on "+no.getName()+" is a bad idea, not writing it out: "+context.push(no).getInstPath("."));
+        if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")")))
+        {
+            System.out.println("Warning: M=@M [eval=" + value + "] on " + no.getName() +
+            	" is a bad idea, not writing it out: " + context.push(no).getInstPath("."));
             return;
         }
 
@@ -458,9 +423,8 @@ public class Spice extends Topology
 
     private Variable getEngineTemplate(Cell cell)
     {
-        Variable varTemplate = null;
+        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
 
-        varTemplate = cell.getVar(preferedEngineTemplateKey);
         // Any of the following spice templates, if missing, will default to the generic spice template
         if (varTemplate == null)
         {
@@ -470,7 +434,7 @@ public class Spice extends Topology
                 preferedEngineTemplateKey == SPICE_P_TEMPLATE_KEY ||
                 preferedEngineTemplateKey == SPICE_GC_TEMPLATE_KEY ||
                 preferedEngineTemplateKey == SPICE_SM_TEMPLATE_KEY)
-                varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+                	varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         }
         return varTemplate;
     }
@@ -541,8 +505,8 @@ public class Spice extends Topology
         SegmentedNets segmentedNets = new SegmentedNets(cell, verboseSegmentedNames, cni, useParasitics);
         segmentedParasiticInfo.add(segmentedNets);
 
-        if (useParasitics) {
-
+        if (useParasitics)
+        {
             double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
             //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
             HashMap<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
@@ -571,7 +535,6 @@ public class Spice extends Topology
                     if (poly.isPseudoLayer()) continue;
                     Layer layer = poly.getLayer();
                     if (layer.getTechnology() != layoutTechnology) continue;
-//                    if (layer.isPseudoLayer()) continue;
 
                     if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
                         double areacap = area * layer.getCapacitance();
@@ -630,6 +593,7 @@ public class Spice extends Topology
                         segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
                 }
             }
+
             // Don't take into account gate resistance: so we need to short two PortInsts
             // of gate together if this is layout
             for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
@@ -753,22 +717,6 @@ public class Spice extends Topology
 			dumpErrorMessage(message);
 		}
 
-//		// use ground net for substrate
-//		if (subnet == NOSPNET && sim_spice_gnd != NONETWORK)
-//			subnet = (SPNET *)sim_spice_gnd->temp1;
-//		if (bipolarTrans != 0 && subnet == NOSPNET)
-//		{
-//			infstr = initinfstr();
-//			formatinfstr(infstr, _("WARNING: no explicit connection to the substrate in cell %s"),
-//				describenodeproto(np));
-//			dumpErrorMessage(infstr);
-//			if (sim_spice_gnd != NONETWORK)
-//			{
-//				ttyputmsg(_("     A connection to ground will be used if necessary."));
-//				subnet = (SPNET *)sim_spice_gnd->temp1;
-//			}
-//		}
-
 		// generate header for subckt or top-level cell
         String topLevelInstance = "";
 		if (cell == topCell && !useCDL && !Simulation.isSpiceWriteSubcktTopCell())
@@ -790,9 +738,12 @@ public class Spice extends Topology
 				CellSignal cs = sIt.next();
                 if (ignoreSubcktPort(cs)) continue;
 
-                if (cs.isGlobal()) {
-                    System.out.println("Warning: Explicit Global signal "+cs.getName()+" exported in "+cell.describe(false));
-                }
+    			if (!NEW_GLOBALS)
+    			{
+	                if (cs.isGlobal()) {
+	                    System.out.println("Warning: Explicit Global signal "+cs.getName()+" exported in "+cell.describe(false));
+	                }
+    			}
 
                 // special case for parasitic extraction
                 if (useParasitics && !cs.isGlobal() && cs.getExport() != null) {
@@ -817,6 +768,7 @@ public class Spice extends Topology
                         }
                         shortedExports.add(e.getName());
                     }
+
                     // record shorted exports
                     for (List<String> shortedExports : shortedExportsMap.values()) {
                         if (shortedExports.size() > 1) {
@@ -830,16 +782,19 @@ public class Spice extends Topology
 
 			Global.Set globals = netList.getGlobals();
 			int globalSize = globals.size();
-			if (USE_GLOBALS)
+			if (!NEW_GLOBALS)
 			{
-				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+				if (USE_GLOBALS)
 				{
-					for(int i=0; i<globalSize; i++)
+					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
 					{
-						Global global = globals.get(i);
-						Network net = netList.getNetwork(global);
-						CellSignal cs = cni.getCellSignal(net);
-						infstr.append(" " + cs.getName());
+						for(int i=0; i<globalSize; i++)
+						{
+							Global global = globals.get(i);
+							Network net = netList.getNetwork(global);
+							CellSignal cs = cni.getCellSignal(net);
+							infstr.append(" " + cs.getName());
+						}
 					}
 				}
 			}
@@ -967,8 +922,6 @@ public class Spice extends Topology
 				for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
 					CellSignal subCS = sIt.next();
-
-					// ignore networks that aren't exported
 					PortProto pp = subCS.getExport();
 					Network net;
                     int exportIndex = subCS.getExportIndex();
@@ -1008,14 +961,25 @@ public class Spice extends Topology
 
 					if (USE_GLOBALS)
 					{
-						if (pp == null) continue;
-
-                        if (subCS.isGlobal() && subCS.getNetwork().isExported()) {
-                            // only add to port list if exported with global name
-                            if (!isGlobalExport(subCS)) continue;
-                        }
-
-						net = netList.getNetwork(no, pp, exportIndex);
+						if (NEW_GLOBALS)
+						{
+							if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+							{
+								if (pp == null) continue;
+							}
+							if (subCS.isGlobal())
+								net = netList.getNetwork(no, subCS.getGlobal());
+							else
+								net = netList.getNetwork(no, pp, exportIndex);
+						} else
+						{
+							if (pp == null) continue;
+	                        if (subCS.isGlobal() && subCS.getNetwork().isExported()) {
+	                            // only add to port list if exported with global name
+	                            if (!isGlobalExport(subCS)) continue;
+	                        }
+							net = netList.getNetwork(no, pp, exportIndex);
+						}
 					} else
 					{
 						if (pp == null && !subCS.isGlobal()) continue;
@@ -1054,16 +1018,19 @@ public class Spice extends Topology
                     }
 				}
 
-				if (USE_GLOBALS)
+				if (!NEW_GLOBALS)
 				{
-					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+					if (USE_GLOBALS)
 					{
-						Global.Set globals = subCni.getNetList().getGlobals();
-						int globalSize = globals.size();
-						for(int i=0; i<globalSize; i++)
+						if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
 						{
-							Global global = globals.get(i);
-							infstr.append(" " + global.getName());
+							Global.Set globals = subCni.getNetList().getGlobals();
+							int globalSize = globals.size();
+							for(int i=0; i<globalSize; i++)
+							{
+								Global global = globals.get(i);
+								infstr.append(" " + global.getName());
+							}
 						}
 					}
 				}
@@ -2045,23 +2012,25 @@ public class Spice extends Topology
         PortProto pp = cs.getExport();
         if (USE_GLOBALS)
         {
-            if (pp == null) return true;
-
-            if (cs.isGlobal() && !cs.getNetwork().isExported()) return true;
-
-            if (cs.isGlobal() && cs.getNetwork().isExported()) {
-                // only add to port list if exported with global name
-                if (!isGlobalExport(cs)) return true;
-            }
+			if (NEW_GLOBALS)
+			{
+				if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+				{
+		            if (pp == null) return true;
+				}
+			} else
+			{
+	            if (pp == null) return true;
+	            if (cs.isGlobal() && !cs.getNetwork().isExported()) return true;
+	
+	            if (cs.isGlobal() && cs.getNetwork().isExported()) {
+	                // only add to port list if exported with global name
+	                if (!isGlobalExport(cs)) return true;
+	            }
+			}
         } else
         {
             if (pp == null && !cs.isGlobal()) return true;
-        }
-        if (useCDL)
-        {
-//					// if this is output and the last was input (or visa-versa), insert "/"
-//					if (i > 0 && netlist[i-1]->temp2 != net->temp2)
-//						infstr.append(" /");
         }
         return false;
     }
@@ -2635,6 +2604,10 @@ public class Spice extends Topology
         return false;
     }
 
+    /**
+     * Method called when a cell is skipped.
+     * Performs any checking to validate that no error occurs.
+     */
     protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) {
         String fileName = modelOverrides.get(info.getCell());
         if (fileName != null) {
@@ -3040,7 +3013,6 @@ public class Spice extends Topology
 			// don't bother with layers without capacity
             if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
-//            if (layer.isPseudoLayer()) continue;
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
 			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 
@@ -3086,7 +3058,6 @@ public class Spice extends Topology
             if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
-//			if (layer.isPseudoLayer()) continue;
 
 			if (layer.isDiffusionLayer()||
 				(!isDiffArc && layer.getCapacitance() > 0.0))
@@ -3119,9 +3090,6 @@ public class Spice extends Topology
 			multiLinePrint(false, ".INC " + fileName + "\n");
 		}
 	}
-
-//    private void validateIncludeFile(String fileName, String subcktName) {
-//    }
 
     /******************** SUPPORT ********************/
 
@@ -3162,6 +3130,7 @@ public class Spice extends Topology
 
             // otherwise, this is a primitive
             PrimitiveNode.Function fun = ni.getFunction();
+
             // Passive devices used by spice/CDL
             if (fun.isResistor() || // == PrimitiveNode.Function.RESIST ||
                 fun == PrimitiveNode.Function.INDUCT ||
@@ -3171,21 +3140,25 @@ public class Spice extends Topology
                 empty = false;
                 break;
             }
+
             // active devices used by Spice/CDL
             if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
                 empty = false;
                 break;
             }
+
             // check for spice code on pins
             if (ni.getVar(SPICE_CARD_KEY) != null) {
                 empty = false;
                 break;
             }
         }
+
         // look for a model file on the current cell
         if (modelOverrides.get(cell) != null) {
             empty = false;
         }
+
         // check for spice template
         if (getEngineTemplate(cell) != null) {
             empty = false;

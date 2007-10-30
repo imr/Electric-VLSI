@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (10/30/07, SMR) Spice output doesn't handle global partition right (Bug #1403).
+FIX: In Spice.java, do not rely on the network globals, but instead use the
+     results of the hierarchial traversal data.
+
 ************************* Version 8.06k: *******************************
 
 ************************* Version 8.06i: *******************************
