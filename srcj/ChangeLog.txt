@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06k: *******************************
 
+BUG: (10/30/07, GVG) polyCoverByAnyVTLayer not properly implemented
+FIX: Not allowing set of polygons to cover VT area
+
+BUG: (10/30/07, GVG) Finish in polyCoverByAnyVTLayer (Bug #498)
+FIX: Finish recursive part by using Quick::lookForLayerWithPoints()
+
 BUG: (10/30/07, SMR) Spice output doesn't handle global partition right (Bug #1403).
 FIX: In Spice.java, do not rely on the network globals, but instead use the
      results of the hierarchial traversal data.

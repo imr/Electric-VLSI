@@ -4848,16 +4848,11 @@ public class Technology implements Comparable<Technology>
     public void setCachedRules(DRCRules rules) {cachedRules = rules;}
 
     /**
-     * This method determines if one of the polysilicon polygons is covered by a vth layer. Only implemented in 90nm
-     * doesn't apply
-     * @param polys
-     * @param layers
-     * @param geoms
-     * @param ignoreCenterCuts
-     * @return true if one of the polysilicon polygons is covered by a vth layer.
+     * Method to determine if the rule name matches an existing VT Poly rule
+     * @param theRule
+     * @return true if it matches
      */
-    public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers,
-                                         Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
+    public boolean isValidVTPolyRule(DRCTemplate theRule) {return false;}
 
     /**
      * Utility function to copy NodeLayers from existing PrimitiveNodes into new ones.
