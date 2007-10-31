@@ -1208,6 +1208,12 @@ public class TextUtils
 	{
 		if (fileName.startsWith("file://")) fileName = fileName.substring(6);
 		if (fileName.startsWith("file:/")) fileName = fileName.substring(5);
+
+		// fix file names with spaces encoded (for example "%20")
+		try
+		{
+			fileName = URLDecoder.decode(fileName, "UTF-8");
+		} catch (UnsupportedEncodingException e) {}
 		File file = new File(fileName);
 		try
 		{
@@ -1272,13 +1278,11 @@ public class TextUtils
 		} catch (URISyntaxException e) {}
 
 		// fix encoded file names (for example, with "%20" instead of spaces)
-//		if (Client.getOperatingSystem() == Client.OS.WINDOWS)
+		try
 		{
-			try
-			{
-				filePath = URLDecoder.decode(filePath, "UTF-8");
-			} catch (UnsupportedEncodingException e) {}
-		}
+			filePath = URLDecoder.decode(filePath, "UTF-8");
+		} catch (UnsupportedEncodingException e) {}
+
 		return filePath;
     }
 

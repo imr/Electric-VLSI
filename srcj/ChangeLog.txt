@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06k: *******************************
 
+BUG: (10/31/07, SMR) Saving to a path with spaces in it (such as the Windows desktop)
+     may fail.
+FIX: In TextUtils.makeURLToFile() use URLDecoder.decode() on the string.
+
 IMP: (10/31/07, SMR) Added more Spice output tests to handle bug 1403.
 
 BUG: (10/30/07, GVG) polyCoverByAnyVTLayer not properly implemented
