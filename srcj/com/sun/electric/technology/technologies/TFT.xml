@@ -244,6 +244,9 @@
         <opacity>0.8</opacity>
         <foreground>true</foreground>
         <cifLayer cif="COG"/>
+        <pureLayerNode name="Passivation-Node" port="Passivation">
+            <lambda>9.0</lambda>
+        </pureLayerNode>
     </layer>
 
     <layer name="lay1" fun="IMPLANTP">
@@ -270,6 +273,9 @@
         <opacity>1.0</opacity>
         <foreground>false</foreground>
         <cifLayer cif="CPI"/>
+        <pureLayerNode name="lay1-Node" port="lay1">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
     </layer>
 
     <layer name="lay2" fun="DIFFN">
@@ -296,6 +302,9 @@
         <opacity>1.0</opacity>
         <foreground>false</foreground>
         <cifLayer cif="CNI"/>
+        <pureLayerNode name="lay2-Node" port="lay2">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
     </layer>
 
     <layer name="lay3" fun="DIFFP">
@@ -322,6 +331,9 @@
         <opacity>1.0</opacity>
         <foreground>false</foreground>
         <cifLayer cif="CDP"/>
+        <pureLayerNode name="lay3-Node" port="lay3">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
     </layer>
 
     <layer name="lay4" fun="DIFFN">
@@ -347,7 +359,10 @@
         <outlined>PAT_S</outlined>
         <opacity>1.0</opacity>
         <foreground>false</foreground>
-        <cifLayer cif="CDP"/>
+        <cifLayer cif="CDN"/>
+        <pureLayerNode name="lay4-Node" port="lay4">
+            <lambda>4.0</lambda>
+        </pureLayerNode>
     </layer>
 
     <!-- ******************** ARCS ******************** -->
@@ -357,9 +372,9 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Metal-1" style="FILLED">
-            <lambda>1.5</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -369,9 +384,9 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Metal-2" style="FILLED">
-            <lambda>1.5</lambda>
+            <lambda>1.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -381,9 +396,9 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <diskOffset untilVersion="2" width="2.0"/>
         <arcLayer layer="HiK" style="FILLED">
-            <lambda>1.0</lambda>
+            <lambda>2.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -393,9 +408,9 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <diskOffset untilVersion="2" width="2.0"/>
         <arcLayer layer="Pent" style="FILLED">
-            <lambda>1.0</lambda>
+            <lambda>2.0</lambda>
         </arcLayer>
     </arcProto>
 
@@ -590,21 +605,21 @@
 
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
-        <diskOffset untilVersion="2" x="0.5" y="2.5"/>
-        <sizeOffset lx="5.0" hx="5.0" ly="3.0" hy="3.0"/>
+        <diskOffset untilVersion="2" x="2.5" y="0.5"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="5.0" hy="5.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <box khx="-1.0">
-                <lambdaBox klx="-2.5" khx="-0.5" kly="-2.5" khy="2.5"/>
+        <nodeLayer layer="Metal-2" style="FILLED" portNum="1">
+            <box kly="1.0">
+                <lambdaBox klx="-2.5" khx="2.5" kly="0.5" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <box klx="1.0">
-                <lambdaBox klx="0.5" khx="2.5" kly="-2.5" khy="2.5"/>
+        <nodeLayer layer="Metal-2" style="FILLED" portNum="3">
+            <box khy="-1.0">
+                <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="-0.5"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="HiK" style="FILLED">
@@ -617,39 +632,70 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
             </box>
         </nodeLayer>
-        <primitivePort name="trans-met1-bot">
+        <primitivePort name="trans-met1-top">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <box klx="0.0" khx="0.0" khy="-1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="-5.25" khy="-5.25"/>
+            <box khx="-1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="-5.25" khx="-5.25" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="trans-met2-right">
             <portAngle primary="0" range="180"/>
             <portTopology>1</portTopology>
-            <box klx="1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="2.5" khx="2.5" kly="0.0" khy="0.0"/>
+            <box klx="0.0" khx="0.0" kly="1.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="2.5" khy="2.5"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
-        <primitivePort name="trans-met1-top">
+        <primitivePort name="trans-met1-bot">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <box klx="0.0" khx="0.0" kly="1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="5.25" khy="5.25"/>
+            <box klx="1.0" kly="0.0" khy="0.0">
+                <lambdaBox klx="5.25" khx="5.25" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
         <primitivePort name="trans-met2-left">
             <portAngle primary="0" range="90"/>
             <portTopology>3</portTopology>
-            <box khx="-1.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="-2.5" khx="-2.5" kly="0.0" khy="0.0"/>
+            <box klx="0.0" khx="0.0" khy="-1.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="-2.5" khy="-2.5"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
     </primitiveNode>
+
+    <Foundry name="MOSIS">
+        <LayerRule ruleName="1.1" layerName="Metal-1" type="MINWID" when="ALL" value="2.0"/>
+        <LayersRule ruleName="1.2" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayerRule ruleName="2.1" layerName="HiK" type="MINWID" when="ALL" value="4.0"/>
+        <NodeLayersRule ruleName="2.2" layerNames="{Metal-1,HiK}" type="ASURROUND" when="ALL" value="1.0" nodeName="HiK"/>
+        <LayerRule ruleName="3.1" layerName="Pent" type="MINWID" when="ALL" value="4.0"/>
+        <NodeLayersRule ruleName="3.2" layerNames="{Metal-1,Pent}" type="SURROUND" when="ALL" value="1.0" nodeName="Pent"/>
+        <LayerRule ruleName="4.1" layerName="Via1" type="MINWID" when="ALL" value="2.0"/>
+        <LayersRule ruleName="4.2" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <NodeLayersRule ruleName="4.3" layerNames="{Metal-1,Via1}" type="ASURROUND" when="ALL" value="1.0" nodeName="Via1"/>
+        <NodeLayersRule ruleName="4.4" layerNames="{HiK,Via1}" type="ASURROUND" when="ALL" value="1.0" nodeName="Via1"/>
+        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/> 
+        <LayersRule ruleName="5.2" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="1.0"/>
+        <NodeLayersRule ruleName="5.3" layerNames="{Via1,Metal-2}" type="ASURROUND" when="ALL" value="1.0" nodeName="Metal-2"/>
+        <LayerRule ruleName="6.1" layerName="Passivation" type="MINWID" when="ALL" value="9.0"/>
+        <NodeLayersRule ruleName="6.2" layerNames="{Metal-2,Passivation}" type="ASURROUND" when="ALL" value="1.0" nodeName="Passivation"/>
+        
+
+        <layerGds layer="Metal-1" gds="10"/>
+        <layerGds layer="Metal-2" gds="12"/>
+        <layerGds layer="HiK" gds="4"/>
+        <layerGds layer="Pent" gds="19"/>
+        <layerGds layer="Via1" gds="31"/>
+        <layerGds layer="Passivation" gds="13"/>
+        <layerGds layer="lay1" gds="51"/>
+        <layerGds layer="lay2" gds="61"/>
+        <layerGds layer="lay3" gds="62"/>
+        <layerGds layer="lay4" gds="71"/>
+
+    </Foundry>
 
     <menuPalette numColumns="2">
 
@@ -711,18 +757,4 @@
 
     </menuPalette>
 
-    <Foundry name="MOSIS">
-
-        <layerGds layer="Metal-1" gds="10"/>
-        <layerGds layer="Metal-2" gds="12"/>
-        <layerGds layer="HiK" gds="4"/>
-        <layerGds layer="Pent" gds="19"/>
-        <layerGds layer="Via1" gds="31"/>
-        <layerGds layer="Passivation" gds="13"/>
-        <layerGds layer="lay1" gds="51"/>
-        <layerGds layer="lay2" gds="61"/>
-        <layerGds layer="lay3" gds="62"/>
-        <layerGds layer="lay4" gds="71"/>
-
-    </Foundry>
 </technology>
