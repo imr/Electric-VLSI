@@ -1415,14 +1415,13 @@ public class Simulation extends Tool
 	 * this is needed to tell the deck generator which variation to target.
 	 * @param engine which SPICE engine is being used.
 	 * These constants are available: <BR>
-	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
-	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
-	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
-	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
-	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
-     * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
-     * Where Simulation.SPICE_ENGINE_3 is the default.
+	 * Simulation.SpiceEngine.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * Simulation.SpiceEngine.SPICE_ENGINE_3 for Spice 3. (the default)<BR>
+	 * Simulation.SpiceEngine.SPICE_ENGINE_H for HSpice.<BR>
+	 * Simulation.SpiceEngine.SPICE_ENGINE_P for PSpice.<BR>
+	 * Simulation.SpiceEngine.SPICE_ENGINE_G for GNUCap.<BR>
+	 * Simulation.SpiceEngine.SPICE_ENGINE_S for Smart Spice.<BR>
+     * Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
 	 */
 	public static void setSpiceEngine(SpiceEngine engine) { cacheSpiceEngine.setInt(engine.code()); }
 

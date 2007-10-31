@@ -117,70 +117,48 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
     /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
+    /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 	/** Prefix for spice null extension. */                     public static final String SPICE_NOEXTENSION_PREFIX = "N O N E ";
 
-    /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
-
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
-    /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME     = 40;
-    /** maximum subcircuit name length */						private static final int SPICEMAXLENLINE     = 78;
+    /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME       = 40;
+    /** maximum subcircuit name length */						private static final int SPICEMAXLENLINE           = 78;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
-	/** legal characters in a spice deck */						private static final String PSPICELEGALCHARS        = "!#$%*+-/<>[]_";
+	/** legal characters in a spice deck */						private static final String PSPICELEGALCHARS       = "!#$%*+-/<>[]_";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
-    /** if CDL writes out empty subckt definitions */           private static final boolean CDLWRITESEMPTYSUBCKTS = false;
-    /** if use spice globals */                                 private static final boolean USE_GLOBALS = true;
-    /** new way to handle spice globals */                      private static final boolean NEW_GLOBALS = true;
+    /** if CDL writes out empty subckt definitions */			private static final boolean CDLWRITESEMPTYSUBCKTS = false;
 
-	/** default Technology to use. */				private Technology layoutTechnology;
-	/** Mask shrink factor (default =1) */			private double  maskScale;
-	/** True to write CDL format */					private boolean useCDL;
-	/** Legal characters */							private String legalSpiceChars;
-	/** Template Key for current spice engine */	private Variable.Key preferedEngineTemplateKey;
-    /** Special case for HSpice for Assura */       private boolean assuraHSpice = false;
-	/** Spice type: 2, 3, H, P, etc */				private Simulation.SpiceEngine spiceEngine;
-	/** those cells that have overridden models */	private HashMap<Cell,String> modelOverrides = new HashMap<Cell,String>();
-    /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
-    /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
-    /** Whether or not to write empty subckts  */   private boolean writeEmptySubckts = true;
-    /** max length per line */                      private int spiceMaxLenLine = SPICEMAXLENLINE;
+	/** default Technology to use. */							private Technology layoutTechnology;
+	/** Mask shrink factor (default =1) */						private double maskScale;
+	/** True to write CDL format */								private boolean useCDL;
+	/** Legal characters */										private String legalSpiceChars;
+	/** Template Key for current spice engine */				private Variable.Key preferedEngineTemplateKey;
+    /** Special case for HSpice for Assura */					private boolean assuraHSpice = false;
+	/** Spice type: 2, 3, H, P, etc */							private Simulation.SpiceEngine spiceEngine;
+	/** those cells that have overridden models */				private HashMap<Cell,String> modelOverrides = new HashMap<Cell,String>();
+    /** List of segmented nets and parasitics */				private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
+    /** Networks exempted during parasitic ext */				private ExemptedNets exemptedNets;
+    /** Whether or not to write empty subckts  */				private boolean writeEmptySubckts = true;
+    /** max length per line */									private int spiceMaxLenLine = SPICEMAXLENLINE;
 
-    /** Flat measurements file */                   private FlatSpiceCodeVisitor spiceCodeFlat = null;
+    /** Flat measurements file */								private FlatSpiceCodeVisitor spiceCodeFlat = null;
 
-    /** map of "parameterized" cells that are not covered by Topology */    private Map<Cell,Cell> uniquifyCells;
-    /** uniqueID */                                                         private int uniqueID;
-    /** map of shortened instance names */                                  private Map<String,Integer> uniqueNames;
+    /** map of "parameterized" cells not covered by Topology */	private Map<Cell,Cell> uniquifyCells;
+    /** uniqueID */                                             private int uniqueID;
+    /** map of shortened instance names */                      private Map<String,Integer> uniqueNames;
 
     private static final boolean useNewParasitics = true;
 
 	private static class SpiceNet
 	{
-		/** network object associated with this */	Network      network;
-		/** merged geometry for this network */		PolyMerge     merge;
-		/** area of diffusion */					double        diffArea;
-		/** perimeter of diffusion */				double        diffPerim;
-		/** amount of capacitance in non-diff */	float         nonDiffCapacitance;
-		/** number of transistors on the net */		int           transistorCount;
+		/** network object associated with this */	Network   network;
+		/** merged geometry for this network */		PolyMerge merge;
+		/** area of diffusion */					double    diffArea;
+		/** perimeter of diffusion */				double    diffPerim;
+		/** amount of capacitance in non-diff */	float     nonDiffCapacitance;
+		/** number of transistors on the net */		int       transistorCount;
 	}
-
-    private static class SpiceFinishedListener implements Exec.FinishedListener {
-        private Cell cell;
-        private FileType type;
-        private String file;
-        private SpiceFinishedListener(Cell cell, FileType type, String file) {
-            this.cell = cell;
-            this.type = type;
-            this.file = file;
-        }
-        public void processFinished(Exec.FinishedEvent e) {
-            URL fileURL = TextUtils.makeURLToFile(file);
-
-			// create a new waveform window
-            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
-
-            Simulate.plotSimulationResults(type, cell, fileURL, ww);
-        }
-    }
 
 	/**
 	 * The main entry point for Spice deck writing.
@@ -292,6 +270,28 @@ public class Spice extends Topology
             out.backAnnotateLayout();
         }
 	}
+
+    private static class SpiceFinishedListener implements Exec.FinishedListener
+    {
+        private Cell cell;
+        private FileType type;
+        private String file;
+
+        private SpiceFinishedListener(Cell cell, FileType type, String file) {
+            this.cell = cell;
+            this.type = type;
+            this.file = file;
+        }
+
+        public void processFinished(Exec.FinishedEvent e) {
+            URL fileURL = TextUtils.makeURLToFile(file);
+
+			// create a new waveform window
+            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
+
+            Simulate.plotSimulationResults(type, cell, fileURL, ww);
+        }
+    }
 
 	/**
 	 * Creates a new instance of Spice
@@ -444,7 +444,7 @@ public class Spice extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
-		if (cell == topCell && USE_GLOBALS) {
+		if (cell == topCell) {
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
@@ -738,13 +738,6 @@ public class Spice extends Topology
 				CellSignal cs = sIt.next();
                 if (ignoreSubcktPort(cs)) continue;
 
-    			if (!NEW_GLOBALS)
-    			{
-	                if (cs.isGlobal()) {
-	                    System.out.println("Warning: Explicit Global signal "+cs.getName()+" exported in "+cell.describe(false));
-	                }
-    			}
-
                 // special case for parasitic extraction
                 if (useParasitics && !cs.isGlobal() && cs.getExport() != null) {
                     Network net = cs.getNetwork();
@@ -782,22 +775,6 @@ public class Spice extends Topology
 
 			Global.Set globals = netList.getGlobals();
 			int globalSize = globals.size();
-			if (!NEW_GLOBALS)
-			{
-				if (USE_GLOBALS)
-				{
-					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
-					{
-						for(int i=0; i<globalSize; i++)
-						{
-							Global global = globals.get(i);
-							Network net = netList.getNetwork(global);
-							CellSignal cs = cni.getCellSignal(net);
-							infstr.append(" " + cs.getName());
-						}
-					}
-				}
-			}
             if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
                 // create top level instantiation
                 if (Simulation.isSpiceWriteTopCellInstance())
@@ -825,17 +802,14 @@ public class Spice extends Topology
 			multiLinePrint(false, infstr.toString());
 
 			// generate pin descriptions for reference (when not using node names)
-			if (USE_GLOBALS)
+			if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
 			{
-				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+				for(int i=0; i<globalSize; i++)
 				{
-					for(int i=0; i<globalSize; i++)
-					{
-						Global global = globals.get(i);
-						Network net = netList.getNetwork(global);
-						CellSignal cs = cni.getCellSignal(net);
-						multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
-					}
+					Global global = globals.get(i);
+					Network net = netList.getNetwork(global);
+					CellSignal cs = cni.getCellSignal(net);
+					multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
 				}
 			}
 		}
@@ -959,35 +933,14 @@ public class Spice extends Topology
                         }
                     }
 
-					if (USE_GLOBALS)
+					if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
 					{
-						if (NEW_GLOBALS)
-						{
-							if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
-							{
-								if (pp == null) continue;
-							}
-							if (subCS.isGlobal())
-								net = netList.getNetwork(no, subCS.getGlobal());
-							else
-								net = netList.getNetwork(no, pp, exportIndex);
-						} else
-						{
-							if (pp == null) continue;
-	                        if (subCS.isGlobal() && subCS.getNetwork().isExported()) {
-	                            // only add to port list if exported with global name
-	                            if (!isGlobalExport(subCS)) continue;
-	                        }
-							net = netList.getNetwork(no, pp, exportIndex);
-						}
-					} else
-					{
-						if (pp == null && !subCS.isGlobal()) continue;
-						if (subCS.isGlobal())
-							net = netList.getNetwork(no, subCS.getGlobal());
-						else
-							net = netList.getNetwork(no, pp, exportIndex);
+						if (pp == null) continue;
 					}
+					if (subCS.isGlobal())
+						net = netList.getNetwork(no, subCS.getGlobal());
+					else
+						net = netList.getNetwork(no, pp, exportIndex);
 					CellSignal cs = cni.getCellSignal(net);
 
 					// special case for parasitic extraction
@@ -1018,22 +971,6 @@ public class Spice extends Topology
                     }
 				}
 
-				if (!NEW_GLOBALS)
-				{
-					if (USE_GLOBALS)
-					{
-						if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
-						{
-							Global.Set globals = subCni.getNetList().getGlobals();
-							int globalSize = globals.size();
-							for(int i=0; i<globalSize; i++)
-							{
-								Global global = globals.get(i);
-								infstr.append(" " + global.getName());
-							}
-						}
-					}
-				}
                 if (useCDL) {
 				    infstr.append(" /" + subCni.getParameterizedName());
                 } else {
@@ -1079,16 +1016,15 @@ public class Spice extends Topology
 			PrimitiveNode.Function fun = ni.getFunction();
 
 			// handle resistors, inductors, capacitors, and diodes
-			if (fun.isResistor() || // == PrimitiveNode.Function.RESIST ||
+			if (fun.isResistor() || fun.isCapacitor() ||
                 fun == PrimitiveNode.Function.INDUCT ||
-				fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
-				if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
+				if (fun.isResistor())
 				{
                     if ((fun == PrimitiveNode.Function.PRESIST && isShortExplicitResistors()) ||
                         (fun == PrimitiveNode.Function.RESIST && isShortResistors()))
-                        continue;
+                        	continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
                     String partName = "R";
@@ -1138,7 +1074,7 @@ public class Spice extends Topology
                         }
                     }
 					writeTwoPort(ni, partName, extra, cni, netList, context, segmentedNets);
-				} else if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+				} else if (fun.isCapacitor())
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 					String extra = "";
@@ -1866,7 +1802,8 @@ public class Spice extends Topology
                     } else {
                         pVal = String.valueOf(context.evalVar(attrVar, no));
                     }
-                    if (attrVar.getCode() != TextDescriptor.Code.NONE) pVal = trimSingleQuotes(pVal);
+//                    if (attrVar.getCode() != TextDescriptor.Code.NONE)
+                    	pVal = formatParam(pVal);
                     infstr.append(pVal);
                     //else
                     //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
@@ -1986,55 +1923,37 @@ public class Spice extends Topology
         return null;
     }
 
-    /**
-     * Check if the global cell signal is exported as with a global name,
-     * rather than just being a global tied to some other export.
-     * I.e., returns true if global "gnd" has been exported using name "gnd".
-     * @param cs
-     * @return true if global signal exported with global name
-     */
-    private boolean isGlobalExport(CellSignal cs) {
-        if (!cs.isGlobal() || !cs.isExported()) return false;
-        for (Iterator<Export> it = cs.getNetwork().getExports(); it.hasNext(); ) {
-            Export ex = it.next();
-            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
-                String name = ex.getNameKey().subname(i).canonicString();
-                if (cs.getName().equals(name)) {
-                    return true;
-                }
-            }
-        }
+//    /**
+//     * Check if the global cell signal is exported as with a global name,
+//     * rather than just being a global tied to some other export.
+//     * I.e., returns true if global "gnd" has been exported using name "gnd".
+//     * @param cs
+//     * @return true if global signal exported with global name
+//     */
+//    private boolean isGlobalExport(CellSignal cs) {
+//        if (!cs.isGlobal() || !cs.isExported()) return false;
+//        for (Iterator<Export> it = cs.getNetwork().getExports(); it.hasNext(); ) {
+//            Export ex = it.next();
+//            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+//                String name = ex.getNameKey().subname(i).canonicString();
+//                if (cs.getName().equals(name)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
+
+    private boolean ignoreSubcktPort(CellSignal cs)
+    {
+		if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+		{
+	        // ignore networks that aren't exported
+	        PortProto pp = cs.getExport();
+            if (pp == null) return true;
+		}
         return false;
     }
-
-    private boolean ignoreSubcktPort(CellSignal cs) {
-        // ignore networks that aren't exported
-        PortProto pp = cs.getExport();
-        if (USE_GLOBALS)
-        {
-			if (NEW_GLOBALS)
-			{
-				if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
-				{
-		            if (pp == null) return true;
-				}
-			} else
-			{
-	            if (pp == null) return true;
-	            if (cs.isGlobal() && !cs.getNetwork().isExported()) return true;
-	
-	            if (cs.isGlobal() && cs.getNetwork().isExported()) {
-	                // only add to port list if exported with global name
-	                if (!isGlobalExport(cs)) return true;
-	            }
-			}
-        } else
-        {
-            if (pp == null && !cs.isGlobal()) return true;
-        }
-        return false;
-    }
-
 
     /**
      * Class to take care of added networks in cell due to

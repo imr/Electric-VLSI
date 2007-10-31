@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06k: *******************************
 
+IMP: (10/31/07, SMR) Added more Spice output tests to handle bug 1403.
+
 BUG: (10/30/07, GVG) polyCoverByAnyVTLayer not properly implemented
 FIX: Not allowing set of polygons to cover VT area
 
