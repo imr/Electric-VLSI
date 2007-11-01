@@ -11,13 +11,13 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.routing.SeaOfGates;
+import com.sun.electric.tool.routing.SeaOfGatesEngine;
 
 /** The SogRouter is an adapter between FLAG and Electric's built in 
  * Sea of Gates router. */
 public class SogRouterAdapter {
 	private final Job job;
-	private final SeaOfGates seaOfGates = new SeaOfGates();
+	private final SeaOfGatesEngine seaOfGates = new SeaOfGatesEngine();
 	private final Technology generic = Technology.findTechnology("Generic");
 	private final ArcProto unroutedArc = generic.findArcProto("Unrouted");
 	
