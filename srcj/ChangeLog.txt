@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06k: *******************************
 
+BUG: (11/02/07, GVG) DRC minArea issue with well and hierarchies in CMOS90 (Bug #1284)
+FIX: Code rewritten. The version is slower but more reliable. It should be optimized from here.
+
+BUG: (11/02/07, GVG) DRC not detecting holes (part of Bug #509 and Bug #1406)
+FIX: Detecting holes only while checking the minArea since the sampling done for checkDist is not
+good enough and can skip cases. Using now Quick.checkMinAreaLayerWithTree().
+The solution involves a version of the code that is slower but more reliable.
+
 IMP: (11/02/07, GVG) Changes in ExportForeignTest to get IO regressios working again after
 Spice changes.
 

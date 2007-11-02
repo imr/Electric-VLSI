@@ -23,11 +23,7 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -143,7 +139,8 @@ public class Quick
 	private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
 	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
-	private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
+    private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
+    private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
     private DRC.CheckDRCJob job; // Reference to running job
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
@@ -278,6 +275,7 @@ public class Quick
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
 	    enclosedAreaLayerMap.clear();
+        spacingLayerMap.clear();
         slotSizeLayerMap.clear();
 	    cellsMap.clear();
 	    nodesMap.clear();
@@ -298,6 +296,11 @@ public class Quick
 				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+
+                // Storing spacing rules
+                DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+                if (spaceRule != null)
+                    spacingLayerMap.put(layer, spaceRule);
 
                 // Storing slot sizes
 				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.SLOTSIZE);
@@ -554,8 +557,8 @@ public class Quick
 		// Only for the most top cell
 		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
         {
-            totalMsgFound = checkMinArea(cell);
-//            checkMinAreaAgain(cell);
+//            totalMsgFound = checkMinArea(cell);
+            totalMsgFound = checkMinAreaSlow(cell);
         }
 
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -2686,10 +2689,8 @@ public class Quick
         boolean minAreaDone = true;
         boolean enclosedAreaDone = true;
 
-//		for(Iterator<PolyBase> pIt = set.iterator(); pIt.hasNext(); )
         for (PolyBase obj : set)
 		{
-//            PolyBase obj = pIt.next();
 			if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
 
 			List<PolyBase> list = obj.getSortedLoops();
@@ -2702,9 +2703,7 @@ public class Quick
 			// polyArray.length = Maximum number of distintic loops
             int i = 0;
             for (PolyBase listObj : list)
-//			for (int i = 0; i < list.size(); i++)
 			{
-//                PolyBase listObj = list.get(i);
 				double area = listObj.getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
                 PolyBase simplePn = listObj;
@@ -2744,7 +2743,119 @@ public class Quick
 
 	}
 
-	/**
+
+    private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
+                                  DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
+    {
+        List<PolyBase.PolyBaseTree> sons = obj.getSons();
+        for (PolyBase.PolyBaseTree son : sons)
+        {
+            traversePolyTree(layer, son, level+1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
+        }
+        boolean minAreaCheck = level%2 == 0;
+        boolean checkMin = false, checkNotch = false;
+        DRCErrorType errorType = DRCErrorType.MINAREAERROR;
+        double minVal = 0;
+        String ruleName = "";
+
+        if (minAreaCheck)
+        {
+            if (minAreaRule == null) return; // no rule
+            minVal = minAreaRule.getValue(0);
+            ruleName = minAreaRule.ruleName;
+            checkMin = true;
+        }
+        else
+        {
+            // odd level checks enclose area and holes (spacing rule)
+            errorType = DRCErrorType.ENCLOSEDAREAERROR;
+            if (encloseAreaRule != null)
+            {
+                minVal = encloseAreaRule.getValue(0);
+                ruleName = encloseAreaRule.ruleName;
+                checkMin = true;
+            }
+            checkNotch = (spacingRule != null);
+        }
+        PolyBase poly = obj.getPoly();
+
+        if (checkMin)
+        {
+            double area = poly.getArea();
+            // isGreaterThan doesn't consider equals condition therefore negate condition is used
+            if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
+            count.increment();
+            reportError(errorType, null, cell, minVal, area, ruleName,
+                            poly, null, layer, null, null, null);
+        }
+        if (checkNotch)
+        {
+            // Notches are calculated using the bounding box of the polygon -> this is an approximation
+            Rectangle2D bnd = poly.getBounds2D();
+            if (bnd.getWidth() < spacingRule.getValue(0))
+            {
+                count.increment();
+                reportError(DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
+                        spacingRule.ruleName, poly, null, layer, null, null, layer);
+            }
+            if (bnd.getHeight() < spacingRule.getValue(1))
+            {
+                count.increment();
+                reportError(DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
+                        spacingRule.ruleName, poly, null, layer, null, null, layer);
+            }
+        }
+    }
+
+    private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer, boolean addError,
+                                          HashMap<Layer, Layer> minAreaLayerMapDone, HashMap<Layer, Layer> enclosedAreaLayerMapDone)
+	{
+		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
+		DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
+        DRCTemplate spacingRule = spacingLayerMap.get(layer);
+
+        // Layer doesn't have min areae
+		if (minAreaRule == null && encloseAreaRule == null && spacingRule == null) return 0;
+
+        Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
+
+        boolean minAreaDone = true;
+        boolean enclosedAreaDone = true;
+        GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
+
+        for (PolyBase.PolyBaseTree obj : trees)
+		{
+            traversePolyTree(layer, obj, 0, minAreaRule, encloseAreaRule, spacingRule, cell, errorFound);
+        }
+        if (minAreaDone && minAreaLayerMapDone != null)
+            minAreaLayerMapDone.put(layer, layer);
+        if (enclosedAreaDone && enclosedAreaLayerMapDone != null)
+            enclosedAreaLayerMapDone.put(layer, layer);
+		return errorFound.intValue();
+	}
+
+    private int checkMinAreaSlow(Cell cell)
+	{
+		CheckProto cp = getCheckProto(cell);
+		int errorFound = 0;
+
+		// Nothing to check
+		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty() && spacingLayerMap.isEmpty())
+			return 0;
+
+        // remember number of errors before the min area checking
+        errorFound = errorLogger.getNumErrors();
+
+		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
+        QuickAreaEnumeratorSlow quickArea = new QuickAreaEnumeratorSlow(mergeMode);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+        
+        errorFound = errorLogger.getNumErrors() - errorFound;
+
+        return errorFound;
+	}
+
+    /**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum area rules. Returns true
 	 * if an error is found.
@@ -2755,11 +2866,11 @@ public class Quick
 		int errorFound = 0;
 
 		// Nothing to check
-		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
+		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty() && spacingLayerMap.isEmpty())
 			return 0;
 
 		// Select/well regions
-		GeometryHandler	selectMerge = GeometryHandler.createGeometryHandler(mergeMode, 0); //new PolyQTree(cell.getBounds());
+		GeometryHandler	selectMerge = GeometryHandler.createGeometryHandler(mergeMode, 0);
 		HashMap<NodeInst,NodeInst> notExportedNodes = new HashMap<NodeInst,NodeInst>();
 		HashMap<NodeInst,NodeInst> checkedNodes = new HashMap<NodeInst,NodeInst>();
 
@@ -2780,7 +2891,7 @@ public class Quick
 		// Checking nodes not exported down in the hierarchy. Probably good enough not to collect networks first
         // Maybe it would be better to check notExportNodes with respect to local cells. No need of checking
         // the entire hierarchy again!
-		quickArea = new QuickAreaEnumerator(null, notExportedNodes, checkedNodes, mergeMode);
+		quickArea = new QuickAreaEnumerator(selectMerge, notExportedNodes, checkedNodes, mergeMode);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
@@ -2794,8 +2905,9 @@ public class Quick
 		// Special cases for select areas. You can't evaluate based on networks
         for (Layer layer : selectMerge.getKeySet())
 		{
-			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
-		}
+//			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
+            errorFound += checkMinAreaLayerWithTree(selectMerge, cell, layer, true, null, null);
+        }
 
 		return errorFound;
 	}
@@ -2830,7 +2942,8 @@ public class Quick
 //		// Checking nodes not exported down in the hierarchy. Probably good enough not to collect networks first
 //        // Maybe it would be better to check notExportNodes with respect to local cells. No need of checking
 //        // the entire hierarchy again!
-//		quickArea = new QuickAreaEnumeratorAgain(selectMerge, notExportedNodes, checkedNodes, mergeMode);
+//		quickArea = new
+// (selectMerge, notExportedNodes, checkedNodes, mergeMode);
 //		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
 //        selectMerge.postProcess(true);
 //
@@ -4737,23 +4850,26 @@ public class Quick
 			if (np1 != np2)
 			{
 				errorMessage.append(np1 + ", ");
-			} else if (np1 != cell)
+			} else if (np1 != cell && np1 != null)
 			{
 				errorMessage.append("[in " + np1 + "] ");
 			}
 
-            errorMessage.append(geom1);
+            if (geom1 != null)
+                errorMessage.append(geom1);
 			if (layer1 != layer2)
 				errorMessage.append(", layer '" + layer1.getName() + "'");
 
 			if (actual < 0) errorMessage.append(" OVERLAPS (BY " + TextUtils.formatDouble(limit-actual) + ") ");
 			else if (actual == 0) errorMessage.append(" TOUCHES ");
-			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ");
+			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) +
+                    ((geom2!=null)?" TO ":""));
 
-			if (np1 != np2)
+			if (np1 != np2 && np2 != null)
 				errorMessage.append(np2 + ", ");
 
-			errorMessage.append(geom2);
+            if (geom2 != null)
+                errorMessage.append(geom2);
 			if (layer1 != layer2)
 				errorMessage.append(", layer '" + layer2.getName() + "'");
 			if (msg != null)
@@ -4845,7 +4961,152 @@ public class Quick
             Job.getUserInterface().termLogging(errorLogger, false, false);
 	}
 
-	/**************************************************************************************************************
+    private class QuickAreaEnumeratorSlow extends HierarchyEnumerator.Visitor
+    {
+        private GeometryHandler merge;
+        private Layer polyLayer;
+        private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
+
+        QuickAreaEnumeratorSlow(GeometryHandler.GHMode mode)
+        {
+            merge = GeometryHandler.createGeometryHandler(mode, topCell.getTechnology().getNumLayers());
+        }
+
+        private boolean skipLayer(Layer layer)
+        {
+            return false;
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+        {
+            if (job != null && job.checkAbort()) return false;
+            AffineTransform rTrans = info.getTransformToRoot();
+
+            for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                Network aNet = info.getNetlist().getNetwork(ai, 0);
+
+                // aNet is null if ArcProto is Artwork
+                if (aNet == null)
+                {
+                    continue;
+                }
+                Technology tech = ai.getProto().getTechnology();
+                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+                int tot = arcInstPolyList.length;
+                for(int i=0; i<tot; i++)
+                {
+                    Poly poly = arcInstPolyList[i];
+                    Layer layer = poly.getLayer();
+
+                    // No area associated or already done
+                    if (skipLayer(layer))
+                        continue;
+
+                    // it has to take into account poly and transistor poly as one layer
+                    if (layer.getFunction().isPoly())
+                    {
+                        if (polyLayer == null)
+                            polyLayer = layer;
+                        layer = polyLayer;
+                    }
+                    poly.transform(rTrans);
+                    addElement(poly, layer);
+                }
+            }
+
+            return true;
+        }
+
+        private void addElement(Poly poly, Layer layer)
+        {
+            merge.add(layer, poly);
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+            boolean isTopCell = info.getCell() == topCell;
+            if (isTopCell)
+            {
+                this.merge.postProcess(true);
+                for (Layer layer : merge.getKeySet())
+                {
+                    checkMinAreaLayerWithTree(merge, info.getCell(), layer, isTopCell, null, null);
+                }
+            }
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+        {
+
+            if (job != null && job.checkAbort()) return false;
+            // Facet or special elements
+			NodeInst ni = no.getNodeInst();
+            if (NodeInst.isSpecialNode(ni)) return (false);
+			NodeProto np = ni.getProto();
+
+            // Cells
+            // This check must be before doingNoneExport otherwise cells containing information
+            // won't be found in notExportedNodes.
+            if (!(np instanceof PrimitiveNode)) return (true);
+
+			Cell cell = info.getCell();
+			AffineTransform trans = ni.rotateOut();
+			AffineTransform root = info.getTransformToRoot();
+			if (root.getType() != AffineTransform.TYPE_IDENTITY)
+				trans.preConcatenate(root);
+
+			PrimitiveNode pNp = (PrimitiveNode)np;
+			Technology tech = pNp.getTechnology();
+			// electrical should not be null due to ports but causes
+			// problems with poly and transistor-poly
+            boolean isTransistor = pNp.getFunction().isTransistor();
+            Poly activePoly = null;
+            boolean addedActive = false;
+
+            if (isTransistor)
+            {
+                Poly [] list = tech.getShapeOfNode(ni, false, true, activeLayers);
+                assert(list.length == 1);
+                activePoly = list[0];
+            }
+            // Don't get electric layers in case of transistors otherwise it is hard to detect ports
+            Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
+			int tot = nodeInstPolyList.length;
+			for(int i=0; i<tot; i++)
+			{
+				Poly poly = nodeInstPolyList[i];
+				Layer layer = poly.getLayer();
+
+				// it has to take into account poly and transistor poly as one layer
+				if (layer.getFunction().isPoly())
+				{
+					if (polyLayer == null)
+						polyLayer = layer;
+					layer = polyLayer;
+				}
+                // Special case for transistors
+                if (activePoly != null && layer.getFunction().isDiff())
+                {
+                    poly = activePoly; // overlapping is allowed
+                    if (!addedActive)
+                        addedActive = true;
+                    else
+                        continue; // no need of adding next active
+                }
+
+                poly.roundPoints(); // Trying to avoid mismatches while joining areas.
+                poly.transform(trans);
+
+                addElement(poly, layer);
+            }
+
+            return true;
+        }
+    }
+
+    /**************************************************************************************************************
 	 *  QuickAreaEnumerator class
 	 **************************************************************************************************************/
 	// Extra functions to check area
@@ -4888,6 +5149,7 @@ public class Quick
                 jNet = net;
                 for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);
                 for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
+                for (Layer layer : spacingLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null); // so holes can be detected
             }
 
             /**
@@ -4898,7 +5160,7 @@ public class Quick
             private boolean skipLayer(Layer layer)
             {
                 boolean noMinArea = minAreaLayerMap.get(layer) == null;
-                boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null;
+                boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null && spacingLayerMap.get(layer) == null;
 
                 if (noMinArea && noMinEnc)
                     return true;
@@ -4997,7 +5259,7 @@ public class Quick
         {
             if (!doneAll)
             {
-                boolean done = true;
+                boolean done = buckets.size() != 0; // true;
                 for (QuickAreaBucket bucket : buckets.values())
                 {
                     for (Layer layer : bucket.minAreaLayerMapDone.keySet())
@@ -5125,6 +5387,8 @@ public class Quick
 							layer = polyLayer;
 						}
 
+                        poly.transform(rTrans);
+
                         for (QuickAreaBucket bucket : onlyTheseBuckets)
                         {
                             // No area associated or already done
@@ -5133,7 +5397,7 @@ public class Quick
 
                             // only here when is really merging
                             assert(!preProcess);
-                            poly.transform(rTrans);
+//                            poly.transform(rTrans);
                             addElement(bucket, poly, layer, false);
                         }
 					}
@@ -5158,11 +5422,14 @@ public class Quick
                     continue;
                 bucket.mainMerge.postProcess(true);
                 bucket.merged = true;
+                if (!isTopCell) continue;
                 for (Layer layer : bucket.mainMerge.getKeySet())
                 {
                     if (bucket.skipLayer(layer)) continue; // done!
-                    checkMinAreaLayer(bucket.mainMerge, info.getCell(), layer, isTopCell, bucket.minAreaLayerMapDone,
-                            bucket.enclosedAreaLayerMapDone);
+//                    checkMinAreaLayer(bucket.mainMerge, info.getCell(), layer, isTopCell, bucket.minAreaLayerMapDone,
+//                            bucket.enclosedAreaLayerMapDone);
+                    checkMinAreaLayerWithTree(bucket.mainMerge, info.getCell(), layer, isTopCell, 
+                            bucket.minAreaLayerMapDone, bucket.enclosedAreaLayerMapDone);
                     if (areAllLayersDone())
                         return; // done
                 }
@@ -5183,14 +5450,16 @@ public class Quick
 
 			NodeProto np = ni.getProto();
 
+            // Cells
+            // This check must be before doingNoneExport otherwise cells containing information
+            // won't be found in notExportedNodes.
+            if (!(np instanceof PrimitiveNode)) return (true);
+
             if (doingNonExport && !notExportedNodes.containsKey(ni))
             {
 //                System.out.println("Skipping this one");
                 return false;
             }
-
-            // Cells
-			if (!(np instanceof PrimitiveNode)) return (true);
 
 			Cell cell = info.getCell();
 			AffineTransform trans = ni.rotateOut();
@@ -5306,7 +5575,16 @@ public class Quick
 					layer = polyLayer;
 				}
 
+                poly.roundPoints(); // Trying to avoid mismatches while joining areas.
+                poly.transform(trans);
                 PortProto pp = poly.getPort();
+
+                if (pp == null || layer.getFunction().isSubstrate()) // no port associated, valid for select and wells.
+                {
+                    addElement(null, poly, layer, true);
+                }
+                else
+                {
                 // if transistor non-electric layers are retrieved
                 boolean found = (forceChecking && layer.getFunction().isSubstrate());
                 Network net = info.getNetlist().getNetwork(ni, pp, 0);
@@ -5330,14 +5608,13 @@ public class Quick
                         if (!thisFound) continue;
                     }
                     assert(!preProcess);
-                    poly.roundPoints(); // Trying to avoid mismatches while joining areas.
-                    poly.transform(trans);
                     // Special case for transistors
                     if (activePoly != null && layer.getFunction().isDiff())
                         poly = activePoly; // overlapping is allowed
                     addElement(bucket, poly, layer, true);
                 }
-			}
+                }
+            }
 
             return true;
 		}

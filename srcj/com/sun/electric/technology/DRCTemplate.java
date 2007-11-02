@@ -479,7 +479,16 @@ public class DRCTemplate implements Serializable
                 }
             }
             else if (attributes.getQName(i).equals("value"))
-                values[0] = values[1] = Double.parseDouble(attributes.getValue(i));
+            {
+                if (attributes.getValue(i).toLowerCase().equals("double.max_value"))
+                {
+                    values[0] = values[1] = Double.MAX_VALUE;
+                }
+                else
+                {
+                    values[0] = values[1] = Double.parseDouble(attributes.getValue(i));
+                }
+            }
             else if (attributes.getQName(i).equals("valueX"))
                 values[0] = Double.parseDouble(attributes.getValue(i));
             else if (attributes.getQName(i).equals("valueY"))

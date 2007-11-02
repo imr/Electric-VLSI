@@ -398,4 +398,25 @@ public class PolySweepMerge extends GeometryHandler
 
         return list;
     }
+
+    /**
+     * To retrieve the roots containing all loops from the internal structure.
+     * @param layer current layer under analysis
+     * @return list of trees with loop hierarchy
+     */
+    public Collection<PolyBase.PolyBaseTree> getTreeObjects(Object layer)
+    {
+        PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+
+        if (container == null) return null;
+
+        List<PolyBase.PolyBaseTree> list = new ArrayList<PolyBase.PolyBaseTree>();
+
+        for (Area area : container.areas)
+        {
+            list.addAll(PolyBase.getPolyTrees(area, (Layer)layer));
+        }
+
+        return list;
+    }
 }

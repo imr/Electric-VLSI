@@ -113,24 +113,6 @@ public abstract class GeometryHandler {
 	}
 
 	/**
-	 * Access to keySet with iterator
-	 * @return iterator for keys in hashmap
-//	 */
-//	public Iterator<Layer> getKeyIterator()
-//	{
-//		return (getKeySet().iterator());
-//	}
-
-	/**
-	 * Iterator among all layers inserted.
-	 * @return an iterator over all layers inserted.
-	 */
-//	public Iterator getIterator()
-//	{
-//		return (layers.values().iterator());
-//	}
-
-	/**
 	 * To retrieve leave elements from internal structure
 	 * @param layer current layer under analysis
 	 * @param modified to avoid retrieving original polygons
@@ -139,6 +121,17 @@ public abstract class GeometryHandler {
 	public Collection<PolyBase> getObjects(Object layer, boolean modified, boolean simple)
     {
         System.out.println("Error: getObjects not implemented for GeometryHandler subclass " + this.getClass().getName());
+        return null;
+    }
+
+    /**
+     * To retrieve the roots containing all loops from the internal structure.
+     * @param layer current layer under analysis
+     * @return list of trees with loop hierarchy
+     */
+    public Collection<PolyBase.PolyBaseTree> getTreeObjects(Object layer)
+    {
+        System.out.println("Error: getTreeObjects not implemented for GeometryHandler subclass " + this.getClass().getName());
         return null;
     }
 
