@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06k: *******************************
 
+BUG: (11/01/07, GVG) Exception after deleting of more than 1 cell in group (Bug #1410)
+FIX: Similar fix to the one for Bug #1170.
+Detecting cases where objects are accessed by Swing but are being modified at the same time.
+
 BUG: (10/31/07, SMR) Saving to a path with spaces in it (such as the Windows desktop)
      may fail.
 FIX: In TextUtils.makeURLToFile() use URLDecoder.decode() on the string.
