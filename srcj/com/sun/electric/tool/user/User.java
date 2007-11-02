@@ -519,6 +519,7 @@ public class User extends Listener
             if (newBackup != oldBackup || newBounds != oldBounds) {
 				if (newBackup == null) continue; // What to do with deleted cells ??
                 Cell cell = Cell.inCurrentThread(cellId);
+                if (cell == null) continue; // This might be a desynchronization between GUI thread and delete???
                 markCellForRedrawRecursively(cell, marked);
 //                VectorDrawing.cellChanged(cell);
                 EditWindow.forceRedraw(cell);
