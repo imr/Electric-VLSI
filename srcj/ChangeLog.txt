@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06l: *******************************
+
 ************************* Version 8.06k: *******************************
 
 BUG: (11/02/07, GVG) DRC minArea issue with well and hierarchies in CMOS90 (Bug #1284)
