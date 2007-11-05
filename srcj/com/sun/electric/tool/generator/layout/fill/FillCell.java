@@ -283,7 +283,8 @@ public class FillCell {
 		LayoutLib.newNodeInst(Tech.essentialBounds(),
 							  cellWidth/2, cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
-		return cell;
+        cell.setCharacteristicSpacing(cellWidth, cellHeight);
+        return cell;
 	}
 	protected FillCell(TechType tech) {
 		this.tech = tech;
