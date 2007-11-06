@@ -86,6 +86,14 @@ public class DRC extends Listener
     private static final int DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
     private static final int DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */
 
+    public enum DRCCheckLogging
+    {
+        DRC_LOG_FLAT(0) /*original strategy*/, DRC_LOG_PER_CELL(1), DRC_LOG_PER_RULE(2);
+        private final int mode; // mode
+        DRCCheckLogging(int i) {mode = i;}
+        public int mode() { return this.mode; }
+    }
+
     /** Control different level of error checking */
     public enum DRCCheckMode
     {
@@ -93,14 +101,10 @@ public class DRC extends Listener
         ERROR_CHECK_CELL (1),       /** DRC stops after first error per cell is found */
         ERROR_CHECK_EXHAUSTIVE (2);  /** DRC checks all combinations */
         private final int mode;   // mode
-        DRCCheckMode(int mode) {
-            this.mode = mode;
-        }
+        DRCCheckMode(int mode) {this.mode = mode;}
         public int mode() { return this.mode; }
         public String toString() {return name();}
     }
-
-    /****************************** DESIGN RULES ******************************/
 
     /****************************** TOOL CONTROL ******************************/
 
@@ -972,7 +976,32 @@ public class DRC extends Listener
 	 */
 	public static void setInteractiveDRCDragOn(boolean on) { cacheInteractiveDRCDragOn.setBoolean(on); }
 
-	private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
+    /** Logging Type **/
+    private static Pref cacheErrorLoggingType = Pref.makeIntPref("ErrorLoggingType", tool.prefs,
+            DRCCheckLogging.DRC_LOG_PER_CELL.mode());
+	/**
+	 * Method to retrieve logging type in DRC
+	 * The default is "DRC_LOG_PER_CELL".
+	 * @return integer representing error type
+	 */
+	public static DRC.DRCCheckLogging getErrorLoggingType()
+    {
+        int val = cacheErrorLoggingType.getInt();
+        for (DRCCheckLogging p : DRCCheckLogging.values())
+        {
+            if (p.mode() == val) return p;
+        }
+        return null;
+    }
+
+	/**
+	 * Method to set DRC logging type.
+	 * @param type representing error logging mode
+	 */
+	public static void setErrorLoggingType(DRC.DRCCheckLogging type) { cacheErrorLoggingType.setInt(type.mode()); }
+
+    /** ErrorLevel **/
+    private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
             DRCCheckMode.ERROR_CHECK_DEFAULT.mode());
 	/**
 	 * Method to retrieve checking level in DRC

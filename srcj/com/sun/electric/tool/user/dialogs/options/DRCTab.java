@@ -64,7 +64,13 @@ public class DRCTab extends PreferencePanel
 			case ERROR_CHECK_CELL: drcErrorCell.setSelected(true);      break;
 			case ERROR_CHECK_EXHAUSTIVE: drcErrorExaustive.setSelected(true);        break;
         }
-		drcIgnoreCenterCuts.setSelected(DRC.isIgnoreCenterCuts());
+        // Setting looging type
+        loggingCombo.removeAllItems();
+        for (DRC.DRCCheckLogging type : DRC.DRCCheckLogging.values())
+             loggingCombo.addItem(type);
+        loggingCombo.setSelectedItem(DRC.getErrorLoggingType());
+
+        drcIgnoreCenterCuts.setSelected(DRC.isIgnoreCenterCuts());
 
         // MinArea rules
 		drcIgnoreArea.setSelected(DRC.isIgnoreAreaChecking());
@@ -109,7 +115,12 @@ public class DRCTab extends PreferencePanel
         else if (drcErrorExaustive.isSelected())
             DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE);
 
-		currentValue = drcIgnoreCenterCuts.isSelected();
+        // Checking the logging type
+        if (loggingCombo.getSelectedItem() != DRC.getErrorLoggingType())
+            DRC.setErrorLoggingType((DRC.DRCCheckLogging)loggingCombo.getSelectedItem());
+        
+        // Checking center cuts
+        currentValue = drcIgnoreCenterCuts.isSelected();
 		if (currentValue != DRC.isIgnoreCenterCuts())
 			DRC.setIgnoreCenterCuts(currentValue);
 
@@ -151,9 +162,12 @@ public class DRCTab extends PreferencePanel
         drcIncrementalOn = new javax.swing.JCheckBox();
         drcInteractiveDrag = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
-        drcErrorCell = new javax.swing.JRadioButton();
-        drcErrorDefault = new javax.swing.JRadioButton();
+        jPanel1 = new javax.swing.JPanel();
         drcErrorExaustive = new javax.swing.JRadioButton();
+        drcErrorDefault = new javax.swing.JRadioButton();
+        drcErrorCell = new javax.swing.JRadioButton();
+        loggingLabel = new javax.swing.JLabel();
+        loggingCombo = new javax.swing.JComboBox();
         jPanel5 = new javax.swing.JPanel();
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
         drcIgnoreExtensionRules = new javax.swing.JCheckBox();
@@ -202,15 +216,18 @@ public class DRCTab extends PreferencePanel
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Hierarchical DRC"));
-        errorTypeGroup.add(drcErrorCell);
-        drcErrorCell.setText("Report just 1 error per cell");
-        drcErrorCell.setAutoscrolls(true);
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Report Type"));
+        errorTypeGroup.add(drcErrorExaustive);
+        drcErrorExaustive.setText("Report all errors");
+        drcErrorExaustive.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel4.add(drcErrorCell, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        jPanel1.add(drcErrorExaustive, gridBagConstraints);
 
         errorTypeGroup.add(drcErrorDefault);
         drcErrorDefault.setSelected(true);
@@ -221,17 +238,45 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel4.add(drcErrorDefault, gridBagConstraints);
+        jPanel1.add(drcErrorDefault, gridBagConstraints);
 
-        errorTypeGroup.add(drcErrorExaustive);
-        drcErrorExaustive.setText("Report all errors");
-        drcErrorExaustive.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        errorTypeGroup.add(drcErrorCell);
+        drcErrorCell.setText("Report just 1 error per cell");
+        drcErrorCell.setAutoscrolls(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel4.add(drcErrorExaustive, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(drcErrorCell, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        jPanel4.add(jPanel1, gridBagConstraints);
+
+        loggingLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        loggingLabel.setText("Logging Type: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(loggingLabel, gridBagConstraints);
+
+        loggingCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        loggingCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loggingComboActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(loggingCombo, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -301,6 +346,10 @@ public class DRCTab extends PreferencePanel
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void loggingComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loggingComboActionPerformed
+// TODO add your handling code here:
+    }//GEN-LAST:event_loggingComboActionPerformed
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -322,9 +371,12 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JCheckBox drcInteractive;
     private javax.swing.JCheckBox drcInteractiveDrag;
     private javax.swing.ButtonGroup errorTypeGroup;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JComboBox loggingCombo;
+    private javax.swing.JLabel loggingLabel;
     // End of variables declaration//GEN-END:variables
 
 }

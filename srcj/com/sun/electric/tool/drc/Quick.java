@@ -4833,7 +4833,9 @@ public class Quick
             return;
 
 		StringBuffer errorMessage = new StringBuffer();
-		int sortLayer = cell.hashCode(); // 0;
+        DRC.DRCCheckLogging loggingType = DRC.getErrorLoggingType();
+        
+        int sortKey = cell.hashCode(); // 0;
 		if (errorType == DRCErrorType.SPACINGERROR || errorType == DRCErrorType.NOTCHERROR || errorType == DRCErrorType.SURROUNDERROR)
 		{
 			// describe spacing width error
@@ -4940,7 +4942,8 @@ public class Quick
 			{
 				errorMessage.append(geom1);
 			}
-			if (layer1 != null) sortLayer = layer1.getIndex();
+            // only when is flat -> use layer index for sorting
+            if (layer1 != null && loggingType == DRC.DRCCheckLogging.DRC_LOG_FLAT) sortKey = layer1.getIndex();
 			errorMessage.append(errorMessagePart2);
 		}
 		if (rule != null && rule.length() > 0) errorMessage.append(" [rule '" + rule + "']");
@@ -4952,10 +4955,22 @@ public class Quick
 			if (geom1 != null) geomList.add(geom1);
 		if (poly2 != null) polyList.add(poly2); else
 			if (geom2 != null) geomList.add(geom2);
-		if (onlyWarning)
-            errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer);
+
+        switch (loggingType)
+        {
+            case DRC_LOG_PER_CELL:
+                errorLogger.setGroupName(sortKey, cell.getName());
+                break;
+            case DRC_LOG_PER_RULE:
+                sortKey = rule.hashCode();
+                errorLogger.setGroupName(sortKey, rule);
+                break;
+        }
+
+        if (onlyWarning)
+            errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
         else
-		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer);
+		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
         // Temporary display of errors.
         if (interactiveLogger)
             Job.getUserInterface().termLogging(errorLogger, false, false);
