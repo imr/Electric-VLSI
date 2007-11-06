@@ -224,19 +224,29 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 	public Object getCurrentlySelectedObject(int i) {
         if (i >= currentSelectedPaths.length) return null;
         TreePath treePath = currentSelectedPaths[i];
+        return getObjectInTreePath(treePath);
+    }
+
+	/**
+	 * Method to get the object stored at a point in the explorer tree.
+	 * @param treePath the TreePath in the explorer.
+	 * @return the object stored there.
+	 */
+	private Object getObjectInTreePath(TreePath treePath)
+	{
         if (treePath == null) return null;
         Object obj = treePath.getLastPathComponent();
         if (obj instanceof DefaultMutableTreeNode)
             return ((DefaultMutableTreeNode)obj).getUserObject();
-        if (obj instanceof EpicAnalysis.EpicTreeNode) {
+        if (obj instanceof EpicAnalysis.EpicTreeNode)
+        {
             Signal sig = EpicAnalysis.getSignal(treePath);
-            if (sig != null)
-                return sig;
+            if (sig != null) return sig;
         }
         return obj;
-    }
+	}
 
-    /**
+	/**
      * Get a list of any libraries current selected.
      * @return list of libraries, or empty list if none selected
      */
@@ -1400,9 +1410,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			TreePath cp = getPathForLocation(x, y);
 			if (cp != null)
 			{
-                Object obj = cp.getLastPathComponent();
-                if (obj instanceof DefaultMutableTreeNode)
-                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
+				Object obj = getObjectInTreePath(cp);
 //                DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
 //                Object obj = node.getUserObject();
 				boolean selected = false;
