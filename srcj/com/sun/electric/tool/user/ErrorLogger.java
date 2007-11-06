@@ -687,7 +687,8 @@ public class ErrorLogger implements Serializable
         buffWriter.println();
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
-        buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
+        buffWriter.println(" <!ELEMENT ErrorLogger (GroupLog|MessageLog|WarningLog)*>");
+        buffWriter.println(" <!ELEMENT GroupLog (MessageLog|WarningLog)*>");
         buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE)* >");
         buffWriter.println(" <!ELEMENT WarningLog ANY >");
         buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
@@ -695,6 +696,9 @@ public class ErrorLogger implements Serializable
         buffWriter.println(" <!ELEMENT ERRORTYPETHICKLINE ANY>");
         buffWriter.println("<!ATTLIST ErrorLogger");
         buffWriter.println("    errorSystem CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST GroupLog");
+        buffWriter.println("    message CDATA #REQUIRED");
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST MessageLog");
         buffWriter.println("    message CDATA #REQUIRED");
@@ -891,6 +895,7 @@ public class ErrorLogger implements Serializable
             private String message = "";
         	private List<ErrorHighlight> highlights;
         	private Set<String> badCellNames = new HashSet<String>();
+            private int theSortLayer = -1, sortGroups = 1; // start from 1 so the errors without group would be all together
 
             XMLHandler()
             {
@@ -915,32 +920,40 @@ public class ErrorLogger implements Serializable
             {
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
+                boolean grpLogBody = qName.equals("GroupLog");
                 if (errorLogBody)
                 {
-                    int sortLayer = 0;
+                    int sortLayer = (theSortLayer==-1) ? 0 : theSortLayer;
                     if (curCell != null) sortLayer = curCell.hashCode();
                     logger.logAnError(message, curCell, sortLayer, highlights);
                     message = "";
                 }
                 else if (warnLogBody)
                 {
-                    int sortLayer = 0;
+                    int sortLayer = (theSortLayer==-1) ? 0 : theSortLayer;;
                     if (curCell != null) sortLayer = curCell.hashCode();
                     logger.logAWarning(message, curCell, sortLayer, highlights);
                     message = "";
+                }
+                else if (grpLogBody)
+                {
+                    theSortLayer = -1; // reset to null again
                 }
             }
 
             public void startElement (String uri, String localName, String qName, Attributes attributes)
             {
                 boolean loggerBody = qName.equals("ErrorLogger");
+                boolean groupBody = qName.equals("GroupLog");
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
                 boolean thickLineTypeBody = qName.equals("ERRORTYPETHICKLINE");
                 boolean thinLineTypeBody = qName.equals("ERRORTYPELINE");
 
-                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !thinLineTypeBody && !thickLineTypeBody) return;
+                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody
+                        && !groupBody
+                        && !thinLineTypeBody && !thickLineTypeBody) return;
 
                 String cellName = null, geomName = null, viewName = null, libraryName = null;
                 EPoint p1 = null, p2 = null;
@@ -992,41 +1005,46 @@ public class ErrorLogger implements Serializable
                     else
                         new Error("Invalid attribute in XMLParser");
                 }
-                View view = View.findView(viewName);
-                curCell = Library.findCellInLibraries(cellName, view, libraryName);
-                if (curCell == null || !curCell.isLinked())
+                if (groupBody)
                 {
-                	if (!badCellNames.contains(cellName))
-                	{
-                		badCellNames.add(cellName);
-                		System.out.println("Cannot find cell: " + cellName);
-                	}
-                	return;
-                }
-                if (errorLogBody)
-                {
-                	highlights = new ArrayList<ErrorHighlight>();
-                }
-                else if (warnLogBody)
-                {
-                    highlights = new ArrayList<ErrorHighlight>();
-                }
-                else if (geoTypeBody)
-                {
-                    Geometric geom = curCell.findNode(geomName);
-                    if (geom == null) // try arc instead
-                        geom = curCell.findArc(geomName);
-                    if (geom != null)
-                        highlights.add(ErrorHighlight.newInstance(null, geom));
-                    else
-                        System.out.println("Invalid geometry " + geomName + " in " + curCell);
-                }
-                else if (thinLineTypeBody || thickLineTypeBody)
-                {
-                    highlights.add(new ErrorHighLine(curCell, p1, p2, thickLineTypeBody));
+                    assert (message != null);
+                    theSortLayer = sortGroups;
+                    logger.setGroupName(sortGroups++, message);
                 }
                 else
-                    new Error("Invalid attribute in XMLParser");
+                {
+                    View view = View.findView(viewName);
+                    curCell = Library.findCellInLibraries(cellName, view, libraryName);
+                    if ((curCell == null || !curCell.isLinked()))
+                    {
+                        if (!badCellNames.contains(cellName))
+                        {
+                            badCellNames.add(cellName);
+                            System.out.println("Cannot find cell: " + cellName);
+                        }
+                        //return;
+                    }
+                    if (errorLogBody || warnLogBody)
+                    {
+                        highlights = new ArrayList<ErrorHighlight>();
+                    }
+                    else if (geoTypeBody)
+                    {
+                        Geometric geom = curCell.findNode(geomName);
+                        if (geom == null) // try arc instead
+                            geom = curCell.findArc(geomName);
+                        if (geom != null)
+                            highlights.add(ErrorHighlight.newInstance(null, geom));
+                        else
+                            System.out.println("Invalid geometry " + geomName + " in " + curCell);
+                    }
+                    else if (thinLineTypeBody || thickLineTypeBody)
+                    {
+                        highlights.add(new ErrorHighLine(curCell, p1, p2, thickLineTypeBody));
+                    }
+                    else
+                        new Error("Invalid attribute in XMLParser");
+                }
             }
 
             public void fatalError(SAXParseException e)

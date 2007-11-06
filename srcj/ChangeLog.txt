@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/05/07, GVG) NPE while reading a XML ErrorLogger without loading a design (Bug #1412)
+FIX: Allowing to read ErrorLogger even if cell is not found.
+
 IMP: (11/05/07, GVG) Add essential bounds/characteristic spacing to fill cells (Bug #1361)
 
 IMP: (11/05/07, GVG) Cleaning min area in tsmc180 technology
