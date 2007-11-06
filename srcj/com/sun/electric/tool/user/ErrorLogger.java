@@ -71,6 +71,18 @@ import org.xml.sax.helpers.DefaultHandler;
 public class ErrorLogger implements Serializable
 {
     /**
+     * Method to replace invalid characters in XML such as > or <
+     * @param message
+     * @return
+     */
+    private static String correctXmlString(String message)
+    {
+        String m = message.replaceAll(">", "&gt;");
+            m = m.replaceAll("<", "&lt;");
+        return m;
+    }
+
+    /**
      * Create a Log of a single message.
      */
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
@@ -109,23 +121,6 @@ public class ErrorLogger implements Serializable
             return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
         }
 
-//        /**
-//         * Method to add "geom" to the error in "errorlist".  Also adds a
-//         * hierarchical traversal path "path" (which is "pathlen" long).
-//         */
-//        private void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
-//        {
-//            highlights.add(new ErrorHighGeom(cell, context, geom, showit));
-//        }
-//
-//        /**
-//         * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
-//         */
-//        private void addLine(EPoint pt1, EPoint pt2, Cell cell, boolean thick)
-//        {
-//            highlights.add(new ErrorHighLine(cell, pt1, pt2, thick));
-//        }
-
         public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
         {
             boolean eh1found = false;
@@ -158,8 +153,7 @@ public class ErrorLogger implements Serializable
             Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
             if (logCell == null) return;
             // replace those characters that XML defines as special such as ">" and "&"
-            String m = message.replaceAll(">", "&gt;");
-            m = m.replaceAll("<", "&lt;");
+            String m = correctXmlString(message);
             msg.append("\t<" + className + " message=\"" + m + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
             for(ErrorHighlight eh : highlights)
@@ -726,14 +720,44 @@ public class ErrorLogger implements Serializable
         buffWriter.println();
         String className = this.getClass().getSimpleName();
         buffWriter.println("<" + className + " errorSystem=\"" + errorSystem + "\">");
-	    for (MessageLog log : allErrors) {
-            log.xmlDescription(buffWriter);
+
+        if (sortKeysToGroupNames != null)
+        {
+            // The keys must be sorted to keep same order as in the original ErrorLogger
+            Set<Integer> set = sortKeysToGroupNames.keySet();
+            List<Integer> sortedInt = new ArrayList<Integer>(set.size());
+            sortedInt.addAll(set); // adding to a list to sort them
+            Collections.sort(sortedInt);
+            for (Integer i : sortedInt)
+            {
+                String groupName = sortKeysToGroupNames.get(i);
+                buffWriter.println("    <GroupLog message=\"" + correctXmlString(groupName) + "\">");
+                // Errors
+                for (MessageLog log : allErrors) {
+                    if (log.getSortKey() == i)
+                        log.xmlDescription(buffWriter);
+                }
+                // Warnings
+                for (WarningLog log : allWarnings) {
+                    if (log.getSortKey() == i)
+                        log.xmlDescription(buffWriter);
+                }
+                buffWriter.println("    </GroupLog>");
+            }
         }
-        // Warnings
-        for (WarningLog log : allWarnings) {
-            log.xmlDescription(buffWriter);
+        else // plain style
+        {
+            // Errors
+            for (MessageLog log : allErrors) {
+                log.xmlDescription(buffWriter);
+            }
+            // Warnings
+            for (WarningLog log : allWarnings) {
+                log.xmlDescription(buffWriter);
+            }
         }
         buffWriter.println("</" + className + ">");
+        buffWriter.close();
     }
 
     /**
@@ -921,18 +945,17 @@ public class ErrorLogger implements Serializable
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean grpLogBody = qName.equals("GroupLog");
-                if (errorLogBody)
+
+                if (errorLogBody || warnLogBody)
                 {
-                    int sortLayer = (theSortLayer==-1) ? 0 : theSortLayer;
-                    if (curCell != null) sortLayer = curCell.hashCode();
-                    logger.logAnError(message, curCell, sortLayer, highlights);
-                    message = "";
-                }
-                else if (warnLogBody)
-                {
-                    int sortLayer = (theSortLayer==-1) ? 0 : theSortLayer;;
-                    if (curCell != null) sortLayer = curCell.hashCode();
-                    logger.logAWarning(message, curCell, sortLayer, highlights);
+                    int sortLayer = 0;
+                    if (theSortLayer != -1) // use the group information from the file
+                       sortLayer = theSortLayer;
+                    else if (curCell != null) sortLayer = curCell.hashCode(); // sort by cell
+                    if (errorLogBody)
+                        logger.logAnError(message, curCell, sortLayer, highlights);
+                    else
+                        logger.logAWarning(message, curCell, sortLayer, highlights);
                     message = "";
                 }
                 else if (grpLogBody)

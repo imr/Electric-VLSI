@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP/MAN: (11/6/07, GVG) ErrorLogger and flat representation (Bug #936).
+XML syntax for ErrorLogger was extended to cluster messages by groups.
+
 BUG: (11/6/07, SMR) Epic signals are not draggable as a group (Bug #1411).
 FIX: In ExplorerTree.java, handle EpicSignals uniformly.
 
