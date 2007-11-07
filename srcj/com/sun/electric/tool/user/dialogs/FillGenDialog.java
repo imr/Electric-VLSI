@@ -95,6 +95,9 @@ public class FillGenDialog extends EDialog {
         topGroup.add(templateButton);
 
         assert(tech != null);
+        // Setting the title
+        setTitle("Fill Cell Generator for '" + tech.getTechName() + "'");
+
         int numMetals = tech.getNumMetals();
         String[] units = new String[] { "lambda", "tracks" };
 

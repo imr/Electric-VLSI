@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG/MAN: (11/07/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
+FIX: Extra submenu added in ToolMenu. The title in the dialog box includes the tech name now.
+
 BUG: (11/07/07, GVG) NPE in FillGenerator if dimensions for cell templates are too small (Bug #1415).
 FIX: Added LayoutLib.error() if cap transistors can't be sized because the cell is too small.
 
