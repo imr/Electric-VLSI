@@ -3396,10 +3396,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * If it is, an error dialog is displayed.
 	 * @param action a description of the intended action (i.e. "delete").
 	 * @param quiet true not to warn the user of the cell being used.
-	 * @return true if this Cell is in use anywhere.
+	 * @param sameCellGroupAlso
+     * @return true if this Cell is in use anywhere.
 	 */
-    public boolean isInUse(String action, boolean quiet) {
-        String parents = isInUse(true);
+    public boolean isInUse(String action, boolean quiet, boolean sameCellGroupAlso) {
+        String parents = isInUse(sameCellGroupAlso);
         if (parents != null) {
             if (!quiet)
                 Job.getUserInterface().showErrorMessage("Cannot " + action + " " + this +

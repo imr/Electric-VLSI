@@ -513,7 +513,7 @@ public class CircuitChanges
 	public static boolean deleteCell(Cell cell, boolean confirm, boolean quiet)
 	{
 		// see if this cell is in use anywhere
-		if (cell.isInUse("delete", quiet)) return false;
+		if (cell.isInUse("delete", quiet, true)) return false;
 
 		// make sure the user really wants to delete the cell
 		if (confirm)

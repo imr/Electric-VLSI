@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP/MAN: (11/06/07, GVG) Delete entire group from Explorer (Bug #1409)
+Code checks whether the entire group can be deleted or not.
+
 IMP/MAN: (11/06/07, GVG) Indexing errors folder (Bug #766).
 ErrorLoggers can now sort errors/warnings per cell, rule or nothing (flat representation).
 Per cell is the default now.

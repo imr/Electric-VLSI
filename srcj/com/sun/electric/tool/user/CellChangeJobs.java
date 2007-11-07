@@ -25,7 +25,6 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -38,11 +37,9 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -51,11 +48,9 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowFrame.CellHistory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,11 +86,11 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// check cell usage once more
-			if (cell.isInUse("delete", false)) return false;
+			if (cell.isInUse("delete", false, true)) return false;
 			cell.kill();
 			return true;
 		}
-	}
+    }
 
 	/**
 	 * This class implement the command to delete a list of cells.
@@ -123,7 +118,7 @@ public class CellChangeJobs
 	            	Cell cell = cellsToDelete.get(i);
 
 	            	// if the cell is in use, defer
-	        		if (cell.isInUse(null, true)) continue;
+	        		if (cell.isInUse(null, true, true)) continue;
 
 	        		// cell not in use: remove it from the list and delete it
 	        		cellsToDelete.remove(i);
@@ -136,7 +131,7 @@ public class CellChangeJobs
 
             // warn about remaining cells that were in use
             for(Cell cell : cellsToDelete)
-        		cell.isInUse("delete", false);
+        		cell.isInUse("delete", false, true);
 
 //            for(Cell cell : cellsToDelete)
 //			{
@@ -187,7 +182,44 @@ public class CellChangeJobs
 		}
 	}
 
-	/**
+    /**
+	 * Class to rename a cell in a new thread.
+	 */
+	public static class DeleteCellGroup extends Job
+	{
+        List<Cell> cells;
+
+        public DeleteCellGroup(Cell.CellGroup group)
+		{
+			super("Delete Cell Group", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            cells = new ArrayList<Cell>();
+            
+            for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
+            {
+                cells.add(it.next());
+            }
+            startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+            for(Cell cell : cells)
+			{
+                // Doesn't check cells in the same group
+			    // check cell usage once more
+			    if (cell.isInUse("delete", false, false))
+                    return false;
+            }
+            // Now real delete
+            for(Cell cell : cells)
+            {
+                cell.kill();
+            }
+			return true;
+		}
+	}
+
+    /**
 	 * Class to rename a cell in a new thread.
 	 */
 	public static class RenameCellGroup extends Job
