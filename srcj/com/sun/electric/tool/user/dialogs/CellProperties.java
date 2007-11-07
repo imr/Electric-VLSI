@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TempPref;
@@ -64,7 +63,6 @@ public class CellProperties extends EDialog
         TempPref inCellLib;
         TempPref useTechEditor;
         TempPref defExpanded;
-        TempPref charX, charY;
         TempPref frameSize;
         TempPref designerName;
         TempPref technologyName;
@@ -79,17 +77,6 @@ public class CellProperties extends EDialog
             inCellLib = TempPref.makeBooleanPref(cell.isInCellLibrary());
             useTechEditor = TempPref.makeBooleanPref(cell.isInTechnologyLibrary());
             defExpanded = TempPref.makeBooleanPref(cell.isWantExpanded());
-
-            // remember the characteristic spacing
-            double cX = 0, cY = 0;
-            Dimension2D spacing = cell.getCharacteristicSpacing();
-            if (spacing != null)
-            {
-                cX = spacing.getWidth();
-                cY = spacing.getHeight();
-            }
-            charX = TempPref.makeDoublePref(cX);
-            charY = TempPref.makeDoublePref(cY);
 
             // remember the frame size
             String fSize = "";
@@ -170,8 +157,6 @@ public class CellProperties extends EDialog
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) libraryPopup.setSelectedIndex(curIndex);
 
-		charXSpacing.getDocument().addDocumentListener(new TextFieldListener(this));
-		charYSpacing.getDocument().addDocumentListener(new TextFieldListener(this));
 		frameDesigner.getDocument().addDocumentListener(new TextFieldListener(this));
 		textCellSize.getDocument().addDocumentListener(new TextFieldListener(this));
 
@@ -261,8 +246,6 @@ public class CellProperties extends EDialog
 		partOfCellLib.setSelected(pcv.inCellLib.getBoolean());
 		useTechEditor.setSelected(pcv.useTechEditor.getBoolean());
 		expandNewInstances.setSelected(pcv.defExpanded.getBoolean());
-		charXSpacing.setText(TextUtils.formatDouble(pcv.charX.getDouble()));
-		charYSpacing.setText(TextUtils.formatDouble(pcv.charY.getDouble()));
 		frameDesigner.setText(pcv.designerName.getString());
 		whichTechnology.setSelectedItem(pcv.technologyName.getString());
 		textCellFont.setSelectedItem(pcv.textCellFont.getString());
@@ -319,8 +302,6 @@ public class CellProperties extends EDialog
         if (pcv == null) return;
 
 		// get current text fields
-		pcv.charX.setDouble(TextUtils.atof(charXSpacing.getText()));
-		pcv.charY.setDouble(TextUtils.atof(charYSpacing.getText()));
 		pcv.designerName.setString(frameDesigner.getText());
 		pcv.textCellSize.setInt(TextUtils.atoi(textCellSize.getText()));
 	}
@@ -383,10 +364,6 @@ public class CellProperties extends EDialog
         useTechEditor = new javax.swing.JCheckBox();
         setUseTechEditor = new javax.swing.JButton();
         clearUseTechEditor = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        charXSpacing = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        charYSpacing = new javax.swing.JTextField();
         libraryPopup = new javax.swing.JComboBox();
         jPanel1 = new javax.swing.JPanel();
         jLabel14 = new javax.swing.JLabel();
@@ -637,39 +614,6 @@ public class CellProperties extends EDialog
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearUseTechEditor, gridBagConstraints);
-
-        jLabel3.setText("Characteristic X Spacing:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(charXSpacing, gridBagConstraints);
-
-        jLabel4.setText("Characteristic Y Spacing:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel4, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(charYSpacing, gridBagConstraints);
 
         libraryPopup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1125,10 +1069,6 @@ public class CellProperties extends EDialog
 		List<Boolean> useTechEditorFactory = new ArrayList<Boolean>();
 		List<Boolean> defExpanded = new ArrayList<Boolean>();
 		List<Boolean> defExpandedFactory = new ArrayList<Boolean>();
-		List<Double> charX = new ArrayList<Double>();
-		List<Double> charXFactory = new ArrayList<Double>();
-		List<Double> charY = new ArrayList<Double>();
-		List<Double> charYFactory = new ArrayList<Double>();
 		List<String> frameSize = new ArrayList<String>();
 		List<String> frameSizeFactory = new ArrayList<String>();
 		List<String> designerName = new ArrayList<String>();
@@ -1156,11 +1096,6 @@ public class CellProperties extends EDialog
 			defExpanded.add(new Boolean(pcv.defExpanded.getBoolean()));
 			defExpandedFactory.add(new Boolean(pcv.defExpanded.getBooleanFactoryValue()));
 
-			charX.add(new Double(pcv.charX.getDouble()));
-			charXFactory.add((Double)pcv.charX.getFactoryValue());
-			charY.add(new Double(pcv.charY.getDouble()));
-			charYFactory.add((Double)pcv.charY.getFactoryValue());
-
 			frameSize.add(pcv.frameSize.getString());
 			frameSizeFactory.add((String)pcv.frameSize.getFactoryValue());
 			String dn = pcv.designerName.getString();
@@ -1187,8 +1122,6 @@ public class CellProperties extends EDialog
 			inCellLib, inCellLibFactory,
 			useTechEditor, useTechEditorFactory,
 			defExpanded, defExpandedFactory,
-			charX, charXFactory,
-			charY, charYFactory,
 			frameSize, frameSizeFactory,
 			designerName, designerNameFactory,
 			technologyName, technologyNameFactory,
@@ -1208,8 +1141,6 @@ public class CellProperties extends EDialog
 		private List<Boolean> inCellLib, inCellLibFactory;
 		private List<Boolean> useTechEditor, useTechEditorFactory;
 		private List<Boolean> defExpanded, defExpandedFactory;
-		private List<Double> charX, charXFactory;
-		private List<Double> charY, charYFactory;
 		private List<String> frameSize, frameSizeFactory;
 		private List<String> designerName, designerNameFactory;
 		private List<String> technologyName, technologyNameFactory;
@@ -1223,8 +1154,6 @@ public class CellProperties extends EDialog
 			List<Boolean> inCellLib,     List<Boolean> inCellLibFactory,
 			List<Boolean> useTechEditor, List<Boolean> useTechEditorFactory,
 			List<Boolean> defExpanded,   List<Boolean> defExpandedFactory,
-			List<Double> charX,          List<Double> charXFactory,
-			List<Double> charY,          List<Double> charYFactory,
 			List<String> frameSize,      List<String> frameSizeFactory,
 			List<String> designerName,   List<String> designerNameFactory,
 			List<String> technologyName, List<String> technologyNameFactory,
@@ -1238,8 +1167,6 @@ public class CellProperties extends EDialog
 			this.inCellLib = inCellLib;            this.inCellLibFactory = inCellLibFactory;
 			this.useTechEditor = useTechEditor;    this.useTechEditorFactory = useTechEditorFactory;
 			this.defExpanded = defExpanded;        this.defExpandedFactory = defExpandedFactory;
-			this.charX = charX;                    this.charXFactory = charXFactory;
-			this.charY = charY;                    this.charYFactory = charYFactory;
 			this.frameSize = frameSize;            this.frameSizeFactory = frameSizeFactory;
 			this.designerName = designerName;      this.designerNameFactory = designerNameFactory;
 			this.technologyName = technologyName;  this.technologyNameFactory = technologyNameFactory;
@@ -1272,11 +1199,6 @@ public class CellProperties extends EDialog
 				if (defExpanded.get(i).booleanValue() != defExpandedFactory.get(i).booleanValue())
 				{
 					if (defExpanded.get(i).booleanValue()) cell.setWantExpanded(); else cell.clearWantExpanded();
-				}
-				if (charX.get(i).doubleValue() != charXFactory.get(i).doubleValue() ||
-					charY.get(i).doubleValue() != charYFactory.get(i).doubleValue())
-				{
-					cell.setCharacteristicSpacing(charX.get(i).doubleValue(), charY.get(i).doubleValue());
 				}
 				if (!frameSize.get(i).equals(frameSizeFactory.get(i)))
 				{
@@ -1314,8 +1236,6 @@ public class CellProperties extends EDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
     private javax.swing.JScrollPane cellPane;
-    private javax.swing.JTextField charXSpacing;
-    private javax.swing.JTextField charYSpacing;
     private javax.swing.JButton clearDisallowModAnyInCell;
     private javax.swing.JButton clearDisallowModInstInCell;
     private javax.swing.JButton clearExpandNewInstances;
@@ -1334,8 +1254,6 @@ public class CellProperties extends EDialog
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;

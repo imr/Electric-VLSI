@@ -1257,26 +1257,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return a dimension that is the characteristic spacing for this cell.
 	 * Returns null if there is no spacing defined.
 	 */
-	public Dimension2D getCharacteristicSpacing()
-	{
-		Variable var = getVar(CHARACTERISTIC_SPACING);
-		if (var != null)
-		{
-			Object obj = var.getObject();
-			if (obj instanceof Integer[])
-			{
-				Integer [] iSpac = (Integer [])obj;
-				Dimension2D spacing = new Dimension2D.Double(iSpac[0].intValue(), iSpac[1].intValue());
-				return spacing;
-			} else if (obj instanceof Double[])
-			{
-				Double [] dSpac = (Double [])obj;
-				Dimension2D spacing = new Dimension2D.Double(dSpac[0].doubleValue(), dSpac[1].doubleValue());
-				return spacing;
-			}
-		}
-		return null;
-	}
+//	public Dimension2D getCharacteristicSpacing()
+//	{
+//		Variable var = getVar(CHARACTERISTIC_SPACING);
+//		if (var != null)
+//		{
+//			Object obj = var.getObject();
+//			if (obj instanceof Integer[])
+//			{
+//				Integer [] iSpac = (Integer [])obj;
+//				Dimension2D spacing = new Dimension2D.Double(iSpac[0].intValue(), iSpac[1].intValue());
+//				return spacing;
+//			} else if (obj instanceof Double[])
+//			{
+//				Double [] dSpac = (Double [])obj;
+//				Dimension2D spacing = new Dimension2D.Double(dSpac[0].doubleValue(), dSpac[1].doubleValue());
+//				return spacing;
+//			}
+//		}
+//		return null;
+//	}
 
 	/**
 	 * Method to set the characteristic spacing for this Cell.
@@ -1284,13 +1284,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param x the characteristic width.
 	 * @param y the characteristic height.
 	 */
-	public void setCharacteristicSpacing(double x, double y)
-	{
-		Double [] newVals = new Double[2];
-		newVals[0] = new Double(x);
-		newVals[1] = new Double(y);
-		newVar(CHARACTERISTIC_SPACING, newVals);
-	}
+//	public void setCharacteristicSpacing(double x, double y)
+//	{
+//		Double [] newVals = new Double[2];
+//		newVals[0] = new Double(x);
+//		newVals[1] = new Double(y);
+//		newVar(CHARACTERISTIC_SPACING, newVals);
+//	}
 
 	/**
 	 * Method to indicate that the bounds of this Cell are incorrect because

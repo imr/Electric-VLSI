@@ -65,7 +65,7 @@ public class Array extends EDialog
 {
 	/** Space by edge overlap. */				private static final int SPACING_EDGE = 1;
 	/** Space by centerline distance. */		private static final int SPACING_CENTER = 2;
-	/** Space by characteristic distance. */	private static final int SPACING_CHARACTERISTIC = 3;
+	/** Space by characteristic distance. */	private static final int SPACING_ESSENTIALBND = 3;
 	/** Space by measured distance. */			private static final int SPACING_MEASURED = 4;
 
 	private static int lastXRepeat = 1, lastYRepeat = 1;
@@ -77,7 +77,7 @@ public class Array extends EDialog
 	private static int lastSpacingType = SPACING_EDGE;
 	/** amount when spacing by edge overlap */				private double spacingOverX, spacingOverY;
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
-	/** amount when spacing by characteristic distance */	private double spacingCharacteristicX, spacingCharacteristicY;
+	/** amount when spacing by characteristic distance */	private double essentialBndX, essentialBndY;
 	/** amount when spacing by measured distance */			private double spacingMeasuredX, spacingMeasuredY;
 	/** the selected objects to be arrayed */				private HashMap<Geometric,Geometric> selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
@@ -143,7 +143,7 @@ public class Array extends EDialog
 		transposePlacement.setSelected(lastTranspose);
 
 		// see if a cell was selected which has a characteristic distance
-		spacingCharacteristicX = spacingCharacteristicY = 0;
+		essentialBndX = essentialBndY = 0;
 		boolean haveChar = false;
 		for(Geometric eObj : highs)
 		{
@@ -151,8 +151,9 @@ public class Array extends EDialog
 			NodeInst ni = (NodeInst)eObj;
 			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
-			Dimension2D spacing = subCell.getCharacteristicSpacing();
-			if (spacing == null) continue;
+//			Dimension2D spacing = subCell.getCharacteristicSpacing();
+            Rectangle2D spacing = subCell.findEssentialBounds();
+            if (spacing == null) continue;
 			double thisDistX = spacing.getWidth();
 			double thisDistY = spacing.getHeight();
 			if (ni.isMirroredAboutXAxis() ^ ni.isMirroredAboutYAxis())
@@ -161,27 +162,27 @@ public class Array extends EDialog
 			}
 			if (haveChar)
 			{
-				if (spacingCharacteristicX != thisDistX || spacingCharacteristicY != thisDistY)
+				if (essentialBndX != thisDistX || essentialBndY != thisDistY)
 				{
 					haveChar = false;
 					break;
 				}
 			}
-			spacingCharacteristicX = thisDistX;
-			spacingCharacteristicY = thisDistY;
+			essentialBndX = thisDistX;
+			essentialBndY = thisDistY;
 			haveChar = true;
 		}
-		spaceByCharacteristicSpacing.setEnabled(haveChar);
+		spaceByEssentialBnd.setEnabled(haveChar);
 		if (haveChar)
 		{
-			if (lastSpacingType == SPACING_CHARACTERISTIC)
+			if (lastSpacingType == SPACING_ESSENTIALBND)
 			{
-				lastXDistance = spacingCharacteristicX;
-				lastYDistance = spacingCharacteristicY;
+				lastXDistance = essentialBndX;
+				lastYDistance = essentialBndY;
 			}
 		} else
 		{
-			if (lastSpacingType == SPACING_CHARACTERISTIC)
+			if (lastSpacingType == SPACING_ESSENTIALBND)
 			{
 				lastSpacingType = SPACING_EDGE;
 				lastXDistance = lastYDistance = 0;
@@ -217,7 +218,7 @@ public class Array extends EDialog
 		{
 			case SPACING_EDGE:           spaceByEdgeOverlap.setSelected(true);             break;
 			case SPACING_CENTER:         spaceByCenterlineDistance.setSelected(true);      break;
-			case SPACING_CHARACTERISTIC: spaceByCharacteristicSpacing.setSelected(true);   break;
+			case SPACING_ESSENTIALBND: spaceByEssentialBnd.setSelected(true);   break;
 			case SPACING_MEASURED:       spaceByMeasuredDistance.setSelected(true);        break;
 		}
 		if (lastSpacingType == SPACING_EDGE)
@@ -273,7 +274,7 @@ public class Array extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
 		});
-		spaceByCharacteristicSpacing.addActionListener(new ActionListener()
+		spaceByEssentialBnd.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
 		});
@@ -298,7 +299,7 @@ public class Array extends EDialog
 		}
 		if (spaceByEdgeOverlap.isSelected()) lastSpacingType = SPACING_EDGE; else
 		if (spaceByCenterlineDistance.isSelected()) lastSpacingType = SPACING_CENTER; else
-		if (spaceByCharacteristicSpacing.isSelected()) lastSpacingType = SPACING_CHARACTERISTIC; else
+		if (spaceByEssentialBnd.isSelected()) lastSpacingType = SPACING_ESSENTIALBND; else
 		if (spaceByMeasuredDistance.isSelected()) lastSpacingType = SPACING_MEASURED;
 		if (lastSpacingType == SPACING_EDGE)
 		{
@@ -313,7 +314,7 @@ public class Array extends EDialog
 		{
 			case SPACING_EDGE:            x = spacingOverX;             y = spacingOverY;             break;
 			case SPACING_CENTER:          x = spacingCenterlineX;       y = spacingCenterlineY;       break;
-			case SPACING_CHARACTERISTIC:  x = spacingCharacteristicX;   y = spacingCharacteristicY;   break;
+			case SPACING_ESSENTIALBND:  x = essentialBndX;   y = essentialBndY;   break;
 			case SPACING_MEASURED:        x = spacingMeasuredX;         y = spacingMeasuredY;         break;
 		}
 		xSpacing.setText(TextUtils.formatDouble(x));
@@ -662,8 +663,8 @@ public class Array extends EDialog
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         spacing = new javax.swing.ButtonGroup();
@@ -686,7 +687,7 @@ public class Array extends EDialog
         spaceByCenterlineDistance = new javax.swing.JRadioButton();
         yOverlapLabel = new javax.swing.JLabel();
         ySpacing = new javax.swing.JTextField();
-        spaceByCharacteristicSpacing = new javax.swing.JRadioButton();
+        spaceByEssentialBnd = new javax.swing.JRadioButton();
         spaceByMeasuredDistance = new javax.swing.JRadioButton();
         linearDiagonalArray = new javax.swing.JCheckBox();
         generateArrayIndices = new javax.swing.JCheckBox();
@@ -697,19 +698,15 @@ public class Array extends EDialog
 
         setTitle("Array");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancel(evt);
             }
         });
@@ -723,10 +720,8 @@ public class Array extends EDialog
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ok.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ok(evt);
             }
         });
@@ -855,8 +850,8 @@ public class Array extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(xSpacing, gridBagConstraints);
 
-        spaceByEdgeOverlap.setText("Space by edge overlap");
         spacing.add(spaceByEdgeOverlap);
+        spaceByEdgeOverlap.setText("Space by edge overlap");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
@@ -864,8 +859,8 @@ public class Array extends EDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(spaceByEdgeOverlap, gridBagConstraints);
 
-        spaceByCenterlineDistance.setText("Space by centerline distance");
         spacing.add(spaceByCenterlineDistance);
+        spaceByCenterlineDistance.setText("Space by centerline distance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
@@ -891,17 +886,17 @@ public class Array extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ySpacing, gridBagConstraints);
 
-        spaceByCharacteristicSpacing.setText("Space by characteristic spacing");
-        spacing.add(spaceByCharacteristicSpacing);
+        spacing.add(spaceByEssentialBnd);
+        spaceByEssentialBnd.setText("Space by cell essential bound");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(spaceByCharacteristicSpacing, gridBagConstraints);
+        getContentPane().add(spaceByEssentialBnd, gridBagConstraints);
 
-        spaceByMeasuredDistance.setText("Space by last measured distance");
         spacing.add(spaceByMeasuredDistance);
+        spaceByMeasuredDistance.setText("Space by last measured distance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
@@ -932,8 +927,8 @@ public class Array extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(onlyDRCCorrect, gridBagConstraints);
 
         transposePlacement.setText("Transpose placement ordering");
@@ -941,12 +936,12 @@ public class Array extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         getContentPane().add(transposePlacement, gridBagConstraints);
 
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
 	{//GEN-HEADEREND:event_cancel
@@ -982,8 +977,8 @@ public class Array extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox onlyDRCCorrect;
     private javax.swing.JRadioButton spaceByCenterlineDistance;
-    private javax.swing.JRadioButton spaceByCharacteristicSpacing;
     private javax.swing.JRadioButton spaceByEdgeOverlap;
+    private javax.swing.JRadioButton spaceByEssentialBnd;
     private javax.swing.JRadioButton spaceByMeasuredDistance;
     private javax.swing.ButtonGroup spacing;
     private javax.swing.JCheckBox staggerAlternateColumns;
