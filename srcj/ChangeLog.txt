@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/7/07, SMR) Changing nodes with arcs doesn't work right (Bug #1416).
+FIX: Now attach contacts better and set their sizes properly.
+
 IMP/MAN: (11/07/07, GVG) Remove notion of CS in cells and allow EBs to drive array command (Bug #1413).
 Cell properties dialog was modified as well.
 

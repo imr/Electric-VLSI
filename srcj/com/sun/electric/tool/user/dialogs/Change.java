@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -1017,9 +1018,9 @@ public class Change extends EModelessDialog implements HighlightListener
 			for(NodeInst ni : dupPins)
 			{
 				// TODO this used to provide the node name (ni.getName()) in the 2nd to last argument
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, Orientation.IDENT, null, 0);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
 				if (newNi == null) return;
-				geomMarked.remove(newNi);
+//				geomMarked.remove(newNi);
 				newNodes.put(ni, newNi);
 
 				// move exports
@@ -1039,26 +1040,22 @@ public class Change extends EModelessDialog implements HighlightListener
 			{
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
-				NodeInst ni0 = ai.getHeadPortInst().getNodeInst();
 				PortInst pi0 = null;
-				NodeInst newNi0 = newNodes.get(ni0);
+				NodeInst newNi0 = newNodes.get(ai.getHeadPortInst().getNodeInst());
 				if (newNi0 != null)
 				{
-					ni0 = newNi0;
-					pi0 = ni0.getOnlyPortInst();
+					pi0 = newNi0.getOnlyPortInst();
 				} else
 				{
 					// need contacts to get to the right level
 					pi0 = makeContactStack(ai, ArcInst.HEADEND, ap);
 					if (pi0 == null) return;
 				}
-				NodeInst ni1 = ai.getTailPortInst().getNodeInst();
 				PortInst pi1 = null;
-				NodeInst newNi1 = newNodes.get(ni1);
+				NodeInst newNi1 = newNodes.get(ai.getTailPortInst().getNodeInst());
 				if (newNi1 != null)
 				{
-					ni1 = newNi1;
-					pi1 = ni1.getOnlyPortInst();
+					pi1 = newNi1.getOnlyPortInst();
 				} else
 				{
 					// need contacts to get to the right level
@@ -1088,11 +1085,11 @@ public class Change extends EModelessDialog implements HighlightListener
 			// delete old pins and copy their names to the new ones
 			for(NodeInst ni : dupPins)
 			{
-				NodeInst newNi = newNodes.get(ni);
 				if (!ni.hasExports())
 				{
 					String niName = ni.getName();
 					ni.kill();
+					NodeInst newNi = newNodes.get(ni);
 					newNi.setName(niName);
 				}
 			}
@@ -1110,28 +1107,32 @@ public class Change extends EModelessDialog implements HighlightListener
 		{
 			NodeInst lastNi = ai.getPortInst(end).getNodeInst();
 			PortProto lastPp = ai.getPortInst(end).getPortProto();
+			PortInst lastPi = lastNi.findPortInstFromProto(lastPp);
 			Set<ArcProto> markedArcs = new HashSet<ArcProto>();
 			int depth = findPathToArc(lastPp, ap, 0, markedArcs);
 			if (depth < 0) return null;
 
 			// create the contacts
 			Cell cell = ai.getParent();
-			PortInst retPi = lastNi.findPortInstFromProto(lastPp);
 			Point2D center = ai.getLocation(end);
 			for(int i=0; i<depth; i++)
 			{
+				ArcProto typ = contactStackArc[i];
+				double wid = ai.getLambdaBaseWidth();
 				double xS = contactStack[i].getDefWidth();
 				double yS = contactStack[i].getDefHeight();
+				SizeOffset so = contactStack[i].getProtoSizeOffset();
+				xS = Math.max(xS - so.getLowXOffset() - so.getHighXOffset(), wid) + so.getLowXOffset() + so.getHighXOffset();
+				yS = Math.max(yS - so.getLowYOffset() - so.getHighYOffset(), wid) + so.getLowYOffset() + so.getHighYOffset();
 				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, cell);
 				if (newNi == null) return null;
 				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
-
-				ArcProto typ = contactStackArc[i];
-				ArcInst newAi = ArcInst.makeInstance(typ, thisPi, retPi);
-				retPi = thisPi;
+				ArcInst newAi = ArcInst.newInstanceBase(typ, wid, thisPi, lastPi, center, center, null, ai.getAngle());
+				lastPi = thisPi;
 				if (newAi == null) return null;
+				newAi.setFixedAngle(true);
 			}
-			return retPi;
+			return lastPi;
 		}
 
 		/**
