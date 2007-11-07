@@ -87,7 +87,10 @@ class CapCellMosis extends CapCell{
 			double numMosD = availForCap /
 							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS);
 			numMosX = (int) Math.ceil(numMosD);
-			double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_NDM1 - 2*SEL_TO_MOS;
+
+            LayoutLib.error((numMosX < 1), "not enough space for cap cell. Increase template size.");
+
+            double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_NDM1 - 2*SEL_TO_MOS;
 			// round down mos Width to integral number of lambdas
 			gateWidth = Math.floor(mosWidth1);
 			mosPitchX = gateWidth + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS;

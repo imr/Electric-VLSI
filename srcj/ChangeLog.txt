@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/07/07, GVG) NPE in FillGenerator if dimensions for cell templates are too small (Bug #1415).
+FIX: Added LayoutLib.error() if cap transistors can't be sized because the cell is too small.
+
 BUG: (11/7/07, SMR) Changing nodes with arcs doesn't work right (Bug #1416).
 FIX: Now attach contacts better and set their sizes properly.
 
