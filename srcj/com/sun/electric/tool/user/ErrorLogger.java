@@ -663,7 +663,7 @@ public class ErrorLogger implements Serializable
         return removed;
     }
 
-     public void save(String filePath)
+     public void exportErrorLogger(String filePath)
     {
          PrintStream buffWriter = null;
          try

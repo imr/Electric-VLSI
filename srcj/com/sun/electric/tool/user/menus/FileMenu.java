@@ -73,13 +73,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
@@ -164,7 +158,9 @@ public class FileMenu {
                 new EMenuItem("_Preferences...") { public void run() {
                     Job.getUserInterface().importPrefs(); }},
                 new EMenuItem("Project Settings...") { public void run() {
-                    ProjSettings.importSettings(); }}
+                    ProjSettings.importSettings(); }},
+                new EMenuItem("XML Error Logger...") { public void run() {
+                    ErrorLoggerTree.importLogger(); }}
             ),
 
             SEPARATOR,

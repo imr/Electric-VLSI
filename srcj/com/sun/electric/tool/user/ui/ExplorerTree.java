@@ -1882,9 +1882,9 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.deleteAllLoggers(); } });
 
-                    menuItem = new JMenuItem("Load Logger");
+                    menuItem = new JMenuItem("Import Logger");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.load(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.importLogger(); } });
 
                     menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                     return;

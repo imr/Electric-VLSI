@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP/MAN: (11/08/07, GVG) Need menu item to import saved drc errors (Bug #1420).
+Implemented by adding import option in File -> Import -> XML Error Logger.
+
 IMP: (11/8/07, SMR) Added methods to NodeInst and Technology to find the "alternate"
      gate port on a transistor.
 

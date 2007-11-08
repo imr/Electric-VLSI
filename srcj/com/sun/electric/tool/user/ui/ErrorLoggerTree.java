@@ -353,14 +353,16 @@ public class ErrorLoggerTree {
         m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
-	    m = new JMenuItem("Save"); m.addActionListener(log); p.add(m);
+	    m = new JMenuItem("Export"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
         return p;
     }
 
-    public static void load()
+    public static void importLogger()
     {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
+        if (fileName == null) return; // nothing to load 
+
         try {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
             ErrorLogger logger = parser.process(TextUtils.makeURLToFile(fileName), true);
@@ -484,14 +486,14 @@ public class ErrorLoggerTree {
                 	}
                 	if (!removedStuff)
                 		removeLogger(index);
-                } else if (m.getText().equals("Save"))
+                } else if (m.getText().equals("Export"))
                 {
                     String filePath = null;
                     try
                     {
                         filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
                         if (filePath == null) return; // cancel operation
-                        logger.save(filePath);
+                        logger.exportErrorLogger(filePath);
                     } catch (Exception se)
                     {
                         System.out.println("Error creating " + filePath);
