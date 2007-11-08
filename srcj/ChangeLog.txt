@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/08/07, GVG) DRC reports false layer surround errors (Bug #1421)
+FIX: Removed rule for tsmc180.
+
 IMP/MAN: (11/08/07, GVG) Need menu item to import saved drc errors (Bug #1420).
 Implemented by adding import option in File -> Import -> XML Error Logger.
 
