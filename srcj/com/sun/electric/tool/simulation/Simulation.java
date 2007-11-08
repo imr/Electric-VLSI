@@ -1633,8 +1633,16 @@ public class Simulation extends Tool
     public static Pref cacheParasiticsIgnoreExemptedNets = Pref.makeBooleanPref("IgnoreExemptedNets", tool.prefs, true);
     public static boolean isParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBoolean(); }
     public static void setParasiticsIgnoreExemptedNets(boolean b) { cacheParasiticsIgnoreExemptedNets.setBoolean(b); }
-    
-	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
+
+    public static Pref cacheParasiticsExtractsR = Pref.makeBooleanPref("ParasiticsExtractsR", tool.prefs, true);
+    public static boolean isParasiticsExtractsR() { return cacheParasiticsExtractsR.getBoolean(); }
+    public static void setParasiticsExtractsR(boolean b) { cacheParasiticsExtractsR.setBoolean(b); }
+
+    public static Pref cacheParasiticsExtractsC = Pref.makeBooleanPref("ParasiticsExtractsC", tool.prefs, true);
+    public static boolean isParasiticsExtractsC() { return cacheParasiticsExtractsC.getBoolean(); }
+    public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
+
+    private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
 //    static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
 	/**
 	 * Method to tell whether or not to use node names in Spice output.
