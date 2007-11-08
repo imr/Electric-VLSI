@@ -514,40 +514,10 @@ public class Spice extends Topology
                 ArcInst ai = ait.next();
                 boolean ignoreArc = false;
 
-                // figure out res and cap, see if we should ignore it
-                if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
-                    ignoreArc = true;
-                double length = ai.getLambdaLength() * scale / 1000;      // length in microns
-                double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
-                double area = length * width;
-                double fringe = length*2;
                 double cap = 0;
                 double res = 0;
 
-                Technology tech = ai.getProto().getTechnology();
-                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-                int tot = arcInstPolyList.length;
-                for(int j=0; j<tot; j++)
-                {
-                    Poly poly = arcInstPolyList[j];
-                    if (poly.getStyle().isText()) continue;
-
-                    if (poly.isPseudoLayer()) continue;
-                    Layer layer = poly.getLayer();
-                    if (layer.getTechnology() != layoutTechnology) continue;
-
-                    if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
-                        double areacap = area * layer.getCapacitance();
-                        double fringecap = fringe * layer.getEdgeCapacitance();
-                        cap = areacap + fringecap;
-                        res = length/width * layer.getResistance();
-                    }
-                }
-                // add res if big enough
-                if (res <= cell.getTechnology().getMinResistance()) {
-                    ignoreArc = true;
-                }
-
+                boolean extractNet = true;
                 if (Simulation.isParasiticsUseExemptedNetsFile()) {
                     Network net = netList.getNetwork(ai, 0);
                     // ignore nets in exempted nets file
@@ -555,6 +525,7 @@ public class Spice extends Topology
                         // check if this net is exempted
                         if (exemptedNets.isExempted(info.getNetID(net))) {
                             ignoreArc = true;
+                            extractNet = false;
                             cap = 0;
                             if (!exemptedNetsFound.containsKey(net)) {
                                 System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
@@ -564,14 +535,52 @@ public class Spice extends Topology
                         }
                     // extract only nets in exempted nets file
                     } else {
-                        if (exemptedNets.isExempted(info.getNetID(net)) && ignoreArc == false) {
+                        if (exemptedNets.isExempted(info.getNetID(net))) {
                             if (!exemptedNetsFound.containsKey(net)) {
                                 System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
                                 exemptedNetsFound.put(net, net);
+                                extractNet = true;
                             }
                         } else {
                             ignoreArc = true;
+                            extractNet = false;
                         }
+                    }
+                }
+
+                if (extractNet) {
+                    // figure out res and cap, see if we should ignore it
+                    if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
+                        ignoreArc = true;
+                    double length = ai.getLambdaLength() * scale / 1000;      // length in microns
+                    double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
+    //                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
+                    double area = length * width;
+                    double fringe = length*2;
+
+                    Technology tech = ai.getProto().getTechnology();
+                    Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+                    int tot = arcInstPolyList.length;
+                    for(int j=0; j<tot; j++)
+                    {
+                        Poly poly = arcInstPolyList[j];
+                        if (poly.getStyle().isText()) continue;
+
+                        if (poly.isPseudoLayer()) continue;
+                        Layer layer = poly.getLayer();
+                        if (layer.getTechnology() != layoutTechnology) continue;
+    //                    if (layer.isPseudoLayer()) continue;
+
+                        if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
+                            double areacap = area * layer.getCapacitance();
+                            double fringecap = fringe * layer.getEdgeCapacitance();
+                            cap = areacap + fringecap;
+                            res = length/width * layer.getResistance();
+                        }
+                    }
+                    // add res if big enough
+                    if (res <= cell.getTechnology().getMinResistance()) {
+                        ignoreArc = true;
                     }
                 }
 
@@ -942,9 +951,8 @@ public class Spice extends Topology
 					else
 						net = netList.getNetwork(no, pp, exportIndex);
 					CellSignal cs = cni.getCellSignal(net);
-
-					// special case for parasitic extraction
-                    if (useParasitics && !cs.isGlobal()) {
+                    // special case for parasitic extraction
+                    if (useParasitics && !cs.isGlobal() && getSegmentedNets((Cell)no.getProto()) != null) {
                         // connect to all exports (except power and ground of subcell net)
                         SegmentedNets subSegmentedNets = getSegmentedNets((Cell)no.getProto());
                         Network subNet = subCS.getNetwork();
@@ -1035,7 +1043,7 @@ public class Spice extends Topology
                                 Object obj = context.evalSpice(resistVar, false);
                                 extra = String.valueOf(obj);
                             } else {
-                                extra = resistVar.describe(context, ni);                                
+                                extra = resistVar.describe(context, ni);
                             }
                         }
                         if (extra == "")
@@ -2375,7 +2383,7 @@ public class Spice extends Topology
                     continue;
                 }
                 // get the global ID
-                System.out.println("Specified exemption of net "+cell.describe(false)+"  "+netName);
+                System.out.println("exemptedNets: specified net "+cell.describe(false)+" "+netName);
                 int netID = info.getNetID(net);
                 exemptedNetIDs.add(new Integer(netID));
             }
@@ -2519,7 +2527,7 @@ public class Spice extends Topology
             }
             return true;
         }
-        
+
         return false;
     }
 
@@ -2538,7 +2546,7 @@ public class Spice extends Topology
                 Nodable no = info.getParentInst();
                 String parameterizedName = info.getCell().getName();
                 if (no != null && parentInfo != null) {
-                    parameterizedName = parameterizedName(no, parentInfo.getContext());                        
+                    parameterizedName = parameterizedName(no, parentInfo.getContext());
                 }
                 CellNetInfo cni = getCellNetInfo(parameterizedName);
                 SpiceSubckt subckt = reader.getSubckt(parameterizedName);
@@ -2570,7 +2578,7 @@ public class Spice extends Topology
                     }
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("Error validating included file: "+e.getMessage());
+                System.out.println("Error validating included file for cell "+info.getCell().describe(true)+": "+e.getMessage());
             }
         }
     }
