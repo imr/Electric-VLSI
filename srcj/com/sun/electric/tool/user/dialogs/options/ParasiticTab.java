@@ -92,8 +92,8 @@ public class ParasiticTab extends PreferencePanel {
         b = useExemptedNetsFile.isSelected();
         if (b != Simulation.isParasiticsUseExemptedNetsFile()) Simulation.setParasiticsUseExemptedNetsFile(b);
         b = ignoreExemptedNets.isSelected();
-        if (b != Simulation.isParasiticsIgnoreExemptedNets()) Simulation.setParasiticsIgnoreExemptedNets(b);
-	}
+            Simulation.setParasiticsIgnoreExemptedNets(b);
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
