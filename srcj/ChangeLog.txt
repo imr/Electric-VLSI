@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP: (11/8/07, SMR) Added methods to NodeInst and Technology to find the "alternate"
+     gate port on a transistor.
+
 BUG/MAN: (11/07/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
 FIX: Extra submenu added in ToolMenu. The title in the dialog box includes the tech name now.
 

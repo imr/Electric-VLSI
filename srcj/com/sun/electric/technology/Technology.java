@@ -2327,6 +2327,22 @@ public class Technology implements Comparable<Technology>
      */
 	public PortInst getTransistorGatePort(NodeInst ni) { return ni.getPortInst(0); }
     /**
+     * Method to return the other gate PortInst for this transistor NodeInst.
+     * Only useful for layout transistors that have two gate ports.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling
+     * NodeInst.getTransistorGatePort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the alternate gate of the transistor
+     */
+	public PortInst getTransistorAltGatePort(NodeInst ni)
+	{
+		if (ni.getProto().getTechnology() == Schematics.tech) return ni.getPortInst(0);
+		return ni.getPortInst(2);
+	}
+
+	/**
      * Method to return a base PortInst for this transistor NodeInst.
      * @param ni the NodeInst
      * @return a PortInst for the base of the transistor

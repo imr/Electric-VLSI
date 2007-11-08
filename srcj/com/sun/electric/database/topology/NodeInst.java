@@ -2991,6 +2991,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
+     * Method to return the alternate gate PortInst for this transistor NodeInst.
+     * Only useful for layout transistors that have two gate ports.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.
+     * @return a PortInst for the alternate gate of the transistor
+     */
+    public PortInst getTransistorAltGatePort()
+    {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorAltGatePort(this);
+    }
+
+    /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
