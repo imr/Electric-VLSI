@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP/MAN: (11/09/07, GVG) Ability to switch between min area algorithms. Added new algorithm based on local
+calculations per cell.
+
 BUG: (11/08/07, GVG) Fill Cell Generator Dialog box initial size is wrong (Bug #1419).
 FIX: Difficult to size JTabbedPanel. Fixed size values that are valid for techs with up to 9 metals.
 

@@ -86,12 +86,14 @@ public class DRC extends Listener
     private static final int DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
     private static final int DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */
 
+    public enum DRCCheckMinArea
+    {
+        AREA_BASIC /*brute force algorithm*/, AREA_LOCAL;
+    }
+
     public enum DRCCheckLogging
     {
-        DRC_LOG_FLAT(0) /*original strategy*/, DRC_LOG_PER_CELL(1), DRC_LOG_PER_RULE(2);
-        private final int mode; // mode
-        DRCCheckLogging(int i) {mode = i;}
-        public int mode() { return this.mode; }
+        DRC_LOG_FLAT/*original strategy*/, DRC_LOG_PER_CELL, DRC_LOG_PER_RULE;
     }
 
     /** Control different level of error checking */
@@ -977,28 +979,20 @@ public class DRC extends Listener
 	public static void setInteractiveDRCDragOn(boolean on) { cacheInteractiveDRCDragOn.setBoolean(on); }
 
     /** Logging Type **/
-    private static Pref cacheErrorLoggingType = Pref.makeIntPref("ErrorLoggingType", tool.prefs,
-            DRCCheckLogging.DRC_LOG_PER_CELL.mode());
+    private static Pref cacheErrorLoggingType = Pref.makeStringPref("ErrorLoggingType", tool.prefs,
+            DRCCheckLogging.DRC_LOG_PER_CELL.name());
 	/**
 	 * Method to retrieve logging type in DRC
 	 * The default is "DRC_LOG_PER_CELL".
 	 * @return integer representing error type
 	 */
-	public static DRC.DRCCheckLogging getErrorLoggingType()
-    {
-        int val = cacheErrorLoggingType.getInt();
-        for (DRCCheckLogging p : DRCCheckLogging.values())
-        {
-            if (p.mode() == val) return p;
-        }
-        return null;
-    }
+	public static DRCCheckLogging getErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getString());}
 
 	/**
 	 * Method to set DRC logging type.
 	 * @param type representing error logging mode
 	 */
-	public static void setErrorLoggingType(DRC.DRCCheckLogging type) { cacheErrorLoggingType.setInt(type.mode()); }
+	public static void setErrorLoggingType(DRCCheckLogging type) { cacheErrorLoggingType.setString(type.name()); }
 
     /** ErrorLevel **/
     private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
@@ -1008,7 +1002,7 @@ public class DRC extends Listener
 	 * The default is "ERROR_CHECK_DEFAULT".
 	 * @return integer representing error type
 	 */
-	public static DRC.DRCCheckMode getErrorType()
+	public static DRCCheckMode getErrorType()
     {
         int val = cacheErrorCheckLevel.getInt();
         for (DRCCheckMode p : DRCCheckMode.values())
@@ -1022,7 +1016,7 @@ public class DRC extends Listener
 	 * Method to set DRC error type.
 	 * @param type representing error level
 	 */
-	public static void setErrorType(DRC.DRCCheckMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
+	public static void setErrorType(DRCCheckMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
 
 	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", tool.prefs, false);
 	/**
@@ -1119,6 +1113,21 @@ public class DRC extends Listener
      * @param on true if DRC loggers should be displayed in Explorer immediately.
      */
     public static void setInteractiveLogging(boolean on) { cacheInteractiveLog.setBoolean(on); }
+
+    private static Pref cacheMinAreaAlgo = Pref.makeStringPref("MinAreaAlgorithm", tool.prefs, DRCCheckMinArea.AREA_LOCAL.name());
+    /**
+     * Method to tell which min area algorithm to use.
+     * The default is AREA_BASIC which is the brute force version
+     * @return true if DRC loggers should be displayed in Explorer immediately or not.
+     */
+    public static DRCCheckMinArea getMinAreaAlgoOption() { return DRCCheckMinArea.valueOf(cacheMinAreaAlgo.getString()); }
+    /**
+     * Method to set which min area algorithm to use.
+     * @param mode DRCCheckMinArea type to set
+     */
+    public static void setMinAreaAlgoOption(DRCCheckMinArea mode) { cacheMinAreaAlgo.setString(mode.name()); }
+
+    /****************************** END OF OPTIONS ******************************/
 
     public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
                                     HashMap<Geometric, List<Variable>> newVariables)
