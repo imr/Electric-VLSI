@@ -533,7 +533,7 @@ public class Spice extends Topology
                             extractNet = false;
                             cap = 0;
                             if (!exemptedNetsFound.containsKey(net)) {
-                                //System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
+                                System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
                                 exemptedNetsFound.put(net, net);
                                 cap = exemptedNets.getReplacementCap(cell, net);
                             }
@@ -542,7 +542,7 @@ public class Spice extends Topology
                     } else {
                         if (exemptedNets.isExempted(info.getNetID(net))) {
                             if (!exemptedNetsFound.containsKey(net)) {
-                                //System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
+                                System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
                                 exemptedNetsFound.put(net, net);
                                 extractNet = true;
                             }
