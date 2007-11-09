@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/08/07, GVG) Fill Cell Generator Dialog box initial size is wrong (Bug #1419).
+FIX: Difficult to size JTabbedPanel. Fixed size values that are valid for techs with up to 9 metals.
+
 BUG: (11/08/07, GVG) DRC reports false layer surround errors (Bug #1421)
 FIX: Removed rule for tsmc180.
 
