@@ -516,7 +516,7 @@ public class Spice extends Topology
                 double cap = 0;
                 double res = 0;
 
-                System.out.println("--Processing arc "+ai.getName());
+                //System.out.println("--Processing arc "+ai.getName());
                 boolean extractNet = true;
 
                 if (segmentedNets.isPowerGround(ai.getHeadPortInst()))
@@ -524,8 +524,8 @@ public class Spice extends Topology
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
                     extractNet = false;
 
+                Network net = netList.getNetwork(ai, 0);
                 if (extractNet && Simulation.isParasiticsUseExemptedNetsFile()) {
-                    Network net = netList.getNetwork(ai, 0);
                     // ignore nets in exempted nets file
                     if (Simulation.isParasiticsIgnoreExemptedNets()) {
                         // check if this net is exempted
@@ -533,7 +533,7 @@ public class Spice extends Topology
                             extractNet = false;
                             cap = 0;
                             if (!exemptedNetsFound.containsKey(net)) {
-                                System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
+                                //System.out.println("Not extracting net "+cell.describe(false)+" "+net.getName());
                                 exemptedNetsFound.put(net, net);
                                 cap = exemptedNets.getReplacementCap(cell, net);
                             }
@@ -542,7 +542,7 @@ public class Spice extends Topology
                     } else {
                         if (exemptedNets.isExempted(info.getNetID(net))) {
                             if (!exemptedNetsFound.containsKey(net)) {
-                                System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
+                                //System.out.println("Extracting net "+cell.describe(false)+" "+net.getName());
                                 exemptedNetsFound.put(net, net);
                                 extractNet = true;
                             }
@@ -595,21 +595,20 @@ public class Spice extends Topology
                         // short arc
                         segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
                     } else {
-                        System.out.println("Using resistance of "+res+" for arc "+ai.getName());
+                        //System.out.println("Using resistance of "+res+" for arc "+ai.getName());
                         segmentedNets.addArcRes(ai, res);
                         if (arcPImodels > 1)
                             segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
                     }
+                    segmentedNets.addExtractedNet(net);
                 } else {
-                    System.out.println("  not extracting arc "+ai.getName());
+                    //System.out.println("  not extracting arc "+ai.getName());
                     // don't need to short arcs on networks that aren't extracted, since it is
                     // guaranteed that both ends of the arc are named the same.
                     //segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
                 }
             }
 
-            PolyMerge pwellMerge = new PolyMerge();
-            PolyMerge nwellMerge = new PolyMerge();
             // Don't take into account gate resistance: so we need to short two PortInsts
             // of gate together if this is layout
             for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
@@ -617,10 +616,11 @@ public class Spice extends Topology
                 NodeInst ni = aIt.next();
                 if (!ni.isCellInstance()) {
                     if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
-                        System.out.println("--Processing gate "+ni.getName());
+                        //System.out.println("--Processing gate "+ni.getName());
                         PortInst gate0 = ni.getTransistorGatePort();
                         PortInst gate1 = ni.getTransistorAltGatePort();
-                        if (gate0 != gate1) {
+                        Network gateNet0 = netList.getNetwork(gate0);
+                        if ((gate0 != gate1) && segmentedNets.isExtractedNet(gateNet0)) {
                             //System.out.println("Shorting gate "+ni.getName()+" ports "
                             //        +gate0.getPortProto().getName()+" and "
                             //        +gate1.getPortProto().getName());
@@ -630,7 +630,7 @@ public class Spice extends Topology
                     // merge wells
                     
                 } else {
-                    System.out.println("--Processing subcell "+ni.getName());
+                    //System.out.println("--Processing subcell "+ni.getName());
                     // short together pins if shorted by subcell
                     Cell subCell = (Cell)ni.getProto();
                     SegmentedNets subNets = getSegmentedNets(subCell);
@@ -646,7 +646,9 @@ public class Spice extends Topology
                                 if (pi1 == null) {
                                     pi1 = pi; continue;
                                 }
-                                segmentedNets.shortSegments(pi1, pi);
+                                Network net = netList.getNetwork(pi);
+                                if (segmentedNets.isExtractedNet(net))
+                                    segmentedNets.shortSegments(pi1, pi);
                             }
                         }
                     }
@@ -2025,6 +2027,7 @@ public class Spice extends Topology
         private Cell cell;
         private List<List<String>> shortedExports; // list of lists of export names shorted together
         private HashMap<ArcInst,Double> longArcCaps;            // for arcs to be broken up into multiple PI models, need to record cap
+        private HashMap<Network,Network> extractedNets;         // keep track of extracted nets
 
         private SegmentedNets(Cell cell, boolean verboseNames, CellNetInfo cni, boolean useParasitics) {
             segmentedNets = new HashMap<PortInst,NetInfo>();
@@ -2036,6 +2039,7 @@ public class Spice extends Topology
             this.cell = cell;
             shortedExports = new ArrayList<List<String>>();
             longArcCaps = new HashMap<ArcInst,Double>();
+            extractedNets = new HashMap<Network,Network>();
         }
         // don't call this method outside of SegmentedNets
         // Add a new PortInst net segment
@@ -2088,8 +2092,8 @@ public class Spice extends Topology
                 i = new Integer(i.intValue() + 1);
                 netCounters.put(net, i);
             }
-            System.out.println("Created new segmented net name "+name+" for port "+pi.getPortProto().getName()+
-                    " on node "+pi.getNodeInst().getName()+" on net "+net.getName());
+            //System.out.println("Created new segmented net name "+name+" for port "+pi.getPortProto().getName()+
+            //        " on node "+pi.getNodeInst().getName()+" on net "+net.getName());
             return name;
         }
         // short two net segments together by their portinsts
@@ -2102,7 +2106,7 @@ public class Spice extends Topology
             NetInfo info2 = segmentedNets.get(p2);
             if (info1 == info2) return;                     // already joined
             // short
-            System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
+            //System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
             info1.joinedPorts.addAll(info2.joinedPorts);
             info1.cap += info2.cap;
             if (TextUtils.STRING_NUMBER_ORDER.compare(info2.netName, info1.netName) < 0) {
@@ -2127,7 +2131,9 @@ public class Spice extends Topology
             }
             NetInfo info = segmentedNets.get(pi);
             if (info == null) {
-                info = putSegment(pi, 0);
+                CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
+                return cs.getName();
+                //info = putSegment(pi, 0);
             }
 //System.out.println("NETWORK INAMED "+info.netName);
             return info.netName;
@@ -2180,6 +2186,12 @@ public class Spice extends Topology
         private double getArcCap(ArcInst ai) {
             Double d = longArcCaps.get(ai);
             return d.doubleValue();
+        }
+        public void addExtractedNet(Network net) {
+            extractedNets.put(net, net);
+        }
+        public boolean isExtractedNet(Network net) {
+            return extractedNets.containsKey(net);
         }
     }
 
