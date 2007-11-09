@@ -1073,7 +1073,11 @@ public class Spice extends Topology
                             SizeOffset offset = ni.getSizeOffset();
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
-                            extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
+                            if (Simulation.isSpiceWriteTransSizeInLambda()) {
+                                extra = " L="+length+" W="+width;
+                            } else {
+                                extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
+                            }
                             if (layoutTechnology == Technology.getCMOS90Technology() ||
                                (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
                                 if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
@@ -1089,6 +1093,25 @@ public class Spice extends Topology
                                 if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
                                     extra = "rnpo1rpo"+extra;
                                 }
+                            }
+                        }
+                        else if (fun == PrimitiveNode.Function.WRESIST) {
+                            partName = "XR";
+                            double width = ni.getYSize();
+                            double length = ni.getXSize();
+                            SizeOffset offset = ni.getSizeOffset();
+                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
+                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
+                            if (Simulation.isSpiceWriteTransSizeInLambda()) {
+                                extra = " L="+length+" W="+width;
+                            } else {
+                                extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
+                            }
+                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) {
+                                extra = "rnwod "+extra;
+                            }
+                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) {
+                                extra = "rpwod "+extra;
                             }
                         }
                     }
