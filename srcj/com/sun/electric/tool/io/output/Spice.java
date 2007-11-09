@@ -512,19 +512,24 @@ public class Spice extends Topology
             HashMap<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
             for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
                 ArcInst ai = ait.next();
-                boolean ignoreArc = false;
 
                 double cap = 0;
                 double res = 0;
 
+                System.out.println("--Processing arc "+ai.getName());
                 boolean extractNet = true;
-                if (Simulation.isParasiticsUseExemptedNetsFile()) {
+
+                if (segmentedNets.isPowerGround(ai.getHeadPortInst()))
+                    extractNet = false;
+                if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
+                    extractNet = false;
+
+                if (extractNet && Simulation.isParasiticsUseExemptedNetsFile()) {
                     Network net = netList.getNetwork(ai, 0);
                     // ignore nets in exempted nets file
                     if (Simulation.isParasiticsIgnoreExemptedNets()) {
                         // check if this net is exempted
                         if (exemptedNets.isExempted(info.getNetID(net))) {
-                            ignoreArc = true;
                             extractNet = false;
                             cap = 0;
                             if (!exemptedNetsFound.containsKey(net)) {
@@ -542,7 +547,6 @@ public class Spice extends Topology
                                 extractNet = true;
                             }
                         } else {
-                            ignoreArc = true;
                             extractNet = false;
                         }
                     }
@@ -550,8 +554,6 @@ public class Spice extends Topology
 
                 if (extractNet) {
                     // figure out res and cap, see if we should ignore it
-                    if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
-                        ignoreArc = true;
                     double length = ai.getLambdaLength() * scale / 1000;      // length in microns
                     double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
     //                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
@@ -571,38 +573,43 @@ public class Spice extends Topology
                         if (layer.getTechnology() != layoutTechnology) continue;
     //                    if (layer.isPseudoLayer()) continue;
 
-                        if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
-                            double areacap = area * layer.getCapacitance();
-                            double fringecap = fringe * layer.getEdgeCapacitance();
-                            cap = areacap + fringecap;
-                            res = length/width * layer.getResistance();
+                        if (!layer.isDiffusionLayer()) {
+                            if (Simulation.isParasiticsExtractsC()) {
+                                double areacap = area * layer.getCapacitance();
+                                double fringecap = fringe * layer.getEdgeCapacitance();
+                                cap = areacap + fringecap;
+                            }
+                            if (Simulation.isParasiticsExtractsR()) {
+                                res = length/width * layer.getResistance();
+                            }
                         }
                     }
-                    // add res if big enough
+
+                    int arcPImodels = SegmentedNets.getNumPISegments(res, layoutTechnology.getMaxSeriesResistance());
+
+                    // add caps
+                    segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
+                    segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
+
                     if (res <= cell.getTechnology().getMinResistance()) {
-                        ignoreArc = true;
+                        // short arc
+                        segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
+                    } else {
+                        System.out.println("Using resistance of "+res+" for arc "+ai.getName());
+                        segmentedNets.addArcRes(ai, res);
+                        if (arcPImodels > 1)
+                            segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
                     }
-                }
-
-                int arcPImodels = SegmentedNets.getNumPISegments(res, layoutTechnology.getMaxSeriesResistance());
-
-                if (ignoreArc)
-                    arcPImodels = 1;                        // split cap to two pins if ignoring arc
-
-                // add caps
-                segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
-                segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
-
-                if (ignoreArc) {
-                    // short arc
-                    segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
                 } else {
-                    segmentedNets.addArcRes(ai, res);
-                    if (arcPImodels > 1)
-                        segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
+                    System.out.println("  not extracting arc "+ai.getName());
+                    // don't need to short arcs on networks that aren't extracted, since it is
+                    // guaranteed that both ends of the arc are named the same.
+                    //segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
                 }
             }
 
+            PolyMerge pwellMerge = new PolyMerge();
+            PolyMerge nwellMerge = new PolyMerge();
             // Don't take into account gate resistance: so we need to short two PortInsts
             // of gate together if this is layout
             for(Iterator<NodeInst> aIt = cell.getNodes(); aIt.hasNext(); )
@@ -610,18 +617,20 @@ public class Spice extends Topology
                 NodeInst ni = aIt.next();
                 if (!ni.isCellInstance()) {
                     if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
+                        System.out.println("--Processing gate "+ni.getName());
                         PortInst gate0 = ni.getTransistorGatePort();
-                        PortInst gate1 = null;
-                        for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
-                            PortInst p2 = pit.next();
-                            if (p2 != gate0 && netList.getNetwork(gate0) == netList.getNetwork(p2))
-                                gate1 = p2;
-                        }
-                        if (gate1 != null) {
+                        PortInst gate1 = ni.getTransistorAltGatePort();
+                        if (gate0 != gate1) {
+                            //System.out.println("Shorting gate "+ni.getName()+" ports "
+                            //        +gate0.getPortProto().getName()+" and "
+                            //        +gate1.getPortProto().getName());
                             segmentedNets.shortSegments(gate0, gate1);
                         }
                     }
+                    // merge wells
+                    
                 } else {
+                    System.out.println("--Processing subcell "+ni.getName());
                     // short together pins if shorted by subcell
                     Cell subCell = (Cell)ni.getProto();
                     SegmentedNets subNets = getSegmentedNets(subCell);
@@ -1494,9 +1503,12 @@ public class Spice extends Topology
                                 multiLinePrint(false, "R"+resCount+" "+segn0+" "+segn1+" "+TextUtils.formatDouble(segRes)+"\n");
                                 resCount++;
                                 if (i < (arcPImodels-1)) {
-                                    if (!segn1.equals("gnd")) {
-                                        multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+TextUtils.formatDouble(segCap)+"fF\n");
-                                        capCount++;
+                                    if (!segn1.equals("gnd") && segCap > layoutTechnology.getMinCapacitance()) {
+                                        String capVal = TextUtils.formatDouble(segCap, 2);
+                                        if (!capVal.equals("0.00")) {
+                                            multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+capVal+"fF\n");
+                                            capCount++;
+                                        }
                                     }
                                 }
                                 segn0 = segn1;
@@ -2076,6 +2088,8 @@ public class Spice extends Topology
                 i = new Integer(i.intValue() + 1);
                 netCounters.put(net, i);
             }
+            System.out.println("Created new segmented net name "+name+" for port "+pi.getPortProto().getName()+
+                    " on node "+pi.getNodeInst().getName()+" on net "+net.getName());
             return name;
         }
         // short two net segments together by their portinsts
@@ -2088,7 +2102,7 @@ public class Spice extends Topology
             NetInfo info2 = segmentedNets.get(p2);
             if (info1 == info2) return;                     // already joined
             // short
-            //System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
+            System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
             info1.joinedPorts.addAll(info2.joinedPorts);
             info1.cap += info2.cap;
             if (TextUtils.STRING_NUMBER_ORDER.compare(info2.netName, info1.netName) < 0) {
@@ -2152,6 +2166,7 @@ public class Spice extends Topology
         // list of lists of export names (Strings)
         private Iterator<List<String>> getShortedExports() { return shortedExports.iterator(); }
         public static int getNumPISegments(double res, double maxSeriesResistance) {
+            if (res <= 0) return 1;
             int arcPImodels = 1;
             arcPImodels = (int)(res/maxSeriesResistance);            // need preference here
             if ((res % maxSeriesResistance) != 0) arcPImodels++;
@@ -2326,6 +2341,7 @@ public class Spice extends Topology
         private void processLine(String line, int lineno) {
             if (line == null) return;
             if (line.trim().equals("")) return;
+            if (line.startsWith("#")) return; // comment
             String parts[] = line.trim().split("\\s+");
             if (parts.length < 3) {
                 System.out.println("Error on line "+lineno+": Expected 'LibraryName CellName NetName', but was "+line);
@@ -2973,8 +2989,12 @@ public class Spice extends Topology
 	private void addArcInformation(PolyMerge merge, ArcInst ai)
 	{
 		boolean isDiffArc = ai.isDiffusionArc();    // check arc function
+        if (useNewParasitics && !isDiffArc) {
+            // all cap besides diffusion is handled by segmented nets
+            return;
+        }
 
-		Technology tech = ai.getProto().getTechnology();
+        Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 		int tot = arcInstPolyList.length;
 		for(int j=0; j<tot; j++)
