@@ -1357,7 +1357,7 @@ public class Verilog extends Topology
     protected boolean isShortResistors() { return true; }
 
     /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return true; }
+    protected boolean isShortExplicitResistors() { return false; }
 
     /**
      * Method to tell whether the topological analysis should mangle cell names that are parameterized.
