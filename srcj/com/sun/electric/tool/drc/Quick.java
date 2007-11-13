@@ -1660,10 +1660,10 @@ public class Quick
                 pt1d = new Point2D.Double(pt2.getX()-TINYDELTA, -delta*TINYDELTA+pt2.getY());
                 pt2d = new Point2D.Double(pt1.getX()+TINYDELTA, delta*TINYDELTA+pt1.getY());
             }
-        }
-        if (DBMath.areEquals(pt1.getX(), pt2.getX()) || DBMath.areEquals(pt1.getY(), pt2.getY()))
-        {
-            return false;
+            if (DBMath.areEquals(pt1.getX(), pt2.getX()) || DBMath.areEquals(pt1.getY(), pt2.getY()))
+            {    
+                return false;
+            }
         }
         // looking if points around the overlapping area are inside another region
         // to avoid the error

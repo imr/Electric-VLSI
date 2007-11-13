@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/12/07, GVG) Narrow layers not detected by DRC (bug #1418)
+FIX: Quick.foundSmallSizeDefect() should still analyze zero area boxes.
+
 IMP/MAN: (11/09/07, GVG) Ability to switch between min area algorithms. Added new algorithm based on local
 calculations per cell.
 
