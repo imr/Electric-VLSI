@@ -118,12 +118,15 @@ public class NccEngine {
 			                       boolean hierInfoOnly) {
 		long start = NccUtils.getTime();
         boolean noNetlists = globals.cantBuildNetlist();
-		if (globals.getRoot()==null || noNetlists) {
-			globals.status2("empty cell or netlist error");
+        if (noNetlists) {
+        	// Can't build some net list.  This is a mismatch.
+			globals.status2("netlist error");
+			
 			// Preserve the invariant: "part, wire, and port LeafLists exist" 
 			// even if there are no Parts and no Wires OR there is a netlist error. 
 			globals.initLeafLists();
-			return NccResult.newResult(!noNetlists, !noNetlists, !noNetlists, globals);
+			
+			return NccResult.newResult(false, false, false, globals);
 		} else {
 			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
@@ -136,8 +139,22 @@ public class NccEngine {
 			} else { 
 				if (hierInfo!=null) hierInfo.purgeCurrentCompareList();
 			}
+			
+			if (globals.getRoot()==null) {
+				// all Cells contain no Wires and no Parts. The cells match but the 
+				// rest of NCC isn't going to be happy.  We'll have to exit early.
+				globals.status2("all cells empty");
+				
+				// Preserve the invariant: "part, wire, and port LeafLists exist" 
+				// even if there are no Parts and no Wires OR there is a netlist error. 
+				globals.initLeafLists();
+				
+				return NccResult.newResult(true, true, true, globals);
+			}
+			
 			// Useless so far
 			//expCheck.printExportTypeWarnings();
+			
 			start = NccUtils.registerTiming("  Export name matching took: ",start,BenchIdx.EXPORT_MATCHING_TIME,globals);
 //			Date d1 = new Date();
 //			globals.status1("  Export name matching took: "+
