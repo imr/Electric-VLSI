@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -75,6 +76,7 @@ public class ColorPatternPanel extends JPanel
 		public boolean useStipplePrinter;
 		public int transparentLayer;
 		public int red, green, blue;
+        public Pref theColor;  // theColor to remember the factory color for special layers
 		public double opacity;
 		public boolean justColor;
 
@@ -96,19 +98,21 @@ public class ColorPatternPanel extends JPanel
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
 			opacity = graphics.getOpacity();
-			justColor = false;
+			justColor = false; theColor = null;
 		}
 
 		/**
 		 * Constructor for class to load a pure color.
 		 * Used for special colors (like background, etc.)
 		 */
-		public Info(int color)
+		public Info(Pref colorPref)
 		{
-			red = (color >> 16) & 0xFF;
+            int color = colorPref.getInt();
+            red = (color >> 16) & 0xFF;
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
-			justColor = true;
+            theColor = colorPref;
+            justColor = true;
 		}
 
 		/**
@@ -300,7 +304,7 @@ public class ColorPatternPanel extends JPanel
 		public void paint(Graphics g)
 		{
 			// clear background
-			g.setColor(new Color(User.getColorBackground()));
+			g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
 			g.fillRect(0, 0, getWidth(), getHeight());
 			if (currentLI == null) return;
 
@@ -314,7 +318,7 @@ public class ColorPatternPanel extends JPanel
 					for(int x=0; x<16; x++)
 					{
 						if ((line & (1<<(15-x))) != 0) im.setRGB(x, y, curColor.getRGB()); else
-							im.setRGB(x, y, User.getColorBackground());
+							im.setRGB(x, y, User.getColor(User.ColorPrefType.BACKGROUND));
 					}
 				}
 

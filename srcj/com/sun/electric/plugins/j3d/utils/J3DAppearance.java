@@ -270,11 +270,11 @@ public class J3DAppearance extends Appearance
      */
     public static void setAxisAppearanceValues(Object initValue)
     {
-        double[] colors = GenMath.transformVectorIntoValues(J3DUtils.get3DColorAxes());
+        int[] colors = J3DUtils.get3DColorAxes();
 
         for (int i = 0; i < axisApps.length; i++)
         {
-            Color userColor = new Color((int)colors[i]);
+            Color userColor = new Color(colors[i]);
 
             if (axisApps[i] == null)
             {

@@ -1012,7 +1012,7 @@ public class Panel extends JPanel
 		}
 
 		// clear the buffer
-		offscreenGraphics.setColor(new Color(User.getColorWaveformBackground()));
+		offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
 		offscreenGraphics.fillRect(0, 0, wid, hei);
 
 		drawPanelContents(wid, hei, null, null);
@@ -1032,7 +1032,7 @@ public class Panel extends JPanel
 		// show dragged area if there
 		if (draggingArea)
 		{
-			offscreenGraphics.setColor(new Color(User.getColorWaveformForeground()));
+			offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
 			int lowX = Math.min(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
 			int highX = Math.max(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
 			int lowY = Math.min(convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
@@ -1265,7 +1265,7 @@ public class Panel extends JPanel
 				new Point2D.Double(vertAxisPos, hei)}));
 		} else
 		{
-			localGraphics.setColor(new Color(User.getColorWaveformForeground()));
+			localGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
 			localGraphics.drawLine(vertAxisPos, 0, vertAxisPos, hei);
 			if (selected)
 			{
@@ -2340,7 +2340,7 @@ public class Panel extends JPanel
 		if (ws.getButton() != null)
 		{
 			if (background == null) background = ws.getButton().getBackground();
-			ws.getButton().setBackground(new Color(User.getColorWaveformBackground()));
+			ws.getButton().setBackground(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
 		}
 		ws.setHighlighted(true);
 		waveWindow.setHighlightedSweep(-1);

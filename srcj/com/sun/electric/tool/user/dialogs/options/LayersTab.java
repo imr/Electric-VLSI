@@ -30,7 +30,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -54,7 +53,8 @@ public class LayersTab extends PreferencePanel
 {
 	private HashMap<Layer,ColorPatternPanel.Info> layerMap;
 	private HashMap<String,ColorPatternPanel.Info> transAndSpecialMap;
-	private HashMap<Technology,Color []> colorMapMap;
+    private HashMap<User.ColorPrefType, String> nameTypeSpecialMap;
+    private HashMap<Technology,Color []> colorMapMap;
 	private MyColorPatternPanel colorAndPatternPanel;
 
 	private static class MyColorPatternPanel extends ColorPatternPanel
@@ -73,23 +73,40 @@ public class LayersTab extends PreferencePanel
 		}
 	}
 
-	private void factoryResetAll()
+    private void resetColorPanelInfo(ColorPatternPanel.Info cpi)
+    {
+        int factoryColor = -1;
+        if (cpi.graphics != null)
+        {
+            cpi.useStippleDisplay = cpi.graphics.isFactoryPatternedOnDisplay();
+            cpi.useStipplePrinter = cpi.graphics.isFactoryPatternedOnPrinter();
+            cpi.outlinePatternDisplay = cpi.graphics.getFactoryOutlined();
+            cpi.transparentLayer = cpi.graphics.getFactoryTransparentLayer();
+            cpi.pattern = cpi.graphics.getFactoryPattern();
+            cpi.opacity = cpi.graphics.getFactoryOpacity();
+            factoryColor = cpi.graphics.getFactoryColor();  // color given by graphics for the rest of layers
+        }
+        else
+            factoryColor = cpi.theColor.getIntFactoryValue(); // factory color for special layers
+        cpi.red = (factoryColor>>16) & 0xFF;
+        cpi.green = (factoryColor>>8) & 0xFF;
+        cpi.blue = factoryColor & 0xFF;
+    }
+
+    private void factoryResetAll()
 	{
 		for(Layer layer : layerMap.keySet())
 		{
 			ColorPatternPanel.Info cpi = layerMap.get(layer);
-			cpi.useStippleDisplay = cpi.graphics.isFactoryPatternedOnDisplay();
-			cpi.useStipplePrinter = cpi.graphics.isFactoryPatternedOnPrinter();
-			cpi.outlinePatternDisplay = cpi.graphics.getFactoryOutlined();
-			cpi.transparentLayer = cpi.graphics.getFactoryTransparentLayer();
-			cpi.pattern = cpi.graphics.getFactoryPattern();
-			cpi.opacity = cpi.graphics.getFactoryOpacity();
-			int factoryColor = cpi.graphics.getFactoryColor();
-			cpi.red = (factoryColor>>16) & 0xFF;
-			cpi.green = (factoryColor>>8) & 0xFF;
-			cpi.blue = factoryColor & 0xFF;
+            resetColorPanelInfo(cpi);
 		}
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+        // Special layers
+        for(ColorPatternPanel.Info cpi: transAndSpecialMap.values())
+        {
+            resetColorPanelInfo(cpi);
+        }
+
+        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
 			Color [] map = new Color[tech.getNumTransparentLayers()];
@@ -118,7 +135,8 @@ public class LayersTab extends PreferencePanel
 
 		layerMap = new HashMap<Layer,ColorPatternPanel.Info>();
 		transAndSpecialMap = new HashMap<String,ColorPatternPanel.Info>();
-		colorMapMap = new HashMap<Technology,Color []>();
+        nameTypeSpecialMap = new HashMap<User.ColorPrefType, String>();
+        colorMapMap = new HashMap<Technology,Color []>();
 		layerName.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { layerSelected(); }
@@ -168,24 +186,29 @@ public class LayersTab extends PreferencePanel
 		}
 
 		// add the special layers
-		transAndSpecialMap.put("Special: BACKGROUND", new ColorPatternPanel.Info(User.getColorBackground()));
-		transAndSpecialMap.put("Special: GRID", new ColorPatternPanel.Info(User.getColorGrid()));
-		transAndSpecialMap.put("Special: HIGHLIGHT", new ColorPatternPanel.Info(User.getColorHighlight()));
-        transAndSpecialMap.put("Special: MOUSE-OVER HIGHLIGHT", new ColorPatternPanel.Info(User.getColorMouseOverHighlight()));
-		transAndSpecialMap.put("Special: PORT HIGHLIGHT", new ColorPatternPanel.Info(User.getColorPortHighlight()));
-		transAndSpecialMap.put("Special: TEXT", new ColorPatternPanel.Info(User.getColorText()));
-		transAndSpecialMap.put("Special: INSTANCE OUTLINES", new ColorPatternPanel.Info(User.getColorInstanceOutline()));
-		transAndSpecialMap.put("Special: WAVEFORM BACKGROUND", new ColorPatternPanel.Info(User.getColorWaveformBackground()));
-		transAndSpecialMap.put("Special: WAVEFORM FOREGROUND", new ColorPatternPanel.Info(User.getColorWaveformForeground()));
-		transAndSpecialMap.put("Special: WAVEFORM STIMULI", new ColorPatternPanel.Info(User.getColorWaveformStimuli()));
-		transAndSpecialMap.put("Special: WAVEFORM OFF STRENGTH", new ColorPatternPanel.Info(User.getColorWaveformStrengthOff()));
-		transAndSpecialMap.put("Special: WAVEFORM NODE (WEAK) STRENGTH", new ColorPatternPanel.Info(User.getColorWaveformStrengthNode()));
-		transAndSpecialMap.put("Special: WAVEFORM GATE STRENGTH", new ColorPatternPanel.Info(User.getColorWaveformStrengthGate()));
-		transAndSpecialMap.put("Special: WAVEFORM POWER STRENGTH", new ColorPatternPanel.Info(User.getColorWaveformStrengthPower()));
-		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE LOW", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeLow()));
-		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE HIGH", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeHigh()));
-		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE UNDEFINED", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeX()));
-		transAndSpecialMap.put("Special: WAVEFORM CROSSPROBE FLOATING", new ColorPatternPanel.Info(User.getColorWaveformCrossProbeZ()));
+        nameTypeSpecialMap.put(User.ColorPrefType.BACKGROUND, "Special: BACKGROUND");
+        nameTypeSpecialMap.put(User.ColorPrefType.GRID, "Special: GRID");
+        nameTypeSpecialMap.put(User.ColorPrefType.HIGHLIGHT, "Special: HIGHLIGHT");
+        nameTypeSpecialMap.put(User.ColorPrefType.MOUSEOVER_HIGHLIGHT, "Special: MOUSE-OVER HIGHLIGHT");
+        nameTypeSpecialMap.put(User.ColorPrefType.PORT_HIGHLIGHT, "Special: PORT HIGHLIGHT");
+        nameTypeSpecialMap.put(User.ColorPrefType.TEXT, "Special: TEXT");
+        nameTypeSpecialMap.put(User.ColorPrefType.INSTANCE, "Special: INSTANCE OUTLINES");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_BACKGROUND, "Special: WAVEFORM BACKGROUND");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_FOREGROUND, "Special: WAVEFORM FOREGROUND");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_STIMULI, "Special: WAVEFORM STIMULI");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_OFF_STRENGTH, "Special: WAVEFORM OFF STRENGTH");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_NODE_STRENGTH, "Special: WAVEFORM NODE (WEAK) STRENGTH");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_GATE_STRENGTH, "Special: WAVEFORM GATE STRENGTH");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_POWER_STRENGTH, "Special: WAVEFORM POWER STRENGTH");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_LOW, "Special: WAVEFORM CROSSPROBE LOW");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_HIGH, "Special: WAVEFORM CROSSPROBE HIGH");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_UNDEF, "Special: WAVEFORM CROSSPROBE UNDEFINED");
+        nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_FLOAT, "Special: WAVEFORM CROSSPROBE FLOATING");
+
+        for (User.ColorPrefType type : User.ColorPrefType.values())
+        {
+            transAndSpecialMap.put(nameTypeSpecialMap.get(type), new ColorPatternPanel.Info(User.getColorPref(type)));
+        }
 
         // 3D Stuff
         try
@@ -321,43 +344,15 @@ public class LayersTab extends PreferencePanel
 		}
 
 		// also get any changes to special layers
-		int c = 0;
-		if ((c = specialMapColor("Special: BACKGROUND", User.getColorBackground())) >= 0)
-			{ User.setColorBackground(c);   changed = true; }
-		if ((c = specialMapColor("Special: GRID", User.getColorGrid())) >= 0)
-			{ User.setColorGrid(c);   changed = true; }
-		if ((c = specialMapColor("Special: HIGHLIGHT", User.getColorHighlight())) >= 0)
-			{ User.setColorHighlight(c);   changed = true; }
-		if ((c = specialMapColor("Special: MOUSE-OVER HIGHLIGHT", User.getColorMouseOverHighlight())) >= 0)
-			{ User.setColorMouseOverHighlight(c);   changed = true; }
-		if ((c = specialMapColor("Special: PORT HIGHLIGHT", User.getColorPortHighlight())) >= 0)
-			{ User.setColorPortHighlight(c);   changed = true; }
-		if ((c = specialMapColor("Special: TEXT", User.getColorText())) >= 0)
-			{ User.setColorText(c);   changed = true; }
-		if ((c = specialMapColor("Special: INSTANCE OUTLINES", User.getColorInstanceOutline())) >= 0)
-			{ User.setColorInstanceOutline(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM BACKGROUND", User.getColorWaveformBackground())) >= 0)
-			{ User.setColorWaveformBackground(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM FOREGROUND", User.getColorWaveformForeground())) >= 0)
-			{ User.setColorWaveformForeground(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM STIMULI", User.getColorWaveformStimuli())) >= 0)
-			{ User.setColorWaveformStimuli(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM OFF STRENGTH", User.getColorWaveformStrengthOff())) >= 0)
-			{ User.setColorWaveformStrengthOff(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM NODE (WEAK) STRENGTH", User.getColorWaveformStrengthNode())) >= 0)
-			{ User.setColorWaveformStrengthNode(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM GATE STRENGTH", User.getColorWaveformStrengthGate())) >= 0)
-			{ User.setColorWaveformStrengthGate(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM POWER STRENGTH", User.getColorWaveformStrengthPower())) >= 0)
-			{ User.setColorWaveformStrengthPower(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM CROSSPROBE LOW", User.getColorWaveformCrossProbeLow())) >= 0)
-			{ User.setColorWaveformCrossProbeLow(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM CROSSPROBE HIGH", User.getColorWaveformCrossProbeHigh())) >= 0)
-			{ User.setColorWaveformCrossProbeHigh(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM CROSSPROBE UNDEFINED", User.getColorWaveformCrossProbeX())) >= 0)
-			{ User.setColorWaveformCrossProbeX(c);   changed = true; }
-		if ((c = specialMapColor("Special: WAVEFORM CROSSPROBE FLOATING", User.getColorWaveformCrossProbeZ())) >= 0)
-			{ User.setColorWaveformCrossProbeZ(c);   changed = true; }
+        for (User.ColorPrefType type : User.ColorPrefType.values())
+        {
+            int c = specialMapColor(nameTypeSpecialMap.get(type), User.getColor(type));
+            if (c >= 0)
+            {
+                User.setColor(type, c);
+                changed = true;
+            }
+        }
 
         // 3D Stuff
         try
@@ -377,9 +372,7 @@ public class LayersTab extends PreferencePanel
 		// redisplay if changes were made
 		if (changed)
 		{
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-			EditWindow.repaintAllContents();
+            WindowFrame.redrawNewColors();
 		}
 	}
 

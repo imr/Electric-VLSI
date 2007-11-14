@@ -1219,13 +1219,13 @@ public class EditWindow extends JPanel
 
         Graphics2D g = (Graphics2D)graphics;
         if (cell == null) {
-            g.setColor(new Color(User.getColorBackground()));
+            g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
             Dimension sz = getSize();
             g.fillRect(0, 0, sz.width, sz.height);
             String msg = "No cell in this window";
             Font f = new Font(User.getDefaultFont(), Font.BOLD, 18);
             g.setFont(f);
-            g.setColor(new Color(User.getColorText()));
+            g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g.drawString(msg, (sz.width - g.getFontMetrics(f).stringWidth(msg))/2, sz.height/2);
             return;
@@ -1237,7 +1237,7 @@ public class EditWindow extends JPanel
             Dimension newSize = getSize();
             setScreenSize(newSize);
             repaintContents(null, false);
-            g.setColor(new Color(User.getColorBackground()));
+            g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
             g.fillRect(0, 0, newSize.width, newSize.height);
             logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
             return;
@@ -1617,7 +1617,7 @@ public class EditWindow extends JPanel
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
-        float[] backgroundComps = (new Color(User.getColorBackground())).getRGBColorComponents(null);
+        float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
         float bRed = backgroundComps[0];
         float bGreen = backgroundComps[1];
         float bBlue = backgroundComps[2];
@@ -1776,7 +1776,7 @@ public class EditWindow extends JPanel
 		int hY = (int)Math.max(startDrag.getY(), endDrag.getY());
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setStroke(selectionLine);
-		g.setColor(new Color(User.getColorHighlight()));
+		g.setColor(new Color(User.getColor(User.ColorPrefType.HIGHLIGHT)));
 		g.drawLine(lX, lY, lX, hY);
 		g.drawLine(lX, hY, hX, hY);
 		g.drawLine(hX, hY, hX, lY);
@@ -1815,8 +1815,8 @@ public class EditWindow extends JPanel
 			super(cell, wnd.pageNumber);
 			this.g = g;
 			this.wnd = wnd;
-			lineColor = new Color(User.getColorInstanceOutline());
-			textColor = new Color(User.getColorText());
+			lineColor = new Color(User.getColor(User.ColorPrefType.INSTANCE));
+			textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		}
 
 		/**
@@ -1982,7 +1982,7 @@ public class EditWindow extends JPanel
 //		}
 //
 //		// draw the grid
-//		g.setColor(new Color(User.getColorGrid()));
+//		g.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 //		for(double i = y1; i > hY; i -= spacingY)
 //		{
 //			double boldValueY = i;
@@ -3868,8 +3868,8 @@ public class EditWindow extends JPanel
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
-			int oldBackgroundColor = User.getColorBackground();
-			User.setColorBackground(0xFFFFFF);
+			int oldBackgroundColor = User.getColor(User.ColorPrefType.BACKGROUND);
+			User.setColor(User.ColorPrefType.BACKGROUND, 0xFFFFFF);
 
 			// initialize drawing
             Rectangle2D cellBounds = ep.getRenderArea();
@@ -3889,7 +3889,7 @@ public class EditWindow extends JPanel
 
 			// restore display state
 			offscreen.setPrintingMode(0);
-			User.setColorBackground(oldBackgroundColor);
+			User.setColor(User.ColorPrefType.BACKGROUND, oldBackgroundColor);
 		}
 
 		// copy the image to the page if graphics is not null

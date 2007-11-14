@@ -484,10 +484,10 @@ class PixelDrawing
         drawBounds = wnd.getDisplayedBounds();
 
 		// set colors to use
-        textColor = new Color(User.getColorText());
+        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColorGrid()));
-		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
+		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 		
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
@@ -597,10 +597,10 @@ class PixelDrawing
         expandedScale = this.scale = scale; 
 
 		// set colors to use
-        textColor = new Color(User.getColorText());
+        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColorGrid()));
-		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
+		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 		
         if (wnd != null) varContext = wnd.getVarContext();
         initOrigin(scale, offset);
@@ -674,7 +674,7 @@ class PixelDrawing
 	{
 		// pickup new technology if it changed
 		initForTechnology();
-		backgroundColor = User.getColorBackground() & 0xFFFFFF;
+		backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
 
 		// erase the transparent bitmaps
@@ -951,7 +951,7 @@ class PixelDrawing
 		}
 
 		// draw the grid
-		int col = User.getColorGrid() & 0xFFFFFF;
+		int col = User.getColor(User.ColorPrefType.GRID) & 0xFFFFFF;
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;
@@ -2848,7 +2848,7 @@ class PixelDrawing
 		if (len == 0) return;
 
 		// get parameters
-		int col = User.getColorText() & 0xFFFFFF;
+		int col = User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF;
 		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// get text description

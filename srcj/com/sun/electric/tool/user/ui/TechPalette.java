@@ -765,7 +765,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         offscreen = new PixelDrawing(new Dimension(entrySize, entrySize));
         
         Graphics2D g = (Graphics2D)paletteImage.getGraphics();
-        g.setBackground(new Color(User.getColorBackground()));
+        g.setBackground(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
         g.clearRect(0, 0, getWidth(), getHeight());
         
         for(int x=0; x<menuX; x++) {
@@ -880,7 +880,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         width = fm.stringWidth(str);
                     }
                     g.setFont(f);
-                    g.setColor(new Color(User.getColorText()));
+                    g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
                     g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                     g.drawString(str, imgX + (entryRect.width - width)/2, imgY + (entryRect.height + (float)fm.getAscent())/2);
                 }
@@ -890,7 +890,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         offscreen = null;
         
         // show dividing lines
-        g.setColor(new Color(User.getColorGrid()));
+        g.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         for(int i=0; i<=menuX; i++) {
             int xPos = (entrySize+1) * i;
             g.drawLine(xPos, 0, xPos, menuY*(entrySize+1));
@@ -913,7 +913,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         arrowY[1] = imgY-2 + entrySize*7/8;
         arrowX[2] = imgX-2 + entrySize*7/8;
         arrowY[2] = imgY-2 + entrySize*3/4;
-        g.setColor(new Color(User.getColorGrid()));
+        g.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         g.fillPolygon(arrowX, arrowY, 3);
     }
 

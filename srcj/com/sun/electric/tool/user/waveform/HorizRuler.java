@@ -157,11 +157,11 @@ public class HorizRuler extends JPanel implements MouseListener
 			g.setClip(offX, 0, wid, hei);
 
 			// draw the background
-			g.setColor(new Color(User.getColorWaveformBackground()));
+			g.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
 			g.fillRect(offX, 0, wid, hei);
 
 			// draw the name of the signal on the horizontal ruler axis
-			g.setColor(new Color(User.getColorWaveformForeground()));
+			g.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
 			g.setFont(waveWindow.getFont());
 		}
 

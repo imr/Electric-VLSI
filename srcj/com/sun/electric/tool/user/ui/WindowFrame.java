@@ -116,6 +116,21 @@ public class WindowFrame extends Observable
     /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
+    public static void redrawNewColors()
+    {
+		for(Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			content.fullRepaint();
+		}
+        for(Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
+        {
+        	WindowFrame wf = it.next();
+        	wf.loadComponentMenuForTechnology();
+        }
+    }
+
     /** library tree updater */                         static { new LibraryTreeUpdater(); }
 
     public static class DisplayAttributes

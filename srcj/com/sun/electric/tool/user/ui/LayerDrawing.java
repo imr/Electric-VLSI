@@ -434,7 +434,7 @@ class LayerDrawing
                 }
                 System.out.println();
             }
-            alphaBlender.init(User.getColorBackground(), blendingOrder, layerBits);
+            alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
             
             int width = offscreen.sz.width;
             int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
@@ -552,7 +552,7 @@ class LayerDrawing
             // determine range
             Dimension sz = offscreen.sz;
             int numIntsPerRow = offscreen.numIntsPerRow;
-            int backgroundColor = User.getColorBackground() & 0xFFFFFF;
+            int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
             int lx = 0, hx = sz.width-1;
             int ly = 0, hy = sz.height-1;
             
@@ -598,7 +598,7 @@ class LayerDrawing
 //                System.out.println();
 //            }
 //            
-//            Color background = new Color(User.getColorBackground() | 0xFF000000);
+//            Color background = new Color(User.getColor(User.ColorPrefType.BACKGROUND) | 0xFF000000);
 //            float[] backgroundComponents = background.getColorComponents(null);
 //            float backRed = backgroundComponents[0];
 //            float backGreen = backgroundComponents[1];
@@ -805,7 +805,7 @@ class LayerDrawing
 ////                IntBuffer intBuffer = IntBuffer.wrap(offscreen.opaqueData, 0, w*h);
 //                
 //                long startTime = System.currentTimeMillis();
-////                float[] bg = (new Color(User.getColorBackground())).getRGBComponents(null);
+////                float[] bg = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBComponents(null);
 ////                gl.glClearColor(bg[0], bg[1], bg[2], 1.0f);
 //                gl.glClearColor(1f, 1f, 1f, 1f);
 //                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
@@ -895,7 +895,7 @@ class LayerDrawing
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
             
 		// set colors to use
-        LayerDrawing.textColor = new Color(User.getColorText());
+        LayerDrawing.textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
         LayerDrawing.textGraphics.setColor(LayerDrawing.textColor);
         
 		// initialize the cache of expanded cell displays
@@ -939,7 +939,7 @@ class LayerDrawing
             }
             System.out.println();
         }
-        alphaBlender.init(User.getColorBackground(), blendingOrder, layerBits);
+        alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
         
         int width = offscreen.sz.width;
         int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
@@ -976,7 +976,7 @@ class LayerDrawing
         ArrayList<EditWindow.LayerColor> layerColors = new ArrayList<EditWindow.LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
-        float[] backgroundComps = (new Color(User.getColorBackground())).getRGBColorComponents(null);
+        float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
         float bRed = backgroundComps[0];
         float bGreen = backgroundComps[1];
         float bBlue = backgroundComps[2];
@@ -1112,10 +1112,10 @@ class LayerDrawing
         drawBounds = wnd.getDisplayedBounds();
 
 		// set colors to use
-        textColor = new Color(User.getColorText());
+        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		textGraphics.setColor(textColor);
-		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
-        gridGraphics.setColor(new Color(User.getColorGrid()));
+		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+        gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())

@@ -584,8 +584,8 @@ public class Highlighter implements DatabaseChangeListener {
 
         List<Highlight2> list = highlightList; //getHighlights();
 
-        Color colorH = new Color(User.getColorHighlight());
-        Color colorM = new Color(User.getColorMouseOverHighlight());
+        Color colorH = new Color(User.getColor(User.ColorPrefType.HIGHLIGHT));
+        Color colorM = new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT));
         Stroke stroke = Highlight2.solidLine;
 
         for (Highlight2 h : list)

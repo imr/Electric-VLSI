@@ -112,8 +112,11 @@ public final class J3DUtils
     private static Pref cache3DColorInstanceCell = Pref.makeIntPref("3DColorInstanceCell", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DColorHighlighted = Pref.makeIntPref("3DColorHighlighted", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DColorAmbient = Pref.makeIntPref("3DColorAmbient", User.getUserTool().prefs, Color.GRAY.getRGB());
-    private static Pref cache3DColorAxes = Pref.makeStringPref("3DColorAxes", User.getUserTool().prefs,
-            "("+Color.RED.getRGB()+" "+ Color.BLUE.getRGB() + " "+ Color.GREEN.getRGB() + ")");
+    private static Pref cache3DColorAxisX = Pref.makeIntPref("3DColorAxisX", User.getUserTool().prefs, Color.RED.getRGB());
+    private static Pref cache3DColorAxisY = Pref.makeIntPref("3DColorAxisY", User.getUserTool().prefs, Color.BLUE.getRGB());
+    private static Pref cache3DColorAxisZ = Pref.makeIntPref("3DColorAxisZ", User.getUserTool().prefs, Color.GREEN.getRGB());
+//    private static Pref cache3DColorAxes = Pref.makeStringPref("3DColorAxes", User.getUserTool().prefs,
+//            "("+Color.RED.getRGB()+" "+ Color.BLUE.getRGB() + " "+ Color.GREEN.getRGB() + ")");
     private static Pref cache3DColorDirectionalLight = Pref.makeIntPref("3DColorDirectionalLight", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.getUserTool().prefs, "(-1 1 -1)(1 -1 -1)");
 
@@ -127,14 +130,16 @@ public final class J3DUtils
 	 * The default is "gray".
 	 * @return the color of directional light on the 3D display.
 	 */
-	public static int get3DColorDirectionalLight() { return cache3DColorDirectionalLight.getInt(); }
-	/**
+	public static int get3DColorDirectionalLight() { return get3DColorDirectionalLightPref().getInt(); }
+
+    public static Pref get3DColorDirectionalLightPref() { return cache3DColorDirectionalLight; }
+    /**
 	 * Method to set the color of directional light on the 3D display.
 	 * @param c the color of directional light on the 3D display.
 	 */
 	public static void set3DColorDirectionalLight(int c)
     {
-        cache3DColorDirectionalLight.setInt(c);
+        get3DColorDirectionalLightPref().setInt(c);
         setDirectionalColor(null);
     }
 
@@ -155,19 +160,28 @@ public final class J3DUtils
         setDirections(null);
     }
 
-	/**
+    /**
 	 * Method to get the color of the axes on the 3D display.
-	 * The default is "gray".
+	 * The default values are "red", "blue" and "green"..
 	 * @return the color of the axes on the 3D display.
 	 */
-	public static String get3DColorAxes() { return cache3DColorAxes.getString(); }
+	public static int[] get3DColorAxes()
+    {
+        int[] values = new int[3];
+        values[0] = cache3DColorAxisX.getInt();
+        values[1] = cache3DColorAxisY.getInt();
+        values[2] = cache3DColorAxisZ.getInt(); 
+        return values;
+    }
 	/**
 	 * Method to set the color of the axes on the 3D display.
 	 * @param c the color of the axes on the 3D display.
 	 */
-	public static void set3DColorAxes(String c)
+	private static void set3DColorAxes(int[] colors)
     {
-        cache3DColorAxes.setString(c);
+        cache3DColorAxisX.setInt(colors[0]);
+        cache3DColorAxisY.setInt(colors[1]);
+        cache3DColorAxisZ.setInt(colors[2]);
         J3DAppearance.setAxisAppearanceValues(null);
     }
 
@@ -377,7 +391,9 @@ public final class J3DUtils
 	 * The default is "gray".
 	 * @return the color of the cell instance on the 3D display.
 	 */
-	public static int get3DColorInstanceCell() { return cache3DColorInstanceCell.getInt(); }
+	public static int get3DColorInstanceCell() { return get3DColorInstanceCellPref().getInt(); }
+
+    public static Pref get3DColorInstanceCellPref () { return cache3DColorInstanceCell; }
 
     /**
 	 * Method to set the color of the cell instance on the 3D display.
@@ -385,7 +401,7 @@ public final class J3DUtils
 	 */
 	public static void set3DColorInstanceCell(int c)
     {
-        cache3DColorInstanceCell.setInt(c);
+        get3DColorInstanceCellPref().setInt(c);
         J3DAppearance.setCellAppearanceValues(null);
     }
 
@@ -394,7 +410,9 @@ public final class J3DUtils
 	 * The default is "gray".
 	 * @return the color of the highlighted instance on the 3D display.
 	 */
-	public static int get3DColorHighlighted() { return cache3DColorHighlighted.getInt(); }
+	public static int get3DColorHighlighted() { return get3DColorHighlightedPref().getInt(); }
+
+    public static Pref get3DColorHighlightedPref() { return cache3DColorHighlighted; }
 
     /**
 	 * Method to set the color of the highlighted instance on the 3D display.
@@ -402,7 +420,7 @@ public final class J3DUtils
 	 */
 	public static void set3DColorHighlighted(int c)
     {
-        cache3DColorHighlighted.setInt(c);
+        get3DColorHighlightedPref().setInt(c);
         J3DAppearance.setHighlightedAppearanceValues(null);
     }
 
@@ -411,7 +429,9 @@ public final class J3DUtils
 	 * The default is "gray".
 	 * @return the ambiental color on the 3D display.
 	 */
-	public static int get3DColorAmbientLight() { return cache3DColorAmbient.getInt(); }
+	public static int get3DColorAmbientLight() { return get3DColorAmbientLightPref().getInt(); }
+
+    public static Pref get3DColorAmbientLightPref() { return cache3DColorAmbient; }
 
     /**
 	 * Method to set the ambiental color on the 3D display.
@@ -419,7 +439,7 @@ public final class J3DUtils
 	 */
 	public static void set3DColorAmbientLight(int c)
     {
-        cache3DColorAmbient.setInt(c);
+        get3DColorAmbientLightPref().setInt(c);
         setAmbientalColor(null);
     }
 
@@ -607,7 +627,7 @@ public final class J3DUtils
      */
     public static void setBackgroundColor(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(User.getColorBackground()));
+        Color3f userColor = new Color3f(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
         if (backgroundColor == null)
             backgroundColor = new Color3fObservable(userColor);
         else if (initValue == null)
@@ -1164,25 +1184,26 @@ public final class J3DUtils
     public static void get3DColorsInTab(HashMap<String,ColorPatternPanel.Info> transAndSpecialMap)
     {
         // 3D Stuff
-		transAndSpecialMap.put("Special: 3D CELL INSTANCES", new ColorPatternPanel.Info(get3DColorInstanceCell()));
-        transAndSpecialMap.put("Special: 3D HIGHLIGHTED INSTANCES", new ColorPatternPanel.Info(get3DColorHighlighted()));
-        transAndSpecialMap.put("Special: 3D AMBIENT LIGHT", new ColorPatternPanel.Info(get3DColorAmbientLight()));
-        transAndSpecialMap.put("Special: 3D DIRECTIONAL LIGHT", new ColorPatternPanel.Info(get3DColorDirectionalLight()));
+		transAndSpecialMap.put("Special: 3D CELL INSTANCES", new ColorPatternPanel.Info(get3DColorInstanceCellPref()));
+        transAndSpecialMap.put("Special: 3D HIGHLIGHTED INSTANCES", new ColorPatternPanel.Info(get3DColorHighlightedPref()));
+        transAndSpecialMap.put("Special: 3D AMBIENT LIGHT", new ColorPatternPanel.Info(get3DColorAmbientLightPref()));
+        transAndSpecialMap.put("Special: 3D DIRECTIONAL LIGHT", new ColorPatternPanel.Info(get3DColorDirectionalLightPref()));
 
 
-        double[] colors = GenMath.transformVectorIntoValues(get3DColorAxes());
+        Pref[] colors = {cache3DColorAxisX, cache3DColorAxisY, cache3DColorAxisZ};
         String[] axisNames = {" X", " Y", " Z"};
 		String name = "Special: 3D AXIS";
         for (int i = 0; i < colors.length; i++)
         {
             String color3DName = name+axisNames[i];
-            transAndSpecialMap.put(color3DName, new ColorPatternPanel.Info((int)colors[i]));
+            transAndSpecialMap.put(color3DName, new ColorPatternPanel.Info(colors[i]));
         }
     }
 
     public static Boolean set3DColorsInTab(LayersTab tab)
     {
-        int [] colors3D = new int[3];
+        int[] oldColors = get3DColorAxes();
+        int [] colors3D = {oldColors[0], oldColors[1], oldColors[2]};
 		boolean colorChanged = false;
         int c = -1;
 
@@ -1195,24 +1216,19 @@ public final class J3DUtils
         { set3DColorAmbientLight(c);   colorChanged = true; }
         if ((c = tab.specialMapColor("Special: 3D DIRECTIONAL LIGHT", get3DColorDirectionalLight())) >= 0)
         { set3DColorDirectionalLight(c);   colorChanged = true; }
-        if ((c = tab.specialMapColor("Special: 3D AXIS X", get3DColorHighlighted())) >= 0)
+        if ((c = tab.specialMapColor("Special: 3D AXIS X", cache3DColorAxisX.getInt())) >= 0)
         { colors3D[0] = c;   colorChanged = true; }
-        if ((c = tab.specialMapColor("Special: 3D AXIS Y", get3DColorHighlighted())) >= 0)
+        if ((c = tab.specialMapColor("Special: 3D AXIS Y", cache3DColorAxisY.getInt())) >= 0)
         { colors3D[1] = c;   colorChanged = true; }
-        if ((c = tab.specialMapColor("Special: 3D AXIS Z", get3DColorHighlighted())) >= 0)
+        if ((c = tab.specialMapColor("Special: 3D AXIS Z", cache3DColorAxisZ.getInt())) >= 0)
         { colors3D[2] = c;   colorChanged = true; }
 
-        // For 3D colors as they are stored together
-        String newColors = "("+colors3D[0]+" "+
-                colors3D[1]+" "+
-                colors3D[2]+")";
-
-        if (!newColors.equals(get3DColorAxes()))
+        if (colors3D[0] != oldColors[0] || colors3D[1] != oldColors[1] || colors3D[2] != oldColors[2])
         {
-            set3DColorAxes(newColors);
+            set3DColorAxes(colors3D);
             colorChanged = true;
         }
-        return (new Boolean(colorChanged));
+        return (colorChanged); // using autoboxing
     }
 
     /*******************************************************************************************************

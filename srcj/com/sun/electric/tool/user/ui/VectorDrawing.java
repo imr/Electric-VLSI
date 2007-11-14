@@ -123,9 +123,9 @@ class VectorDrawing
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate, List<NodeInst> inPlaceNodePath, Rectangle screenLimit, VarContext context)
 	{
 		// set colors to use
-		textGraphics.setColor(new Color(User.getColorText()));
-		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
-		textColor = new Color(User.getColorText() & 0xFFFFFF);
+		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -224,8 +224,8 @@ class VectorDrawing
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes, boolean forceVisible)
 	{
 		// set colors to use
-		textGraphics.setColor(new Color(User.getColorText()));
-		textColor = new Color(User.getColorText() & 0xFFFFFF);
+		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -777,7 +777,7 @@ class VectorDrawing
 		{
 			if (greekedCell != null && greekedCell.fadeImageColors != null)
 			{
-				int backgroundColor = User.getColorBackground();
+				int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND);
 				int backgroundRed = (backgroundColor >> 16) & 0xFF;
 				int backgroundGreen = (backgroundColor >> 8) & 0xFF;
 				int backgroundBlue = backgroundColor & 0xFF;

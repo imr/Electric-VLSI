@@ -253,10 +253,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// compute static fields used in graphics
 		waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 		waveWindowFRC = new FontRenderContext(null, false, false);
-		offStrengthColor = new Color(User.getColorWaveformStrengthOff());
-		nodeStrengthColor = new Color(User.getColorWaveformStrengthNode());
-		gateStrengthColor = new Color(User.getColorWaveformStrengthGate());
-		powerStrengthColor = new Color(User.getColorWaveformStrengthPower());
+		offStrengthColor = new Color(User.getColor(User.ColorPrefType.WAVE_OFF_STRENGTH));
+		nodeStrengthColor = new Color(User.getColor(User.ColorPrefType.WAVE_NODE_STRENGTH));
+		gateStrengthColor = new Color(User.getColor(User.ColorPrefType.WAVE_GATE_STRENGTH));
+		powerStrengthColor = new Color(User.getColor(User.ColorPrefType.WAVE_POWER_STRENGTH));
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
@@ -995,10 +995,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
-		oldForeground = User.getColorWaveformForeground();
-		oldBackground = User.getColorWaveformBackground();
-		User.setColorWaveformForeground(0);
-		User.setColorWaveformBackground(0xFFFFFF);
+		oldForeground = User.getColor(User.ColorPrefType.WAVE_FOREGROUND);
+		oldBackground = User.getColor(User.ColorPrefType.WAVE_BACKGROUND);
+		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, 0);
+		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, 0xFFFFFF);
 		changedColors = true;
 
 		PrinterJob pj = ep.getPrintJob();
@@ -1061,8 +1061,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 //			mainHorizRulerPanel.paint(g2d);
 		if (changedColors)
 		{
-			User.setColorWaveformForeground(oldForeground);
-			User.setColorWaveformBackground(oldBackground);
+			User.setColor(User.ColorPrefType.WAVE_FOREGROUND, oldForeground);
+			User.setColor(User.ColorPrefType.WAVE_BACKGROUND, oldBackground);
 			changedColors = false;
 		}
 		nowPrinting = 0;
@@ -3139,10 +3139,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// determine trace color
 		switch (state & Stimuli.LOGIC)
 		{
-			case Stimuli.LOGIC_LOW:  return new Color(User.getColorWaveformCrossProbeLow());
-			case Stimuli.LOGIC_HIGH: return new Color(User.getColorWaveformCrossProbeHigh());
-			case Stimuli.LOGIC_X:    return new Color(User.getColorWaveformCrossProbeX());
-			case Stimuli.LOGIC_Z:    return new Color(User.getColorWaveformCrossProbeZ());
+			case Stimuli.LOGIC_LOW:  return new Color(User.getColor(User.ColorPrefType.WAVE_CROSS_LOW));
+			case Stimuli.LOGIC_HIGH: return new Color(User.getColor(User.ColorPrefType.WAVE_CROSS_HIGH));
+			case Stimuli.LOGIC_X:    return new Color(User.getColor(User.ColorPrefType.WAVE_CROSS_UNDEF));
+			case Stimuli.LOGIC_Z:    return new Color(User.getColor(User.ColorPrefType.WAVE_CROSS_FLOAT));
 		}
 		return Color.RED;
 	}

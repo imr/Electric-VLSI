@@ -689,25 +689,26 @@ public class WindowMenu {
     }
 
     /**
-     * This method implements the command to set default colors.
+     * This method implements the command to set default background colors. This function resets colors
+     * set by blackBackgroundCommand or whiteBackgroundCommand.
      */
     public static void defaultBackgroundCommand()
     {
-        User.setColorBackground(Color.LIGHT_GRAY.getRGB());
-        User.setColorGrid(Color.BLACK.getRGB());
-        User.setColorHighlight(Color.WHITE.getRGB());
-        User.setColorPortHighlight(Color.YELLOW.getRGB());
-        User.setColorText(Color.BLACK.getRGB());
-        User.setColorInstanceOutline(Color.BLACK.getRGB());
-		User.setColorWaveformBackground(Color.BLACK.getRGB());
-		User.setColorWaveformForeground(Color.WHITE.getRGB());
-		User.setColorWaveformStimuli(Color.RED.getRGB());
+        User.resetFactoryColor(User.ColorPrefType.BACKGROUND);
+        User.resetFactoryColor(User.ColorPrefType.GRID);
+        User.resetFactoryColor(User.ColorPrefType.HIGHLIGHT);
+        User.resetFactoryColor(User.ColorPrefType.PORT_HIGHLIGHT);
+        User.resetFactoryColor(User.ColorPrefType.TEXT);
+        User.resetFactoryColor(User.ColorPrefType.INSTANCE);
+		User.resetFactoryColor(User.ColorPrefType.WAVE_BACKGROUND);
+		User.resetFactoryColor(User.ColorPrefType.WAVE_FOREGROUND);
+		User.resetFactoryColor(User.ColorPrefType.WAVE_STIMULI);
 
-		// change the colors in the "Generic" technology
+        // change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.BLACK);
 
         // redraw
-        redrawNewColors();
+        WindowFrame.redrawNewColors();
     }
 
     /**
@@ -715,21 +716,21 @@ public class WindowMenu {
      */
     public static void blackBackgroundCommand()
     {
-        User.setColorBackground(Color.BLACK.getRGB());
-        User.setColorGrid(Color.WHITE.getRGB());
-        User.setColorHighlight(Color.RED.getRGB());
-        User.setColorPortHighlight(Color.YELLOW.getRGB());
-        User.setColorText(Color.WHITE.getRGB());
-        User.setColorInstanceOutline(Color.WHITE.getRGB());
-		User.setColorWaveformBackground(Color.BLACK.getRGB());
-		User.setColorWaveformForeground(Color.WHITE.getRGB());
-		User.setColorWaveformStimuli(Color.RED.getRGB());
+        User.setColor(User.ColorPrefType.BACKGROUND, Color.BLACK.getRGB());
+        User.setColor(User.ColorPrefType.GRID, Color.WHITE.getRGB());
+        User.setColor(User.ColorPrefType.HIGHLIGHT, Color.RED.getRGB());
+        User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.YELLOW.getRGB());
+        User.setColor(User.ColorPrefType.TEXT, Color.WHITE.getRGB());
+        User.setColor(User.ColorPrefType.INSTANCE, Color.WHITE.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.BLACK.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.WHITE.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.WHITE);
 
         // redraw
-        redrawNewColors();
+        WindowFrame.redrawNewColors();
     }
 
     /**
@@ -737,36 +738,21 @@ public class WindowMenu {
      */
     public static void whiteBackgroundCommand()
     {
-        User.setColorBackground(Color.WHITE.getRGB());
-        User.setColorGrid(Color.BLACK.getRGB());
-        User.setColorHighlight(Color.RED.getRGB());
-        User.setColorPortHighlight(Color.DARK_GRAY.getRGB());
-        User.setColorText(Color.BLACK.getRGB());
-        User.setColorInstanceOutline(Color.BLACK.getRGB());
-		User.setColorWaveformBackground(Color.WHITE.getRGB());
-		User.setColorWaveformForeground(Color.BLACK.getRGB());
-		User.setColorWaveformStimuli(Color.RED.getRGB());
+        User.setColor(User.ColorPrefType.BACKGROUND, Color.WHITE.getRGB());
+        User.setColor(User.ColorPrefType.GRID, Color.BLACK.getRGB());
+        User.setColor(User.ColorPrefType.HIGHLIGHT, Color.RED.getRGB());
+        User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.DARK_GRAY.getRGB());
+        User.setColor(User.ColorPrefType.TEXT, Color.BLACK.getRGB());
+        User.setColor(User.ColorPrefType.INSTANCE, Color.BLACK.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.WHITE.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.BLACK.getRGB());
+		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.BLACK);
 
         // redraw
-        redrawNewColors();
-    }
-
-    private static void redrawNewColors()
-    {
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			WindowContent content = wf.getContent();
-			content.fullRepaint();
-		}
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-        	WindowFrame wf = it.next();
-        	wf.loadComponentMenuForTechnology();
-        }
+        WindowFrame.redrawNewColors();
     }
 
     private static GraphicsDevice [] getAllGraphicsDevices() {

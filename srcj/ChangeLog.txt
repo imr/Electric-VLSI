@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+BUG: (11/14/07, GVG) Factory reset all layers does not reset background (Bug #1425)
+FIX: Indeed, all special colors such as for grid and waveforms had the same problem. Done some refactorization
+to clean the code. Consistent way to reset to factory colors from WindowMenu option.
+
 IMP: (11/13/07, RK) Add physical design classes for Infinity-2
 
 BUG: (11/12/07, GVG) Narrow layers not detected by DRC (bug #1418)

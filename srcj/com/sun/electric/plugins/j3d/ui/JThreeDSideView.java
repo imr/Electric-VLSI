@@ -166,7 +166,7 @@ public class JThreeDSideView extends JPanel
         objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
 
         // Create a simple Shape3D node; add it to the scene graph.
-        Background bg = new Background(new Color3f(new Color(User.getColorBackground())));
+        Background bg = new Background(new Color3f(new Color(User.getColor(User.ColorPrefType.BACKGROUND))));
         bg.setApplicationBounds(infiniteBounds);
         objRoot.addChild(bg);
 

@@ -147,7 +147,7 @@ public class WaveSignal
 			sigButton.addMouseListener(new SignalButton(this));
 		} else
 		{
-			color = new Color(User.getColorWaveformStimuli());
+			color = new Color(User.getColor(User.ColorPrefType.WAVE_STIMULI));
 			wavePanel.getDigitalSignalButton().setText(sigName);
 			wavePanel.addSignal(this, wavePanel.getDigitalSignalButton());
 			sigButton = wavePanel.getDigitalSignalButton();

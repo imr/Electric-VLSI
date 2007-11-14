@@ -490,7 +490,7 @@ public class View3DWindow extends JPanel
 	public void rightScrollChanged(int e) {}
 
 	/** Dummy functios due to text-oriented functions */
-	public void fullRepaint() { System.out.println("View3DWindow::fullRepaint"); }
+	public void fullRepaint() {}
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
 	public JPanel getPanel() { return this; }
