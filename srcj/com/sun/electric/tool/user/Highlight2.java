@@ -528,8 +528,10 @@ class HighlightLine extends Highlight2
 
     Rectangle2D getHighlightedArea(EditWindow wnd)
     {
-        double cX = (start.getX() + end.getX()) / 2;
-        double cY = (start.getY() + end.getY()) / 2;
+//        double cX = (start.getX() + end.getX()) / 2;
+//        double cY = (start.getY() + end.getY()) / 2;
+        double cX = Math.min(start.getX(), end.getX());
+        double cY = Math.min(start.getY(), end.getY());
         double sX = Math.abs(start.getX() - end.getX());
         double sY = Math.abs(start.getY() - end.getY());
 		return new Rectangle2D.Double(cX, cY, sX, sY);
