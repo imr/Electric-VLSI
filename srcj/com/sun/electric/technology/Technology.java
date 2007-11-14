@@ -1044,6 +1044,8 @@ public class Technology implements Comparable<Technology>
             }
             if (n.nodeSizeRule != null)
                 pnp.setMinSize(n.nodeSizeRule.getWidth(), n.nodeSizeRule.getHeight(), n.nodeSizeRule.getRuleName());
+            if (n.spiceTemplate != null)
+            	pnp.setSpiceTemplate(n.spiceTemplate);
         }
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;

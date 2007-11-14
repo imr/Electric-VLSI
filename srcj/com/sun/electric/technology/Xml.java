@@ -207,6 +207,7 @@ public class Xml {
         public int specialType;
         public double[] specialValues;
         public com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule;
+        public String spiceTemplate;
     }
 
     public static class NodeLayer implements Serializable {
@@ -373,7 +374,8 @@ public class Xml {
         LayerRule,
         LayersRule,
         NodeLayersRule,
-        NodeRule;
+        NodeRule,
+        spiceTemplate;
 
         private final boolean hasText;
 
@@ -1026,6 +1028,9 @@ public class Xml {
                 case spiceLine:
                     curSpiceHeader.spiceLines.add(a("line"));
                     break;
+                case spiceTemplate:
+                	curNode.spiceTemplate = a("value");
+                	break;
                 case menuPalette:
                     tech.menuPalette = new MenuPalette();
                     tech.menuPalette.numColumns = Integer.parseInt(a("numColumns"));
@@ -1303,6 +1308,7 @@ public class Xml {
                 case serpTrans:
                 case minSizeRule:
                 case spiceLine:
+                case spiceTemplate:
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
@@ -1841,6 +1847,10 @@ public class Xml {
             if (ni.nodeSizeRule != null) {
                 com.sun.electric.technology.PrimitiveNode.NodeSizeRule r = ni.nodeSizeRule;
                 b(XmlKeyword.minSizeRule); a("width", r.getWidth()); a("height", r.getHeight()); a("rule", r.getRuleName()); el();
+            }
+            if (ni.spiceTemplate != null)
+            {
+            	b(XmlKeyword.spiceTemplate); a("value", ni.spiceTemplate); el();
             }
             
             el(XmlKeyword.primitiveNode);

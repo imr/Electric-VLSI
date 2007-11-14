@@ -1104,6 +1104,8 @@ public class Manipulate
 				return "Whether " + cell + " is square";
 			case Info.NODEWIPES:
 				return "Whether " + cell + " disappears when conencted to one or two arcs";
+			case Info.NODESPICETEMPLATE:
+				return "Spice template for " + cell;
 
 			case Info.CENTEROBJ:
 				return "The grab point of " + cell;
@@ -1198,6 +1200,7 @@ public class Manipulate
 			case Info.NODESERPENTINE:    modNodeSerpentine(wnd, ni);         break;
 			case Info.NODESQUARE:        modNodeSquare(wnd, ni);             break;
 			case Info.NODEWIPES:         modNodeWipes(wnd, ni);              break;
+			case Info.NODESPICETEMPLATE: modNodeSpiceTemplate(wnd, ni);      break;
 
 			case Info.PORTOBJ:           modPort(wnd, ni);                   break;
 			case Info.HIGHLIGHTOBJ:
@@ -2016,6 +2019,14 @@ public class Manipulate
 		{
 			new SetTextJob(ni, "Invisible with 1 or 2 arcs: " + (finalChoice ? "Yes" : "No"));
 		}
+	}
+
+	private static void modNodeSpiceTemplate(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newST = PromptAt.showPromptAt(wnd, ni, "Change Spice Template",
+			"New Spice Template for this node:", initialMsg);
+		if (newST != null) new SetTextJob(ni, "Spice Template: " + newST);
 	}
 
 	private static void modNodeLockability(EditWindow wnd, NodeInst ni)

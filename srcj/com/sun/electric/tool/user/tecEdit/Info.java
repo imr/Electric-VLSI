@@ -115,6 +115,7 @@ public class Info
 	/** shrinks arcs (node cell) */                             static final int NODESHRINKSARCS   = 58;
     /** 3D transparency mode (layer cell) */                    static final int LAYER3DMODE       = 59;
     /** 3D transparency factor (layer cell) */                  static final int LAYER3DFACTOR     = 60;
+    /** Spice template (node cell) */                           static final int NODESPICETEMPLATE = 61;
 
 
     /** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
@@ -298,6 +299,9 @@ public class Info
 					break;
 				case NODELOCKABLE:
 					str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case NODESPICETEMPLATE:
+					str = "Spice template: " + (table[i].value == null ? "" : table[i].value);
 					break;
 			}
 			table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);

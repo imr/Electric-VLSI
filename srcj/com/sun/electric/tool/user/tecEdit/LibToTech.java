@@ -3497,6 +3497,7 @@ public class LibToTech
 //	        pn.defaultWidth.value = DBMath.round(ni.xSize);
 //	        pn.defaultHeight.value = DBMath.round(ni.ySize);
             pn.sizeOffset = so;
+            pn.spiceTemplate = ni.spiceTemplate;
             for(int j=0; j<ni.nodeLayers.length; j++) {
                 NodeInfo.LayerDetails nl = ni.nodeLayers[j];
                 pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));

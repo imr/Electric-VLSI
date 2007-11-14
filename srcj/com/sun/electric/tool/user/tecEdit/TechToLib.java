@@ -829,6 +829,7 @@ public class TechToLib
         nIn.autoGrowth = pnp.getAutoGrowth();
         nIn.specialType = pnp.getSpecialType();
         nIn.specialValues = pnp.getSpecialValues();
+        nIn.spiceTemplate = pnp.getSpiceTemplate();
         List<Technology.NodeLayer> nodeLayers = Arrays.asList(pnp.getLayers());
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
         if (pnp.getElectricalLayers() != null)

@@ -520,6 +520,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     /** size corrector */                           EPoint sizeCorrector;
 	/** offset from database to user */				private SizeOffset offset;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
+	/** template for Spice decks (null if none) */	private String spiceTemplate;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
 	/** Pref map for node width. */					private static Map<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
@@ -1005,6 +1006,22 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * @return the amount to grow this PrimitiveNode when arcs don't fit.
 	 */
 	public Dimension2D getAutoGrowth() { return autoGrowth; }
+
+	/**
+	 * Method to set the Spice template on this PrimitiveNode.
+	 * The Spice template is a string that has parameters which are
+	 * filled-in to produce the line in the Spice deck corresponding to this PrimitiveNode.
+	 * @param st the Spice template on this PrimitiveNode.
+	 */
+	public void setSpiceTemplate(String st) { spiceTemplate = st; }
+
+	/**
+	 * Method to get the Spice template on this PrimitiveNode.
+	 * The Spice template is a string that has parameters which are
+	 * filled-in to produce the line in the Spice deck corresponding to this PrimitiveNode.
+	 * @return the Spice template on this PrimitiveNode.
+	 */
+	public String getSpiceTemplate() { return spiceTemplate; }
 
 	/**
 	 * Method to return the Technology of this PrimitiveNode.

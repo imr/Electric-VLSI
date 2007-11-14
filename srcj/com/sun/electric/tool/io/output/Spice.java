@@ -1032,9 +1032,22 @@ public class Spice extends Topology
 
 			// get the type of this node
 			NodeInst ni = (NodeInst)no;
-			PrimitiveNode.Function fun = ni.getFunction();
+
+			// look for a SPICE template on the primitive
+			String line = ((PrimitiveNode)ni.getProto()).getSpiceTemplate();
+			if (line != null)
+			{
+				StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets, info, false);
+                // Writing MFactor if available. Not sure here
+				writeMFactor(context, no, infstr);
+
+				infstr.append('\n');
+				multiLinePrint(false, infstr.toString());
+				continue;
+			}
 
 			// handle resistors, inductors, capacitors, and diodes
+			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun.isResistor() || fun.isCapacitor() ||
                 fun == PrimitiveNode.Function.INDUCT ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
@@ -1778,11 +1791,9 @@ public class Spice extends Topology
                                        CellNetInfo cni, SegmentedNets segmentedNets,
                                        HierarchyEnumerator.CellInfo info, boolean flatNetNames) {
         StringBuffer infstr = new StringBuffer();
-        Cell subCell = null;
+        NodeProto prototype = null;
     	if (no != null)
-    	{
-    		subCell = (Cell)no.getProto();
-    	}
+    		prototype = no.getProto();
 
         for(int pt = 0; pt < line.length(); pt++)
         {
@@ -1800,8 +1811,8 @@ public class Spice extends Topology
             String paramName = line.substring(start, pt);
 
             PortProto pp = null;
-            if (subCell != null) {
-                pp = subCell.findPortProto(paramName);
+            if (prototype != null) {
+                pp = prototype.findPortProto(paramName);
             }
             Variable.Key varKey;
 
@@ -1837,8 +1848,8 @@ public class Spice extends Topology
                 {
                     String pVal = "?";
                     Variable parentVar = attrVar;
-                    if (subCell != null)
-                        parentVar = subCell.getVar(attrVar.getKey());
+                    if (prototype != null && prototype instanceof Cell)
+                        parentVar = ((Cell)prototype).getVar(attrVar.getKey());
                     if (!useCDL && Simulation.isSpiceUseCellParameters() &&
                             parentVar.getCode() == TextDescriptor.Code.SPICE) {
                         Object obj = context.evalSpice(attrVar, false);

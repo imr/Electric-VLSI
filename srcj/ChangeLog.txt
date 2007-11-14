@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP/MAN: (11/14/07, SMR) Added "Spice Template" field to primitive nodes.
+     Affects Node editing in the technology editor (Bug #1422).
+
 BUG: (11/14/07, GVG) Factory reset all layers does not reset background (Bug #1425)
 FIX: Indeed, all special colors such as for grid and waveforms had the same problem. Done some refactorization
 to clean the code. Consistent way to reset to factory colors from WindowMenu option.

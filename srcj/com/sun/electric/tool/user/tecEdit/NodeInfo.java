@@ -139,14 +139,16 @@ public class NodeInfo extends Info
 	int                    specialType;
 	double []              specialValues;
 	double                 xSize, ySize;
+	String                 spiceTemplate;
 
 	static SpecialTextDescr [] nodeTextTable =
 	{
-		new SpecialTextDescr(0, 15, NODEFUNCTION),
-		new SpecialTextDescr(0, 12, NODESERPENTINE),
-		new SpecialTextDescr(0,  9, NODESQUARE),
-		new SpecialTextDescr(0,  6, NODEWIPES),
-		new SpecialTextDescr(0,  3, NODELOCKABLE)
+		new SpecialTextDescr(0, 18, NODEFUNCTION),
+		new SpecialTextDescr(0, 15, NODESERPENTINE),
+		new SpecialTextDescr(0, 12, NODESQUARE),
+		new SpecialTextDescr(0,  9, NODEWIPES),
+		new SpecialTextDescr(0,  6, NODELOCKABLE),
+		new SpecialTextDescr(0,  3, NODESPICETEMPLATE)
 	};
 
 	NodeInfo()
@@ -181,6 +183,7 @@ public class NodeInfo extends Info
 		loadTableEntry(nodeTextTable, NODESQUARE, new Boolean(square));
 		loadTableEntry(nodeTextTable, NODEWIPES, new Boolean(wipes));
 		loadTableEntry(nodeTextTable, NODELOCKABLE, new Boolean(lockable));
+		loadTableEntry(nodeTextTable, NODESPICETEMPLATE, spiceTemplate);
 
 		// now create those text objects
 		createSpecialText(np, nodeTextTable);
@@ -218,6 +221,9 @@ public class NodeInfo extends Info
 					break;
 				case NODESERPENTINE:
 					nIn.serp = str.equalsIgnoreCase("yes");
+					break;
+				case NODESPICETEMPLATE:
+					nIn.spiceTemplate = str;
 					break;
 			}
 		}
