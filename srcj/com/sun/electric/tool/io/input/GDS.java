@@ -1281,7 +1281,7 @@ public class GDS extends Input
 				{
 					// determine shape of segment
 					double length = fromPt.distance(toPt);
-					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(fromPt, toPt),
+					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(toPt, fromPt),
 						fromPt, fextend, toPt, textend, Poly.Type.FILLED);
 
 					if (mergeThisCell)

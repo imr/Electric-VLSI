@@ -1003,7 +1003,7 @@ public class Connectivity
 			this.end = end;
 			startHub = endHub = false;
 			if (start.equals(end)) angle = -1; else
-				angle = GenMath.figureAngle(start, end);
+				angle = GenMath.figureAngle(end, start);
 		}
 
 		void setStart(double x, double y)
@@ -3258,7 +3258,7 @@ public class Connectivity
 							Point2D fLoc = fPortPoly.closestPoint(tLoc);
 							EPoint fLocScaled = new EPoint(scaleUp(fLoc.getX()), scaleUp(fLoc.getY()));
 							double len = scaleUp(fLoc.distance(tLoc));
-							int angle = GenMath.figureAngle(fLoc, tLoc);
+							int angle = GenMath.figureAngle(tLoc, fLoc);
 							Poly conPoly = Poly.makeEndPointPoly(len, 1, angle, fLocScaled, 0, tLocScaled, 0, Poly.Type.FILLED);
 							if (originalMerge.contains(layer, conPoly))
 							{
