@@ -14,12 +14,11 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.flag.router.ConnectionCache;
 import com.sun.electric.tool.generator.flag.router.Router;
 import com.sun.electric.tool.generator.flag.router.SogRouterAdapter;
 import com.sun.electric.tool.generator.flag.router.ToConnect;
@@ -28,6 +27,8 @@ import com.sun.electric.tool.generator.layout.AbutRouter;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.user.ExportChanges;
 
 
 /** Super class for the physical design objects of all Cells */
@@ -203,9 +204,46 @@ public class FlagDesign {
 		}
 		
 	}
+	/** If PortInst name matches Export name then export PortInst and
+	 * remove PortInst and export name from respective lists. */
+	private void exportPortInstsWithMatchingNames(List<String> expNames,
+			                                      List<PortInst> ports) {
+		for (Iterator<String> sIt=expNames.iterator(); sIt.hasNext();) {
+			String expNm = sIt.next();
+			for (Iterator<PortInst> pIt=ports.iterator(); pIt.hasNext();) {
+				PortInst pi = pIt.next();
+				String portNm = pi.getPortProto().getName();
+				if (expNm.equals(portNm)) {
+					Export.newInstance(pi.getNodeInst().getParent(), 
+					                   pi, expNm);
+					sIt.remove();
+					pIt.remove();
+					break;
+				}
+			}
+		}
+	}
+	
+	private void exportTheRest(List<String> expNames, List<PortInst> ports) {
+		for (int i=0; i<expNames.size(); i++) {
+			String expNm = expNames.get(i);
+			if (i>=ports.size()) {
+				prln("Error: Schematic export: "+expNm+
+					  " couldn't be added to layout");
+				continue;
+			}
+			PortInst pi = ports.get(i);
+			Export.newInstance(pi.getNodeInst().getParent(), 
+	                           pi, expNm);
+		}
+	}
 	
 	/** Re-export all ports that the schematic exports. Don't do power
-	 * and ground because they are handled by another method. */
+	 * and ground because they are handled by another method. 
+	 * There are three criteria for selecting which PortInst to export. First, 
+	 * prefer a PortInst with the same as the export. Second, prefer a PortInst
+	 * without connections. Third, prefer a PortInst that is close to the cell
+	 * boundary. */
 	private void reExport(Cell layCell, List<ToConnect> toConns) {
 		Rectangle2D colBounds = Utils.findBounds(layCell);
 		CloseToBound closeToBound = new CloseToBound(colBounds);
@@ -224,16 +262,18 @@ public class FlagDesign {
 				Collections.sort(connPorts, closeToBound);
 				Collections.sort(unconnPorts, closeToBound);
 
-				// Export disconnected PortInsts first
-				unconnPorts.addAll(connPorts);
+				// allPorts sorted by following criterea in order of importance:
+				// 1) no arcs connected
+				// 2) distance to boundary
+				List<PortInst> allPorts = new ArrayList<PortInst>();
+				allPorts.addAll(unconnPorts);
+				allPorts.addAll(connPorts);
 				
-				int portNdx = 0;
-				for (String expNm : tc.getExportName()) {
-					PortInst pi = unconnPorts.get(portNdx++);
-					//prln("Add Export: "+expNm);
-					Export.newInstance(pi.getNodeInst().getParent(), 
-							           pi, expNm);
-				}
+				List<String> expNames = new ArrayList<String>();
+				expNames.addAll(tc.getExportName());
+				exportPortInstsWithMatchingNames(expNames, allPorts);
+				
+				exportTheRest(expNames, allPorts);
 			}
 		}
 	}
@@ -451,12 +491,10 @@ public class FlagDesign {
 		for (Iterator<NodeInst> niIt=c.getNodes(); niIt.hasNext();) {
 			NodeInst ni = niIt.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
-			ConnectionCache cc = new ConnectionCache(ni);
 			for (Iterator<PortInst> piIt=ni.getPortInsts(); piIt.hasNext();) {
 				PortInst pi = piIt.next();
 				if (!Utils.isPwrGnd(pi)) continue;
-				//if (pi.hasConnections()) continue;
-				if (cc.hasConnections(pi)) continue;
+				if (pi.hasConnections()) continue;
 				Export e;
 				if (Utils.isPwr(pi)) {
 					e = Export.newInstance(c, pi, vdd.nextName());
@@ -599,6 +637,22 @@ public class FlagDesign {
 	protected void routeSignals(LayoutNetlist layNets) {
 		List<ToConnect> signals = selectSignalToConnects(layNets.getToConnects());
 		router.routeSignals(signals, layNets);
+	}
+	protected void reexportPowerGround(Cell c) {
+		List<Geometric> allNodes = new ArrayList<Geometric>();
+		for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
+			allNodes.add(it.next());
+		}
+		int num = ExportChanges.reExportNodes(c, allNodes, false, true, true);
+	}
+	protected void reexportSignals(LayoutNetlist layNets) {
+		Cell layCell = layNets.getLayoutCell();
+		List<ToConnect> toConns = layNets.getToConnects();
+		reExport(layCell, toConns);
+	}
+	protected void addNccVddGndExportsConnectedByParent(Cell c) {
+		NccCellAnnotations.addNccAnnotation(c, "exportsConnectedByParent vdd /vdd_[0-9]+/");
+		NccCellAnnotations.addNccAnnotation(c, "exportsConnectedByParent gnd /gnd_[0-9]+/");
 	}
 	
 

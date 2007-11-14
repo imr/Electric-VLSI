@@ -334,14 +334,14 @@ public class NccCellAnnotations {
 	/**
 	 * Class to create a Cell NCC annotation object in a new Job.
 	 */
-    private static class MakeCellAnnotation extends Job {
+    private static class MakeCellAnnotationJob extends Job {
     	static final long serialVersionUID = 0;
     	
 		private transient EditWindow_ wnd;
         private Cell cell;
         private String newAnnotation;
 
-		private MakeCellAnnotation(EditWindow_ wnd, Cell cell, String annotation)
+		private MakeCellAnnotationJob(EditWindow_ wnd, Cell cell, String annotation)
         {
             super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.wnd = wnd;
@@ -351,33 +351,8 @@ public class NccCellAnnotations {
         }
 
         public boolean doIt() throws JobException {
-        	
-			Variable nccVar = cell.getVar(NCC_ANNOTATION_KEY);
-			if (nccVar == null) {
-				String [] initial = new String[1];
-				initial[0] = newAnnotation;
-				TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-				nccVar = cell.newVar(NCC_ANNOTATION_KEY, initial, td);
-				if (nccVar == null) return true;
-			} else {
-				Object oldObj = nccVar.getObject();
-				if (oldObj instanceof String) {
-					/* Groan! Menu command always creates NCC attributes as arrays of strings.
-					 * However, if user edits a single line NCC attribute then dialog box
-					 * converts it back into a String.  Be prepared to convert it back into an array*/
-					oldObj = new String[] {(String)oldObj};
-				}
-				LayoutLib.error(!(oldObj instanceof String[]), "NCC annotation not String[]");
-				String[] oldVal = (String[]) oldObj;
-				TextDescriptor td = nccVar.getTextDescriptor();
-
-				int newLen = oldVal.length+1;
-				String[] newVal = new String[newLen];
-				for (int i=0; i<newLen-1; i++) newVal[i]=oldVal[i];
-				newVal[newLen-1] = newAnnotation;
-				nccVar = cell.newVar(NCC_ANNOTATION_KEY, newVal, td);
-			}
-			return true;
+        	addNccAnnotation(cell, newAnnotation);
+        	return true;
         }
         public void terminateOK() {
         	wnd.clearHighlighting();
@@ -392,14 +367,42 @@ public class NccCellAnnotations {
 	 * Method to create NCC annotations in the current Cell.
 	 * Called from the menu commands.
 	 */
-	public static void makeNCCAnnotation(String newAnnotation)
+	public static void makeNCCAnnotationMenuCommand(String newAnnotation)
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-		new MakeCellAnnotation(wnd, cell, newAnnotation);
+		new MakeCellAnnotationJob(wnd, cell, newAnnotation);
+	}
+	/** Add an NCC annotation to a Cell. */
+	public static void addNccAnnotation(Cell c, String newAnnotation) {
+		Variable nccVar = c.getVar(NCC_ANNOTATION_KEY);
+		if (nccVar == null) {
+			String [] initial = new String[1];
+			initial[0] = newAnnotation;
+			TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+			nccVar = c.newVar(NCC_ANNOTATION_KEY, initial, td);
+			LayoutLib.error(nccVar==null, "couldn't create NCC annotation");
+		} else {
+			Object oldObj = nccVar.getObject();
+			if (oldObj instanceof String) {
+				/* Groan! Menu command always creates NCC attributes as arrays of strings.
+				 * However, if user edits a single line NCC attribute then dialog box
+				 * converts it back into a String.  Be prepared to convert it back into an array*/
+				oldObj = new String[] {(String)oldObj};
+			}
+			LayoutLib.error(!(oldObj instanceof String[]), "NCC annotation not String[]");
+			String[] oldVal = (String[]) oldObj;
+			TextDescriptor td = nccVar.getTextDescriptor();
+
+			int newLen = oldVal.length+1;
+			String[] newVal = new String[newLen];
+			for (int i=0; i<newLen-1; i++) newVal[i]=oldVal[i];
+			newVal[newLen-1] = newAnnotation;
+			nccVar = c.newVar(NCC_ANNOTATION_KEY, newVal, td);
+		}
 	}
 
 	/**

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06l: *******************************
 
+IMP: (11/13/07, RK) Add physical design classes for Infinity-2
+
 BUG: (11/12/07, GVG) Narrow layers not detected by DRC (bug #1418)
 FIX: Quick.foundSmallSizeDefect() should still analyze zero area boxes.
 

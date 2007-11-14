@@ -71,8 +71,16 @@ public class Scan {
 							         prevOutPorts, inOrFeed, router);
 					prevOut = null;
 				}
-				prevOutPorts = chain.getOutputOrFeedNames(ni);
-				if (prevOutPorts!=null)  prevOut = ni;
+				List<String> newPrevOutPorts = chain.getOutputOrFeedNames(ni);
+				if (newPrevOutPorts!=null) {
+					if (prevOut!=null) {
+						prln("Error: Dangling scan chain output. ");
+						prln("  NodeInst: "+prevOut.getName());
+						prln("  Port:     "+prevOutPorts.get(0));
+					}
+					prevOutPorts = newPrevOutPorts;
+					prevOut = ni;
+				}
 			}
 		}
 	}

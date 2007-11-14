@@ -366,27 +366,27 @@ public class ToolMenu {
 
                 new EMenu("Add NCC _Annotation to Cell",
 		        	new EMenuItem("Exports Connected by Parent _vdd") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("exportsConnectedByParent vdd /vdd_[0-9]+/"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent vdd /vdd_[0-9]+/"); }},
 		        	new EMenuItem("Exports Connected By Parent _gnd") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("exportsConnectedByParent gnd /gnd_[0-9]+/"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent gnd /gnd_[0-9]+/"); }},
 		        	new EMenuItem("_Skip NCC") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("skipNCC <comment explaining why>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("skipNCC <comment explaining why>"); }},
 		        	new EMenuItem("_Not a Subcircuit") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("notSubcircuit <comment explaining why>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("notSubcircuit <comment explaining why>"); }},
 		        	new EMenuItem("_Flatten Instances") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("flattenInstances <list of instance names>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("flattenInstances <list of instance names>"); }},
 		        	new EMenuItem("_Join Group") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("joinGroup <cell name>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("joinGroup <cell name>"); }},
 		        	new EMenuItem("_Transistor Type") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("transistorType <typeName>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("transistorType <typeName>"); }},
 		        	new EMenuItem("_Resistor Type") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("resistorType <typeName>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("resistorType <typeName>"); }},
        		        new EMenuItem("Force _Part Match") { public void run() {
-                            NccCellAnnotations.makeNCCAnnotation("forcePartMatch <Part name shared by schematic and layout>"); }},
+                            NccCellAnnotations.makeNCCAnnotationMenuCommand("forcePartMatch <Part name shared by schematic and layout>"); }},
     		        new EMenuItem("Force _Wire Match") { public void run() {
-                            NccCellAnnotations.makeNCCAnnotation("forceWireMatch <Wire name shared by schematic and layout>"); }},
+                            NccCellAnnotations.makeNCCAnnotationMenuCommand("forceWireMatch <Wire name shared by schematic and layout>"); }},
 		        	new EMenuItem("_Black Box") { public void run() {
-                        NccCellAnnotations.makeNCCAnnotation("blackBox <comment explaining why>"); }})),
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("blackBox <comment explaining why>"); }})),
 
         // ------------------- PIE
             // If Pie package is installed then add menu entries to call it
@@ -531,9 +531,7 @@ public class ToolMenu {
                     PLA.generate(); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
-                Technology.getTSMC180Technology() != null ? new EMenuItem("F_ill (TSMC180)...") { public void run() {
-                    FillGenDialog.openFillGeneratorDialog(Technology.getTSMC180Technology()); }} : null,
-                Technology.getCMOS90Technology() != null ?  new EMenuItem("Fill (CMOS_90)...") { public void run() {
+                Technology.getCMOS90Technology() != null ?  new EMenuItem("F_ill (CMOS90)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getCMOS90Technology()); }} : null,
                 new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.MOCMOS); }},
