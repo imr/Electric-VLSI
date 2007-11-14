@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -64,9 +65,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class reads files in Sue files.
@@ -289,7 +293,8 @@ public class Sue extends Input
 		Point2D iconPt = null;
 		List<String> argumentKey = new ArrayList<String>();
 		List<String> argumentValue = new ArrayList<String>();
-		HashSet<NodeInst> invertNodeOutput = new HashSet<NodeInst>();
+		Set<NodeInst> invertNodeOutput = new HashSet<NodeInst>();
+		Map<String,List<NodeInst>> duplicateNames = new HashMap<String,List<NodeInst>>();
 		for(;;)
 		{
 			// get the next line of text
@@ -508,7 +513,7 @@ public class Sue extends Input
 				if (proto == null)
 				{
 					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
-						", cannot create instance of " + keyword1);
+						", cannot create instance of " + keyword1 + " (no Sue object with that name)");
 					continue;
 				}
 
@@ -558,7 +563,6 @@ public class Sue extends Input
 							ppi = nni.getOnlyPortInst();
 						}
 						ArcInst ai = ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0, pi, ppi);
-//						ArcInst ai = ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0, pi, ppi);
 						if (ai == null)
 						{
 							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -590,7 +594,18 @@ public class Sue extends Input
 					} else
 					{
 						// just name the node
-						ni.setName(parP.theName);
+						NodeInst oNi = cell.findNode(parP.theName);
+						if (oNi == null) ni.setName(parP.theName); else
+						{
+							List<NodeInst> dups = duplicateNames.get(parP.theName);
+							if (dups == null)
+							{
+								dups = new ArrayList<NodeInst>();
+								dups.add(ni);
+								duplicateNames.put(parP.theName, dups);
+							}
+							dups.add(oNi);
+						}
 					}
 				}
 
@@ -682,8 +697,9 @@ public class Sue extends Input
 					boolean makeJava = false;
 					if (newObject instanceof String)
 					{
-						if (((String)newObject).indexOf('@') >= 0 ||
-							((String)newObject).indexOf("p(") >= 0) makeJava = true;
+						makeJava = EvalJavaBsh.evalJavaBsh.isValidJava((String)newObject);
+//						if (((String)newObject).indexOf('@') >= 0 ||
+//							((String)newObject).indexOf("p(") >= 0) makeJava = true;
 					}
 
                     Variable.Key varKey = Variable.newKey(sueVarName);
@@ -1011,6 +1027,17 @@ public class Sue extends Input
 			if (ni != null) ni.setExpanded();
 		}
 
+		// make warnings about duplicate names
+		for(String name : duplicateNames.keySet())
+		{
+			List<NodeInst> dups = duplicateNames.get(name);
+			System.out.print("Cell " + cell.getName() + " has multiple nodes with the same Sue name (" +
+				name + "):");
+			for(NodeInst ni : dups)
+				System.out.print(" " + ni.describe(false));
+			System.out.println();
+		}
+
 		// cleanup the current cell
 		if (cell != null)
 		{
@@ -1164,7 +1191,8 @@ public class Sue extends Input
 			for(int i=start; i<keywords.size(); i += 2)
 			{
 				String keyword = keywords.get(i);
-				String param = keywords.get(i+1);
+				String param = "";
+				if (i+1 < keywords.size()) param = keywords.get(i+1);
 				if (keyword.equalsIgnoreCase("-origin"))
 				{
 					int j = 0;
@@ -1213,7 +1241,7 @@ public class Sue extends Input
 	/**
 	 * Method to place all SUE wires into the cell.
 	 */
-	private void placeWires(List<SueWire> sueWires, List<SueNet> sueNets, Cell cell, HashSet invertNodeOutput)
+	private void placeWires(List<SueWire> sueWires, List<SueNet> sueNets, Cell cell, Set invertNodeOutput)
 	{
 		// mark all wire ends as "unassigned", all wire types as unknown
 		for(SueWire sw : sueWires)
@@ -1653,7 +1681,7 @@ public class Sue extends Input
 	 */
 	private String findBusName(ArcInst ai)
 	{
-		HashSet<ArcInst> arcsSeen = new HashSet<ArcInst>();
+		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
 		String busName = searchBusName(ai, arcsSeen);
 		if (busName == null)
 		{
@@ -1675,7 +1703,7 @@ public class Sue extends Input
 		return busName;
 	}
 
-	private String searchBusName(ArcInst ai, HashSet<ArcInst> arcsSeen)
+	private String searchBusName(ArcInst ai, Set<ArcInst> arcsSeen)
 	{
 		arcsSeen.add(ai);
 		if (ai.getProto() == Schematics.tech.bus_arc)
