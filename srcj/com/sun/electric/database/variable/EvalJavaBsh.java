@@ -388,6 +388,24 @@ public class EvalJavaBsh
         return obj;
     }
 
+    /**
+     * Method to determine whether a string is valid Java code.
+     * @param line the string to test.
+     * @return true if the string is valid, evaluatable Java code.
+     */
+    public boolean isValidJava(String line)
+    {
+        try
+        {
+            if (envObject != null)
+            {
+                evalMethod.invoke(envObject, new Object[] {line});
+                return true;
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
     // source a Java Bean Shell script file
     private void doSource(String file)
     {
