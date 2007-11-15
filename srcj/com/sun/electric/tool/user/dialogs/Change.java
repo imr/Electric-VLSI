@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -98,6 +99,15 @@ public class Change extends EModelessDialog implements HighlightListener
 
 	public static void showChangeDialog()
 	{
+        if (Client.getOperatingSystem() == Client.OS.UNIX && theDialog != null)
+        {
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+           	theDialog.closeDialog(null);
+        }
 		if (theDialog == null)
 		{
 			JFrame jf = null;

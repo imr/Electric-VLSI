@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/15/07, SMR) "Change" dialog doesn't restore if obscured up on Linux.
+FIX: In Change.showChangeDialog(), close previous dialog.
+
 BUG: (11/15/04, DN) Slow redisplay (Bug #1408).
 FIX: Accurate implementation of refreshing of export information in VectorCache.
 
