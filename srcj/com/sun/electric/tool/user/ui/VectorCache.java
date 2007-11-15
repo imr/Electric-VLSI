@@ -754,7 +754,7 @@ public class VectorCache {
         ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
         allShapes.addAll(vc.filledShapes);
         allShapes.addAll(vc.shapes);
-        allShapes.addAll(vc.topOnlyShapes);
+//        allShapes.addAll(vc.topOnlyShapes);
         Collections.sort(allShapes, shapeByLayer);
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
@@ -767,7 +767,7 @@ public class VectorCache {
         ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
         allShapes.addAll(vc.filledShapes);
         allShapes.addAll(vc.shapes);
-        allShapes.addAll(vc.topOnlyShapes);
+//        allShapes.addAll(vc.topOnlyShapes);
         Collections.sort(allShapes, shapeByLayer);
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
