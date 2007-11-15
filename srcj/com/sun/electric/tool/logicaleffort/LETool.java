@@ -660,7 +660,7 @@ public class LETool extends Tool {
 
         public void terminateOK() {
             EditWindow wnd = EditWindow.findWindow(cell);
-            if (wnd != null) wnd.repaintContents(null, false);
+            if (wnd != null) wnd.fullRepaint();
         }
     }
 

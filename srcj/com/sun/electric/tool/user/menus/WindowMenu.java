@@ -390,7 +390,7 @@ public class WindowMenu {
         		wnd.setOffset(new Point2D.Double(other.getOffset().getX(), other.getOffset().getY()));
         		break;
         }
-        wnd.repaintContents(null, false);
+        wnd.fullRepaint();
     }
 
     public static void focusOnHighlighted()

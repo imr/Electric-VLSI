@@ -23,13 +23,18 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -44,7 +49,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -143,8 +147,9 @@ public class EditWindow extends JPanel
 	    HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
+    /** the requested window scale */                       private double scaleRequested;
 	/** the window offset */								private double offx = 0, offy = 0;
-	/** the window bounds in database units */				private Rectangle2D databaseBounds;
+    /** the requested window offset */                      private double offxRequested, offyRequested;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** the display cache for this window */				private Drawing drawing;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
@@ -157,6 +162,9 @@ public class EditWindow extends JPanel
 	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell;
 	/** top-level cell being displayed (down-in-place only) */	private Cell topLevelCell;
 	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent;
+    
+    /** true if repaint was requested for this editwindow */volatile boolean repaintRequest;
+    /** full instantiate bounds for next drawing  */        private Rectangle2D fullInstantiateBounds;
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
 //    /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
@@ -184,9 +192,8 @@ public class EditWindow extends JPanel
 
     /** navigate through saved views */                     private EditWindowFocusBrowser viewBrowser;
 
-	/** list of windows to redraw (gets synchronized) */	private static List<EditWindow> redrawThese = new ArrayList<EditWindow>();
-	/** list of window changes (synchronized) */			private static List<WindowChangeRequest> windowChangeRequests = new ArrayList<WindowChangeRequest>();
-	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
+    /** synchronization lock */                             private static Object lock = new Object();
+	/** scheduled or running rendering job */               private static RenderJob runningNow = null;
     /** Logger of this package. */                          private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
     /** Class name for logging. */                          private static String CLASS_NAME = EditWindow.class.getName();
 
@@ -198,30 +205,18 @@ public class EditWindow extends JPanel
 
 	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
 
-	private static class WindowChangeRequest
-	{
-		private static final int ZOOMREQUEST   = 1;
-		private static final int PANREQUEST    = 2;
-		private static final int RESIZEREQUEST = 3;
-		EditWindow wnd;
-		double offx, offy;
-		Dimension sz;
-		double scale;
-		int requestType;
-	}
-
     abstract static class Drawing {
         final EditWindow wnd;
+        double scale;
+        double offx, offy;
 
         Drawing(EditWindow wnd) {
             this.wnd = wnd;
         }
 
-        abstract void setScreenSize(Dimension sz);
-
         abstract boolean paintComponent(Graphics2D g, Dimension sz);
 
-        abstract void render(boolean fullInstantiate, Rectangle2D bounds);
+        abstract void render(Dimension sz, double scale, double offx, double offy, boolean fullInstantiate, Rectangle2D bounds);
 
         void abortRendering() {}
         
@@ -265,9 +260,8 @@ public class EditWindow extends JPanel
 		szHalfHeight = sz.height / 2;
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
-		databaseBounds = new Rectangle2D.Double();
 
-        scale = 1;
+        scale = scaleRequested = 1;
 
 		// the total panel in the edit window
 		overall = new JPanel();
@@ -1220,29 +1214,33 @@ public class EditWindow extends JPanel
         Graphics2D g = (Graphics2D)graphics;
         if (cell == null) {
             g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
-            Dimension sz = getSize();
-            g.fillRect(0, 0, sz.width, sz.height);
+            g.fillRect(0, 0, getWidth(), getHeight());
             String msg = "No cell in this window";
             Font f = new Font(User.getDefaultFont(), Font.BOLD, 18);
             g.setFont(f);
             g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.drawString(msg, (sz.width - g.getFontMetrics(f).stringWidth(msg))/2, sz.height/2);
+            g.drawString(msg, (getWidth() - g.getFontMetrics(f).stringWidth(msg))/2, getHeight()/2);
             return;
         }
 
         logger.entering(CLASS_NAME, "paintComponent", this);
 
-        if (!drawing.paintComponent(g, sz)) {
-            Dimension newSize = getSize();
-            setScreenSize(newSize);
-            repaintContents(null, false);
+        if (!drawing.paintComponent(g, getSize())) {
+            fullRepaint();
             g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
-            g.fillRect(0, 0, newSize.width, newSize.height);
+            g.fillRect(0, 0, getWidth(), getHeight());
             logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
             return;
         }
         logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
+        sz = getSize();
+        szHalfWidth = sz.width / 2;
+        szHalfHeight = sz.height / 2;
+        scale = drawing.scale;
+        offx = drawing.offx;
+        offy = drawing.offy;
+        setScrollPosition();                        // redraw scroll bars
 
         // set the default text size (for highlighting, etc)
         Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*User.getGlobalTextScale()));
@@ -1343,27 +1341,8 @@ public class EditWindow extends JPanel
 //		super.paint(g);
 
 		// see if anything else is queued
-		synchronized(redrawThese)
-		{
-            logger.logp(Level.FINEST, CLASS_NAME, "paintComponent", "checkForOtherRequests");
-			if (runningNow == null)
-			{
-				if (handleWindowChangeRequests(this))
-				{
-					if (!redrawThese.contains(this))
-						redrawThese.add(this);
-				}
-				if (redrawThese.size() > 0)
-				{
-					runningNow = redrawThese.get(0);
-					redrawThese.remove(0);
-                    logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "restart RenderJob");
-					new RenderJob(runningNow, null, false);
-                    logger.exiting(CLASS_NAME, "paintComponent");
-					return;
-				}
-			}
-		}
+        if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
+            fullRepaint();
         logger.exiting(CLASS_NAME, "paintComponent");
 	}
 
@@ -1412,8 +1391,6 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	public void fullRepaint() { repaintContents(null, false); }
-
 	/**
 	 * Method requests that every EditWindow be redrawn, including a change of display algorithm.
 	 */
@@ -1426,7 +1403,7 @@ public class EditWindow extends JPanel
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
             wnd.setDrawingAlgorithm();
-			wnd.repaintContents(null, false);
+			wnd.fullRepaint();
 		}
 	}
 
@@ -1441,7 +1418,7 @@ public class EditWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-			wnd.repaintContents(null, false);
+			wnd.fullRepaint();
 		}
 	}
 
@@ -1462,6 +1439,13 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 */
+	public void fullRepaint() {
+        repaintContents(null, false);
+    }
+    
+	/**
+	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 * @param bounds the area to redraw (null to draw everything).
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
@@ -1474,29 +1458,43 @@ public class EditWindow extends JPanel
             repaint();
             return;
         }
+        if (runningNow != null && repaintRequest && !fullInstantiate)
+            return;
 
         logger.entering(CLASS_NAME, "repaintContents", bounds);
 		// do the redraw in a separate thread
-		synchronized(redrawThese)
-		{
-			if (runningNow != null)
-			{
-				if (runningNow == this)
-					drawing.abortRendering();
-                if (!redrawThese.contains(this))
-                    redrawThese.add(this);
-                logger.exiting(CLASS_NAME, "repaintContents");
-				return;
-			}
-			handleWindowChangeRequests(this);
-			runningNow = this;
-		}
-		new RenderJob(this, bounds, fullInstantiate);
+        if (fullInstantiate)
+            fullInstantiateBounds = bounds;
+        invokeRenderJob(this);
 
         // do the redraw in the main thread
-        setScrollPosition();                        // redraw scroll bars
+//        setScrollPosition();                        // redraw scroll bars
         logger.exiting(CLASS_NAME, "repaintContents");
 	}
+    
+    public static void invokeRenderJob() {
+        invokeRenderJob(null);
+    }
+    
+    private static void invokeRenderJob(EditWindow wnd) {
+        logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
+		synchronized(lock)
+		{
+            if (wnd != null) {
+                wnd.drawing.abortRendering();
+                wnd.repaintRequest = true;
+            }
+            if (runningNow != null) {
+                runningNow.hasTasks = true;
+                logger.exiting(CLASS_NAME, "invokeRenderJob running now");
+                return;
+            }
+            runningNow = new RenderJob();
+		}
+        runningNow.startJob();
+        logger.exiting(CLASS_NAME, "invokeRenderJob starting job");
+        
+    }
 
     private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
     /**
@@ -1504,52 +1502,81 @@ public class EditWindow extends JPanel
 	 */
 	private static class RenderJob extends Job
 	{
-		private EditWindow wnd;
-		private Rectangle2D bounds;
-		private boolean fullInstantiate;
+        private static Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
+        volatile boolean hasTasks;
 
-		protected RenderJob(EditWindow wnd, Rectangle2D bounds, boolean fullInstantiate)
+		protected RenderJob()
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.wnd = wnd;
-			this.bounds = bounds;
-			this.fullInstantiate = fullInstantiate;
-			startJob();
 		}
 
-		public boolean doIt() throws JobException
-		{
+        public boolean doIt() throws JobException {
             logger.entering(RENDER_JOB_CLASS_NAME, "doIt");
-			if (bounds == null)
-			{
-				// see if a real bounds is defined in the cell
-				bounds = User.getChangedInWindow(wnd);
-				if (bounds != null)
-				{
-					User.clearChangedInWindow(wnd);
-//					wnd.highlighter.addArea(bounds, cell);
-				}
-			}
-
-			// do the hard work of re-rendering the image
-            try
-            {
-				wnd.drawing.render(fullInstantiate, bounds);
-            } catch (java.util.ConcurrentModificationException e)
-            {
-				System.out.println("GOT ConcurrentModificationException during redisplay!");
-            	ActivityLogger.logException(e);
-				wnd.repaintContents(bounds, fullInstantiate);
+            try {
+                for (;;) {
+                    hasTasks = false;
+                    Snapshot snapshot = EDatabase.clientDatabase().backup();
+                    if (snapshot != oldSnapshot) {
+                        endBatch(oldSnapshot, snapshot);
+                        oldSnapshot = snapshot;
+                    }
+                    EditWindow wnd = null;
+                    for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();) {
+                        WindowFrame wf = it.next();
+                        WindowContent wc = wf.getContent();
+                        if (wc instanceof EditWindow && ((EditWindow) wc).repaintRequest) {
+                            wnd = (EditWindow) wc;
+                            break;
+                        }
+                    }
+                    if (wnd == null) {
+                        break;
+                    }
+                    wnd.repaintRequest = false;
+                    render(wnd);
+                }
             } finally {
-                synchronized(redrawThese) {
-                    runningNow = null;
+                RenderJob j = null;
+                synchronized (lock) {
+                    if (hasTasks) {
+                        runningNow = j = new RenderJob();
+                    } else {
+                        runningNow = null;
+                    }
+                }
+                if (j != null) {
+                    assert j == runningNow;
+                    j.startJob();
                 }
             }
-			wnd.repaint();
+
             logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
-			return true;
-		}
-	}
+            return true;
+        }
+
+        private void render(EditWindow wnd) throws JobException {
+            logger.entering(RENDER_JOB_CLASS_NAME, "render");
+
+            // do the hard work of re-rendering the image
+            Rectangle2D bounds = null;
+            boolean fullInstantiate = false;
+            if (wnd.fullInstantiateBounds != null) {
+                fullInstantiate = true;
+                bounds = wnd.fullInstantiateBounds;
+                wnd.fullInstantiateBounds = null;
+            } else if (bounds == null) {
+                // see if a real bounds is defined in the cell
+                bounds = User.getChangedInWindow(wnd);
+            }
+            if (bounds != null) {
+                User.clearChangedInWindow(wnd);
+//					wnd.highlighter.addArea(bounds, cell);
+            }
+            wnd.drawing.render(wnd.getSize(), wnd.scaleRequested, wnd.offxRequested, wnd.offyRequested, fullInstantiate, bounds);
+            wnd.repaint();
+            logger.exiting(RENDER_JOB_CLASS_NAME, "render");
+        }
+    }
 
 	/**
 	 * Method to automatically set the opacity of each layer in a Technology.
@@ -1891,7 +1918,7 @@ public class EditWindow extends JPanel
 	public void setGrid(boolean showGrid)
 	{
 		this.showGrid = showGrid;
-		repaintContents(null, false);
+		fullRepaint();
 	}
 
 	/**
@@ -2645,39 +2672,6 @@ public class EditWindow extends JPanel
 	public Dimension getScreenSize() { return sz; }
 
 	/**
-	 * Method to change the size of this EditWindow.
-	 * Also reallocates the offscreen data.
-	 */
-	public void setScreenSize(Dimension sz)
-	{
-        logger.entering(CLASS_NAME, "setScreenSize", sz);
-		// see if the request must be queued
-		if (wf != null)
-		{
-			synchronized (redrawThese)
-			{
-				if (runningNow != null)
-				{
-					// must queue the request
-					WindowChangeRequest zap = new WindowChangeRequest();
-					zap.wnd = this;
-					zap.sz = sz;
-					zap.requestType = WindowChangeRequest.RESIZEREQUEST;
-					windowChangeRequests.add(zap);
-                    logger.exiting(CLASS_NAME, "setScreenSize");
-					return;
-				}
-			}
-		}
-
-		this.sz = sz;
-		szHalfWidth = sz.width / 2;
-		szHalfHeight = sz.height / 2;
-		drawing.setScreenSize(getScreenSize());
-        logger.exiting(CLASS_NAME, "setScreenSize");
-	}
-
-	/**
 	 * Method to return the scale factor for this window.
 	 * @return the scale factor for this window.
 	 */
@@ -2691,65 +2685,8 @@ public class EditWindow extends JPanel
 	{
         if (scale <= 0)
             throw new IllegalArgumentException("Negative window scale");
-		if (wf != null)
-		{
-			synchronized (redrawThese)
-			{
-				if (runningNow != null)
-				{
-					// must queue the request
-					WindowChangeRequest zap = new WindowChangeRequest();
-					zap.wnd = this;
-					zap.scale = scale;
-					zap.requestType = WindowChangeRequest.ZOOMREQUEST;
-					windowChangeRequests.add(zap);
-					return;
-				}
-			}
-		}
-		this.scale = scale;
+		scaleRequested = scale;
 		removeAllInPlaceTextObjects();
-		computeDatabaseBounds();
-	}
-
-	private static boolean handleWindowChangeRequests(EditWindow wnd)
-	{
-		boolean changed = false;
-		List<WindowChangeRequest> notThisWindow = null;
-		for(WindowChangeRequest zap : windowChangeRequests)
-		{
-			if (zap.wnd != wnd)
-			{
-				if (notThisWindow == null) notThisWindow = new ArrayList<WindowChangeRequest>();
-				notThisWindow.add(zap);
-				continue;
-			}
-			switch (zap.requestType)
-			{
-				case WindowChangeRequest.ZOOMREQUEST:
-					if (wnd.scale != zap.scale) changed = true;
-					wnd.scale = zap.scale;
-					break;
-				case WindowChangeRequest.PANREQUEST:
-					if (wnd.offx != zap.offx || wnd.offy != zap.offy) changed = true;
-					wnd.offx = zap.offx;   wnd.offy = zap.offy;
-					break;
-				case WindowChangeRequest.RESIZEREQUEST:
-					wnd.sz = zap.sz;
-					wnd.szHalfWidth = wnd.sz.width / 2;
-					wnd.szHalfHeight = wnd.sz.height / 2;
-					wnd.drawing.setScreenSize(wnd.getScreenSize());
-					break;
-			}
-		}
-		if (notThisWindow != null) windowChangeRequests = notThisWindow; else
-			windowChangeRequests.clear();
-		if (changed)
-		{
-			wnd.removeAllInPlaceTextObjects();
-			wnd.computeDatabaseBounds();
-		}
-		return changed;
 	}
 
 	/**
@@ -2763,21 +2700,7 @@ public class EditWindow extends JPanel
 	 * If new offsets are queued, this gets the ultimate offset value.
 	 * @return the offset factor for this window.
 	 */
-	public Point2D getScheduledOffset()
-	{
-		double oX = offx;
-		double oY = offy;
-		synchronized (redrawThese)
-		{
-			for(WindowChangeRequest zap : windowChangeRequests)
-			{
-				if (zap.requestType != WindowChangeRequest.PANREQUEST) continue;
-				oX = zap.offx;
-				oY = zap.offy;
-			}
-		}
-		return new Point2D.Double(oX, oY);
-	}
+	public Point2D getScheduledOffset() { return new Point2D.Double(offxRequested, offyRequested); }
 
 	/**
 	 * Method to set the offset factor for this window.
@@ -2785,27 +2708,9 @@ public class EditWindow extends JPanel
 	 */
 	public void setOffset(Point2D off)
 	{
-		// see if the request must be queued
-		if (wf != null)
-		{
-			synchronized (redrawThese)
-			{
-				if (runningNow != null)
-				{
-					// must queue the request
-					WindowChangeRequest zap = new WindowChangeRequest();
-					zap.wnd = this;
-					zap.offx = off.getX();
-					zap.offy = off.getY();
-					zap.requestType = WindowChangeRequest.PANREQUEST;
-					windowChangeRequests.add(zap);
-					return;
-				}
-			}
-		}
-		offx = off.getX();   offy = off.getY();
+		offxRequested = off.getX();
+        offyRequested = off.getY();
 		removeAllInPlaceTextObjects();
-		computeDatabaseBounds();
 	}
 
 	private void setScreenBounds(Rectangle2D bounds)
@@ -2819,16 +2724,13 @@ public class EditWindow extends JPanel
 		setScale(Math.min(scalex, scaley));
 		setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
 	}
-
-	private void computeDatabaseBounds()
-	{
-		double width = sz.width/scale;
-		double height = sz.height/scale;
-		databaseBounds.setRect(offx - width/2, offy - height/2, width, height);
-	}
-
-	public Rectangle2D getDisplayedBounds() { return databaseBounds; }
-
+    
+    public Rectangle2D getDisplayedBounds()
+    {
+        double width = sz.width/scale;
+        double height = sz.height/scale;
+        return new Rectangle2D.Double(offx - width/2, offy - height/2, width, height);
+    }
 
     private static final double scrollPagePercent = 0.2;
     // ignore programmatic scroll changes. Only respond to user scroll changes
@@ -2951,7 +2853,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(newoffx, oY);
         setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
-        repaintContents(null, false);
+        fullRepaint();
     }
 
     public void rightScrollChanged(int value)
@@ -2975,7 +2877,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(oX, newoffy);
         setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
-        repaintContents(null, false);
+        fullRepaint();
     }
 
 	/**
@@ -3000,7 +2902,7 @@ public class EditWindow extends JPanel
 		setScreenBounds(bounds);
 		setScrollPosition();
 		getSavedFocusBrowser().saveCurrentFocus();
-		repaintContents(null, false);
+		fullRepaint();
 	}
 
 	/**
@@ -3160,7 +3062,7 @@ public class EditWindow extends JPanel
 		double scale = getScale();
 		setScale(scale / 2);
 		getSavedFocusBrowser().saveCurrentFocus();
-		repaintContents(null, false);
+		fullRepaint();
 	}
 
 	public void zoomInContents()
@@ -3168,7 +3070,7 @@ public class EditWindow extends JPanel
 		double scale = getScale();
 		setScale(scale * 2);
 		getSavedFocusBrowser().saveCurrentFocus();
-		repaintContents(null, false);
+		fullRepaint();
 	}
 
 	public void focusOnHighlighted()
@@ -3599,7 +3501,92 @@ public class EditWindow extends JPanel
         LayerDrawing.clearSubCellCache();
 	}
 
-	public static void forceRedraw(Cell cell)
+   /**
+     * Handles database changes of a Job.
+     * @param oldSnapshot database snapshot before Job.
+     * @param newSnapshot database snapshot after Job and constraint propagation.
+     * @param undoRedo true if Job was Undo/Redo job.
+     */
+    private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        // Mark cells for redraw
+        HashSet<CellId> topCells = new HashSet<CellId>();
+		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame wf = wit.next();
+            WindowContent content = wf.getContent();
+            if (!(content instanceof EditWindow)) continue;
+            Cell winCell = content.getCell();
+            if (winCell == null) continue;
+            if (!winCell.isLinked()) continue;
+            topCells.add(winCell.getId());
+        }
+        Set<CellId> changedVisibility = VectorCache.theCache.forceRedrawAfterChange(topCells);
+        for (CellId cellId: changedVisibility) {
+            Cell cell = VectorCache.theCache.database.getCell(cellId);
+            EditWindow.forceRedraw(cell);
+        }
+		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame wf = wit.next();
+            WindowContent content = wf.getContent();
+            if (!(content instanceof EditWindow)) continue;
+            Cell winCell = content.getCell();
+            if (winCell == null) continue;
+            EditWindow wnd = (EditWindow)content;
+            if (changedVisibility.contains(winCell.getId()))
+                wnd.fullRepaint();
+        }
+    }
+
+	/**
+	 * Method to recurse flag all windows showing a cell to redraw.
+	 * @param cell the Cell that changed.
+	 * @param cellChanged true if the cell changed and should be marked so.
+	 */
+	public static void expansionChanged(Cell cell)
+	{
+		if (User.getDisplayAlgorithm() != 0)
+            return;
+        HashSet<Cell> marked = new HashSet<Cell>();
+        markCellForRedrawRecursively(cell, marked);
+//		if (cellChanged)
+//		{
+////			VectorDrawing.cellChanged(cell);
+//			EditWindow.forceRedraw(cell);
+//            // recurse up the hierarchy so that all windows showing the cell get redrawn
+//            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
+//                NodeInst ni = it.next();
+//                markCellForRedrawRecursively(ni.getParent(), marked);
+//            }
+//		}
+
+		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame wf = wit.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (marked.contains(winCell))
+			{
+				EditWindow wnd = (EditWindow)content;
+				wnd.fullRepaint();
+			}
+		}
+	}
+
+    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
+        if (marked.contains(cell)) return;
+        marked.add(cell);
+		// recurse up the hierarchy so that all windows showing the cell get redrawn
+		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (ni.isExpanded())
+				markCellForRedrawRecursively(ni.getParent(), marked);
+		}
+    }
+
+	private static void forceRedraw(Cell cell)
 	{
         PixelDrawing.forceRedraw(cell);
         LayerDrawing.forceRedraw(cell);
@@ -3914,23 +3901,21 @@ public class EditWindow extends JPanel
         	double height = cellBounds.getHeight();
             if (width == 0) width = 2;
             if (height == 0) height = 2;
-            scale = Math.min(wid/width, hei/height);
-    		offx = offy = 0;
+            scale = scaleRequested = Math.min(wid/width, hei/height);
+    		offx = offy = offxRequested = offyRequested = 0;
     		szHalfWidth = ix + wid / 2;
     		szHalfHeight = iy + hei / 2;
-			computeDatabaseBounds();
 
 			// draw the frame
 			g2d.setColor(Color.BLACK);
     		drawCellFrame(g2d);
 
 			// restore window factors
-			scale = saveScale;
+			scale = scaleRequested = saveScale;
 			szHalfWidth = saveHalfWid;
 			szHalfHeight = saveHalfHei;
-			offx = saveOffset.getX();
-			offy = saveOffset.getY();
-			computeDatabaseBounds();
+			offx = offxRequested = saveOffset.getX();
+			offy = offyRequested = saveOffset.getY();
 
 			g2d.setTransform(saveAT);
 		}
@@ -3958,6 +3943,6 @@ public class EditWindow extends JPanel
 		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 		setOffset(newOffset);
 		getSavedFocusBrowser().updateCurrentFocus();
-		repaintContents(null, false);
+		fullRepaint();
 	}
 }

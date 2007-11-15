@@ -509,22 +509,6 @@ public class User extends Listener
      * @param undoRedo true if Job was Undo/Redo job.
      */
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo) {
-        // Mark cells for redraw
-        HashSet<Cell> marked = new HashSet<Cell>();
-        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-            CellBackup newBackup = newSnapshot.getCell(cellId);
-            CellBackup oldBackup = oldSnapshot.getCell(cellId);
-            ERectangle newBounds = newSnapshot.getCellBounds(cellId);
-            ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
-            if (newBackup != oldBackup || newBounds != oldBounds) {
-				if (newBackup == null) continue; // What to do with deleted cells ??
-                Cell cell = Cell.inCurrentThread(cellId);
-                if (cell == null) continue; // This might be a desynchronization between GUI thread and delete???
-                markCellForRedrawRecursively(cell, marked);
-//                VectorDrawing.cellChanged(cell);
-                EditWindow.forceRedraw(cell);
-            }
-        }
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
@@ -533,12 +517,40 @@ public class User extends Listener
             Cell winCell = content.getCell();
             if (winCell == null) continue;
             EditWindow wnd = (EditWindow)content;
-            if (!winCell.isLinked()) {
+            if (!winCell.isLinked())
                 wnd.setCell(null, null, null);
-            } else if (marked.contains(winCell)) {
-                wnd.repaintContents(null, false);
-            }
         }
+        EditWindow.invokeRenderJob();
+//        // Mark cells for redraw
+//        HashSet<Cell> marked = new HashSet<Cell>();
+//        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+//            CellBackup newBackup = newSnapshot.getCell(cellId);
+//            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+//            ERectangle newBounds = newSnapshot.getCellBounds(cellId);
+//            ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
+//            if (newBackup != oldBackup || newBounds != oldBounds) {
+//				if (newBackup == null) continue; // What to do with deleted cells ??
+//                Cell cell = Cell.inCurrentThread(cellId);
+//                if (cell == null) continue; // This might be a desynchronization between GUI thread and delete???
+//                markCellForRedrawRecursively(cell, marked);
+////                VectorDrawing.cellChanged(cell);
+//                EditWindow.forceRedraw(cell);
+//            }
+//        }
+//		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+//		{
+//			WindowFrame wf = wit.next();
+//            WindowContent content = wf.getContent();
+//            if (!(content instanceof EditWindow)) continue;
+//            Cell winCell = content.getCell();
+//            if (winCell == null) continue;
+//            EditWindow wnd = (EditWindow)content;
+//            if (!winCell.isLinked()) {
+//                wnd.setCell(null, null, null);
+//            } else if (marked.contains(winCell)) {
+//                wnd.fullRepaint();
+//            }
+//        }
     }
 
     /**
@@ -605,51 +617,51 @@ public class User extends Listener
 ////		}
 //	}
 
-	/**
-	 * Method to recurse flag all windows showing a cell to redraw.
-	 * @param cell the Cell that changed.
-	 * @param cellChanged true if the cell changed and should be marked so.
-	 */
-	public static void markCellForRedraw(Cell cell, boolean cellChanged)
-	{
-        HashSet<Cell> marked = new HashSet<Cell>();
-        markCellForRedrawRecursively(cell, marked);
-		if (cellChanged)
-		{
-//			VectorDrawing.cellChanged(cell);
-			EditWindow.forceRedraw(cell);
-            // recurse up the hierarchy so that all windows showing the cell get redrawn
-            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
-                NodeInst ni = it.next();
-                markCellForRedrawRecursively(ni.getParent(), marked);
-            }
-		}
-
-		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
-		{
-			WindowFrame wf = wit.next();
-			WindowContent content = wf.getContent();
-			if (!(content instanceof EditWindow)) continue;
-			Cell winCell = content.getCell();
-			if (marked.contains(winCell))
-			{
-				EditWindow wnd = (EditWindow)content;
-				wnd.repaintContents(null, false);
-			}
-		}
-	}
-
-    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
-        if (marked.contains(cell)) return;
-        marked.add(cell);
-		// recurse up the hierarchy so that all windows showing the cell get redrawn
-		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (ni.isExpanded())
-				markCellForRedrawRecursively(ni.getParent(), marked);
-		}
-    }
+//	/**
+//	 * Method to recurse flag all windows showing a cell to redraw.
+//	 * @param cell the Cell that changed.
+//	 * @param cellChanged true if the cell changed and should be marked so.
+//	 */
+//	public static void markCellForRedraw(Cell cell, boolean cellChanged)
+//	{
+//        HashSet<Cell> marked = new HashSet<Cell>();
+//        markCellForRedrawRecursively(cell, marked);
+//		if (cellChanged)
+//		{
+////			VectorDrawing.cellChanged(cell);
+//			EditWindow.forceRedraw(cell);
+//            // recurse up the hierarchy so that all windows showing the cell get redrawn
+//            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
+//                NodeInst ni = it.next();
+//                markCellForRedrawRecursively(ni.getParent(), marked);
+//            }
+//		}
+//
+//		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+//		{
+//			WindowFrame wf = wit.next();
+//			WindowContent content = wf.getContent();
+//			if (!(content instanceof EditWindow)) continue;
+//			Cell winCell = content.getCell();
+//			if (marked.contains(winCell))
+//			{
+//				EditWindow wnd = (EditWindow)content;
+//				wnd.fullRepaint();
+//			}
+//		}
+//	}
+//
+//    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
+//        if (marked.contains(cell)) return;
+//        marked.add(cell);
+//		// recurse up the hierarchy so that all windows showing the cell get redrawn
+//		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
+//		{
+//			NodeInst ni = it.next();
+//			if (ni.isExpanded())
+//				markCellForRedrawRecursively(ni.getParent(), marked);
+//		}
+//    }
 
 	/**
 	 * Method called when a technology's parameters change.

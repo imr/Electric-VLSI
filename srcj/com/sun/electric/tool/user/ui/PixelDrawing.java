@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -73,7 +72,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class manages an offscreen display for an associated EditWindow.
@@ -210,6 +208,7 @@ class PixelDrawing
             this.orient = orient;
         }
         
+        @Override
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
                 ExpandedCellKey that = (ExpandedCellKey)obj;
@@ -218,6 +217,7 @@ class PixelDrawing
             return false;
         }
         
+        @Override
         public int hashCode() { return cell.hashCode()^orient.hashCode(); }
     }
     
@@ -314,32 +314,30 @@ class PixelDrawing
 
     static class Drawing extends EditWindow.Drawing {
         private final VectorDrawing vd = new VectorDrawing();
-        private PixelDrawing offscreen;
+        private volatile PixelDrawing offscreen;
         
         Drawing(EditWindow wnd) {
             super(wnd);
         }
         
-        void setScreenSize(Dimension sz) {
-            offscreen = new PixelDrawing(sz);
-        }
-        
         boolean paintComponent(Graphics2D g, Dimension sz) {
-            if (offscreen == null || !wnd.getSize().equals(sz))
+            PixelDrawing offscreen_ = this.offscreen;
+            if (offscreen_ == null || !wnd.getSize().equals(sz))
                 return false;
             
             // show the image
-            BufferedImage img = offscreen.getBufferedImage();
-//		synchronized(img) // Do not need synchronization here
-            {
-                g.drawImage(img, 0, 0, wnd);
-            }
+            g.drawImage(offscreen_.getBufferedImage(), 0, 0, wnd);
             return true;
         }
         
-        void render(boolean fullInstantiate, Rectangle2D bounds) {
-            if (offscreen == null) return;
-            offscreen.drawImage(this, fullInstantiate, bounds);
+        void render(Dimension sz, double scale, double offx, double offy, boolean fullInstantiate, Rectangle2D bounds) {
+            PixelDrawing offscreen_ = this.offscreen;
+            if (offscreen_ == null || !offscreen_.getSize().equals(sz))
+                    this.offscreen = offscreen_ = new PixelDrawing(sz);
+            this.scale = scale;
+            this.offx = offx;
+            this.offy = offy;
+            offscreen_.drawImage(this, fullInstantiate, bounds);
         }
         
         void abortRendering() {
@@ -393,15 +391,15 @@ class PixelDrawing
 		clearImage(null);
     }
     
-    void initOrigin(double scale, Point2D offset) {
+    void initOrigin(double scale, double offx, double offy) {
         this.scale = scale;
-        this.originX = sz.width/2 - offset.getX()*scale;
-        this.originY = sz.height/2 + offset.getY()*scale;
+        this.originX = sz.width/2 - offx*scale;
+        this.originY = sz.height/2 + offy*scale;
     }
 
     void initDrawing(double scale) {
 		clearImage(null);
-        initOrigin(scale, EPoint.ORIGIN);
+        initOrigin(scale, 0, 0);
     }
     
     /**
@@ -490,13 +488,13 @@ class PixelDrawing
 		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 		
 		// initialize the cache of expanded cell displays
-		if (expandedScale != wnd.getScale())
+		if (expandedScale != drawing.scale)
 		{
 			clearSubCellCache();
-			expandedScale = wnd.getScale();
+			expandedScale = drawing.scale;
 		}
         varContext = wnd.getVarContext();
-        initOrigin(expandedScale, wnd.getOffset());
+        initOrigin(expandedScale, drawing.offx, drawing.offy);
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -543,7 +541,7 @@ class PixelDrawing
             changedCells.clear();
         }
         forceRedraw(changedCellsCopy);
-        VectorCache.theCache.forceRedraw(changedCellsCopy);
+        VectorCache.theCache.forceRedraw();
 		if (User.getDisplayAlgorithm() == 0)
 		{
 			// reset cached cell counts
@@ -558,7 +556,7 @@ class PixelDrawing
             drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd.getCell());
 		} else
 		{
-			drawing.vd.render(this, scale, wnd.getOffset(), cell, fullInstantiate, inPlaceNodePath, renderBounds, varContext);
+			drawing.vd.render(this, scale, new Point2D.Double(drawing.offx, drawing.offy), cell, fullInstantiate, inPlaceNodePath, renderBounds, varContext);
 		}
 
 		// merge transparent image into opaque one
@@ -569,7 +567,7 @@ class PixelDrawing
 
 			// combine transparent and opaque colors into a final image
 			composite(renderBounds);
-		};
+		}
 
 		if (TAKE_STATS && User.getDisplayAlgorithm() == 0)
 		{
@@ -603,7 +601,7 @@ class PixelDrawing
 		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 		
         if (wnd != null) varContext = wnd.getVarContext();
-        initOrigin(scale, offset);
+        initOrigin(scale, offset.getX(), offset.getY());
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -636,7 +634,7 @@ class PixelDrawing
             changedCells.clear();
         }
         forceRedraw(changedCellsCopy);
-        VectorCache.theCache.forceRedraw(changedCellsCopy);
+        VectorCache.theCache.forceRedraw();
 		if (User.getDisplayAlgorithm() == 0)
 		{
 			// reset cached cell counts
@@ -691,9 +689,10 @@ class PixelDrawing
 		}
 
 		// erase the patterned opaque layer bitmaps
-		for(Iterator<Map.Entry<Layer,PatternedOpaqueLayer>> it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
+        assert patternedOpaqueLayers.isEmpty(); // empty at top level
+		for(Iterator<PatternedOpaqueLayer> it = patternedOpaqueLayers.values().iterator(); it.hasNext(); )
 		{
-			PatternedOpaqueLayer pol = (PatternedOpaqueLayer)it.next();
+			PatternedOpaqueLayer pol = it.next();
 			byte [][] layerBitMap = pol.layerBitMap;
 			for(int y=0; y<sz.height; y++)
 			{

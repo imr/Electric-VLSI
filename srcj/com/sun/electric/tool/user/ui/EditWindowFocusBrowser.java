@@ -126,7 +126,7 @@ public class EditWindowFocusBrowser {
     private void restoreFocus(Focus focus) {
         editWindow.setOffset(focus.offset);
         editWindow.setScale(focus.scale);
-        editWindow.repaintContents(null, false);
+        editWindow.fullRepaint();
         if (DEBUG) System.out.println("restored focus "+focus);
     }
 

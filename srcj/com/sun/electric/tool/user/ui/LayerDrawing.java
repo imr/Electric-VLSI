@@ -39,6 +39,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
@@ -206,6 +207,7 @@ class LayerDrawing
             this.orient = orient;
         }
         
+        @Override
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
                 ExpandedCellKey that = (ExpandedCellKey)obj;
@@ -214,6 +216,7 @@ class LayerDrawing
             return false;
         }
         
+        @Override
         public int hashCode() { return cell.hashCode()^orient.hashCode(); }
     }
     
@@ -248,7 +251,6 @@ class LayerDrawing
 	/** the window scale and pan factor */					private float factorX, factorY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
     
-    /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
@@ -311,7 +313,7 @@ class LayerDrawing
         /** the offscreen opaque image of the window */ private VolatileImage vImg;
         private BufferedImage smallImg;
         private int[] smallOpaqueData;
-        private LayerDrawing offscreen;
+        private volatile LayerDrawing offscreen;
         /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
         
         // The following fields are produced by "render" method in Job thread.
@@ -328,28 +330,25 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        void setScreenSize(Dimension sz) {
-            assert SwingUtilities.isEventDispatchThread();
-            if (vImg != null && vImg.getWidth() == sz.width && vImg.getHeight() == sz.height) return;
-            if (vImg != null)
-                vImg.flush();
-            vImg = wnd.createVolatileImage(sz.width, sz.height);
-            
-//            smallImg = (BufferedImage)wnd.createImage(sz.width, 1);
-            smallImg = new BufferedImage(sz.width, SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
-            DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
-            smallOpaqueData = smallDbi.getData();
-                    
-            offscreen = new LayerDrawing(sz);
-        }
-        
-        /**
-         * This method is called from AWT thread.
-         */
         boolean paintComponent(Graphics2D g, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
-            if (offscreen == null || !wnd.getSize().equals(sz))
+            assert sz.equals(wnd.getSize());
+            LayerDrawing offscreen_ = this.offscreen;
+            if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                 return false;
+            
+            if (vImg == null || vImg.getWidth() != sz.width || vImg.getHeight() != sz.height) {
+                if (vImg != null)
+                    vImg.flush();
+                vImg = wnd.createVolatileImage(sz.width, sz.height);
+            }
+            
+//            smallImg = (BufferedImage)wnd.createImage(sz.width, 1);
+            if (smallImg == null || smallImg.getWidth() != sz.width) {
+                smallImg = new BufferedImage(sz.width, SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+                DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
+                smallOpaqueData = smallDbi.getData();
+            }
             
             // show the image
             // copying from the image (here, gScreen is the Graphics
@@ -358,14 +357,14 @@ class LayerDrawing
                 int returnCode = vImg.validate(wnd.getGraphicsConfiguration());
                 if (returnCode == VolatileImage.IMAGE_RESTORED) {
                     // Contents need to be restored
-                    renderOffscreen();	    // restore contents
+                    renderOffscreen(offscreen_);	    // restore contents
                 } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
                     // old vImg doesn't work with new GraphicsConfig; re-create it
                     vImg.flush();
                     vImg = wnd.createVolatileImage(sz.width, sz.height);
-                    renderOffscreen();
+                    renderOffscreen(offscreen_);
                 } else if (needComposite) {
-                    renderOffscreen();
+                    renderOffscreen(offscreen_);
                 }
                 g.drawImage(vImg, 0, 0, wnd);
             } while (vImg.contentsLost());
@@ -376,7 +375,7 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        private void renderOffscreen() {
+        private void renderOffscreen(LayerDrawing offscreen) {
             needComposite = false;
             do {
                 if (vImg.validate(wnd.getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
@@ -386,9 +385,9 @@ class LayerDrawing
                 long startTime = System.currentTimeMillis();
                 Graphics2D g = vImg.createGraphics();
                 if (User.isLegacyComposite())
-                    legacyLayerComposite(g);
+                    legacyLayerComposite(g, offscreen);
                 else
-                    layerComposite(g);
+                    layerComposite(g, offscreen);
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -416,12 +415,13 @@ class LayerDrawing
             } while (vImg.contentsLost());
         }
         
+        @Override
         void opacityChanged() {
             assert SwingUtilities.isEventDispatchThread();
             needComposite = true;
         }
         
-        private void layerComposite(Graphics2D g) {
+        private void layerComposite(Graphics2D g, LayerDrawing offscreen) {
             HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
@@ -459,7 +459,7 @@ class LayerDrawing
          * This is called after all rendering is done.
          * @return the offscreen Image with the final display.
          */
-        private void legacyLayerComposite(Graphics2D g) {
+        private void legacyLayerComposite(Graphics2D g, LayerDrawing offscreen) {
             wnd.getBlendingOrder(layerRasters.keySet(), false, false);
             
             Technology curTech = Technology.getCurrent();
@@ -672,14 +672,19 @@ class LayerDrawing
         /**
          * This method is called from Job thread.
          */
-        void render(boolean fullInstantiate, Rectangle2D bounds) {
-            if (offscreen == null) return;
-            offscreen.drawImage(this, fullInstantiate, bounds);
+        void render(Dimension sz, double scale, double offx, double offy, boolean fullInstantiate, Rectangle2D bounds) {
+            LayerDrawing offscreen_ = this.offscreen;
+            if (offscreen_ == null || !offscreen_.getSize().equals(sz))
+                this.offscreen = offscreen_ = new LayerDrawing(sz);
+            this.scale = scale;
+            this.offx = offx;
+            this.offy = offy;
+            offscreen_.drawImage(this, fullInstantiate, bounds);
             needComposite = true;
-            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
-            greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
-            crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
-            renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
+            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen_.layerRasters);
+            greekText = offscreen_.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
+            crossText = offscreen_.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
+            renderText = offscreen_.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
         }
         
         private static boolean joglChecked = false;
@@ -930,7 +935,7 @@ class LayerDrawing
         HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<EditWindow.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet());
+        List<EditWindow.LayerColor> blendingOrder = getBlendingOrderForTechPalette(layerBits.keySet());
         if (TAKE_STATS) {
             System.out.print("BlendingOrder:");
             for (EditWindow.LayerColor lc: blendingOrder) {
@@ -971,7 +976,7 @@ class LayerDrawing
 //        renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
     }
     
-    private static List<EditWindow.LayerColor> getBlendingOrder(Set<Layer> layersAvailable) {
+    private static List<EditWindow.LayerColor> getBlendingOrderForTechPalette(Set<Layer> layersAvailable) {
         boolean alphaBlendingOvercolor = true;
         ArrayList<EditWindow.LayerColor> layerColors = new ArrayList<EditWindow.LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
@@ -1109,8 +1114,6 @@ class LayerDrawing
        	}
 		inPlaceNodePath = wnd.getInPlaceEditNodePath();
 
-        drawBounds = wnd.getDisplayedBounds();
-
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		textGraphics.setColor(textColor);
@@ -1118,13 +1121,13 @@ class LayerDrawing
         gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         
 		// initialize the cache of expanded cell displays
-		if (expandedScale != wnd.getScale())
+		if (expandedScale != drawing.scale)
 		{
 			clearSubCellCache();
-			expandedScale = wnd.getScale();
+			expandedScale = drawing.scale;
 		}
         varContext = wnd.getVarContext();
-        initOrigin(expandedScale, wnd.getOffset());
+        initOrigin(expandedScale, new Point2D.Double(drawing.offx, drawing.offy));
         patternedDisplay = expandedScale > User.getPatternedScaleLimit();
         alphaBlendingOvercolor = expandedScale > User.getAlphaBlendingOvercolorLimit();
  		canDrawText = expandedScale > 1;
@@ -1174,7 +1177,7 @@ class LayerDrawing
             changedCells.clear();
         }
         forceRedraw(changedCellsCopy);
-        VectorCache.theCache.forceRedraw(changedCellsCopy);
+        VectorCache.theCache.forceRedraw();
         // reset cached cell counts
         numberToReconcile = SINGLETONSTOADD;
         for(ExpandedCellInfo count : expandedCells.values())
@@ -1229,7 +1232,7 @@ class LayerDrawing
 	 */
     public void clearImage(Rectangle bounds) {
         // erase the patterned opaque layer bitmaps
-        if (true || bounds == null) {
+        if (bounds == null) {
             for(TransparentRaster raster: layerRasters.values())
                 raster.eraseAll();
         } else {
@@ -1389,7 +1392,7 @@ class LayerDrawing
 	{
 		renderedCells++;
 
-        VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell, orient, context, scale);
+        VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell.getId(), orient, context, scale);
         
 		// draw all subcells
 		for(VectorCache.VectorSubCell vsc : vc.subCells) {
@@ -1398,7 +1401,7 @@ class LayerDrawing
 			// get instance location
             int soX = vsc.offsetX + oX;
             int soY = vsc.offsetY + oY;
-            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
             gridToScreen(subVC.lX + soX, subVC.hY + soY, tempPt1);
             gridToScreen(subVC.hX + soX, subVC.lY + soY, tempPt2);
             int lX = tempPt1.x;
@@ -1410,7 +1413,8 @@ class LayerDrawing
 			if (hX < clipLX || lX > clipHX) continue;
 			if (hY < clipLY || lY > clipHY) continue;
 
-			boolean expanded = vsc.ni.isExpanded() || fullInstantiate;
+            boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
+			boolean expanded = isExpanded || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -1420,7 +1424,7 @@ class LayerDrawing
 					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
 					{
 						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-						if (niOnPath.getProto() == vsc.subCell)
+						if (niOnPath.getProto().getId() == vsc.subCellId)
 						{
 							expanded = true;
 							break;
@@ -1430,18 +1434,20 @@ class LayerDrawing
 			}
 
 			// two ways to draw a cell instance
-			Cell subCell = (Cell)vsc.ni.getProto();
+            CellId subCellId = vsc.subCellId;
+			Cell subCell = VectorCache.theCache.database.getCell(subCellId);
 			if (expanded)
 			{
 				// show the contents of the cell
-                Orientation subOrient = orient.concatenate(vsc.ni.getOrient());
+                Orientation subOrient = orient.concatenate(vsc.n.orient);
                 int soX_ = vsc.offsetX + oX;
                 int soY_ = vsc.offsetY + oY;
 				if (!expandedCellCached(subCell, subOrient, soX_, soY_, context, fullInstantiate))
 				{
 					// just draw it directly
 					cellsRendered++;
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(vsc.ni));
+                    NodeInst ni = subCell.getNodeById(vsc.n.nodeId);
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(ni));
 				}
 			} else
 			{
@@ -1469,12 +1475,13 @@ class LayerDrawing
 				if (canDrawText && User.isTextVisibilityOnInstance())
 				{
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
-					NodeProto np = vsc.ni.getProto();
+					TextDescriptor descript = vsc.n.protoDescriptor;
+					NodeProto np = VectorCache.theCache.database.getCell(vsc.subCellId);
 					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics);
 				}
 			}
-			if (canDrawText) drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
+			if (canDrawText)
+                drawPortList(vsc, subVC, soX, soY, isExpanded);
         }
 
         // draw primitives
@@ -1483,7 +1490,7 @@ class LayerDrawing
             
 		// show cell variables if at the top level
         if (topLevel)
-            drawList(oX, oY, vc.topOnlyShapes);
+            drawList(oX, oY, vc.getTopOnlyShapes());
 	}
     
 	/**
@@ -2402,10 +2409,6 @@ class LayerDrawing
                     case VectorCache.VectorText.TEXTTYPEINSTANCE:
                         if (!User.isTextVisibilityOnInstance()) continue;
                         break;
-                    case VectorCache.VectorText.TEXTTYPEPORT:
-                        assert false;
-                        if (!User.isTextVisibilityOnPort()) continue;
-                        break;
                 }
 //				if (vt.height < maxTextSize) continue;
                 
@@ -2422,9 +2425,8 @@ class LayerDrawing
                 hY = tempPt2.y;
                 
                 EGraphics graphics = vt.graphics;
-                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null) {
-                	NodeProto np = vt.e.getOriginalPort().getNodeInst().getProto();
-                	if (np instanceof PrimitiveNode && !((PrimitiveNode)np).isVisible()) continue;
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
+                	if (!vt.basePort.getParent().isVisible()) continue;
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross
@@ -2435,8 +2437,8 @@ class LayerDrawing
                     }
                     
                     // draw export as text
-                    if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
-                        drawString = vt.e.getName();
+                    if (exportDisplayLevel == 1)
+                        drawString = Export.getShortName(drawString);
                     graphics = textGraphics;
                 }
                 
@@ -2536,33 +2538,27 @@ class LayerDrawing
 	{
         if (!User.isTextVisibilityOnPort()) return;
 		// render all shapes
-		for(VectorCache.VectorText vt : subVC_.getPortShapes())
-		{
+        List<VectorCache.VectorCellExport> portShapes = subVC_.vcg.getPortShapes();
+        int[] portCenters = subVC_.getPortCenters();
+        assert portShapes.size()*2 == portCenters.length;
+        for (int i = 0; i < portShapes.size(); i++) {
+            VectorCache.VectorCellExport vce = portShapes.get(i);
 //			if (stopRendering) throw new AbortRenderingException();
 
 			// get visual characteristics of shape
-            assert vt.textType == VectorCache.VectorText.TEXTTYPEPORT;
-            if (vsc.shownPorts.get(vt.e.getId().getChronIndex())) continue;
+            if (vsc.shownPorts.get(vce.getChronIndex())) continue;
 //			if (vt.height < maxTextSize) continue;
 
-            String drawString = vt.str;
-            int lX = vt.bounds.x;
-            int lY = vt.bounds.y;
-            int hX = lX + vt.bounds.width;
-            int hY = lY + vt.bounds.height;
-            gridToScreen(lX + oX, hY + oY, tempPt1);
-            gridToScreen(hX + oX, lY + oY, tempPt2);
-            lX = tempPt1.x;
-            lY = tempPt1.y;
-            hX = tempPt2.x;
-            hY = tempPt2.y;
+            int cX = portCenters[i*2];
+            int cY = portCenters[i*2 + 1];
+            gridToScreen(cX + oX, cY + oY, tempPt1);
+            cX = tempPt1.x;
+            cY = tempPt1.y;
 
 			int portDisplayLevel = User.getPortDisplayLevel();
-			Color portColor = vt.e.getBasePort().getPortColor();
+			Color portColor = vce.getPortColor();
 			if (expanded) portColor = textColor;
 			if (portColor != null) portGraphics.setColor(portColor);
-			int cX = (lX + hX) / 2;
-			int cY = (lY + hY) / 2;
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
@@ -2571,13 +2567,11 @@ class LayerDrawing
 			}
 
 			// draw port as text
-			if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
-				drawString = vt.e.getName();
-			lX = hX = cX;
-			lY = hY = cY;
+            boolean shortName = portDisplayLevel == 1;
+            String drawString = vce.getName(shortName);
             
-			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-			drawText(tempRect, vt.style, vt.descript, drawString, portGraphics);
+			tempRect.setBounds(cX, cY, 0, 0);
+			drawText(tempRect, vce.style, vce.descript, drawString, portGraphics);
 		}
 	}
 

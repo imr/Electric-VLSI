@@ -401,7 +401,7 @@ public class ClickZoomWireListener
 	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                    highlighter.setHighlightOffset(0, 0);
 	                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
-	                    wnd.repaintContents(null, false);
+	                    wnd.fullRepaint();
 	                }
 	                modeLeft = Mode.none;
 	                return;
@@ -990,7 +990,7 @@ public class ClickZoomWireListener
 	                wnd.setScale(scale * 2);
 	                wnd.clearDoingAreaDrag();
                     wnd.getSavedFocusBrowser().saveCurrentFocus();
-	                wnd.repaintContents(null, false);
+	                wnd.fullRepaint();
 	            }
 	            if (modeRight == Mode.zoomOut) {
 	                // zoom out by a factor of two
@@ -1001,7 +1001,7 @@ public class ClickZoomWireListener
                     wnd.setOffset(dbMouse);
 	                wnd.clearDoingAreaDrag();
                     wnd.getSavedFocusBrowser().saveCurrentFocus();
-	                wnd.repaintContents(null, false);
+	                wnd.fullRepaint();
 	            }
 	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot) {
 	                // drawing boxes
@@ -1041,7 +1041,7 @@ public class ClickZoomWireListener
 	                        wnd.setScale(scale / 2);
 	                        wnd.clearDoingAreaDrag();
                             wnd.getSavedFocusBrowser().saveCurrentFocus();
-	                        wnd.repaintContents(null, false);
+	                        wnd.fullRepaint();
 	                    } else {
 	                        wnd.focusScreen(bounds);
 	                    }
@@ -1165,7 +1165,7 @@ public class ClickZoomWireListener
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                        highlighter.setHighlightOffset(0, 0);
 	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
-	                        wnd.repaintContents(null, false);
+	                        wnd.fullRepaint();
 	                    }
 	                }
 	                modeLeft = Mode.none;
@@ -1464,7 +1464,7 @@ public class ClickZoomWireListener
 			dY = delta.getY();
 		}
 		CircuitChanges.manyMove(dX, dY);
-		wnd.repaintContents(null, false);
+		wnd.fullRepaint();
 	}
 
     /**

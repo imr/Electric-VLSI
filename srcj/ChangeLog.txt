@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/15/04, DN) Slow redisplay (Bug #1408).
+FIX: Accurate implementation of refreshing of export information in VectorCache.
+
 BUG: (11/14/07, RK) NCC: hierarchical doesn't work if Cell has no Wires and no Parts (Bug # 1429)
 FIX: Make sure even empty Cells get entered into the subcircuit cache.
 

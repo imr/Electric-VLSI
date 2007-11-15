@@ -78,7 +78,7 @@ public class OutlineListener
 		}
 
 		high.setPoint(0);
-		if (wnd != null) wnd.repaintContents(null, false);
+		if (wnd != null) wnd.fullRepaint();
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class OutlineListener
         {
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();
-			if (wnd != null) wnd.repaintContents(null, false);
+			if (wnd != null) wnd.fullRepaint();
         }
 	}
 
@@ -235,7 +235,7 @@ public class OutlineListener
 			highlighter.setHighlightOffset(0, 0);
 
 			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY);
-			wnd.repaintContents(null, false);
+			wnd.fullRepaint();
 		}
 	}
 

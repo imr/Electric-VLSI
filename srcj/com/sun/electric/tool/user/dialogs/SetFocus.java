@@ -202,7 +202,7 @@ public class SetFocus extends EDialog
 		wnd.setScale(sz.getWidth() / across);
 		EditWindowFocusBrowser fb = wnd.getSavedFocusBrowser();
 		fb.updateCurrentFocus();
-		wnd.repaintContents(null, false);
+		wnd.fullRepaint();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 

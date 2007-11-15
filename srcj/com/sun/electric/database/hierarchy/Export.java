@@ -721,7 +721,16 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public String getShortName()
 	{
-		String name = getNameKey().toString();
+		return getShortName(getNameKey().toString());
+	}
+    
+	/**
+	 * Method to convert name of export to short name.
+	 * The short name is everything up to the first nonalphabetic character.
+     * @param name long name
+	 * @return the short name of this PortProto.
+	 */
+    public static String getShortName(String name) {
 		int len = name.length();
 		for(int i=0; i<len; i++)
 		{
@@ -730,7 +739,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return name.substring(0, i);
 		}
 		return name;
-	}
+    }
 
     /**
      * Repairs export name  true if string is a valid Export name with cirtain width.

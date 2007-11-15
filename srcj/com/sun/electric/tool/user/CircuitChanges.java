@@ -1300,9 +1300,7 @@ public class CircuitChanges
 		{
 			if (unExpand) doUnExpand(ni); else
 				doExpand(ni, amount, 0);
-			if (User.getDisplayAlgorithm() == 0)
-                User.markCellForRedraw(ni.getParent(), false);
-//				Undo.redrawObject(ni);
+			EditWindow.expansionChanged(ni.getParent());
 		}
 		expandFlagBit = null;
 		EditWindow.clearSubCellCache();

@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -31,6 +32,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ncc.result.NccResult.CellSummary;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -405,6 +408,28 @@ public class Snapshot {
         }
         if (changed == null) changed = Collections.emptyList();
         return changed;
+    }
+    
+    public Collection<CellId> getCellsDownTop() {
+        LinkedHashSet<CellId> order = new LinkedHashSet<CellId>();
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            getCellsDownTop(cellBackup.cellRevision.d.cellId, order);
+        }
+        return order;
+    }
+    
+    private void getCellsDownTop(CellId root, LinkedHashSet<CellId> order) {
+        if (order.contains(root)) return;
+        CellBackup cellBackup = getCell(root);
+        CellRevision cellRevision = cellBackup.cellRevision; 
+        for (int i = 0; i < cellRevision.cellUsages.length; i++) {
+            if (cellRevision.cellUsages[i].instCount == 0) continue;
+            CellUsage cu = root.getUsageIn(i);
+            getCellsDownTop(cu.protoId, order);
+        }
+        boolean added = order.add(root);
+        assert added;
     }
     
     public CellBackup getCell(CellId cellId) {

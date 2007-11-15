@@ -122,7 +122,7 @@ public class ZoomAndPanListener
 						else scale = scale * Math.exp(-dY)/*scale - scale * dY*/;
 					wnd.setScale(scale);
                     wnd.getSavedFocusBrowser().updateCurrentFocus();
-					wnd.repaintContents(null, false);
+					wnd.fullRepaint();
 				}
 			} else if (mode == ToolBar.CursorMode.PAN)
 			{
@@ -131,7 +131,7 @@ public class ZoomAndPanListener
 				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
 					pt.getY() + (newY - lastY) / scale));
                 wnd.getSavedFocusBrowser().updateCurrentFocus();
-				wnd.repaintContents(null, false);
+				wnd.fullRepaint();
 			}
 			lastX = newX;
 			lastY = newY;
@@ -162,7 +162,7 @@ public class ZoomAndPanListener
 					wnd.getInPlaceTransformOut().transform(offset, offset);
 				wnd.setOffset(offset);
                 wnd.getSavedFocusBrowser().updateCurrentFocus();
-				wnd.repaintContents(null, false);
+				wnd.fullRepaint();
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
 			} else
 			{
@@ -217,7 +217,7 @@ public class ZoomAndPanListener
 		// get the current window
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
-		wnd.repaintContents(null, false);
+		wnd.fullRepaint();
 	}
 
     // --------------------------- Pan Commands -------------------------------
@@ -247,7 +247,7 @@ public class ZoomAndPanListener
 		if (bounds == null) return;
 		wnd.setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
         wnd.getSavedFocusBrowser().updateCurrentFocus();
-		wnd.repaintContents(null, false);
+		wnd.fullRepaint();
 	}
 
 	/**
@@ -261,7 +261,7 @@ public class ZoomAndPanListener
 		Point2D center = wnd.screenToDatabase(pt.x, pt.y);
 		wnd.setOffset(center);
         wnd.getSavedFocusBrowser().updateCurrentFocus();
-		wnd.repaintContents(null, false);
+		wnd.fullRepaint();
 	}
 
 }

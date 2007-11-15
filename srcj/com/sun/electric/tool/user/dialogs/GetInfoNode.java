@@ -1078,8 +1078,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		{
 			if (expansionChanged)
 			{
-				if (User.getDisplayAlgorithm() == 0)
-	                User.markCellForRedraw(ni.getParent(), false);
+	            EditWindow.expansionChanged(ni.getParent());
 				EditWindow.clearSubCellCache();
 				EditWindow.repaintAllContents();
 			}

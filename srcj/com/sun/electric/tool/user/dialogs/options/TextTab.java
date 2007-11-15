@@ -354,7 +354,7 @@ public class TextTab extends PreferencePanel
 				if (editCellsChanged && wf.getContent() instanceof EditWindow)
 				{
 					EditWindow wnd = (EditWindow)wf.getContent();
-					wnd.repaintContents(null, false);
+					wnd.fullRepaint();
 				}
 			}
 		}

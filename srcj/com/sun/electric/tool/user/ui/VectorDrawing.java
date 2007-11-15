@@ -30,14 +30,13 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -49,6 +48,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -188,7 +188,7 @@ class VectorDrawing
 			VectorCache.VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
             topVD = this;
 			render(topVC, 0, 0, context, 0);
-            drawList(0, 0, topVC.topOnlyShapes, 0, false);
+            drawList(0, 0, topVC.getTopOnlyShapes(), 0, false);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -287,15 +287,18 @@ class VectorDrawing
 		drawList(oX, oY, vc.shapes, level, false);
 
 		// now render subcells
+        Cell cell = VectorCache.theCache.database.getCell(vc.vcg.cellId);
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
 			if (stopRendering) throw new AbortRenderingException();
+            NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+            Cell subCell = (Cell)ni.getProto();
 			subCellCount++;
 
 			// get instance location
             int soX = vsc.offsetX + oX;
             int soY = vsc.offsetY + oY;
-            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
             gridToScreen(subVC.lX + soX, subVC.hY + soY, tempPt1);
             gridToScreen(subVC.hX + soX, subVC.lY + soY, tempPt2);
             int lX = tempPt1.x;
@@ -310,10 +313,10 @@ class VectorDrawing
 			// see if the cell is too tiny to draw
 			if (subVC.vcg.cellMinSize < maxObjectSize)
 			{
-				Orientation thisOrient = vsc.ni.getOrient();
+				Orientation thisOrient = vsc.n.orient;
 				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
-				VarContext subContext = context.push(vsc.ni);
-				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+				VarContext subContext = context.push(ni);
+				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
                 assert subVC_ == subVC;
 				makeGreekedImage(subVC);
 
@@ -323,7 +326,7 @@ class VectorDrawing
 				continue;
 			}
 
-			boolean expanded = vsc.ni.isExpanded() || fullInstantiate;
+			boolean expanded = ni.isExpanded() || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -333,7 +336,7 @@ class VectorDrawing
 					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
 					{
 						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-						if (niOnPath.getProto() == vsc.subCell)
+						if (niOnPath.getProto().getId() == vsc.subCellId)
 						{
 							expanded = true;
 							break;
@@ -344,19 +347,19 @@ class VectorDrawing
 
 			if (expanded)
 			{
-				Orientation thisOrient = vsc.ni.getOrient();
+				Orientation thisOrient = vsc.n.orient;
 				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
-				VarContext subContext = context.push(vsc.ni);
-				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+				VarContext subContext = context.push(ni);
+				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
                 assert subVC_ == subVC;
 
 				// expanded cells may be replaced with greeked versions (not icons)
-				if (vsc.subCell.getView() != View.ICON)
+				if (subCell.getView() != View.ICON)
 				{
 					// may also be "tiny" if all features in the cell are tiny
 					// may also be "tiny" if the cell is smaller than the greeked image
 					if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.vcg.cellArea < maxCellSize &&
-                            isContentsTiny(vsc.subCell, subVC, recurseTrans, context) ||
+                            isContentsTiny(subCell, subVC, recurseTrans, context) ||
                             User.isUseCellGreekingImages() && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
 					{
 						makeGreekedImage(subVC);
@@ -395,12 +398,11 @@ class VectorDrawing
 				if (User.isTextVisibilityOnInstance())
 				{
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
-					NodeProto np = vsc.ni.getProto();
-					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
+					TextDescriptor descript = vsc.n.protoDescriptor;
+					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, subCell.describe(false), null, textGraphics, false);
 				}
 			}
-			drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
+			drawPortList(vsc, subVC, soX, soY, ni.isExpanded());
 		}
 	}
 
@@ -578,9 +580,6 @@ class VectorDrawing
 					case VectorCache.VectorText.TEXTTYPEINSTANCE:
 						if (!User.isTextVisibilityOnInstance()) continue;
 						break;
-					case VectorCache.VectorText.TEXTTYPEPORT:
-						if (!User.isTextVisibilityOnPort()) continue;
-						break;
 				}
 				if (vt.height < maxTextSize) continue;
 
@@ -628,10 +627,9 @@ class VectorDrawing
 //					lX = hX = cX;
 //					lY = hY = cY;
 //				} else 
-                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null)
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null)
 				{
-                	NodeProto np = vt.e.getOriginalPort().getNodeInst().getProto();
-                	if (np instanceof PrimitiveNode && !((PrimitiveNode)np).isVisible()) continue;
+                	if (!vt.basePort.getParent().isVisible()) continue;
 					int exportDisplayLevel = User.getExportDisplayLevel();
 					if (exportDisplayLevel == 2)
 					{
@@ -646,8 +644,8 @@ class VectorDrawing
 					}
 
 					// draw export as text
-					if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
-						drawString = vt.e.getName();
+                    if (exportDisplayLevel == 1)
+                        drawString = Export.getShortName(drawString);
 					graphics = textGraphics;
 					layerBitMap = null;
 				}
@@ -690,33 +688,27 @@ class VectorDrawing
 	{
         if (!User.isTextVisibilityOnPort()) return;
 		// render all shapes
-		for(VectorCache.VectorText vt : subVC_.getPortShapes())
-		{
+        List<VectorCache.VectorCellExport> portShapes = subVC_.vcg.getPortShapes();
+        int[] portCenters = subVC_.getPortCenters();
+        assert portShapes.size()*2 == portCenters.length;
+        for (int i = 0; i < portShapes.size(); i++) {
+            VectorCache.VectorCellExport vce = portShapes.get(i);
 			if (stopRendering) throw new AbortRenderingException();
 
 			// get visual characteristics of shape
-            assert vt.textType == VectorCache.VectorText.TEXTTYPEPORT;
-            if (vsc.shownPorts.get(vt.e.getId().getChronIndex())) continue;
-			if (vt.height < maxTextSize) continue;
+            if (vsc.shownPorts.get(vce.getChronIndex())) continue;
+			if (vce.height < maxTextSize) continue;
 
-            String drawString = vt.str;
-            int lX = vt.bounds.x;
-            int lY = vt.bounds.y;
-            int hX = lX + vt.bounds.width;
-            int hY = lY + vt.bounds.height;
-            gridToScreen(lX + oX, hY + oY, tempPt1);
-            gridToScreen(hX + oX, lY + oY, tempPt2);
-            lX = tempPt1.x;
-            lY = tempPt1.y;
-            hX = tempPt2.x;
-            hY = tempPt2.y;
+            int cX = portCenters[i*2];
+            int cY = portCenters[i*2 + 1];
+            gridToScreen(cX + oX, cY + oY, tempPt1);
+            cX = tempPt1.x;
+            cY = tempPt1.y;
 
 			int portDisplayLevel = User.getPortDisplayLevel();
-			Color portColor = vt.e.getBasePort().getPortColor();
+			Color portColor = vce.getPortColor();
 			if (expanded) portColor = textColor;
 			if (portColor != null) portGraphics.setColor(portColor);
-			int cX = (lX + hX) / 2;
-			int cY = (lY + hY) / 2;
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
@@ -728,14 +720,12 @@ class VectorDrawing
 			}
 
 			// draw port as text
-			if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
-				drawString = vt.e.getName();
-			lX = hX = cX;
-			lY = hY = cY;
+            boolean shortName = portDisplayLevel == 1;
+            String drawString = vce.getName(shortName);
 
 			textCount++;
-			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-			offscreen.drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
+			tempRect.setBounds(cX, cY, 0, 0);
+			offscreen.drawText(tempRect, vce.style, vce.descript, drawString, null, portGraphics, false);
 		}
 	}
 
@@ -895,16 +885,17 @@ class VectorDrawing
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
-			NodeInst ni = vsc.ni;
-            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
 			if (ni.isExpanded() || fullInstantiate)
 			{
 				Orientation thisOrient = ni.getOrient();
 				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(ni);
-				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+                Cell subCell = (Cell)ni.getProto();
+				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
                 assert subVC_ == subVC;
-				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans, subContext);
+				boolean subCellTiny = isContentsTiny(subCell, subVC, recurseTrans, subContext);
 				if (!subCellTiny) return false;
 				continue;
 			}
@@ -1090,13 +1081,15 @@ class VectorDrawing
 			md.setValue(md.doubleValue() + area);
 		}
 
+        Cell cell = VectorCache.theCache.database.getCell(vc.vcg.cellId);
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
-			VectorCache.VectorCellGroup vcg = VectorCache.theCache.findCellGroup(vsc.subCell.getId());
+			VectorCache.VectorCellGroup vcg = VectorCache.theCache.findCellGroup(vsc.subCellId);
 			VectorCache.VectorCell subVC = vcg.getAnyCell();
-			VarContext subContext = context.push(vsc.ni);
+            NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+			VarContext subContext = context.push(ni);
 			if (subVC == null)
-				subVC = drawCell(vsc.subCell, Orientation.IDENT, subContext);
+				subVC = drawCell((Cell)ni.getProto(), Orientation.IDENT, subContext);
 			gatherContents(subVC, layerAreas, subContext);
 		}
 	}
@@ -1125,7 +1118,7 @@ class VectorDrawing
 			}
 		}
         
-        return VectorCache.theCache.drawCell(cell, prevTrans, context, scale);
+        return VectorCache.theCache.drawCell(cell.getId(), prevTrans, context, scale);
 	}
     
 }

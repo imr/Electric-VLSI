@@ -207,12 +207,8 @@ public class WindowFrame extends Observable
 		{
 			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame, null);
 			frame.finishWindowFrameInformation(eWnd, cell);
-			Dimension sz = eWnd.getSize();
-
-			// make sure the edit window has the right size
-			eWnd.setScreenSize(sz);
 			eWnd.fillScreen();
-			eWnd.repaintContents(null, false);
+			eWnd.fullRepaint();
 		}
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
@@ -1324,7 +1320,7 @@ public class WindowFrame extends Observable
 				wnd.getHighlighter().setHighlightList(history.highlights);
 				wnd.getHighlighter().setHighlightOffset((int)history.offX, (int)history.offY);
 			}
-			wnd.repaintContents(null, false);
+			wnd.fullRepaint();
 		}
 
 		// point to new location *after* calling setCell, since setCell updates by current location
