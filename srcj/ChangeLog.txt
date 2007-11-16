@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+IMP: (11/16/07, GVG) FillGenerator.writeLibrary() will write JELIB files
+instead of ELIBs.
+
 BUG: (11/15/07, DN) Exception adding new instance (Bug #1431)
 FIX: In Snapshot.getCellsDownTop change check of cell usage.
 
