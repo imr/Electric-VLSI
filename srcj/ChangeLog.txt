@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/16/07, GVG) fill cell generator generates exception (Bug #1432)
+FIX: LayoutLib.openLibForWrite was missing lib.setLibFile()
+
 IMP: (11/16/07, SMR) Improved SUE reader to handle Spice code.
 
 IMP: (11/16/07, GVG) FillGenerator.writeLibrary() will write JELIB files

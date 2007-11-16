@@ -145,7 +145,8 @@ public class LayoutLib {
 
 		// create a new Library
 		lib = Library.newInstance(libName, null);
-
+        URL libURL = TextUtils.makeURLToFile(libName);
+        lib.setLibFile(libURL);
 		error(lib==null, "can't open Library for modify: "+libName);
 		return lib;
 	}
