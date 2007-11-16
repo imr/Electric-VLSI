@@ -54,6 +54,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.Spice;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1001,7 +1002,8 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
+				if (parP.theText.startsWith("^")) ni.newDisplayVar(Spice.SPICE_CARD_KEY, parP.theText.substring(1)); else
+					ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
 				continue;
 			}
 
