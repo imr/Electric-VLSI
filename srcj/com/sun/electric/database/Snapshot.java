@@ -424,7 +424,7 @@ public class Snapshot {
         CellBackup cellBackup = getCell(root);
         CellRevision cellRevision = cellBackup.cellRevision; 
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
-            if (cellRevision.cellUsages[i].instCount == 0) continue;
+            if (cellRevision.cellUsages[i] == null) continue;
             CellUsage cu = root.getUsageIn(i);
             getCellsDownTop(cu.protoId, order);
         }

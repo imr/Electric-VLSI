@@ -5,12 +5,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/15/07, DN) Exception adding new instance (Bug #1431)
+FIX: In Snapshot.getCellsDownTop change check of cell usage.
+
 IMP: (11/15/07, GVG) First version of multi-threaded DRC min area checking per layer.
 
 BUG: (11/15/07, SMR) "Change" dialog doesn't restore if obscured up on Linux.
 FIX: In Change.showChangeDialog(), close previous dialog.
 
-BUG: (11/15/04, DN) Slow redisplay (Bug #1408).
+BUG: (11/15/07, DN) Slow redisplay (Bug #1408).
 FIX: Accurate implementation of refreshing of export information in VectorCache.
 
 BUG: (11/14/07, RK) NCC: hierarchical doesn't work if Cell has no Wires and no Parts (Bug # 1429)
