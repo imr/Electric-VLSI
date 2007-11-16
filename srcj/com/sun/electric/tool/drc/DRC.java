@@ -1273,4 +1273,13 @@ public class DRC extends Listener
     {
         return true;
     }
+
+    public static enum DRCErrorType
+    {
+	    // the different types of errors
+        SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,
+        MINAREAERROR, ENCLOSEDAREAERROR, SURROUNDERROR, FORBIDDEN, RESOLUTION, CUTERROR, SLOTSIZEERROR,
+	    // Different types of warnings
+        ZEROLENGTHARCWARN, TECHMIXWARN
+    }
 }

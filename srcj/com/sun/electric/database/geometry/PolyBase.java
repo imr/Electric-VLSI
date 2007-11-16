@@ -332,7 +332,54 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
-	public boolean isInside(Point2D pt)
+    public boolean isPointInsideArea(Point2D pt)
+    {
+        Area area = new Area(this);
+        return area.contains(pt.getX(), pt.getY());
+    }
+
+    private boolean isInsideGenericPolygonOriginal(Point2D pt)
+    {
+        // general polygon containment by summing angles to vertices
+        double ang = 0;
+        Point2D lastPoint = points[points.length-1];
+        //if (pt.equals(lastPoint)) return true;
+        if (DBMath.areEquals(pt, lastPoint))
+        {
+            return true;
+        }
+        int lastp = DBMath.figureAngle(pt, lastPoint);
+        for (Point2D thisPoint : points)
+        {
+            //if (pt.equals(thisPoint)) return true;
+            if (DBMath.areEquals(pt, thisPoint))
+            {
+                return true;
+            }
+            // Checking if point is along polygon edge
+            if (DBMath.isOnLine(thisPoint, lastPoint, pt))
+            {
+                return true;
+            }
+            int thisp = DBMath.figureAngle(pt, thisPoint);
+            int tang = lastp - thisp;
+            if (tang < -1800)
+                tang += 3600;
+            if (tang > 1800)
+                tang -= 3600;
+            ang += tang;
+            lastp = thisp;
+            lastPoint = thisPoint;
+        }
+        ang = Math.abs(ang);
+        //boolean completeCircle = ang == 0 || ang == 3600;
+        boolean oldCalculation = (!(ang <= points.length));
+        return (oldCalculation);
+        //if (Math.abs(ang) <= points.length) return false;
+        //return true;
+    }
+
+    public boolean isInside(Point2D pt)
 	{
 		if (style == Poly.Type.FILLED || style == Poly.Type.CLOSED || style == Poly.Type.CROSSED || style.isText())
 		{
@@ -350,36 +397,14 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return false;
 			}
 
-			// general polygon containment by summing angles to vertices
-			double ang = 0;
-			Point2D lastPoint = points[points.length-1];
-            //if (pt.equals(lastPoint)) return true;
-            if (DBMath.areEquals(pt, lastPoint)) return true;
-			int lastp = DBMath.figureAngle(pt, lastPoint);
-            for (Point2D thisPoint : points)
-            {
-				//if (pt.equals(thisPoint)) return true;
-                if (DBMath.areEquals(pt, thisPoint)) return true;
-                // Checking if point is along polygon edge
-                if (DBMath.isOnLine(thisPoint, lastPoint, pt))
-                    return true;
-				int thisp = DBMath.figureAngle(pt, thisPoint);
-				int tang = lastp - thisp;
-				if (tang < -1800)
-                    tang += 3600;
-				if (tang > 1800)
-                    tang -= 3600;
-				ang += tang;
-				lastp = thisp;
-                lastPoint = thisPoint;
-			}
-            ang = Math.abs(ang);
-            //boolean completeCircle = ang == 0 || ang == 3600;
-            boolean oldCalculation = (!(ang <= points.length));
-            return (oldCalculation);
-			//if (Math.abs(ang) <= points.length) return false;
-			//return true;
-		}
+            boolean oldMethod = isInsideGenericPolygonOriginal(pt); 
+//            if (Job.getDebug())
+//            {
+//                boolean newCode = isPointInsideArea(pt);
+//                assert(newCode == oldMethod);
+//            }
+            return oldMethod;
+        }
 
 		if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
 		{

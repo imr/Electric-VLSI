@@ -91,16 +91,7 @@ public class Quick
 	private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
-    private static enum DRCErrorType
-    {
-	    // the different types of errors
-        SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,
-        MINAREAERROR, ENCLOSEDAREAERROR, SURROUNDERROR, FORBIDDEN, RESOLUTION, CUTERROR, SLOTSIZEERROR,
-	    // Different types of warnings
-        ZEROLENGTHARCWARN, TECHMIXWARN
-    }
-
-	/**
+    /**
 	 * The CheckInst object is associated with every cell instance in the library.
 	 * It helps determine network information on a global scale.
 	 * It takes a "global-index" parameter, inherited from above (intially zero).
@@ -591,7 +582,7 @@ public class Quick
 			Technology tech = ai.getProto().getTechnology();
 			if (tech != cellTech)
 			{
-				reportError(DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+				reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
 				continue;
 			}
 			if (bounds != null)
@@ -678,7 +669,7 @@ public class Quick
 
         // there was an error, for now print error
         Layer layer = poly.getLayer();
-        reportError(DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution +
+        reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution +
                 " on layer " + layer.getName(), cell, 0, 0, null, null, geom, null, null, null, null);
         return true;
 	}
@@ -753,7 +744,7 @@ public class Quick
         if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
                 DRCTemplate.DRCRuleType.FORBIDDEN, tech))
         {
-            reportError(DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
+            reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
             if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
             errorsFound = true;
         }
@@ -824,7 +815,7 @@ public class Quick
 //			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
-				reportError(DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
+				reportError(DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
 					poly, ni, layer, null, null, null);
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
@@ -851,7 +842,7 @@ public class Quick
 					minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
 					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				}
-				reportError(DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+				reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
 					null, ni, null, null, null, null);
                 errorsFound = true;
 			}
@@ -886,7 +877,7 @@ public class Quick
                         NodeInst node = e.getValue(); // od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
                                 node.getParent().getName() + ":" + node.getName() +"') not allowed by selected foundry";
-                        reportError(DRCErrorType.FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
+                        reportError(DRC.DRCErrorType.FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
 
                         return true;
                     }
@@ -972,7 +963,7 @@ public class Quick
 			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
-				reportError(DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
+				reportError(DRC.DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
 					(tot==1)?null:poly, ai, layer, null, null, null);
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
@@ -1134,7 +1125,7 @@ public class Quick
 
 				if (tech != cellTech)
 				{
-					reportError(DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+					reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
 					continue;
 				}
 
@@ -1592,7 +1583,7 @@ public class Quick
         {
             // you can't pass geom1 or geom2 becuase they could be in different cells and therefore the message
             // could mislead
-            reportError(DRCErrorType.MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
+            reportError(DRC.DRCErrorType.MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
                             null, layer1, null, null, layer2);
             foundError = true;
         }
@@ -1872,13 +1863,13 @@ public class Quick
                 System.out.println("Wrong case in non-nonmanhattan, Quick.");
 		}
 
-		DRCErrorType errorType = DRCErrorType.SPACINGERROR;
+		DRC.DRCErrorType errorType = DRC.DRCErrorType.SPACINGERROR;
         if (theRule.ruleType == DRCTemplate.DRCRuleType.SURROUND)
         {
             if (pd > 0) // layers don't overlap -> no condition to check
                 return errorFound;
             pd = Math.abs(pd);
-            errorType = DRCErrorType.SURROUNDERROR;
+            errorType = DRC.DRCErrorType.SURROUNDERROR;
         }
 		// see if the design rule is met
 		if (!DBMath.isGreaterThan(theRule.getValue(0), pd)) // default case: SPACING   pd >= theRule.value1
@@ -1951,7 +1942,7 @@ public class Quick
 
                     // look further if on the same net and diagonally separate (1 intervening point)
                     //if (net1 == net2 && intervening == 1) return false;
-                    errorType = DRCErrorType.NOTCHERROR;
+                    errorType = DRC.DRCErrorType.NOTCHERROR;
                 }
             }
         }
@@ -2463,13 +2454,13 @@ public class Quick
 //        if (overlapLayer && !zeroWide) return false;
         if (overlapLayer) return false;
 
-        DRCErrorType errorType = DRCErrorType.MINWIDTHERROR;
+        DRC.DRCErrorType errorType = DRC.DRCErrorType.MINWIDTHERROR;
         String extraMsg = msg;
         String rule = minWidthRule.ruleName;
         if (zeroWide)
         {
             if (overlapLayer) extraMsg = " but covered by other layer";
-            errorType = DRCErrorType.ZEROLENGTHARCWARN;
+            errorType = DRC.DRCErrorType.ZEROLENGTHARCWARN;
             rule = null;
         }
 
@@ -2603,7 +2594,7 @@ public class Quick
 		if (actual < minWidthValue)
 		{
             if (reportError)
-                reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
+                reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
 				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
@@ -2656,11 +2647,11 @@ public class Quick
                         // look between the points to see if it is minimum width or notch
                         if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
                         {
-                            reportError(DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
+                            reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
                                 actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
                         } else
                         {
-                            reportError(DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
+                            reportError(DRC.DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
                                 actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
                         }
                     }
@@ -2716,7 +2707,7 @@ public class Quick
 
                     if (!DBMath.isGreaterThan(length, slotSizeRule.getValue(0))) continue;
                     if (addError)
-                    reportError(DRCErrorType.SLOTSIZEERROR, null, cell, slotSizeRule.getValue(0), length, slotSizeRule.ruleName,
+                    reportError(DRC.DRCErrorType.SLOTSIZEERROR, null, cell, slotSizeRule.getValue(0), length, slotSizeRule.ruleName,
 						simplePn, null, layer, null, null, null);
 				    errorFound++;
                 }
@@ -2727,9 +2718,9 @@ public class Quick
 				if (!DBMath.isGreaterThan(minRule.getValue(0), area)) continue;
 
 				errorFound++;
-				DRCErrorType errorType = (minRule == minAreaRule) ? DRCErrorType.MINAREAERROR : DRCErrorType.ENCLOSEDAREAERROR;
-                if (errorType == DRCErrorType.MINAREAERROR) minAreaDone = false;
-                else if (errorType == DRCErrorType.ENCLOSEDAREAERROR) enclosedAreaDone = false;
+				DRC.DRCErrorType errorType = (minRule == minAreaRule) ? DRC.DRCErrorType.MINAREAERROR : DRC.DRCErrorType.ENCLOSEDAREAERROR;
+                if (errorType == DRC.DRCErrorType.MINAREAERROR) minAreaDone = false;
+                else if (errorType == DRC.DRCErrorType.ENCLOSEDAREAERROR) enclosedAreaDone = false;
                 if (addError)
 				reportError(errorType, null, cell, minRule.getValue(0), area, minRule.ruleName,
 						simplePn, null, layer, null, null, null);
@@ -2754,7 +2745,7 @@ public class Quick
         }
         boolean minAreaCheck = level%2 == 0;
         boolean checkMin = false, checkNotch = false;
-        DRCErrorType errorType = DRCErrorType.MINAREAERROR;
+        DRC.DRCErrorType errorType = DRC.DRCErrorType.MINAREAERROR;
         double minVal = 0;
         String ruleName = "";
 
@@ -2768,7 +2759,7 @@ public class Quick
         else
         {
             // odd level checks enclose area and holes (spacing rule)
-            errorType = DRCErrorType.ENCLOSEDAREAERROR;
+            errorType = DRC.DRCErrorType.ENCLOSEDAREAERROR;
             if (encloseAreaRule != null)
             {
                 minVal = encloseAreaRule.getValue(0);
@@ -2795,13 +2786,13 @@ public class Quick
             if (bnd.getWidth() < spacingRule.getValue(0))
             {
                 count.increment();
-                reportError(DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
+                reportError(DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
                         spacingRule.ruleName, poly, null, layer, null, null, layer);
             }
             if (bnd.getHeight() < spacingRule.getValue(1))
             {
                 count.increment();
-                reportError(DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
+                reportError(DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
                         spacingRule.ruleName, poly, null, layer, null, null, layer);
             }
         }
@@ -2836,15 +2827,12 @@ public class Quick
 
     private int checkMinAreaSlow(Cell cell)
 	{
-		CheckProto cp = getCheckProto(cell);
-		int errorFound = 0;
-
 		// Nothing to check
 		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty() && spacingLayerMap.isEmpty())
 			return 0;
 
         // remember number of errors before the min area checking
-        errorFound = errorLogger.getNumErrors();
+        int errorFound = errorLogger.getNumErrors();
 
 		// Get merged areas.
         DRC.DRCCheckMinArea algoType = DRC.getMinAreaAlgoOption();
@@ -3494,14 +3482,14 @@ public class Quick
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
         if (DBMath.isGreaterThan(rect.getWidth(), cutSizeX))
         {
-            reportError(DRCErrorType.CUTERROR, "along X", topCell, cutSizeX, rect.getWidth(),
+            reportError(DRC.DRCErrorType.CUTERROR, "along X", topCell, cutSizeX, rect.getWidth(),
                     ruleName, new Poly(rect), null, layer, null, null, nLayer);
             foundError = true;
 
         }
         if (DBMath.isGreaterThan(rect.getHeight(), cutSizeY))
         {
-            reportError(DRCErrorType.CUTERROR, "along Y", topCell, cutSizeY, rect.getHeight(),
+            reportError(DRC.DRCErrorType.CUTERROR, "along Y", topCell, cutSizeY, rect.getHeight(),
                     ruleName, new Poly(rect), null, layer, null, null, layer);
             foundError = true;
 
@@ -3894,7 +3882,7 @@ public class Quick
 
                 if (!f)
                 {
-                    reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
+                    reportError(DRC.DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
                             -1, rule.ruleName, poly, geom, layer, null, null, null);
                     if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true; // no need of checking other combinations
                     break; // with next rule
@@ -4807,7 +4795,7 @@ public class Quick
     }
 
 	/* Adds details about an error to the error list */
-	private void reportError(DRCErrorType errorType, String msg,
+	private void reportError(DRC.DRCErrorType errorType, String msg,
 	                         Cell cell, double limit, double actual, String rule,
 	                         PolyBase poly1, Geometric geom1, Layer layer1,
 	                         PolyBase poly2, Geometric geom2, Layer layer2)
@@ -4838,7 +4826,7 @@ public class Quick
 		Cell np2 = (geom2 != null) ? geom2.getParent() : null;
 
 		// Message already logged
-        boolean onlyWarning = (errorType == DRCErrorType.ZEROLENGTHARCWARN || errorType == DRCErrorType.TECHMIXWARN);
+        boolean onlyWarning = (errorType == DRC.DRCErrorType.ZEROLENGTHARCWARN || errorType == DRC.DRCErrorType.TECHMIXWARN);
         // Until a decent algorithm is in place for detecting repeated errors, ERROR_CHECK_EXHAUSTIVE might report duplicate errros
 		if ( geom2 != null && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
             return;
@@ -4847,12 +4835,12 @@ public class Quick
         DRC.DRCCheckLogging loggingType = DRC.getErrorLoggingType();
         
         int sortKey = cell.hashCode(); // 0;
-		if (errorType == DRCErrorType.SPACINGERROR || errorType == DRCErrorType.NOTCHERROR || errorType == DRCErrorType.SURROUNDERROR)
+		if (errorType == DRC.DRCErrorType.SPACINGERROR || errorType == DRC.DRCErrorType.NOTCHERROR || errorType == DRC.DRCErrorType.SURROUNDERROR)
 		{
 			// describe spacing width error
-			if (errorType == DRCErrorType.SPACINGERROR)
+			if (errorType == DRC.DRCErrorType.SPACINGERROR)
 				errorMessage.append("Spacing");
-			else if (errorType == DRCErrorType.SURROUNDERROR)
+			else if (errorType == DRC.DRCErrorType.SURROUNDERROR)
 				errorMessage.append("Surround");
 			else
 				errorMessage.append("Notch");
@@ -5181,21 +5169,27 @@ public class Quick
             {
                 if (!merged)
                 {
+                    System.out.println("Merging Cell " + cell.getName());
                     merged = true;
                     for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
                     {
                         NodeInst ni = it.next();
                         if (!ni.isCellInstance()) continue; // only cell instances
                         AffineTransform trans = ni.transformOut();
-                        GeometryHandlerBucket bucket = cellsMap.get(ni.getProto());
+                        Cell protoCell = (Cell)ni.getProto();
+                        GeometryHandlerBucket bucket = cellsMap.get(protoCell);
                         local.addAll(bucket.local, trans);
+//                        if (protoCell.getId().numUsagesOf() <= 1) // used only here
+//                        {
+//                            System.out.println("Here");
+//                            cellsMap.put(protoCell, null);
+//                        }
                     }
                     local.postProcess(true);
                 }
                 else
                 {
-                    assert(false);
-                    System.out.println("HEre casse");
+                    assert(false); // It should not happen
                 }
             }
         }
@@ -5216,7 +5210,6 @@ public class Quick
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
             if (job != null && job.checkAbort()) return false;
-            AffineTransform rTrans = info.getTransformToRoot();
             Cell cell = info.getCell();
             GeometryHandlerBucket bucket = cellsMap.get(cell);
             if (bucket == null)
@@ -5260,8 +5253,6 @@ public class Quick
                         layer = polyLayer;
                     }
                     addElementLocal(poly, layer, bucket);
-//                    poly.transform(rTrans);
-//                    addElement(poly, layer);
                 }
             }
 
