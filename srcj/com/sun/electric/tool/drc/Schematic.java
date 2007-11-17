@@ -72,7 +72,7 @@ public class Schematic
 
         errorLogger = errorLog;
         // null when it comes from the regression
-        if (errorLogger == null) errorLogger = DRC.getDRCErrorLogger(false, false);
+        if (errorLogger == null) errorLogger = DRC.getDRCErrorLogger(false, false, null);
 
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);

@@ -196,7 +196,7 @@ public class Quick
     public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds)
     {
-        if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false);
+        if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false, null);
         return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null, GeometryHandler.GHMode.ALGO_SWEEP);
     }
 
@@ -4764,216 +4764,16 @@ public class Quick
         exclusionMap.put(cell, area);
 	}
 
-	/*********************************** QUICK DRC ERROR REPORTING ***********************************/
-    private boolean checkExclusionMap(Cell cell, List<PolyBase> polyList, List<Geometric> geomList, StringBuffer DRCexclusionMsg)
-    {
-        Area area = exclusionMap.get(cell);
-        if (area == null) return false;
-
-        int count = 0, i = -1;
-
-        for (PolyBase thisPoly : polyList)
-        {
-            i++;
-            if (thisPoly == null)
-                continue; // MinNode case
-            boolean found = area.contains(thisPoly.getBounds2D());
-
-            if (found) count++;
-            else
-            {
-                Rectangle2D rect = (geomList.get(i) != null) ? geomList.get(i).getBounds() : thisPoly.getBounds2D();
-                DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain element (" +
-                        rect.getMinX() + "," + rect.getMinY()+") (" + rect.getMaxX() + "," + rect.getMaxY()+"))");
-            }
-        }
-        // At least one DRC exclusion that contains both
-//        if (count == polyList.size())
-        if (count >= 1) // at one element is inside the DRC exclusion
-            return true;
-        return false;
-    }
-
-	/* Adds details about an error to the error list */
+    /* Adds details about an error to the error list */
 	private void reportError(DRC.DRCErrorType errorType, String msg,
 	                         Cell cell, double limit, double actual, String rule,
 	                         PolyBase poly1, Geometric geom1, Layer layer1,
 	                         PolyBase poly2, Geometric geom2, Layer layer2)
-	{
-		if (errorLogger == null) return;
-
-		// if this error is in an ignored area, don't record it
-		StringBuffer DRCexclusionMsg = new StringBuffer();
-        if (exclusionMap.get(cell) != null)
-		{
-			// determine the bounding box of the error
-			List<PolyBase> polyList = new ArrayList<PolyBase>(2);
-			List<Geometric> geomList = new ArrayList<Geometric>(2);
-			polyList.add(poly1); geomList.add(geom1);
-			if (poly2 != null)
-			{
-				polyList.add(poly2);
-				geomList.add(geom2);
-			}
-            boolean found = checkExclusionMap(cell, polyList, geomList, DRCexclusionMsg);
-
-            // At least one DRC exclusion that contains both
-            if (found) return;
-		}
-
-		// describe the error
-		Cell np1 = (geom1 != null) ? geom1.getParent() : null;
-		Cell np2 = (geom2 != null) ? geom2.getParent() : null;
-
-		// Message already logged
-        boolean onlyWarning = (errorType == DRC.DRCErrorType.ZEROLENGTHARCWARN || errorType == DRC.DRCErrorType.TECHMIXWARN);
-        // Until a decent algorithm is in place for detecting repeated errors, ERROR_CHECK_EXHAUSTIVE might report duplicate errros
-		if ( geom2 != null && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
-            return;
-
-		StringBuffer errorMessage = new StringBuffer();
-        DRC.DRCCheckLogging loggingType = DRC.getErrorLoggingType();
-        
-        int sortKey = cell.hashCode(); // 0;
-		if (errorType == DRC.DRCErrorType.SPACINGERROR || errorType == DRC.DRCErrorType.NOTCHERROR || errorType == DRC.DRCErrorType.SURROUNDERROR)
-		{
-			// describe spacing width error
-			if (errorType == DRC.DRCErrorType.SPACINGERROR)
-				errorMessage.append("Spacing");
-			else if (errorType == DRC.DRCErrorType.SURROUNDERROR)
-				errorMessage.append("Surround");
-			else
-				errorMessage.append("Notch");
-			if (layer1 == layer2)
-				errorMessage.append(" (layer '" + layer1.getName() + "')");
-			errorMessage.append(": ");
-
-			if (np1 != np2)
-			{
-				errorMessage.append(np1 + ", ");
-			} else if (np1 != cell && np1 != null)
-			{
-				errorMessage.append("[in " + np1 + "] ");
-			}
-
-            if (geom1 != null)
-                errorMessage.append(geom1);
-			if (layer1 != layer2)
-				errorMessage.append(", layer '" + layer1.getName() + "'");
-
-			if (actual < 0) errorMessage.append(" OVERLAPS (BY " + TextUtils.formatDouble(limit-actual) + ") ");
-			else if (actual == 0) errorMessage.append(" TOUCHES ");
-			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) +
-                    ((geom2!=null)?" TO ":""));
-
-			if (np1 != np2 && np2 != null)
-				errorMessage.append(np2 + ", ");
-
-            if (geom2 != null)
-                errorMessage.append(geom2);
-			if (layer1 != layer2)
-				errorMessage.append(", layer '" + layer2.getName() + "'");
-			if (msg != null)
-				errorMessage.append("; " + msg);
-		} else
-		{
-			// describe minimum width/size or layer error
-			StringBuffer errorMessagePart2 = null;
-			switch (errorType)
-			{
-                case RESOLUTION:
-                    errorMessage.append("Resolution error:");
-					errorMessagePart2 = new StringBuffer(msg);
-                    break;
-                case FORBIDDEN:
-                    errorMessage.append("Forbidden error:");
-					errorMessagePart2 = new StringBuffer(msg);
-                    break;
-                case SLOTSIZEERROR:
-                    errorMessage.append("Slot size error:");
-					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " IN LENGTH (IS " + TextUtils.formatDouble(actual) + ")");
-                    break;
-				case MINAREAERROR:
-					errorMessage.append("Minimum area error:");
-					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
-					break;
-				case ENCLOSEDAREAERROR:
-					errorMessage.append("Enclosed area error:");
-					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
-					break;
-				case TECHMIXWARN:
-					errorMessage.append("Technology mixture warning:");
-					errorMessagePart2 = new StringBuffer(msg);
-					break;
-				case ZEROLENGTHARCWARN:
-					errorMessage.append("Zero width warning:");
-					errorMessagePart2 = new StringBuffer(msg); break;
-				case CUTERROR:
-                    errorMessage.append("Maximum cut error" + ((msg != null) ? ("(" + msg + "):") : ""));
-                    errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-                    errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
-					break;
-				case MINWIDTHERROR:
-                    errorMessage.append("Minimum width/height error" + ((msg != null) ? ("(" + msg + "):") : ""));
-					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
-                    break;
-				case MINSIZEERROR:
-					errorMessage.append("Minimum size error on " + msg + ":");
-					errorMessagePart2 = new StringBuffer(" LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")");
-					break;
-				case BADLAYERERROR:
-					errorMessage.append("Invalid layer ('" + layer1.getName() + "'):");
-					break;
-				case LAYERSURROUNDERROR:
-					errorMessage.append("Layer surround error: " + msg);
-					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-                    String layerName = (layer2 != null) ? layer2.getName() : "Select";
-					errorMessagePart2.append(" NEEDS SURROUND OF LAYER '" + layerName + "' BY " + limit);
-                    break;
-			}
-
-			errorMessage.append(" " + cell + " ");
-			if (geom1 != null)
-			{
-				errorMessage.append(geom1);
-			}
-            // only when is flat -> use layer index for sorting
-            if (layer1 != null && loggingType == DRC.DRCCheckLogging.DRC_LOG_FLAT) sortKey = layer1.getIndex();
-			errorMessage.append(errorMessagePart2);
-		}
-		if (rule != null && rule.length() > 0) errorMessage.append(" [rule '" + rule + "']");
-		errorMessage.append(DRCexclusionMsg);
-
-		List<Geometric> geomList = new ArrayList<Geometric>();
-		List<PolyBase> polyList = new ArrayList<PolyBase>();
-		if (poly1 != null) polyList.add(poly1); else
-			if (geom1 != null) geomList.add(geom1);
-		if (poly2 != null) polyList.add(poly2); else
-			if (geom2 != null) geomList.add(geom2);
-
-        switch (loggingType)
-        {
-            case DRC_LOG_PER_CELL:
-                errorLogger.setGroupName(sortKey, cell.getName());
-                break;
-            case DRC_LOG_PER_RULE:
-                sortKey = rule.hashCode();
-                errorLogger.setGroupName(sortKey, rule);
-                break;
-        }
-
-        if (onlyWarning)
-            errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
-        else
-		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
-        // Temporary display of errors.
-        if (interactiveLogger)
-            Job.getUserInterface().termLogging(errorLogger, false, false);
-	}
+    {
+        DRC.createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
+                errorType, msg, cell, limit, actual, rule, poly1, geom1, layer1,
+                poly2, geom2, layer2);
+    }
 
 
     /**************************************************************************************************************

@@ -30,6 +30,8 @@ public class MultiDRCToolJob extends Job {
     private Layer theLayer;
     private Cell topCell;
     private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
+    private ErrorLogger errorLogger;
+
     // Must be static so it could be called in constructor
     private static String getJobName(Cell c, Layer l) { return "Design-Rule Check " + c + ", layer " + l.getName(); }
 
@@ -47,15 +49,15 @@ public class MultiDRCToolJob extends Job {
     public boolean doIt()
     {
         long startTime = System.currentTimeMillis();
-        ErrorLogger errorLog = DRC.getDRCErrorLogger(true, false);
+        errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
 
-    System.out.println("DRC for Cell " + topCell.getName() + " , layer " + theLayer.getName());
-    HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP);
-    HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
+        System.out.println("DRC for Cell " + topCell.getName() + " , layer " + theLayer.getName());
+        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP);
+        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
 
         long endTime = System.currentTimeMillis();
-        int errorCount = errorLog.getNumErrors();
-        int warnCount = errorLog.getNumWarnings();
+        int errorCount = errorLogger.getNumErrors();
+        int warnCount = errorLogger.getNumWarnings();
         System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
         return true;
@@ -93,13 +95,12 @@ public class MultiDRCToolJob extends Job {
     {
         private Map<Cell, GeometryHandlerLayerBucket> cellsMap;
         private Layer.Function.Set thisLayerFunction;
-//        private Cell topCell;
-//        private Layer theLayer;
         private GeometryHandler.GHMode mode;
 
         LayerAreaEnumerator(GeometryHandler.GHMode mode)
         {
-            // gate poly must be merged with the rest of the poly in transistors
+            // This is required so the poly arcs will be properly merged with the transistor polys
+            // even though non-electrical layers are retrieved
             this.thisLayerFunction = (theLayer.getFunction().isPoly()) ?
                     new Layer.Function.Set(theLayer.getFunction(), Layer.Function.GATE) :
                     new Layer.Function.Set(theLayer.getFunction());
@@ -118,7 +119,6 @@ public class MultiDRCToolJob extends Job {
             {
                 if (!merged)
                 {
-                    System.out.println("Merging Cell " + cell.getName());
                     merged = true;
                     for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
                     {
@@ -176,7 +176,6 @@ public class MultiDRCToolJob extends Job {
                 for(int i=0; i<tot; i++)
                 {
                     Poly poly = arcInstPolyList[i];
-//                    Layer layer = poly.getLayer();
                     addElementLocal(poly, theLayer, bucket);
                 }
             }
@@ -230,10 +229,10 @@ public class MultiDRCToolJob extends Job {
             // Don't get electric layers in case of transistors otherwise it is hard to detect ports
             Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, false, true, thisLayerFunction);
 			int tot = nodeInstPolyList.length;
-			for(int i=0; i<tot; i++)
+            assert(tot == 1);
+            for(int i=0; i<tot; i++)
 			{
 				Poly poly = nodeInstPolyList[i];
-//				Layer layer = poly.getLayer();
 
                 poly.roundPoints(); // Trying to avoid mismatches while joining areas.
                 poly.transform(trans);
@@ -261,70 +260,71 @@ public class MultiDRCToolJob extends Job {
             return errorFound.intValue();
         }
 
-            private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
-                                          DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
-    {
-        List<PolyBase.PolyBaseTree> sons = obj.getSons();
-        for (PolyBase.PolyBaseTree son : sons)
+        private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level,
+                                      DRCTemplate minAreaRule, DRCTemplate encloseAreaRule,
+                                      DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
         {
-            traversePolyTree(layer, son, level+1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
-        }
-        boolean minAreaCheck = level%2 == 0;
-        boolean checkMin = false, checkNotch = false;
-        DRC.DRCErrorType errorType = DRC.DRCErrorType.MINAREAERROR;
-        double minVal = 0;
-        String ruleName = "";
-
-        if (minAreaCheck)
-        {
-            if (minAreaRule == null) return; // no rule
-            minVal = minAreaRule.getValue(0);
-            ruleName = minAreaRule.ruleName;
-            checkMin = true;
-        }
-        else
-        {
-            // odd level checks enclose area and holes (spacing rule)
-            errorType = DRC.DRCErrorType.ENCLOSEDAREAERROR;
-            if (encloseAreaRule != null)
+            List<PolyBase.PolyBaseTree> sons = obj.getSons();
+            for (PolyBase.PolyBaseTree son : sons)
             {
-                minVal = encloseAreaRule.getValue(0);
-                ruleName = encloseAreaRule.ruleName;
+                traversePolyTree(layer, son, level+1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
+            }
+            boolean minAreaCheck = level%2 == 0;
+            boolean checkMin = false, checkNotch = false;
+            DRC.DRCErrorType errorType = DRC.DRCErrorType.MINAREAERROR;
+            double minVal = 0;
+            String ruleName = "";
+
+            if (minAreaCheck)
+            {
+                if (minAreaRule == null) return; // no rule
+                minVal = minAreaRule.getValue(0);
+                ruleName = minAreaRule.ruleName;
                 checkMin = true;
             }
-            checkNotch = (spacingRule != null);
-        }
-        PolyBase poly = obj.getPoly();
+            else
+            {
+                // odd level checks enclose area and holes (spacing rule)
+                errorType = DRC.DRCErrorType.ENCLOSEDAREAERROR;
+                if (encloseAreaRule != null)
+                {
+                    minVal = encloseAreaRule.getValue(0);
+                    ruleName = encloseAreaRule.ruleName;
+                    checkMin = true;
+                }
+                checkNotch = (spacingRule != null);
+            }
+            PolyBase poly = obj.getPoly();
 
-        if (checkMin)
-        {
-            double area = poly.getArea();
-            // isGreaterThan doesn't consider equals condition therefore negate condition is used
-            if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
-            count.increment();
-            System.out.println("Min or Enclusion error");
-//            reportError(errorType, null, cell, minVal, area, ruleName,
-//                            poly, null, layer, null, null, null);
-        }
-        if (checkNotch)
-        {
-            // Notches are calculated using the bounding box of the polygon -> this is an approximation
-            Rectangle2D bnd = poly.getBounds2D();
-            if (bnd.getWidth() < spacingRule.getValue(0))
+            if (checkMin)
             {
+                double area = poly.getArea();
+                // isGreaterThan doesn't consider equals condition therefore negate condition is used
+                if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
                 count.increment();
-                System.out.println("Hole error X");
-//                reportError(DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
-//                        spacingRule.ruleName, poly, null, layer, null, null, layer);
+                DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                        errorType, null, cell, minVal, area, ruleName,
+                        poly, null, layer, null, null, null);
             }
-            if (bnd.getHeight() < spacingRule.getValue(1))
+            if (checkNotch)
             {
-                count.increment();
-                System.out.println("Hole error Y");
-//                reportError(DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
-//                        spacingRule.ruleName, poly, null, layer, null, null, layer);
+                // Notches are calculated using the bounding box of the polygon -> this is an approximation
+                Rectangle2D bnd = poly.getBounds2D();
+                if (bnd.getWidth() < spacingRule.getValue(0))
+                {
+                    count.increment();
+                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                            DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
+                            spacingRule.ruleName, poly, null, layer, null, null, layer);
+                }
+                if (bnd.getHeight() < spacingRule.getValue(1))
+                {
+                    count.increment();
+                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                            DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
+                            spacingRule.ruleName, poly, null, layer, null, null, layer);
+                }
             }
         }
-    }
     }
 }
