@@ -25,11 +25,11 @@ package com.sun.electric.database.hierarchy;
 
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.network.Global;
@@ -174,10 +174,12 @@ public final class HierarchyEnumerator {
     private boolean shortPolyResistors;
     private boolean shortSpiceAmmeters;
 	private boolean caching;
+	private int curNetId = 0;
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
-	private List<NetDescription> netIdToNetDesc = new ArrayList<NetDescription>();
+	private Map<Integer, NetDescription> netIdToNetDesc = 
+		                                 new HashMap<Integer,NetDescription>();
     private HashMap<Cell,CellShorts>cellShortsMap = new HashMap<Cell,CellShorts>();
 
 	private static void error(boolean pred, String msg) {
@@ -250,14 +252,14 @@ public final class HierarchyEnumerator {
 		return shorts;
 	}
 
-    private int nextNetID() { return netIdToNetDesc.size(); }
+    //private int nextNetID() { return netIdToNetDesc.size(); }
 
 	private int[] numberNets(Cell cell, Netlist netlist, 
 							 int[][] portNdxToNetIDs, CellInfo info) {
 		int numNets = netlist.getNumNetworks();
         CellShorts shorts = cellShortsMap.get(cell);
 		int[] netNdxToNetID = new int[numNets];
-        int baseId = nextNetID();
+        int baseId = curNetId;
         Arrays.fill(shorts.externalIds, -1);
 		if (portNdxToNetIDs != null) {
 			assert portNdxToNetIDs.length == cell.getNumPorts() + 1;
@@ -284,12 +286,12 @@ public final class HierarchyEnumerator {
 		for (int i = 0; i < numNets; i++) {
 			Network net = netlist.getNetwork(i);
             int localId = shorts.net2id[i];
-            assert baseId + localId <= nextNetID();
-            if (baseId + localId == nextNetID()) {
+            assert baseId + localId <= curNetId;
+            if (baseId + localId == curNetId) {
                 if (portNdxToNetIDs == null && localId < shorts.externalIds.length)
                     shorts.externalIds[localId] = localId;
-                assert nextNetID() == baseId + localId;
-                netIdToNetDesc.add(new NetDescription(net, info));
+                assert curNetId == baseId + localId;
+                netIdToNetDesc.put(curNetId++, new NetDescription(net, info));
             } else if (localId >= shorts.externalIds.length || portNdxToNetIDs == null) {
                 NetDescription nd = netIdToNetDesc.get(baseId + localId);
                 int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1; 
@@ -351,9 +353,9 @@ public final class HierarchyEnumerator {
 		                       AffineTransform xformToRoot, CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 
-		int firstNetID = nextNetID();
+		int firstNetID = curNetId;
 		int[] netNdxToNetID = numberNets(cell, netlist, portNdxToNetIDs, info);
-		int lastNetIDPlusOne = nextNetID();
+		int lastNetIDPlusOne = curNetId;
 		cellCnt++;
 		info.init(parentInst, cell,	cellShortsMap.get(cell), context, netlist, netNdxToNetID,
 				  portNdxToNetIDs, xformToRoot, netIdToNetDesc, parent);
@@ -390,7 +392,7 @@ public final class HierarchyEnumerator {
 
 		// remove entries in netIdToNetDesc that we'll never use again
 		for (int i = firstNetID; i < lastNetIDPlusOne; i++) {
-			netIdToNetDesc.set(i, null);
+			netIdToNetDesc.remove(i);
 		}
 	}
 
@@ -411,7 +413,7 @@ public final class HierarchyEnumerator {
 		enumerateCell(null,	root, context, netlist, exportNdxToNetIDs,
 		              new AffineTransform(), null);
 
-//		System.out.println("A total of: " + nextNetID() + " nets were numbered");
+//		System.out.println("A total of: " + curNetId + " nets were numbered");
 //		System.out.println("A total of: " + cellCnt + " Cells were visited");
 //		System.out.println("A total of: " + instCnt + " NodeInsts were visited");
 	}
@@ -530,14 +532,14 @@ public final class HierarchyEnumerator {
 		private int[] netNdxToNetID;
 		private int[][] exportNdxToNetIDs;
 		private AffineTransform xformToRoot;
-		private List<NetDescription> netIdToNetDesc;
+		private Map<Integer,NetDescription> netIdToNetDesc;
 		private CellInfo parentInfo;
 
 		// package private
 		void init(Nodable parentInst, Cell cell, CellShorts shorts, VarContext context,
 			      Netlist netlist,
 		          int[] netToNetID, int[][] exportNdxToNetIDs, 
-				  AffineTransform xformToRoot, List<NetDescription> netIdToNetDesc,	
+				  AffineTransform xformToRoot, Map<Integer, NetDescription> netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;

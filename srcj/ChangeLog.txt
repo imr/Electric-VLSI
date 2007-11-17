@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/16/07, RK) HierarchyEnumerator uses too much heap (Bug #1424)
+FIX: Use hash table instead of array for netIdToNetDesc 
+
 BUG: (11/16/07, GVG) fill cell generator generates exception (Bug #1432)
 FIX: LayoutLib.openLibForWrite was missing lib.setLibFile()
 
