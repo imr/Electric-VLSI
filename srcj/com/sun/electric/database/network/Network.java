@@ -26,16 +26,12 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.PortProto;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -45,79 +41,18 @@ import java.util.List;
  * that are electrically connected.
  */
 public class Network {
-    private static final String[] NULL_STRING_ARRAY = {};
-
     // ------------------------- private data ------------------------------
-    private Netlist netlist; // Cell that owns this Network
-    private int netIndex; // Index of this Network in Netlist.
-    /**
-     * Array of names.
-     * First names are exported names in STRING_NUMBER_ORDER,
-     * Then internal user-defined names in STRING_NUMBER_ORDER.
-     * If this net has no exported or user-defined names, then this
-     * list contains one of temporary names.
-     * Hence the first name in the list are most appropriate.
-     **/
-    private String[] names = NULL_STRING_ARRAY;
-    /**
-     * Number of export names.
-     */
-    private int exportedNamesCount;
-    /**
-     * True if this net has user-defiend names/
-     */
-    private boolean isUsernamed;
-
-    // ----------------------- protected and private methods -----------------
+    private final Netlist netlist; // Netlist that owns this Network
+    private final int netIndex; // Index of this Network in Netlist.
 
     /**
      * Creates Network in a given netlist with specified index.
      * @param netlist Netlist where Network lives.
      * @param netIndex index of Network.
      */
-    public Network(Netlist netlist, int netIndex) {
+    Network(Netlist netlist, int netIndex) {
         this.netlist = netlist;
         this.netIndex = netIndex;
-    }
-
-    /**
-     * Add user name to list of names of this Network.
-     * @param nameKey name key to add.
-     * @param exported true if name is exported.
-     */
-    public void addUserName(Name nameKey, boolean exported) {
-        assert !nameKey.isTempname();
-        String name = nameKey.toString();
-        if (exported)
-            assert exportedNamesCount == names.length;
-        int i = 0;
-        for (; i < names.length; i++) {
-            String n = names[i];
-            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
-            if (cmp == 0 && !exported) return;
-            if (cmp < 0 && (exported || i >= exportedNamesCount)) break;
-        }
-        if (names.length == 0) {
-            names = new String[] { name };
-        } else {
-            String[] newNames = new String[names.length + 1];
-            System.arraycopy(names, 0, newNames, 0, i);
-            newNames[i] = name;
-            System.arraycopy(names, i, newNames, i + 1, names.length - i);
-            names = newNames;
-        }
-        if (exported)
-            exportedNamesCount++;
-        isUsernamed = true;
-    }
-
-    /**
-     * Add temporary name to list of names of this Network.
-     * @param name name to add.
-     */
-    public void addTempName(String name) {
-        if (names.length > 0) return;
-        names = new String[] { name };
     }
 
     // --------------------------- public methods ------------------------------
@@ -141,12 +76,12 @@ public class Network {
 
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getNames() {
-        return ArrayIterator.iterator(names);
+        return netlist.getNames(netIndex);
     }
 
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getExportedNames() {
-        return ArrayIterator.iterator(names, 0, exportedNamesCount);
+        return netlist.getExportedNames(netIndex); 
     }
 
     /**
@@ -154,31 +89,12 @@ public class Network {
      * Intitialized net has at least one name - user-defiend or temporary.
      */
     public String getName() {
-        return names[0];
-    }
-
-    /** Returns true if Network has names */
-    boolean hasNames() {
-        return names.length > 0;
+        return netlist.getName(netIndex);
     }
 
     /** Returns true if nm is one of Network's names */
     public boolean hasName(String nm) {
-        for (int i = 0; i < names.length; i++)
-            if (names[i].equals(nm)) return true;
-        return false;
-    }
-
-    /**
-     * Add names of this net to two Collections. One for exported, and other for unexported names.
-     * @param exportedNames Collection for exported names.
-     * @param unexportedNames Collection for unexported names.
-     */
-    public void fillNames(Collection<String> exportedNames, Collection<String> unexportedNames) {
-        for (int i = 0; i < names.length; i++) {
-            String name = names[i];
-            (i < exportedNamesCount ? exportedNames : unexportedNames).add(name);
-        }
+        return netlist.hasName(netIndex, nm);
     }
 
     /** Get iterator over all PortInsts on Network.  Note that the
@@ -196,7 +112,7 @@ public class Network {
             NodeInst ni = it.next();
             for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
                 PortInst pi = pit.next();
-                if (netlist.getNetwork(pi) == this)
+                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex)
                     ports.add(pi);
             }
         }
@@ -213,7 +129,7 @@ public class Network {
             NodeInst ni = it.next();
             for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
                 PortInst pi = pit.next();
-                if (netlist.getNetwork(pi) == this)
+                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex)
                 {
                     nodes.add(ni);
                     break; // stop the loop here
@@ -230,7 +146,7 @@ public class Network {
             Export e = it.next();
             int busWidth = netlist.getBusWidth(e);
             for (int i = 0; i < busWidth; i++) {
-                if (netlist.getNetwork(e, i) == this) {
+                if (netlist.getNetIndex(e, i) == netIndex) {
                     exports.add(e);
                     break;
                 }
@@ -246,7 +162,7 @@ public class Network {
             ArcInst ai = it.next();
             int busWidth = netlist.getBusWidth(ai);
             for (int i = 0; i < busWidth; i++) {
-                if (netlist.getNetwork(ai, i) == this) {
+                if (netlist.getNetIndex(ai, i) == netIndex) {
                     arcs.add(ai);
                     break;
                 }
@@ -259,13 +175,13 @@ public class Network {
      * Method to tell whether this network has any exports on it.
      * @return true if there are exports on this Network.
      */
-    public boolean isExported() { return exportedNamesCount > 0; }
+    public boolean isExported() { return netlist.isExported(netIndex); }
 
     /**
      * Method to tell whether this network has user-defined name.
      * @return true if this Network has user-defined name.
      */
-    public boolean isUsernamed() { return isUsernamed; }
+    public boolean isUsernamed() { return netlist.isUsernamed(netIndex); }
 
     /**
      * Method to describe this Network as a string.
@@ -298,6 +214,7 @@ public class Network {
      * Returns a printable version of this Network.
      * @return a printable version of this Network.
      */
+    @Override
     public String toString() {
         return "network "+describe(true);
     }

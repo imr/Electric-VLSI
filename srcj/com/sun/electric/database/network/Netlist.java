@@ -27,16 +27,18 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -48,6 +50,7 @@ import java.util.Iterator;
  */
 public class Netlist
 {
+    private static final String[] NULL_STRING_ARRAY = {};
 
 	// -------------------------- private data ---------------------------------
 
@@ -69,6 +72,19 @@ public class Netlist
 
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
+    /**
+     * Arrays of names for each net.
+     * First names are exported names in STRING_NUMBER_ORDER,
+     * Then internal user-defined names in STRING_NUMBER_ORDER.
+     * If this net has no exported or user-defined names, then this
+     * list contains one of temporary names.
+     * Hence the first name in the list are most appropriate.
+     **/
+    private String[][] names;
+    /** Nets which have has user-defiend names */
+    private BitSet isUsernamed = new BitSet();
+    /** Number of export names for each net */
+    private int[] exportedNamesCount;
     private int numExternalNets;
 
 	// ---------------------- package methods -----------------
@@ -103,13 +119,17 @@ public class Netlist
 		}
 		if (networks == null || networks.length != k) {
 			networks = new Network[k];
+            exportedNamesCount = new int[k];
+            names = new String[k][];
 		}
 		Arrays.fill(networks, null);
+        Arrays.fill(names, NULL_STRING_ARRAY);
+        Arrays.fill(exportedNamesCount, 0);
+        isUsernamed.clear();
 		
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) {
-				networks[k] = new Network(this, k);
 				nm_net[i] = k;
 				k++;
                 if (i < numExternalsInMap)
@@ -178,8 +198,100 @@ public class Netlist
 //		}
 //		return true;
 //	}
+    
+    /** A net can have multiple names. Return alphabetized list of names. */
+    Iterator<String> getNames(int netIndex) {
+        return ArrayIterator.iterator(names[netIndex]);
+    }
 
-	Network getNetworkByMap(int mapOffset) { return networks[nm_net[mapOffset]]; }
+    /** A net can have multiple names. Return alphabetized list of names. */
+    Iterator<String> getExportedNames(int netIndex) {
+        return ArrayIterator.iterator(names[netIndex], 0, exportedNamesCount[netIndex]);
+    }
+
+    /**
+     * Returns most appropriate name of the net.
+     * Intitialized net has at least one name - user-defiend or temporary.
+     */
+    String getName(int netIndex) {
+        return names[netIndex][0];
+    }
+
+    /** Returns true if nm is one of Network's names */
+    public boolean hasName(int netIndex, String nm) {
+        String[] theseNames = names[netIndex];
+        for (int i = 0; i < theseNames.length; i++)
+            if (theseNames[i].equals(nm)) return true;
+        return false;
+    }
+
+    /**
+     * Add names of this net to two Collections. One for exported, and other for unexported names.
+     * @param exportedNames Collection for exported names.
+     * @param unexportedNames Collection for unexported names.
+     */
+    void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> unexportedNames) {
+        String[] names = this.names[netIndex];
+        int exportedNamesCount = this.exportedNamesCount[netIndex];
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            (i < exportedNamesCount ? exportedNames : unexportedNames).add(name);
+        }
+    }
+
+    /**
+     * Method to tell whether this network has any exports on it.
+     * @return true if there are exports on this Network.
+     */
+    public boolean isExported(int netIndex) { return exportedNamesCount[netIndex] > 0; }
+
+    /**
+     * Method to tell whether this network has user-defined name.
+     * @return true if this Network has user-defined name.
+     */
+    public boolean isUsernamed(int netIndex) { return isUsernamed.get(netIndex); }
+
+    boolean hasNames(int netIndex) { return names[netIndex].length > 0; }
+    
+    /**
+     * Add user name to list of names of this Network.
+     * @param netIndex index of Network
+     * @param nameKey name key to add.
+     * @param exported true if name is exported.
+     */
+    void addUserName(int netIndex, Name nameKey, boolean exported) {
+        assert !nameKey.isTempname();
+        String name = nameKey.toString();
+        String[] theseNames = names[netIndex];
+        if (exported)
+            assert exportedNamesCount[netIndex] == theseNames.length;
+        int i = 0;
+        for (; i < theseNames.length; i++) {
+            String n = names[netIndex][i];
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
+            if (cmp == 0) return;
+            if (cmp < 0 && (exported || i >= exportedNamesCount[netIndex])) break;
+        }
+        if (theseNames.length == 0) {
+            names[netIndex] = new String[] { name };
+        } else {
+            String[] newNames = new String[theseNames.length + 1];
+            System.arraycopy(theseNames, 0, newNames, 0, i);
+            newNames[i] = name;
+            System.arraycopy(theseNames, i, newNames, i + 1, theseNames.length - i);
+            names[netIndex] = newNames;
+        }
+        if (exported)
+            exportedNamesCount[netIndex]++;
+        isUsernamed.set(netIndex);
+    }
+    
+    void addTempName(int netIndex, String name) {
+        assert names[netIndex].length == 0;
+        names[netIndex] = new String[] { name };
+   }
+
+	int getNetIndexByMap(int mapOffset) { return nm_net[mapOffset]; }
 
 	private final void checkForModification() {
 		if (expectedModCount != netCell.modCount)
@@ -267,14 +379,40 @@ public class Netlist
 	 */
 	public Network getNetwork(int netIndex) {
 		checkForModification();
-		return networks[netIndex];
+		return getNetworkRaw(netIndex);
 	}
-
+    
 	/**
+	 * Get Network with specified index.
+     * If Network was not allocated yet, allocate it.
+	 * @param netIndex index of Network
+	 * @return Network with specified index.
+	 */
+    private Network getNetworkRaw(int netIndex) {
+		if (netIndex < 0) return null;
+        Network network = networks[netIndex];
+        if (network != null) {
+            return network;
+        }
+        network = new Network(this, netIndex);
+        
+        // Check if concurrent thread allocated this network also
+        // This code is not properly synchronized !!!!!!
+        if (networks[netIndex] != null)
+            return networks[netIndex];
+        networks[netIndex] = network;
+        return network;
+    }
+
+   	/**
 	 * Get an iterator over all of the Networks of this Netlist.
 	 */
 	public Iterator<Network> getNetworks() {
 		checkForModification();
+        for (int netIndex = 0; netIndex < networks.length; netIndex++) {
+            if (networks[netIndex] == null)
+                getNetworkRaw(netIndex);
+        }
 		return Arrays.asList(networks).iterator();
 	}
 
@@ -368,9 +506,7 @@ public class Netlist
 	 * @return net index of a gloabal signal.
 	 */
 	public Network getNetwork(Global global) {
-		int netIndex = getNetIndex(global);
-		if (netIndex < 0) return null;
-		return networks[netIndex];
+		return getNetworkRaw(getNetIndex(global));
 	}
 
 	/**
@@ -380,9 +516,7 @@ public class Netlist
 	 * @return net index of a gloabal signal of nodable.
 	 */
 	public Network getNetwork(Nodable no, Global global) {
-		int netIndex = getNetIndex(no, global);
-		if (netIndex < 0) return null;
-		return networks[netIndex];
+		return getNetworkRaw(getNetIndex(no, global));
 	}
 
 	/**
@@ -396,9 +530,7 @@ public class Netlist
 		if (no == null || portProto == null) return null;
 		if (no instanceof NodeInst && !((NodeInst)no).isLinked()) return null;
 		if (portProto instanceof Export && !((Export)portProto).isLinked()) return null;
-		int netIndex = getNetIndex(no, portProto, busIndex);
-		if (netIndex < 0) return null;
-		return networks[netIndex];
+		return getNetworkRaw(getNetIndex(no, portProto, busIndex));
 	}
 
 	/**
@@ -447,9 +579,7 @@ public class Netlist
 	 */
 	public Network getNetwork(Export export, int busIndex) {
 		if (!export.isLinked()) return null;
-		int netIndex = getNetIndex(export, busIndex);
-		if (netIndex < 0) return null;
-		return networks[netIndex];
+		return getNetworkRaw(getNetIndex(export, busIndex));
 	}
 
 	/**
@@ -460,9 +590,7 @@ public class Netlist
 	 */
 	public Network getNetwork(ArcInst ai, int busIndex) {
 		if (!ai.isLinked()) return null;
-		int netIndex = getNetIndex(ai, busIndex);
-		if (netIndex < 0) return null;
-		return networks[netIndex];
+		return getNetworkRaw(getNetIndex(ai, busIndex));
 	}
 
 	/**
@@ -599,6 +727,7 @@ public class Netlist
 	 * Returns a printable version of this Netlist.
 	 * @return a printable version of this Netlist.
 	 */
+    @Override
 	public String toString()
 	{
 		return "Netlist of " + netCell.cell;

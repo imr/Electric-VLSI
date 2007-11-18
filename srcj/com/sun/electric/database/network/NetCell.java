@@ -42,7 +42,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -66,6 +65,7 @@ class NetCell
 
 	/** If bit set, netlist is valid for cell tree.*/				static final int VALID = 1;
 	/** If bit set, netlist is valid with current  equivPorts of subcells.*/static final int LOCALVALID = 2;
+    /** Separator for net names of unconnected port instances */    static final char PORT_SEPARATOR = '.'; 
 
     /** Network manager to which this NetCell belongs. */           final NetworkManager networkManager; 
 	/** Cell from database. */										final Cell cell;
@@ -525,11 +525,12 @@ class NetCell
 	private void buildNetworkList()
 	{
 		netlist.initNetworks(numExportedDrawns);
-		Network[] netNameToNet = new Network[netNames.size()];
+		int[] netNameToNetIndex = new int[netNames.size()];
+        Arrays.fill(netNameToNetIndex, -1);
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
 			Export e = cell.getPort(i);
-			setNetName(netNameToNet, drawns[i], e.getNameKey(), true);
+			setNetName(netNameToNetIndex, drawns[i], e.getNameKey(), true);
 		}
 		int numArcs = cell.getNumArcs();
 		for (int i = 0; i < numArcs; i++) {
@@ -537,28 +538,28 @@ class NetCell
 			if (!ai.isUsernamed()) continue;
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-			setNetName(netNameToNet, drawn, ai.getNameKey(), false);
+			setNetName(netNameToNetIndex, drawn, ai.getNameKey(), false);
 		}
 		for (int i = 0; i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-			Network network = netlist.getNetworkByMap(drawn);
-			if (network.hasNames()) continue;
-			network.addTempName(ai.getName());
+            int netIndex = netlist.getNetIndexByMap(drawn);
+			if (netlist.hasNames(netIndex)) continue;
+			netlist.addTempName(netIndex, ai.getName());
 		}
 		for (int i = 0; i < cell.getNumNodes(); i++) {
 			NodeInst ni = cell.getNode(i);
 			for (int j = 0; j < ni.getProto().getNumPorts(); j++) {
 				int drawn = drawns[ni_pi[i] + j];
 				if (drawn < 0) continue;
-				Network network  = netlist.getNetworkByMap(drawn);
-				if (network.hasNames()) continue;
-				network.addTempName(ni.getName() + "@" + ni.getProto().getPort(j).getName());
+                int netIndex = netlist.getNetIndexByMap(drawn);
+				if (netlist.hasNames(netIndex)) continue;
+				netlist.addTempName(netIndex, ni.getName() + PORT_SEPARATOR + ni.getProto().getPort(j).getName());
 			}
 		}
         for (int i = 0, numNetworks = netlist.getNumNetworks(); i < numNetworks; i++)
-            assert netlist.getNetwork(i).hasNames();
+            assert netlist.hasNames(i);
  		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);
@@ -583,11 +584,12 @@ class NetCell
 		*/
 	}
 
-	private void setNetName(Network[] netNamesToNet, int drawn, Name name, boolean exported) {
-		Network network = netlist.getNetworkByMap(drawn);
+	private void setNetName(int[] netNamesToNetIndex, int drawn, Name name, boolean exported) {
+		int netIndex = netlist.getNetIndexByMap(drawn);
+        assert netIndex >= 0;
 		NetName nn = netNames.get(name.canonicString());
-		if (netNamesToNet[nn.index] != null) {
-			if (netNamesToNet[nn.index] == network) return;
+		if (netNamesToNetIndex[nn.index] >= 0) {
+			if (netNamesToNetIndex[nn.index] == netIndex) return;
 			String msg = "Network: Layout " + cell + " has nets with same name " + name;
             System.out.println(msg);
             // because this should be an infrequent event that the user will fix, let's
@@ -596,7 +598,7 @@ class NetCell
                 Export e = cell.getPort(i);
                 if (e.getName().equals(name.toString()))
                     networkManager.pushHighlight(cell.getPort(i));
-            }
+            } 
             for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
@@ -606,8 +608,8 @@ class NetCell
             networkManager.logError(msg, NetworkTool.errorSortNetworks);
         }
 		else
-			netNamesToNet[nn.index] = network;
-		network.addUserName(name, exported);
+			netNamesToNetIndex[nn.index] = netIndex;
+		netlist.addUserName(netIndex, name, exported);
 	}
 
 	/**

@@ -27,25 +27,20 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.NetCell.NetName;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -977,20 +972,20 @@ class NetSchem extends NetCell {
 		netlistF.initNetworks(equivPortsF.length);
 		netlistT.initNetworks(equivPortsT.length);
 		for (int i = 0; i < globals.size(); i++) {
-			netlistF.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
-			netlistT.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
+			netlistF.addUserName(netlistF.getNetIndexByMap(i), globals.get(i).getNameKey(), true);
+			netlistT.addUserName(netlistT.getNetIndexByMap(i), globals.get(i).getNameKey(), true);
 		}
 		for (NetName nn: netNames.values())
 		{
 			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
-			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
-			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
+			netlistF.addUserName(netlistF.getNetIndexByMap(netNamesOffset + nn.index), nn.name, true);
+			netlistT.addUserName(netlistT.getNetIndexByMap(netNamesOffset + nn.index), nn.name, true);
 		}
 		for (NetName nn: netNames.values())
 		{
 			if (nn.index < exportedNetNameCount) continue;
-			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);
-			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);
+			netlistF.addUserName(netlistF.getNetIndexByMap(netNamesOffset + nn.index), nn.name, false);
+			netlistT.addUserName(netlistT.getNetIndexByMap(netNamesOffset + nn.index), nn.name, false);
 		}
 		
 		// add temporary names to unnamed nets
@@ -999,12 +994,12 @@ class NetSchem extends NetCell {
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
 			for (int j = 0; j < drawnWidths[drawn]; j++) {
-				Network networkF = netlistF.getNetwork(ai, j);
-				if (networkF != null && networkF.hasNames()) networkF = null;
-				Network networkT = netlistT.getNetwork(ai, j);
-				if (networkT != null && networkT.hasNames()) networkT = null;
+				int netIndexF = netlistF.getNetIndex(ai, j);
+				if (netIndexF >= 0 && netlistF.hasNames(netIndexF)) netIndexF = -1;
+				int netIndexT = netlistT.getNetIndex(ai, j);
+				if (netIndexT >= 0 && netlistT.hasNames(netIndexT)) netIndexT = -1;
 
-				if (networkF == null && networkT == null) continue;
+				if (netIndexF < 0 && netIndexT < 0) continue;
 				if (drawnNames[drawn] == null) continue;
 				String netName;
 				if (drawnWidths[drawn] == 1)
@@ -1017,10 +1012,10 @@ class NetSchem extends NetCell {
                 } else
 					netName = drawnNames[drawn].subname(j).toString();
 
-				if (networkF != null)
-					networkF.addTempName(netName);
-				if (networkT != null)
-					networkT.addTempName(netName);
+				if (netIndexF >= 0)
+					netlistF.addTempName(netIndexF, netName);
+				if (netIndexT >= 0)
+					netlistT.addTempName(netIndexT, netName);
 			}
 		}
 
@@ -1031,12 +1026,12 @@ class NetSchem extends NetCell {
 			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
 				PortProto pp = np.getPort(i);
 				for (int k = 0, busWidth = pp.getNameKey().busWidth(); k < busWidth; k++) {
-					Network networkF = netlistF.getNetwork(no, pp, k);
-					if (networkF != null && !networkF.hasNames())
-						networkF.addTempName(no.getName() + "." + pp.getNameKey().subname(k));
-					Network networkT = netlistT.getNetwork(no, pp, k);
-					if (networkT != null && !networkT.hasNames())
-						networkT.addTempName(no.getName() + "." + pp.getNameKey().subname(k));
+					int netIndexF = netlistF.getNetIndex(no, pp, k);
+					if (netIndexF >= 0 && !netlistF.hasNames(netIndexF))
+						netlistF.addTempName(netIndexF, no.getName() + "." + pp.getNameKey().subname(k));
+					int netIndexT = netlistT.getNetIndex(no, pp, k);
+					if (netIndexT >= 0 && !netlistT.hasNames(netIndexT))
+						netlistT.addTempName(netIndexT, no.getName() + "." + pp.getNameKey().subname(k));
 				}
 			}
 		}
@@ -1053,26 +1048,26 @@ class NetSchem extends NetCell {
 				int busWidth = pp.getNameKey().busWidth();
                 int drawnWidth = drawnWidths[drawn];
                 for (int l = 0; l < drawnWidth; l++) {
-                    Network networkF = netlistF.getNetworkByMap(drawnOffsets[drawn] + l);
-                    if (networkF != null && !networkF.hasNames()) {
+                    int netIndexF = netlistF.getNetIndexByMap(drawnOffsets[drawn] + l);
+                    if (netIndexF >= 0 && !netlistF.hasNames(netIndexF)) {
                         int arrayIndex = (l / busWidth) % arraySize;
                         int busIndex = l % busWidth;
-                        networkF.addTempName(ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
+                        netlistF.addTempName(netIndexF, ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
                     }
-                    Network networkT = netlistT.getNetworkByMap(drawnOffsets[drawn] + l);
-                    if (networkT != null && !networkT.hasNames()) {
+                    int netIndexT = netlistT.getNetIndexByMap(drawnOffsets[drawn] + l);
+                    if (netIndexT >= 0 && !netlistT.hasNames(netIndexT)) {
                         int arrayIndex = (l / busWidth) % arraySize;
                         int busIndex = l % busWidth;
-                        networkT.addTempName(ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
+                        netlistT.addTempName(netIndexT, ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
                     }
                 }
 			}
 		}
 
         for (int i = 0, numNetworks = netlistF.getNumNetworks(); i < numNetworks; i++)
-            assert netlistF.getNetwork(i).hasNames();
+            assert netlistF.hasNames(i);
         for (int i = 0, numNetworks = netlistT.getNumNetworks(); i < numNetworks; i++)
-            assert netlistT.getNetwork(i).hasNames();
+            assert netlistT.hasNames(i);
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
