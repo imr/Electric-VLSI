@@ -75,9 +75,11 @@ import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -583,9 +585,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// see if nodeinst is mirrored
 		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getOrient(), null, 0);
-//        if (getXSizeWithMirror() < 0) newXS *= -1;
-//        if (getYSizeWithMirror() < 0) newYS *= -1;
-//		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate
@@ -673,72 +672,54 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 
 		// now replace all of the arcs
-		List<Connection> arcList = new ArrayList<Connection>();
+		Set<ArcInst> arcList = new HashSet<ArcInst>();
 		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
-			arcList.add(it.next());
-		for(Connection con : arcList)
+			arcList.add(it.next().getArc());
+		for(ArcInst ai : arcList)
 		{
-			int index = 0;
-			for( ; index<oldAssoc.length; index++)
-				if (oldAssoc[index].portInst == con.getPortInst()) break;
-			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
-			{
-				if (allowMissingPorts) continue;
-				System.out.println("No port on new node has same name and location as old node port: " + con.getPortInst().getPortProto().getName());
-				newNi.kill();
-				return null;
-			}
-
-			// make sure the arc can connect to this type of port
-			PortInst opi = oldAssoc[index].assn;
-			ArcInst ai = con.getArc();
-            if (opi == null) {
-				if (!allowMissingPorts)
-				{
-					System.out.println("Cannot re-connect " + ai);
-				} else
-				{
-					ai.kill();
-				}
-				continue;
-            }
 			PortInst [] newPortInst = new PortInst[2];
 			Point2D [] newPoint = new Point2D[2];
-            int thisEnd = con.getEndIndex();
-    		newPortInst[thisEnd] = opi;
-    		Poly poly = opi.getPoly();
-            newPoint[thisEnd] = poly.isInside(con.getLocation()) ? con.getLocation() : new EPoint(poly.getCenterX(), poly.getCenterY());
-            int otherEnd = 1 - thisEnd;
-			newPortInst[otherEnd] = ai.getPortInst(otherEnd);
-            newPoint[otherEnd] = ai.getLocation(otherEnd);
-//			for(int i=0; i<2; i++)
-//			{
-//				Connection oneCon = ai.getConnection(i);
-//				if (oneCon == con)
-//				{
-//					newPortInst[i] = opi;
-//					if (newPortInst[i] == null) break;
-//					newPoint[i] = new Point2D.Double(con.getLocation().getX(), con.getLocation().getY());
-//					Poly poly = opi.getPoly();
-//					if (!poly.isInside(newPoint[i]))
-//						newPoint[i].setLocation(poly.getCenterX(), poly.getCenterY());
-//				} else
-//				{
-//					newPortInst[i] = oneCon.getPortInst();
-//					newPoint[i] = oneCon.getLocation();
-//				}
-//			}
-//			if (newPortInst[0] == null || newPortInst[1] == null)
-//			{
-//				if (!allowMissingPorts)
-//				{
-//					System.out.println("Cannot re-connect " + ai.describe() + " arc");
-//				} else
-//				{
-//					ai.kill();
-//				}
-//				continue;
-//			}
+			int otherEnd = 0;
+			for(int e=0; e<2; e++)
+			{
+				PortInst pi = ai.getPortInst(e);
+				if (pi.getNodeInst() != this)
+				{
+					// end of arc connected elsewhere: keep the information
+					newPortInst[e] = pi;
+		            newPoint[e] = ai.getLocation(e);
+		            otherEnd = e;
+				} else
+				{
+					// end of arc connected to replaced node: translate to new node
+					int index = 0;
+					for( ; index<oldAssoc.length; index++)
+						if (oldAssoc[index].portInst == pi) break;
+					if (index >= oldAssoc.length || oldAssoc[index].assn == null)
+					{
+						if (allowMissingPorts) continue;
+						System.out.println("No port on new node has same name and location as old node port: " +
+							pi.getPortProto().getName());
+						newNi.kill();
+						return null;
+					}
+
+					// make sure the arc can connect to this type of port
+					PortInst opi = oldAssoc[index].assn;
+		            if (opi == null)
+		            {
+						if (!allowMissingPorts) System.out.println("Cannot re-connect " + ai); else
+						{
+							ai.kill();
+						}
+						continue;
+		            }
+		    		newPortInst[e] = opi;
+		    		Poly poly = opi.getPoly();
+		    		EPoint newLoc = ai.getLocation(e);
+		            newPoint[e] = poly.isInside(newLoc) ? newLoc : new EPoint(poly.getCenterX(), poly.getCenterY());
+				}
+			}
 
 			// see if a bend must be made in the wire
 			boolean zigzag = false;
@@ -756,11 +737,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (zigzag && !ai.isRigid() && (ai.getAngle() % 900) == 0)
 			{
 				// find the node at the other end
-//				int otherEnd = 0;
-//				if (ai.getConnection(0) == con) otherEnd = 1;
 				NodeInst adjustThisNode = ai.getPortInst(otherEnd).getNodeInst();
 				if (!adjustThisNode.hasExports())
-//				if (adjustThisNode.getNumExports() == 0)
 				{
 					// other end not exported, see if all arcs can be adjusted
 					boolean adjustable = true;
@@ -792,7 +770,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 						ai.kill();
 						adjustThisNode.move(dX, dY);
 						ArcInst newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
-//						ArcInst newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
 							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
 						{
@@ -800,11 +777,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 							return null;
 						}
                         newAi.copyPropertiesFrom(ai);
-//						newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-//						newAi.setHeadNegated(ai.isHeadNegated());
-//						newAi.setTailNegated(ai.isTailNegated());
-//						newAi.copyVarsFrom(ai);
-//						newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 						continue;
 					}
 				}
@@ -822,22 +794,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
 				newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
-//				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
                 newAi.copyPropertiesFrom(ai);
-//				newAi.copyStateBits(ai);
-//				newAi.setHeadNegated(ai.isHeadNegated());
-//                newAi.copyVarsFrom(ai);
-//                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
 				ArcInst newAi2 = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
-//				ArcInst newAi2 = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
 				        newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi2 == null) return null;
                 newAi2.copyConstraintsFrom(ai);
-//				newAi2.copyStateBits(ai);
-//				newAi2.setTailNegated(ai.isTailNegated());
 				if (newPortInst[ArcInst.TAILEND].getNodeInst() == this)
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
@@ -846,7 +810,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			{
 				// replace the arc with another arc
 				newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
-//				newAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
                         newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi == null)
 				{
@@ -854,8 +817,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 					return null;
 				}
 				newAi.copyPropertiesFrom(ai);
-//				newAi.setHeadNegated(ai.isHeadNegated());
-//				newAi.setTailNegated(ai.isTailNegated());
 			}
 			ai.kill();
 			newAi.setName(ai.getName());
