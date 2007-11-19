@@ -4969,7 +4969,7 @@ public class Quick
             {
                 if (!merged)
                 {
-                    System.out.println("Merging Cell " + cell.getName());
+//                    System.out.println("Merging Cell " + cell.getName());
                     merged = true;
                     for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
                     {
