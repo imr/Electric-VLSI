@@ -2237,15 +2237,37 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 					}
 
 					// handle confusion if multiple ports have the same polygon
-//					if (assn[i1] != null)
-//					{
-//						PortProto mpt = assn[i1];
-//
-//						// see if one of the associations has the same connectivity
-//						for(j=0; mpt->connects[j] != NOARCPROTO && pp1->connects[j] != NOARCPROTO; j++)
-//							if (mpt->connects[j] != pp1->connects[j]) break;
-//						if (mpt->connects[j] == NOARCPROTO && pp1->connects[j] == NOARCPROTO) continue;
-//					}
+					if (portInfo1[i1].assn != null)
+					{
+						PortProto mpt = portInfo1[i1].assn.getPortProto();
+
+						// see if name match can fix confusion
+						if (ignorePortNames)
+						{
+							if (pi1.getPortProto().getName().equals(mpt.getName())) continue;
+							if (!pi1.getPortProto().getName().equals(pi2.getPortProto().getName())) continue;
+						}
+
+						// see if one of the associations has the same connectivity
+						ArcProto[] i1Conn = pi1.getPortProto().getBasePort().getConnections();
+						ArcProto[] i2ConnNew = pi2.getPortProto().getBasePort().getConnections();
+						ArcProto[] i2ConnOld = mpt.getBasePort().getConnections();
+						boolean matchNew = i1Conn.length == i2ConnNew.length;
+						boolean matchOld = i1Conn.length == i2ConnOld.length;
+						for(int j=0; j<i1Conn.length; j++)
+						{
+							if (j >= i2ConnNew.length) matchNew = false; else
+							{
+								if (i1Conn[j] != i2ConnNew[j]) matchNew = false;
+							}
+							if (j >= i2ConnOld.length) matchOld = false; else
+							{
+								if (i1Conn[j] != i2ConnOld[j]) matchOld = false;
+							}
+						}
+						if (!matchNew) continue;
+						if (matchOld) continue;
+					}
 
 					// store the correct association of ports
 					portInfo1[i1].assn = pi2;

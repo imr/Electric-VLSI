@@ -5,6 +5,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/19/07, SMR) "Change" should use name disambiguation even if asked to
+     "Ignore Port Names" (Bug #1436).
+FIX: In NodeInst.portAssociate() use names to disambiguate.  Also restored "C"
+     code to disambiguate by port connectivity.
+
 IMP: (11/17/07, DN) Netlist class is abstract with two subclasses: NetlistImpl and NetlistShorted .
 
 IMP: (11/17/07, DN) Names are moved from Network to Netlist. Network objects are allocated lazily.
