@@ -101,7 +101,7 @@ class NetCell
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
-	/** Netlist. */													private Netlist netlist;
+	/** Netlist. */													private NetlistImpl netlist;
 
 	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
@@ -497,7 +497,7 @@ class NetCell
         }
 	}
 
-	private void internalConnections()
+	private void internalConnections(int[] netMap)
 	{
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = it.next();
@@ -509,7 +509,7 @@ class NetCell
 			for (int i = 0; i < eq.length; i++)
 			{
 				if (eq[i] == i) continue;
-				netlist.connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
+				Netlist.connectMap(netMap, drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
 			}
 		}
 	}
@@ -522,9 +522,9 @@ class NetCell
 
 	NetSchem getSchem() { return null; }
 
-	private void buildNetworkList()
+	private void buildNetworkList(int[] netMap)
 	{
-		netlist.initNetworks(numExportedDrawns);
+		netlist = new NetlistImpl(this, numExportedDrawns, netMap);
 		int[] netNameToNetIndex = new int[netNames.size()];
         Arrays.fill(netNameToNetIndex, -1);
 		int numPorts = cell.getNumPorts();
@@ -728,10 +728,10 @@ class NetCell
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlists.put(subCell, networkManager.getNetlist(subCell, false));
 //        }
-		netlist = new Netlist(this, false, numDrawns);
+        int[] netMap = Netlist.initMap(numDrawns);
 
-		internalConnections();
-		buildNetworkList();
+		internalConnections(netMap);
+		buildNetworkList(netMap);
 		return updateInterface();
 	}
 

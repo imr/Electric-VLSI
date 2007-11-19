@@ -28,15 +28,12 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -48,9 +45,8 @@ import java.util.Iterator;
  * global signals, then networks connected to exports, and then local
  * networks.
  */
-public class Netlist
+public abstract class Netlist
 {
-    private static final String[] NULL_STRING_ARRAY = {};
 
 	// -------------------------- private data ---------------------------------
 
@@ -72,19 +68,6 @@ public class Netlist
 
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
-    /**
-     * Arrays of names for each net.
-     * First names are exported names in STRING_NUMBER_ORDER,
-     * Then internal user-defined names in STRING_NUMBER_ORDER.
-     * If this net has no exported or user-defined names, then this
-     * list contains one of temporary names.
-     * Hence the first name in the list are most appropriate.
-     **/
-    private String[][] names;
-    /** Nets which have has user-defiend names */
-    private BitSet isUsernamed = new BitSet();
-    /** Number of export names for each net */
-    private int[] exportedNamesCount;
     private int numExternalNets;
 
 	// ---------------------- package methods -----------------
@@ -92,47 +75,27 @@ public class Netlist
 	/**
 	 * The constructor of Netlist object..
 	 */
-	Netlist(NetCell netCell, boolean shortResistors, int size) {
+	Netlist(NetCell netCell, boolean shortResistors, Netlist other, int numExternals, int[] map) {
 		this.netCell = netCell;
         this.shortResistors = shortResistors;
 //        this.subNetlists = subNetlists;
 		expectedModCount = netCell.modCount;
-		netMap = new int[size];
-		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
+		netMap = map;
 		nm_net = new int[netMap.length];
-	}
-
-	Netlist(NetCell netCell, boolean shortResistors, Netlist other) {
-		this.netCell = netCell;
-        this.shortResistors = shortResistors;
-//        this.subNetlists = subNetlists;
-		expectedModCount = netCell.modCount;
-		netMap = other.netMap.clone();
-		nm_net = new int[netMap.length];
-	}
-
-	void initNetworks(int numExternalsInMap) {
+        
 		closureMap(netMap);
 		int k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) k++;
 		}
-		if (networks == null || networks.length != k) {
-			networks = new Network[k];
-            exportedNamesCount = new int[k];
-            names = new String[k][];
-		}
-		Arrays.fill(networks, null);
-        Arrays.fill(names, NULL_STRING_ARRAY);
-        Arrays.fill(exportedNamesCount, 0);
-        isUsernamed.clear();
+		networks = new Network[k];
 		
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) {
 				nm_net[i] = k;
 				k++;
-                if (i < numExternalsInMap)
+                if (i < numExternals)
                     numExternalNets++;
 			} else {
 				nm_net[i] = nm_net[netMap[i]];
@@ -141,13 +104,16 @@ public class Netlist
 	}
 
 	/**
-	 * Merge classes of equivalence map to which elements a1 and a2 belong.
+	 * Init equivalence map.
+     * @param size numeber of elements in equivalence map
+     * @return integer array representing equivalence map consisting of disjoint elements.
 	 */
-	final void connectMap(int a1, int a2) {
-		//System.out.println("connectMap "+a1+" "+a2);
-		Netlist.connectMap(netMap, a1, a2);
-	}
-
+    public static int[] initMap(int size) {
+        int[] map = new int[size];
+		for (int i = 0; i < map.length; i++) map[i] = i;
+        return map;
+    }
+    
 	/**
 	 * Merge classes of equivalence map to which elements a1 and a2 belong.
 	 */
@@ -200,96 +166,38 @@ public class Netlist
 //	}
     
     /** A net can have multiple names. Return alphabetized list of names. */
-    Iterator<String> getNames(int netIndex) {
-        return ArrayIterator.iterator(names[netIndex]);
-    }
+    abstract Iterator<String> getNames(int netIndex);
 
     /** A net can have multiple names. Return alphabetized list of names. */
-    Iterator<String> getExportedNames(int netIndex) {
-        return ArrayIterator.iterator(names[netIndex], 0, exportedNamesCount[netIndex]);
-    }
+    abstract Iterator<String> getExportedNames(int netIndex);
 
     /**
      * Returns most appropriate name of the net.
      * Intitialized net has at least one name - user-defiend or temporary.
      */
-    String getName(int netIndex) {
-        return names[netIndex][0];
-    }
+    abstract String getName(int netIndex);
 
     /** Returns true if nm is one of Network's names */
-    public boolean hasName(int netIndex, String nm) {
-        String[] theseNames = names[netIndex];
-        for (int i = 0; i < theseNames.length; i++)
-            if (theseNames[i].equals(nm)) return true;
-        return false;
-    }
+    abstract boolean hasName(int netIndex, String nm);
 
     /**
      * Add names of this net to two Collections. One for exported, and other for unexported names.
      * @param exportedNames Collection for exported names.
-     * @param unexportedNames Collection for unexported names.
+     * @param privateNames Collection for unexported names.
      */
-    void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> unexportedNames) {
-        String[] names = this.names[netIndex];
-        int exportedNamesCount = this.exportedNamesCount[netIndex];
-        for (int i = 0; i < names.length; i++) {
-            String name = names[i];
-            (i < exportedNamesCount ? exportedNames : unexportedNames).add(name);
-        }
-    }
+    abstract void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> privateNames);
 
-    /**
+    /**numExternalNets
      * Method to tell whether this network has any exports on it.
      * @return true if there are exports on this Network.
      */
-    public boolean isExported(int netIndex) { return exportedNamesCount[netIndex] > 0; }
+    abstract boolean isExported(int netIndex);
 
     /**
      * Method to tell whether this network has user-defined name.
      * @return true if this Network has user-defined name.
      */
-    public boolean isUsernamed(int netIndex) { return isUsernamed.get(netIndex); }
-
-    boolean hasNames(int netIndex) { return names[netIndex].length > 0; }
-    
-    /**
-     * Add user name to list of names of this Network.
-     * @param netIndex index of Network
-     * @param nameKey name key to add.
-     * @param exported true if name is exported.
-     */
-    void addUserName(int netIndex, Name nameKey, boolean exported) {
-        assert !nameKey.isTempname();
-        String name = nameKey.toString();
-        String[] theseNames = names[netIndex];
-        if (exported)
-            assert exportedNamesCount[netIndex] == theseNames.length;
-        int i = 0;
-        for (; i < theseNames.length; i++) {
-            String n = names[netIndex][i];
-            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
-            if (cmp == 0) return;
-            if (cmp < 0 && (exported || i >= exportedNamesCount[netIndex])) break;
-        }
-        if (theseNames.length == 0) {
-            names[netIndex] = new String[] { name };
-        } else {
-            String[] newNames = new String[theseNames.length + 1];
-            System.arraycopy(theseNames, 0, newNames, 0, i);
-            newNames[i] = name;
-            System.arraycopy(theseNames, i, newNames, i + 1, theseNames.length - i);
-            names[netIndex] = newNames;
-        }
-        if (exported)
-            exportedNamesCount[netIndex]++;
-        isUsernamed.set(netIndex);
-    }
-    
-    void addTempName(int netIndex, String name) {
-        assert names[netIndex].length == 0;
-        names[netIndex] = new String[] { name };
-   }
+    abstract boolean isUsernamed(int netIndex);
 
 	int getNetIndexByMap(int mapOffset) { return nm_net[mapOffset]; }
 

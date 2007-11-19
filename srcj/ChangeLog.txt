@@ -5,7 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
-IMP: (11/17/07, DN) Names are moved from Network to Netlist. Network objects are allocated lazily.  
+IMP: (11/17/07, DN) Netlist class is abstract with two subclasses: NetlistImpl and NetlistShorted .
+
+IMP: (11/17/07, DN) Names are moved from Network to Netlist. Network objects are allocated lazily.
 
 BUG: (11/16/07, RK) HierarchyEnumerator uses too much heap (Bug #1424)
 FIX: Use hash table instead of array for netIdToNetDesc 
