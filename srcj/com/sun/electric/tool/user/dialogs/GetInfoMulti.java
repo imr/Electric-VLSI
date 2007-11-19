@@ -941,7 +941,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					if (mcp.characteristics != null)
 					{
 						PortCharacteristic ch = PortCharacteristic.findCharacteristic(mcp.characteristics);
-						e.setCharacteristic(ch);
+                        if (ch != null) // Set only when the characteristic is different frmo leave alone
+                            e.setCharacteristic(ch);
 					}
 					if (mcp.bodyOnly == 1) e.setBodyOnly(true); else
 						if (mcp.bodyOnly == 2) e.setBodyOnly(false);

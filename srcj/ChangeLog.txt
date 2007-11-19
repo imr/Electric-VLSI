@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/19/07, GVG) Changing attribute of exports (Bug #1434)
+FIX: Electric was setting export type when option was "leave alone".
+
 BUG: (11/19/07, SMR) "Change" ignores internal arcs (from node to itself, Bug #1437).
 FIX: Improved algorithm in NodeInst.replace().
 
