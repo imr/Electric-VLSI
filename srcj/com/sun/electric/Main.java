@@ -385,10 +385,10 @@ public final class Main
 		List<String> argsList;
         String beanShellScript;
 
-		protected InitDatabase(List<String> argsList)
+		protected InitDatabase(List<String> argsL)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.argsList = argsList;
+			this.argsList = argsL;
 			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
 				// do nothing, just consume option: handled in Launcher
 			}
