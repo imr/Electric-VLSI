@@ -276,7 +276,7 @@ public class Output
 		if (type == FileType.JELIB) properOutputName += ".jelib";
 		if (type == FileType.DELIB) properOutputName += ".delib";
 		if (type == FileType.READABLEDUMP) properOutputName += ".txt";
-		if (type == FileType.ELIB || type == FileType.JELIB)
+		if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB)
 		{
 			// backup previous files if requested
 			int backupScheme = IOTool.getBackupRedundancy();
@@ -330,7 +330,10 @@ public class Output
 					}
 				}
 			}
-			if (type == FileType.ELIB)
+        }
+        if (type == FileType.ELIB || type == FileType.JELIB)
+        {
+            if (type == FileType.ELIB)
 			{
 				ELIB elib = new ELIB();
 				elib.quiet = quiet;
