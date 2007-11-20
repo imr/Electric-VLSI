@@ -1815,9 +1815,11 @@ public class Sue extends Input
 
 	/**
 	 * Method to examine a SUE expression and add "@" in front of variable names.
+	 * Only does this if requested.
 	 */
 	private String parseExpression(String expression)
 	{
+		if (!IOTool.isSueConvertsExpressions()) return expression;
 		StringBuffer infstr = new StringBuffer();
 		for(int i=0; i<expression.length(); i++)
 		{
