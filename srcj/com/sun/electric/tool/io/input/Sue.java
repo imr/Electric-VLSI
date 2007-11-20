@@ -650,6 +650,12 @@ public class Sue extends Input
 						xpos = -2;
 						ypos = -4;
 						halveSize = true;
+					} else if (keyword.substring(1).equals("capacitance") && proto == Schematics.tech.capacitorNode)
+					{
+						sueVarName = Schematics.SCHEM_CAPACITANCE.getName();
+					} else if (keyword.substring(1).equals("resistance") && proto == Schematics.tech.resistorNode)
+					{
+						sueVarName = Schematics.SCHEM_RESISTANCE.getName();
 					} else
 					{
 						sueVarName = "ATTR_" + keyword.substring(1);
