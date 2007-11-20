@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/20/07, SMR) Grid axes are not always correct (Bug #1430).
+FIX: Must set the offset values immediately in the Drawing.render() method.
+
 BUG: (11/20/07, DN) LayerCoverageTool.LayerCoverageData doesn't find short resistor Networks.
 FIX: Detect ShortResistors mode from networks and pass it to HierarchyEnumerator. 
 

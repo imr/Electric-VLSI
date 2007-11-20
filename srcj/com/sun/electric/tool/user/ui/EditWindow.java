@@ -221,6 +221,13 @@ public class EditWindow extends JPanel
         void abortRendering() {}
         
         void opacityChanged() {}
+
+        void updateScaleAndOffset()
+        {
+        	wnd.offx = offx;
+        	wnd.offy = offy;
+        	wnd.scale = scale;
+        }
     }
 
     static class LayerColor {
@@ -1237,9 +1244,10 @@ public class EditWindow extends JPanel
         sz = getSize();
         szHalfWidth = sz.width / 2;
         szHalfHeight = sz.height / 2;
-        scale = drawing.scale;
-        offx = drawing.offx;
-        offy = drawing.offy;
+        drawing.updateScaleAndOffset();
+//        scale = drawing.scale;
+//        offx = drawing.offx;
+//        offy = drawing.offy;
         setScrollPosition();                        // redraw scroll bars
 
         // set the default text size (for highlighting, etc)

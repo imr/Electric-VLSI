@@ -679,6 +679,7 @@ class LayerDrawing
             this.scale = scale;
             this.offx = offx;
             this.offy = offy;
+            updateScaleAndOffset();
             offscreen_.drawImage(this, fullInstantiate, bounds);
             needComposite = true;
             layerRasters = new HashMap<Layer,TransparentRaster>(offscreen_.layerRasters);
