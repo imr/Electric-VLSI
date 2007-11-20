@@ -1005,7 +1005,7 @@ public class IOTool extends Tool
 	 */
 	public static void setDXFInputReadsAllLayers(boolean a) { cacheDXFInputReadsAllLayers.setBoolean(a); }
 
-	/****************************** SUE OUTPUT PREFERENCES ******************************/
+	/****************************** SUE INPUT PREFERENCES ******************************/
 
 	private static Pref cacheSueUses4PortTransistors = Pref.makeBooleanPref("SueUses4PortTransistors", IOTool.tool.prefs, false);
 	/**
@@ -1021,6 +1021,21 @@ public class IOTool extends Tool
 	 * @param on true if Sue input creates 4-port transistors.
 	 */
 	public static void setSueUses4PortTransistors(boolean on) { cacheSueUses4PortTransistors.setBoolean(on); }
+
+	private static Pref cacheSueConvertsExpressions = Pref.makeBooleanPref("SueConvertsExpressions", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Sue input converts Sue expressions to Electric form.
+	 * Electric expressions have "@" in front of variables.
+	 * The default is "false".
+	 * @return true if Sue input converts Sue expressions to Electric form.
+	 */
+	public static boolean isSueConvertsExpressions() { return cacheSueConvertsExpressions.getBoolean(); }
+	/**
+	 * Method to set whether Sue input converts Sue expressions to Electric form.
+	 * Electric expressions have "@" in front of variables.
+	 * @param on true if Sue input converts Sue expressions to Electric form.
+	 */
+	public static void setSueConvertsExpressions(boolean on) { cacheSueConvertsExpressions.setBoolean(on); }
 
 	/****************************** SKILL OUTPUT PREFERENCES ******************************/
 
