@@ -908,16 +908,15 @@ public final class HierarchyEnumerator {
         enumerateCell(root, context, visitor, false);
 	}
 	public static void enumerateCell(Cell root, VarContext context, Visitor visitor, boolean shorten) {
-        enumerateCell(root, context, visitor, shorten, shorten, shorten, false);
+        enumerateCell(root, context, visitor, shorten ? Netlist.ShortResistors.ALL : Netlist.ShortResistors.NO, false);
 	}
 	/** Experimental. Optionally caches results of variable evaluation. */
 	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
-									 boolean shortResistors, boolean shortPolyResistors, 
-									 boolean shortSpiceAmmeters, boolean caching) {
-		Netlist netlist = NetworkTool.getNetlist(root, shortResistors & shortPolyResistors);
+                                     Netlist.ShortResistors shortResistors, boolean caching) {
+		Netlist netlist = NetworkTool.getNetlist(root, shortResistors);
 		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, 
-				                         shortResistors, shortPolyResistors, 
-										 shortSpiceAmmeters, caching);
+				                         shortResistors != Netlist.ShortResistors.NO, shortResistors == Netlist.ShortResistors.ALL, 
+										 shortResistors != Netlist.ShortResistors.NO, caching);
 	}
     /**
      * Method to count number of unique cells in hierarchy.  Useful

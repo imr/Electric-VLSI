@@ -87,7 +87,9 @@ class NetCell
      * Equivalence of ports.
      * equivPorts.size == ports.size.
 	 * equivPorts[i] contains minimal index among ports of its group.
-     */																private int[] equivPorts;
+     */																int[] equivPortsN;
+                                                                    int[] equivPortsP;
+                                                                    int[] equivPortsA;
 	/** Node offsets. */											int[] ni_pi;
 	/** */															int arcsOffset;
 	/** */															private int[] headConn;
@@ -101,7 +103,10 @@ class NetCell
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
-	/** Netlist. */													private NetlistImpl netlist;
+	/** Netlist for ShortResistors.NO option. */                    NetlistImpl netlistN;
+	/** Netlist for true ShortResistors.PARASITIC option. */        NetlistShorted netlistP;
+	/** Netlist for true ShortResistors.ALL option. */              NetlistShorted netlistA;
+    
 
 	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
@@ -143,9 +148,14 @@ class NetCell
 		}
 	}
 
-	Netlist getNetlist(boolean shortResistors) {
+	Netlist getNetlist(Netlist.ShortResistors shortResistors) {
 		if ((flags & VALID) == 0) redoNetworks();
-		return netlist;
+        switch (shortResistors) {
+            case NO: return netlistN;
+            case PARASITIC: return netlistP;
+            case ALL: return netlistA;
+            default: throw new AssertionError();
+        }
 	}
 
 	/**
@@ -497,19 +507,34 @@ class NetCell
         }
 	}
 
-	private void internalConnections(int[] netMap)
+	private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA)
 	{
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = it.next();
-			if (!ni.isCellInstance()) continue;
+			int nodeOffset = ni_pi[ni.getNodeIndex()];
+			if (!ni.isCellInstance()) {
+                PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
+                if (fun == PrimitiveNode.Function.RESIST) {
+					Netlist.connectMap(netMapP, drawns[nodeOffset], drawns[nodeOffset + 1]);
+					Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
+                } else if (fun == PrimitiveNode.Function.PRESIST) {
+					Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
+                }
+				continue;
+            }
 			NetCell netCell = networkManager.getNetCell((Cell)ni.getProto());
 			if (netCell instanceof NetSchem) continue;
-			int[] eq = netCell.equivPorts;
-			int nodeOffset = ni_pi[ni.getNodeIndex()];
-			for (int i = 0; i < eq.length; i++)
+			int[] eqF = netCell.equivPortsN;
+            int[] eqP = netCell.equivPortsP;
+            int[] eqA = netCell.equivPortsA;
+			for (int i = 0; i < eqF.length; i++)
 			{
-				if (eq[i] == i) continue;
-				Netlist.connectMap(netMap, drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
+				if (eqF[i] != i)
+                    Netlist.connectMap(netMapF, drawns[nodeOffset + i], drawns[nodeOffset + eqF[i]]);
+				if (eqP[i] != i)
+                    Netlist.connectMap(netMapP, drawns[nodeOffset + i], drawns[nodeOffset + eqP[i]]);
+				if (eqA[i] != i)
+                    Netlist.connectMap(netMapA, drawns[nodeOffset + i], drawns[nodeOffset + eqA[i]]);
 			}
 		}
 	}
@@ -522,9 +547,9 @@ class NetCell
 
 	NetSchem getSchem() { return null; }
 
-	private void buildNetworkList(int[] netMap)
+	private void buildNetworkList(int[] netMapN)
 	{
-		netlist = new NetlistImpl(this, numExportedDrawns, netMap);
+		netlistN = new NetlistImpl(this, numExportedDrawns, netMapN);
 		int[] netNameToNetIndex = new int[netNames.size()];
         Arrays.fill(netNameToNetIndex, -1);
 		int numPorts = cell.getNumPorts();
@@ -544,22 +569,22 @@ class NetCell
 			ArcInst ai = cell.getArc(i);
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-            int netIndex = netlist.getNetIndexByMap(drawn);
-			if (netlist.hasNames(netIndex)) continue;
-			netlist.addTempName(netIndex, ai.getName());
+            int netIndexN = netlistN.getNetIndexByMap(drawn);
+			if (netlistN.hasNames(netIndexN)) continue;
+			netlistN.addTempName(netIndexN, ai.getName());
 		}
 		for (int i = 0; i < cell.getNumNodes(); i++) {
 			NodeInst ni = cell.getNode(i);
 			for (int j = 0; j < ni.getProto().getNumPorts(); j++) {
 				int drawn = drawns[ni_pi[i] + j];
 				if (drawn < 0) continue;
-                int netIndex = netlist.getNetIndexByMap(drawn);
-				if (netlist.hasNames(netIndex)) continue;
-				netlist.addTempName(netIndex, ni.getName() + "@" + /*PORT_SEPARATOR +*/ ni.getProto().getPort(j).getName());
+                int netIndexN = netlistN.getNetIndexByMap(drawn);
+				if (netlistN.hasNames(netIndexN)) continue;
+				netlistN.addTempName(netIndexN, ni.getName() + "@" + /*PORT_SEPARATOR +*/ ni.getProto().getPort(j).getName());
 			}
 		}
-        for (int i = 0, numNetworks = netlist.getNumNetworks(); i < numNetworks; i++)
-            assert netlist.hasNames(i);
+        for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++)
+            assert netlistN.hasNames(i);
  		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);
@@ -585,11 +610,11 @@ class NetCell
 	}
 
 	private void setNetName(int[] netNamesToNetIndex, int drawn, Name name, boolean exported) {
-		int netIndex = netlist.getNetIndexByMap(drawn);
-        assert netIndex >= 0;
+		int netIndexN = netlistN.getNetIndexByMap(drawn);
+        assert netIndexN >= 0;
 		NetName nn = netNames.get(name.canonicString());
 		if (netNamesToNetIndex[nn.index] >= 0) {
-			if (netNamesToNetIndex[nn.index] == netIndex) return;
+			if (netNamesToNetIndex[nn.index] == netIndexN) return;
 			String msg = "Network: Layout " + cell + " has nets with same name " + name;
             System.out.println(msg);
             // because this should be an infrequent event that the user will fix, let's
@@ -608,8 +633,8 @@ class NetCell
             networkManager.logError(msg, NetworkTool.errorSortNetworks);
         }
 		else
-			netNamesToNetIndex[nn.index] = netIndex;
-		netlist.addUserName(netIndex, name, exported);
+			netNamesToNetIndex[nn.index] = netIndexN;
+		netlistN.addUserName(netIndexN, name, exported);
 	}
 
 	/**
@@ -618,28 +643,47 @@ class NetCell
 	private boolean updateInterface() {
 		boolean changed = false;
 		int numPorts = cell.getNumPorts();
-		if (equivPorts == null || equivPorts.length != numPorts) {
+		if (equivPortsN == null || equivPortsN.length != numPorts) {
 			changed = true;
-			equivPorts = new int[numPorts];
+			equivPortsN = new int[numPorts];
+            equivPortsP = new int[numPorts];
+            equivPortsA = new int[numPorts];
 		}
 
-		int[] netToPort = new int[numPorts];
-		Arrays.fill(netToPort, -1);
+		int[] netToPortN = new int[numPorts];
+		int[] netToPortP = new int[numPorts];
+		int[] netToPortA = new int[numPorts];
+		Arrays.fill(netToPortN, -1);
+		Arrays.fill(netToPortP, -1);
+		Arrays.fill(netToPortA, -1);
 		for (int i = 0; i < numPorts; i++) {
-			int net = netlist.netMap[drawns[i]];
-			if (netToPort[net] < 0)
-				netToPort[net] = i;
-			if (equivPorts[i] != netToPort[net]) {
+			int netN = netlistN.netMap[drawns[i]];
+			if (netToPortN[netN] < 0)
+				netToPortN[netN] = i;
+			if (equivPortsN[i] != netToPortN[netN]) {
 				changed = true;
-				equivPorts[i] = netToPort[net];
+				equivPortsN[i] = netToPortN[netN];
+			}
+            
+			int netP = netlistP.netMap[drawns[i]];
+			if (netToPortP[netP] < 0)
+				netToPortP[netP] = i;
+			if (equivPortsP[i] != netToPortP[netP]) {
+				changed = true;
+				equivPortsP[i] = netToPortP[netP];
+			}
+            
+			int netA = netlistA.netMap[drawns[i]];
+			if (netToPortA[netA] < 0)
+				netToPortA[netA] = i;
+			if (equivPortsA[i] != netToPortA[netA]) {
+				changed = true;
+				equivPortsA[i] = netToPortA[netA];
 			}
 		}
 		return changed;
 	}
 
-
-	int getNumEquivPorts() { return equivPorts.length; }
-	int getEquivPorts(int portIndex) { return equivPorts[portIndex]; }
 
 //	/**
 //	 * Show map of equivalent ports newEquivPort.
@@ -728,10 +772,15 @@ class NetCell
 //            Cell subCell = (Cell)no.getProto();
 //            subNetlists.put(subCell, networkManager.getNetlist(subCell, false));
 //        }
-        int[] netMap = Netlist.initMap(numDrawns);
-
-		internalConnections(netMap);
-		buildNetworkList(netMap);
+        int[] netMapN = Netlist.initMap(numDrawns);
+        int[] netMapP = netMapN.clone();
+        int[] netMapA = netMapN.clone();
+		internalConnections(netMapN, netMapP, netMapA);
+		buildNetworkList(netMapN);
+		netlistP = new NetlistShorted(netlistN, Netlist.ShortResistors.PARASITIC, netMapP);
+        netlistP.checkNames();
+	 	netlistA = new NetlistShorted(netlistN, Netlist.ShortResistors.ALL, netMapA);
+        netlistA.checkNames();
 		return updateInterface();
 	}
 

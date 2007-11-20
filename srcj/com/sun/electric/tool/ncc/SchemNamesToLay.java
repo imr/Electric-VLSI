@@ -145,7 +145,7 @@ public class SchemNamesToLay {
     
     private Map<String, Network> namesToNetworks(Cell c) {
     	Map<String, Network> nmsToNets = new HashMap<String, Network>();
-    	Netlist nets = c.getNetlist(false);
+    	Netlist nets = c.getNetlist();
     	for (Network net : new For<Network>(nets.getNetworks())) {
     		for (String nm : new For<String>(net.getNames())) {
     			nmsToNets.put(nm, net);
@@ -215,7 +215,7 @@ public class SchemNamesToLay {
 
     	List<ArcAndName> arcAndNms = new ArrayList<ArcAndName>();
 
-    	Netlist nets = schCell.getNetlist(false);
+    	Netlist nets = schCell.getNetlist();
     	
     	for (Network schNet : new For<Network>(nets.getNetworks())) {
     		NetNameProxy layProx = equivs.findEquivalentNet(schCtxt, schNet);

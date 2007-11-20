@@ -305,7 +305,7 @@ public class Quick
 		checkInsts = new HashMap<NodeInst,CheckInst>();
 
 		// initialize cells in tree for hierarchical network numbering
-		Netlist netlist = cell.getNetlist(false);
+		Netlist netlist = cell.getNetlist();
 		CheckProto cp = checkEnumerateProtos(cell, netlist);
 
 		// see if any parameters are used below this cell

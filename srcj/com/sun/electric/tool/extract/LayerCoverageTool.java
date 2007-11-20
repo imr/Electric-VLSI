@@ -240,7 +240,7 @@ public class LayerCoverageTool extends Tool
      */
     public static Rectangle2D getGeometryOnNetwork(Cell exportCell, PortInst pi, Layer layer)
     {
-        Netlist netlist = exportCell.getNetlist(false);
+        Netlist netlist = exportCell.getNetlist();
         Network net = netlist.getNetwork(pi);
         HashSet<Network> nets = new HashSet<Network>();
         nets.add(net);

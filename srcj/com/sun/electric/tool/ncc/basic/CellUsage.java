@@ -104,7 +104,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			// rooted at c
 			Set<Cell> usedOnce = new HashSet<Cell>();
 			// For each child Cell of c: child 
-			for (Iterator<Nodable> noIt=c.getNetlist(false).getNodables(); noIt.hasNext();) {
+			for (Iterator<Nodable> noIt=c.getNetlist().getNodables(); noIt.hasNext();) {
 				NodeProto np = noIt.next().getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;
@@ -175,7 +175,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		for (Iterator<Cell> it=cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell c = it.next();
 			boolean hasLeGate = false;
-			for (Iterator<Nodable> noIt=c.getNetlist(false).getNodables(); noIt.hasNext();) {
+			for (Iterator<Nodable> noIt=c.getNetlist().getNodables(); noIt.hasNext();) {
 				Nodable no = noIt.next();
 				if (isLeGate(no)) {hasLeGate=true; break;}
 				NodeProto np = no.getProto();

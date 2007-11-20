@@ -101,7 +101,7 @@ public class NetworkManager {
             {
                 Cell cell = cit.next();
                 ncell++;
-                cell.getNetlist(false);
+                cell.getNetlist();
             }
         }
         long endTime = System.currentTimeMillis();

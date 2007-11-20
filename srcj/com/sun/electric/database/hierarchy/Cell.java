@@ -3728,13 +3728,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 	/****************************** NETWORKS ******************************/
 
-	/** Recompute the Netlist structure for this Cell.
-     * <p>Because shorting resistors is a fairly common request, it is 
-     * implemented in the method if @param shortResistors is set to true.
+	/** Recompute the Netlist structure for this Cell whithout shortening resistors.
 	 * @return the Netlist structure for this cell.
 	 * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
-	public Netlist getNetlist(boolean shortResistors) { return NetworkTool.getNetlist(this, shortResistors); }
+	public Netlist getNetlist() { return getNetlist(Netlist.ShortResistors.NO); }
+	public Netlist getNetlist(boolean shortResistors) { return getNetlist(shortResistors ? Netlist.ShortResistors.PARASITIC : Netlist.ShortResistors.NO); }
+	/** Recompute the Netlist structure for this Cell.
+     * @param shortResistors short resistors mode of Netlist.
+	 * @return the Netlist structure for this cell.
+	 * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
+     */
+	public Netlist getNetlist(Netlist.ShortResistors shortResistors) { return NetworkTool.getNetlist(this, shortResistors); }
 
 	/** Returns the Netlist structure for this Cell, using current network options.
 	 * Waits for completion of change Job when called from GUI thread

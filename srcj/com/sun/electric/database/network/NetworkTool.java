@@ -179,7 +179,7 @@ public class NetworkTool extends Tool
 		{
 			System.out.println("getUserNetlist() used in GUI thread");
 		}
-		boolean shortResistors = isIgnoreResistors_();
+		Netlist.ShortResistors shortResistors = isIgnoreResistors_();
 		synchronized(NetworkTool.mutex) {
 			while (!NetworkTool.networksValid) {
 				try {
@@ -203,7 +203,7 @@ public class NetworkTool extends Tool
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for Cell.
      */
-	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
+	public static Netlist getNetlist(Cell cell, Netlist.ShortResistors shortResistors) {
         EDatabase database = cell.getDatabase();
         NetworkManager mgr = database.getNetworkManager();
 		if (database.canComputeNetlist()) {
@@ -342,7 +342,7 @@ public class NetworkTool extends Tool
 	 * @return true if resistors are ignored in the circuit.
 	 */
 	public static boolean isIgnoreResistors() { return tool.cacheIgnoreResistors.getBoolean(); }
-	private static boolean isIgnoreResistors_() { return false; }
+	private static Netlist.ShortResistors isIgnoreResistors_() { return Netlist.ShortResistors.NO; }
 	/**
 	 * Returns project Setting to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.

@@ -1475,9 +1475,15 @@ public class Verilog extends Topology
                     }
                     // hmm...name map might be wrong at for this new enumeration
                     System.out.println("Info: Netlisting cell "+missingCell.libDescribe()+" as instanced in: "+source);
+                    Netlist.ShortResistors shortResistors;
+                    if (isShortExplicitResistors())
+                        shortResistors = Netlist.ShortResistors.ALL;
+                    else if (isShortResistors())
+                        shortResistors = Netlist.ShortResistors.PARASITIC;
+                    else
+                        shortResistors = Netlist.ShortResistors.NO;
                     HierarchyEnumerator.enumerateCell(missingCell, VarContext.globalContext,
-                            new Visitor(this), isShortResistors(), isShortExplicitResistors(),
-                            isShortResistors(), false);
+                            new Visitor(this), shortResistors, false);
                 }
             }
         }

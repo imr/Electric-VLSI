@@ -95,9 +95,15 @@ public abstract class Topology extends Output
 
 		// write out cells
 		start();
-        boolean shortPolyResistors = isShortExplicitResistors();
+        Netlist.ShortResistors shortResistors;
+        if (isShortExplicitResistors())
+            shortResistors = Netlist.ShortResistors.ALL;
+        else if (isShortResistors())
+            shortResistors = Netlist.ShortResistors.PARASITIC;
+        else
+            shortResistors = Netlist.ShortResistors.NO;
         HierarchyEnumerator.enumerateCell(cell, context, visitor,
-                isShortResistors(), shortPolyResistors, isShortResistors(), false);
+                shortResistors, false);
 		done();
 		return false;
 	}

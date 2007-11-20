@@ -47,12 +47,18 @@ import java.util.Iterator;
  */
 public abstract class Netlist
 {
-
+    /** Enumaration defines mode of short resistors in Netlist. */
+    public enum ShortResistors {
+        /** No resistors are shortened */                       NO,
+        /** Resistors are shortened except poly resistors */    PARASITIC,
+        /** All resistors are shortened */                      ALL
+    };
+    
 	// -------------------------- private data ---------------------------------
 
 	/** NetCell which owns this Netlist. */
 	NetCell netCell;
-    boolean shortResistors;
+    ShortResistors shortResistors;
 //    HashMap/*<Cell,Netlist>*/ subNetlists;
 
 	/**
@@ -68,6 +74,7 @@ public abstract class Netlist
 
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
+    int numExternalEntries;
     private int numExternalNets;
 
 	// ---------------------- package methods -----------------
@@ -75,7 +82,7 @@ public abstract class Netlist
 	/**
 	 * The constructor of Netlist object..
 	 */
-	Netlist(NetCell netCell, boolean shortResistors, Netlist other, int numExternals, int[] map) {
+	Netlist(NetCell netCell, ShortResistors shortResistors, int numExternals, int[] map) {
 		this.netCell = netCell;
         this.shortResistors = shortResistors;
 //        this.subNetlists = subNetlists;
@@ -90,6 +97,7 @@ public abstract class Netlist
 		}
 		networks = new Network[k];
 		
+        numExternalEntries = numExternals;
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) {
@@ -629,7 +637,7 @@ public abstract class Netlist
 		return netCell.getBusWidth(ai);
 	}
 
-    public boolean getShortResistors() { return shortResistors; }
+    public ShortResistors getShortResistors() { return shortResistors; }
     
 	/**
 	 * Returns a printable version of this Netlist.

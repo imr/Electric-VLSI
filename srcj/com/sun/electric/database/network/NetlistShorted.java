@@ -47,9 +47,9 @@ public class NetlistShorted extends Netlist {
     private BitSet isExported = new BitSet();
     private String[] firstNames;
 
-    NetlistShorted(NetCell netCell, boolean shortResistors, Netlist other, int numExternals, int[] netMap) {
-        super(netCell, shortResistors, other, numExternals, netMap);
-        baseNetlist = other;
+    NetlistShorted(Netlist baseNetlist, Netlist.ShortResistors shortResistors, int[] netMap) {
+        super(baseNetlist.netCell, shortResistors, baseNetlist.numExternalEntries, netMap);
+        this.baseNetlist = baseNetlist;
         
         assert nm_net.length == baseNetlist.nm_net.length;
         int[] baseNetToThisNet = new int[baseNetlist.getNumNetworks()];
@@ -74,38 +74,46 @@ public class NetlistShorted extends Netlist {
             int thisNetIndex = baseNetToThisNet[baseNetIndex];
             baseNetNext[baseNetIndex] = thisNetHead[thisNetIndex];
             thisNetHead[thisNetIndex] = baseNetIndex;
+            if (baseNetlist.isUsernamed(baseNetIndex))
+                isUsernamed.set(thisNetIndex);
         }
         for (int thisHead : thisNetHead) {
             assert thisHead >= 0;
         }
         
-        FirstStringCollection exportedNames = new FirstStringCollection();
-        FirstStringCollection privateNames = new FirstStringCollection();
         firstNames = new String[getNumNetworks()];
-        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++) {
-            exportedNames.clear();
-            privateNames.clear();
-            for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
-                baseNetlist.fillNames(baseNetIndex, exportedNames, privateNames);
+        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++)
+            makeName(thisNetIndex);
+    }
+    
+    /**
+     * Returns most appropriate name of the net.
+     * Intitialized net has at least one name - user-defiend or temporary.
+     */
+    @Override
+    String getName( int netIndex) {
+        String name = firstNames[netIndex];
+        if (name != null)
+            return name;
+        else
+            return makeName(netIndex);
+    }
+
+    private String makeName(int thisNetIndex) {
+        int baseIndexLimit = isExported(thisNetIndex) ? baseNetlist.getNumExternalNetworks() : baseNetlist.getNumNetworks();
+        String firstName = null;
+        if (isUsernamed(thisNetIndex)) {
+            for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0 && baseNetIndex < baseIndexLimit; baseNetIndex = baseNetNext[baseNetIndex]) {
+                if (!baseNetlist.isUsernamed(baseNetIndex)) continue;
+                String name = baseNetlist.getName(baseNetIndex);
+                if (firstName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, firstName) < 0)
+                    firstName = name;
             }
-            String firstName;
-            boolean isUsernamed = false;
-            boolean isExported = false;
-            if (exportedNames.value != null) {
-                firstName = exportedNames.value;
-                isExported = isUsernamed = true;
-            } else if (privateNames.value != null) {
-                firstName = privateNames.value;
-                isUsernamed = true;
-            } else {
-                firstName = baseNetlist.getName(thisNetHead[thisNetIndex]);
-            }
-            firstNames[thisNetIndex] = firstName;
-            if (isExported)
-                this.isExported.set(thisNetIndex);
-            if (isUsernamed)
-                this.isUsernamed.set(thisNetIndex);
+        } else {
+            firstName = baseNetlist.getName(thisNetHead[thisNetIndex]);
         }
+        firstNames[thisNetIndex] = firstName;
+        return firstName;
     }
 
     @Override
@@ -123,7 +131,7 @@ public class NetlistShorted extends Netlist {
             }
             return allNames.iterator();
         } else {
-            return Collections.singleton(firstNames[netIndex]).iterator();
+            return Collections.singleton(getName(netIndex)).iterator();
         }
     }
 
@@ -138,24 +146,17 @@ public class NetlistShorted extends Netlist {
         }
     }
 
-    /**
-     * Returns most appropriate name of the net.
-     * Intitialized net has at least one name - user-defiend or temporary.
-     */
-    @Override
-    String getName( int netIndex) {
-        return firstNames[netIndex];
-    }
-
     /** Returns true if nm is one of Network's names */
     @Override
     boolean hasName(int netIndex, String nm) {
         if (isUsernamed(netIndex)) {
-            HasStringCollection hasString = new HasStringCollection(nm);
-            fillNames(netIndex, hasString, hasString);
-            return hasString.hasString;
+            for (int baseNetIndex = thisNetHead[netIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
+                if (baseNetlist.hasName(baseNetIndex, nm))
+                    return true;
+            }
+            return false;
         } else {
-            return firstNames[netIndex].equals(nm);
+            return nm.equals(getName(netIndex));
         }
     }
 
@@ -178,7 +179,7 @@ public class NetlistShorted extends Netlist {
      */
     @Override
     boolean isExported(int netIndex) {
-        return isExported.get(netIndex);
+        return netIndex < getNumExternalNetworks();
     }
 
     /**
@@ -234,64 +235,6 @@ public class NetlistShorted extends Netlist {
                 }
                 assert hasTempName;
             }
-        }
-    }
-    
-    private static class FirstStringCollection extends AbstractCollection<String> {
-
-        private String value;
-
-        @Override
-        public int size() {
-            return value != null ? 1 : 0;
-        }
-
-        @Override
-        public void clear() {
-            value = null;
-        }
-
-        @Override
-        public Iterator<String> iterator() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean add(String e) {
-            if (value != null && TextUtils.STRING_NUMBER_ORDER.compare(e, value) >= 0) {
-                return false;
-            }
-            value = e;
-            return true;
-        }
-    }
-
-    private static class HasStringCollection extends AbstractCollection<String> {
-
-        private final String value;
-        boolean hasString;
-
-        HasStringCollection(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public int size() {
-            return hasString ? 1 : 0;
-        }
-
-        @Override
-        public Iterator<String> iterator() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean add(String e) {
-            if (hasString || !value.equals(e)) {
-                return false;
-            }
-            hasString = true;
-            return true;
         }
     }
 }

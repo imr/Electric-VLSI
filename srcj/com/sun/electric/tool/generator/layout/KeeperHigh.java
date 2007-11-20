@@ -45,7 +45,7 @@ public class KeeperHigh {
 
 	public static Cell makePart(Cell schem, VarContext context,
 								StdCellParams stdCell) {
-		Netlist netlist = schem.getNetlist(false);
+		Netlist netlist = schem.getNetlist();
 
 		Iterator<NodeInst> nodes = schem.getNodes();
 

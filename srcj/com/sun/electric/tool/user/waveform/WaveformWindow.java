@@ -2818,7 +2818,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		Set<Network> nets = new HashSet<Network>();
 		List<Signal> found = new ArrayList<Signal>();
-		for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); )
+		for (Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext(); )
 		{
 			nets.add(it.next());
 		}
@@ -2826,7 +2826,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		if (recurse)
 		{
-			for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); )
+			for (Iterator<Nodable> it = cell.getNetlist().getNodables(); it.hasNext(); )
 			{
 				Nodable no = it.next();
 				if (!(no.getProto() instanceof Cell)) continue;

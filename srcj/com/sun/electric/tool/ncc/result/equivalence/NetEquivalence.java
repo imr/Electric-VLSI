@@ -249,7 +249,7 @@ class NetEquivalence implements Serializable {
 	// same port.
 	private Network netWhenResShorted(Network n) {
 		// if resistors already shorted then nothing else can be done
-		if (n.getNetlist().getShortResistors()) return null;
+		if (n.getNetlist().getShortResistors() == Netlist.ShortResistors.PARASITIC) return null;
 		prln("    RK Debug: Try shorting resistors");
 		
 		NodaPortInst port = getPortFromUnshortedNet(n);

@@ -76,7 +76,7 @@ public class GeometryConnection
                 DBMath.transformRect(rect, cellUp);
                 DBMath.transformRect(rect, subTrans);
                 ConnectionEnumerator check = new ConnectionEnumerator(cellA, nGeom, rect,
-                        cellBProto.getNetlist(false), topNetlist);
+                        cellBProto.getNetlist(), topNetlist);
                 HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext, check);
 //                HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext,
 //                        NetworkTool.acquireUserNetlist(cellA.getParent()),

@@ -256,7 +256,7 @@ public class AllSchemNamesToLay {
     }
     private Map<String, Network> buildNameToLayNetwork(Cell layCell) {
     	Map<String, Network> nmToLayNet = new HashMap<String, Network>();
-    	Netlist nets = layCell.getNetlist(false);
+    	Netlist nets = layCell.getNetlist();
     	for (Iterator<Network> netIt=nets.getNetworks(); netIt.hasNext();) {
     		Network net = netIt.next();
     		for (Iterator<String> nmIt=net.getNames(); nmIt.hasNext();) {
@@ -334,7 +334,7 @@ public class AllSchemNamesToLay {
 
     	List<SchemNetNm_LayArcInsts> schNmLayArcInsts = new ArrayList<SchemNetNm_LayArcInsts>();
 
-    	Netlist nets = schCell.getNetlist(false);
+    	Netlist nets = schCell.getNetlist();
     	
     	int maxSchemAutoGen = 0;
     	

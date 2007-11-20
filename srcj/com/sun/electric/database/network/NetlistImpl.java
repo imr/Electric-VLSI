@@ -55,7 +55,7 @@ public class NetlistImpl extends Netlist {
     private int[] exportedNamesCount;
     
 	NetlistImpl(NetCell netCell, int numExternals, int[] map) {
-        super(netCell, false, null, numExternals, map);
+        super(netCell, Netlist.ShortResistors.NO, numExternals, map);
         exportedNamesCount = new int[getNumNetworks()];
         names = new String[getNumNetworks()][];
         Arrays.fill(names, NULL_STRING_ARRAY);
