@@ -344,15 +344,25 @@ public class LayerCoverageTool extends Tool
             Set<Network> netSet = null;
             Layer onlyThisLayer = null;
 
+            Netlist.ShortResistors shortResistors = Netlist.ShortResistors.NO;
             if (geoms != null)
             {
                 netSet = geoms.nets;
+                if (geoms.nets != null && !geoms.nets.isEmpty()) {
+                    Iterator<Network> nIt = geoms.nets.iterator();
+                    shortResistors = nIt.next().getNetlist().getShortResistors();
+                    while (nIt.hasNext()) {
+                        Netlist.ShortResistors sh = nIt.next().getNetlist().getShortResistors();
+                        if (sh != shortResistors)
+                            throw new IllegalArgumentException("shortResistors");
+                    }
+                }
                 onlyThisLayer = geoms.onlyThisLayer;
             }
             // enumerate the hierarchy below here
             LayerVisitor visitor = new LayerVisitor(parentJob, tree, nodesToDelete, function,
                     originalPolygons, netSet, bBox, onlyThisLayer, geoms);
-            HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor);
+            HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor, shortResistors);
             tree.postProcess(true);
 
             switch (function)

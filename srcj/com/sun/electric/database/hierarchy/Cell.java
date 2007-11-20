@@ -3733,7 +3733,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
 	public Netlist getNetlist() { return getNetlist(Netlist.ShortResistors.NO); }
+    
+    @Deprecated
 	public Netlist getNetlist(boolean shortResistors) { return getNetlist(shortResistors ? Netlist.ShortResistors.PARASITIC : Netlist.ShortResistors.NO); }
+    
 	/** Recompute the Netlist structure for this Cell.
      * @param shortResistors short resistors mode of Netlist.
 	 * @return the Netlist structure for this cell.

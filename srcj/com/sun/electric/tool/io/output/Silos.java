@@ -868,11 +868,9 @@ public class Silos extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus) { return name; }
 
-    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() { return true; }
-
-    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return true; }
+    /** Tell the Hierarchy enumerator how to short resistors */
+    @Override
+    protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.ALL; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.

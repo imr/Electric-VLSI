@@ -1353,12 +1353,10 @@ public class Verilog extends Topology
         return name;
     }
 
-    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() { return true; }
-
-    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return false; }
-
+    /** Tell the Hierarchy enumerator how to short resistors */
+    @Override
+    protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.PARASITIC; }
+    
     /**
      * Method to tell whether the topological analysis should mangle cell names that are parameterized.
      */
@@ -1475,15 +1473,8 @@ public class Verilog extends Topology
                     }
                     // hmm...name map might be wrong at for this new enumeration
                     System.out.println("Info: Netlisting cell "+missingCell.libDescribe()+" as instanced in: "+source);
-                    Netlist.ShortResistors shortResistors;
-                    if (isShortExplicitResistors())
-                        shortResistors = Netlist.ShortResistors.ALL;
-                    else if (isShortResistors())
-                        shortResistors = Netlist.ShortResistors.PARASITIC;
-                    else
-                        shortResistors = Netlist.ShortResistors.NO;
                     HierarchyEnumerator.enumerateCell(missingCell, VarContext.globalContext,
-                            new Visitor(this), shortResistors, false);
+                            new Visitor(this), getShortResistors());
                 }
             }
         }

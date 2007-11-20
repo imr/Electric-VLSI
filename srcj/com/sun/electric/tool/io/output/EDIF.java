@@ -2280,11 +2280,9 @@ public class EDIF extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus) { return name; }
 
-    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() { return false; }
-
-    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return false; }
+    /** Tell the Hierarchy enumerator how to short resistors */
+    @Override
+    protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.NO; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.

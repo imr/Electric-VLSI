@@ -173,6 +173,9 @@ public abstract class Netlist
 //		return true;
 //	}
     
+    /** A cell of this netlist. */
+    public Cell getCell() { return netCell.cell; }
+
     /** A net can have multiple names. Return alphabetized list of names. */
     abstract Iterator<String> getNames(int netIndex);
 

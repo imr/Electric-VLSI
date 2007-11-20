@@ -2711,21 +2711,14 @@ public class Spice extends Topology
 		return sb.toString();
 	}
 
-    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() {
+    /** Tell the Hierarchy enumerator how to short resistors */
+    @Override
+    protected Netlist.ShortResistors getShortResistors() {
         if (useCDL && Simulation.getCDLIgnoreResistors())
-            return true;
-        return false;
+            return Netlist.ShortResistors.PARASITIC;
+        return Netlist.ShortResistors.NO;
     }
-
-    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() {
-        // until netlister is changed
-        if (useCDL && Simulation.getCDLIgnoreResistors())
-            return false;
-        return false;
-    }
-
+    
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */

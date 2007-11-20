@@ -95,15 +95,7 @@ public abstract class Topology extends Output
 
 		// write out cells
 		start();
-        Netlist.ShortResistors shortResistors;
-        if (isShortExplicitResistors())
-            shortResistors = Netlist.ShortResistors.ALL;
-        else if (isShortResistors())
-            shortResistors = Netlist.ShortResistors.PARASITIC;
-        else
-            shortResistors = Netlist.ShortResistors.NO;
-        HierarchyEnumerator.enumerateCell(cell, context, visitor,
-                shortResistors, false);
+        HierarchyEnumerator.enumerateCell(cell, context, visitor, getShortResistors());
 		done();
 		return false;
 	}
@@ -165,11 +157,14 @@ public abstract class Topology extends Output
 	 */
 	protected boolean canParameterizeNames() { return false; }
 
+    /** Tell the Hierarchy enumerator how to short resistors */
+    protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.NO; }
+    
     /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() { return false; }
+    protected boolean isShortResistors() { return getShortResistors() != Netlist.ShortResistors.NO; }
 
     /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return false; }
+    protected boolean isShortExplicitResistors() { return getShortResistors() == Netlist.ShortResistors.ALL; }
 
 	/**
 	 * Method to tell set a limit on the number of characters in a name.

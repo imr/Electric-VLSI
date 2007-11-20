@@ -5,6 +5,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/20/07, DN) LayerCoverageTool.LayerCoverageData doesn't find short resistor Networks.
+FIX: Detect ShortResistors mode from networks and pass it to HierarchyEnumerator. 
+
+BUG: (11/19/07, DN) Topology does not handle shorted resistors settings correctly (Bug #1426).
+FIX: Three modes of Netlist.ShortResistors are possible: NO, PARASITIC, ALL .
+
 BUG: (11/19/07, GVG) Major library save error (Bug #1063)
 FIX: DELIB using the same code as ELIB and JELIB.
 
