@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+IMP: (11/20/07, SMR) Added note in Attributes dialog (in debug mode only)
+     that Parameters must start with "ATTR_".
+
 IMP/MAN: (11/20/07, SMR) Sue input now has an option to convert Sue
      expressions to Electric form.
 
