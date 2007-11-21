@@ -1320,7 +1320,8 @@ public class ToolMenu {
         }
 
         public boolean doIt() throws JobException {
-            Netlist netlist = cell.getNetlist(true);
+            Netlist netlist = cell.getNetlist();
+//            Netlist netlist = cell.getNetlist(true);
             List<Network> networks = new ArrayList<Network>();
             for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
                 networks.add(it.next());

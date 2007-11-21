@@ -46,6 +46,8 @@ public class ScanChainXML {
     private static final boolean DEBUG = false;
     private static final boolean FLAT = false;
     private static final boolean REDUCE = true;
+    
+    private static Netlist.ShortResistors SHORT_RESISTORS = Netlist.ShortResistors.PARASITIC;
 
     // --------------------------- Scan Chain Primitives -----------------------------
 
@@ -413,7 +415,7 @@ public class ScanChainXML {
 
     // find the start node.  it will be the last nodable in the var context
     private Stack<Nodable> findStartNode(Cell cell, Stack<Nodable> context) {
-        Netlist netlist = cell.getNetlist(true);
+        Netlist netlist = cell.getNetlist(SHORT_RESISTORS);
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = it.next();
             if (no.getProto().getName().equals(jtagCell.getName())) {
@@ -989,9 +991,9 @@ public class ScanChainXML {
 //        if (pi.getConnections().hasNext()) {
             ArcInst ai = pi.getConnections().next().getArc();
             // see if there is a bus name
-            Name busName = no.getParent().getNetlist(true).getBusName(ai);
+            Name busName = no.getParent().getNetlist(SHORT_RESISTORS).getBusName(ai);
             if (busName == null) {
-                netName = no.getParent().getNetlist(true).getNetwork(ai, 0).getName();
+                netName = no.getParent().getNetlist(SHORT_RESISTORS).getNetwork(ai, 0).getName();
             } else {
                 netName = busName.toString();
             }
@@ -1237,7 +1239,7 @@ public class ScanChainXML {
         Cell cell = port.no.getParent();
 
         // list of all portinsts on net
-        Netlist netlist = cell.getNetlist(true);
+        Netlist netlist = cell.getNetlist(SHORT_RESISTORS);
         Network net = netlist.getNetwork(port.no, port.pp, port.index);
 
         for (Iterator<PortProto> it = cell.getPorts(); it.hasNext(); ) {
@@ -1261,7 +1263,7 @@ public class ScanChainXML {
         // convert ExPort to Port
         PortInst pi = inport.ex.getOriginalPort();
         NodeInst ni = pi.getNodeInst();
-        Netlist netlist = ni.getParent().getNetlist(true);
+        Netlist netlist = ni.getParent().getNetlist(SHORT_RESISTORS);
         Network net = netlist.getNetwork(inport.ex, inport.index);
         Port port = null;
 
@@ -1312,7 +1314,7 @@ public class ScanChainXML {
         ArrayList<Port> ports = new ArrayList<Port>();
 
         Cell cell = inport.no.getParent();
-        Netlist netlist = cell.getNetlist(true);
+        Netlist netlist = cell.getNetlist(SHORT_RESISTORS);
         Network net = netlist.getNetwork(inport.no, inport.pp, inport.index);
 
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
