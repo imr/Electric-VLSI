@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -96,7 +97,7 @@ public class Pads extends Output
 		printWriter.println("*PART*");
 		networks = new ArrayList<NetNames>();
 		PadsNetlister netlister = new PadsNetlister();
-		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
 		printWriter.println("");
 		printWriter.println("*NET*");
 

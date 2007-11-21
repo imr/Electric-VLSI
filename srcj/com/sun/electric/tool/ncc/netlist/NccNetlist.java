@@ -90,7 +90,7 @@ public class NccNetlist {
 
 		try {
 			Visitor v = new Visitor(globals, hierInfo, blackBox, context);
-			HierarchyEnumerator.enumerateCell(root, context, v, SHORT_RESISTORS, true);
+			HierarchyEnumerator.enumerateCell(root.getNetlist(SHORT_RESISTORS), context, v, true);
 			wires = v.getWireList();
 			parts = v.getPartList();
 			ports = v.getPortList();

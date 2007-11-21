@@ -127,7 +127,7 @@ public class LENetlister1 extends LENetlister {
         }
 
         topLevelCell = cell;
-        HierarchyEnumerator.enumerateCell(cell, context, this, true);
+        HierarchyEnumerator.enumerateCell(cell, context, this, SHORT_RESISTORS);
 //        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
         if (aborted) return false;
         return true;

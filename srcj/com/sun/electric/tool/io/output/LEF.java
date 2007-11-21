@@ -78,8 +78,9 @@ public class LEF extends Output
 		LEF out = new LEF();
 		if (out.openTextOutputStream(filePath)) return;
 
-		out.init(cell);
-		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out), true);
+        Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
+		out.init(netlist);
+		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
 		out.term(cell);
 
 		if (out.closeTextOutputStream()) return;
@@ -113,11 +114,8 @@ public class LEF extends Output
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) { return true; }
 	}
 
-	private void init(Cell cell)
+	private void init(Netlist netList)
 	{
-		// exclude resistors (short them)
-		Netlist netList = cell.getNetlist(true);
-
 		// write header information
 		if (User.isIncludeDateAndVersionInOutput())
 		{
@@ -171,6 +169,7 @@ public class LEF extends Output
 		printWriter.println("");
 
 		// write main cell header
+        Cell cell = netList.getCell();
 		printWriter.println("MACRO " + cell.getName());
 		printWriter.println("  FOREIGN " + cell.getName() + " ;");
 		Rectangle2D bounds = cell.getBounds();

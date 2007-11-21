@@ -137,7 +137,7 @@ public class LENetlister2 extends LENetlister {
 
         topLevelCell = cell;
         FirstPassEnum firstPass = new FirstPassEnum(this);
-        HierarchyEnumerator.enumerateCell(cell, context, firstPass, true);
+        HierarchyEnumerator.enumerateCell(cell, context, firstPass, SHORT_RESISTORS);
 //        HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
         firstPass.cleanup(disableCaching);
         System.out.println("Cached "+cellMap.size()+" cells");
@@ -167,7 +167,7 @@ public class LENetlister2 extends LENetlister {
                 System.out.println("Cannot write CachedCells debug: "+e.getMessage());
             }
         }
-        HierarchyEnumerator.enumerateCell(cell, context, this, true);
+        HierarchyEnumerator.enumerateCell(cell, context, this, SHORT_RESISTORS);
 //        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
         if (aborted) return false;
         return true;

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -87,7 +88,7 @@ public class ECAD extends Output
 
 		networks = new ArrayList<NetNames>();
 		ECADNetlister netlister = new ECADNetlister();
-		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
 //		Netlist netlist = cell.getNetlist(true);
 //		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println("| end of part list");

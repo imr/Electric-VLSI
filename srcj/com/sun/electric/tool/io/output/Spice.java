@@ -373,7 +373,7 @@ public class Spice extends Topology
 		{
 			writeHeader(topCell);
             spiceCodeFlat = new FlatSpiceCodeVisitor(filePath+".flatcode", this);
-            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, spiceCodeFlat, true);
+            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, spiceCodeFlat, getShortResistorsFlat());
             spiceCodeFlat.close();
 		}
 
@@ -2717,6 +2717,10 @@ public class Spice extends Topology
         if (useCDL && Simulation.getCDLIgnoreResistors())
             return Netlist.ShortResistors.PARASITIC;
         return Netlist.ShortResistors.NO;
+    }
+    
+    private Netlist.ShortResistors getShortResistorsFlat() {
+        return Netlist.ShortResistors.ALL;
     }
     
 	/**

@@ -908,14 +908,8 @@ public final class HierarchyEnumerator {
         enumerateCell(root, context, visitor, Netlist.ShortResistors.NO);
 	}
     
-    @Deprecated
-	public static void enumerateCell(Cell root, VarContext context, Visitor visitor, boolean shorten) {
-        enumerateCell(root, context, visitor, shorten ? Netlist.ShortResistors.ALL : Netlist.ShortResistors.NO);
-	}
-    
 	public static void enumerateCell(Cell root, VarContext context, Visitor visitor, Netlist.ShortResistors shortResistors) {
-		Netlist rootNetlist = NetworkTool.getNetlist(root, shortResistors);
-        enumerateCell(rootNetlist, context, visitor);
+        enumerateCell(NetworkTool.getNetlist(root, shortResistors), context, visitor);
 	}
     
 	public static void enumerateCell(Netlist rootNetlist, VarContext context, Visitor visitor) {
@@ -923,13 +917,7 @@ public final class HierarchyEnumerator {
 	}
     
 	/** Experimental. Optionally caches results of variable evaluation. */
-	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
-                                     Netlist.ShortResistors shortResistors, boolean caching) {
-		Netlist rootNetlist = NetworkTool.getNetlist(root, shortResistors);
-        enumerateCell(rootNetlist, context, visitor, caching);
-	}
-    
-	private static void enumerateCell(Netlist rootNetlist, VarContext context,  Visitor visitor, boolean caching) {
+	public static void enumerateCell(Netlist rootNetlist, VarContext context,  Visitor visitor, boolean caching) {
         Netlist.ShortResistors shortResistors = rootNetlist.getShortResistors();
 		(new HierarchyEnumerator()).doIt(rootNetlist.getCell(), context, rootNetlist, visitor, 
 				                         shortResistors != Netlist.ShortResistors.NO, shortResistors == Netlist.ShortResistors.ALL, 

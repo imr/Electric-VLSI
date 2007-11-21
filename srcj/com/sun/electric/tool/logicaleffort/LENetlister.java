@@ -25,11 +25,11 @@
 package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -40,9 +40,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.io.Serializable;
 
-import javax.swing.SwingUtilities;
 
 public abstract class LENetlister extends HierarchyEnumerator.Visitor {
+    static final Netlist.ShortResistors SHORT_RESISTORS = Netlist.ShortResistors.ALL;
 
     public static final Variable.Key ATTR_su = Variable.newKey("ATTR_su");
     public static final Variable.Key ATTR_le = Variable.newKey("ATTR_le");

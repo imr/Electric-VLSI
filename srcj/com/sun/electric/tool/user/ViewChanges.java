@@ -1439,7 +1439,7 @@ public class ViewChanges
 			}
 			createdCells = new ArrayList<Cell>();
             MakeLayoutVisitor visitor = new MakeLayoutVisitor(oldTech, newTech, oldCell.getLibrary(), createdCells, newLib);
-            HierarchyEnumerator.enumerateCell(oldCell, context, visitor, true);
+            HierarchyEnumerator.enumerateCell(oldCell, context, visitor, Netlist.ShortResistors.ALL);
             fieldVariableChanged("createdCells");
 			return true;
 		}

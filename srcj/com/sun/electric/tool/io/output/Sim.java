@@ -72,7 +72,7 @@ public class Sim extends Output
 		if (out.openTextOutputStream(filePath)) return;
 
 		out.init(cell, filePath, type);
-		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), true);
+		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
 
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
