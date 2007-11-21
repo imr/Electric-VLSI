@@ -381,10 +381,13 @@ public class Sue extends Input
 					keyword1.equalsIgnoreCase("name_net_s") ||
 					keyword1.equalsIgnoreCase("name_net"))
 				{
-					SueNet sn = new SueNet();
-					sn.pt = parP.pt;
-					sn.label = parP.theName;
-					sueNets.add(sn);
+					if (parP.theName != null)
+					{
+						SueNet sn = new SueNet();
+						sn.pt = parP.pt;
+						sn.label = parP.theName;
+						sueNets.add(sn);
+					}
 					continue;
 				}
 
@@ -1268,7 +1271,7 @@ public class Sue extends Input
 					if (sw.pt[i].getX() == sn.pt.getX() && sw.pt[i].getY() == sn.pt.getY())
 					{
 						Name snName = Name.findName(sn.label);
-						if (snName.busWidth() > 1) sw.proto = Schematics.tech.bus_arc; else
+						if (snName != null && snName.busWidth() > 1) sw.proto = Schematics.tech.bus_arc; else
 							sw.proto = Schematics.tech.wire_arc;
 					}
 				}
