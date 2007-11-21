@@ -75,6 +75,7 @@ public class HistoryDialog extends EDialog
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
+		if (Project.ensureRepository()) return;
 		examineHistory(cell);
 	}
 

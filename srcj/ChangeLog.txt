@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/21/07, SMR) Showing Project Management history crashes if PM not setup (Bug #1439).
+FIX: In HistoryDialog.examineThisHistory(), call ensureRepository().
+
 IMP: (11/20/07, DN) Replace calls of deperecated HierarchyEnumerator.enumerateCell(Cell,VarContext,Visitor,boolean).
 
 BUG: (11/20/07, DN) Ncc regression fails with ShortResistors API (Bug #1426).

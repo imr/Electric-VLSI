@@ -93,14 +93,6 @@ public class AddLibraryJob extends Job
 		if (Users.needUserName()) return;
 		if (Project.ensureRepository()) return;
 
-		if (Project.getRepositoryLocation().length() == 0)
-		{
-			Job.getUserInterface().showInformationMessage(
-				"Before entering libraries, set a repository location in the 'Project Management' tab under General Preferences",
-				"Must Setup Project Management");
-			return;
-		}
-
 		// verify that projects are to be built
 		boolean response = Job.getUserInterface().confirmMessage(
 			"Are you sure you want to enter libraries into the repository?");
