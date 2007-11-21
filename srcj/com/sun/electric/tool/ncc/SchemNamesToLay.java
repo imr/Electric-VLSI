@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
@@ -145,7 +146,7 @@ public class SchemNamesToLay {
     
     private Map<String, Network> namesToNetworks(Cell c) {
     	Map<String, Network> nmsToNets = new HashMap<String, Network>();
-    	Netlist nets = c.getNetlist();
+    	Netlist nets = c.getNetlist(NccNetlist.SHORT_RESISTORS);
     	for (Network net : new For<Network>(nets.getNetworks())) {
     		for (String nm : new For<String>(net.getNames())) {
     			nmsToNets.put(nm, net);
@@ -215,7 +216,7 @@ public class SchemNamesToLay {
 
     	List<ArcAndName> arcAndNms = new ArrayList<ArcAndName>();
 
-    	Netlist nets = schCell.getNetlist();
+    	Netlist nets = schCell.getNetlist(NccNetlist.SHORT_RESISTORS);
     	
     	for (Network schNet : new For<Network>(nets.getNetworks())) {
     		NetNameProxy layProx = equivs.findEquivalentNet(schCtxt, schNet);

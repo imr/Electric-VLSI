@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.ncc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,7 +38,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
@@ -49,11 +47,10 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.NodaNets;
-import com.sun.electric.tool.generator.layout.NodaNets.NodaPortInst;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
@@ -161,7 +158,7 @@ public class HighlightEquivalent {
 		List<Nodable> nodables = new ArrayList<Nodable>();
 		Cell c = ni.getParent();
 		// Search for all Nodables associated with a bussed NodeInst
-		for (Iterator<Nodable> it=c.getNetlist().getNodables(); it.hasNext();) {
+		for (Iterator<Nodable> it=c.getNetlist(NccNetlist.SHORT_RESISTORS).getNodables(); it.hasNext();) {
 			Nodable no = it.next();
 			if (no.getNodeInst()==ni) nodables.add(no);
 		}

@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
@@ -256,7 +257,7 @@ public class AllSchemNamesToLay {
     }
     private Map<String, Network> buildNameToLayNetwork(Cell layCell) {
     	Map<String, Network> nmToLayNet = new HashMap<String, Network>();
-    	Netlist nets = layCell.getNetlist();
+    	Netlist nets = layCell.getNetlist(NccNetlist.SHORT_RESISTORS);
     	for (Iterator<Network> netIt=nets.getNetworks(); netIt.hasNext();) {
     		Network net = netIt.next();
     		for (Iterator<String> nmIt=net.getNames(); nmIt.hasNext();) {
@@ -334,7 +335,7 @@ public class AllSchemNamesToLay {
 
     	List<SchemNetNm_LayArcInsts> schNmLayArcInsts = new ArrayList<SchemNetNm_LayArcInsts>();
 
-    	Netlist nets = schCell.getNetlist();
+    	Netlist nets = schCell.getNetlist(NccNetlist.SHORT_RESISTORS);
     	
     	int maxSchemAutoGen = 0;
     	

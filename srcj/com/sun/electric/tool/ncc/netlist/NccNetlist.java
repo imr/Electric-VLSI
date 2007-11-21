@@ -68,6 +68,7 @@ import com.sun.electric.tool.user.ncc.UnrecognizedPart;
  * NCC's representation of a netlist.
  */
 public class NccNetlist {
+    public final static Netlist.ShortResistors SHORT_RESISTORS = Netlist.ShortResistors.PARASITIC;
 	private final NccGlobals globals;
 	private final Cell rootCell;
 	private final VarContext rootContext;
@@ -89,7 +90,7 @@ public class NccNetlist {
 
 		try {
 			Visitor v = new Visitor(globals, hierInfo, blackBox, context);
-			HierarchyEnumerator.enumerateCell(root, context, v, Netlist.ShortResistors.PARASITIC, true);
+			HierarchyEnumerator.enumerateCell(root, context, v, SHORT_RESISTORS, true);
 			wires = v.getWireList();
 			parts = v.getPartList();
 			ports = v.getPortList();

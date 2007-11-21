@@ -5,6 +5,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: Ncc regression fails with ShortResistors API (Bug #1426).
+FIX: Declare NccNetlist.SHORT_RESISTORS constant and pass it consistently
+     to Cell.getNetlist() and HierarchEnumerator.enumerateCell() methods.
+
 IMP: (11/20/07, SMR) Added note in Attributes dialog (in debug mode only)
      that Parameters must start with "ATTR_".
 
