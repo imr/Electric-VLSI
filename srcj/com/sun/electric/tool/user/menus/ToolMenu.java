@@ -108,6 +108,7 @@ import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
@@ -687,7 +688,7 @@ public class ToolMenu {
                 // grab network wire model is on
                 PortInst pi = ni.getPortInst(0);
                 if (pi == null) continue;
-                Netlist netlist = schLayCells[0].getNetlist(true);
+                Netlist netlist = schLayCells[0].getNetlist(NccNetlist.SHORT_RESISTORS);
                 Network schNet = netlist.getNetwork(pi);
                 networks.add(schNet);
                 map.put(schNet, ni);
