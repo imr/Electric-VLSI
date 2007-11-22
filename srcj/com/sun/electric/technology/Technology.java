@@ -69,15 +69,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.swing.SwingUtilities;
 
@@ -1980,6 +1972,12 @@ public class Technology implements Comparable<Technology>
 		return arcs.values().iterator();
 	}
 
+    /**
+     * Retusn a collection of the ArcProto objects in this technology
+     * @return a collection of the ArcProto objects in this technology
+     */
+    public Collection<ArcProto> getArcsCollection() {return arcs.values();}
+
 	/**
 	 * Returns the number of ArcProto objects in this technology.
 	 * @return the number of ArcProto objects in this technology.
@@ -1989,7 +1987,7 @@ public class Technology implements Comparable<Technology>
 		return arcs.size();
 	}
 
-	/**
+    /**
 	 * Method to add a new ArcProto to this Technology.
 	 * This is usually done during initialization.
 	 * @param ap the ArcProto to be added to this Technology.
@@ -2155,7 +2153,7 @@ public class Technology implements Comparable<Technology>
 
 	/****************************** NODES ******************************/
 
-	/**
+    /**
 	 * Method to return a sorted list of nodes in the technology
 	 * @return a list with all nodes sorted
 	 */
@@ -2199,7 +2197,15 @@ public class Technology implements Comparable<Technology>
 		return nodes.values().iterator();
 	}
 
-	/**
+
+    /**
+     * Retusn a collection of the PrimitiveNode objects in this technology
+     * @return a collection of the PrimitiveNode objects in this technology
+     */
+    public Collection<PrimitiveNode> getNodesCollection() {return nodes.values();}
+
+
+    /**
 	 * Returns the number of PrimitiveNodes objects in this technology.
 	 * @return the number of PrimitiveNodes objects in this technology.
 	 */
@@ -2208,7 +2214,7 @@ public class Technology implements Comparable<Technology>
 		return nodes.size();
 	}
 
-	/**
+    /**
 	 * Method to add a new PrimitiveNode to this Technology.
 	 * This is usually done during initialization.
 	 * @param np the PrimitiveNode to be added to this Technology.

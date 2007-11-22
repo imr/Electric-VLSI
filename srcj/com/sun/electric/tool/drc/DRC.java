@@ -514,7 +514,7 @@ return false;
     /**
      * This method generates a DRC job from the GUI or for a bash script.
      */
-    public static void checkDRCHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode)
+    public static void checkDRCHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode, boolean onlyArea)
     {
         if (cell == null) return;
         boolean isLayout = true; // hierarchical check of layout by default
@@ -524,7 +524,7 @@ return false;
 			isLayout = false;
 
         if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
-        new CheckDRCHierarchically(cell, isLayout, bounds, mode);
+        new CheckDRCHierarchically(cell, isLayout, bounds, mode, onlyArea);
     }
 
 	/**
@@ -555,6 +555,7 @@ return false;
 	{
 		Rectangle2D bounds;
         private GeometryHandler.GHMode mergeMode; // to select the merge algorithm
+        private boolean onlyArea;
 
         /**
          * Check bounds within cell. If bounds is null, check entire cell.
@@ -562,12 +563,14 @@ return false;
          * @param layout
          * @param bounds
          */
-		protected CheckDRCHierarchically(Cell cell, boolean layout, Rectangle2D bounds, GeometryHandler.GHMode mode)
+		protected CheckDRCHierarchically(Cell cell, boolean layout, Rectangle2D bounds, GeometryHandler.GHMode mode,
+                                         boolean onlyA)
 		{
 			super(cell, tool, Job.Priority.USER, layout);
 			this.bounds = bounds;
             this.mergeMode = mode;
-			startJob();
+            this.onlyArea = onlyA;
+            startJob();
 		}
 
 		public boolean doIt()
@@ -576,14 +579,15 @@ return false;
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, false, null);
             checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
-                Quick.checkDesignRules(errorLog, cell, null, null, bounds, this, mergeMode);
+                Quick.checkDesignRules(errorLog, cell, null, null, bounds, this, mergeMode, onlyArea);
             else
                 Schematic.doCheck(errorLog, cell, null);
             long endTime = System.currentTimeMillis();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();
             System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-
+            if (onlyArea)
+                Job.getUserInterface().termLogging(errorLog, false, false); // otherwise the errors don't appear
             return true;
 		}
 	}

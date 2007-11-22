@@ -26,7 +26,7 @@ import java.awt.geom.Rectangle2D;
  * To change this template use File | Settings | File Templates.
  */
 public class MultiDRCToolJob extends Job {
-
+    private static long globalStartTime = 0;
     private Layer theLayer;
     private Cell topCell;
     private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
@@ -35,14 +35,14 @@ public class MultiDRCToolJob extends Job {
     // Must be static so it could be called in constructor
     private static String getJobName(Cell c, Layer l) { return "Design-Rule Check " + c + ", layer " + l.getName(); }
 
-    MultiDRCToolJob(Cell c, Layer l, DRCTemplate minAreaRule, DRCTemplate enclosedAreaRule, DRCTemplate spaceRule)
+    MultiDRCToolJob(Cell c, Layer l, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spacingR)
     {
         super(getJobName(c, l), DRC.getDRCTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
         this.topCell = c;
         this.theLayer = l;
-        this.minAreaRule = minAreaRule;
-        this.enclosedAreaRule = enclosedAreaRule;
-        this.spacingRule = spaceRule;
+        this.minAreaRule = minAreaR;
+        this.enclosedAreaRule = enclosedAreaR;
+        this.spacingRule = spacingR;
         startJob();
     }
 
@@ -50,16 +50,18 @@ public class MultiDRCToolJob extends Job {
     {
         long startTime = System.currentTimeMillis();
         errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
-
-        System.out.println("DRC for Cell " + topCell.getName() + " , layer " + theLayer.getName());
+        String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
+        System.out.println("DRC for " + msg);
         HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
 
         long endTime = System.currentTimeMillis();
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
-        System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-
+        System.out.println(errorCount + " errors and " + warnCount + " warnings found in layer " + msg
+                + " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        long accuEndTime = System.currentTimeMillis() - globalStartTime;
+        System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
         return true;
     }
 
@@ -72,10 +74,22 @@ public class MultiDRCToolJob extends Job {
 		if (rules == null || rules.getNumberOfRules() == 0)
                 return;
 
+        globalStartTime = System.currentTimeMillis();
+        CheckLayerEnumerator layerCheck = new CheckLayerEnumerator(cell.getTechnology().getNumLayers());
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCheck);
+
         // Multi thread the DRC algorithms per layer
         for (Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext();)
         {
             Layer layer = it.next();
+            if (layerCheck.layersMap.get(layer) == null)
+            {
+                System.out.println("Skipping Layer " + layer.getName());
+                continue;
+            }
+            if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
+                continue; // dirty way to skip the MoCMOS p-active well
+
             DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
             DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
             DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
@@ -86,26 +100,123 @@ public class MultiDRCToolJob extends Job {
     }
 
     /**************************************************************************************************************
-	 *  QuickAreaEnumeratorLocal class
+	 *  CheckLayerEnumerator class
+	 **************************************************************************************************************/
+    /** Class to collect which layers are available in the design
+     *
+     */
+    private static class CheckLayerEnumerator extends HierarchyEnumerator.Visitor
+    {
+        private int numLayersDone = 0, totalNumLayers;
+        private Map<Layer,Layer> layersMap;
+        private Map<Cell,Cell> cellsMap;
+        private Map<PrimitiveNode,PrimitiveNode> primitivesMap;
+
+        CheckLayerEnumerator(int totalNumL)
+        {
+            this.totalNumLayers = totalNumL;
+            layersMap = new HashMap<Layer,Layer>(totalNumLayers);
+            cellsMap = new HashMap<Cell,Cell>();
+            primitivesMap = new HashMap<PrimitiveNode,PrimitiveNode>();
+        }
+
+        /**
+         * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
+         * the maximum
+         * @param cell
+         * @return
+         */
+        private boolean skipCell(Cell cell) {return cellsMap.get(cell) != null || doneWithLayers();}
+
+        private boolean doneWithLayers() {return numLayersDone == totalNumLayers;}
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+        {
+            Cell cell = info.getCell();
+            if (skipCell(cell)) return false; // skip
+            cellsMap.put(cell, cell);
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+        {;
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+        {
+            if (doneWithLayers()) return false; // done;
+            NodeInst ni = no.getNodeInst();
+            if (NodeInst.isSpecialNode(ni)) return (false);
+            NodeProto np = ni.getProto();
+
+            // Cells
+            if (ni.isCellInstance()) return (true);
+
+            PrimitiveNode pNp = (PrimitiveNode)np;
+            if (primitivesMap.get(pNp) != null) return false; // done node.
+            primitivesMap.put(pNp, pNp);
+
+            for (Technology.NodeLayer nLayer : pNp.getLayers())
+            {
+                Layer layer = nLayer.getLayer();
+                if (layersMap.get(layer) == null) // not in yet
+                {
+                    layersMap.put(layer, layer);
+                    numLayersDone++;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  LayerAreaEnumerator class
 	 **************************************************************************************************************/
     /**
      * Class that uses local GeometryHandler to calculate the area per cell
      */
     private class LayerAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-        private Map<Cell, GeometryHandlerLayerBucket> cellsMap;
+        private Map<Cell,GeometryHandlerLayerBucket> cellsMap;
         private Layer.Function.Set thisLayerFunction;
         private GeometryHandler.GHMode mode;
+        private Collection<PrimitiveNode> nodesList; // NodeProto that contains this layer
+        private Collection<ArcProto> arcsList; // ArcProto that contains this layer
 
-        LayerAreaEnumerator(GeometryHandler.GHMode mode)
+        LayerAreaEnumerator(GeometryHandler.GHMode m)
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
             // even though non-electrical layers are retrieved
             this.thisLayerFunction = (theLayer.getFunction().isPoly()) ?
                     new Layer.Function.Set(theLayer.getFunction(), Layer.Function.GATE) :
                     new Layer.Function.Set(theLayer.getFunction());
-            this.mode = mode;
-            cellsMap = new HashMap<Cell, GeometryHandlerLayerBucket>();
+            this.mode = m;
+            cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
+            nodesList = new ArrayList<PrimitiveNode>();
+            for (PrimitiveNode node : topCell.getTechnology().getNodesCollection())
+            {
+                for (Technology.NodeLayer nLayer : node.getLayers())
+                {
+                    if (thisLayerFunction.contains(nLayer.getLayer().getFunction()))
+//                    if (nLayer.getLayer() == theLayer)
+                    {
+                        nodesList.add(node);
+                        break; // found
+                    }
+                }
+            }
+            arcsList = new ArrayList<ArcProto>();
+            for (ArcProto ap : topCell.getTechnology().getArcsCollection())
+            {
+                for (int i = 0; i < ap.getNumArcLayers(); i++)
+                {
+                    if (ap.getLayer(i) == theLayer)
+                    {
+                        arcsList.add(ap);
+                        break; // found
+                    }
+                }
+            }
         }
 
         private class GeometryHandlerLayerBucket {
@@ -166,13 +277,17 @@ public class MultiDRCToolJob extends Job {
 
                 // aNet is null if ArcProto is Artwork
                 if (aNet == null)
-                {
                     continue;
-                }
-                Technology tech = ai.getProto().getTechnology();
+                ArcProto ap = ai.getProto();
+                boolean notFound = !arcsList.contains(ap);
+
+                if (notFound)
+                    continue; // primitive doesn't contain this layer
+
+                Technology tech = ap.getTechnology();
                 Poly[] arcInstPolyList = tech.getShapeOfArc(ai, thisLayerFunction);
                 int tot = arcInstPolyList.length;
-                assert(tot == 1);
+
                 for(int i=0; i<tot; i++)
                 {
                     Poly poly = arcInstPolyList[i];
@@ -219,17 +334,20 @@ public class MultiDRCToolJob extends Job {
             if (ni.isCellInstance()) return (true);
 
 			AffineTransform trans = ni.rotateOut();
-            AffineTransform root = info.getTransformToRoot();
+//            AffineTransform root = info.getTransformToRoot();
 //			if (root.getType() != AffineTransform.TYPE_IDENTITY)
 //				trans.preConcatenate(root);
 
             PrimitiveNode pNp = (PrimitiveNode)np;
-			Technology tech = pNp.getTechnology();
+            boolean notFound = !nodesList.contains(pNp);
+            if (notFound) return false; // pNp doesn't have the layer
+
+            Technology tech = pNp.getTechnology();
 
             // Don't get electric layers in case of transistors otherwise it is hard to detect ports
             Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, false, true, thisLayerFunction);
 			int tot = nodeInstPolyList.length;
-            assert(tot == 1);
+            
             for(int i=0; i<tot; i++)
 			{
 				Poly poly = nodeInstPolyList[i];
@@ -248,10 +366,10 @@ public class MultiDRCToolJob extends Job {
             if (minAreaRule == null && enclosedAreaRule == null && spacingRule == null) return 0;
 
             Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
-
-            boolean minAreaDone = true;
-            boolean enclosedAreaDone = true;
             GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
+
+            if (trees.isEmpty())
+                System.out.println("Nothing for layer " + layer.getName() + " found.");
 
             for (PolyBase.PolyBaseTree obj : trees)
             {

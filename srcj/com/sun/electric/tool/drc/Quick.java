@@ -197,10 +197,11 @@ public class Quick
                                                Rectangle2D bounds)
     {
         if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false, null);
-        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null, GeometryHandler.GHMode.ALGO_SWEEP);
+        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null,
+                GeometryHandler.GHMode.ALGO_SWEEP, false);
     }
 
-	/**
+    /**
 	 * This is the entry point for DRC.
 	 *
 	 * Method to do a hierarchical DRC check on cell "cell".
@@ -209,21 +210,24 @@ public class Quick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
      * @param drcJob
-	 * @return ErrorLogger containing the information
+	 * @param onlyArea
+     * @return ErrorLogger containing the information
 	 */
 	public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode)
+                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode, boolean onlyArea)
 	{
 		Quick q = new Quick(drcJob, mode);
-        return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds);
+        return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds, onlyArea);
 	}
 
     // returns the number of errors found
-	private ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
+	private ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+                                Rectangle2D bounds, boolean onlyArea)
 	{
 		// Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
 		DRCRules rules = DRC.getRules(tech);
+		errorLogger = errorLog;
 
         // caching bits
         activeBits = DRC.getActiveBits(tech);
@@ -298,7 +302,12 @@ public class Quick
 				if (slotRule != null)
 					slotSizeLayerMap.put(layer, slotRule);
 			}
-	    }
+            if (onlyArea)
+            {
+                checkMinAreaSlow(cell);
+                return errorLogger;
+            }
+        }
 
 		// initialize all cells for hierarchical network numbering
 		checkProtos = new HashMap<Cell,CheckProto>();
@@ -394,7 +403,6 @@ public class Quick
 		accumulateExclusion(cell);
 
 		// now do the DRC
-		errorLogger = errorLog;
         int logsFound = 0;
         int totalErrors = 0;
 

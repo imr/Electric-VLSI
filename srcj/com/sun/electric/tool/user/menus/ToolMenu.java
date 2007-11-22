@@ -155,11 +155,11 @@ public class ToolMenu {
 		// mnemonic keys available:  B  EFG IJK MNOPQR TUVWXYZ
             new EMenu("_DRC",
 		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)) { public void run() {
-                    DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(), null, GeometryHandler.GHMode.ALGO_SWEEP); }},
+                    DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(), null, GeometryHandler.GHMode.ALGO_SWEEP, false); }},
 		        new EMenuItem("Check _Selection Area Hierarchically") { public void run() {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
-                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP); }},
+                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {
