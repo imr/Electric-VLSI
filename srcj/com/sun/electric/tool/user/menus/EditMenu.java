@@ -24,6 +24,8 @@
 
 package com.sun.electric.tool.user.menus;
 
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -32,6 +34,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -70,11 +73,19 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
-import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
-import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.ui.CurveListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.OutlineListener;
+import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
@@ -91,12 +102,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Edit" pulldown menu.
@@ -942,27 +954,33 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        HashMap<Object,Object> likeThis = new HashMap<Object,Object>();
-        List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
-        for(Geometric geom : highlighted)
+        // make a set of prototypes and characteristics to match
+        Set<Object> likeThis = new HashSet<Object>();
+        for(Highlight2 h : highlighter.getHighlights())
         {
-            if (geom instanceof NodeInst)
+    		ElectricObject eObj = h.getElectricObject();
+    		if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
+            if (eObj instanceof NodeInst)
             {
-                NodeInst ni = (NodeInst)geom;
-                likeThis.put(ni.getProto(), ni);
-            } else
+                NodeInst ni = (NodeInst)eObj;
+                likeThis.add(ni.getProto());
+            } else if (eObj instanceof ArcInst)
             {
-                ArcInst ai = (ArcInst)geom;
-                likeThis.put(ai.getProto(), ai);
-            }
+                ArcInst ai = (ArcInst)eObj;
+                likeThis.add(ai.getProto());
+            } else if (eObj instanceof Export)
+        	{
+        		Export e = (Export)eObj;
+        		PortCharacteristic pc = e.getCharacteristic();
+        		likeThis.add(pc.getName());
+        	}
         }
 
         highlighter.clear();
         for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            Object isLikeThis = likeThis.get(ni.getProto());
-            if (isLikeThis == null) continue;
+            if (!likeThis.contains(ni.getProto())) continue;
             if (ni.isInvisiblePinWithText())
             {
                 for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
@@ -982,9 +1000,15 @@ public class EditMenu {
         for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
         {
             ArcInst ai = it.next();
-            Object isLikeThis = likeThis.get(ai.getProto());
-            if (isLikeThis == null) continue;
+            if (!likeThis.contains(ai.getProto())) continue;
             highlighter.addElectricObject(ai, curCell);
+        }
+        for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+        {
+        	Export e = it.next();
+    		PortCharacteristic pc = e.getCharacteristic();
+        	if (!likeThis.contains(pc.getName())) continue;
+        	highlighter.addText(e, curCell, Export.EXPORT_NAME);
         }
         highlighter.finished();
         System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");

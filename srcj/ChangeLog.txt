@@ -5,6 +5,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+IMP/MAN: (11/26/07, SMR) "Select All Like This" now matches Export by their
+     characteristic (i.e. selecting an input port will match all other
+     input ports) (Bug #1433).
+
 BUG: (11/21/07, SMR) Showing Project Management history crashes if PM not setup (Bug #1439).
 FIX: In HistoryDialog.examineThisHistory(), call ensureRepository().
 
