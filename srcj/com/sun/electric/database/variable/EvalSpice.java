@@ -25,16 +25,14 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.text.TextUtils;
 
+import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
-import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
+ * Class to evaluate Spice expressions.
  * User: gainsley
  * Date: Aug 17, 2006
- * Time: 1:58:19 PM
- * To change this template use File | Settings | File Templates.
  */
 public class EvalSpice {
 
@@ -77,7 +75,8 @@ public class EvalSpice {
             } catch (IOException e2) {}
             if (!parsed.equals(""))
                 parsed = ": "+parsed+" <--";
-            System.out.println("Parse Error: "+e.getMessage()+parsed +" "+tokenizer.toString());
+            System.out.println("Spice Parse Error: "+e.getMessage()+parsed +" "+tokenizer.toString());
+            System.out.println("   Original string: "+expr);
         }
         return expr;
     }
