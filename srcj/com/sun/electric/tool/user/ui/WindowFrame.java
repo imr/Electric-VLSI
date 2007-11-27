@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.WindowMenu;
+import com.sun.electric.tool.user.ui.WindowFrame.DisplayAttributes;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
@@ -135,42 +136,38 @@ public class WindowFrame extends Observable
 
     public static class DisplayAttributes
     {
-		/** the window scale */									public double scale;
-		/** the window offset */								public double offX, offY;
-		/** the port that is highlighted */						public PortInst selPort;
-		/** true if displayed down-in-place */					public boolean inPlace;
-		/** transform from screen to cell (down-in-place) */	public AffineTransform intoCell;
-		/** transform from cell to screen (down-in-place) */	public AffineTransform outofCell;
-		/** top-level cell being displayed (down-in-place) */	public Cell topLevelCell;
-		/** path to cell being edited (down-in-place) */		public List<NodeInst> inPlaceDescent;
+		/** the window scale */									public final double scale;
+		/** the window offset */								public final double offX, offY;
+		/** path to cell being edited (down-in-place) */		public final List<NodeInst> inPlaceDescent;
 
-		public DisplayAttributes() {}
-
-		public DisplayAttributes(DisplayAttributes old)
-		{
-			if (old != null) set(old);
-		}
-
-		public void set(DisplayAttributes old)
-		{
-			this.scale = old.scale;
-			this.offX = old.offX;
-			this.offY = old.offY;
-			this.selPort = old.selPort;
-			this.inPlace = old.inPlace;
-			if (old.inPlace)
-			{
-				this.intoCell = new AffineTransform(old.intoCell);
-				this.outofCell = new AffineTransform(old.outofCell);
-				this.topLevelCell = old.topLevelCell;
-				if (old.inPlaceDescent != null)
-				{
-					this.inPlaceDescent = new ArrayList<NodeInst>();
-					for(NodeInst n : old.inPlaceDescent)
-						this.inPlaceDescent.add(n);
-				}
-			}
-		}
+		public DisplayAttributes() {
+            this(1, 0, 0, Collections.<NodeInst>emptyList());
+        }
+        
+		public DisplayAttributes(EditWindow wnd) {
+            this(wnd.getScale(), wnd.getOffset().getX(), wnd.getOffset().getY(), wnd.getInPlaceEditNodePath());
+        }
+        
+		public DisplayAttributes(double scale, double offX, double offY, List<NodeInst> inPlaceDescent) {
+            this.scale = scale;
+            this.offX = offX;
+            this.offY = offY;
+            this.inPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
+        }
+        
+        public AffineTransform getIntoCellTransform() {
+            AffineTransform intoCell = new AffineTransform();
+            for (NodeInst ni : inPlaceDescent)
+                intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
+            return intoCell;
+        }
+            
+        public AffineTransform getOutofCellTransform() {
+            AffineTransform outofCell = new AffineTransform();
+            for (NodeInst ni : inPlaceDescent)
+                outofCell.concatenate(ni.translateOut(ni.rotateOut()));
+            return outofCell;
+        }
     }
 
     //******************************** CONSTRUCTION ********************************
@@ -1107,6 +1104,7 @@ public class WindowFrame extends Observable
 	{
 		/** cell */												private Cell cell;
 		/** context */											private VarContext context;
+		/** the port that is highlighted */						private PortInst selPort;
 		/** display attributes (scale, in-place, etc.) */		private DisplayAttributes da;
 		/** highlights */										private List<Highlight2> highlights;
 		/** highlight offset*/									private double offX, offY;
@@ -1116,6 +1114,8 @@ public class WindowFrame extends Observable
 		public VarContext getContext() { return context; }
 
 		public void setContext(VarContext context) { this.context = context; }
+
+		public void setSelPort(PortInst selPort) { this.selPort = selPort; }
 
 		public DisplayAttributes getDisplayAttributes() { return da; }
 	}
@@ -1189,7 +1189,9 @@ public class WindowFrame extends Observable
 		CellHistory history = new CellHistory();
 		history.cell = cell;
 		history.context = context;
-		history.da = new DisplayAttributes(da);
+        if (da == null)
+            da = new DisplayAttributes();
+		history.da = da;
 
 		// when user has moved back through history, and then edits a new cell,
 		// get rid of forward history
@@ -1242,24 +1244,11 @@ public class WindowFrame extends Observable
 			current.context = wnd.getVarContext();
 
 			// save zoom and pan
-			current.da.scale = wnd.getScale();
-			current.da.offX = wnd.getOffset().getX();
-			current.da.offY = wnd.getOffset().getY();
-
 			// save down-in-place information
-			current.da.inPlace = wnd.isInPlaceEdit();
-			if (current.da.inPlace)
-			{
-				current.da.intoCell = new AffineTransform(wnd.getInPlaceTransformIn());
-				current.da.outofCell = new AffineTransform(wnd.getInPlaceTransformOut());
-				current.da.topLevelCell = wnd.getInPlaceEditTopCell();
-				current.da.inPlaceDescent = new ArrayList<NodeInst>();
-				for(NodeInst n : wnd.getInPlaceEditNodePath())
-					current.da.inPlaceDescent.add(n);
-			}
+			current.da = new DisplayAttributes(wnd);
 
 			// save selected port
-			current.da.selPort = null;
+            current.selPort = null;
 			Highlighter highlighter = wnd.getHighlighter();
 			if (highlighter.getNumHighlights() == 1)
 			{
@@ -1268,7 +1257,7 @@ public class WindowFrame extends Observable
 		        {
 		        	ElectricObject eobj = h.getElectricObject();
 			        if (eobj instanceof PortInst)
-			        	current.da.selPort = (PortInst)eobj;
+			        	current.selPort = (PortInst)eobj;
 		        }
 			}
 
@@ -1300,11 +1289,10 @@ public class WindowFrame extends Observable
 		{
 			history.cell = null;
 			history.context = VarContext.globalContext;
-			history.da.selPort = null;
-			history.da.offX = history.da.offY = 0;
+			history.selPort = null;
+			history.da = new WindowFrame.DisplayAttributes();
 			history.highlights = new ArrayList<Highlight2>();
 			history.offX = history.offY = 0;
-			history.da.inPlace = false;
 		}
 
 		// update current cell
@@ -1312,9 +1300,9 @@ public class WindowFrame extends Observable
 		if (history.cell != null && !history.cell.getView().isTextView())
 		{
 			EditWindow wnd = (EditWindow)content;
-			if (history.da.selPort != null)
+			if (history.selPort != null)
 			{
-				wnd.getHighlighter().addElectricObject(history.da.selPort, history.cell);
+				wnd.getHighlighter().addElectricObject(history.selPort, history.cell);
 			} else if (history.highlights != null)
 			{
 				wnd.getHighlighter().setHighlightList(history.highlights);

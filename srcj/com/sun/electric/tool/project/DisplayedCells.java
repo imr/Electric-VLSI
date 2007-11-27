@@ -26,12 +26,10 @@
 package com.sun.electric.tool.project;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -125,14 +123,10 @@ public class DisplayedCells implements Serializable
 			Cell displayedCell = wf.getContent().getCell();
 			if (displayedCell != newVers)
 			{
-				WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes();
-				da.scale = 1;
-				if (wf.getContent() instanceof EditWindow_)
+                WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes();
+				if (wf.getContent() instanceof EditWindow)
 				{
-					EditWindow_ wnd = (EditWindow_)wf.getContent();
-					da.scale = wnd.getScale();
-					da.offX = wnd.getOffset().getX();
-					da.offY = wnd.getOffset().getY();
+                    da = new WindowFrame.DisplayAttributes((EditWindow)wf.getContent());
 				}
 				wf.getContent().setCell(newVers, VarContext.globalContext, da);
 			}

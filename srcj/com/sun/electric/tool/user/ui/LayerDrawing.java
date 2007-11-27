@@ -672,14 +672,12 @@ class LayerDrawing
         /**
          * This method is called from Job thread.
          */
-        void render(Dimension sz, double scale, double offx, double offy, boolean fullInstantiate, Rectangle2D bounds) {
+        void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
             LayerDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                 this.offscreen = offscreen_ = new LayerDrawing(sz);
-            this.scale = scale;
-            this.offx = offx;
-            this.offy = offy;
-            updateScaleAndOffset();
+            this.da = da;
+//            updateScaleAndOffset();
             offscreen_.drawImage(this, fullInstantiate, bounds);
             needComposite = true;
             layerRasters = new HashMap<Layer,TransparentRaster>(offscreen_.layerRasters);
@@ -1108,11 +1106,7 @@ class LayerDrawing
 		}
 
         EditWindow wnd = drawing.wnd;
-		Cell cell = wnd.getCell();
-    	if (wnd.isInPlaceEdit())
-    	{
-        	cell = wnd.getInPlaceEditTopCell();
-       	}
+		Cell cell = wnd.getInPlaceEditTopCell();
 		inPlaceNodePath = wnd.getInPlaceEditNodePath();
 
 		// set colors to use
@@ -1122,13 +1116,13 @@ class LayerDrawing
         gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         
 		// initialize the cache of expanded cell displays
-		if (expandedScale != drawing.scale)
+		if (expandedScale != drawing.da.scale)
 		{
 			clearSubCellCache();
-			expandedScale = drawing.scale;
+			expandedScale = drawing.da.scale;
 		}
         varContext = wnd.getVarContext();
-        initOrigin(expandedScale, new Point2D.Double(drawing.offx, drawing.offy));
+        initOrigin(expandedScale, new Point2D.Double(drawing.da.offX, drawing.da.offY));
         patternedDisplay = expandedScale > User.getPatternedScaleLimit();
         alphaBlendingOvercolor = expandedScale > User.getAlphaBlendingOvercolorLimit();
  		canDrawText = expandedScale > 1;
@@ -1155,7 +1149,7 @@ class LayerDrawing
 		Rectangle renderBounds = null;
 		if (drawLimitBounds != null)
 		{
-			renderBounds = wnd.databaseToScreen(drawLimitBounds);
+			renderBounds = databaseToScreen(drawLimitBounds);
             clipLX = Math.max(renderBounds.x, 0);
             clipHX = Math.min(renderBounds.x + renderBounds.width, sz.width) - 1;
             clipLY = Math.max(renderBounds.y, 0);
@@ -1195,7 +1189,7 @@ class LayerDrawing
         crossTextList.clear();
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
         // if a grid is requested, overlay it
-		if (cell != null && wnd.isGrid()) drawGrid(wnd);
+		if (cell != null && wnd.isGrid()) drawGrid(wnd, drawing.da);
         
 		if (TAKE_STATS)
 		{
@@ -1245,7 +1239,7 @@ class LayerDrawing
 	/**
 	 * Method to draw the grid into the offscreen buffer
 	 */
-	private void drawGrid(EditWindow wnd)
+	private void drawGrid(EditWindow wnd, WindowFrame.DisplayAttributes da)
 	{
 		double spacingX = wnd.getGridXSpacing();
 		double spacingY = wnd.getGridYSpacing();
@@ -1256,7 +1250,8 @@ class LayerDrawing
 		double boldSpacingThreshY = spacingY / 4;
 
 		// screen extent
-		Rectangle2D displayable = wnd.displayableBounds();
+        
+		Rectangle2D displayable = displayableBounds(da.getIntoCellTransform());
 		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
 		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
 		double scaleX = sz.width / (hX - lX);
@@ -1283,6 +1278,8 @@ class LayerDrawing
 		}
 
 		// draw the grid
+        Point2D.Double tmpPt = new Point2D.Double();
+        AffineTransform outofCellTransform = da.getOutofCellTransform();
         ERaster raster = getRaster(gridLayer, gridGraphics, false);
 		for(double i = y1; i > hY; i -= spacingY)
 		{
@@ -1292,9 +1289,11 @@ class LayerDrawing
 			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
 			for(double j = x1; j < hX; j += spacingX)
 			{
-				Point xy = wnd.databaseToScreen(j, i);
-				int x = xy.x;
-				int y = xy.y;
+                tmpPt.setLocation(j, i);
+                outofCellTransform.transform(tmpPt, tmpPt);
+				databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
+				int x = tempPt1.x;
+				int y = tempPt1.y;
 				if (x < 0 || x > sz.width) continue;
 				if (y < 0 || y > sz.height) continue;
 
@@ -1352,22 +1351,47 @@ class LayerDrawing
 		}
 		if (User.isGridAxesShown())
 		{
-			Point xy = wnd.databaseToScreen(0, 0);
-			if (xy.x >= 0 && xy.x < sz.width) {
-                raster.fillVerLine(xy.x, 0, sz.height - 1);
+            tmpPt.setLocation(0, 0);
+            outofCellTransform.transform(tmpPt, tmpPt);
+			databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
+			int x = tempPt1.x;
+			int y = tempPt1.y;
+			if (x >= 0 && x < sz.width) {
+                raster.fillVerLine(x, 0, sz.height - 1);
 //                int baseIndex = xy.x;
 //                for (int y = 0; y < sz.height; y++) {
 //                    opaqueData[baseIndex] = col;
 //                    baseIndex += sz.width;
 //                }
             }
-			if (xy.y >= 0 && xy.y < sz.height) {
-                raster.fillHorLine(xy.y, 0, sz.width - 1);
+			if (y >= 0 && y < sz.height) {
+                raster.fillHorLine(y, 0, sz.width - 1);
 //                int baseIndex = xy.y * sz.width;
 //                for (int x = 0; x < sz.width; x++)
 //                    opaqueData[baseIndex + x] = col;
             }
 		}
+	}
+
+	/**
+	 * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
+	 * @return a rectangle that describes the viewable extent of this window (database coordinates).
+	 */
+	private Rectangle2D displayableBounds(AffineTransform intoCellTransform)
+	{
+		Point2D low = new Point2D.Double();
+        screenToDatabase(0, 0, low);
+        intoCellTransform.transform(low, low);
+		Point2D high = new Point2D.Double();
+        screenToDatabase(sz.width-1, sz.height-1, high);
+        intoCellTransform.transform(high, high);
+        
+		double lowX = Math.min(low.getX(), high.getX());
+		double lowY = Math.min(low.getY(), high.getY());
+		double sizeX = Math.abs(high.getX()-low.getX());
+		double sizeY = Math.abs(high.getY()-low.getY());
+		Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, sizeX, sizeY);
+		return bounds;
 	}
 
     private void periodicRefresh() {
@@ -4295,6 +4319,10 @@ class LayerDrawing
         double scrY = originY - dbY*scale;
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
 		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+    }
+    
+    private void screenToDatabase(int x, int y, Point2D result) {
+        result.setLocation((x - originX)/scale, (originY - y)/scale);
     }
     
 	/**

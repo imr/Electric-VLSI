@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG: (11/27/07, DN) Grid axes are not always correct (Bug #1430).
+FIX: drawGrid methods use scale/offset from Drawing instead of EditWindow.
+
 IMP/MAN: (11/26/07, SMR) "Select All Like This" now matches Export by their
      characteristic (i.e. selecting an input port will match all other
      input ports) (Bug #1433).

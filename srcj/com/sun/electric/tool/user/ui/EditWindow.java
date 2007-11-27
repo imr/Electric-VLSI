@@ -23,14 +23,13 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -158,10 +157,9 @@ public class EditWindow extends JPanel
 	/** list of edit-in-place text in this window */		private List<GetInfoText.EditInPlaceListener> inPlaceTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
 
 	/** true if doing down-in-place display */				private boolean inPlaceDisplay;
-	/** transform from screen to cell (down-in-place only) */	private AffineTransform intoCell;
-	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell;
-	/** top-level cell being displayed (down-in-place only) */	private Cell topLevelCell;
-	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent;
+	/** transform from screen to cell (down-in-place only) */	private AffineTransform intoCell = new AffineTransform();
+	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell = new AffineTransform();
+	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent = new ArrayList<NodeInst>();
     
     /** true if repaint was requested for this editwindow */volatile boolean repaintRequest;
     /** full instantiate bounds for next drawing  */        private Rectangle2D fullInstantiateBounds;
@@ -207,8 +205,7 @@ public class EditWindow extends JPanel
 
     abstract static class Drawing {
         final EditWindow wnd;
-        double scale;
-        double offx, offy;
+        WindowFrame.DisplayAttributes da;
 
         Drawing(EditWindow wnd) {
             this.wnd = wnd;
@@ -216,18 +213,11 @@ public class EditWindow extends JPanel
 
         abstract boolean paintComponent(Graphics2D g, Dimension sz);
 
-        abstract void render(Dimension sz, double scale, double offx, double offy, boolean fullInstantiate, Rectangle2D bounds);
+        abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds);
 
         void abortRendering() {}
         
         void opacityChanged() {}
-
-        void updateScaleAndOffset()
-        {
-        	wnd.offx = offx;
-        	wnd.offy = offy;
-        	wnd.scale = scale;
-        }
     }
 
     static class LayerColor {
@@ -969,7 +959,7 @@ public class EditWindow extends JPanel
 	 * The top-level cell is the original cell that is remaining displayed.
 	 * @return the top-level cell for "in-place" display.
 	 */
-	public Cell getInPlaceEditTopCell() { return topLevelCell; }
+	public Cell getInPlaceEditTopCell() { return inPlaceDisplay ? inPlaceDescent.get(0).getParent() : cell; }
 
 	/**
 	 * Method to return a List of NodeInsts to the cell being in-place edited.
@@ -983,9 +973,14 @@ public class EditWindow extends JPanel
 	 * Method to set the List of NodeInsts to the cell being in-place edited.
 	 * In-place display implies that the user has descended into a lower-level
 	 * cell while requesting that the upper-level remain displayed.
-	 * @param list the List of NodeInsts to the cell being in-place edited.
+	 * @param da DisplayAttributes of EditWindow.
 	 */
-	public void setInPlaceEditNodePath(List<NodeInst> list) { inPlaceDescent = list; }
+	private void setInPlaceEditNodePath(WindowFrame.DisplayAttributes da) {
+        inPlaceDescent = da.inPlaceDescent;
+        intoCell = da.getIntoCellTransform();
+		outofCell = da.getOutofCellTransform();
+		inPlaceDisplay = !inPlaceDescent.isEmpty();
+    }
 
 	/**
 	 * Method to return the transformation matrix from the displayed top-level cell to the current cell.
@@ -1038,11 +1033,7 @@ public class EditWindow extends JPanel
         boolean fillTheScreen = false;
 		if (displayAttributes == null)
 		{
-			displayAttributes = new WindowFrame.DisplayAttributes();
-			displayAttributes.scale = scale;
-			displayAttributes.offX = offx;
-			displayAttributes.offY = offy;
-			displayAttributes.inPlace = false;
+			displayAttributes = new WindowFrame.DisplayAttributes(this);
 			fillTheScreen = true;
 		}
 		showCell(cell, context, fillTheScreen, displayAttributes);
@@ -1062,11 +1053,7 @@ public class EditWindow extends JPanel
 
 		// set new values
 		this.cell = cell;
-		inPlaceDisplay = displayAttributes.inPlace;
-		intoCell = displayAttributes.intoCell;
-		outofCell = displayAttributes.outofCell;
-		topLevelCell = displayAttributes.topLevelCell;
-		inPlaceDescent = displayAttributes.inPlaceDescent;
+		setInPlaceEditNodePath(displayAttributes);
 		this.pageNumber = 0;
 		cellVarContext = context;
         if (cell != null) {
@@ -1244,10 +1231,9 @@ public class EditWindow extends JPanel
         sz = getSize();
         szHalfWidth = sz.width / 2;
         szHalfHeight = sz.height / 2;
-        drawing.updateScaleAndOffset();
-//        scale = drawing.scale;
-//        offx = drawing.offx;
-//        offy = drawing.offy;
+        scale = drawing.da.scale;
+        offx = drawing.da.offX;
+        offy = drawing.da.offY;
         setScrollPosition();                        // redraw scroll bars
 
         // set the default text size (for highlighting, etc)
@@ -1471,8 +1457,10 @@ public class EditWindow extends JPanel
 
         logger.entering(CLASS_NAME, "repaintContents", bounds);
 		// do the redraw in a separate thread
-        if (fullInstantiate)
-            fullInstantiateBounds = bounds;
+        if (fullInstantiate) {
+            fullInstantiateBounds = bounds.getBounds2D();
+            GenMath.transformRect(fullInstantiateBounds, outofCell);
+        }
         invokeRenderJob(this);
 
         // do the redraw in the main thread
@@ -1580,7 +1568,9 @@ public class EditWindow extends JPanel
                 User.clearChangedInWindow(wnd);
 //					wnd.highlighter.addArea(bounds, cell);
             }
-            wnd.drawing.render(wnd.getSize(), wnd.scaleRequested, wnd.offxRequested, wnd.offyRequested, fullInstantiate, bounds);
+            WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
+                    wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
+            wnd.drawing.render(wnd.getSize(), da, fullInstantiate, bounds);
             wnd.repaint();
             logger.exiting(RENDER_JOB_CLASS_NAME, "render");
         }
@@ -2770,8 +2760,7 @@ public class EditWindow extends JPanel
 
         if (cell == null) return;
 
-        Rectangle2D cellBounds = cell.getBounds();
-		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
+        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
         Rectangle2D viewBounds = displayableBounds();
 
         // scroll bar is being repositioned: ignore the change events it generates
@@ -2850,8 +2839,7 @@ public class EditWindow extends JPanel
         double oY = dbPt.getY();
 
 		double val = (double)value/(double)scrollRangeMult;
-        Rectangle2D cellBounds = cell.getBounds();
-		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
+        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
         double newoffx = val+0.5*width;           // new offset
@@ -2873,8 +2861,7 @@ public class EditWindow extends JPanel
 		double oX = dbPt.getX();
 
         double val = (double)value/(double)scrollRangeMult;
-        Rectangle2D cellBounds = cell.getBounds();
-		if (inPlaceDisplay) cellBounds = topLevelCell.getBounds();
+        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
         double newoffy = -(val+0.5*height);
@@ -3158,42 +3145,22 @@ public class EditWindow extends JPanel
         if (schCell == null) schCell = cell;
 
         // determine display factors for new cell
-        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes();
-        da.scale = scale;
-        da.offX = offx;
-        da.offY = offy;
+        double offX = offx;
+        double offY = offy;
 		if (keepFocus)
 		{
-			da.offX -= ni.getAnchorCenterX();
-			da.offY -= ni.getAnchorCenterY();
+			offX -= ni.getAnchorCenterX();
+			offY -= ni.getAnchorCenterY();
 		}
-		da.inPlace = inPlace;
 
 		// handle in-place display
-		if (cell != schCell) da.inPlace = false;
-		if (da.inPlace)
+      	ArrayList<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
+		if (inPlace && cell == schCell)
 		{
-			AffineTransform transIn = ni.rotateIn(ni.translateIn());
-			AffineTransform transOut = ni.translateOut(ni.rotateOut());
-      		da.inPlaceDescent = new ArrayList<NodeInst>();
-			if (inPlaceDisplay)
-			{
-	    		// already doing in-place display: continue the transformation
-				da.outofCell = new AffineTransform(outofCell);
-				da.outofCell.concatenate(transOut);
-				da.intoCell = new AffineTransform(intoCell);
-				da.intoCell.preConcatenate(transIn);
-	    		for(NodeInst n : inPlaceDescent) da.inPlaceDescent.add(n);
-	      		da.topLevelCell = topLevelCell;
-	    	} else
-	    	{
-	    		// first in-place display: setup transformation
-	    		da.outofCell = transOut;
-	    		da.intoCell = transIn;
-	    		da.topLevelCell = this.cell;
-	       	}
-			da.inPlaceDescent.add(ni);
+            newInPlaceDescent.addAll(inPlaceDescent);
+			newInPlaceDescent.add(ni);
 	    }
+        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offX, offY, newInPlaceDescent);
 
 		// for stacked NodeInsts, must choose which one
 		Nodable desiredNO = null;
@@ -3340,52 +3307,27 @@ public class EditWindow extends JPanel
 				// the history record for the cell we just switched to
 				VarContext context = cellVarContext.pop();
 				int historyIndex = wf.findCellHistoryIndex(parent, context);
-				PortInst pi = null;
 				if (historyIndex >= 0)
 				{
 					// found previous in cell history: show it
 					WindowFrame.CellHistory foundHistory = wf.getCellHistoryList().get(historyIndex);
-					pi = foundHistory.getDisplayAttributes().selPort;
+//					pi = foundHistory.getDisplayAttributes().selPort;
 					foundHistory.setContext(context);
 					if (selectedExport != null)
-						foundHistory.getDisplayAttributes().selPort = no.getNodeInst().findPortInstFromProto(selectedExport);
+						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
 					wf.setCellByHistory(historyIndex);
 				} else
 				{
 					// no previous history: make one up
-			        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes();
-			        da.scale = scale;
-			        da.offX = offx;
-			        da.offY = offy;
-			        da.inPlace = inPlaceDisplay;
-			        da.intoCell = intoCell;
-			        da.outofCell = outofCell;
-			        da.topLevelCell = topLevelCell;
-			        da.inPlaceDescent = null;
-			        if (inPlaceDisplay)
-			        {
-			        	int inPlaceDepth = inPlaceDescent.size() - 1;
-			        	if (inPlaceDepth == 0)
-			        	{
-			        		da.inPlace = false;
-			        	} else
-			        	{
-			        		da.inPlaceDescent = new ArrayList<NodeInst>();
-			        		da.intoCell = new AffineTransform();
-			        		da.outofCell = new AffineTransform();
-			        		for(int i=0; i<inPlaceDepth; i++)
-			        		{
-			        			NodeInst ni = inPlaceDescent.get(i);
-			        			da.inPlaceDescent.add(ni);
-			        			da.outofCell.concatenate(ni.translateOut(ni.rotateOut()));
-			        			da.intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
-			        		}
-			        	}
-			        }
+                    ArrayList<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
+                    if (!newInPlaceDescent.isEmpty())
+                        newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
+     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offx, offy, newInPlaceDescent);
 					showCell(parent, context, true, da);
 			        wf.addToHistory(parent, context, da);
 
 					// highlight node we came from
+                    PortInst pi = null;
 					if (selectedExport != null)
 						pi = no.getNodeInst().findPortInstFromProto(selectedExport);
 	                if (pi != null)
