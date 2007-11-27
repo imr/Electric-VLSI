@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -56,6 +57,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
 
+import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -735,7 +737,9 @@ public class Sue extends Input
                         if (cnp == null) cnp = (Cell)np;
                         Variable contentsVar = cnp.getVar(varKey);
                         if (contentsVar == null) {
-                            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+                        	// really wanted: VTDISPLAYNAMEVALINH
+                            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
+                            	withCode(TextDescriptor.Code.SPICE).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
                             cnp.newVar(varKey, newObject, td);
                         }
                     }
@@ -1011,8 +1015,14 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				if (parP.theText.startsWith("^")) ni.newDisplayVar(Spice.SPICE_CARD_KEY, parP.theText.substring(1)); else
+				if (parP.theText.startsWith("^"))
+				{
+					ni.newVar(Spice.SPICE_CARD_KEY, parP.theText.substring(1),
+	                    TextDescriptor.getAnnotationTextDescriptor().withColorIndex(EGraphics.BLUE));
+				} else
+				{
 					ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
+				}
 				continue;
 			}
 
