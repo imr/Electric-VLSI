@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+BUG/MAN: (11/27/07, SMR) Spice primitive templates don't handle width/length (Bug #1422)
+FIX: In Spice.replacePortsAndVars() added "width" and "length".
+
 BUG: (11/27/07, DN) Grid axes are not always correct (Bug #1430).
 FIX: drawGrid methods use scale/offset from Drawing instead of EditWindow.
 

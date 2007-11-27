@@ -52,6 +52,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
@@ -412,7 +413,7 @@ public class Spice extends Topology
             return;
         }
 
-        infstr.append(" M=" + formatParam(value.toString()));
+        infstr.append(" M=" + formatParam(value.toString(), TextDescriptor.Unit.NONE));
     }
 
     /** Called at the end of the enter cell phase of hierarchy enumeration */
@@ -1008,7 +1009,7 @@ public class Spice extends Topology
                             if (paramVar.getCode() != TextDescriptor.Code.SPICE) continue;
                             Object obj = context.evalSpice(instVar, false);
                             if (obj != null)
-                                paramStr = formatParam(String.valueOf(obj));
+                                paramStr = formatParam(String.valueOf(obj), instVar.getUnit());
                         }
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
@@ -1077,7 +1078,7 @@ public class Spice extends Topology
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
                         } else
-                            extra = formatParam(extra);
+                            extra = formatParam(extra, resistVar.getUnit());
 					} else {
                         if (fun == PrimitiveNode.Function.PRESIST) {
                             partName = "XR";
@@ -1086,10 +1087,13 @@ public class Spice extends Topology
                             SizeOffset offset = ni.getSizeOffset();
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
-                            if (Simulation.isSpiceWriteTransSizeInLambda()) {
+                            if (Simulation.isSpiceWriteTransSizeInLambda())
+                            {
                                 extra = " L="+length+" W="+width;
-                            } else {
-                                extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
+                            } else
+                            {
+                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE)+
+                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE);
                             }
                             if (layoutTechnology == Technology.getCMOS90Technology() ||
                                (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
@@ -1115,10 +1119,13 @@ public class Spice extends Topology
                             SizeOffset offset = ni.getSizeOffset();
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
-                            if (Simulation.isSpiceWriteTransSizeInLambda()) {
+                            if (Simulation.isSpiceWriteTransSizeInLambda())
+                            {
                                 extra = " L="+length+" W="+width;
-                            } else {
-                                extra = " L="+formatParam(length+"*LAMBDA")+" W="+formatParam(width+"*LAMBDA");
+                            } else
+                            {
+                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE)+
+                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE);
                             }
                             if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) {
                                 extra = "rnwod "+extra;
@@ -1150,7 +1157,7 @@ public class Spice extends Topology
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
                         } else
-                            extra = formatParam(extra);
+                            extra = formatParam(extra, capacVar.getUnit());
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.INDUCT)
@@ -1174,7 +1181,7 @@ public class Spice extends Topology
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
                         } else
-                            extra = formatParam(extra);
+                            extra = formatParam(extra, inductVar.getUnit());
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
@@ -1400,15 +1407,15 @@ public class Spice extends Topology
                         // schematic transistors may be text
                         if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                             if (lengthSubtraction != 0)
-                                infstr.append(" L="+formatParam((String)size.getLength()) + " - "+ lengthSubtraction);
+                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE) + " - "+ lengthSubtraction);
                             else
-                                infstr.append(" L="+formatParam((String)size.getLength()));
+                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE));
                         } else {
                             infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                         }
                         if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
-                            infstr.append(" W="+formatParam((String)size.getWidth()));
+                            infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE));
                         } else {
                             infstr.append(" W=" + TextUtils.formatDouble(w, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
@@ -1426,12 +1433,12 @@ public class Spice extends Topology
                     double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                         if (lengthSubtraction != 0)
-                            infstr.append(" L="+formatParam((String)size.getLength()) + " - "+lengthSubtraction);
+                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE) + " - "+lengthSubtraction);
                         else
-                            infstr.append(" L="+formatParam((String)size.getLength()));
+                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE));
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                        infstr.append(" W="+formatParam((String)size.getWidth()));
+                        infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE));
                 }
             }
 
@@ -1792,8 +1799,12 @@ public class Spice extends Topology
                                        HierarchyEnumerator.CellInfo info, boolean flatNetNames) {
         StringBuffer infstr = new StringBuffer();
         NodeProto prototype = null;
+    	PrimitiveNode prim = null;
     	if (no != null)
+    	{
     		prototype = no.getProto();
+    		if (prototype instanceof PrimitiveNode) prim = (PrimitiveNode)prototype;
+    	}
 
         for(int pt = 0; pt < line.length(); pt++)
         {
@@ -1821,7 +1832,17 @@ public class Spice extends Topology
             	String nodeName = getSafeNetName(no.getName(), false);
 //            	nodeName = nodeName.replaceAll("[\\[\\]]", "_");
                 infstr.append(nodeName);
-            } else if (cni != null && pp != null)
+            } else if (paramName.equalsIgnoreCase("width") && prim != null)
+            {
+            	NodeInst ni = (NodeInst)no;
+                PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(context);
+            	if (npSize != null) infstr.append(npSize.getWidth().toString());
+            } else if (paramName.equalsIgnoreCase("length") && prim != null)
+            {
+            	NodeInst ni = (NodeInst)no;
+                PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(context);
+                if (npSize != null) infstr.append(npSize.getLength().toString());
+            } if (cni != null && pp != null)
             {
                 // port name found: use its spice node
                 Network net = cni.getNetList().getNetwork(no, pp, 0);
@@ -1859,7 +1880,7 @@ public class Spice extends Topology
                         pVal = String.valueOf(context.evalVar(attrVar, no));
                     }
 //                    if (attrVar.getCode() != TextDescriptor.Code.NONE)
-                    	pVal = formatParam(pVal);
+                    	pVal = formatParam(pVal, attrVar.getUnit());
                     infstr.append(pVal);
                     //else
                     //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
@@ -2933,12 +2954,23 @@ public class Spice extends Topology
      * @param param the string param value (without the name= part).
      * @return a param string with single quotes around it
      */
-    private String formatParam(String param)
+    private String formatParam(String param, TextDescriptor.Unit u)
     {
     	// first remove quotes
         String value = trimSingleQuotes(param);
 
-        // if Spice engine cannot handle quotes, return stripped value
+        // see if the result evaluates to a number
+		if (TextUtils.isANumberPostFix(value)) return value;
+
+		// if purely numeric, try converting to proper units
+        try {
+            Double v = Double.valueOf(value);
+            if (u == TextDescriptor.Unit.DISTANCE)
+            	return TextUtils.formatDoublePostFix(v.doubleValue());
+            return value;
+        } catch (NumberFormatException e) {}
+
+        // not a number: if Spice engine cannot handle quotes, return stripped value
 		switch (spiceEngine)
 		{
 			case SPICE_ENGINE_2:
@@ -2946,14 +2978,7 @@ public class Spice extends Topology
 				return value;
 		}
 
-        // see if the result evaluates to a number
-		if (TextUtils.isANumberPostFix(value)) return value;
-        try {
-            Double.valueOf(value);
-            return value;
-        } catch (NumberFormatException e) {}
-
-        // not a number, enclose it in quotes
+        // not a number but Spice likes quotes, enclose it
         return "'" + value + "'";
     }
 
