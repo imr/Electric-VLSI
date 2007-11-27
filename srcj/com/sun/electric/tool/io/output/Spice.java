@@ -1842,7 +1842,7 @@ public class Spice extends Topology
             	NodeInst ni = (NodeInst)no;
                 PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(context);
                 if (npSize != null) infstr.append(npSize.getLength().toString());
-            } if (cni != null && pp != null)
+            } else if (cni != null && pp != null)
             {
                 // port name found: use its spice node
                 Network net = cni.getNetList().getNetwork(no, pp, 0);
