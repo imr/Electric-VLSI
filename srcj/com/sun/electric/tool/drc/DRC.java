@@ -320,7 +320,7 @@ return false;
         ERROR_CHECK_CELL (1),       /** DRC stops after first error per cell is found */
         ERROR_CHECK_EXHAUSTIVE (2);  /** DRC checks all combinations */
         private final int mode;   // mode
-        DRCCheckMode(int mode) {this.mode = mode;}
+        DRCCheckMode(int m) {this.mode = m;}
         public int mode() { return this.mode; }
         public String toString() {return name();}
     }

@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+IMP/MAN: (11/28/07, GVG) Second version of multi-threaded min area DRC checking.
+It collects layers per cell.
+
 BUG/MAN: (11/27/07, SMR) Spice primitive templates don't handle width/length (Bug #1422)
 FIX: In Spice.replacePortsAndVars() added "width" and "length".
 
