@@ -580,7 +580,7 @@ class NetCell
 				if (drawn < 0) continue;
                 int netIndexN = netlistN.getNetIndexByMap(drawn);
 				if (netlistN.hasNames(netIndexN)) continue;
-				netlistN.addTempName(netIndexN, ni.getName() + "@" + /*PORT_SEPARATOR +*/ ni.getProto().getPort(j).getName());
+				netlistN.addTempName(netIndexN, ni.getName() + PORT_SEPARATOR + ni.getProto().getPort(j).getName());
 			}
 		}
         for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++)

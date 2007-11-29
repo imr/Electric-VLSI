@@ -7,6 +7,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06m: *******************************
 
+IMP: (11/29/07, RK) I enabled Dima's change to make '.' a port separator 
+in layout as well as schematic. I fixed NCC regression to accomodate this change.
+
 IMP/MAN: (11/28/07, GVG) Second version of multi-threaded min area DRC checking.
 It collects layers per cell.
 
