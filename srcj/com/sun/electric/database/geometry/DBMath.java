@@ -44,8 +44,9 @@ public class DBMath extends GenMath {
      * will still be regarded as "equal".
      */
     private static final double EPSILON = 1/GRID;
+    private static final double HALF_EPSILON = 0.5/GRID;
 
-	private static final double TINYDELTA = EPSILON*1.01;
+    private static final double TINYDELTA = EPSILON*1.01;
 
 	/**
 	 * To return private epsilon used for calculation.
@@ -123,7 +124,7 @@ public class DBMath extends GenMath {
 	 * @return true if first number is greater than the second number.
 	 */
 	public static boolean isGreaterThan(double a, double b) {
-        return a - b > 0.5/GRID;
+        return a - b > HALF_EPSILON; // 0.5/GRID;
 	}
 
 	/**

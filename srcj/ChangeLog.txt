@@ -5,6 +5,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+IMP: (11/29/07, GVG) DBMath.isGreaterThan() using HALF_EPSILON instead of 0.5/GRID.
+PolyBase.isInsideGenericPolygonOriginal() testing for bounding box of the polygon first
+(strategy gave good results in new min area algorithm).
+
 IMP: (11/29/07, RK) I enabled Dima's change to make '.' a port separator 
 in layout as well as schematic. I fixed NCC regression to accomodate this change.
 

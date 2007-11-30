@@ -329,6 +329,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 
 	/**
 	 * Method to tell whether a coordinate is inside of this Poly.
+     * The algorith relies on the Java class Area. Very slow.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
@@ -338,6 +339,12 @@ public class PolyBase implements Shape, PolyNodeMerge
         return area.contains(pt.getX(), pt.getY());
     }
 
+    /**
+	 * Method to tell whether a coordinate is inside of this Poly.
+     * This algorithm is based on angles. If the angle is 360 then the point is inside
+	 * @param pt the point in question.
+	 * @return true if the point is inside of this Poly.
+	 */
     private boolean isInsideGenericPolygonOriginal(Point2D pt)
     {
         // general polygon containment by summing angles to vertices
@@ -348,6 +355,12 @@ public class PolyBase implements Shape, PolyNodeMerge
         {
             return true;
         }
+        Rectangle2D box = getBounds2D();
+
+        // The point is outside the bounding box of the polygon
+        if (!DBMath.pointInsideRect(pt, box))
+            return false;
+
         int lastp = DBMath.figureAngle(pt, lastPoint);
         for (Point2D thisPoint : points)
         {
@@ -397,13 +410,10 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return false;
 			}
 
-            boolean oldMethod = isInsideGenericPolygonOriginal(pt); 
-//            if (Job.getDebug())
-//            {
-//                boolean newCode = isPointInsideArea(pt);
-//                assert(newCode == oldMethod);
-//            }
-            return oldMethod;
+            boolean method = isInsideGenericPolygonOriginal(pt);
+//            boolean method = isPointInsideArea(pt);  // very slow. 3 times slower in 1 example
+
+            return method;
         }
 
 		if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
