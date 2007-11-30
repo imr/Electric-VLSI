@@ -40,6 +40,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -581,7 +582,7 @@ public class EditMenu {
                             break;
                         case 1:			// make all parameters invisible
                             if (!var.isDisplay()) continue;
-                            ni.addVar(var.withDisplay(false));
+                            ni.addVar(var.withTextDescriptor(var.getTextDescriptor().withDisplay(TextDescriptor.Display.HIDDEN)));
                             changed = true;
                             break;
                         case 2:			// make all parameters have default visiblity

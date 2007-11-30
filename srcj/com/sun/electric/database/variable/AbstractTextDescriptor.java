@@ -111,6 +111,13 @@ abstract class AbstractTextDescriptor implements Serializable
 	/** variable is TCL */								private static final int VTCL =               VCODE2;
 	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
 
+    /** enumeration which represents text visibility .*/
+    public enum Display {
+        /** Non-displayable variable */                         NONE,
+        /** Displayable variable which is temporary hidden */   HIDDEN,
+        /** Displayable variable which is shown */              SHOWN;
+    };
+    
     /**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
 	 * The Position describes the "anchor point" of the text,
@@ -890,10 +897,9 @@ abstract class AbstractTextDescriptor implements Serializable
      * Returns a hash code for this <code>TextDescriptor</code>.
      * @return  a hash code value for this TextDescriptor.
 	 */
+    @Override
     public int hashCode() {
-		int hash = lowLevelGet0()^lowLevelGet1()^getColorIndex()^getCode().hashCode();
-        if (isDisplay()) hash ^= 123456789;
-        return hash;
+		return lowLevelGet0()^lowLevelGet1()^getColorIndex()^getCode().hashCode()^getDisplay().hashCode();
     }
 
     /**
@@ -907,25 +913,15 @@ abstract class AbstractTextDescriptor implements Serializable
      * @return  <code>true</code> if the <code>TextDescriptor</code> are equal;
      *          <code>false</code> otherwise.
      */
+    @Override
     public boolean equals(Object anObject) {
 		if (this == anObject) {
 			return true;
 		}
 		if (anObject instanceof AbstractTextDescriptor) {
-            long bits;
-            int ci;
-            Code code;
-            boolean display;
-            synchronized(anObject) {
-    			AbstractTextDescriptor td = (AbstractTextDescriptor)anObject;
-                bits = td.lowLevelGet();
-                ci = td.getColorIndex();
-                code = td.getCode();
-                display = isDisplay();
-            }
-            synchronized(this) {
-			    return lowLevelGet() == bits && getColorIndex() == ci && getCode() == code && isDisplay() == display;
-            }
+    		AbstractTextDescriptor td = (AbstractTextDescriptor)anObject;
+			return lowLevelGet() == td.lowLevelGet() && getColorIndex() == td.getColorIndex() &&
+                    getCode() == td.getCode() && getDisplay() == td.getDisplay();
 		}
 		return false;
     }
@@ -969,10 +965,18 @@ abstract class AbstractTextDescriptor implements Serializable
     
   
 	/**
+	 * Method to return mode how this TextDescriptor is displayable.
+	 * @return Display mode how this TextDescriptor is displayable.
+	 */
+	public abstract Display getDisplay();
+    
+	/**
 	 * Method to return true if this TextDescriptor is displayable.
 	 * @return true if this TextDescriptor is displayable.
 	 */
-	public abstract boolean isDisplay();
+	public boolean isDisplay() {
+        return getDisplay() == Display.SHOWN;
+    }
     
 	/**
 	 * Method to return the text position of the TextDescriptor.
@@ -1003,7 +1007,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * or relative text (in quarter units).
 	 * @return the text size of the text in this TextDescriptor.
 	 */
-	public synchronized Size getSize()
+	public Size getSize()
 	{
 		int textSize = getField(VTSIZE, VTSIZESH);
 		if (textSize == 0) return Size.newRelSize(1);
@@ -1169,7 +1173,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * Method to return the X offset of the text in the TextDescriptor.
 	 * @return the X offset of the text in the TextDescriptor.
 	 */
-	public synchronized double getXOff()
+	public double getXOff()
 	{
 		int offset = getField(VTXOFF, VTXOFFSH);
 		if (isFlag(VTXOFFNEG)) offset = -offset;
@@ -1181,7 +1185,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * Method to return the Y offset of the text in the TextDescriptor.
 	 * @return the Y offset of the text in the TextDescriptor.
 	 */
-	public synchronized double getYOff()
+	public double getYOff()
 	{
 		int offset = getField(VTYOFF, VTYOFFSH);
 		if (isFlag(VTYOFFNEG)) offset = -offset;

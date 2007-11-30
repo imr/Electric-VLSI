@@ -28,7 +28,7 @@ package com.sun.electric.database.variable;
 */
 public class MutableTextDescriptor extends AbstractTextDescriptor
 {
-    /** the text descriptor is displayable */   private boolean display;
+    /** the text descriptor is displayable */   private Display display;
 	/** the bits of the text descriptor */		private long bits;
 	/** the color of the text descriptor */		private int colorIndex;
     /** the code type of the text descriptor */ private Code code;
@@ -39,7 +39,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public MutableTextDescriptor(AbstractTextDescriptor descriptor)
 	{
-        this.display = descriptor.isDisplay();
+        this.display = descriptor.getDisplay();
 		this.bits = descriptor.lowLevelGet();
 		this.colorIndex = descriptor.getColorIndex();
         this.code = descriptor.getCode();
@@ -65,7 +65,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public MutableTextDescriptor(long descriptor, int colorIndex, boolean display, Code code)
 	{
-        this.display = display;
+        this.display = display ? Display.SHOWN : Display.NONE;
 		this.bits = descriptor;
 		this.colorIndex = colorIndex;
         this.code = code != null ? code : Code.NONE;
@@ -78,7 +78,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
     public void setCBits(int descriptor0, int descriptor1)
     {
-        display = true;
+        display = Display.SHOWN;
         bits = ((long)descriptor1 << 32) | (descriptor0 & 0xffffffffL);
         colorIndex = 0;
         code = Code.NONE;
@@ -92,17 +92,18 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
     public void setCBits(int descriptor0, int descriptor1, int cFlags)
     {
-        display = (cFlags & VDISPLAY) != 0;
+        display = (cFlags & VDISPLAY) != 0 ? Display.SHOWN : Display.NONE;
         bits = ((long)descriptor1 << 32) | (descriptor0 & 0xffffffffL);
         colorIndex = 0;
         code = Code.getByCBits(cFlags);
     }
     
 	/**
-	 * Method to return true if this TextDescriptor is displayable.
-	 * @return true if this TextDescriptor is displayable.
+	 * Method to return mode how this TextDescriptor is displayable.
+	 * @return Display mode how this TextDescriptor is displayable.
 	 */
-	public boolean isDisplay() { return display; }
+    @Override
+	public Display getDisplay() { return display; }
     
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
@@ -113,7 +114,8 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the bits in the TextDescriptor.
 	 */
-	public synchronized long lowLevelGet() { return bits; }
+    @Override
+	public long lowLevelGet() { return bits; }
     
 	/**
 	 * Method to return the color index of the TextDescriptor.
@@ -122,12 +124,14 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 * Methods in "EGraphics" manipulate color indices.
 	 * @return the color index of the TextDescriptor.
 	 */
+    @Override
 	public int getColorIndex() { return colorIndex; }
     
     /**
      * Return code type of the TextDescriptor.
      * @return code tyoe
      */
+    @Override
     public Code getCode() { return code; }
 
     private void setField(long mask, int shift, int value)
@@ -198,7 +202,14 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 * Method to set this TextDescriptor to be displayable.
 	 * Displayable TextDescriptors are shown with the object.
 	 */
-	public void setDisplay(boolean state) { display = state; }
+	public void setDisplay(boolean state) { setDisplay(state ? Display.SHOWN : Display.NONE); }
+
+	/**
+	 * Method to set dispalyable mode of this TextDescriptor.
+	 * Displayable TextDescriptors are shown with the object.
+     * @param display displayable mode
+	 */
+	public void setDisplay(Display display) { this.display = display; }
 
     /**
 	 * Method to set the color index of the TextDescriptor.

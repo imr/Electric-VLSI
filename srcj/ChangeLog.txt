@@ -5,6 +5,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG/MAN: (11/30/07, DN) The various attributes of a piece of text are losing their value (Bug #1447)
+FIX: Displayability of TextDescriptor is one of: NONE, HIDDEN, SHOWN.
+     They are written in JELIB as: "D" - SHOWN, "d" - HIDDEN.
+
 IMP: (11/29/07, GVG) DBMath.isGreaterThan() using HALF_EPSILON instead of 0.5/GRID.
 PolyBase.isInsideGenericPolygonOriginal() testing for bounding box of the polygon first
 (strategy gave good results in new min area algorithm).

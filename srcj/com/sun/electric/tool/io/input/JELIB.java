@@ -1621,7 +1621,7 @@ public class JELIB extends LibraryFiles
         
         boolean error = false;
         mtd.setCBits(0, 0, 0);
-        if (!onVar) mtd.setDisplay(true);
+        if (!onVar) mtd.setDisplay(TextDescriptor.Display.SHOWN);
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
 		{
@@ -1629,7 +1629,8 @@ public class JELIB extends LibraryFiles
 			switch (varBit)
 			{
 				case 'D':		// display position
-					mtd.setDisplay(true);
+				case 'd':		// display position
+					mtd.setDisplay(varBit == 'D' ? TextDescriptor.Display.SHOWN : TextDescriptor.Display.HIDDEN);
 					j++;
 					if (j >= varBits.length())
 					{

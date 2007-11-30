@@ -33,7 +33,7 @@ import java.util.HashMap;
  */
 public class TextDescriptor extends AbstractTextDescriptor
 {
-    /** the text descriptor is displayable */   private final boolean display;
+    /** the text descriptor is displayable */   private final Display display;
 	/** the bits of the text descriptor */		private final long bits;
 	/** the color of the text descriptor */		private final int colorIndex;
     /** the code type of the text descriptor */ private final Code code;
@@ -47,7 +47,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	private TextDescriptor(AbstractTextDescriptor descriptor)
 	{
-        boolean display = descriptor.isDisplay();
+        Display display = descriptor.getDisplay();
         long bits = descriptor.lowLevelGet();
 
         // Convert invalid VTPOSITION to default VTPOSCENT
@@ -57,7 +57,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 		// Convert zero VTSIZE to RelSize(1)
 		if ((bits & VTSIZE) == 0) bits |= (4L << Size.TXTQGRIDSH) << VTSIZESH;
         // clear unused bits if non-displayable
-        if (!display) bits &= VTSEMANTIC;
+        if (display == Display.NONE) bits &= VTSEMANTIC;
         // clear signs of zero-offsets
         boolean zeroXOff = (bits & VTXOFF) == 0;
         boolean zeroYOff = (bits & VTYOFF) == 0;
@@ -67,7 +67,7 @@ public class TextDescriptor extends AbstractTextDescriptor
        
         this.display = display;
         this.bits = bits;
-		this.colorIndex = display ? descriptor.getColorIndex() : 0;
+		this.colorIndex = display != Display.NONE ? descriptor.getColorIndex() : 0;
         this.code = descriptor.getCode();
 	}
     
@@ -105,7 +105,20 @@ public class TextDescriptor extends AbstractTextDescriptor
 	public TextDescriptor withDisplay(boolean state) {
         if (isDisplay() == state) return this;
 		MutableTextDescriptor td = new MutableTextDescriptor(this);
-		td.setDisplay(state);
+		td.setDisplay(state ? Display.SHOWN : Display.NONE);
+        return newTextDescriptor(td);
+    }
+
+	/**
+	 * Returns TextDescriptor which differs from this TextDescriptor by displayable mode.
+	 * Displayable Variables are shown with the object.
+     * @param state new displayable mode.
+	 * @return TextDescriptor which differs from this TextDescriptor by displayable mode.
+	 */
+	public TextDescriptor withDisplay(Display display) {
+        if (getDisplay() == display) return this;
+		MutableTextDescriptor td = new MutableTextDescriptor(this);
+		td.setDisplay(display);
         return newTextDescriptor(td);
     }
 
@@ -334,7 +347,7 @@ public class TextDescriptor extends AbstractTextDescriptor
     public TextDescriptor withDisplayWithoutParamAndCode() {
         if (isDisplay() && !isParam() && !isCode()) return this;
         MutableTextDescriptor mtd = new MutableTextDescriptor(this);
-        mtd.setDisplay(true);
+        mtd.setDisplay(Display.SHOWN);
         mtd.setParam(false);
         mtd.setCode(Code.NONE);
         return newTextDescriptor(mtd);
@@ -343,10 +356,11 @@ public class TextDescriptor extends AbstractTextDescriptor
     public static int cacheSize() { return allDescriptors.size(); }
     
 	/**
-	 * Method to return true if this TextDescriptor is displayable.
-	 * @return true if this TextDescriptor is displayable.
+	 * Method to return mode how this TextDescriptor is displayable.
+	 * @return Display mode how this TextDescriptor is displayable.
 	 */
-	public boolean isDisplay() { return display; }
+    @Override
+	public Display getDisplay() { return display; }
     
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
@@ -357,6 +371,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the bits in the TextDescriptor.
 	 */
+    @Override
 	public long lowLevelGet() { return bits; }
     
 	/**
@@ -366,12 +381,14 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 * Methods in "EGraphics" manipulate color indices.
 	 * @return the color index of the TextDescriptor.
 	 */
+    @Override
 	public int getColorIndex() { return colorIndex; }
     
     /**
      * Return code type of the TextDescriptor.
      * @return code tyoe
      */
+    @Override
     public Code getCode() { return code; }
     
     /**

@@ -513,10 +513,10 @@ public class JELIB extends Output {
      */
     private String describeDescriptor(Variable var, TextDescriptor td) {
         StringBuffer ret = new StringBuffer();
-        boolean display = false;
-        if (var == null || td.isDisplay()) display = true;
+        TextDescriptor.Display display = td.getDisplay();
+        if (var == null) display = TextDescriptor.Display.SHOWN;
         
-        if (display) {
+        if (display != TextDescriptor.Display.NONE) {
             // write size
             TextDescriptor.Size size = td.getSize();
             if (size.isAbsolute()) ret.append("A" + (int)size.getSize() + ";");
@@ -530,7 +530,7 @@ public class JELIB extends Output {
                 ret.append("C" + color + ";");
             
             // displayable: write display position
-            ret.append("D");
+            ret.append(display == TextDescriptor.Display.SHOWN ? "D" : "d");
             TextDescriptor.Position pos = td.getPos();
             if (pos == TextDescriptor.Position.UP) ret.append("8"); else
                 if (pos == TextDescriptor.Position.DOWN) ret.append("2"); else
@@ -556,7 +556,7 @@ public class JELIB extends Output {
         // write inherit
         if (td.isInherit()) ret.append("H");
         
-        if (display) {
+        if (display != TextDescriptor.Display.NONE) {
             // write italic
             if (td.isItalic()) ret.append("I");
             
@@ -582,7 +582,7 @@ public class JELIB extends Output {
         // write parameter
         if (var != null && td.isParam()) ret.append("P");
         
-        if (display) {
+        if (display != TextDescriptor.Display.NONE) {
             // write rotation
             TextDescriptor.Rotation rot = td.getRotation();
             if (rot == TextDescriptor.Rotation.ROT90) ret.append("R"); else
@@ -603,7 +603,7 @@ public class JELIB extends Output {
                             if (unit == TextDescriptor.Unit.DISTANCE) ret.append("UD"); else
                                 if (unit == TextDescriptor.Unit.TIME) ret.append("UT");
         
-        if (display) {
+        if (display != TextDescriptor.Display.NONE) {
             // write offset
             double offX = td.getXOff();
             if (offX != 0) ret.append("X" + TextUtils.formatDouble(offX, 0) + ";");
