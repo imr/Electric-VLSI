@@ -1183,10 +1183,8 @@ class NetSchem extends NetCell {
 		buildNetworkLists(netMapF);
         assert equivPortsP.length == equivPortsN.length;
 		netlistP = new NetlistShorted(netlistN, Netlist.ShortResistors.PARASITIC, netMapP);
-        netlistP.checkNames();
         assert equivPortsA.length == equivPortsN.length;
 	 	netlistA = new NetlistShorted(netlistN, Netlist.ShortResistors.ALL, netMapA);
-        netlistA.checkNames();
 		if (updatePortImplementation()) changed = true;
 		if (updateInterface()) changed = true;
 		return changed;

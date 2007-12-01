@@ -778,9 +778,7 @@ class NetCell
 		internalConnections(netMapN, netMapP, netMapA);
 		buildNetworkList(netMapN);
 		netlistP = new NetlistShorted(netlistN, Netlist.ShortResistors.PARASITIC, netMapP);
-        netlistP.checkNames();
 	 	netlistA = new NetlistShorted(netlistN, Netlist.ShortResistors.ALL, netMapA);
-        netlistA.checkNames();
 		return updateInterface();
 	}
 

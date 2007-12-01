@@ -191,50 +191,50 @@ public class NetlistShorted extends Netlist {
         return isUsernamed.get(netIndex);
     }
 
-    void checkNames() {
-        TreeSet<String> exportedNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
-        TreeSet<String> privateNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
-        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++) {
-            exportedNames.clear();
-            privateNames.clear();
-            for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
-                baseNetlist.fillNames(baseNetIndex, exportedNames, privateNames);
-            }
-            if (exportedNames.size() > 0 || privateNames.size() > 0) {
-                assert isUsernamed(thisNetIndex);
-                assert getName(thisNetIndex) == (exportedNames.size() > 0 ? exportedNames : privateNames).iterator().next();
-                assert isExported(thisNetIndex) == (exportedNames.size() > 0);
-                Iterator<String> eIt = getExportedNames(thisNetIndex);
-                Iterator<String> pIt = getNames(thisNetIndex);
-                for (String name : exportedNames) {
-                    assert eIt.next().equals(name);
-                    assert pIt.next().equals(name);
-                }
-                assert !eIt.hasNext();
-                for (String name : privateNames) {
-                    if (exportedNames.contains(name)) {
-                        continue;
-                    }
-                    String pName = pIt.next();
-                    if (!pName.equals(name)) {
-                        int x = 0;
-                    }
-                    assert pName.equals(name);
-                }
-                assert !pIt.hasNext();
-            } else {
-                assert !isUsernamed(thisNetIndex);
-                assert !isExported(thisNetIndex);
-                boolean hasTempName = false;
-                String tempName = getName(thisNetIndex);
-                for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
-                    assert !baseNetlist.isUsernamed(baseNetIndex);
-                    if (baseNetlist.getName(baseNetIndex).equals(tempName)) {
-                        hasTempName = true;
-                    }
-                }
-                assert hasTempName;
-            }
-        }
-    }
+//    void checkNames() {
+//        TreeSet<String> exportedNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
+//        TreeSet<String> privateNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
+//        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++) {
+//            exportedNames.clear();
+//            privateNames.clear();
+//            for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
+//                baseNetlist.fillNames(baseNetIndex, exportedNames, privateNames);
+//            }
+//            if (exportedNames.size() > 0 || privateNames.size() > 0) {
+//                assert isUsernamed(thisNetIndex);
+//                assert getName(thisNetIndex) == (exportedNames.size() > 0 ? exportedNames : privateNames).iterator().next();
+//                assert isExported(thisNetIndex) == (exportedNames.size() > 0);
+//                Iterator<String> eIt = getExportedNames(thisNetIndex);
+//                Iterator<String> pIt = getNames(thisNetIndex);
+//                for (String name : exportedNames) {
+//                    assert eIt.next().equals(name);
+//                    assert pIt.next().equals(name);
+//                }
+//                assert !eIt.hasNext();
+//                for (String name : privateNames) {
+//                    if (exportedNames.contains(name)) {
+//                        continue;
+//                    }
+//                    String pName = pIt.next();
+//                    if (!pName.equals(name)) {
+//                        int x = 0;
+//                    }
+//                    assert pName.equals(name);
+//                }
+//                assert !pIt.hasNext();
+//            } else {
+//                assert !isUsernamed(thisNetIndex);
+//                assert !isExported(thisNetIndex);
+//                boolean hasTempName = false;
+//                String tempName = getName(thisNetIndex);
+//                for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
+//                    assert !baseNetlist.isUsernamed(baseNetIndex);
+//                    if (baseNetlist.getName(baseNetIndex).equals(tempName)) {
+//                        hasTempName = true;
+//                    }
+//                }
+//                assert hasTempName;
+//            }
+//        }
+//    }
 }
