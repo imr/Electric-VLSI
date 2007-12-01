@@ -96,17 +96,21 @@ public class MultiDRCToolJob extends Job {
 //            Layer layer = it.next();
 //            if (layerCheck.layersMap.get(layer) == null)
 //            {
-//                System.out.println("Skipping Layer " + layer.getName());
+//                System.out.println("SkippingLayer " + layer.getName());
 //                continue;
 //            }
             if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
                 continue; // dirty way to skip the MoCMOS p-active well
             // Polysilicon-1 and Transistor-Poly should be checked in 1 job
-            if (layer.getFunction().isPoly())
+            else if (layer.getFunction().isPoly())
             {
                 if (polyDone)
                     continue; // done already
                 polyDone = true; // won't do the next time the layer is detected
+            }
+            else if (layer.getFunction().isContact())  // via*, polyCut, activeCut
+            {
+                continue;
             }
 
             DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
@@ -303,6 +307,7 @@ public class MultiDRCToolJob extends Job {
         {
             Cell cell = info.getCell();
             Set<String> set = getLayersInCell(cell);
+            assert(cellLayersCon.cellLayersMap.get(cell) == null);
             cellLayersCon.cellLayersMap.put(cell, set);
         }
 
