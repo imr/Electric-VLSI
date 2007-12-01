@@ -17,7 +17,6 @@ import com.sun.electric.technology.*;
 import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.io.Serializable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,25 +25,26 @@ import java.io.Serializable;
  * Time: 2:18:14 PM
  * To change this template use File | Settings | File Templates.
  */
-public class MultiDRCToolJob extends Job {
-    private static long globalStartTime = 0;
+class MultiDRCToolJob extends Job {
+    private long globalStartTime;
     private Layer theLayer;
     private String theLayerName; // to avoid serialization of the class Layer
     private Cell topCell;
     private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
     private ErrorLogger errorLogger;
-    private CellLayersContainer cellLayersCon;
+    private DRC.CellLayersContainer cellLayersCon;
 
     MultiDRCToolJob(Cell c, String l, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spacingR,
-                    CellLayersContainer cellLayersC)
+                    DRC.CellLayersContainer cellLayersC, long globalStartT)
     {
-        super("Design-Rule Check " + c + ", layer " + l, DRC.getDRCTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+        super("Design-Rule MinArea Check " + c + ", layer " + l, DRC.getDRCTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
         this.topCell = c;
         this.theLayerName = l;
         this.minAreaRule = minAreaR;
         this.enclosedAreaRule = enclosedAreaR;
         this.spacingRule = spacingR;
         this.cellLayersCon = cellLayersC;
+        this.globalStartTime = globalStartT;
         startJob();
     }
 
@@ -69,255 +69,26 @@ public class MultiDRCToolJob extends Job {
         return true;
     }
 
-    public static void checkDesignRules(Cell cell)
+    public static void startMultiMinAreaChecking(Cell cell, Layer layer, DRC.CellLayersContainer cellLayersC,
+                                                 long globalStartT, GenMath.MutableBoolean polyDone)
     {
-        // Check if there are DRC rules for particular tech
-        Technology tech = cell.getTechnology();
-		DRCRules rules = DRC.getRules(tech);
-        // Nothing to check for this particular technology
-		if (rules == null || rules.getNumberOfRules() == 0)
-                return;
-
-        globalStartTime = System.currentTimeMillis();
-        CellLayersContainer cellLayersCon = new CellLayersContainer();
-//        CheckLayerEnumerator layerCheck = new CheckLayerEnumerator(cell.getTechnology().getNumLayers());
-//        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCheck);
-        CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCellCheck);
-        boolean polyDone = false;
-
-        // Multi thread the DRC algorithms per layer
-        Collection<String> layers = cellLayersCon.cellLayersMap.get(cell);
-
-        for (String layerS : layers)
-//        for (Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext();)
+        if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
+            return; // dirty way to skip the MoCMOS p-active well
+        else if (layer.getFunction().isPoly())
         {
-            Layer layer = tech.findLayer(layerS);
-//            Layer layer = it.next();
-//            if (layerCheck.layersMap.get(layer) == null)
-//            {
-//                System.out.println("SkippingLayer " + layer.getName());
-//                continue;
-//            }
-            if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
-                continue; // dirty way to skip the MoCMOS p-active well
             // Polysilicon-1 and Transistor-Poly should be checked in 1 job
-            else if (layer.getFunction().isPoly())
-            {
-                if (polyDone)
-                    continue; // done already
-                polyDone = true; // won't do the next time the layer is detected
-            }
-            else if (layer.getFunction().isContact())  // via*, polyCut, activeCut
-            {
-                continue;
-            }
+            if (polyDone.booleanValue())
+                return; // done already
+            polyDone.setValue(true); // won't do the next time the layer is detected
+        } else if (layer.getFunction().isContact())  // via*, polyCut, activeCut
+            return;
 
-            DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
-            DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
-            DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
-            if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
-                continue; // nothing to check
-            new MultiDRCToolJob(cell, layer.getName(), minAreaRule, enclosedAreaRule, spaceRule, cellLayersCon);
-        }
-    }
-
-    /**************************************************************************************************************
-	 *  CellLayersContainer class
-	 **************************************************************************************************************/
-    private static class CellLayersContainer implements Serializable
-    {
-        private Map<Cell,Set<String>> cellLayersMap;
-
-        CellLayersContainer()
-        {
-            cellLayersMap = new HashMap<Cell,Set<String>>();
-        }
-        
-        boolean addCellLayers(Cell cell, Layer layer)
-        {
-            Set<String> set = cellLayersMap.get(cell);
-
-            // first time the cell is accessed
-            if (set == null)
-            {
-                set = new HashSet<String>(1);
-                cellLayersMap.put(cell, set);
-            }
-            return set.add(layer.getName());
-        }
-    }
-
-    /**************************************************************************************************************
-	 *  CheckLayerEnumerator class
-	 **************************************************************************************************************/
-    /** Class to collect which layers are available in the design
-     *
-     */
-    private static class CheckLayerEnumerator extends HierarchyEnumerator.Visitor
-    {
-        private int numLayersDone = 0, totalNumLayers;
-        private Map<Layer,Layer> layersMap;
-        private Map<Cell,Cell> cellsMap;
-        private Map<PrimitiveNode,PrimitiveNode> primitivesMap;
-
-        CheckLayerEnumerator(int totalNumL)
-        {
-            this.totalNumLayers = totalNumL;
-            layersMap = new HashMap<Layer,Layer>(totalNumLayers);
-            cellsMap = new HashMap<Cell,Cell>();
-            primitivesMap = new HashMap<PrimitiveNode,PrimitiveNode>();
-        }
-
-        /**
-         * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
-         * the maximum
-         * @param cell
-         * @return
-         */
-        private boolean skipCell(Cell cell) {return cellsMap.get(cell) != null || doneWithLayers();}
-
-        private boolean doneWithLayers() {return numLayersDone == totalNumLayers;}
-
-        public boolean enterCell(HierarchyEnumerator.CellInfo info)
-        {
-            Cell cell = info.getCell();
-            if (skipCell(cell)) return false; // skip
-            cellsMap.put(cell, cell);
-            return true;
-        }
-
-        public void exitCell(HierarchyEnumerator.CellInfo info)
-        {;
-        }
-
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-        {
-            if (doneWithLayers()) return false; // done;
-            NodeInst ni = no.getNodeInst();
-            if (NodeInst.isSpecialNode(ni)) return (false);
-            NodeProto np = ni.getProto();
-
-            // Cells
-            if (ni.isCellInstance()) return (true);
-
-            PrimitiveNode pNp = (PrimitiveNode)np;
-            if (primitivesMap.get(pNp) != null) return false; // done node.
-            primitivesMap.put(pNp, pNp);
-
-            for (Technology.NodeLayer nLayer : pNp.getLayers())
-            {
-                Layer layer = nLayer.getLayer();
-                if (layersMap.get(layer) == null) // not in yet
-                {
-                    layersMap.put(layer, layer);
-                    numLayersDone++;
-                }
-            }
-            return false;
-        }
-    }
-
-    /**************************************************************************************************************
-	 *  CheckCellLayerEnumerator class
-	 **************************************************************************************************************/
-    /** Class to collect which layers are available in the design
-     *
-     */
-    private static class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor
-    {
-        private Map<Cell,Cell> cellsMap;
-        private CellLayersContainer cellLayersCon;
-
-        CheckCellLayerEnumerator(CellLayersContainer cellLayersC)
-        {
-            cellsMap = new HashMap<Cell,Cell>();
-            cellLayersCon = cellLayersC;
-        }
-
-        /**
-         * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
-         * the maximum
-         * @param cell
-         * @return
-         */
-        private boolean skipCell(Cell cell) {return cellsMap.get(cell) != null;}
-
-        public boolean enterCell(HierarchyEnumerator.CellInfo info)
-        {
-            Cell cell = info.getCell();
-            if (skipCell(cell)) return false; // skip
-            cellsMap.put(cell, cell);
-            return true;
-        }
-
-        private Set<String> getLayersInCell(Cell cell)
-        {
-            Map<NodeProto,NodeProto> tempNodeMap = new HashMap<NodeProto,NodeProto>();
-            Map<ArcProto,ArcProto> tempArcMap = new HashMap<ArcProto,ArcProto>();
-            Set<String> set = new HashSet<String>();
-
-            // Nodes
-            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
-            {
-                NodeInst ni = it.next();
-                NodeProto np = ni.getProto();
-                if (ni.isCellInstance())
-                {
-                    Set<String> s = cellLayersCon.cellLayersMap.get(np);
-                    set.addAll(s);
-                    assert(s != null); // it must have layers? unless is empty
-                }
-                else
-                {
-                    if (tempNodeMap.get(np) != null)
-                        continue; // done with this PrimitiveNode
-                    tempNodeMap.put(np, np);
-
-                    if (NodeInst.isSpecialNode(ni)) // like pins
-                        continue;
-
-                    PrimitiveNode pNp = (PrimitiveNode)np;
-                    for (Technology.NodeLayer nLayer : pNp.getLayers())
-                    {
-                        Layer layer = nLayer.getLayer();
-                        set.add(layer.getName());
-                    }
-                }
-            }
-
-            // Arcs
-            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-            {
-                ArcInst ai = it.next();
-                ArcProto ap = ai.getProto();
-                if (tempArcMap.get(ap) != null)
-                    continue; // done with this arc primitive
-                tempArcMap.put(ap, ap);
-                for (int i = 0; i < ap.getNumArcLayers(); i++)
-                {
-                    Layer layer = ap.getLayer(i);
-                    set.add(layer.getName());
-                }
-            }
-            return set;
-        }
-
-        public void exitCell(HierarchyEnumerator.CellInfo info)
-        {
-            Cell cell = info.getCell();
-            Set<String> set = getLayersInCell(cell);
-            assert(cellLayersCon.cellLayersMap.get(cell) == null);
-            cellLayersCon.cellLayersMap.put(cell, set);
-        }
-
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-        {
-            NodeInst ni = no.getNodeInst();
-
-            // true only for Cells
-            return ni.isCellInstance();
-        }
+        DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
+        DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
+            return; // nothing to check
+        new MultiDRCToolJob(cell, layer.getName(), minAreaRule, enclosedAreaRule, spaceRule, cellLayersC, globalStartT);
     }
 
     /**************************************************************************************************************
@@ -333,9 +104,9 @@ public class MultiDRCToolJob extends Job {
         private GeometryHandler.GHMode mode;
         private Collection<PrimitiveNode> nodesList; // NodeProto that contains this layer
         private Collection<ArcProto> arcsList; // ArcProto that contains this layer
-        private CellLayersContainer cellLayersCon;
+        private DRC.CellLayersContainer cellLayersCon;
 
-        LayerAreaEnumerator(GeometryHandler.GHMode m, CellLayersContainer cellLayersC)
+        LayerAreaEnumerator(GeometryHandler.GHMode m, DRC.CellLayersContainer cellLayersC)
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
             // even though non-electrical layers are retrieved
@@ -412,7 +183,7 @@ public class MultiDRCToolJob extends Job {
         {
 //            if (job != null && job.checkAbort()) return false;
             Cell cell = info.getCell();
-            Set<String> set = cellLayersCon.cellLayersMap.get(cell);
+            Set<String> set = cellLayersCon.getLayersSet(cell);
 //            assert(set != null);
 
             // The cell doesn't contain the layer 

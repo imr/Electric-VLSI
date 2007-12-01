@@ -31,8 +31,11 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -41,6 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -54,6 +58,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.util.*;
 import java.util.prefs.Preferences;
+import java.io.Serializable;
 
 /**
  * This is the Design Rule Checker tool.
@@ -68,6 +73,15 @@ public class DRC extends Listener
 
 
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
+    public static enum DRCErrorType
+    {
+	    // the different types of errors
+        SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,
+        MINAREAERROR, ENCLOSEDAREAERROR, SURROUNDERROR, FORBIDDEN, RESOLUTION, CUTERROR, SLOTSIZEERROR,
+	    // Different types of warnings
+        ZEROLENGTHARCWARN, TECHMIXWARN
+    }
+
     public static void createDRCErrorLogger(ErrorLogger errorLogger, Map<Cell, Area> exclusionMap,
                                             DRCCheckMode errorTypeSearch, boolean interactiveLogger,
                                             DRCErrorType errorType, String msg,
@@ -250,35 +264,33 @@ public class DRC extends Listener
             Job.getUserInterface().termLogging(errorLogger, false, false);
 	}
 
-private static boolean checkExclusionMap(Map<Cell,Area> exclusionMap, Cell cell, List<PolyBase> polyList,
-List<Geometric> geomList, StringBuffer DRCexclusionMsg)
-{
-Area area = exclusionMap.get(cell);
-if (area == null) return false;
+    private static boolean checkExclusionMap(Map<Cell, Area> exclusionMap, Cell cell, List<PolyBase> polyList,
+                                             List<Geometric> geomList, StringBuffer DRCexclusionMsg) {
+        Area area = exclusionMap.get(cell);
+        if (area == null) return false;
 
-int count = 0, i = -1;
+        int count = 0, i = -1;
 
-for (PolyBase thisPoly : polyList)
-{
-i++;
-if (thisPoly == null)
-continue; // MinNode case
-boolean found = area.contains(thisPoly.getBounds2D());
+        for (PolyBase thisPoly : polyList) {
+            i++;
+            if (thisPoly == null)
+                continue; // MinNode case
+            boolean found = area.contains(thisPoly.getBounds2D());
 
-if (found) count++;
-else
-{
-Rectangle2D rect = (geomList.get(i) != null) ? geomList.get(i).getBounds() : thisPoly.getBounds2D();
-DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain element (" +
-rect.getMinX() + "," + rect.getMinY()+") (" + rect.getMaxX() + "," + rect.getMaxY()+"))");
-}
-}
+            if (found) count++;
+            else {
+                Rectangle2D rect = (geomList.get(i) != null) ? geomList.get(i).getBounds() : thisPoly.getBounds2D();
+                DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain element (" +
+                        rect.getMinX() + "," + rect.getMinY() + ") (" + rect.getMaxX() + "," + rect.getMaxY() + "))");
+            }
+        }
 // At least one DRC exclusion that contains both
 //        if (count == polyList.size())
-if (count >= 1) // at one element is inside the DRC exclusion
-return true;
-return false;
-}
+        if (count >= 1) // at one element is inside the DRC exclusion
+            return true;
+        return false;
+    }
+
     /*********************************** END DRC ERROR REPORTING ***********************************/
 
     private static class StoreDRCInfo
@@ -1353,6 +1365,10 @@ return false;
 
     /****************************** END OF OPTIONS ******************************/
 
+    /***********************************
+     * Update Functions
+     ***********************************/
+
     public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
                                     HashMap<Geometric, List<Variable>> newVariables)
     {
@@ -1498,12 +1514,246 @@ return false;
         return true;
     }
 
-    public static enum DRCErrorType
+    /***********************************
+     * Multi-Threaded Jobs
+     ***********************************/
+    public static void checkDesignRules(Cell cell, boolean checkArea)
     {
-	    // the different types of errors
-        SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,
-        MINAREAERROR, ENCLOSEDAREAERROR, SURROUNDERROR, FORBIDDEN, RESOLUTION, CUTERROR, SLOTSIZEERROR,
-	    // Different types of warnings
-        ZEROLENGTHARCWARN, TECHMIXWARN
+        // Check if there are DRC rules for particular tech
+        Technology tech = cell.getTechnology();
+		DRCRules rules = getRules(tech);
+        // Nothing to check for this particular technology
+		if (rules == null || rules.getNumberOfRules() == 0)
+                return;
+
+//        MultiDRCToolJob.globalStartTime = System.currentTimeMillis();
+        CellLayersContainer cellLayersCon = new CellLayersContainer();
+//        CheckLayerEnumerator layerCheck = new CheckLayerEnumerator(cell.getTechnology().getNumLayers());
+//        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCheck);
+        CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCellCheck);
+        GenMath.MutableBoolean polyDone = new GenMath.MutableBoolean(false);
+        long globalStartTime = System.currentTimeMillis();
+
+        // Multi thread the DRC algorithms per layer
+        Collection<String> layers = cellLayersCon.cellLayersMap.get(cell);
+
+        for (String layerS : layers)
+//        for (Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext();)
+        {
+            Layer layer = tech.findLayer(layerS);
+//            Layer layer = it.next();
+//            if (layerCheck.layersMap.get(layer) == null)
+//            {
+//                System.out.println("SkippingLayer " + layer.getName());
+//                continue;
+//            }
+            if (checkArea)
+                MultiDRCToolJob.startMultiMinAreaChecking(cell, layer, cellLayersCon, globalStartTime, polyDone);
+            else
+                MultiLayoutDRCToolJob.startMultiMinAreaChecking(cell, layer, null, null, null);
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  CellLayersContainer class
+	 **************************************************************************************************************/
+    public static class CellLayersContainer implements Serializable {
+        private Map<Cell,Set<String>> cellLayersMap;
+
+        CellLayersContainer()
+        {
+            cellLayersMap = new HashMap<Cell,Set<String>>();
+        }
+
+        Set<String> getLayersSet(Cell cell)
+        {
+            return cellLayersMap.get(cell);
+        }
+
+        boolean addCellLayers(Cell cell, Layer layer)
+        {
+            Set<String> set = cellLayersMap.get(cell);
+
+            // first time the cell is accessed
+            if (set == null)
+            {
+                set = new HashSet<String>(1);
+                cellLayersMap.put(cell, set);
+            }
+            return set.add(layer.getName());
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  CheckLayerEnumerator class
+	 **************************************************************************************************************/
+    /** Class to collect which layers are available in the design
+     *
+     */
+//    private static class CheckLayerEnumerator extends HierarchyEnumerator.Visitor
+//    {
+//        private int numLayersDone = 0, totalNumLayers;
+//        private Map<Layer,Layer> layersMap;
+//        private Map<Cell,Cell> cellsMap;
+//        private Map<PrimitiveNode,PrimitiveNode> primitivesMap;
+//
+//        CheckLayerEnumerator(int totalNumL)
+//        {
+//            this.totalNumLayers = totalNumL;
+//            layersMap = new HashMap<Layer,Layer>(totalNumLayers);
+//            cellsMap = new HashMap<Cell,Cell>();
+//            primitivesMap = new HashMap<PrimitiveNode,PrimitiveNode>();
+//        }
+//
+//        /**
+//         * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
+//         * the maximum
+//         * @param cell
+//         * @return
+//         */
+//        private boolean skipCell(Cell cell) {return cellsMap.get(cell) != null || doneWithLayers();}
+//
+//        private boolean doneWithLayers() {return numLayersDone == totalNumLayers;}
+//
+//        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+//        {
+//            Cell cell = info.getCell();
+//            if (skipCell(cell)) return false; // skip
+//            cellsMap.put(cell, cell);
+//            return true;
+//        }
+//
+//        public void exitCell(HierarchyEnumerator.CellInfo info)
+//        {;
+//        }
+//
+//        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+//        {
+//            if (doneWithLayers()) return false; // done;
+//            NodeInst ni = no.getNodeInst();
+//            if (NodeInst.isSpecialNode(ni)) return (false);
+//            NodeProto np = ni.getProto();
+//
+//            // Cells
+//            if (ni.isCellInstance()) return (true);
+//
+//            PrimitiveNode pNp = (PrimitiveNode)np;
+//            if (primitivesMap.get(pNp) != null) return false; // done node.
+//            primitivesMap.put(pNp, pNp);
+//
+//            for (Technology.NodeLayer nLayer : pNp.getLayers())
+//            {
+//                Layer layer = nLayer.getLayer();
+//                if (layersMap.get(layer) == null) // not in yet
+//                {
+//                    layersMap.put(layer, layer);
+//                    numLayersDone++;
+//                }
+//            }
+//            return false;
+//        }
+//    }
+
+    /**************************************************************************************************************
+	 *  CheckCellLayerEnumerator class
+	 **************************************************************************************************************/
+    /** Class to collect which layers are available in the design
+     *
+     */
+    private static class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor
+    {
+        private Map<Cell,Cell> cellsMap;
+        private CellLayersContainer cellLayersCon;
+
+        CheckCellLayerEnumerator(CellLayersContainer cellLayersC)
+        {
+            cellsMap = new HashMap<Cell,Cell>();
+            cellLayersCon = cellLayersC;
+        }
+
+        /**
+         * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
+         * the maximum
+         * @param cell
+         * @return
+         */
+        private boolean skipCell(Cell cell) {return cellsMap.get(cell) != null;}
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+        {
+            Cell cell = info.getCell();
+            if (skipCell(cell)) return false; // skip
+            cellsMap.put(cell, cell);
+            return true;
+        }
+
+        private Set<String> getLayersInCell(Cell cell)
+        {
+            Map<NodeProto,NodeProto> tempNodeMap = new HashMap<NodeProto,NodeProto>();
+            Map<ArcProto,ArcProto> tempArcMap = new HashMap<ArcProto,ArcProto>();
+            Set<String> set = new HashSet<String>();
+
+            // Nodes
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
+            {
+                NodeInst ni = it.next();
+                NodeProto np = ni.getProto();
+                if (ni.isCellInstance())
+                {
+                    Set<String> s = cellLayersCon.cellLayersMap.get(np);
+                    set.addAll(s);
+                    assert(s != null); // it must have layers? unless is empty
+                }
+                else
+                {
+                    if (tempNodeMap.get(np) != null)
+                        continue; // done with this PrimitiveNode
+                    tempNodeMap.put(np, np);
+
+                    if (NodeInst.isSpecialNode(ni)) // like pins
+                        continue;
+
+                    PrimitiveNode pNp = (PrimitiveNode)np;
+                    for (Technology.NodeLayer nLayer : pNp.getLayers())
+                    {
+                        Layer layer = nLayer.getLayer();
+                        set.add(layer.getName());
+                    }
+                }
+            }
+
+            // Arcs
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                ArcProto ap = ai.getProto();
+                if (tempArcMap.get(ap) != null)
+                    continue; // done with this arc primitive
+                tempArcMap.put(ap, ap);
+                for (int i = 0; i < ap.getNumArcLayers(); i++)
+                {
+                    Layer layer = ap.getLayer(i);
+                    set.add(layer.getName());
+                }
+            }
+            return set;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+            Cell cell = info.getCell();
+            Set<String> set = getLayersInCell(cell);
+            assert(cellLayersCon.cellLayersMap.get(cell) == null);
+            cellLayersCon.cellLayersMap.put(cell, set);
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+        {
+            NodeInst ni = no.getNodeInst();
+
+            // true only for Cells
+            return ni.isCellInstance();
+        }
     }
 }

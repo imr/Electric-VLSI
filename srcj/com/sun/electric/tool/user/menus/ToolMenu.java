@@ -82,7 +82,6 @@ import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.CalibreDrcErrors;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.drc.MultiDRCToolJob;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
@@ -162,7 +161,7 @@ public class ToolMenu {
                     if (wnd == null) return;
                     DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Multi-_Threaded Check Min Area Hierarchically") { public void run() {
-                    MultiDRCToolJob.checkDesignRules(Job.getUserInterface().needCurrentCell()); }},
+                    DRC.checkDesignRules(Job.getUserInterface().needCurrentCell(), true); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {
