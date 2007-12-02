@@ -148,22 +148,8 @@ public class Name implements Comparable<Name>
      */
     public int compareTo(Name name)
 	{
-		if (canonicString == name.canonicString) return 0;
-		return canonicString.compareTo(name.canonicString);
+		return ns.compareTo(name.ns);
 	}
-
-    /**
-     * Compares this Name with the specified object for order.  Returns a
-     * negative integer, zero, or a positive integer as this object is less
-     * than, equal to, or greater than the specified object.<p>
-     * @param   o the Object to be compared.
-     * @return  a negative integer, zero, or a positive integer as this object
-     *		is less than, equal to, or greater than the specified object.
-     * 
-     * @throws ClassCastException if the specified object's type prevents it
-     *         from being compared to this Object.
-     */
-//4*/public int compareTo(Object o) { return compareTo((Name)o); }
 
 	/**
      * Compares this <code>Name</code> to another <code>Name</code>,
@@ -175,13 +161,7 @@ public class Name implements Comparable<Name>
 	 */
 	public boolean equals(Object anObject)
 	{
-		if (this == anObject) return true;
-		if (anObject instanceof Name)
-		{
-			Name anotherName = (Name)anObject;
-			return canonicString == anotherName.canonicString;
-		}
-		return false;
+       return super.equals(anObject);
 	}
 
     /**
@@ -189,7 +169,7 @@ public class Name implements Comparable<Name>
      * <code>TextDescriptor</code> object is computed as sum of its fields.
      * @return  a hash code value for this object.
      */
-    public int hashCode() { return canonicString.hashCode(); }
+    public int hashCode() { return super.hashCode(); }
 
 	/**
 	 * Tells whether or not this Name is a valid bus or signal name.

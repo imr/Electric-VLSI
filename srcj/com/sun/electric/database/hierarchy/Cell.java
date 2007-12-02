@@ -2594,12 +2594,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (name == null) return null;
         int portIndex = searchExport(name.toString());
         if (portIndex >= 0) return exports[portIndex];
-        String nameString = name.canonicString();
-        for (int i = 0; i < exports.length; i++) {
-            Export e = exports[i];
-            if (e.getNameKey().canonicString() == nameString)
-                return e;
-        }
+//        String nameString = name.canonicString();
+//        for (int i = 0; i < exports.length; i++) {
+//            Export e = exports[i];
+//            if (e.getNameKey().canonicString() == nameString)
+//                return e;
+//        }
         return null;
     }
 

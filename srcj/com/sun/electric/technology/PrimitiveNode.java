@@ -1064,11 +1064,12 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	public PortProto findPortProto(Name name)
 	{
         if (name == null) return null;
-		String nameString = name.canonicString();
+//		String nameString = name.canonicString();
 		for (int i = 0; i < primPorts.length; i++)
 		{
 			PrimitivePort pp = primPorts[i];
-			if (pp.getNameKey().canonicString() == nameString)
+			if (pp.getNameKey() == name)
+//			if (pp.getNameKey().canonicString() == nameString)
 				return pp;
 		}
 		return null;

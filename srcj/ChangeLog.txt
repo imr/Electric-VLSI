@@ -5,11 +5,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/02/07, DN) sch/ic port check should be case sensitive (Bug #1398).
+FIX: Make NodeProto.findPortProto() case-sensitive.
+
 IMP/MAN: (11/30/07, GVG) First version of multi-threaded DRC for spacing rules (no area-related).
 
 IMP/MAN: (11/30/07, GVG) No checking contact layers such as vias in multi-threaded version of minArea.
 
-BUG/MAN: (11/30/07, DN) The various attributes of a piece of text are losing their value (Bug #1447)
+BUG/MAN: (11/30/07, DN) The various attributes of a piece of text are losing their value (Bug #1447).
 FIX: Displayability of TextDescriptor is one of: NONE, HIDDEN, SHOWN.
      They are written in JELIB as: "D" - SHOWN, "d" - HIDDEN.
 
