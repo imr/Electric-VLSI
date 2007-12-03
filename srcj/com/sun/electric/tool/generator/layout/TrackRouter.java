@@ -36,7 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 
 public abstract class TrackRouter {
 	// ----------------------- private and protected data ------------------------
-	private static final double CLOSE_VIA_DIST = 6;
+	private double shareableViaDist = 6;
 	// The list: vias is a list of ViaStacks sorted by their X/Y
 	// coordinates.  ViaStack connections are daisy chained in the order
 	// that they occur on this list. TrackRouter maintains daisy-chained
@@ -116,8 +116,8 @@ public abstract class TrackRouter {
 	}
 
 	// Find the closest via port to position. Search the range position
-	// +/- CLOSE_VIA_DIST. If nothing found then return null.
-	ViaStack findClosestVia(double position, ArcProto lay) {
+	// +/- shareableViaDist. If nothing found then return null.
+	ViaStack findSharableVia(double position, ArcProto lay) {
 		if (vias.size() == 0)
 			return null;
 
@@ -129,7 +129,7 @@ public abstract class TrackRouter {
 			ViaStack v = vias.get(i);
 			double dist = Math.abs(getXY(v) - position);
 			if (dist > closestDist)  break;
-			if (dist > CLOSE_VIA_DIST)  continue;
+			if (dist > shareableViaDist)  continue;
 			PortInst pi = v.getPort2();
 			if (pi.getPortProto().connectsTo(lay)) {
 				if (dist<closestDist) {
@@ -143,7 +143,7 @@ public abstract class TrackRouter {
 			ViaStack v = vias.get(i);
 			double dist = Math.abs(getXY(v) - position);
 			if (dist > closestDist)  break;
-			if (dist > CLOSE_VIA_DIST)  continue;
+			if (dist > shareableViaDist)  continue;
 			PortInst pi = v.getPort2();
 			if (pi.getPortProto().connectsTo(lay)) {
 				if (dist<closestDist) {
@@ -214,4 +214,7 @@ public abstract class TrackRouter {
 	// this connect is specialized for TrackRouterH and TrackRouterV
 	public abstract void connect(PortInst newPort, double viaOffset, 
 	                             double wireOffset);
+	/** If you find an existing via within distance d of this connection,
+	 * connect to that via rather than creating a new one. */
+	public void setShareableViaDist(double d) {shareableViaDist = d;}
 }

@@ -83,7 +83,7 @@ public class TrackRouterH extends TrackRouter {
 		// we'll create a DRC error because contact cuts won't line up.
 		PortInst lastPort = null;
 		ViaStack closeVia =
-			portLyr == layer ? null : findClosestVia(x, portLyr);
+			portLyr == layer ? null : findSharableVia(x, portLyr);
 		if (closeVia != null) {
 			// connect to already existing via
 			lastPort = closeVia.getPort2();

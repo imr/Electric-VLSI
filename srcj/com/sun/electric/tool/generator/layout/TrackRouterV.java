@@ -73,7 +73,7 @@ public class TrackRouterV extends TrackRouter {
 		// a via. If a via is already close by then use it. Otherwise
 		// we'll create a DRC error because contact cuts won't line up.
 		PortInst lastPort = null;
-		ViaStack closeVia = findClosestVia(y, portLyr);
+		ViaStack closeVia = findSharableVia(y, portLyr);
 		if (closeVia!=null) {
 			// connect to already existing via
 			lastPort = closeVia.getPort2();
