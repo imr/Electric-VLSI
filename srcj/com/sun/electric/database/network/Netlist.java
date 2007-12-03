@@ -116,7 +116,7 @@ public abstract class Netlist
      * @param size numeber of elements in equivalence map
      * @return integer array representing equivalence map consisting of disjoint elements.
 	 */
-    public static int[] initMap(int size) {
+    static int[] initMap(int size) {
         int[] map = new int[size];
 		for (int i = 0; i < map.length; i++) map[i] = i;
         return map;
@@ -125,7 +125,7 @@ public abstract class Netlist
 	/**
 	 * Merge classes of equivalence map to which elements a1 and a2 belong.
 	 */
-	public static void connectMap(int[] map, int a1, int a2)
+	static void connectMap(int[] map, int a1, int a2)
 	{
 		int m1, m2, m;
 
@@ -152,7 +152,7 @@ public abstract class Netlist
 	/**
 	 * Obtain canonical representation of equivalence map.
 	 */
-	private static void closureMap(int[] map)
+	static void closureMap(int[] map)
 	{
 		for (int i = 0; i < map.length; i++)
 		{

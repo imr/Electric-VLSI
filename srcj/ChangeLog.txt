@@ -5,6 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+IMP: (12/02/07, DN) If network is connected by case-insensitive name match, report error instead of warning.
+
 BUG: (12/02/07, DN) sch/ic port check should be case sensitive (Bug #1398).
 FIX: Make NodeProto.findPortProto() case-sensitive.
 

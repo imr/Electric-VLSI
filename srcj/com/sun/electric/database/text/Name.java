@@ -152,26 +152,6 @@ public class Name implements Comparable<Name>
 	}
 
 	/**
-     * Compares this <code>Name</code> to another <code>Name</code>,
-     * ignoring case considerations.  Two strings are considered equal
-     * ignoring case if they are of the same length, and corresponding
-     * characters in the two strings are equal ignoring case.
-     * @return  <code>true</code> if names are equal,
-     *          ignoring case; <code>false</code> otherwise.
-	 */
-	public boolean equals(Object anObject)
-	{
-       return super.equals(anObject);
-	}
-
-    /**
-     * Returns a hash code for this TextDescriptor. The hash code for a
-     * <code>TextDescriptor</code> object is computed as sum of its fields.
-     * @return  a hash code value for this object.
-     */
-    public int hashCode() { return super.hashCode(); }
-
-	/**
 	 * Tells whether or not this Name is a valid bus or signal name.
 	 * @return true if Name is a valid name.
 	 */
@@ -310,7 +290,7 @@ public class Name implements Comparable<Name>
                 if (!create) return null;
                 
                 if (allNamesCount*2 <= hash.length - 3) {
-                    // create a new CellUsage, if enough space in the hash
+                    // create a new Name, if enough space in the hash
                     if (!INTERN && clone) {
                         ns = new String(ns);
                         clone = false;

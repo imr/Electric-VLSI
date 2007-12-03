@@ -25,6 +25,7 @@
 package com.sun.electric.database.network;
 
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -52,17 +53,6 @@ import java.util.Map;
  */
 class NetCell
 {
-	/**
-	 * An NetName class represents possible net name in a cell.
-	 * NetName is obtainsed either from Export name or ArcInst name.
-	 */
-	static class NetName
-	{
-		Name name;
-		int index;
-		NetName() { index = -1; }
-	}
-
 	/** If bit set, netlist is valid for cell tree.*/				static final int VALID = 1;
 	/** If bit set, netlist is valid with current  equivPorts of subcells.*/static final int LOCALVALID = 2;
     /** Separator for net names of unconnected port instances */    static final char PORT_SEPARATOR = '.'; 
@@ -99,7 +89,7 @@ class NetCell
     /** */                                                          int numExportedDrawns;
 	/** */															int numConnectedDrawns;
 
-	/** A map from canonic String to NetName. */					Map<String,NetName> netNames = new HashMap<String,NetName>();
+	/** A map from canonic String to NetName. */					HashMap<Name,GenMath.MutableInteger> netNames = new HashMap<Name,GenMath.MutableInteger>();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
@@ -448,9 +438,8 @@ class NetCell
 	}
 
 	void initNetnames() {
-		for (NetName nn: netNames.values()) {
-			nn.name = null;
-			nn.index = -1;
+		for (GenMath.MutableInteger nn: netNames.values()) {
+			nn.setValue(-1);
 		}
 		netNameCount = 0;
 		for (Iterator<Export> it = cell.getExports(); it.hasNext();) {
@@ -470,15 +459,16 @@ class NetCell
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey(), null, ai);
 		}
-		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); ) {
-			NetName nn = it.next();
-			if (nn.name == null)
+        for (Iterator<Map.Entry<Name,GenMath.MutableInteger>> it = netNames.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Name,GenMath.MutableInteger> e = it.next();
+            Name name = e.getKey();
+            int index = e.getValue().intValue();
+			if (index < 0)
 				it.remove();
 			else if (NetworkTool.debug)
-				System.out.println("NetName "+nn.name+" "+nn.index);
+				System.out.println("NetName "+name+" "+index);
 		}
-		if (netNameCount != netNames.size())
-			System.out.println("Error netNameCount in NetCell.initNetnames");
+		assert netNameCount == netNames.size();
 	}
 
 	void addNetNames(Name name, Export e, ArcInst ai) {
@@ -488,23 +478,13 @@ class NetCell
 	}
 
 	void addNetName(Name name, Export e, ArcInst ai) {
-		NetName nn = netNames.get(name.canonicString());
+		GenMath.MutableInteger nn = netNames.get(name);
 		if (nn == null) {
-			nn = new NetName();
-			netNames.put(name.canonicString(), nn);
+			nn = new GenMath.MutableInteger(-1);
+			netNames.put(name, nn);
 		}
-		if (nn.index < 0) {
-			nn.name = name;
-			nn.index = netNameCount++;
-		} else if (!name.toString().equals(nn.name.toString())) {
-            String msg = cell + " has network with similar names: \"" + name + "\" and \"" + nn.name + "\"";
-            System.out.println("Network : " + msg);
-            if (e != null)
-                networkManager.pushHighlight(e);
-            if (ai != null)
-                networkManager.pushHighlight(ai);
-            networkManager.logWarning(msg, NetworkTool.errorSortNodes);
-        }
+		if (nn.intValue() < 0)
+			nn.setValue(netNameCount++);
 	}
 
 	private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA)
@@ -612,9 +592,9 @@ class NetCell
 	private void setNetName(int[] netNamesToNetIndex, int drawn, Name name, boolean exported) {
 		int netIndexN = netlistN.getNetIndexByMap(drawn);
         assert netIndexN >= 0;
-		NetName nn = netNames.get(name.canonicString());
-		if (netNamesToNetIndex[nn.index] >= 0) {
-			if (netNamesToNetIndex[nn.index] == netIndexN) return;
+		GenMath.MutableInteger nn = netNames.get(name);
+		if (netNamesToNetIndex[nn.intValue()] >= 0) {
+			if (netNamesToNetIndex[nn.intValue()] == netIndexN) return;
 			String msg = "Network: Layout " + cell + " has nets with same name " + name;
             System.out.println(msg);
             // because this should be an infrequent event that the user will fix, let's
@@ -633,7 +613,7 @@ class NetCell
             networkManager.logError(msg, NetworkTool.errorSortNetworks);
         }
 		else
-			netNamesToNetIndex[nn.index] = netIndexN;
+			netNamesToNetIndex[nn.intValue()] = netIndexN;
 		netlistN.addUserName(netIndexN, name, exported);
 	}
 

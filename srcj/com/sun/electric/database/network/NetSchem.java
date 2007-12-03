@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -786,8 +787,8 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
                 Netlist.connectMap(netMap, portOffset + i, drawnOffset + (busWidth == drawnWidths[drawn] ? i : i % drawnWidths[drawn]));
-				NetName nn = netNames.get(expNm.subname(i).canonicString());
-				Netlist.connectMap(netMap, portOffset + i, netNamesOffset + nn.index);
+				GenMath.MutableInteger nn = netNames.get(expNm.subname(i));
+				Netlist.connectMap(netMap, portOffset + i, netNamesOffset + nn.intValue());
 			}
 		}
 
@@ -854,8 +855,8 @@ class NetSchem extends NetCell {
 			if (arcNm.busWidth() != busWidth) continue;
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
-				NetName nn = netNames.get(arcNm.subname(i).canonicString());
-				Netlist.connectMap(netMap, drawnOffset + i, netNamesOffset + nn.index);
+				GenMath.MutableInteger nn = netNames.get(arcNm.subname(i));
+				Netlist.connectMap(netMap, drawnOffset + i, netNamesOffset + nn.intValue());
 			}
 		}
 
@@ -876,6 +877,29 @@ class NetSchem extends NetCell {
 				Netlist.connectMap(netMap, this.globals.indexOf(g), proxy.nodeOffset + i);
 			}
 		}
+        
+        Netlist.closureMap(netMap);
+        HashMap<String,Name> canonicToName = new HashMap<String,Name>();
+        for (Map.Entry<Name,GenMath.MutableInteger> e: netNames.entrySet()) {
+            Name name = e.getKey();
+            int index = e.getValue().intValue();
+            assert index >= 0;
+            String canonicString = name.canonicString();
+            Name canonicName = canonicToName.get(canonicString);
+            if (canonicName == null) {
+                canonicName = name;
+                canonicToName.put(canonicString, canonicName);
+                continue;
+            }
+            int mapIndex0 = netNamesOffset + index;
+            int mapIndex1 = netNamesOffset + netNames.get(canonicName).intValue();
+            if (netMap[mapIndex0] != netMap[mapIndex1]) {
+                String msg = "Network: Schematic " + cell + " connect nets by case-insensitive name match '" + name + "' and '" + canonicName;
+                System.out.println(msg);
+                networkManager.logError(msg, NetworkTool.errorSortNetworks);
+                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
+            }
+        }
 	}
 
 	private void connectWireCon (int[] netMap, NodeInst ni) {
@@ -990,15 +1014,17 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < globals.size(); i++) {
 			netlistN.addUserName(netlistN.getNetIndexByMap(i), globals.get(i).getNameKey(), true);
 		}
-		for (NetName nn: netNames.values())
-		{
-			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
-			netlistN.addUserName(netlistN.getNetIndexByMap(netNamesOffset + nn.index), nn.name, true);
+        for (Map.Entry<Name,GenMath.MutableInteger> e: netNames.entrySet()) {
+            Name name = e.getKey();
+            int index = e.getValue().intValue();
+			if (index < 0 || index >= exportedNetNameCount) continue;
+			netlistN.addUserName(netlistN.getNetIndexByMap(netNamesOffset + index), name, true);
 		}
-		for (NetName nn: netNames.values())
-		{
-			if (nn.index < exportedNetNameCount) continue;
-			netlistN.addUserName(netlistN.getNetIndexByMap(netNamesOffset + nn.index), nn.name, false);
+        for (Map.Entry<Name,GenMath.MutableInteger> e: netNames.entrySet()) {
+            Name name = e.getKey();
+            int index = e.getValue().intValue();
+			if (index < exportedNetNameCount) continue;
+			netlistN.addUserName(netlistN.getNetIndexByMap(netNamesOffset + index), name, false);
 		}
 		
 		// add temporary names to unnamed nets
