@@ -88,22 +88,21 @@ import java.util.TreeSet;
  * > Cost penalty also includes space left in the track on either side of a segment
  *
  * Things to do:
- *     The blockage data structure doesn't need to store "SearchVertex" objects, just boolean
  *     At the end of routing, try again with those that failed
  *     Detect "river routes" and route specially
  *     Ability to route to any previous part of route when daisy-chaining?
  *     Lower cost if running over existing layout (on the same net)
  *     Ability to connect to anything on the destination net
  *     Rip-up
- *     Global routing
+ *     Global routing / multithreading
  */
 public class SeaOfGatesEngine
 {
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
 	/** True for new notch detection code. */									private static final boolean NEWNOTCH = true;
+	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = false;
 
-	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = true;
 	/** Number of steps per unit when searching. */								private static final double GRANULARITY = 1;
 	/** Size of steps when searching. */										private static final double GRAINSIZE = (1/GRANULARITY);
 	/** Cost of routing in wrong direction (alternating horizontal/vertical) */	private static final int COSTALTERNATINGMETAL = 4;
@@ -1217,25 +1216,21 @@ public class SeaOfGatesEngine
 						{
 							if (jumpSize <= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
 							dx = jumpSize;
-							if (COSTALTERNATINGMETAL != 0 && (curZ%2) == 0 && dx > GRAINSIZE) dx = GRAINSIZE;
 						}
 						if (dx < 0)
 						{
 							if (jumpSize >= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
 							dx = jumpSize;
-							if (COSTALTERNATINGMETAL != 0 && (curZ%2) == 0 && dx < -GRAINSIZE) dx = -GRAINSIZE;
 						}
 						if (dy > 0)
 						{
 							if (jumpSize <= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
 							dy = jumpSize;
-							if (COSTALTERNATINGMETAL != 0 && (curZ%2) != 0 && dy > GRAINSIZE) dy = GRAINSIZE;
 						}
 						if (dy < 0)
 						{
 							if (jumpSize >= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
 							dy = jumpSize;
-							if (COSTALTERNATINGMETAL != 0 && (curZ%2) != 0 && dy < -GRAINSIZE) dy = -GRAINSIZE;
 						}
 					}
 				}
@@ -1315,7 +1310,6 @@ public class SeaOfGatesEngine
 //						if (!getVertex(nX, nY, nZ)) setVertex(nX, nY, nZ);
 						nX = curX + dx;
 						nY = curY + dy;
-//break;
 					}
 					if (!allClear)
 					{
