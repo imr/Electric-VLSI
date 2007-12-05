@@ -86,6 +86,7 @@ public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
+    private static int recommendedNumThreads;
     private static int socketPort = 35742; // socket port for client/server
     static final int PROTOCOL_VERSION = 16; // Jun 25
     public static boolean BATCHMODE = false; // to run it in batch mode
@@ -167,6 +168,8 @@ public abstract class Job implements Serializable {
     }
    
     public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode, String serverMachineName) {
+        Job.recommendedNumThreads = numThreads;
+        
         switch (threadMode) {
             case FULL_SCREEN:
                 if (User.isUseClientServer())
@@ -194,6 +197,8 @@ public abstract class Job implements Serializable {
     
     
     public static Mode getRunMode() { return threadMode; }
+
+    public static int getNumThreads() { return recommendedNumThreads; }
     
     /**
 	 * Constructor creates a new instance of Job.

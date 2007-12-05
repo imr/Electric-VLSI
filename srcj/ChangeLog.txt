@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.06n: *******************************
+
+IMP: (12/05/7, GVG) Latest changes in Multi-Threaded DRC to work with regressions.
+
 IMP: (12/05/07, RK) Layout generators: remove calls to deprecated method
 Cell.getNetlist(boolean).
 
@@ -9,7 +13,6 @@ IMP: (12/05/07, RK) NCC: Change MAX_REC_BIRTHDAYS to 500. Change NCC so
 it prints "birthday" warnings only when NCC preferences specify more
 detailed messages.
 
-************************* Version 8.06n: *******************************
 IMP: (12/03/07, GVG) More changes in Multi-threaded DRC. Improved Layer.Function.Set so now
 considers extraBits to distinguish layers such as Poly-Cut and Active-Cut.
 

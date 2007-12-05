@@ -80,8 +80,7 @@ import java.util.*;
  * @author  Steve Rubin, Gilda Garreton
  */
 
-class MultiLayoutDRCToolJob extends MultiDRCJob
-{
+class MultiLayoutDRCToolJob extends MultiDRCToolJob {
     private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
@@ -193,9 +192,9 @@ class MultiLayoutDRCToolJob extends MultiDRCJob
      * @param data
      * @return ErrorLogger containing the information
 	 */
-	public static void startMultiMinAreaChecking(Cell cell, Layer layer,
-                                                 Geometric[] geomsToCheck, boolean[] validity,
-                                                 Rectangle2D bounds)
+	public static void startMultiLayoutChecking(Cell cell, Layer layer,
+                                                Geometric[] geomsToCheck, boolean[] validity,
+                                                Rectangle2D bounds)
 	{
         if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
             return; // dirty way to skip the MoCMOS p-active well
@@ -209,6 +208,9 @@ class MultiLayoutDRCToolJob extends MultiDRCJob
         theLayer = topCell.getTechnology().findLayer(theLayerName);
         errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
         this.thisLayerFunction = getMultiLayersSet(theLayer);
+        
+        if (Job.BATCHMODE)
+            MultiDRCCollectData.jobsList.add(errorLogger);
 
         // Check if there are DRC rules for particular tech
         Technology tech = topCell.getTechnology();
