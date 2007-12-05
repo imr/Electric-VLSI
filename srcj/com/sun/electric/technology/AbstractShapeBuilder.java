@@ -277,7 +277,7 @@ public abstract class AbstractShapeBuilder {
             assert protoType.getNumArcLayers() == 1;
             Technology.ArcLayer primLayer = protoType.getArcLayer(0);
             Layer layer = primLayer.getLayer();
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction())) return true;
+            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) return true;
             Poly.Type style = primLayer.getStyle();
             if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
             intCoords[0] = (int)a.tailLocation.getGridX();
@@ -307,7 +307,7 @@ public abstract class AbstractShapeBuilder {
             Technology.ArcLayer primLayer = protoType.getArcLayer(i);
             Layer layer = primLayer.getLayer();
             assert primLayer.getStyle() == Poly.Type.FILLED;
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction())) continue;
+            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
             a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
             addIntBox(intCoords, layer);
         }

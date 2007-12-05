@@ -2079,7 +2079,7 @@ public class Technology implements Comparable<Technology>
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
-                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
                 if (layerOverride != null) layer = layerOverride;
 
                 // remove a gap for the negating bubble
@@ -2101,7 +2101,7 @@ public class Technology implements Comparable<Technology>
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
-                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
                 if (layerOverride != null) layer = layerOverride;
                 b.makeGridPoly(a, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
             }
@@ -2507,7 +2507,7 @@ public class Technology implements Comparable<Technology>
 			for (int i = 0; i < primLayers.length; i++)
 			{
 				NodeLayer primLayer = primLayers[i];
-				if (onlyTheseLayers.contains(primLayer.layer.getFunction()))
+				if (onlyTheseLayers.contains(primLayer.layer.getFunction(), primLayer.layer.getFunctionExtras()))
 					layerArray.add(primLayer);
 			}
 			primLayers = new NodeLayer [layerArray.size()];

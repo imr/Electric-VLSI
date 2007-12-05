@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 
 ************************* Version 8.06n: *******************************
+IMP: (12/03/07, GVG) More changes in Multi-threaded DRC. Improved Layer.Function.Set so now
+considers extraBits to distinguish layers such as Poly-Cut and Active-Cut.
+
 IMP: (12/03/07, RK) Add nand2en to cmos90 gate layout generators (Bug #1446)
 
 IMP: (12/02/07, DN) If network is connected by case-insensitive name match, report error instead of warning.

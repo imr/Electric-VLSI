@@ -1517,6 +1517,7 @@ public class DRC extends Listener
     /***********************************
      * Multi-Threaded Jobs
      ***********************************/
+
     public static void checkDesignRules(Cell cell, boolean checkArea)
     {
         // Check if there are DRC rules for particular tech
@@ -1534,10 +1535,11 @@ public class DRC extends Listener
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, layerCellCheck);
         GenMath.MutableBoolean polyDone = new GenMath.MutableBoolean(false);
         long globalStartTime = System.currentTimeMillis();
-
         // Multi thread the DRC algorithms per layer
         Collection<String> layers = cellLayersCon.cellLayersMap.get(cell);
+        List<ErrorLogger> jobsList = new ArrayList<ErrorLogger>(layers.size());
 
+        // Collecing
         for (String layerS : layers)
 //        for (Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext();)
         {
@@ -1553,6 +1555,7 @@ public class DRC extends Listener
             else
                 MultiLayoutDRCToolJob.startMultiMinAreaChecking(cell, layer, null, null, null);
         }
+        MultiDRCCollectData data = new MultiDRCCollectData(globalStartTime);
     }
 
     /**************************************************************************************************************

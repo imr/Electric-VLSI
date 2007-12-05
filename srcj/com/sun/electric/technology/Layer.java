@@ -444,8 +444,20 @@ public class Layer
          */
         public static class Set {
             final long bits;
+            final int extraBits; // -1 means no check extraBits
             /** Set if all Layer.Functions */
             public static final Set ALL = new Set(Function.class.getEnumConstants());
+
+            /**
+             * Constructs Function.Set from a Function plus extra bits
+             * @param f Function
+             * @param extraB extra bits to check
+             */
+            public Set(Function f, int extraB)
+            {
+                bits = bit(f);
+                extraBits = extraB;
+            }
 
             /**
              * Constructs Function.Set from varargs Functions.
@@ -456,6 +468,7 @@ public class Layer
                 for (Function f: funs)
                     bits |= bit(f);
                 this.bits = bits;
+                this.extraBits = -1;
             }
 
             /**
@@ -467,14 +480,21 @@ public class Layer
                 for (Function f: funs)
                     bits |= bit(f);
                 this.bits = bits;
+                this.extraBits = -1;
             }
 
             /**
              * Returns true if specified Functions is in this Set.
              * @param f Function to test.
+             * @param extraFunction
              * @return true if specified Functions is in this Set.
              */
-            public boolean contains(Function f) { return (bits & bit(f)) != 0; }
+            public boolean contains(Function f, int extraFunction)
+            {
+                // Check first if there is a match in the extra bits
+                boolean extraBitsM = extraBits == -1 || (extraBits == extraFunction);
+                return extraBitsM && (bits & bit(f)) != 0;
+            }
 
             private static long bit(Function f) { return 1L << f.ordinal(); }
         }

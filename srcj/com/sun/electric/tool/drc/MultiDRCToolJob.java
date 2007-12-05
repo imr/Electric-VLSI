@@ -25,21 +25,86 @@ import java.awt.geom.Rectangle2D;
  * Time: 2:18:14 PM
  * To change this template use File | Settings | File Templates.
  */
-class MultiDRCToolJob extends Job {
-    private long globalStartTime;
-    private Layer theLayer;
-    private String theLayerName; // to avoid serialization of the class Layer
-    private Cell topCell;
+abstract class MultiDRCJob extends Job
+{
+    protected Cell topCell;
+    protected Layer theLayer;
+    protected String theLayerName; // to avoid serialization of the class Layer
+    protected ErrorLogger errorLogger;
+    protected long globalStartTime;
+
+    MultiDRCJob(Cell c, String l, String jobName)
+    {
+        super(jobName, DRC.getDRCTool(), Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+        this.theLayerName = l;
+        this.topCell = c;
+    }
+
+    public void terminateOK()
+    {
+//        jobsList.add(errorLogger);
+        MultiDRCCollectData.jobsList.add(errorLogger);
+    }
+
+    static Layer.Function.Set getMultiLayersSet(Layer layer)
+    {
+        Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
+        new Layer.Function.Set(layer.getFunction(), Layer.Function.GATE) :
+        new Layer.Function.Set(layer.getFunction(), layer.getFunctionExtras());
+        return thisLayerFunction;
+    }
+}
+
+
+/**************************************************************************************************************
+ *  MultiDRCCollectData class
+ **************************************************************************************************************/
+class MultiDRCCollectData extends Job
+{
+    static List<ErrorLogger> jobsList = new ArrayList<ErrorLogger>();
+    long globalStartTime;
+
+    MultiDRCCollectData(long s)
+    {
+        super("Design-Rule Check Collect Data", DRC.getDRCTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+        this.globalStartTime = s;
+        jobsList.clear();
+        startJob();
+    }
+
+    /**
+     * Method does do nothing. Just collect information at the end.
+     * @return
+     */
+    public boolean doIt()
+    {
+        return true;
+    }
+
+    public void terminateOK()
+    {
+        int totalErrors = 0, totalWarnings = 0;
+
+        for (ErrorLogger data : jobsList)
+        {
+            totalErrors += data.getNumErrors();
+            totalWarnings += data.getNumWarnings();
+        }
+        System.out.println("Total Number of Errors: " + totalErrors);
+        System.out.println("Total Number of Warnings: " + totalWarnings);
+        System.out.println(totalErrors + " errors and " + totalWarnings + " warnings found (took " +
+                TextUtils.getElapsedTime(System.currentTimeMillis() - globalStartTime) + ")");
+    }
+}
+
+class MultiDRCToolJob extends MultiDRCJob {
     private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
-    private ErrorLogger errorLogger;
     private DRC.CellLayersContainer cellLayersCon;
 
     MultiDRCToolJob(Cell c, String l, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spacingR,
                     DRC.CellLayersContainer cellLayersC, long globalStartT)
     {
-        super("Design-Rule MinArea Check " + c + ", layer " + l, DRC.getDRCTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-        this.topCell = c;
-        this.theLayerName = l;
+        super(c, l, "Design-Rule MinArea Check " + c + ", layer " + l);
         this.minAreaRule = minAreaR;
         this.enclosedAreaRule = enclosedAreaR;
         this.spacingRule = spacingR;
@@ -60,6 +125,7 @@ class MultiDRCToolJob extends Job {
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
 
         long endTime = System.currentTimeMillis();
+        this.fieldVariableChanged("errorLogger");
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
         System.out.println(errorCount + " errors and " + warnCount + " warnings found in layer " + msg
@@ -70,7 +136,7 @@ class MultiDRCToolJob extends Job {
     }
 
     public static void startMultiMinAreaChecking(Cell cell, Layer layer, DRC.CellLayersContainer cellLayersC,
-                                                 long globalStartT, GenMath.MutableBoolean polyDone)
+                                                        long globalStartT, GenMath.MutableBoolean polyDone)
     {
         if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
             return; // dirty way to skip the MoCMOS p-active well
@@ -88,7 +154,8 @@ class MultiDRCToolJob extends Job {
         DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
         if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
             return; // nothing to check
-        new MultiDRCToolJob(cell, layer.getName(), minAreaRule, enclosedAreaRule, spaceRule, cellLayersC, globalStartT);
+        new MultiDRCToolJob(cell, layer.getName(), minAreaRule, enclosedAreaRule, spaceRule, cellLayersC,
+                globalStartT);
     }
 
     /**************************************************************************************************************
@@ -110,9 +177,7 @@ class MultiDRCToolJob extends Job {
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
             // even though non-electrical layers are retrieved
-            this.thisLayerFunction = (theLayer.getFunction().isPoly()) ?
-                    new Layer.Function.Set(theLayer.getFunction(), Layer.Function.GATE) :
-                    new Layer.Function.Set(theLayer.getFunction());
+            this.thisLayerFunction = getMultiLayersSet(theLayer);
             this.mode = m;
             cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
             nodesList = new ArrayList<PrimitiveNode>();
@@ -121,7 +186,7 @@ class MultiDRCToolJob extends Job {
             {
                 for (Technology.NodeLayer nLayer : node.getLayers())
                 {
-                    if (thisLayerFunction.contains(nLayer.getLayer().getFunction()))
+                    if (thisLayerFunction.contains(nLayer.getLayer().getFunction(), theLayer.getFunctionExtras()))
 //                    if (nLayer.getLayer() == theLayer)
                     {
                         nodesList.add(node);

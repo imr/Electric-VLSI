@@ -41,7 +41,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -81,7 +80,7 @@ import java.util.*;
  * @author  Steve Rubin, Gilda Garreton
  */
 
-class MultiLayoutDRCToolJob  extends Job
+class MultiLayoutDRCToolJob extends MultiDRCJob
 {
     private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
@@ -101,7 +100,7 @@ class MultiLayoutDRCToolJob  extends Job
 		int multiplier;
 		int offset;
 	}
-	private HashMap<NodeInst,CheckInst> checkInsts = null;
+	private HashMap<NodeInst,CheckInst> checkInsts;
 
 
 	/**
@@ -121,8 +120,8 @@ class MultiLayoutDRCToolJob  extends Job
 		/** netlist of this cell */										Netlist netlist;
 	}
 
-    private HashMap<Cell,CheckProto> checkProtos = null;
-	private HashMap<Network,Integer[]> networkLists = null;
+    private HashMap<Cell,CheckProto> checkProtos;
+	private HashMap<Network,Integer[]> networkLists;
     private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
@@ -131,14 +130,10 @@ class MultiLayoutDRCToolJob  extends Job
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
     private Layer.Function.Set thisLayerFunction;
-    private Layer theLayer;
-    private String theLayerName; // to avoid serialization of the class Layer
 
     public MultiLayoutDRCToolJob(Cell c, String l)
 	{
-        super("Design-Rule MinArea Check " + c + ", layer " + l, DRC.getDRCTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-        this.topCell = c;
-        this.theLayerName = l;
+        super(c, l, "Design-Rule Layout Check " + c + ", layer " + l);
         startJob();
     }
 
@@ -176,9 +171,7 @@ class MultiLayoutDRCToolJob  extends Job
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
 	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodDRCDate = new HashMap<Cell,Date>();
 	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
-	/** for logging errors */                                   private ErrorLogger errorLogger;
     /** for interactive error logging */                        private boolean interactiveLogger = false;
-	/** Top cell for DRC */                                     private Cell topCell;
 
 	/* for figuring out which layers are valid for DRC */
 	private Technology layersValidTech = null;
@@ -197,8 +190,7 @@ class MultiLayoutDRCToolJob  extends Job
 	 * If "count" is nonzero, only check that many instances (in "nodesToCheck") and set the
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
-     * @param drcJob
-	 * @param onlyArea
+     * @param data
      * @return ErrorLogger containing the information
 	 */
 	public static void startMultiMinAreaChecking(Cell cell, Layer layer,
@@ -207,19 +199,16 @@ class MultiLayoutDRCToolJob  extends Job
 	{
         if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
             return; // dirty way to skip the MoCMOS p-active well
-		new MultiLayoutDRCToolJob(cell, layer.getName());
-	}
+
+        new MultiLayoutDRCToolJob(cell, layer.getName());
+    }
 
     // returns the number of errors found
     public boolean doIt()
-//    private ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-//                                Rectangle2D bounds, boolean onlyArea)
 	{
         theLayer = topCell.getTechnology().findLayer(theLayerName);
-        this.errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
-        this.thisLayerFunction = (theLayer.getFunction().isPoly()) ?
-                    new Layer.Function.Set(theLayer.getFunction(), Layer.Function.GATE) :
-                    new Layer.Function.Set(theLayer.getFunction());
+        errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
+        this.thisLayerFunction = getMultiLayersSet(theLayer);
 
         // Check if there are DRC rules for particular tech
         Technology tech = topCell.getTechnology();
@@ -405,6 +394,8 @@ class MultiLayoutDRCToolJob  extends Job
 //            DRC.addDRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
 	    }
 
+
+        this.fieldVariableChanged("errorLogger");
         return true;
 	}
 

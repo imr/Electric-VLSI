@@ -160,8 +160,8 @@ public class ToolMenu {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
                     DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
-                new EMenuItem("Multi-_Threaded Check Min Area Hierarchically") { public void run() {
-                    DRC.checkDesignRules(Job.getUserInterface().needCurrentCell(), true); }},
+//                new EMenuItem("Multi-_Threaded Check Min Area Hierarchically") { public void run() {
+//                    DRC.checkDesignRules(Job.getUserInterface().needCurrentCell(), true); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {
