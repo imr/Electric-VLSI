@@ -37,11 +37,11 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist.ShortResistors;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.NodaNets;
 import com.sun.electric.tool.generator.layout.NodaNets.NodaPortInst;
-import com.sun.electric.tool.ncc.basic.CellContext;
 
 /** Object to map from a net or node in one design to the 
  * "NCC equivalent" net or node in the 
@@ -233,7 +233,7 @@ class NetEquivalence implements Serializable {
     }
     
 	private NodaPortInst getPortFromUnshortedNet(Network n) {
-		NodaNets noshortNets = new NodaNets(n.getParent(), false);
+		NodaNets noshortNets = new NodaNets(n.getParent(), ShortResistors.NO);
 		Collection<NodaPortInst> ports = noshortNets.getPorts(n);
 		for (NodaPortInst pi : ports) return pi;
 
@@ -253,7 +253,7 @@ class NetEquivalence implements Serializable {
 		prln("    RK Debug: Try shorting resistors");
 		
 		NodaPortInst port = getPortFromUnshortedNet(n);
-		NodaNets shortedNets = new NodaNets(n.getParent(), true);
+		NodaNets shortedNets = new NodaNets(n.getParent(), ShortResistors.PARASITIC);
 		Nodable no = shortedNets.getNoda(port.getNodable().getName());
 		for (NodaPortInst pi : shortedNets.getPorts(no)) {
 			if (pi.getIndex()==port.getIndex() &&

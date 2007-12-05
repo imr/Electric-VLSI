@@ -12,6 +12,7 @@ import java.util.Map;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist.ShortResistors;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -498,7 +499,7 @@ public class Router {
 	private List<List<PortInst>> groupConnectedPorts(ToConnect tc) {
 		PortInst firstPi = tc.getPortInsts().get(0);
 		Cell parent = firstPi.getNodeInst().getParent();
-		Netlist nl = parent.getNetlist(true);
+		Netlist nl = parent.getNetlist(ShortResistors.PARASITIC);
 		Map<Network, List<PortInst>> netToPorts = 
 			new HashMap<Network, List<PortInst>>();
 		for (PortInst pi : tc.getPortInsts()) {

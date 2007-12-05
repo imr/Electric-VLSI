@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist.ShortResistors;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -73,7 +74,7 @@ public class NodaNets {
 	private Map<Network, ArrayList<NodaPortInst>> netToPorts = 
 		new HashMap<Network, ArrayList<NodaPortInst>>();
 	
-	public NodaNets(Cell c, boolean shortResistors) {
+	public NodaNets(Cell c, ShortResistors shortResistors) {
 		Date start = new Date();
 		Netlist nets = c.getNetlist(shortResistors);
 		for (Iterator<Nodable> it=c.getNodables(); it.hasNext();) {

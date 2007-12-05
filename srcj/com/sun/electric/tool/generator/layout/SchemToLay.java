@@ -33,8 +33,9 @@ import java.util.Iterator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist.ShortResistors;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
@@ -902,7 +903,7 @@ public class SchemToLay {
 		HashMap<String,Object> combTrkAsgn = mergeTrackAssign(schem, exportTrackAssign, stdCell);
 		
 		// create routing segments that will each require a track to route
-		Netlist netlist = schem.getNetlist(true);
+		Netlist netlist = schem.getNetlist(ShortResistors.PARASITIC);
 		ArrayList<RouteSeg> stkSegs = new ArrayList<RouteSeg>();
 		ArrayList<RouteSeg> noStkSegs = new ArrayList<RouteSeg>();
 		ArrayList<NodeInst> vertTracks = new ArrayList<NodeInst>();
