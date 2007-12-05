@@ -78,7 +78,7 @@ public class HashCodePartitioningNew {
 		NccGlobals globals;
 		
 		// maximum number of EquivRecords for which we will save birthdays
-		private final int MAX_REC_BIRTHDAYS = 1000;
+		private final int MAX_REC_BIRTHDAYS = 5000;
 		
 		public static class ChildAndBirthday {
 			EquivRecord child;
@@ -123,7 +123,7 @@ public class HashCodePartitioningNew {
 			todaysDate++;
 			if (recToRehashDate.size()>MAX_REC_BIRTHDAYS) {
 				// bound hash table size by periodically clearing hash table
-				System.out.println("  NCC: Reached MAX_REC_BIRTHDAYS: "+
+				globals.status1("  NCC: Reached MAX_REC_BIRTHDAYS: "+
 						           MAX_REC_BIRTHDAYS);
 				recToRehashDate.clear();
 			}
