@@ -104,7 +104,7 @@ public class SUETab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         sue.add(sueMake4PortTransistors, gridBagConstraints);
 
-        sueConvertExpressions.setText("Convert Sue expressions to Electric");
+        sueConvertExpressions.setText("Convert SUE expressions to Electric");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;

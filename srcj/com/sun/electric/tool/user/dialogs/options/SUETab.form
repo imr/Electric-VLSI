@@ -42,7 +42,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="sueConvertExpressions">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Convert Sue expressions to Electric"/>
+            <Property name="text" type="java.lang.String" value="Convert SUE expressions to Electric"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
