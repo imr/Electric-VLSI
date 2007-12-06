@@ -73,6 +73,7 @@ public class About extends EDialog
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
 			new CastOfThousands("Philip Attfield", 			"Box merging"),
+			new CastOfThousands("Jake Baker", 		    	"Thin Film technology"),
 			new CastOfThousands("Brett Bissinger", 		    "Node extraction"),
 			new CastOfThousands("Ron Bolton", 				"Mathematical help"),
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
