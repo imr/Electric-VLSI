@@ -870,6 +870,15 @@ public class CellChangeJobs
 	{
 		Map<NodeInst,Map<PortInst,PortInst>> newNodes = new HashMap<NodeInst,Map<PortInst,PortInst>>();
 
+		// see if there are already Essential Bounds nodes in the top cell
+		boolean hasEssentialBounds = false;
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			NodeProto np = ni.getProto();
+			if (np == Generic.tech.essentialBoundsNode) { hasEssentialBounds = true;   break; }
+		}
+
 		// make transformation matrix for this cell
 		Cell subCell = (Cell)topno.getProto();
 		AffineTransform localTrans = topno.translateOut(topno.rotateOut());
@@ -881,9 +890,12 @@ public class CellChangeJobs
 			Map<PortInst,PortInst> subPortMap = new HashMap<PortInst,PortInst>();
 			newNodes.put(ni, subPortMap);
 
-			// do not extract "cell center" or "essential bounds" primitives
+			// do not extract "cell center" primitives
 			NodeProto np = ni.getProto();
-			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
+			if (np == Generic.tech.cellCenterNode) continue;
+
+			// do not extract "essential bounds" primitives if they exist in the top-level cell
+			if (np == Generic.tech.essentialBoundsNode && hasEssentialBounds) continue;
 
 			boolean extractCell = false;
 			if (ni.isCellInstance() && curDepth < totDepth) extractCell = true;

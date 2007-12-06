@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/6/07, SMR) Extracting node with Essential Bounds ignores the EB nodes.
+FIX: In CellChangeJobs.extractOneLevel(), extract Essential Bounds if there are no
+     others in the top-level cell.
+
 BUG: (12/6/07, GVG) Exception ErrorLogger creation in case of a resolution DRC error while sorting per rule names.
 This was triggered by Bug #936.
 FIX: Non-null rule name for resolution errors.
