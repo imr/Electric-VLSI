@@ -88,6 +88,15 @@ public class LETool extends Tool {
      * @return the size.
      */
     public Object getdrive() throws VarContext.EvalException {
+        return getdrive(Double.MIN_VALUE);
+    }
+
+
+    /**
+     * Grabs a logical effort calculated size from the instance.
+     * @return the size.
+     */
+    public Object getdrive(double defaultValue) throws VarContext.EvalException {
 
         // info should be the node on which there is the variable with the getDrive() call
         Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
@@ -109,6 +118,7 @@ public class LETool extends Tool {
                 Variable var = getLEDRIVE(ni, context.push(no));
                 Object size = null;
                 if (var != null) size = var.getObject();
+                else if (defaultValue != Double.MIN_VALUE) size = new Double(defaultValue);
                 sizes.add(size);
             }
             if (sizes.size() > 5) {
@@ -126,7 +136,10 @@ public class LETool extends Tool {
                 // none found, try to find drive strength using old format from C-Electric
                 var = getLEDRIVE_old(ni, context);
             }
-            //if (var == null) return "No variable "+ledrive;
+            if (var == null && defaultValue != Double.MIN_VALUE) {
+                // return default value
+                return new Double(defaultValue);
+            }
             if (var == null)
                 throw new VarContext.EvalException("getdrive(): no size");
             val = var.getObject();
