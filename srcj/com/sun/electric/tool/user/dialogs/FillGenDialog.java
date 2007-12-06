@@ -704,10 +704,16 @@ public class FillGenDialog extends EDialog {
         {
             techNm = TechType.MOCMOS;
         }
+        else if (tech == Technology.getTSMC180Technology())
+        {
+            techNm = TechType.TSMC180;
+        }
         else if (tech == Technology.getCMOS90Technology())
         {
             techNm = TechType.CMOS90;
         }
+        else
+            assert(false); // it should not reach this point
 
         // testing new code
         boolean withWidth = false;

@@ -534,6 +534,8 @@ public class ToolMenu {
                     PLA.generate(); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
+                Technology.getTSMC180Technology() != null ?  new EMenuItem("Fi_ll (TSMC180)...") { public void run() {
+                    FillGenDialog.openFillGeneratorDialog(Technology.getTSMC180Technology()); }} : null,
                 Technology.getCMOS90Technology() != null ?  new EMenuItem("F_ill (CMOS90)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getCMOS90Technology()); }} : null,
                 new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {

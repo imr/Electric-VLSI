@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG/MAN: (12/05/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
+FIX: Extra submenu added in ToolMenu this time and code was fixed.
+
 IMP: (12/05/7, GVG) Latest changes in Multi-Threaded DRC to work with regressions.
 
 IMP: (12/05/07, RK) Layout generators: remove calls to deprecated method
