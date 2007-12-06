@@ -50,13 +50,8 @@ Control of node extraction is done with the Network Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab).
 <P>
 "Grid-align geometry before extraction" causes all coordinates to be adjusted so that they are
-on grid units (see xxx).
+on grid units (see <A HREF="chap04-07-02.html#chap04-07-02">Section 4-7-2</A>).
 This is useful for data that has precision problems.
-<P>
-"Unify N and P active layers" tells the node extractor that the data does not distinguish between the
-two types of active.
-When this is not checked, the extractor assumes that there are two different active layer types,
-and uses this to help with the extraction.
 </TD></TR></TABLE>
 <P>
 "Approximate cut placement" relaxes the requirement that the cut (or via) locations
@@ -69,6 +64,21 @@ layers land in the correct original locations.
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.
 In multi-cut situations, this may be many more nodes than are necessary.
+<P>
+Active and implant regions can be handled in a number of different ways, depending on the way that
+these layers are defined in the original CIF/GDS.
+<UL>
+<LI>"Require separate N and P active; require proper select/well"
+assumes that there are distinct N and P active layers being extracted and that
+they are surrounded by the proper select and well layers.
+Extraction is easiest when all of this information is guaranteed to be correct.</LI>
+<LI>"Ignore N vs. P active; require proper select/well"
+assumes that there is only one active layer for N and P regions and so the correct
+select and well implants will be used to determine the type of active.</LI>
+<LI>"Require separate N and P active; ignore select/well"
+assumes that the N and P active layers are correct, but that the implant regions are not
+N/P distinct and must be derived from the active information.</LI>
+</UL>
 <P>
 "Smallest extracted polygon" limits the size of extracted polygons.
 When unusual geometries are extracted, there can be many tiny polygons needed to fill in gaps.

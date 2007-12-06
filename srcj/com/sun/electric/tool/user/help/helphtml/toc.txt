@@ -91,7 +91,10 @@ Display
   Zooming                            =chap04-04-01
   Panning                            =chap04-04-02
   Focus                              =chap04-04-03
- Layer Visibility                    =chap04-05
+ The Sidebar
+  The Component Menu                 =chap04-05-01
+  The Cell Explorer                  =chap04-05-02
+  Layer Visibility                   =chap04-05-03
  Color
   Electric's Color Model             =chap04-06-01
   Editing Colors and Patterns        =chap04-06-02
@@ -100,16 +103,15 @@ Display
   Aligning to a Grid                 =chap04-07-02
   Aligning to Objects                =chap04-07-03
   Measuring                          =chap04-07-04
- The Cell Explorer                   =chap04-08
- Printing                            =chap04-09
- Text Windows                        =chap04-10
+ Printing                            =chap04-08
+ Text Windows                        =chap04-09
  3D Windows
-  3D Introduction                    =chap04-11-01
-  3D Preferences                     =chap04-11-02
-  3D Behaviors and Animation         =chap04-11-03
+  3D Introduction                    =chap04-10-01
+  3D Preferences                     =chap04-10-02
+  3D Behaviors and Animation         =chap04-10-03
  Waveform Windows
-  Digital Waveform Windows           =chap04-12-01
-  Analog Waveform Windows            =chap04-12-02
+  Digital Waveform Windows           =chap04-11-01
+  Analog Waveform Windows            =chap04-11-02
 
 Arcs
  Introduction to Arcs                =chap05-01
@@ -209,7 +211,7 @@ Tools
   Introduction to Simulation         =chap09-04-01
   Verilog                            =chap09-04-02
   Spice                              =chap09-04-03
-  Spice and Verilog Primitives       =chap09-04-04
+  Special Spice and Verilog Nodes    =chap09-04-04
   FastHenry                          =chap09-04-05
  Simulation (built-in)
   IRSIM                              =chap09-05-01

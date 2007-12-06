@@ -6,11 +6,15 @@
 <!-- COMMAND Edit/Properties/Update Attributes Inheritance on Node -->
 <!-- COMMAND Edit/Properties/Update Attributes Inheritance all Libraries -->
 
-When attributes are created on cells, they become parameters to that cell.
-Each instance of the cell has a copy of the attribute placed on the node, and the node's attribute
-can then be set independently of the cell's attribute.
-In such a situation, the node attribute's value is the "actual" parameter to the cell,
-and the cell attribute's value is the "formal", or default parameter value.
+When attributes are created on cells,
+using the <B>Attribute Properties...</B> command described in the
+<A HREF="chap06-08-05.html#chap06-08-05">last Section</A>, they become parameters to that cell.
+This means that the attributes appear on the cell and also on all instances of the cell.
+The instances of the cell have copies of the parameter, which lets the instance values
+be set independently of the cell's parameter value.
+The cell's parameter value becomes the "default" value, and the instances then have the true value.
+The computer-programming equivalent of this is that the cell's parameter is the "formal" value
+and the instance parameters are the "actual" values.
 <P>
 One example of the use of cell parameters is in the Spice primitives, where user-defined values (such as voltage)
 are communicated into the icon for generation in the Spice deck
@@ -21,7 +25,7 @@ Another use of cell parameters is to parameterize the size of a transistor in a 
 The transistor width and length can be defined in terms of the parameter value,
 allowing a single cell to take on many different forms.
 By combining these parameters with the interpretive language facility,
-an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size.
+an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size.
 <P>
 Inside of the cell, the parameter is shown with its name and default value.
 To see the actual value from up the hierarchy, create a Java expression with the value "@PNAME" where PNAME is the parameter name.
@@ -29,7 +33,7 @@ For example, if a cell has an attribute called "heat", you might place a piece o
 (with the "Annotation Text" command under the "Misc" entry in the component menu)
 and name it "@heat".
 Make sure to set its Code to Java.
-When first defined, the parameter has no actual value, and so appears as "heat not found".
+When first defined, the parameter has no actual value, and so appears as "heat not found".
 If an instance is created and its "heat" attribute is set to 7, then descending into that cell will show "7".
 <P>
 If a parameter is added to a cell, existing instances of that cell may not get properly updated.

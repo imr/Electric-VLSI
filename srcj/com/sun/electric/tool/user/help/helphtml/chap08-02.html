@@ -3,6 +3,7 @@
 <!-- COMMAND Edit/Technology Specific/Convert Technology to Library for Editing... -->
 <!-- COMMAND Edit/Technology Specific/Convert Library to Technology... -->
 <!-- COMMAND Edit/Technology Specific/Rename Current Technology... -->
+<!-- PROJECTSETTING Added Technologies -->
 
 <H3>Converting Technologies to Libraries</H3>
 <P>
@@ -30,8 +31,8 @@ To convert a technology-library into a technology, use
 the <B>Convert Library to Technology...</B> command.
 <P>
 <TABLE><TR><TD>
-You are given the opportunity of naming the technology, and can also request that Java code be produced
-(this code can be compiled with Electric to install the technology permanently).
+You are given the opportunity of naming the technology, and can also request that XML code be produced
+(this code can be used to install the technology permanently).
 If a technology already exists with the name you want, you can request that it be renamed,
 or you can choose a different name for the new technology
 (note that technologies can also be renamed with the <B>Rename Current Technology...</B> command).
@@ -46,6 +47,16 @@ Before creating any circuitry with the new technology,
 it is advisable to create a new library (use the <B>New Library...</B> command of menu <B>File</B>)
 so that the test circuitry is not stored with the library that describes it.
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-09.png" ALT="Figure 8.9"></CENTER></TD><TD>
+Once a technology has been created, you can make it a permanent part of Electric by adding its
+XML code to the system.
+This is done with the Added Technologies Project Setting
+(in menu <B>File / Project Settings...</B>, "Added Technologies" tab).
+Use the "Add" button and browse to the XML file that was produced by the technology editor.
+If you no longer want to have a technology installed in Electric, select it and use the "Remove" button.
+Note that changes to installed technologies do not take effect until Electric is next started.
+</TD></TR></TABLE>
+<P>
 <H3>Cleaning Up</H3>
 <P>
 After a few rounds of technology editing, there may be many libraries and technologies.
@@ -59,5 +70,6 @@ Once a library has been successfully built that describes a technology,
 it can be saved to disk with the <B>Save Library</B>
 command of the <B>File</B> menu.
 Then, in another session of Electric, it can be read from disk and converted to a technology.
+Alternatively, the XML for the technology can be installed into Electric with the Added Technologies Project Settings.
 
 <!-- TRAILER -->

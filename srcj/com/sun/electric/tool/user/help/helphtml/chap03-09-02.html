@@ -79,6 +79,8 @@ Use the DXF Preferences (in menu File / Preferences..., "I/O" section, "DXF" tab
 <LI><B>SUE (Schematic User Environment)</B> is a schematic editor that captures a single cell in each file.
 The circuitry in SUE files is added to the current library instead of being placed in its own library
 (because many SUE files may have to be read to build up a single Electric library).
+When reading a SUE file, any subdirectories that start with "suelib_" will also be examined for dependent
+SUE cells.
 Use the SUE Preferences (in menu File / Preferences..., "I/O" section, "SUE" tab) to affect how SUE is read
 (see <A HREF="chap07-03-08.html#chap07-03-08">Section 7-3-8</A>).</LI>
 
@@ -97,7 +99,7 @@ Now that the newer ".jelib" format is also text-readable, there is no need to us
 <LI><B>Text Cell Contents</B> is used to read a text file into a text cell.
 The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)
 
-See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text windows.
+See <A HREF="chap04-09.html#chap04-09">Section 4-9</A> for more on text windows.
 </LI>
 </UL>
 

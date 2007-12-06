@@ -18,16 +18,24 @@ Be sure to create all relevant exports before issuing this command,
 so that the proper icon can be constructed.
 Note that any export that has its "Body only" attribute checked will be omitted from the icon.
 <P>
-<TABLE><TR><TD>
 To control the look of the icons, use the
 Icon Preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Icon" tab).
 <P>
-The top part of the dialog lets you place each of the different export types on any of the four sides of the icon.
-</TD><TD><CENTER><IMG SRC="fig03-18.png" ALT="Figure 3.18"></CENTER></TD></TR></TABLE>
+<CENTER><IMG SRC="fig03-18.png" ALT="Figure 3.18"></CENTER>
+<P>
+The top part of the dialog lets you control where exports are placed.
+You may choose to place them according to their characteristics (input, output, etc.)
+or to place them relative to their location in the schematic cell.
+When placed by characteristics, exports are arranged alphabetically around the icon,
+and you can choose to reverse the alphabetical order.
+Text can be rotated in any of four directions.
 <P>
 The middle section of the dialog controls the body and leads of the icon.
 You can choose whether or not to draw the body and leads.
 You can set the spacing and length of leads.
+You can control the size of the text used on the cell body.
+You can request that exports be "Always Drawn" (which means that they appear even when wired or reexported,
+see <A HREF="chap03-06-01.html#chap03-06-01">Section 3-6-1</A>).
 You can choose the location of the exports (at the end of the leads,
 in the middle of the leads, or on the body).
 You can choose the style of the export text (whether it grows inward, outward).
@@ -36,9 +44,7 @@ The bottom part of the dialog has miscellaneous controls.
 You can choose the technology of the exports
 ("Schematic" uses nodes from the Schematic technology and can connect only to other Schematic arcs;
 "Universal" uses nodes from the Generic technology which can connect to any arc).
-Exports are arranged alphabetically around the icon,
-and you can choose to reverse the alphabetical order.
-Finally, you can choose the location of the icon instance in the original schematic
+You can choose the location of the icon instance in the original schematic
 (when you use the <B>Make Icon View</B> command,
 it generates the icon and places an instance of that icon in the schematic).
 A button at the bottom requests that an icon be made now, and takes the place of the <B>Make Icon View</B>
