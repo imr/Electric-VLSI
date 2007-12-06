@@ -697,10 +697,13 @@ public class CircuitChanges
 		if (everywhere)
 		{
 			boolean cleaned = false;
-			for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+			for(Library lib : Library.getVisibleLibraries())
 			{
-				Cell cell = it.next();
-				if (cleanupCell(cell, false, highlighter)) cleaned = true;
+				for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+				{
+					Cell cell = it.next();
+					if (cleanupCell(cell, false, highlighter)) cleaned = true;
+				}
 			}
 			if (!cleaned) System.out.println("Nothing to clean");
 		} else

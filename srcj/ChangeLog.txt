@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/6/07, SMR) "Cleanup Pins Everywhere" only affects current library (But #1449).
+FIX: In CircuitChanges.cleanupPinsCommand(), made it affect all libraries.
+
 BUG: (12/6/07, SMR) "Cross Library Copy" uses "Old" markers in a confusing manner (Bug #870)
 FIX: Changed "Old" to "New" so that the arrow points to the newer cell.
 
