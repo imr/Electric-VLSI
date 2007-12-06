@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
-BUG/MAN: (12/05/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
+BUG: (12/6/07, SMR) "Cross Library Copy" uses "Old" markers in a confusing manner (Bug #870)
+FIX: Changed "Old" to "New" so that the arrow points to the newer cell.
+
+BUG: (12/05/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
 FIX: Extra submenu added in ToolMenu this time and code was fixed.
 
 IMP: (12/05/7, GVG) Latest changes in Multi-Threaded DRC to work with regressions.
@@ -26,11 +29,11 @@ IMP: (12/02/07, DN) If network is connected by case-insensitive name match, repo
 BUG: (12/02/07, DN) sch/ic port check should be case sensitive (Bug #1398).
 FIX: Make NodeProto.findPortProto() case-sensitive.
 
-IMP/MAN: (11/30/07, GVG) First version of multi-threaded DRC for spacing rules (no area-related).
+IMP: (11/30/07, GVG) First version of multi-threaded DRC for spacing rules (no area-related).
 
-IMP/MAN: (11/30/07, GVG) No checking contact layers such as vias in multi-threaded version of minArea.
+IMP: (11/30/07, GVG) No checking contact layers such as vias in multi-threaded version of minArea.
 
-BUG/MAN: (11/30/07, DN) The various attributes of a piece of text are losing their value (Bug #1447).
+BUG: (11/30/07, DN) The various attributes of a piece of text are losing their value (Bug #1447).
 FIX: Displayability of TextDescriptor is one of: NONE, HIDDEN, SHOWN.
      They are written in JELIB as: "D" - SHOWN, "d" - HIDDEN.
 
@@ -43,16 +46,16 @@ in layout as well as schematic. I fixed NCC regression to accomodate this change
 
 ************************* Version 8.06m: *******************************
 
-IMP/MAN: (11/28/07, GVG) Second version of multi-threaded min area DRC checking.
+IMP: (11/28/07, GVG) Second version of multi-threaded min area DRC checking.
 It collects layers per cell.
 
-BUG/MAN: (11/27/07, SMR) Spice primitive templates don't handle width/length (Bug #1422)
+BUG: (11/27/07, SMR) Spice primitive templates don't handle width/length (Bug #1422)
 FIX: In Spice.replacePortsAndVars() added "width" and "length".
 
 BUG: (11/27/07, DN) Grid axes are not always correct (Bug #1430).
 FIX: drawGrid methods use scale/offset from Drawing instead of EditWindow.
 
-IMP/MAN: (11/26/07, SMR) "Select All Like This" now matches Export by their
+IMP: (11/26/07, SMR) "Select All Like This" now matches Export by their
      characteristic (i.e. selecting an input port will match all other
      input ports) (Bug #1433).
 
@@ -68,7 +71,7 @@ FIX: Declare NccNetlist.SHORT_RESISTORS constant and pass it consistently
 IMP: (11/20/07, SMR) Added note in Attributes dialog (in debug mode only)
      that Parameters must start with "ATTR_".
 
-IMP/MAN: (11/20/07, SMR) Sue input now has an option to convert Sue
+IMP: (11/20/07, SMR) Sue input now has an option to convert Sue
      expressions to Electric form.
 
 BUG: (11/20/07, SMR) Grid axes are not always correct (Bug #1430).
@@ -131,7 +134,7 @@ FIX: In Highlight2.HighlightLine.getHighlightedArea() compute area correctly.
 BUG: (11/14/07, SMR) GDS import of paths has wrong endcaps (Bug #1428).
 FIX: Angle computation was wrong in GDS.determinePath().
 
-IMP/MAN: (11/14/07, SMR) Added "Spice Template" field to primitive nodes.
+IMP: (11/14/07, SMR) Added "Spice Template" field to primitive nodes.
      Affects Node editing in the technology editor (Bug #1422).
 
 BUG: (11/14/07, GVG) Factory reset all layers does not reset background (Bug #1425)
@@ -143,7 +146,7 @@ IMP: (11/13/07, RK) Add physical design classes for Infinity-2
 BUG: (11/12/07, GVG) Narrow layers not detected by DRC (bug #1418)
 FIX: Quick.foundSmallSizeDefect() should still analyze zero area boxes.
 
-IMP/MAN: (11/09/07, GVG) Ability to switch between min area algorithms. Added new algorithm based on local
+IMP: (11/09/07, GVG) Ability to switch between min area algorithms. Added new algorithm based on local
 calculations per cell.
 
 BUG: (11/08/07, GVG) Fill Cell Generator Dialog box initial size is wrong (Bug #1419).
@@ -152,13 +155,13 @@ FIX: Difficult to size JTabbedPanel. Fixed size values that are valid for techs 
 BUG: (11/08/07, GVG) DRC reports false layer surround errors (Bug #1421)
 FIX: Removed rule for tsmc180.
 
-IMP/MAN: (11/08/07, GVG) Need menu item to import saved drc errors (Bug #1420).
+IMP: (11/08/07, GVG) Need menu item to import saved drc errors (Bug #1420).
 Implemented by adding import option in File -> Import -> XML Error Logger.
 
 IMP: (11/8/07, SMR) Added methods to NodeInst and Technology to find the "alternate"
      gate port on a transistor.
 
-BUG/MAN: (11/07/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
+BUG: (11/07/07, GVG) FillGenerator can't generate tsmc180 fill cells (Bug #1417)
 FIX: Extra submenu added in ToolMenu. The title in the dialog box includes the tech name now.
 
 BUG: (11/07/07, GVG) NPE in FillGenerator if dimensions for cell templates are too small (Bug #1415).
@@ -167,17 +170,17 @@ FIX: Added LayoutLib.error() if cap transistors can't be sized because the cell 
 BUG: (11/7/07, SMR) Changing nodes with arcs doesn't work right (Bug #1416).
 FIX: Now attach contacts better and set their sizes properly.
 
-IMP/MAN: (11/07/07, GVG) Remove notion of CS in cells and allow EBs to drive array command (Bug #1413).
+IMP: (11/07/07, GVG) Remove notion of CS in cells and allow EBs to drive array command (Bug #1413).
 Cell properties dialog was modified as well.
 
-IMP/MAN: (11/06/07, GVG) Delete entire group from Explorer (Bug #1409)
+IMP: (11/06/07, GVG) Delete entire group from Explorer (Bug #1409)
 Code checks whether the entire group can be deleted or not.
 
-IMP/MAN: (11/06/07, GVG) Indexing errors folder (Bug #766).
+IMP: (11/06/07, GVG) Indexing errors folder (Bug #766).
 ErrorLoggers can now sort errors/warnings per cell, rule or nothing (flat representation).
 Per cell is the default now.
 
-IMP/MAN: (11/06/07, GVG) ErrorLogger and flat representation (Bug #936).
+IMP: (11/06/07, GVG) ErrorLogger and flat representation (Bug #936).
 XML syntax for ErrorLogger was extended to cluster messages by groups.
 
 BUG: (11/6/07, SMR) Epic signals are not draggable as a group (Bug #1411).
@@ -235,7 +238,7 @@ FIX: Supress quotes in Spice2 and Spice3.
 BUG: (10/29/07, GVG) Exception in ElectricObject after massive delete (bug #1170)
 FIX: Detect cases where objects are accessed by Swing but are being modified at the same time.
 
-BUG/MAN: (10/25/07, GVG) DRC and Extension rule PP.EN.1 (Bug #1286)
+BUG: (10/25/07, GVG) DRC and Extension rule PP.EN.1 (Bug #1286)
 FIX: New version of Quick.checkExtensionRules by using conditional rules.
 The code will be slower with the extension checkings.
 
@@ -274,9 +277,9 @@ FIX: Stephen Friedman's fix is inserted into NetSchem. It is disabled by
   DESCENDING_BUS key for now, because it is necessary to implement
   refreshing of networks after changing this option.
 
-IMP/MAN: (10/19/07, RK) Add "FLAG" Fleet LAyout Generator
+IMP: (10/19/07, RK) Add "FLAG" Fleet LAyout Generator
 
-IMP/MAN: (10/17/07, SMR) EPIC reader now always uses separate process (Bug #1371)
+IMP: (10/17/07, SMR) EPIC reader now always uses separate process (Bug #1371)
 
 BUG: (10/17/07, DN) JELIB/DELIB reader doesn't read cell groupping(Bug #1393).
 FIX: In input.JELIB.readTheLibrary consider groupName fields correctly.
@@ -285,7 +288,7 @@ BUG: (10/17/07, SMR) Changes to a text window are not remembered if
      save is issued while in the window.
 FIX: Store all changes immediately instead of marking the text "dirty".
 
-IMP/MAN: (10/16/07, JG) If you hit shift-#, it changes the visibility to
+IMP: (10/16/07, JG) If you hit shift-#, it changes the visibility to
      metal# and metal#-1 (including contacts of those levels).  If you hit
      shift-0, it shows everything.  This makes it easy to quickly check metal
      layers without having to click on the layers tab, especially for global routing.
@@ -295,16 +298,16 @@ BUG: (10/16/07, GVG) Rotated DRC exclusion regions don't get correct
      Extra test in regression added.
 FIX: Apply transformation in Quick.accumulateExclusion()
 
-IMP/MAN: (10/15/07, GVG) Conditional spacing rules implemented (Bug #1378).
+IMP: (10/15/07, GVG) Conditional spacing rules implemented (Bug #1378).
      Not supported by TechEditor.
 
-IMP/MAN: (10/15/07, SMR) "Find Text" now has "Limit Search to the Highlighted Area"
+IMP: (10/15/07, SMR) "Find Text" now has "Limit Search to the Highlighted Area"
      checkbox (Bug #1392).
 
 BUG: (10/15/07, SMR) Export text is in the wrong place (Bug #1396).
 FIX: In VectorCache.initPortShapes(), set the text style.
 
-IMP/MAN: (10/12/07, GVG) First version of conditional DRC rules (Bug #1366).
+IMP: (10/12/07, GVG) First version of conditional DRC rules (Bug #1366).
      Full overlapping is the first type implemented. Not supported by TechEditor.
 
 ************************* Version 8.06h: *******************************
@@ -352,7 +355,7 @@ FIX: Added electrical layers to transistors, fixed N-Active size in "mocmossub".
 
 IMP: (10/3/07, RK) Add Skewed tree generator for Fleet
 
-IMP/MAN: (10/3/07, SMR) Technology editor now has port option for "gate/gated"
+IMP: (10/3/07, SMR) Technology editor now has port option for "gate/gated"
      to handle nonstandard transistors.
 
 IMP: (10/2/07, SMR) Generalized the file name decoding scheme in TextUtils.URLtoString().
@@ -384,7 +387,7 @@ IMP: (9/26/07, SMR) Preferences, Project Settings, and User's Manual now
 BUG: (9/26/07, SMR) Technology editor doesn't handle transistors right.
 FIX: Many small improvements to tech editor.
 
-IMP/MAN: (9/25/07, SMR) Icon preferences now allow exports to be placed according
+IMP: (9/25/07, SMR) Icon preferences now allow exports to be placed according
      to the placement in the original cell.  Also allow control of text size
      on icon body.
 
@@ -394,7 +397,7 @@ BUG: (9/25/07, SMR) Offset exports now display properly on instances.
 
 IMP: (9/20/07, GVG) Cleaning VerilogData in code.  Adding \t to a tokenizer for full design.
 
-IMP/MAN: (9/20/07, SMR) Icon Preferences now allow specification of "always drawn"
+IMP: (9/20/07, SMR) Icon Preferences now allow specification of "always drawn"
      for all export text.
 
 BUG: (9/20/07, SMR) Multi-object Properties doesn't handle all fields of exports.
@@ -420,13 +423,13 @@ FIX: Store desired print area in ElectricPrinter object and use it.
 IMP: (9/18/07, SMR) Object properties dialogs (node, arc, multi Get Info)
      now remember their size between invocations.
 
-IMP/MAN: (9/18/07, SMR) Cell Properties dialog can now set/clear expansion
+IMP: (9/18/07, SMR) Cell Properties dialog can now set/clear expansion
      state on all cells.
 
 IMP: (9/18/07, SMR) When duplicating circuitry, the initial highlighting is
      in the same position as it was before.
 
-IMP/MAN: (9/18/07, SMR) Icon preferences now allow rotation to be given for
+IMP: (9/18/07, SMR) Icon preferences now allow rotation to be given for
      each type of port.
 
 BUG: (9/17/07, GVG) NT-N node and NT-N transistor problems in TSMC180 (Bug #1378)
@@ -443,7 +446,7 @@ IMP: (9/14/07, GVG) Last changes in Oyster before move to SVN. Initial memory is
 BUG: (9/14/07, SMR) Exports don't show rotation, size, etc at higher levels.
 FIX: In VectorCache.VectorCell.initPortShapes(), use "portDescript", not "descript".
 
-IMP/MAN: (9/14/07, SMR) DEF input ignores logical wires when not selected.
+IMP: (9/14/07, SMR) DEF input ignores logical wires when not selected.
      DEF preferences updated to be clear about input.
 
 IMP: (9/14/07, SMR) Spice preferences now remember the last header/trailer
@@ -467,7 +470,7 @@ IMP: (9/12/07, GVG) Detecting job finished with string in Oyster multithread job
 BUG: (9/11/07, SMR) DEF input doesn't handle all orientations of instances.
 FIX: Improved LEF/DEF reader.
 
-IMP/MAN: (9/11/07, SMR) Added Thin Film technology (tft).
+IMP: (9/11/07, SMR) Added Thin Film technology (tft).
 
 IMP: (9/11/07, GVG) Code to create cells in multithreaded jobs for Oyster
 
@@ -505,7 +508,7 @@ BUG: (9/6/07, SMR) Ctrl-Shift-X doesn't bind (Bug #1381).
 FIX: In KeyBindingManager.processKeyEvent(), consider alpha property by
      examining KeyCode, not KeyChar.
 
-IMP/MAN: (9/6/07, SMR) Added new context menu "Show All" to ERROR part of
+IMP: (9/6/07, SMR) Added new context menu "Show All" to ERROR part of
      the Explorer tree to highlight all errors (Bug #1377).
 
 IMP: (9/6/07, DN) Removed import of technology classes from technology.Xml module.
@@ -526,17 +529,17 @@ BUG: (9/5/07, SMR) Double-clicking the open/close (+/-) box affects the selected
 FIX: In ExplorerTree.TreeHandler.mousePressed(), make sure double-click happens
      to a selected entry.
 
-IMP/MAN: (9/5/07, SMR) Enhanced "Describe This Cell" command to give bounds
+IMP: (9/5/07, SMR) Enhanced "Describe This Cell" command to give bounds
      in X and Y (Bug #1374).
 
 IMP: (9/5/07, SMR) LEF/DEF reader more powerful.
 
-IMP/MAN: (9/5/07, SMR) Verilog output reader now supports Modelsim.
+IMP: (9/5/07, SMR) Verilog output reader now supports Modelsim.
 
 BUG: (9/5/07, SMR) Auto-routing may connect two arcs that do not touch (Bug #1369).
 FIX: In AutoStitch.compareTwoArcs(), fix second call to "getShapeOfArc" to use second arc.
 
-IMP/MAN: Function in SunAsyncMenu to migrate a MOSIS lib into TSMC180 (requested by Justin)
+IMP: Function in SunAsyncMenu to migrate a MOSIS lib into TSMC180 (requested by Justin)
 
 IMP: (9/4/07, RK) Add N-Well-RPO-Resistor to NCC
 
@@ -553,12 +556,12 @@ FIX: Backtrack all leaf nodes instead of only unmatched leaves.
 BUG: (8/29/07, SMR) Technology editor crashes when arc list is bad on ports.
 FIX: More robust both in technology conversion and in port list editing.
 
-IMP/MAN: (8/29/07, SMR) Added "Component Menu" preference panel to customize
+IMP: (8/29/07, SMR) Added "Component Menu" preference panel to customize
      the Component Menu for the current technology.  Also added the command
      "Edit / Technology Specific / Edit Component Menu..." to customize the
      component menu in the technology editor.
 
-IMP/MAN: (8/22/07, SMR) When dragging a single node or arc, highlighting
+IMP: (8/22/07, SMR) When dragging a single node or arc, highlighting
      shows design rules and simple violations.  Controlled from tool/DRC
      Preferences with "Show worst violation while moving nodes and arcs".
 
@@ -591,7 +594,7 @@ IMP: (8/16/07, SAF) PIE: Added annotation to prevent interchange.
 BUG: (8/16/07, SMR) Two-key bindings don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore code zero.
 
-IMP/MAN: (8/15/07, SMR) Added a new Preferences panel: "Added Technologies"
+IMP: (8/15/07, SMR) Added a new Preferences panel: "Added Technologies"
      so that new technology XML files can be linked into Electric more easily.
 
 IMP: (8/15/07, SMR) Highlight text now scales with global text scale.
@@ -599,11 +602,11 @@ IMP: (8/15/07, SMR) Highlight text now scales with global text scale.
 BUG: (8/13/07, SMR) Waveform crossprobing makes unnecessary warnings (Bug #1302).
 FIX: In WaveformWindow.findSelectedSignals(), removed warning message.
 
-BUG/MAN: (8/13/07, SMR) "Package into Cell" should package the exact highlighted
+BUG: (8/13/07, SMR) "Package into Cell" should package the exact highlighted
      objects but instead gathers everything in the highlighted area (Bug #1360).
 FIX: In CellChangeJobs.PackageCell class, take a set of nodes and arcs to package.
 
-IMP/MAN: (8/10/07, SMR) Digital waveforms now show the "Z" state (from Verilog)
+IMP: (8/10/07, SMR) Digital waveforms now show the "Z" state (from Verilog)
      as a thick green bar.
 
 BUG: (8/10/07, SMR) Changing arcs (with nodes) may loop infinitely (Bug #1359).
@@ -769,7 +772,7 @@ IMP: (6/21/07, SAF) PIE: Updated to reflect progress made at UofW.
      with caching implemented via base and strong generating set with
      Schreier-Sims Algorithm.
 
-IMP/MAN: (6/20/07, SMR) New extraction option to ignore select/well layers.
+IMP: (6/20/07, SMR) New extraction option to ignore select/well layers.
 
 BUG: (6/20/07, SMR) Sea-of-gates router uses larger contacts which cause DRC errors ([Bug #1334)
 FIX: Sort contacts in list so that the smaller ones are preferred.

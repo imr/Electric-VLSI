@@ -270,13 +270,13 @@ public class CrossLibCopy extends EDialog
 
 				if (compare > 0)
 				{
-					pt = (result) ? "<-Old" : "<-Old/Diff";
-					if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " OLDER THAN " +
+					pt = (result) ? "<-New" : "<-New/Diff";
+					if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " NEWER THAN " +
 						curLibRight.getName() + ":" + rightName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				} else if (compare < 0)
 				{
-					pt = (result) ? "  Old->" : " Diff/Old->";
-					if (report) System.out.println(curLibRight.getName() + ":" + rightName + " OLDER THAN " +
+					pt = (result) ? "  New->" : " Diff/New->";
+					if (report) System.out.println(curLibRight.getName() + ":" + rightName + " NEWER THAN " +
 						curLibLeft.getName() + ":" + leftName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				} else
 				{
