@@ -55,7 +55,7 @@ public abstract class MultiDRCToolJob extends Job {
     /***********************************
      * Multi-Threaded Jobs
      ***********************************/
-    public static MultiDRCCollectData checkDesignRules(Cell cell, boolean checkArea)
+    public static MultiDRCCollectData checkDesignRules(Cell cell, boolean checkArea, boolean ignoreExtensionR)
     {
         // Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
@@ -88,7 +88,7 @@ public abstract class MultiDRCToolJob extends Job {
             if (checkArea)
                 MultiDRCAreaToolJob.startMultiMinAreaChecking(cell, layer, cellLayersCon, globalStartTime, polyDone);
             else
-                MultiLayoutDRCToolJob.startMultiLayoutChecking(cell, layer, null, null, null);
+                MultiLayoutDRCToolJob.startMultiLayoutChecking(cell, layer, null, null, null, ignoreExtensionR);
         }
         return new MultiDRCCollectData(globalStartTime);
     }

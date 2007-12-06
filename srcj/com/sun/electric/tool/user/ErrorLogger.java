@@ -775,6 +775,20 @@ public class ErrorLogger implements Serializable
     }
 
     /**
+     * Get a group name for a sortKey. It creates the hash map if it
+     * doesn't exist
+     * @param sortKey the error log sortKey
+     * @return the group name. Null if no group name was found
+     */
+    public String getGroupName(int sortKey)
+    {
+        if (sortKeysToGroupNames == null) {
+            sortKeysToGroupNames = new HashMap<Integer,String>();
+        }
+        return sortKeysToGroupNames.get(sortKey); // using overload
+    }
+
+    /**
      * Method called when all errors are logged.  Initializes pointers for replay of errors.
      */
     public synchronized void termLogging(boolean explain)

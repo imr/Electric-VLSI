@@ -40,9 +40,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -257,23 +255,27 @@ public class ErrorLoggerTree {
         if (logger.getNumLogs() == 0) return;
         DefaultMutableTreeNode groupNode = loggerNode;
         int currentSortKey = -1;
+        Map<Integer,DefaultMutableTreeNode> sortKeyMap = new HashMap<Integer,DefaultMutableTreeNode>();
+        HashMap<Integer,String> sortKeyGroupNamesMap = logger.getSortKeyToGroupNames();
+        // Extra level for loggers
+        if (sortKeyGroupNamesMap != null) {
+            for (Map.Entry e : sortKeyGroupNamesMap.entrySet())
+            {
+                String name = (String)e.getValue();
+                DefaultMutableTreeNode grpNode = new DefaultMutableTreeNode(name);
+                loggerNode.add(grpNode);
+                sortKeyMap.put((Integer)e.getKey(), grpNode);
+            }
+        }
         for (Iterator<ErrorLogger.MessageLog> it = logger.getLogs(); it.hasNext();) {
             ErrorLogger.MessageLog el = it.next();
             // by default, groupNode is entire loggerNode
             // but, groupNode could be sub-node:
-            if (logger.getSortKeyToGroupNames() != null) {
-                if (currentSortKey != el.getSortKey()) {
-                    // create new sub-tree node
-                    currentSortKey = el.getSortKey();
-                    String groupName = logger.getSortKeyToGroupNames().get(new Integer(el.getSortKey()));
-                    if (groupName != null) {
-                        groupNode = new DefaultMutableTreeNode(groupName);
-                        loggerNode.add(groupNode);
-                    } else {
-                        // not found, put in loggerNode
-                        groupNode = loggerNode;
-                    }
-                }
+            if (logger.getSortKeyToGroupNames() != null)
+            {
+                groupNode = sortKeyMap.get(el.getSortKey());
+                if (groupNode == null) // not found, put in loggerNode
+                   groupNode = loggerNode;
             }
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
             groupNode.add(node);

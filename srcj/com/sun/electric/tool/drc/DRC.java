@@ -31,11 +31,8 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -44,7 +41,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -58,7 +54,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.util.*;
 import java.util.prefs.Preferences;
-import java.io.Serializable;
 
 /**
  * This is the Design Rule Checker tool.
@@ -251,7 +246,8 @@ public class DRC extends Listener
                 break;
             case DRC_LOG_PER_RULE:
                 sortKey = rule.hashCode();
-                errorLogger.setGroupName(sortKey, rule);
+                if (errorLogger.getGroupName(sortKey) == null) // only if nothing was found
+                    errorLogger.setGroupName(sortKey, rule);
                 break;
         }
 

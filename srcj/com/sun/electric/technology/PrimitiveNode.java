@@ -966,11 +966,15 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 
 	/**
 	 * Method to set the minimum height of this PrimitiveNode.
+     * If no name is provided, it uses the PrimitiveNode name to compose the rule name.
 	 * @param minHeight the minimum height of this PrimitiveNode.
 	 */
 	public void setMinSize(double minWidth, double minHeight, String minSizeRule)
 	{
         setSizeCorrector(minWidth, minHeight);
+        // If no name is provided, it uses the PrimitiveNode name to compose the rule name.
+        if (minSizeRule == null || minSizeRule.equals(""))
+            minSizeRule = this.getName() + " Min. Size";
         minNodeSize = new NodeSizeRule(minWidth, minHeight, minSizeRule);
     }
     

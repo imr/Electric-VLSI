@@ -129,14 +129,16 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
     private Layer.Function.Set thisLayerFunction;
+    private boolean ignoreExtensionRules = true;
 
-    public MultiLayoutDRCToolJob(Cell c, String l)
+    public MultiLayoutDRCToolJob(Cell c, String l, boolean ignoreExtensionR)
 	{
         super(c, l, "Design-Rule Layout Check " + c + ", layer " + l);
+        this.ignoreExtensionRules = ignoreExtensionR;
         startJob();
     }
 
-	/**
+    /**
 	 * The InstanceInter object records interactions between two cell instances and prevents checking
 	 * them multiple times.
 	 */
@@ -194,12 +196,12 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 	 */
 	public static void startMultiLayoutChecking(Cell cell, Layer layer,
                                                 Geometric[] geomsToCheck, boolean[] validity,
-                                                Rectangle2D bounds)
+                                                Rectangle2D bounds, boolean ignoreExtensionR)
 	{
         if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
             return; // dirty way to skip the MoCMOS p-active well
 
-        new MultiLayoutDRCToolJob(cell, layer.getName());
+        new MultiLayoutDRCToolJob(cell, layer.getName(), ignoreExtensionR);
     }
 
     // returns the number of errors found
@@ -218,7 +220,9 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 
         // caching bits
         activeBits = DRC.getActiveBits(tech);
-        System.out.println("Running DRC for " + theLayer+ " with " + DRC.explainBits(activeBits));
+        String extraMsg = ", extension bit ";
+        extraMsg += this.ignoreExtensionRules ? "on" : "off";
+        System.out.println("Running DRC for " + theLayer+ " with " + extraMsg);
 
         // caching memory setting
         inMemory = DRC.isDatesStoredInMemory();
@@ -3227,7 +3231,7 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
     private boolean checkExtensionGateRule(Geometric geom, Layer layer, Poly poly, Layer nLayer,
                                            Poly nPoly, Netlist netlist)
 	{
-        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+        if(ignoreExtensionRules) return false;
 
         return false;
 //        DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, true);
@@ -3499,7 +3503,7 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
      */
     private boolean checkExtensionRules(Geometric geom, Layer layer, Poly poly, Cell cell)
     {
-        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+        if(ignoreExtensionRules) return false;
 
         List<DRCTemplate> rules = DRC.getRules(layer, DRCTemplate.DRCRuleType.SURROUND);
 

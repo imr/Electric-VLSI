@@ -678,7 +678,7 @@ public class Quick
         // there was an error, for now print error
         Layer layer = poly.getLayer();
         reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution +
-                " on layer " + layer.getName(), cell, 0, 0, null, null, geom, null, null, null, null);
+                " on layer " + layer.getName(), cell, 0, 0, "Resolution", null, geom, null, null, null, null);
         return true;
 	}
 
