@@ -1814,10 +1814,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
 
-                menuItem = new JMenuItem("Delete");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteGroupAction(); } });
-
                 menuItem = new JMenuItem("Open all below here");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
@@ -1831,6 +1827,10 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 				menuItem = new JMenuItem("Create New Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
+                menuItem = new JMenuItem("Delete Entire Group");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteGroupAction(); } });
 
 				menu.addSeparator();
 
