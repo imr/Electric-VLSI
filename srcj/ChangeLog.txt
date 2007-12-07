@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/7/07, DN) Electric does not deal with missing cells properly (Bug #1283).
+FIX: In input.JELIB.fugireOutPortInst apply transform to missing port position.
+
 BUG: (12/6/07, SMR) Extracting node with Essential Bounds ignores the EB nodes.
 FIX: In CellChangeJobs.extractOneLevel(), extract Essential Bounds if there are no
      others in the top-level cell.

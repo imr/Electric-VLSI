@@ -60,6 +60,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -1320,7 +1321,7 @@ public class JELIB extends LibraryFiles
                 pos = externalExports.get(subCell.getCellName().toString() + ":" + portName);
 		}
         if (pos == null)
-            pos = EPoint.ORIGIN;
+            pos = ni.getAnchorCenter().lambdaMutable();
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
@@ -1339,10 +1340,7 @@ public class JELIB extends LibraryFiles
 		// a dummy cell: create a dummy export on it to fit this
 		String name = portName;
 		if (name.length() == 0) name = "X";
-// 		AffineTransform unRot = ni.rotateIn();
-// 		unRot.transform(pos, pos);
-// 		AffineTransform unTrans = ni.translateIn();
-// 		unTrans.transform(pos, pos);
+        ni.transformIn().transform(pos, pos);
 		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, subCell);
 		if (portNI == null)
 		{
