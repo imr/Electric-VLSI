@@ -373,6 +373,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Last backup of this Cell */                                 CellBackup backup;
     /** True if cell together with contents matches cell backup. */ boolean cellBackupFresh;
     /** True if cell contents matches cell backup. */               private boolean cellContentsFresh;
+    /** True if cell revision date is just set by lowLevelSetRevsionDate*/private boolean revisionDateFresh;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -3784,8 +3785,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) {
         checkChanging();
+        backup();
         this.revisionDate = revisionDate.getTime();
         unfreshBackup();
+        revisionDateFresh = true;
     }
 
 	/**
@@ -3793,8 +3796,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Change system is not informed about this.
 	 */
 	public void madeRevision(long revisionDate, String userName) {
+        if (!revisionDateFresh)
+            this.revisionDate = revisionDate;
         setModified();
-        this.revisionDate = revisionDate;
 //         if (userName == null) return;
 //         Variable var = getVar(User.FRAME_DESIGNER_NAME);
 //         if (var == null || !var.getObject().equals(userName)) {
@@ -4025,6 +4029,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void unfreshBackup() {
         cellBackupFresh = false;
+        revisionDateFresh = false;
         database.unfreshSnapshot();
     }
     

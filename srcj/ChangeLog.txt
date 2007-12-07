@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/7/07, DN) CrossLib copy and cell revision dates: the cells are never described as "Same" (Bug #870).
+FIX: Don't update cell revision date if it was just set by Cell.lowLevelSetRevisionDate. 
+
 BUG: (12/7/07, DN) Electric does not deal with missing cells properly (Bug #1283).
 FIX: In input.JELIB.fugireOutPortInst apply transform to missing port position.
 
