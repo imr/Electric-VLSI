@@ -468,7 +468,7 @@ public class Layer
                 for (Function f: funs)
                     bits |= bit(f);
                 this.bits = bits;
-                this.extraBits = -1;
+                this.extraBits = noFunctionExtras; // same value as Layer.extraFunctions
             }
 
             /**
@@ -480,7 +480,7 @@ public class Layer
                 for (Function f: funs)
                     bits |= bit(f);
                 this.bits = bits;
-                this.extraBits = -1;
+                this.extraBits = noFunctionExtras; // same value as Layer.extraFunctions;
             }
 
             /**
@@ -492,7 +492,7 @@ public class Layer
             public boolean contains(Function f, int extraFunction)
             {
                 // Check first if there is a match in the extra bits
-                boolean extraBitsM = extraBits == -1 || (extraBits == extraFunction);
+                boolean extraBitsM = extraBits == noFunctionExtras || (extraBits == extraFunction);
                 return extraBitsM && (bits & bit(f)) != 0;
             }
 
@@ -530,7 +530,8 @@ public class Layer
 	private final Technology tech;
 	private EGraphics graphics;
 	private Function function;
-	private int functionExtras;
+    private static final int noFunctionExtras = 0;
+    private int functionExtras;
     private boolean pseudo;
 	private Setting cifLayerSetting;
 	private Setting dxfLayerSetting;
@@ -664,7 +665,7 @@ public class Layer
 	public void setFunction(Function function)
 	{
 		this.function = function;
-		this.functionExtras = 0;
+		this.functionExtras = noFunctionExtras;
 	}
 
 	/**

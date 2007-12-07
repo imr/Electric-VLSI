@@ -501,7 +501,7 @@ public class DRC extends Listener
 //	}
 
 	/****************************** DRC INTERFACE ******************************/
-    public static ErrorLogger getDRCErrorLogger(boolean layout, boolean incremental, Layer layer)
+    public static ErrorLogger getDRCErrorLogger(boolean layout, boolean incremental, String extraMsg)
     {
         ErrorLogger errorLogger = null;
         String title = (layout) ? "Layout " : "Schematic ";
@@ -513,8 +513,7 @@ public class DRC extends Listener
         }
         else
         {
-            String layerMsg = (layer != null) ? ", Layer " + layer.getName() : "";
-            errorLogger = ErrorLogger.newInstance(title + "DRC (full)" + layerMsg);
+            errorLogger = ErrorLogger.newInstance(title + "DRC (full)" + ((extraMsg != null) ? extraMsg:""));
         }
         return errorLogger;
     }

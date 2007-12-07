@@ -80,7 +80,7 @@ import java.util.*;
  * @author  Steve Rubin, Gilda Garreton
  */
 
-class MultiLayoutDRCToolJob extends MultiDRCToolJob {
+class MultiDRCLayoutToolJob extends MultiDRCToolJob {
     private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
@@ -131,9 +131,9 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
     private Layer.Function.Set thisLayerFunction;
     private boolean ignoreExtensionRules = true;
 
-    public MultiLayoutDRCToolJob(Cell c, String l, boolean ignoreExtensionR)
+    public MultiDRCLayoutToolJob(Cell c, String l, boolean ignoreExtensionR)
 	{
-        super(c, l, "Design-Rule Layout Check " + c + ", layer " + l);
+        super(c, l, "Design-Rule Layout Check " + c + ((l!=null)?", layer " + l:", node min. size"));
         this.ignoreExtensionRules = ignoreExtensionR;
         startJob();
     }
@@ -195,21 +195,37 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
      * @return ErrorLogger containing the information
 	 */
 	public static void startMultiLayoutChecking(Cell cell, Layer layer,
-                                                Geometric[] geomsToCheck, boolean[] validity,
-                                                Rectangle2D bounds, boolean ignoreExtensionR)
+                                                Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds,
+                                                boolean ignoreExtensionR, GenMath.MutableBoolean polyDone)
 	{
-        if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
-            return; // dirty way to skip the MoCMOS p-active well
-
-        new MultiLayoutDRCToolJob(cell, layer.getName(), ignoreExtensionR);
+        if (layer != null)
+        {
+            if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
+                return; // dirty way to skip the MoCMOS p-active well
+            else if (layer.getFunction().isPoly())
+            {
+                // Polysilicon-1 and Transistor-Poly should be checked in 1 job
+                if (polyDone.booleanValue())
+                    return; // done already
+                polyDone.setValue(true); // won't do the next time the layer is detected
+            }
+        }
+        new MultiDRCLayoutToolJob(cell, (layer!=null)?layer.getName():null, ignoreExtensionR);
     }
 
     // returns the number of errors found
     public boolean doIt()
 	{
-        theLayer = topCell.getTechnology().findLayer(theLayerName);
-        errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
-        this.thisLayerFunction = getMultiLayersSet(theLayer);
+        if (theLayerName != null)
+        {
+            theLayer = topCell.getTechnology().findLayer(theLayerName);
+            errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayerName);
+            this.thisLayerFunction = getMultiLayersSet(theLayer);
+        }
+        else
+        {
+            errorLogger = DRC.getDRCErrorLogger(true, false, ", Node Min. Size");
+        }
         
         if (Job.BATCHMODE)
             MultiDRCCollectData.jobsList.add(errorLogger);
@@ -221,7 +237,7 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
         // caching bits
         activeBits = DRC.getActiveBits(tech);
         String extraMsg = ", extension bit ";
-        extraMsg += this.ignoreExtensionRules ? "on" : "off";
+        extraMsg += !this.ignoreExtensionRules ? "on" : "off";
         System.out.println("Running DRC for " + theLayer+ " with " + extraMsg);
 
         // caching memory setting
@@ -506,7 +522,8 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 
 		// announce progress
         long startTime = System.currentTimeMillis();
-		System.out.println("Checking " + cell + ", " + theLayer);
+        if (printLog)
+            System.out.println("Checking " + cell + ", " + theLayer);
 
 		// now look at every node and arc here
 		totalMsgFound = 0;
@@ -525,37 +542,50 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
                     continue;
                 }
             }
-			boolean ret = (ni.isCellInstance()) ?
+            boolean ret = false;
+            if (thisLayerFunction == null) // checking min size only
+            {
+                if (ni.isCellInstance()) continue;
+                ret = checkNodeInst(ni, globalIndex);
+            }
+            else
+            {
+                ret = (ni.isCellInstance()) ?
 			        checkCellInst(ni, globalIndex) :
 			        checkNodeInst(ni, globalIndex);
-			if (ret)
-			{
-				totalMsgFound++;
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
-			}
-		}
-		Technology cellTech = cell.getTechnology();
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			Technology tech = ai.getProto().getTechnology();
-			if (tech != cellTech)
-			{
-				reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
-				continue;
-			}
-			if (bounds != null)
-			{
-				if (!ai.getBounds().intersects(bounds)) continue;
-			}
-			if (checkArcInst(cp, ai, globalIndex))
+            }
+            if (ret)
 			{
 				totalMsgFound++;
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
 			}
 		}
 
-		// If message founds, then remove any possible good date
+        if (thisLayerFunction != null) // only when it is layer related
+        {
+            Technology cellTech = cell.getTechnology();
+            for(Iterator it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = (ArcInst)it.next();
+                Technology tech = ai.getProto().getTechnology();
+                if (tech != cellTech)
+                {
+                    reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+                    continue;
+                }
+                if (bounds != null)
+                {
+                    if (!ai.getBounds().intersects(bounds)) continue;
+                }
+                if (checkArcInst(cp, ai, globalIndex))
+                {
+                    totalMsgFound++;
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
+                }
+            }
+        }
+
+        // If message founds, then remove any possible good date
         // !allSubCellsStillOK disconnected on April 18, 2006. totalMsgFound should
         // dictate if this cell is re-marked.
 		if (totalMsgFound > 0) //  || !allSubCellsStillOK)
@@ -572,7 +602,7 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 		}
 
 		// if there were no errors, remember that
-		if (errorLogger != null)
+		if (errorLogger != null && printLog)
 		{
 			int localErrors = errorLogger.getNumErrors() - prevErrors;
 			int localWarnings = errorLogger.getNumWarnings() - prevWarns;
@@ -629,7 +659,7 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
         // there was an error, for now print error
         Layer layer = poly.getLayer();
         reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution +
-                " on layer " + layer.getName(), cell, 0, 0, null, null, geom, null, null, null, null);
+                " on layer " + layer.getName(), cell, 0, 0, "Resolution", null, geom, null, null, null, null);
         return true;
 	}
 
@@ -700,113 +730,107 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 			return (false);
 		nodesMap.put(ni, ni);
 
-        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
-                DRCTemplate.DRCRuleType.FORBIDDEN, tech))
+        if (thisLayerFunction != null)
         {
-            reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
-            if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-            errorsFound = true;
-        }
+            // get all of the polygons on this node
+            Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, thisLayerFunction);
+            convertPseudoLayers(ni, nodeInstPolyList);
+            int tot = nodeInstPolyList.length;
+            boolean isTransistor = np.getFunction().isTransistor();
 
-		// get all of the polygons on this node
-		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
-		convertPseudoLayers(ni, nodeInstPolyList);
-		int tot = nodeInstPolyList.length;
-        boolean isTransistor =  np.getFunction().isTransistor();
+            // examine the polygons on this node
+            for (int j = 0; j < tot; j++) {
+                Poly poly = nodeInstPolyList[j];
+                Layer layer = poly.getLayer();
+                if (layer == null) continue;
 
-        // examine the polygons on this node
-		for(int j=0; j<tot; j++)
-		{
-			Poly poly = nodeInstPolyList[j];
-			Layer layer = poly.getLayer();
-			if (layer == null) continue;
+                if (coverByExclusion(poly, cell))
+                    continue;
 
-            if (coverByExclusion(poly, cell))
-                continue;
+                // Checking combination
+                boolean ret = checkOD2Combination(tech, ni, layer);
+                if (ret) {
+                    // panic errors -> return regarless errorTypeSearch
+                    return true;
+                }
 
-            // Checking combination
-            boolean ret = checkOD2Combination(tech, ni, layer);
-            if (ret)
-            {
-                // panic errors -> return regarless errorTypeSearch
-                return true;
-            }
+                poly.transform(trans);
 
-			poly.transform(trans);
+                // Checking resolution only after transformation
+                ret = checkResolution(poly, cell, ni);
+                if (ret) {
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+                }
 
-            // Checking resolution only after transformation
-            ret = checkResolution(poly, cell, ni);
-            if (ret)
-			{
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
+                // determine network for this polygon
+                int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 
-			// determine network for this polygon
-			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
-
-			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
-			if (ret)
-			{
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
-			ret = checkMinWidth(ni, layer, poly, tot==1);
-			if (ret)
-			{
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
-			// Check select over transistor poly
-			// Assumes polys on transistors fulfill condition by construction
+                ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+                if (ret) {
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+                }
+                ret = checkMinWidth(ni, layer, poly, tot == 1);
+                if (ret) {
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+                }
+                // Check select over transistor poly
+                // Assumes polys on transistors fulfill condition by construction
 //			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
-            ret = !isTransistor && checkExtensionRules(ni, layer, poly, cell);
-            if (ret)
-			{
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
+                ret = !isTransistor && checkExtensionRules(ni, layer, poly, cell);
+                if (ret) {
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+                }
 //            ret = checkExtensionRule(ni, layer, poly, cell);
 //            if (ret)
 //			{
 //				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 //				errorsFound = true;
 //			}
-			if (tech == layersValidTech && !layersValid[layer.getIndex()])
-			{
-				reportError(DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
-					poly, ni, layer, null, null, null);
-				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
-		}
+                if (tech == layersValidTech && !layersValid[layer.getIndex()]) {
+                    reportError(DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
+                            poly, ni, layer, null, null, null);
+                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+                }
+            }
+        } else {
 
-		// check node for minimum size
-		PrimitiveNode.NodeSizeRule sizeRule = DRC.getMinSize(np);
-		if (sizeRule != null)
-		{
-			if (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
-                DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()))
-			{
-				SizeOffset so = ni.getSizeOffset();
-				double minSize = 0, actual = 0;
-                String msg = "X axis";
-				if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize())
-				{
-					minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
-					actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-				} else
-				{
-                    msg = "Y axis";
-					minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
-					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-				}
-				reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
-					null, ni, null, null, null, null);
+            // Node errors!
+            if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
+                    DRCTemplate.DRCRuleType.FORBIDDEN, tech))
+            {
+                reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
+                if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                 errorsFound = true;
-			}
-		}
-		return errorsFound;
+            }
+
+            // check node for minimum size
+            PrimitiveNode.NodeSizeRule sizeRule = DRC.getMinSize(np);
+            if (sizeRule != null) {
+                if (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
+                        DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize())) {
+                    SizeOffset so = ni.getSizeOffset();
+                    double minSize = 0, actual = 0;
+                    String msg = "X axis";
+                    if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize()) {
+                        minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
+                        actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+                    } else {
+                        msg = "Y axis";
+                        minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
+                        actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+                    }
+                    reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+                            null, ni, null, null, null, null);
+                    errorsFound = true;
+                }
+            }
+        }
+        return errorsFound;
 	}
 
     /**
@@ -1269,9 +1293,6 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
-
-//                    System.out.println("Checking Node " + ni.getName() + " " + layer.getName() + " " +
-//                            geom);
 
                     // see if the objects directly touch but they are not
                     // coming from different NodeInst (not from checkCellInstContents
@@ -2906,13 +2927,17 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 				AffineTransform bound = ni.rotateOut();
 				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
+                Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!
+//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+                    if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
 
 					if (thisPoly != null && poly.polySame(thisPoly)) continue;
 					poly.transform(bound);
@@ -2932,13 +2957,18 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 			{
 				ArcInst ai = (ArcInst)g;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, thisLayerFunction); // consistent change!);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-					poly.transform(moreTrans);
+					if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
+
+                    poly.transform(moreTrans);
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
@@ -3015,12 +3045,17 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!
+//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
 
                     // Should be the transform before?
 					poly.transform(bound);
@@ -3044,12 +3079,16 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 			{
 				ArcInst ai = (ArcInst)g;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, thisLayerFunction); // consistent change!);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
 					poly.transform(moreTrans);
 
                     for (j = 0; j < length; j++)
@@ -3117,12 +3156,17 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!);
+//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
 
                     // Should be the transform before?
 					poly.transform(bound);
@@ -3144,12 +3188,16 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 			{
 				ArcInst ai = (ArcInst)g;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, thisLayerFunction); // consistent change!);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        System.out.println("This is an extra test not necessary");
+                        continue;
+                    }
 					poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
 					if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true;
 					if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
@@ -4221,7 +4269,10 @@ class MultiLayoutDRCToolJob extends MultiDRCToolJob {
 	private void convertPseudoLayers(NodeInst ni, Poly [] pList)
 	{
 		if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return;
-		if (ni.hasConnections()) return;
+        assert(false); // When do I get this?
+        System.out.println("I should not get this");
+
+        if (ni.hasConnections()) return;
 //		if (ni.getNumConnections() != 0) return;
 		if (!ni.hasExports()) return;
 //		if (ni.getNumExports() == 0) return;

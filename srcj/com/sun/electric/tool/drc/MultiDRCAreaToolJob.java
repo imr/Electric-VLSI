@@ -38,11 +38,11 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
     {
         long startTime = System.currentTimeMillis();
         theLayer = topCell.getTechnology().findLayer(theLayerName);
-        errorLogger = DRC.getDRCErrorLogger(true, false, theLayer);
+        errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayerName);
 
         if (Job.BATCHMODE)
             MultiDRCCollectData.jobsList.add(errorLogger);
-        
+
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
         System.out.println("DRC for " + msg);
         HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP,
@@ -61,7 +61,7 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
     }
 
     public static void startMultiMinAreaChecking(Cell cell, Layer layer, CellLayersContainer cellLayersC,
-                                                        long globalStartT, GenMath.MutableBoolean polyDone)
+                                                 long globalStartT, GenMath.MutableBoolean polyDone)
     {
         if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
             return; // dirty way to skip the MoCMOS p-active well
@@ -272,7 +272,7 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
             // Don't get electric layers in case of transistors otherwise it is hard to detect ports
             Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, false, true, thisLayerFunction);
 			int tot = nodeInstPolyList.length;
-            
+
             for(int i=0; i<tot; i++)
 			{
 				Poly poly = nodeInstPolyList[i];

@@ -25,9 +25,10 @@ import java.io.Serializable;
  */
 public abstract class MultiDRCToolJob extends Job {
     protected Cell topCell;
-    protected Layer theLayer;
+    protected Layer theLayer; // if layer is null then the job checks min primitive size
     protected String theLayerName; // to avoid serialization of the class Layer
     protected ErrorLogger errorLogger;
+    static protected boolean printLog = false;
     protected long globalStartTime;
 
     MultiDRCToolJob(Cell c, String l, String jobName)
@@ -47,7 +48,7 @@ public abstract class MultiDRCToolJob extends Job {
     static Layer.Function.Set getMultiLayersSet(Layer layer)
     {
         Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
-        new Layer.Function.Set(layer.getFunction(), Layer.Function.GATE) :
+        new Layer.Function.Set(Layer.Function.POLY1, Layer.Function.GATE) :
         new Layer.Function.Set(layer.getFunction(), layer.getFunctionExtras());
         return thisLayerFunction;
     }
@@ -57,6 +58,9 @@ public abstract class MultiDRCToolJob extends Job {
      ***********************************/
     public static MultiDRCCollectData checkDesignRules(Cell cell, boolean checkArea, boolean ignoreExtensionR)
     {
+        if (cell == null)
+            return null;
+
         // Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
 		DRCRules rules = DRC.getRules(tech);
@@ -88,8 +92,10 @@ public abstract class MultiDRCToolJob extends Job {
             if (checkArea)
                 MultiDRCAreaToolJob.startMultiMinAreaChecking(cell, layer, cellLayersCon, globalStartTime, polyDone);
             else
-                MultiLayoutDRCToolJob.startMultiLayoutChecking(cell, layer, null, null, null, ignoreExtensionR);
+                MultiDRCLayoutToolJob.startMultiLayoutChecking(cell, layer, null, null, null, ignoreExtensionR, polyDone);
         }
+        if (!checkArea) // to check NodeInst min size.
+            MultiDRCLayoutToolJob.startMultiLayoutChecking(cell, null, null, null, null, ignoreExtensionR, polyDone);
         return new MultiDRCCollectData(globalStartTime);
     }
 
