@@ -1084,6 +1084,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 						Layer layer = poly.getLayer();
 						if (layer == null)
                         {
+                            assert(false);
                             if (Job.LOCALDEBUGFLAG) System.out.println("When is this case?");
                             continue;
                         }
