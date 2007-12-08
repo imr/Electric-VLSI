@@ -127,7 +127,7 @@ class LayoutCell {
         if (!justWritten) {
             CellBackup newBackup = cell.backup();
             if (newBackup != oldBackup) {
-                cell.madeRevision(Layout.revisionDate, Layout.userName);
+                cell.lowLevelMadeRevision(Layout.revisionDate, Layout.userName);
                 assert cell.isModified(true);
                 cell.getLibrary().setChanged();
             }

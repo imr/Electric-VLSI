@@ -3794,8 +3794,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/**
 	 * Method to set this Cell's revision date and user name.
      * Change system is not informed about this.
+	 * This is a low-level method and should not be called unless you know what you are doing.
 	 */
-	public void madeRevision(long revisionDate, String userName) {
+	public void lowLevelMadeRevision(long revisionDate, String userName) {
         if (!revisionDateFresh)
             this.revisionDate = revisionDate;
         setModified();

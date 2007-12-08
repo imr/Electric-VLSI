@@ -73,6 +73,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2858,7 +2859,7 @@ public class CircuitChangeJobs
                     // set all cells as changed as well
                     for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); )
                     {
-                        it2.next().madeRevision(System.currentTimeMillis(), null);
+                        it2.next().lowLevelSetRevisionDate(new Date());
                     }
                 }
 
@@ -2898,7 +2899,7 @@ public class CircuitChangeJobs
                 // set all cells as changed as well
                 for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); )
                 {
-                    it2.next().madeRevision(System.currentTimeMillis(), null);
+                    it2.next().lowLevelSetRevisionDate(new Date());
                 }
             }
 
