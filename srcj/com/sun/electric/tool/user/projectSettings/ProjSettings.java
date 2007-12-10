@@ -248,6 +248,9 @@ public class ProjSettings {
                 prIndent("<"+entry+" key=\""+key+"\"\t long=\""+value.toString()+"\" />");
             } else if (value instanceof Boolean) {
                 prIndent("<"+entry+" key=\""+key+"\"\t boolean=\""+value.toString()+"\" />");
+            } else if (value instanceof String) {
+                String str = (String)value;
+                prIndent("<"+entry+" key=\""+key+"\"\t string=\""+replaceSpecialChars(str)+"\" />");
             } else {
                 prIndent("<"+entry+" key=\""+key+"\"\t string=\""+value+"\" />");
             }
@@ -256,6 +259,17 @@ public class ProjSettings {
         private void close() {
             if (file != null) out.close();
         }
+    }
+
+    private static String replaceSpecialChars(String str) {
+        str = str.replace("&", "&amp;");
+        str = str.replace("=", "&eq;");
+        str = str.replace(">", "&gt;");
+        str = str.replace("<", "&lt;");
+        str = str.replace("'", "&apos;");
+        str = str.replace("\"", "&quot;");
+        str = str.replace("\n", "&#xA;");
+        return str;
     }
 
     // ------------------------- ProjSettings Reader ----------------------------
