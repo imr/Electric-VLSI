@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+IMP: (12/10/07, DN) Class MultiTaskJob - a draft of framework for multitask computations.
+
 IMP: (12/7/07, GVG) More MT DRC improvements.
 
 BUG: (12/7/07, DN) CrossLib copy and cell revision dates: the cells are never described as "Same" (Bug #870).
