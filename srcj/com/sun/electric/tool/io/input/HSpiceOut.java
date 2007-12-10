@@ -214,8 +214,7 @@ public class HSpiceOut extends Simulate
 				if (nextLine == null) break;
 			}
 			if (nextLine.startsWith("$") || nextLine.startsWith(".")) continue;
-			String [] keywords = breakMTLine(nextLine);
-			if (keywords == null) return; // error in format
+			String [] keywords = breakMTLine(nextLine, false);
 			if (keywords.length == 0) break;
 
 			// gather measurement names on the first time out
@@ -227,8 +226,7 @@ public class HSpiceOut extends Simulate
 				{
 					lastLine = lineReader.readLine();
 					if (lastLine == null) break;
-					keywords = breakMTLine(lastLine);
-					if (keywords == null) return; // error in format
+					keywords = breakMTLine(lastLine, true);
 					if (keywords.length == 0) { lastLine = null;   break; }
 					if (TextUtils.isANumber(keywords[0])) break;
 					for(int i=0; i<keywords.length; i++)
@@ -256,8 +254,7 @@ public class HSpiceOut extends Simulate
 				if (index >= measurementNames.size()) break;
 				lastLine = lineReader.readLine();
 				if (lastLine == null) break;
-				keywords = breakMTLine(lastLine);
-				if (keywords == null) return; // error in format
+				keywords = breakMTLine(lastLine, true);
 				if (keywords.length == 0) break;
 				for(int i=0; i<keywords.length; i++)
 				{
@@ -286,30 +283,42 @@ public class HSpiceOut extends Simulate
 		closeInput();
 	}
 
-	private String[] breakMTLine(String line)
+	/**
+	 * Method to parse a line from a measurement (.mt0) file.
+	 * @param line the line from the file.
+	 * @param continuation true if the line is supposed to be a continuation
+	 * after the first line.
+	 * @return an array of strings on the line (zero-length if at end).
+	 */
+	private String[] breakMTLine(String line, boolean continuation)
 	{
 		List<String> strings = new ArrayList<String>();
-		StringTokenizer st = new StringTokenizer(line);
-		int tokenSize = st.countTokens();
-
 		for(int i=1; ; )
 		{
 			if (line.length() <= i+1) break;
 			int end = i+17;
 			if (end > line.length()) end = line.length();
 			while (end < line.length() && line.charAt(end-1) != ' ') end++;
-			String part = line.substring(i, end);
-			strings.add(part.trim());
+			String part = line.substring(i, end).trim();
+			if (i == 1)
+			{
+				// first token: make sure it is blank if a continuation
+				if (continuation && part.length() > 0) return new String[0];
+			}
+			if (part.length() > 0) strings.add(part.trim());
 			i = end;
 		}
 		int actualSize = strings.size();
-		if (actualSize != tokenSize)
-		{
-			System.out.println("No match in number of tokens while reading measurement file");
-			return null; // error in format.
-		}
-		String [] retVal = new String[strings.size()];
-		for(int i=0; i<strings.size(); i++) retVal[i] = strings.get(i);
+//		StringTokenizer st = new StringTokenizer(line);
+//		int tokenSize = st.countTokens();
+//		if (actualSize != tokenSize)
+//		{
+//			System.out.println("Measurement file has incorrect number of symbols on a line (read " +
+//				tokenSize + " but parsed " + actualSize + ")");
+//			return null; // error in format.
+//		}
+		String [] retVal = new String[actualSize];
+		for(int i=0; i<actualSize; i++) retVal[i] = strings.get(i);
 		return retVal;
 	}
 

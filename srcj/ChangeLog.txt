@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/10/07, SMR) HSpice measurement files read badly.
+FIX: In HSpiceOut.breakMTLine(), parse continuation lines properly.
+
 IMP: (12/10/07, DN) Class MultiTaskJob - a draft of framework for multitask computations.
 
 IMP: (12/7/07, GVG) More MT DRC improvements.
