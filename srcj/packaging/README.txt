@@ -64,10 +64,10 @@ Currently, these plug-ins are available:
 
   IRSIM The IRSIM simulator is a gate-level simulator from Stanford University. Although originally written in C,
     it was translated to Java so that it could plug into Electric. The Electric version is available from
-    Static Free Software at www.staticfreesoft.com/electricIRSIM-8.05.jar. 
+    Static Free Software at www.staticfreesoft.com/electricIRSIM-8.06.jar. 
   PIE Port Interchange Experiment (PIE) is an experimental version of NCC (see Section 9-7-1). Because it is
     ever-evolving, it is left as a plug-in so that frequent updates can be made. The latest version is available
-    from Static Free Software at www.staticfreesoft.com/electricPIE-8.05.jar. 
+    from Static Free Software at www.staticfreesoft.com/electricPIE-8.06.jar. 
   Bean Shell The Bean Shell is used to do parameter evaluation in Electric. Advanced operations that make use of
     cell parameters will need this plug-in. The Bean Shell is available from www.beanshell.org. 
   3D The 3D facility lets you view an integrated circuit in three-dimensions. It requires the Java3D package,
@@ -75,11 +75,11 @@ Currently, these plug-ins are available:
     to your Java installation. 
   3D Axis Controller Once the 3D facility is installed, there is one extra part that can be added to enhance the
     display: a 3D axis controller. The 3D axis controller is available from Static Free Software at
-    www.staticfreesoft.com/electricJava3D-8.05.jar 
+    www.staticfreesoft.com/electricJava3D-8.06.jar 
   Animation Another extra that can be added to the 3D facility is 3D animation. This requires the
     Java Media Framework (JMF) and extra animation code. The Java Media Framework is available from Sun Microsystems
     at java.sun.com/products/java-media/jmf (this is not a plugin: it is an enhancement to your Java installation).
-    The animation code is available from Static Free Software at www.staticfreesoft.com/electricJMF-8.05.jar. 
+    The animation code is available from Static Free Software at www.staticfreesoft.com/electricJMF-8.06.jar. 
 
 To attach a plugin, it must be in the CLASSPATH.  The simplest way to do that is to invoked Electric from the command line,
 and specify the classpath. For example, to add the beanshell (a file named "bsh-2.0b1.jar"), type: 
