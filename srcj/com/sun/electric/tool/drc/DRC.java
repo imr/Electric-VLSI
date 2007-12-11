@@ -313,12 +313,24 @@ public class DRC extends Listener
 
     public enum DRCCheckMinArea
     {
-        AREA_BASIC /*brute force algorithm*/, AREA_LOCAL;
+        AREA_BASIC("Simple") /*brute force algorithm*/, AREA_LOCAL("Local");
+        private final String name;
+        DRCCheckMinArea(String s)
+        {
+            name = s;
+        }
+        public String toString() {return name;}
     }
 
     public enum DRCCheckLogging
     {
-        DRC_LOG_FLAT/*original strategy*/, DRC_LOG_PER_CELL, DRC_LOG_PER_RULE;
+        DRC_LOG_FLAT("Flat")/*original strategy*/, DRC_LOG_PER_CELL("By Cell"), DRC_LOG_PER_RULE("By Rule");
+        private final String name;
+        DRCCheckLogging(String s)
+        {
+            name = s;
+        }
+        public String toString() {return name;}
     }
 
     /** Control different level of error checking */

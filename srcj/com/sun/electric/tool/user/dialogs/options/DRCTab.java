@@ -269,7 +269,7 @@ public class DRCTab extends PreferencePanel
         HierPanel.add(jPanel1, gridBagConstraints);
 
         loggingLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        loggingLabel.setText("Logging Type: ");
+        loggingLabel.setText("Report Errors: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;

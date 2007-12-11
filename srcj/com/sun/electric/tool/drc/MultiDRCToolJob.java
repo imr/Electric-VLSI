@@ -369,5 +369,9 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
         // true only for Cells
         return ni.isCellInstance();
     }
+
+    /**************************************************************************************************************
+	 *  ValidationLayers class
+     **************************************************************************************************************/
 }
 
