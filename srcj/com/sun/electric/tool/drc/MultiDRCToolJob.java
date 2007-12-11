@@ -107,11 +107,11 @@ public abstract class MultiDRCToolJob extends Job {
         {
             Layer layer = tech.findLayer(layerS);
 //            Layer layer = it.next();
-//            if (layerCheck.layersMap.get(layer) == null)
-//            {
-//                System.out.println("SkippingLayer " + layer.getName());
-//                continue;
-//            }
+            if (layer == null)
+            {
+                System.out.println("SkippingLayer " + layerS);
+                continue;
+            }
             if (checkArea)
                 MultiDRCAreaToolJob.startMultiMinAreaChecking(cell, layer, cellLayersCon, globalStartTime, polyDone);
             else

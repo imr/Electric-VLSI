@@ -67,7 +67,7 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
             MultiDRCCollectData.jobsList.add(errorLogger);
 
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
-        System.out.println("DRC for " + msg);
+        System.out.println("DRC for " + msg + " in thread " + Thread.currentThread().getName());
         HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP,
                 cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
@@ -76,8 +76,8 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
         this.fieldVariableChanged("errorLogger");
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
-        System.out.println(errorCount + " errors and " + warnCount + " warnings found in layer " + msg
-                + " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        System.out.println(errorCount + " errors and " + warnCount + " warnings found in " + msg
+                + " (took " + TextUtils.getElapsedTime(endTime - startTime) + " in thread " + Thread.currentThread().getName() + ")");
         long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
         return true;

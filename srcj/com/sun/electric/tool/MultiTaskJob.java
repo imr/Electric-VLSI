@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Job.java
+ * File: MultiTaskJob.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,21 +36,24 @@ import java.util.Map;
  * 2) Tasks run in parallel, each giving result of TaskResult type.
  * This stage is performed by runTask method for each instance of task.
  * 3) TaskResults are combinded into final result of Result type.
- * 4) GUI on client side is notified about result of computation.
- * This stage is performed by terminateOK method.
  * This stage is performed by mergeTaskResults method.
+ * 4) Result is consumed on server.
+ * This stage is performed by consumer.consume method.
  */
 public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
     private transient LinkedHashMap<TaskKey,TaskJob> tasks;
+    private Consumer<Result> consumer;
     
     /**
 	 * Constructor creates a new instance of MultiTaskJob.
 	 * @param jobName a string that describes this MultiTaskJob.
 	 * @param tool the Tool that originated this MultiTaskJob.
 	 * @param jobType the Type of this Job (EXAMINE or CHANGE).
+     * @param consumer interface which consumes the result on server
 	 */
-    public MultiTaskJob(String jobName, Tool tool, Type jobType) {
+    public MultiTaskJob(String jobName, Tool tool, Type jobType, Consumer<Result> consumer) {
         super(jobName, tool, jobType, null, null, Job.Priority.USER);
+        this.consumer = consumer;
     }
     
     /**
@@ -76,12 +80,12 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      */
     public abstract Result mergeTaskResults(Map<TaskKey,TaskResult> taskResults) throws JobException;
     
-    /**
-     * This method executes in the Client side after normal termination of full computation.
-     * This method should perform all needed termination actions.
-     * @param result result of full computation.
-     */
-    public void terminateOK(Result result) {}
+//    /**
+//     * This method executes in the Client side after normal termination of full computation.
+//     * This method should perform all needed termination actions.
+//     * @param result result of full computation.
+//     */
+//    public void terminateOK(Result result) {}
     
     /**
      * Schedules task. Should be callled from prepareTasks or runTask methods only.
@@ -89,10 +93,12 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      * @param taskKey task key which identifies the task.
      */
     public void startTask(String taskName, TaskKey taskKey) {
-        if (tasks.containsKey(taskKey))
-            throw new IllegalArgumentException();
         TaskJob task = new TaskJob(taskName, taskKey);
-        tasks.put(taskKey, task);
+        synchronized (this) {
+            if (tasks.containsKey(taskKey))
+                throw new IllegalArgumentException();
+            tasks.put(taskKey, task);
+        }
         task.startJobOnMyResult();
     }
     
@@ -142,21 +148,19 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
                     taskResults.put(task.taskKey, task.taskResult);
             }
             result = mergeTaskResults(taskResults);
-            if (Job.BATCHMODE) {
-                MultiTaskJob.this.terminateOK(result);
-            } else {
-                fieldVariableChanged("result");
-            }
+            if (consumer != null)
+                consumer.consume(result);
+//            fieldVariableChanged("result");
             return true;
         }
         
-        /**
-         * This method executes in the Client side after normal termination of doIt method.
-         * This method should perform all needed termination actions.
-         */
-        @Override
-        public void terminateOK() {
-            MultiTaskJob.this.terminateOK(result);
-        }
+//        /**
+//         * This method executes in the Client side after normal termination of doIt method.
+//         * This method should perform all needed termination actions.
+//         */
+//        @Override
+//        public void terminateOK() {
+//            MultiTaskJob.this.terminateOK(result);
+//        }
     }
 }
