@@ -167,7 +167,7 @@ public class EDialog extends JDialog
 	/**
 	 * Method to highlight a node in a tree.
 	 * @param tree the tree to highlight.
-	 * @param start the current node of the tree.
+	 * @param curNode the current node of the tree.
 	 * @param objWanted the node that is to be highlighted.
 	 * @param topPath current path in the tree.
 	 * @return true if highlighted, false if not.

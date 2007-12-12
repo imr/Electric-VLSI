@@ -491,9 +491,10 @@ public class XMLRules implements DRCRules {
 	}
 
     /**
-     * Method to find all extension rules associated to Layer layer1
-     * @param layer1
-     * @return
+     * Method to find all rules of specified type associated to Layer layer1
+     * @param layer1 layer
+     * @param type rule type
+     * @return all rules of specified type associated to Layer layer1
      */
     public List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
     {

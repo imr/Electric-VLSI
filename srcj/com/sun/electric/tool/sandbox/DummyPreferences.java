@@ -94,13 +94,13 @@ public class DummyPreferences extends AbstractPreferences {
     /** 
      * Removes this preference node, invalidating it and any preferences that
      * it contains.  The named child will have no descendants at the time this
-     * invocation is made (i.e., the {@link Preferences#removeNode()} method
+     * invocation is made (i.e., the {@link java.util.prefs.Preferences#removeNode()} method
      * invokes this method repeatedly in a bottom-up fashion, removing each of
      * a node's descendants before removing the node itself).
      *
      * <p>This method is invoked with the lock held on this node and its
      * parent (and all ancestors that are being removed as a
-     * result of a single invocation to {@link Preferences#removeNode()}).
+     * result of a single invocation to {@link java.util.prefs.Preferences#removeNode()}).
      *
      * <p>The removal of a node needn't become persistent until the
      * <tt>flush</tt> method is invoked on this node (or an ancestor).

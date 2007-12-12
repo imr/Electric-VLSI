@@ -98,7 +98,7 @@ public class Snapshot {
      * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
      * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
-     * @param techArray array indexed by TechId.techIndex of Technologied
+     * @param technologiesArray array indexed by TechId.techIndex of Technologied
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.

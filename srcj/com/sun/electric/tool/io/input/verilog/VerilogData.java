@@ -458,7 +458,7 @@ public class VerilogData implements Serializable
 
         /**
          * Returns list of ports and wires sorted by name
-         * @return
+         * @return list of ports and wires sorted by namea
          */
         public List<Object> getAllSorted() {
 

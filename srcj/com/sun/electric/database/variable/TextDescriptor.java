@@ -112,7 +112,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	/**
 	 * Returns TextDescriptor which differs from this TextDescriptor by displayable mode.
 	 * Displayable Variables are shown with the object.
-     * @param state new displayable mode.
+     * @param display new displayable mode.
 	 * @return TextDescriptor which differs from this TextDescriptor by displayable mode.
 	 */
 	public TextDescriptor withDisplay(Display display) {

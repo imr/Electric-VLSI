@@ -3491,7 +3491,6 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to recurse flag all windows showing a cell to redraw.
 	 * @param cell the Cell that changed.
-	 * @param cellChanged true if the cell changed and should be marked so.
 	 */
 	public static void expansionChanged(Cell cell)
 	{
