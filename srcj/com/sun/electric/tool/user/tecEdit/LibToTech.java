@@ -1033,6 +1033,34 @@ public class LibToTech
 			nIn.nodePortDetails = new NodeInfo.PortDetails[ports.size()];
 			for(int j=0; j<ports.size(); j++) nIn.nodePortDetails[j] = ports.get(j);
 
+			// establish port connectivity
+			for(int i=0; i<nIn.nodePortDetails.length; i++)
+			{
+				NodeInfo.PortDetails nipd = nIn.nodePortDetails[i];
+				Sample ns = portSamples.get(nipd);
+				nipd.netIndex = i;
+				if (ns.node.hasConnections())
+				{
+					ArcInst ai1 = ns.node.getConnections().next().getArc();
+					Network net1 = netList.getNetwork(ai1, 0);
+					for(int j=0; j<i; j++)
+					{
+						NodeInfo.PortDetails onipd = nIn.nodePortDetails[j];
+						Sample oNs = portSamples.get(onipd);
+						if (oNs.node.hasConnections())
+						{
+							ArcInst ai2 = oNs.node.getConnections().next().getArc();
+							Network net2 = netList.getNetwork(ai2, 0);
+							if (net1 == net2)
+							{
+								nipd.netIndex = j;
+								break;
+							}
+						}
+					}
+				}
+			}
+
 			// on MOS transistors, make sure the first 4 ports are poly/active/poly/active
 			if (nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRADMOS ||
 				nIn.func == PrimitiveNode.Function.TRAPMOS || nIn.func == PrimitiveNode.Function.TRADMES ||
@@ -1125,34 +1153,6 @@ public class LibToTech
 				nIn.nodePortDetails[dif2Port=3] = port3;
 				for(int j=0; j<extras.size(); j++)
 					nIn.nodePortDetails[j+4] = extras.get(j);
-
-				// establish port connectivity
-				for(int i=0; i<nIn.nodePortDetails.length; i++)
-				{
-					NodeInfo.PortDetails nipd = nIn.nodePortDetails[i];
-					Sample ns = portSamples.get(nipd);
-					nipd.netIndex = i;
-					if (ns.node.hasConnections())
-					{
-						ArcInst ai1 = ns.node.getConnections().next().getArc();
-						Network net1 = netList.getNetwork(ai1, 0);
-						for(int j=0; j<i; j++)
-						{
-							NodeInfo.PortDetails onipd = nIn.nodePortDetails[j];
-							Sample oNs = portSamples.get(onipd);
-							if (oNs.node.hasConnections())
-							{
-								ArcInst ai2 = oNs.node.getConnections().next().getArc();
-								Network net2 = netList.getNetwork(ai2, 0);
-								if (net1 == net2)
-								{
-									nipd.netIndex = j;
-									break;
-								}
-							}
-						}
-					}
-				}
 
 				// make sure implant layers are not connected to ports
 				for(int k=0; k<nIn.nodeLayers.length; k++)

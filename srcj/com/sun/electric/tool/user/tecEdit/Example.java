@@ -80,15 +80,12 @@ public class Example implements Serializable
 			ne.samples = new ArrayList<Sample>();
 			neList.add(ne);
 
-//System.out.println("IN CELL "+np.describe(false)+" NEW EXAMPLE "+ne);
 			SizeOffset so = ni.getSizeOffset();
 			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
 				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
 				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
 			poly.transform(ni.rotateOut());
 			Rectangle2D soFar = poly.getBounds2D();
-//System.out.println("IN CELL "+np.describe(false)+" CONSIDER "+ni.describe(false)+" FROM "+soFar.getMinX()+"<=X<="+
-//	soFar.getMaxX()+" AND "+soFar.getMinY()+"<=Y<="+soFar.getMaxY());
 
 			// now find all others that touch this area
 			boolean gotBBox = false;
@@ -100,8 +97,6 @@ public class Example implements Serializable
 
 				// begin to search the area so far
                 List<NodeInst> sortedNodes = new ArrayList<NodeInst>();
-//System.out.println("IN CELL "+np.describe(false)+" SEARCHING "+soFar.getMinX()+"<=X<="+
-//	soFar.getMaxX()+" AND "+soFar.getMinY()+"<=Y<="+soFar.getMaxY());
 				for(Iterator<RTBounds> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
 					RTBounds geom = oIt.next();
@@ -117,8 +112,6 @@ public class Example implements Serializable
 						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
-//System.out.println("IN CELL "+np.describe(false)+" FOUND "+otherNi.describe(false)+" FROM "+otherRect.getMinX()+"<=X<="+
-//	otherRect.getMaxX()+" AND "+otherRect.getMinY()+"<=Y<="+otherRect.getMaxY());
 					if (!GenMath.rectsIntersect(otherRect, soFar)) continue;
 
 					// make sure the node is valid
@@ -127,7 +120,6 @@ public class Example implements Serializable
 					{
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
-//System.out.println("IN CELL "+np.describe(false)+" CONFLICTS WITH EXAMPLE "+otherAssn);
 						tcr.markError(otherNi, np, "Examples are too close");
 						return null;
 					}
@@ -212,7 +204,7 @@ public class Example implements Serializable
 			return neList;
 		}
 
-		// now search the list for the smallest, most upper-right example (the "main" example)
+		// now search the list for the smallest, most upper-left example (the "main" example)
 		double sizeX = 0;
 		double sizeY = 0;
 		double locX = 0;

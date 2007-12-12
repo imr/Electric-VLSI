@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06n: *******************************
 
+BUG: (12/12/07, SMR) Technology editor ignores port topology in non-transistor nodes.
+FIX: In LibToTech.extractNodes(), always extract port topology.
+
 IMP: (12/11/07, DN) Support of multi-task tests by AbstractTest and FakeTestJob.
 
 BUG: (12/10/07, SMR) HSpice measurement files read badly.
