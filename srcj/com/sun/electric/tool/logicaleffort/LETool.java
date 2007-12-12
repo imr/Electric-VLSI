@@ -86,22 +86,41 @@ public class LETool extends Tool {
     /**
      * Grabs a logical effort calculated size from the instance.
      * @return the size.
+     * @throws VarContext.EvalException in case of evaluation exception
      */
     public Object getdrive() throws VarContext.EvalException {
-        return getdrive(Double.MIN_VALUE);
+        return getdrive(null, Double.MIN_VALUE);
     }
-
 
     /**
      * Grabs a logical effort calculated size from the instance.
+     * @param defaultValue if a value cannot be found, and this value is not Double.MIN_VALUE,
+     * then use this value.
      * @return the size.
+     * @throws VarContext.EvalException in case of evaluation exception
      */
     public Object getdrive(double defaultValue) throws VarContext.EvalException {
+        return getdrive(null, defaultValue);
+    }
+
+    /**
+     * Grabs a logical effort calculated size from the instance.
+     * @param varName for SCOT results, multiple values are stored for the same instance,
+     * so they are encoded into the value of the variable as a string array of
+     * varName = value.
+     * @param defaultValue if a value cannot be found, and this value is not Double.MIN_VALUE,
+     * then use this value.
+     * @return the size.
+     * @throws VarContext.EvalException in case of evaluation exception
+     */
+    public Object getdrive(String varName, double defaultValue) throws VarContext.EvalException {
 
         // info should be the node on which there is the variable with the getDrive() call
         Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
-        if (!(info instanceof Nodable))
+        if (!(info instanceof Nodable)) {
+            if (defaultValue != Double.MIN_VALUE) return new Double(defaultValue);
             throw new VarContext.EvalException("getdrive(): Not enough hierarchy");
+        }
         VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();
         if (context == null)
             throw new VarContext.EvalException("getdrive(): null VarContext");
@@ -117,8 +136,12 @@ public class LETool extends Tool {
                 Nodable no = Netlist.getNodableFor((NodeInst)ni, i);
                 Variable var = getLEDRIVE(ni, context.push(no));
                 Object size = null;
+                if (defaultValue != Double.MIN_VALUE) size = new Double(defaultValue);
+
                 if (var != null) size = var.getObject();
-                else if (defaultValue != Double.MIN_VALUE) size = new Double(defaultValue);
+                if (varName != null && (size instanceof String)) {
+                    size = getSCOTValue(var, varName);
+                }
                 sizes.add(size);
             }
             if (sizes.size() > 5) {
@@ -143,6 +166,9 @@ public class LETool extends Tool {
             if (var == null)
                 throw new VarContext.EvalException("getdrive(): no size");
             val = var.getObject();
+            if (varName != null && (val instanceof String)) {
+                val = getSCOTValue(var, varName);
+            }
         }
         if (val == null)
             throw new VarContext.EvalException("getdrive(): size null");
@@ -267,6 +293,23 @@ public class LETool extends Tool {
         if (key == null) return null;
         Variable var = parent.getVar(key);
         return var;
+    }
+
+    private Object getSCOTValue(Variable var, String varName) {
+        if (var == null || varName == null) return null;
+        Object val = var.getObject();
+        if (!(val instanceof String)) return null;
+        String vals = (String)val;
+        String []valsparts = vals.split("/");
+        for (String s : valsparts) {
+            s = s.trim();
+            if (s.startsWith(varName)) {
+                String [] parts = s.split("=");
+                if (parts.length != 2) return null;
+                return parts[1].trim();
+            }
+        }
+        return null;
     }
 
     /**
