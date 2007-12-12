@@ -56,20 +56,21 @@ public class About extends EDialog
 
 		static CastOfThousands [] javaTeam = new CastOfThousands[]
 		{
-			new CastOfThousands("Jake Baker", 		    	"Thin Film technology"),
-			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
-			new CastOfThousands("Stephen Friedman", 		"NCC"),
-			new CastOfThousands("Jonathan Gainsley", 		"User interface, Simulation, Logical effort"),
-			new CastOfThousands("Gilda Garret\u00F3n", 		"DRC, ERC, 3D, technologies"),
-			new CastOfThousands("David Harris", 			"ROM generator, Color printing"),
-			new CastOfThousands("Jason Imada", 				"ROM generator"),
+			new CastOfThousands("Jake Baker",				"Thin Film technology"),
+			new CastOfThousands("Robert Bosnyak",			"Pads library"),
+			new CastOfThousands("Prashanth Busa",			"Thin Film technology"),
+			new CastOfThousands("Stephen Friedman",			"NCC"),
+			new CastOfThousands("Jonathan Gainsley",		"User interface, Simulation, Logical effort"),
+			new CastOfThousands("Gilda Garret\u00F3n",		"DRC, ERC, 3D, technologies"),
+			new CastOfThousands("David Harris",				"ROM generator, Color printing"),
+			new CastOfThousands("Jason Imada",				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, Hierarchy enumeration, Regressions"),
-			new CastOfThousands("Frank Lee", 				"ROM generator"),
+			new CastOfThousands("Frank Lee",				"ROM generator"),
 			new CastOfThousands("Ivan Minevskiy",			"NCC display"),
-			new CastOfThousands("Dmitry Nadezhin", 			"Database, Networks, Libraries, Simulation, Optimizations"),
-			new CastOfThousands("Bob Reese", 				"DEF input"),
-			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
-			new CastOfThousands("Thomas Valine", 			"GDS output"),
+			new CastOfThousands("Dmitry Nadezhin",			"Database, Networks, Libraries, Simulation, Optimizations"),
+			new CastOfThousands("Bob Reese",				"DEF input"),
+			new CastOfThousands("Ivan Sutherland",			"Inspiration, NCC"),
+			new CastOfThousands("Thomas Valine",			"GDS output"),
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
