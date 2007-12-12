@@ -29,7 +29,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.plugins.pie.interchange.Permutation;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccGlobalsReportable;
 import com.sun.electric.tool.ncc.NccOptions;

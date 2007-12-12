@@ -23,15 +23,21 @@
  */
 package com.sun.electric.tool.ncc;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
-
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.result.NccResults;
 
 /** Reflective interface to Port Interchange Experiment. This allows us to compile Electric
  * without the plugin: com.sun.electric.plugins.pie */
 public class Pie {
 	private Class pieNccJobClass;
 	private Constructor pieNccJobConstructor;
+	private Class pieNccClass;
+	private Method pieNccCompare;
 
 	// singleton
 	private static final Pie pie = new Pie();
@@ -40,6 +46,10 @@ public class Pie {
 		try {
 			pieNccJobClass = Class.forName("com.sun.electric.plugins.pie.NccJob");
 			pieNccJobConstructor = pieNccJobClass.getConstructor(new Class[] {Integer.TYPE});
+			pieNccClass = Class.forName("com.sun.electric.plugins.pie.Ncc");
+			pieNccClass.getMethod("compare", new Class[] {Cell.class, VarContext.class, 
+					                                      Cell.class, VarContext.class,
+					                                      NccOptions.class, PIEOptions.class});
 		} catch (Throwable e) {
 			pieNccJobClass = null;
 			pieNccJobConstructor = null;
@@ -59,5 +69,19 @@ public class Pie {
 			prln("Invocation of pie NccJob threw Throwable: "+e);
 			e.printStackTrace();
 		}
+	}
+	public static NccResults invokePieNccCompare(Cell c1, VarContext v1,
+			                                     Cell c2, VarContext v2,
+			                                     NccOptions opt, PIEOptions pOpt) {
+		LayoutLib.error(!hasPie(), "trying to invoke non-existant PIE");
+		NccResults results = null;
+		try {
+			results = (NccResults)
+			  pie.pieNccCompare.invoke(null, new Object[] {c1, v1, c2, v2, opt, pOpt});
+		} catch (Throwable e) {
+			prln("Invocation of pie Ncc.compare threw Throwable: "+e);
+			e.printStackTrace();
+		}
+		return results;
 	}
 }
