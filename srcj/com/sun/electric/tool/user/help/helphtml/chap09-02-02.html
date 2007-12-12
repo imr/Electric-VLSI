@@ -29,6 +29,15 @@ violation for a given pair is found in this mode.</LI>
 even if an error has already been found.
 This is the exhaustive mode and therefore time consuming that will report all violations found.</LI>
 </UL>
+Hierarchical errors appear in the cell explorer (see <A HREF="chap04-05-02.html#chap04-05-02">Section 4-5-2</A>).
+Since there can be many errors involving many different rules, you can control how they appear
+by setting "Report Errors" to:
+<UL>
+<LI>"By Cell" creates a separate error section for each cell.  This is the default.</LI>
+<LI>"By Rule" creates a separate error section for each different design rule.</LI>
+<LI>"Flat" creates a single error section with all errors.</LI>
+</UL>
+<P>
 The design-rule checker remembers the date of the last clean check.
 If a cell has not changed since then, it does not need to be rechecked.
 This date information can be stored in the libraries (requiring them to be saved)
@@ -53,5 +62,9 @@ To ignore these errors, check "Ignore area checking" (for minimum area rules) an
 After DRC is complete, errors are available in the the cell explorer.
 If you wish to see errors while DRC is running, check "Interactive logging",
 and the errors will appear incrementally.
+<P>
+The final DRC control is how minimum area detection is done.
+Setting "MinArea Algorithm" to "Simple" uses an algorithm that is slower.
+Setting "MinArea Algorithm" to "Local" uses an algorithm that is faster but consumes more memory.
 
 <!-- TRAILER -->
