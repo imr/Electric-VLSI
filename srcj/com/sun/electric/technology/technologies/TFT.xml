@@ -527,12 +527,12 @@
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
+        <nodeLayer layer="Metal-2" style="FILLED" portNum="3">
             <box kly="1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.5" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
+        <nodeLayer layer="Metal-2" style="FILLED" portNum="1">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="-0.5"/>
             </box>
