@@ -137,6 +137,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	{
         super("Design-Rule Layout Check " + c, c, consumer);
         this.ignoreExtensionRules = ignoreExtensionR;
+        this.instanceInteractionList = new ArrayList<InstanceInter>();
     }
 
     /**
@@ -152,7 +153,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	}
 
-    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
+    private List<InstanceInter> instanceInteractionList;
 
 
 	/**
@@ -176,13 +177,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
     /** for interactive error logging */                        private boolean interactiveLogger = false;
 
 	/* for figuring out which layers are valid for DRC */
-	private Technology layersValidTech = null;
+	private Technology layersValidTech;
 	private boolean [] layersValid;
 
 	/* for tracking which layers interact with which nodes */
-	private Technology layerInterTech = null;
-	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
-	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
+	private Technology layerInterTech;
+	private HashMap<PrimitiveNode, boolean[]> layersInterNodes;
+	private HashMap<ArcProto, boolean[]> layersInterArcs;
 
     private ErrorLogger errorLogger;
     private Layer theLayer;
@@ -3862,8 +3863,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
     /***************************END of Select Over Polysilicn Functions ************************************/
 
     /***************************START of Poly Cover By Any VT Layer Functions ************************************/
-    // Special functions not available for all technologies.
-    private static final Layer.Function.Set vtLayers = new Layer.Function.Set(Layer.Function.IMPLANTP, Layer.Function.IMPLANTN);
      /**
      * This method determines if one of the polysilicon polygons is covered by a vth layer. If yes, VT{H/L}_{P/N}.S.2
      * doesn't apply
