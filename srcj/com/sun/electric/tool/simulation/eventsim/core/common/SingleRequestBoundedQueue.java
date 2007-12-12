@@ -62,7 +62,7 @@ public class SingleRequestBoundedQueue<T> {
 	 * Return the head of the queue if the queue is not empty
 	 * If the queue is empty, remember the get so that a response will
 	 * be issued when the first element arrives in the queue
-	 * @param c
+	 * @param ackCmd
 	 * @throws EventSimErrorException 
 	 */
 	public void get(Command ackCmd) throws EventSimErrorException {

@@ -69,7 +69,7 @@ public class Time implements Cloneable {
 	} //laterThan
 	
 	/**
-	 * @parem t time to compare to
+	 * @param t time to compare to
 	 * @return true if this time is equal to t
 	 */
 	public boolean equals(Time t) {

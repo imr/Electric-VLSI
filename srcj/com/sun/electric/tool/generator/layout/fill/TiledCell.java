@@ -41,11 +41,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gg151869
  * Date: Sep 19, 2006
- * Time: 12:38:21 PM
- * To change this template use File | Settings | File Templates.
  */
 public class TiledCell {
     private enum Orientation{
@@ -69,7 +66,7 @@ public class TiledCell {
 
     /**
      * Constructor used by working with qTree fill.
-     * @param stdCell
+     * @param conf configuration.
      */
     public TiledCell(FillGenConfig conf)
     {

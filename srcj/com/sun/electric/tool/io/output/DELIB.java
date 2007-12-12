@@ -47,11 +47,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 8, 2006
- * Time: 5:00:09 PM
- * To change this template use File | Settings | File Templates.
  */
 public class DELIB extends JELIB {
 

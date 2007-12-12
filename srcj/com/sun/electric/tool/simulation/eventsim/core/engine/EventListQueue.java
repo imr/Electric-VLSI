@@ -70,7 +70,7 @@ public class EventListQueue extends EventQueue {
 	
 	/**
 	 * Insert a new event in the queue
-	 * @param newEvent The new event to be inserted to the queue
+	 * @param e the new event to be inserted to the queue
 	 */	
 	public void insertEvent(Event e) {
 		Time t= e.getTime();

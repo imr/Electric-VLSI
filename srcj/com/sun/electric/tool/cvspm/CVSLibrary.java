@@ -38,11 +38,9 @@ import java.awt.Color;
 import java.net.URL;
 
 /**
- * Created by IntelliJ IDEA.
+ * Track the state of a library that has been checked into CVS.
  * User: gainsley
  * Date: Mar 16, 2006
- * Time: 9:52:50 AM
- * Track the state of a library that has been checked into CVS.
  */
 public class CVSLibrary {
 

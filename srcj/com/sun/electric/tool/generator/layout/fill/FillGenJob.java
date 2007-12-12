@@ -30,11 +30,8 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gg151869
  * Date: Sep 19, 2006
- * Time: 2:52:39 PM
- * To change this template use File | Settings | File Templates.
  */
 public class FillGenJob extends Job
 {

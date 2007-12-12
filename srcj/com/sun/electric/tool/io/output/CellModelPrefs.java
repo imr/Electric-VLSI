@@ -30,11 +30,8 @@ import com.sun.electric.tool.io.FileType;
 import java.util.HashMap;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Jul 17, 2006
- * Time: 1:57:53 PM
- * To change this template use File | Settings | File Templates.
  */
 public class CellModelPrefs {
 

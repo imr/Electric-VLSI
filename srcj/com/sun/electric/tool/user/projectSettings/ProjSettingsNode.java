@@ -29,13 +29,6 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jul 25, 2006
- * Time: 5:32:36 PM
- */
-
-/**
  * A basic class to hold information on project settings.
  * This node holds key-value pairs, who values are typically
  * restricted to a few primitive types, and other ProjSettingNodes.

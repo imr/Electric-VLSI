@@ -139,7 +139,6 @@ public class Arbiter extends ComponentWorker {
 	
 	/**
 	 * Release the arbiter.
-	 * @param w component worker that had the last request granted
 	 * @throws EventSimErrorException 
 	 */
 	public void release() throws EventSimErrorException {

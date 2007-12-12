@@ -28,11 +28,8 @@ import java.util.HashSet;
 import java.awt.geom.Rectangle2D;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Gilda
  * Date: Feb 14, 2006
- * Time: 10:39:15 PM
- * To change this template use File | Settings | File Templates.
  */
 public class ObjectQTree {
     private static int MAX_NUM_CHILDREN = 4;

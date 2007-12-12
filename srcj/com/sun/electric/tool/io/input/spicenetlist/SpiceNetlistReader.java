@@ -27,16 +27,10 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
+ * Parse a spice netlist. Ignores comments, and
+ * coalesces split lines into single lines.
  * User: gainsley
  * Date: Aug 3, 2006
- * Time: 4:18:45 PM
- * To change this template use File | Settings | File Templates.
- */
-
-/**
- * Parse a spice netlist. Ignores comments, and
- * coalesces split lines into single lines
  */
 public class SpiceNetlistReader {
 

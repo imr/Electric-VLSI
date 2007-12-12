@@ -27,11 +27,8 @@ import java.util.*;
 import java.io.PrintStream;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Aug 3, 2006
- * Time: 4:18:45 PM
- * To change this template use File | Settings | File Templates.
  */
 
 public class SpiceSubckt {

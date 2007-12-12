@@ -54,14 +54,6 @@ import java.net.URL;
 import java.net.URI;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Mar 10, 2006
- * Time: 11:47:01 AM
- * To change this template use File | Settings | File Templates.
- */
-
-/**
  * The CVS Module
  */
 public class CVS extends Listener {

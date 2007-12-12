@@ -773,9 +773,9 @@ public class DRC extends Listener
 	}
 
     /**
-     * Method to find all possible rules of DRCRuleType type associated to layer1
-     * @param layer1
-     * @return
+     * Method to find all possible rules of DRCRuleType type associated a layer.
+     * @param layer1 the layer whose rules are desired.
+     * @return a list of DRCTemplate objects associated with the layer.
      */
     public static List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
     {

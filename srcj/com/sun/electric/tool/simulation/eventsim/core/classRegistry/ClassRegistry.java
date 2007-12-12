@@ -70,7 +70,7 @@ public class ClassRegistry {
 	 * no registration.
 	 * 
 	 * @param name class name
-	 * @param c the class
+	 * @param cInfo the class
 	 * @return true if the class was successfully registered
 	 */
 	public boolean register(String name, ComponentInfo cInfo) {

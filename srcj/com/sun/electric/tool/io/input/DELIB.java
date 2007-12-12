@@ -37,11 +37,8 @@ import java.io.LineNumberReader;
 import java.util.HashSet;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 8, 2006
- * Time: 4:24:47 PM
- * To change this template use File | Settings | File Templates.
  */
 public class DELIB extends JELIB {
     

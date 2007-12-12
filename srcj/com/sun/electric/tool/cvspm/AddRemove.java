@@ -38,11 +38,8 @@ import java.util.HashMap;
 import java.io.*;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 22, 2006
- * Time: 10:26:37 AM
- * To change this template use File | Settings | File Templates.
  */
 public class AddRemove {
 

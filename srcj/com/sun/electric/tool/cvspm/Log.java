@@ -45,11 +45,8 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 23, 2006
- * Time: 3:10:57 PM
- * To change this template use File | Settings | File Templates.
  */
 public class Log {
 

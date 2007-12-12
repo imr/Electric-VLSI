@@ -8,11 +8,8 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gg151869
  * Date: Jan 19, 2007
- * Time: 1:04:47 PM
- * To change this template use File | Settings | File Templates.
  */
 public class VerilogData implements Serializable
 {

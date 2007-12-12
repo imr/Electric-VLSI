@@ -28,11 +28,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Created by IntelliJ IDEA.
+ * The CVS state of a file.
  * User: gainsley
  * Date: Mar 16, 2006
- * Time: 10:07:36 AM
- * The CVS state of a file
  * <P>
  * Specifies the state of a CVS file on disk, as a result of the CVS command
  * 'cvs -nq update' to get status, or 'cvs -q update' to do the update.

@@ -29,14 +29,10 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 
 /**
- * Created by IntelliJ IDEA.
+ * Fill Cell Globals
  * User: gg151869
  * Date: Sep 19, 2006
- * Time: 11:31:46 AM
- * To change this template use File | Settings | File Templates.
  */
-// ---------------------------- Fill Cell Globals -----------------------------
-
 public class G {
     public static double DEF_SIZE = LayoutLib.DEF_SIZE;
     public static ArcInst noExtendArc(ArcProto pa, double w,

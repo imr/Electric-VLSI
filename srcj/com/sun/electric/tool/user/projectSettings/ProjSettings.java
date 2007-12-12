@@ -49,11 +49,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Jul 25, 2006
- * Time: 5:18:07 PM
- * To change this template use File | Settings | File Templates.
  */
 public class ProjSettings {
 

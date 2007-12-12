@@ -40,11 +40,8 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gg151869
  * Date: Nov 15, 2007
- * Time: 2:18:14 PM
- * To change this template use File | Settings | File Templates.
  */
 public abstract class MultiDRCToolJob extends Job {
     protected Cell topCell;
@@ -141,8 +138,6 @@ public abstract class MultiDRCToolJob extends Job {
 
         /**
          * Method does do nothing. Just collect information at the end.
-         *
-         * @return
          */
         public boolean doIt() {
             // Print the results in this function in case of running in batch mode

@@ -22,15 +22,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 /**
- * Created by IntelliJ IDEA.
+ * Generate a standard cell library from purple and red libraries
  * User: gainsley
  * Date: Nov 15, 2006
- * Time: 3:39:44 PM
- * To change this template use File | Settings | File Templates.
- */
-
-/**
- * Generate a standard cell library from purple and red libraries
  */
 public class SCLibraryGen {
 

@@ -91,7 +91,7 @@ public class Delay implements Cloneable {
 	} //laterThan
 	
 	/**
-	 * @parem d delay to compare to
+	 * @param d delay to compare to
 	 * @return true if this delay is equal to d
 	 */
 	public boolean equals(Delay d) {
@@ -112,7 +112,7 @@ public class Delay implements Cloneable {
 	
 	/**
 	 * Add delay to current delay.	 * 
-	 * @param d delay to be added to this delay
+	 * @param del delay to be added to this delay
 	 * @return the resulting delay
 	 */
 	public Delay addDelay(Delay del) {

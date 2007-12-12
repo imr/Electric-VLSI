@@ -39,11 +39,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 13, 2006
- * Time: 3:30:40 PM
- * To change this template use File | Settings | File Templates.
  */
 public class Update {
 

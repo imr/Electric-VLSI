@@ -40,11 +40,8 @@ import com.sun.electric.tool.Job;
 import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Gilda
  * Date: Aug 24, 2006
- * Time: 3:25:56 PM
- * To change this template use File | Settings | File Templates.
  */
 public class TransistorSearch
 {

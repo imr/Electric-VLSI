@@ -75,7 +75,7 @@ abstract public class InputTerminal extends Terminal {
 	
 	/**
 	 * Get data from the attached channel.
-	 * @returnthe data that the channel is passing to the input terminal
+	 * @return the data that the channel is passing to the input terminal
 	 */
 	public Object getData() {
 		return myChannel.getData();

@@ -25,11 +25,8 @@ import java.util.*;
 import java.awt.geom.Point2D;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gg151869
  * Date: Oct 23, 2006
- * Time: 3:58:57 PM
- * To change this template use File | Settings | File Templates.
  */
 public class VerilogReader extends Input
 {

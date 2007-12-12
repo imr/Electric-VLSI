@@ -44,11 +44,8 @@ import java.net.InetAddress;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: Mar 15, 2006
- * Time: 4:31:21 PM
- * To change this template use File | Settings | File Templates.
  */
 public class Edit {
 
