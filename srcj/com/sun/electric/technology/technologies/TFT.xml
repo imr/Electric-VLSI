@@ -456,12 +456,12 @@
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
-        <nodeLayer layer="Metal-1" style="FILLED">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="0">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
+        <nodeLayer layer="Metal-2" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
             </box>
