@@ -1036,7 +1036,13 @@ public class EditWindow extends JPanel
 			displayAttributes = new WindowFrame.DisplayAttributes(this);
 			fillTheScreen = true;
 		}
-		showCell(cell, context, fillTheScreen, displayAttributes);
+
+		// recalculate the screen size
+        sz = getSize();
+        szHalfWidth = sz.width / 2;
+        szHalfHeight = sz.height / 2;
+
+        showCell(cell, context, fillTheScreen, displayAttributes);
 	}
 
 	/**

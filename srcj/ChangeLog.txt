@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06o: *******************************
+
+BUG: (12/12/07, SMR) Editing a cell in a new window doesn't fill the window.
+FIX: In EditWindow.setCell(), recache the window size.
+
 BUG: (12/12/07, RK) Stephen Friedman accidentally made NCC depend upon PIE plugin
 FIX: Remove the dependency by moving Permutation and PIEOptions and by using reflection.
 
