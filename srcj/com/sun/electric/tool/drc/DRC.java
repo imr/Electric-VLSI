@@ -66,6 +66,13 @@ public class DRC extends Listener
     /** to temporary store DRC dates */                 private static HashMap<Cell,StoreDRCInfo> storedDRCDate = new HashMap<Cell,StoreDRCInfo>();
 	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 
+    public static Layer.Function.Set getMultiLayersSet(Layer layer)
+    {
+        Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
+        new Layer.Function.Set(Layer.Function.POLY1, Layer.Function.GATE) :
+        new Layer.Function.Set(layer.getFunction(), layer.getFunctionExtras());
+        return thisLayerFunction;
+    }
 
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
     public static enum DRCErrorType

@@ -41,6 +41,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Consumer;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -80,7 +82,7 @@ import java.util.*;
  * @author  Steve Rubin, Gilda Garreton
  */
 
-class MultiDRCLayoutToolJob extends MultiDRCToolJob {
+public class MTDRCLayoutTool extends MTDRCTool {
     private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
@@ -94,7 +96,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 	 * (an array is stored on each network, giving its global net number).
 	 */
 	private static class CheckInst
-	{
+    {
 		int localIndex;
 		int multiplier;
 		int offset;
@@ -131,11 +133,10 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
     private Layer.Function.Set thisLayerFunction;
     private boolean ignoreExtensionRules = true;
 
-    public MultiDRCLayoutToolJob(Cell c, String l, boolean ignoreExtensionR)
+    public MTDRCLayoutTool(Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
 	{
-        super(c, l, "Design-Rule Layout Check " + c + ((l!=null)?", layer " + l:", node min. size"));
+        super("Design-Rule Layout Check " + c, c, consumer);
         this.ignoreExtensionRules = ignoreExtensionR;
-        startJob();
     }
 
     /**
@@ -183,6 +184,12 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
 	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
 
+    private ErrorLogger errorLogger;
+    private Layer theLayer;
+
+    @Override
+    boolean checkArea() {return false;}
+
     /**
 	 * This is the entry point for DRC.
 	 *
@@ -194,41 +201,23 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
      * @param data
      * @return ErrorLogger containing the information
 	 */
-	public static void startMultiLayoutChecking(Cell cell, Layer layer,
-                                                Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds,
-                                                boolean ignoreExtensionR, GenMath.MutableBoolean polyDone)
-	{
-        if (layer != null)
-        {
-            if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
-                return; // dirty way to skip the MoCMOS p-active well
-            else if (layer.getFunction().isPoly())
-            {
-                // Polysilicon-1 and Transistor-Poly should be checked in 1 job
-                if (polyDone.booleanValue())
-                    return; // done already
-                polyDone.setValue(true); // won't do the next time the layer is detected
-            }
-        }
-        new MultiDRCLayoutToolJob(cell, (layer!=null)?layer.getName():null, ignoreExtensionR);
-    }
 
     // returns the number of errors found
-    public boolean doIt()
+    @Override
+    public MTDRCResult runTaskInternal(Layer taskKey)
 	{
-        if (theLayerName != null)
+        String name = "";
+        if (taskKey != null)
         {
-            theLayer = topCell.getTechnology().findLayer(theLayerName);
-            errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayerName);
-            this.thisLayerFunction = DRC.getMultiLayersSet(theLayer);
+            name = "Layer " + taskKey.getName();
+            this.thisLayerFunction = DRC.getMultiLayersSet(taskKey);
         }
         else
         {
-            errorLogger = DRC.getDRCErrorLogger(true, false, ", Node Min. Size");
+            name = "Node Min. Size";
         }
-        
-        if (Job.BATCHMODE)
-            MultiDRCCollectData.jobsList.add(errorLogger);
+        theLayer = taskKey;
+        errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
 
         // Check if there are DRC rules for particular tech
         Technology tech = topCell.getTechnology();
@@ -238,7 +227,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
         activeBits = DRC.getActiveBits(tech);
         String extraMsg = ", extension bit ";
         extraMsg += !this.ignoreExtensionRules ? "on" : "off";
-        System.out.println("Running DRC for " + theLayer+ " with " + extraMsg);
+        System.out.println("Running DRC for " + name + " with " + extraMsg);
 
         // caching memory setting
         inMemory = DRC.isDatesStoredInMemory();
@@ -248,7 +237,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
         minAllowedResolution = tech.getResolution();
 
 		// Nothing to check for this particular technology
-		if (rules == null || rules.getNumberOfRules() == 0) return true;
+		if (rules == null || rules.getNumberOfRules() == 0) return null;
 
 		// get the current DRC options
 		errorTypeSearch = DRC.getErrorType();
@@ -416,9 +405,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 //            DRC.addDRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
 	    }
 
-
-        this.fieldVariableChanged("errorLogger");
-        return true;
+        return new MTDRCResult(errorLogger.getNumErrors(), errorLogger.getNumWarnings());
 	}
 
     /*************************** QUICK DRC CELL EXAMINATION ***************************/

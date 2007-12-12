@@ -24,6 +24,8 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.MultiTaskJob;
+import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -65,14 +67,6 @@ public abstract class MultiDRCToolJob extends Job {
             MultiDRCCollectData.jobsList.add(errorLogger);
     }
 
-    static Layer.Function.Set getMultiLayersSet(Layer layer)
-    {
-        Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
-        new Layer.Function.Set(Layer.Function.POLY1, Layer.Function.GATE) :
-        new Layer.Function.Set(layer.getFunction(), layer.getFunctionExtras());
-        return thisLayerFunction;
-    }
-
     /***********************************
      * Multi-Threaded Jobs
      ***********************************/
@@ -104,11 +98,11 @@ public abstract class MultiDRCToolJob extends Job {
         {
             Layer layer = tech.findLayer(layerS);
 //            Layer layer = it.next();
-            if (layer == null)
-            {
-                System.out.println("SkippingLayer " + layerS);
-                continue;
-            }
+//            if (layer == null)
+//            {
+//                System.out.println("SkippingLayer " + layerS);
+//                continue;
+//            }
             if (checkArea)
                 MultiDRCAreaToolJob.startMultiMinAreaChecking(cell, layer, cellLayersCon, globalStartTime, polyDone);
             else

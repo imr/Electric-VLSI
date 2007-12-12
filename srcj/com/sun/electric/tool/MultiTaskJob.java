@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -51,9 +50,9 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
 	 * @param jobType the Type of this Job (EXAMINE or CHANGE).
      * @param consumer interface which consumes the result on server
 	 */
-    public MultiTaskJob(String jobName, Tool tool, Type jobType, Consumer<Result> consumer) {
-        super(jobName, tool, jobType, null, null, Job.Priority.USER);
-        this.consumer = consumer;
+    public MultiTaskJob(String jobName, Tool t, Type jobType, Consumer<Result> c) {
+        super(jobName, t, jobType, null, null, Job.Priority.USER);
+        this.consumer = c;
     }
     
     /**
@@ -119,10 +118,10 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
         private transient final TaskKey taskKey;
         private transient TaskResult taskResult;
         
-        private TaskJob(String taskName, TaskKey taskKey) {
+        private TaskJob(String taskName, TaskKey tK) {
             super(taskName, MultiTaskJob.this.tool, 
                     Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
-            this.taskKey = taskKey;
+            this.taskKey = tK;
         }
         
         @Override

@@ -1,109 +1,63 @@
-/* -*- tab-width: 4 -*-
- *
- * Electric(tm) VLSI Design System
- *
- * File: Quick.java
- *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
- *
- * Electric(tm) is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Electric(tm) is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Electric(tm); see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, Mass 02111-1307, USA.
- */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.tool.Job;
+import com.sun.electric.technology.*;
+import com.sun.electric.tool.Consumer;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.technology.*;
 
 import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * User: gg151869
+ * Date: Dec 11, 2007
+ */
 
-class MultiDRCAreaToolJob extends MultiDRCToolJob {
-    private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
-    private CellLayersContainer cellLayersCon;
-
-    MultiDRCAreaToolJob(Cell c, String l, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spacingR,
-                    CellLayersContainer cellLayersC, long globalStartT)
+public class MTDRCAreaTool extends MTDRCTool
+{
+    public MTDRCAreaTool(Cell c, Consumer<MTDRCResult> consumer)
     {
-        super(c, l, "Design-Rule MinArea Check " + c + ", layer " + l);
-        this.minAreaRule = minAreaR;
-        this.enclosedAreaRule = enclosedAreaR;
-        this.spacingRule = spacingR;
-        this.cellLayersCon = cellLayersC;
-        this.globalStartTime = globalStartT;
-        startJob();
+        super("Design-Rule Area Check " + c, c, consumer);
     }
 
-    public boolean doIt()
+    @Override
+    boolean checkArea() {return true;}
+
+    @Override
+    public MTDRCResult runTaskInternal(Layer theLayer)
     {
-        long startTime = System.currentTimeMillis();
-        theLayer = topCell.getTechnology().findLayer(theLayerName);
-        errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayerName);
+        DRCTemplate minAreaRule = DRC.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
+        DRCTemplate enclosedAreaRule = DRC.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        DRCTemplate spaceRule = DRC.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
+            return null;
 
-        if (Job.BATCHMODE)
-            MultiDRCCollectData.jobsList.add(errorLogger);
-
+        ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
         System.out.println("DRC for " + msg + " in thread " + Thread.currentThread().getName());
-        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(GeometryHandler.GHMode.ALGO_SWEEP,
+        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
+            spaceRule, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
                 cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
 
         long endTime = System.currentTimeMillis();
-        this.fieldVariableChanged("errorLogger");
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
         System.out.println(errorCount + " errors and " + warnCount + " warnings found in " + msg
                 + " (took " + TextUtils.getElapsedTime(endTime - startTime) + " in thread " + Thread.currentThread().getName() + ")");
         long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
-        return true;
-    }
-
-    public static void startMultiMinAreaChecking(Cell cell, Layer layer, CellLayersContainer cellLayersC,
-                                                 long globalStartT, GenMath.MutableBoolean polyDone)
-    {
-        if (layer.getFunction().isDiff() && layer.getName().toLowerCase().equals("p-active-well"))
-            return; // dirty way to skip the MoCMOS p-active well
-        else if (layer.getFunction().isPoly())
-        {
-            // Polysilicon-1 and Transistor-Poly should be checked in 1 job
-            if (polyDone.booleanValue())
-                return; // done already
-            polyDone.setValue(true); // won't do the next time the layer is detected
-        } else if (layer.getFunction().isContact())  // via*, polyCut, activeCut
-            return;
-
-        DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
-        DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
-        DRCTemplate spaceRule = DRC.getSpacingRule(layer, null, layer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
-        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
-            return; // nothing to check
-        new MultiDRCAreaToolJob(cell, layer.getName(), minAreaRule, enclosedAreaRule, spaceRule, cellLayersC,
-                globalStartT);
+        return new MTDRCResult(errorCount, warnCount);
     }
 
     /**************************************************************************************************************
@@ -114,17 +68,27 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
      */
     private class LayerAreaEnumerator extends HierarchyEnumerator.Visitor
     {
+        private Layer theLayer;
         private Map<Cell,GeometryHandlerLayerBucket> cellsMap;
         private Layer.Function.Set thisLayerFunction;
         private GeometryHandler.GHMode mode;
         private Collection<PrimitiveNode> nodesList; // NodeProto that contains this layer
         private Collection<ArcProto> arcsList; // ArcProto that contains this layer
         private CellLayersContainer cellLayersCon;
+        private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
+        private ErrorLogger errorLogger;
 
-        LayerAreaEnumerator(GeometryHandler.GHMode m, CellLayersContainer cellLayersC)
+        LayerAreaEnumerator(Layer layer, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spaceR,
+                            ErrorLogger ErrorLog,
+                            GeometryHandler.GHMode m, CellLayersContainer cellLayersC)
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
             // even though non-electrical layers are retrieved
+            this.minAreaRule = minAreaR;
+            this.enclosedAreaRule = enclosedAreaR;
+            this.spacingRule = spaceR;
+            this.errorLogger = ErrorLog;
+            this.theLayer = layer;
             this.thisLayerFunction = DRC.getMultiLayersSet(theLayer);
             this.mode = m;
             cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
@@ -199,7 +163,7 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
             Set<String> set = cellLayersCon.getLayersSet(cell);
 //            assert(set != null);
 
-            // The cell doesn't contain the layer 
+            // The cell doesn't contain the layer
             if (set != null && !set.contains(theLayer.getName()))
             {
 //                System.out.println("Cell " + cell.getName() + " doesn't have layer " + theLayer.getName());
@@ -282,10 +246,6 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
             if (ni.isCellInstance()) return (true);
 
 			AffineTransform trans = ni.rotateOut();
-//            AffineTransform root = info.getTransformToRoot();
-//			if (root.getType() != AffineTransform.TYPE_IDENTITY)
-//				trans.preConcatenate(root);
-
             PrimitiveNode pNp = (PrimitiveNode)np;
             boolean notFound = !nodesList.contains(pNp);
             if (notFound) return false; // pNp doesn't have the layer
@@ -321,19 +281,18 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
 
             for (PolyBase.PolyBaseTree obj : trees)
             {
-                traversePolyTree(layer, obj, 0, minAreaRule, enclosedAreaRule, spacingRule, cell, errorFound);
+                traversePolyTree(layer, obj, 0, cell, errorFound);
             }
             return errorFound.intValue();
         }
 
         private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level,
-                                      DRCTemplate minAreaRule, DRCTemplate encloseAreaRule,
-                                      DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
+                                      Cell cell, GenMath.MutableInteger count)
         {
             List<PolyBase.PolyBaseTree> sons = obj.getSons();
             for (PolyBase.PolyBaseTree son : sons)
             {
-                traversePolyTree(layer, son, level+1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
+                traversePolyTree(layer, son, level+1, cell, count);
             }
             boolean minAreaCheck = level%2 == 0;
             boolean checkMin = false, checkNotch = false;
@@ -352,10 +311,10 @@ class MultiDRCAreaToolJob extends MultiDRCToolJob {
             {
                 // odd level checks enclose area and holes (spacing rule)
                 errorType = DRC.DRCErrorType.ENCLOSEDAREAERROR;
-                if (encloseAreaRule != null)
+                if (enclosedAreaRule != null)
                 {
-                    minVal = encloseAreaRule.getValue(0);
-                    ruleName = encloseAreaRule.ruleName;
+                    minVal = enclosedAreaRule.getValue(0);
+                    ruleName = enclosedAreaRule.ruleName;
                     checkMin = true;
                 }
                 checkNotch = (spacingRule != null);
