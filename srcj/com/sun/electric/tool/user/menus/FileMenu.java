@@ -212,7 +212,7 @@ public class FileMenu {
                 SEPARATOR,
                 new EMenuItem("ELI_B (Version 6)...") {	public void run() {
                     saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
-                new EMenuItem(Job.getDebug() ? "_JELIB (Version 8.04k)" : "_JELIB (Version 8.03)") { public void run() {
+                new EMenuItem("_JELIB (Version 8.03)...") { public void run() {	// really since 8.04k
                     saveOldJelib(); }},
                 new EMenuItem("P_references...") { public void run() { 
                     Job.getUserInterface().exportPrefs(); }},
