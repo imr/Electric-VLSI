@@ -6,7 +6,7 @@
 <!-- COMMAND Tool/Simulation (Spice)/Add Multiplier -->
 <!-- COMMAND Tool/Simulation (Spice)/Add Flat Code -->
 <!-- COMMAND Tool/Simulation (Spice)/Set Spice Model... -->
-
+<!-- COMMAND Tool/Simulation (Spice)/Set Netlist Cell From File -->
 <!-- PREFERENCE Tools/Spice -->
 <!-- PREFERENCE Tools/Spice Model Files -->
 
@@ -167,8 +167,13 @@ see <A HREF="chap07-01-02.html#chap07-01-02">Section 7-1-2</A>).
 <CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
 
 <P>
-Another set of controls can be found in the Spice Model Files Preferences
+Another set of controls can be used is the Spice Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).
 This dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
 Instead of the cell subcircuit, the specified disk file is "included" in the deck.
+<P>
+The same function can be done by using the <B>Set Netlist Cell From File</B> command
+(in menu <B>Tool / Simulation (Spice)</B>).
+This places a piece of text in the cell, which you must edit to be the path to a disk file.
+That file will then be included in the Spice deck instead of the actual subcircuit of the cell.
 <!-- TRAILER -->
