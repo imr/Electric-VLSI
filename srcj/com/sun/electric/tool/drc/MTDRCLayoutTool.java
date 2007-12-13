@@ -101,7 +101,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		int multiplier;
 		int offset;
 	}
-	private HashMap<NodeInst,CheckInst> checkInsts;
 
 
 	/**
@@ -121,25 +120,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		/** netlist of this cell */										Netlist netlist;
 	}
 
-    private HashMap<Cell,CheckProto> checkProtos;
-	private HashMap<Network,Integer[]> networkLists;
-    private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
-	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
-    private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
-    private int activeBits = 0; // to cache current extra bits
-    private boolean inMemory = DRC.isDatesStoredInMemory();
-    private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
-
-    private Layer.Function.Set thisLayerFunction;
-    private boolean ignoreExtensionRules = true;
-
-    public MTDRCLayoutTool(Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
-	{
-        super("Design-Rule Layout Check " + c, c, consumer);
-        this.ignoreExtensionRules = ignoreExtensionR;
-        this.instanceInteractionList = new ArrayList<InstanceInter>();
-    }
-
     /**
 	 * The InstanceInter object records interactions between two cell instances and prevents checking
 	 * them multiple times.
@@ -153,7 +133,39 @@ public class MTDRCLayoutTool extends MTDRCTool {
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	}
 
-    private List<InstanceInter> instanceInteractionList;
+    private boolean ignoreExtensionRules = true;
+    
+    public MTDRCLayoutTool(Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
+	{
+        super("Design-Rule Layout Check " + c, c, consumer);
+        this.ignoreExtensionRules = ignoreExtensionR;
+    }
+
+    @Override
+    boolean checkArea() {return false;}
+
+    // returns the number of errors found
+    @Override
+    public MTDRCResult runTaskInternal(Layer taskKey) {
+        return (new Task()).runTaskInternal(taskKey);
+    }
+    
+    private class Task {
+    
+	private HashMap<NodeInst,CheckInst> checkInsts;
+    
+    private HashMap<Cell,CheckProto> checkProtos;
+	private HashMap<Network,Integer[]> networkLists;
+    private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
+	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
+    private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
+    private int activeBits = 0; // to cache current extra bits
+    private boolean inMemory = DRC.isDatesStoredInMemory();
+    private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
+
+    private Layer.Function.Set thisLayerFunction;
+
+    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();;
 
 
 	/**
@@ -188,9 +200,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
     private ErrorLogger errorLogger;
     private Layer theLayer;
 
-    @Override
-    boolean checkArea() {return false;}
-
     /**
 	 * This is the entry point for DRC.
 	 *
@@ -204,8 +213,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	 */
 
     // returns the number of errors found
-    @Override
-    public MTDRCResult runTaskInternal(Layer taskKey)
+    private MTDRCResult runTaskInternal(Layer taskKey)
 	{
         String name = "";
         if (taskKey != null)
@@ -227,7 +235,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         // caching bits
         activeBits = DRC.getActiveBits(tech);
         String extraMsg = ", extension bit ";
-        extraMsg += !this.ignoreExtensionRules ? "on" : "off";
+        extraMsg += !ignoreExtensionRules ? "on" : "off";
         System.out.println("Running DRC for " + name + " with " + extraMsg);
 
         // caching memory setting
@@ -4543,6 +4551,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         DRC.createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
                 errorType, msg, cell, limit, actual, rule, poly1, geom1, layer1,
                 poly2, geom2, layer2);
+    }
     }
 }
 
