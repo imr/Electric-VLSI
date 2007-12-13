@@ -1,22 +1,24 @@
 <!-- HEADER 10-4-2: Text Descriptors -->
 
 Text descriptors appear in every Variable, and also in other places (cell instances and exports).
-It consists of these fields:
+All text descriptors have an anchor factor ("D0" through "D9").
+If the anchor starts with a lower-case "d", the text is hidden (but the descriptor information is remembered).
+Here are the fields of a text descriptor:
 <P>
 <CENTER><TABLE WIDTH="90%">
 <TR><TD WIDTH="15%">A &lt;size&gt; ;</TD><TD WIDTH="85%">Text is absolute size (in points).</TD></TR>
 <TR><TD>B</TD><TD>Text is bold.</TD></TR>
 <TR><TD>C &lt;color&gt; ;</TD><TD>Text is drawn in the color index given.</TD></TR>
-<TR><TD>D0</TD><TD>Text is anchored at its center, limited to the size of its owner.</TD></TR>
-<TR><TD>D1</TD><TD>Text is anchored at its lower-left.</TD></TR>
-<TR><TD>D2</TD><TD>Text is anchored at its bottom.</TD></TR>
-<TR><TD>D3</TD><TD>Text is anchored at its lower-right.</TD></TR>
-<TR><TD>D4</TD><TD>Text is anchored at its left.</TD></TR>
-<TR><TD>D5</TD><TD>Text is anchored at its center.</TD></TR>
-<TR><TD>D6</TD><TD>Text is anchored at its right.</TD></TR>
-<TR><TD>D7</TD><TD>Text is anchored at its upper-left.</TD></TR>
-<TR><TD>D8</TD><TD>Text is anchored at its top.</TD></TR>
-<TR><TD>D9</TD><TD>Text is anchored at its upper-right.</TD></TR>
+<TR><TD>D0 / d0</TD><TD>Text is anchored at its center, limited to the size of its owner.</TD></TR>
+<TR><TD>D1 / d1</TD><TD>Text is anchored at its lower-left.</TD></TR>
+<TR><TD>D2 / d2</TD><TD>Text is anchored at its bottom.</TD></TR>
+<TR><TD>D3 / d3</TD><TD>Text is anchored at its lower-right.</TD></TR>
+<TR><TD>D4 / d4</TD><TD>Text is anchored at its left.</TD></TR>
+<TR><TD>D5 / d5</TD><TD>Text is anchored at its center.</TD></TR>
+<TR><TD>D6 / d6</TD><TD>Text is anchored at its right.</TD></TR>
+<TR><TD>D7 / d7</TD><TD>Text is anchored at its upper-left.</TD></TR>
+<TR><TD>D8 / d8</TD><TD>Text is anchored at its top.</TD></TR>
+<TR><TD>D9 / d9</TD><TD>Text is anchored at its upper-right.</TD></TR>
 <TR><TD>F &lt;font&gt; ;</TD><TD>Text is shown in the named font.</TD></TR>
 <TR><TD>G &lt;size&gt; ;</TD><TD>Text has relative size (in grid units).</TD></TR>
 <TR><TD>H</TD><TD>Variable is inheritable (only for variables on Cells or Exports).</TD></TR>
