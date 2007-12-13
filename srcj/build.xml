@@ -47,6 +47,7 @@
         <exclude name="com/sun/electric/plugins/irsim/" if="GNU"/>
         <exclude name="com/sun/electric/plugins/pie/" if="GNU"/>
         <exclude name="com/sun/electric/plugins/prefuse/" if="GNU"/>
+        <exclude name="com/sun/electric/tool/simulation/eventsim/" if="GNU"/>
     </patternset>
 
     <!-- Patternset for plugins that are not distributed by SFS -->
