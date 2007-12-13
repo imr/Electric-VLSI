@@ -136,8 +136,8 @@ public class TechnologyTab extends ProjSettingsPanel
 			extraTechTabs.add(extraTechTab);
 		} catch (Exception e)
 		{
-			System.out.println("Exceptions while importing extra technologies");
-			remove(panel);
+//			System.out.println("Exceptions while importing extra technologies");
+			technology.remove(panel);
 		}
 	}
 
