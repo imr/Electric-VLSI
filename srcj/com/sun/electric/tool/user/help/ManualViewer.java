@@ -943,8 +943,6 @@ public class ManualViewer extends EModelessDialog
 			return;
 		}
 
-		printWriter.println("<HTML><HEAD><TITLE>Using The Electric VLSI Design System</TITLE></HEAD>");
-		printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");
 		for(int index=0; index < pageSequence.size(); index++)
 		{
 			PageInfo pi = pageSequence.get(index);
