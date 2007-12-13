@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06o: *******************************
 
+BUG: (12/13/07, SMR) Spice writes too many "'" wrappers (Bug #1452).
+FIX: In Spice:replacePortsAndVars() do not call formatParam().
+
 ************************* Version 8.06n: *******************************
 
 BUG: (12/12/07, SMR) Editing a cell in a new window doesn't fill the window.

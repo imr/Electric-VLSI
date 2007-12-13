@@ -1880,7 +1880,8 @@ public class Spice extends Topology
                         pVal = String.valueOf(context.evalVar(attrVar, no));
                     }
 //                    if (attrVar.getCode() != TextDescriptor.Code.NONE)
-                    	pVal = formatParam(pVal, attrVar.getUnit());
+//                    	pVal = formatParam(pVal, attrVar.getUnit());
+                    	pVal = trimSingleQuotes(pVal);
                     infstr.append(pVal);
                     //else
                     //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
