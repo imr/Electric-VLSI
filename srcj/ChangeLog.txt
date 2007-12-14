@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.06o: *******************************
 
+BUG: (12/14/07, GVG) "Change all in this library" is misleading (Bug #1460)
+FIX: The change process is applied to the library of the cell in the current WindowFrame.
+
 IMP: (12/13/07, DN) Warning if technology parameter is changed and this technology already used.
 
 IMP: (12/13/07, DN) Netlist Engine names unnamed buses in descending order.

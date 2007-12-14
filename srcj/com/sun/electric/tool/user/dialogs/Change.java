@@ -658,8 +658,8 @@ public class Change extends EModelessDialog implements HighlightListener
 							" nodes in all libraries replaced with " + np);
 					} else if (changeInLibrary)
 					{
-						// replace throughout this library if requested
-						Library lib = Library.getCurrent();
+						// replace throughout the library containing "this cell"if requested
+                        Library lib = WindowFrame.getCurrentCell().getLibrary();
 						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
