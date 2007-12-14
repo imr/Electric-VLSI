@@ -120,7 +120,6 @@
         <foreground>true</foreground>
         <display3D thick="2.65" height="22.15" factor="0.0"/>
         <cifLayer cif="CMS"/>
-        <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
         <pureLayerNode name="Metal-2-Node" port="metal-2">
             <lambda>4.0</lambda>
             <portArc>Metal_2</portArc>
