@@ -114,7 +114,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		/** number of instances of this cell in a particular parent */	int totalPerCell;
 		/** true if this cell has been checked */						boolean cellChecked;
 		/** true if this cell has parameters */							boolean cellParameterized;
-		/** true if this cell or subcell has parameters */				boolean treeParameterized;
 		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
 		/** netlist of this cell */										Netlist netlist;
 	}
@@ -122,7 +121,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
     private HashMap<Cell,CheckProto> checkProtos;
 	private HashMap<Network,Integer[]> networkLists;
     private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
-	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
+//	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to cache current extra bits
     private boolean inMemory = DRC.isDatesStoredInMemory();
@@ -160,7 +159,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
     private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
 
-	/** number of processes for doing DRC */					private int numberOfThreads;
 	/** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
     /** minimum output grid resolution */				        private double minAllowedResolution;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
@@ -216,6 +214,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
     // returns the number of errors found
     public boolean doIt()
 	{
+        long localStartTime = System.currentTimeMillis();
         if (theLayerName != null)
         {
             theLayer = topCell.getTechnology().findLayer(theLayerName);
@@ -253,7 +252,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		// get the current DRC options
 		errorTypeSearch = DRC.getErrorType();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
-		numberOfThreads = DRC.getNumberOfThreads();
 
 		// if checking specific instances, adjust options and processor count
         Geometric[] geomsToCheck = null; // NULL for now
@@ -264,7 +262,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		if (count > 0)
 		{
 			errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
-			numberOfThreads = 1;
 		}
 
 		// cache valid layers for this technology
@@ -279,7 +276,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 
 	    // determine if min area must be checked (if any layer got valid data)
         spacingLayerMap.clear();
-	    cellsMap.clear();
+//	    cellsMap.clear();
 	    nodesMap.clear();
 
 		// initialize all cells for hierarchical network numbering
@@ -289,14 +286,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		// initialize cells in tree for hierarchical network numbering
 		Netlist netlist = topCell.getNetlist();
 		CheckProto cp = checkEnumerateProtos(topCell, netlist);
-
-		// see if any parameters are used below this cell
-		if (cp.treeParameterized && numberOfThreads > 1)
-		{
-			// parameters found: cannot use multiple processors
-			System.out.println("Parameterized layout being used: multiprocessor decomposition disabled");
-			numberOfThreads = 1;
-		}
 
 		// now recursively examine, setting information on all instances
 		cp.hierInstanceCount = 1;
@@ -371,7 +360,10 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		if (count <= 0)
 			System.out.println("Found " + checkNetNumber + " networks");
 
-		// now search for DRC exclusion areas
+        long accuEndTime = System.currentTimeMillis() - localStartTime;
+        System.out.println("Initialization time: " + TextUtils.getElapsedTime(accuEndTime));
+
+        // now search for DRC exclusion areas
         exclusionMap.clear();
 		accumulateExclusion(topCell);
 
@@ -438,7 +430,12 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		if (checkAbort()) return -1;
 
         // Cell already checked
-		if (cellsMap.get(cell) != null)
+        boolean origCal = getCheckProto(cell).cellChecked;
+
+        if (origCal)
+//        boolean newCal = cellsMap.get(cell) != null;
+//        assert(origCal == newCal);
+//        if (cellsMap.get(cell) != null)
 			return (0);
 
 		// Previous # of errors/warnings
@@ -450,7 +447,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 			prevWarns = errorLogger.getNumWarnings();
 		}
 
-		cellsMap.put(cell, cell);
+//		cellsMap.put(cell, cell);
 
         // Check if cell doesn't have special annotation
         Variable drcVar = cell.getVar(DRC_ANNOTATION_KEY);
@@ -2221,11 +2218,9 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		cp.totalPerCell = 0;
 		cp.cellChecked = false;
 		cp.cellParameterized = false;
-		cp.treeParameterized = false;
 		cp.netlist = netlist;
         if (cell.getParameters().hasNext()) {
             cp.cellParameterized = true;
-            cp.treeParameterized = true;
         }
 //		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
 //		{
@@ -2251,8 +2246,6 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 			checkInsts.put(ni, ci);
 
 			CheckProto subCP = checkEnumerateProtos(subCell, netlist.getNetlist(ni));
-			if (subCP.treeParameterized)
-				cp.treeParameterized = true;
 		}
 		return cp;
 	}
@@ -2303,15 +2296,11 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		}
 
 		// update the counts for this cell
-//		for(Iterator it = subCheckProtos.iterator(); it.hasNext(); )
         for (CheckProto cp : subCheckProtos)
 		{
-//			CheckProto cp = (CheckProto)it.next();
 			cp.hierInstanceCount += cp.instanceCount;
-//			for(Iterator nIt = cp.nodesInCell.iterator(); nIt.hasNext(); )
             for (CheckInst ci : cp.nodesInCell)
 			{
-//				CheckInst ci = (CheckInst)nIt.next();
 				ci.multiplier = cp.instanceCount;
 			}
 		}
@@ -4297,7 +4286,8 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 	private void cacheValidLayers(Technology tech)
 	{
 		if (tech == null) return;
-		if (layersValidTech == tech) return;
+		if (layersValidTech == tech)
+            return;
 
 		layersValidTech = tech;
 

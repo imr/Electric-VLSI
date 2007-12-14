@@ -738,7 +738,7 @@ public class DRC extends Listener
 		DRCRules rules = getRules(tech);
 		if (rules == null) return -1;
 
-        return (rules.getMaxSurround(tech, layer, maxSize));
+        return (rules.getMaxSurround(layer, maxSize));
 	}
 
 	/**
@@ -848,15 +848,20 @@ public class DRC extends Listener
     {
         DRCRules rules = getRules(tech);
         if (rules == null) return false;
+        return isForbiddenNode(rules, index1, index2, type);
+    }
+
+    public static boolean isForbiddenNode(DRCRules rules, int index1, int index2, DRCTemplate.DRCRuleType type)
+    {
         int index = index1; // In case of primitive nodes
         if (index2 != -1 )
             index = rules.getRuleIndex(index1, index2);
         else
-            index += tech.getNumLayers(); // Node forbidden
+            index += rules.getTechnology().getNumLayers(); // Node forbidden
         return (rules.isForbiddenNode(index, type));
     }
 
-	/**
+    /**
 	 * Method to get the minimum size rule for a NodeProto.
 	 * @param np the NodeProto to examine.
 	 * @return the minimum size rule for the NodeProto.

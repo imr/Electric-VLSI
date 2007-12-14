@@ -26,11 +26,13 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.MultiTaskJob;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.DRCRules;
 
 import java.util.Collection;
 import java.util.Map;
@@ -45,11 +47,14 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     protected long globalStartTime;
     protected CellLayersContainer cellLayersCon = new CellLayersContainer();
     protected final boolean printLog = false;
+    protected DRCRules rules;
 
     public MTDRCTool(String jobName, Cell c, Consumer<MTDRCResult> consumer)
     {
         super(jobName, DRC.getDRCTool(), Job.Type.CHANGE, consumer);
         this.topCell= c;
+        // Rules set must be local to avoid concurrency issues with other tasks
+        this.rules = topCell.getTechnology().getFactoryDesignRules();
     }
 
     @Override
@@ -66,8 +71,8 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
             Layer layer = tech.findLayer(layerS);
             startTask(layer.getName(), layer);
         }
-//        if (!checkArea())
-//            startTask("Node Min Size.", null);
+        if (!checkArea())
+            startTask("Node Min Size.", null);
     }
 
     @Override
@@ -82,6 +87,8 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
         }
         System.out.println("Total DRC Errors: " + numTE);
         System.out.println("Total DRC Warnings: " + numTW);
+        long accuEndTime = System.currentTimeMillis() - globalStartTime;             
+        System.out.println("Total Time: " + TextUtils.getElapsedTime(accuEndTime));
         return new MTDRCResult(numTE, numTW);
     }
 

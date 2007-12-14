@@ -24,8 +24,6 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.MultiTaskJob;
-import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -358,9 +356,48 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
         // true only for Cells
         return ni.isCellInstance();
     }
+}
 
-    /**************************************************************************************************************
-	 *  ValidationLayers class
-     **************************************************************************************************************/
+
+
+/**************************************************************************************************************
+ *  ValidationLayers class
+ **************************************************************************************************************/
+class ValidationLayers
+{
+    private boolean [] layersValid;
+
+    /**
+	 * Method to determine which layers in a Technology are valid.
+	 */
+	ValidationLayers(Technology tech)
+	{
+		// determine the layers that are being used
+		int numLayers = tech.getNumLayers();
+		layersValid = new boolean[numLayers];
+		for(int i=0; i < numLayers; i++)
+			layersValid[i] = false;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (np.isNotUsed()) continue;
+			Technology.NodeLayer [] layers = np.getLayers();
+			for(int i=0; i<layers.length; i++)
+			{
+				Layer layer = layers[i].getLayer();
+				layersValid[layer.getIndex()] = true;
+			}
+		}
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = (ArcProto)it.next();
+			if (ap.isNotUsed()) continue;
+			for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
+			{
+				Layer layer = lIt.next();
+				layersValid[layer.getIndex()] = true;
+			}
+		}
+	}
 }
 

@@ -29,20 +29,28 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 
 import java.util.*;
+import java.io.Serializable;
 
-public class XMLRules implements DRCRules {
+public class XMLRules implements DRCRules, Serializable
+{
 
 	/** Hash map to store rules per matrix index */                     public HashMap<XMLRules.XMLRule, XMLRules.XMLRule>[] matrix;
     /** To remeber the technology */                                    private Technology tech;
 
-    public XMLRules (Technology tech)
+    public XMLRules (Technology t)
     {
+        this.tech = t;
         int numLayers = tech.getNumLayers();
         int uTSize = (numLayers * numLayers + numLayers) / 2 + numLayers + tech.getNumNodes();
 
         this.matrix = new HashMap[uTSize];
-        this.tech = tech;
     }
+
+    /**
+     * Returns technology associated to this rules set
+     * @return
+     */
+    public Technology getTechnology() {return tech;}
 
     /**
 	 * Method to determine the index in the upper-left triangle array for two layers/nodes. In this type of rules,
@@ -639,7 +647,7 @@ public class XMLRules implements DRCRules {
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
 	 */
-	public double getMaxSurround(Technology tech, Layer layer, double maxSize)
+	public double getMaxSurround(Layer layer, double maxSize)
 	{
 		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();

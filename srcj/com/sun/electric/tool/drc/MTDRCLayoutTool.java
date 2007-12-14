@@ -147,26 +147,22 @@ public class MTDRCLayoutTool extends MTDRCTool {
     // returns the number of errors found
     @Override
     public MTDRCResult runTaskInternal(Layer taskKey) {
-        return (new Task()).runTaskInternal(taskKey);
+        return (new Task(rules)).runTaskInternal(taskKey);
     }
     
     private class Task {
-    
-	private HashMap<NodeInst,CheckInst> checkInsts;
+
+    private HashMap<NodeInst,CheckInst> checkInsts;
     
     private HashMap<Cell,CheckProto> checkProtos;
 	private HashMap<Network,Integer[]> networkLists;
-    private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
-	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
+//	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private int activeBits = 0; // to cache current extra bits
     private boolean inMemory = DRC.isDatesStoredInMemory();
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-    private Layer.Function.Set thisLayerFunction;
-
-    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();;
-
+    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
 
 	/**
 	 * The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
@@ -174,7 +170,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
     private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
 
-	/** number of processes for doing DRC */					private int numberOfThreads;
 	/** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
     /** minimum output grid resolution */				        private double minAllowedResolution;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
@@ -197,8 +192,16 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	private HashMap<PrimitiveNode, boolean[]> layersInterNodes;
 	private HashMap<ArcProto, boolean[]> layersInterArcs;
 
+        // New for the MT code
     private ErrorLogger errorLogger;
     private Layer theLayer;
+    private Layer.Function.Set thisLayerFunction;
+        private DRCRules currentRules;
+
+        Task(DRCRules rules)
+        {
+             currentRules = rules;
+        }
 
     /**
 	 * This is the entry point for DRC.
@@ -216,6 +219,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
     private MTDRCResult runTaskInternal(Layer taskKey)
 	{
         String name = "";
+        Technology tech = topCell.getTechnology();
         if (taskKey != null)
         {
             name = "Layer " + taskKey.getName();
@@ -227,10 +231,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
         }
         theLayer = taskKey;
         errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
-
-        // Check if there are DRC rules for particular tech
-        Technology tech = topCell.getTechnology();
-		DRCRules rules = DRC.getRules(tech);
 
         // caching bits
         activeBits = DRC.getActiveBits(tech);
@@ -245,13 +245,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
         // minimim resolution different from zero if flag is on otherwise stays at zero (default)
         minAllowedResolution = tech.getResolution();
 
+        // Check if there are DRC rules for particular tech
 		// Nothing to check for this particular technology
-		if (rules == null || rules.getNumberOfRules() == 0) return null;
+		if (currentRules == null || currentRules.getNumberOfRules() == 0) return null;
 
 		// get the current DRC options
 		errorTypeSearch = DRC.getErrorType();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
-		numberOfThreads = DRC.getNumberOfThreads();
 
 		// if checking specific instances, adjust options and processor count
         Geometric[] geomsToCheck = null; // NULL for now
@@ -262,7 +262,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		if (count > 0)
 		{
 			errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
-			numberOfThreads = 1;
 		}
 
 		// cache valid layers for this technology
@@ -273,11 +272,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	    instanceInteractionList.clear();
 
 		// determine maximum DRC interaction distance
-		worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
+		worstInteractionDistance = currentRules.getWorstSpacingDistance(-1);
 
 	    // determine if min area must be checked (if any layer got valid data)
-        spacingLayerMap.clear();
-	    cellsMap.clear();
+//	    cellsMap.clear();
 	    nodesMap.clear();
 
 		// initialize all cells for hierarchical network numbering
@@ -287,14 +285,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		// initialize cells in tree for hierarchical network numbering
 		Netlist netlist = topCell.getNetlist();
 		CheckProto cp = checkEnumerateProtos(topCell, netlist);
-
-		// see if any parameters are used below this cell
-		if (cp.treeParameterized && numberOfThreads > 1)
-		{
-			// parameters found: cannot use multiple processors
-			System.out.println("Parameterized layout being used: multiprocessor decomposition disabled");
-			numberOfThreads = 1;
-		}
 
 		// now recursively examine, setting information on all instances
 		cp.hierInstanceCount = 1;
@@ -434,8 +424,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		if (checkAbort()) return -1;
 
         // Cell already checked
-		if (cellsMap.get(cell) != null)
-			return (0);
+//		if (cellsMap.get(cell) != null)
+        if (getCheckProto(cell).cellChecked)
+            return (0);
 
 		// Previous # of errors/warnings
 		int prevErrors = 0;
@@ -446,7 +437,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 			prevWarns = errorLogger.getNumWarnings();
 		}
 
-		cellsMap.put(cell, cell);
+//		cellsMap.put(cell, cell);
 
         // Check if cell doesn't have special annotation
         Variable drcVar = cell.getVar(DRC_ANNOTATION_KEY);
@@ -796,8 +787,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
         } else {
 
             // Node errors!
-            if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
-                    DRCTemplate.DRCRuleType.FORBIDDEN, tech))
+            if (np instanceof PrimitiveNode && DRC.isForbiddenNode(currentRules, ((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
+                    DRCTemplate.DRCRuleType.FORBIDDEN))
             {
                 reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
                 if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -851,7 +842,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 {
                     Layer lay1 = e.getKey();
                     if (lay1 == layer) continue;
-                    if (DRC.isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.FORBIDDEN, tech))
+                    if (DRC.isForbiddenNode(this.currentRules, lay1.getIndex(), layer.getIndex(),
+                        DRCTemplate.DRCRuleType.FORBIDDEN))
                     {
                         NodeInst node = e.getValue(); // od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
@@ -1152,7 +1144,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
-		double bound = DRC.getMaxSurround(layer, maxSize);
+		double bound = currentRules.getMaxSurround(layer, maxSize);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -1196,7 +1188,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
-		double bound = DRC.getMaxSurround(layer, maxSize);
+		double bound = this.currentRules.getMaxSurround(layer, maxSize);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -1382,7 +1374,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         // Try edge rules
                         if (theRule == null)
                         {
-						    theRule = DRC.getEdgeRule(layer, nLayer);
+						    theRule = this.currentRules.getEdgeRule(layer, nLayer);
                             edge = true;
                         }
 
@@ -1476,7 +1468,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                     if (theRule == null)
                     {
-                        theRule = DRC.getEdgeRule(layer, nLayer);
+                        theRule = this.currentRules.getEdgeRule(layer, nLayer);
                         edge = true;
                     }
                     if (theRule == null) continue;
@@ -1525,7 +1517,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
         // they are electrically connected and they overlap: look for minimum size errors
         // of the overlapping region.
-        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.DRCRuleType.MINWID);
+        DRCTemplate wRule = this.currentRules.getMinValue(layer1, DRCTemplate.DRCRuleType.MINWID);
         if (wRule == null) return false; // no rule
 
         double minWidth = wRule.getValue(0);
@@ -2081,7 +2073,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
 			// see how far around the box it is necessary to search
 			double maxSize = poly.getMaxSize();
-			double bound = DRC.getMaxSurround(polyLayer, maxSize);
+			double bound = this.currentRules.getMaxSurround(polyLayer, maxSize);
 			if (bound < 0) continue;
 
 			// determine network for this polygon
@@ -2497,7 +2489,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	 */
     private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
     {
-        DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
+        DRCTemplate minWidthRule = this.currentRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
         boolean errorDefault = false;
 
         // Only if there is one default size
@@ -2507,7 +2499,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (!errorDefault) return false; // the default condition is the valid one.
         }
 
-        DRCTemplate minWidthRuleCond = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWIDCOND);
+        DRCTemplate minWidthRuleCond = this.currentRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINWIDCOND);
         // No appropiate overlapping condition
         if (minWidthRuleCond == null || !minWidthRuleCond.condition.startsWith("overlap("))
         {
@@ -3252,8 +3244,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getRule(layer.getIndex(),
-                DRCTemplate.DRCRuleType.MINWID);
+        DRCTemplate rule = this.currentRules.getRule(layer.getIndex(), DRCTemplate.DRCRuleType.MINWID);
+
 //        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getRule(nty.getPrimNodeIndexInTech(),
 //                DRCTemplate.DRCRuleType.CUTSIZE);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
@@ -3552,7 +3544,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
     {
         if(ignoreExtensionRules) return false;
 
-        List<DRCTemplate> rules = DRC.getRules(layer, DRCTemplate.DRCRuleType.SURROUND);
+        List<DRCTemplate> rules = this.currentRules.getRules(layer, DRCTemplate.DRCRuleType.SURROUND);
 
         //A              AB               B
         // +----------------------------+
@@ -4343,7 +4335,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         double[] values = layer1.getTechnology().getSpacingDistances(poly1, poly2);
 
         // try conditional or standard
-        DRCTemplate theRule = (DRC.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1]));
+        DRCTemplate theRule = (this.currentRules.getSpacingRule(layer1, geo1, layer2, geo2, con, multi, values[0], values[1]));
 
         if (theRule != null && theRule.condition != null) // conditional rules
         {
@@ -4448,7 +4440,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 					Layer oLayer = lIt.next();
                     if (oLayer.isNonElectrical())
                         continue; // such as pseudo
-                    if (DRC.isAnySpacingRule(layer, oLayer))
+                    if (this.currentRules.isAnySpacingRule(layer, oLayer))
                         layersInNode[oLayer.getIndex()] = true;
 				}
 			}
@@ -4469,7 +4461,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer oLayer = lIt.next();
-					if (DRC.isAnySpacingRule(layer, oLayer))
+					if (this.currentRules.isAnySpacingRule(layer, oLayer))
 						layersInArc[oLayer.getIndex()] = true;
 				}
 			}

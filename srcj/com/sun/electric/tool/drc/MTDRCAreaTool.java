@@ -59,9 +59,9 @@ public class MTDRCAreaTool extends MTDRCTool
     @Override
     public MTDRCResult runTaskInternal(Layer theLayer)
     {
-        DRCTemplate minAreaRule = DRC.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
-        DRCTemplate enclosedAreaRule = DRC.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
-        DRCTemplate spaceRule = DRC.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+        DRCTemplate minAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
+        DRCTemplate enclosedAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        DRCTemplate spaceRule = rules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
         if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
             return null;
 
@@ -350,7 +350,7 @@ public class MTDRCAreaTool extends MTDRCTool
                 // isGreaterThan doesn't consider equals condition therefore negate condition is used
                 if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
                 count.increment();
-                DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
                         errorType, null, cell, minVal, area, ruleName,
                         poly, null, layer, null, null, null);
             }
@@ -361,14 +361,14 @@ public class MTDRCAreaTool extends MTDRCTool
                 if (bnd.getWidth() < spacingRule.getValue(0))
                 {
                     count.increment();
-                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
                             DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
                             spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }
                 if (bnd.getHeight() < spacingRule.getValue(1))
                 {
                     count.increment();
-                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, true,
+                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
                             DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
                             spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }

@@ -117,8 +117,15 @@ public class MOSRules implements DRCRules {
         return (rule);
     }
 
-    public MOSRules(Technology tech)
+     /**
+     * Returns technology associated to this rules set
+     * @return
+     */
+    public Technology getTechnology() {return tech;}
+
+    public MOSRules(Technology t)
 	{
+		this.tech = t;
 		// compute sizes
 		numLayers = tech.getNumLayers();
 		numNodes = tech.getNumNodes();
@@ -130,7 +137,6 @@ public class MOSRules implements DRCRules {
 		wideLimit = 0.0; // auto-boxing
 
 		// add names
-		this.tech = tech;
 		layerNames = new String[numLayers];
 		int j = 0;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
@@ -335,7 +341,7 @@ public class MOSRules implements DRCRules {
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
 	 */
-	public double getMaxSurround(Technology tech, Layer layer, double maxSize)
+	public double getMaxSurround(Layer layer, double maxSize)
 	{
 		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
