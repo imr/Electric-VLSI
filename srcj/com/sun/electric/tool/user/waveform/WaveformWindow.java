@@ -4318,6 +4318,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				int row = table.rowAtPoint(dtde.getLocation());
 				if (column != -1 && row != -1)
 				{
+					Object obj = ww.tableModel.getValueAt(row, column);
+					if (!(obj instanceof OnePanel))
+					{
+						System.out.println("Warning: dragged the undraggable: index (" + row + "," + column + ") = " + obj.getClass());
+						dtde.dropComplete(false);
+						return;
+					}
 					OnePanel op = (OnePanel)ww.tableModel.getValueAt(row, column);
 					panel = op.getPanel();
 				}
