@@ -360,7 +360,8 @@ public class NetworkTool extends Tool
     
 	/****************************** OPTIONS ******************************/
 
-	private static Pref cacheBusAscending = Pref.makeBooleanPref("BusAscending", NetworkTool.tool.prefs, false);
+    private final static boolean BUS_ASCENDING_DEFAULT = false;
+	private static Pref cacheBusAscending = Pref.makeBooleanPref("BusAscending", NetworkTool.tool.prefs, BUS_ASCENDING_DEFAULT);
 	/**
 	 * Method to tell whether unnamed busses should be numbered ascending.
 	 * The alternative is descending.
@@ -373,4 +374,16 @@ public class NetworkTool extends Tool
 	 * @param a true if unnamed busses should be numbered ascending.
 	 */
 	public static void setBusAscending(boolean a) { cacheBusAscending.setBoolean(a); }
+	/**
+	 * Method to tell whether unnamed busses should be numbered ascending in Netlist Engine.
+	 * The alternative is descending.
+     * The method always returns false now.
+     * It can be same as isBusAscending() after Netlist Engine correctly renumbers networks
+     * after change this preference.
+	 * @return true if unnamed busses should be numbered ascending.
+	 */
+	public static boolean isBusAscendingInNetlistEngine() {
+//        return cacheBusAscending.getBoolean();
+        return BUS_ASCENDING_DEFAULT;
+    }
 }

@@ -53,8 +53,6 @@ import java.util.Set;
  * This is the mirror of group of Icon and Schematic cells in Network tool.
  */
 class NetSchem extends NetCell {
-    private static final boolean DESCENDING_BUSES = false; 
-    
 	static void updateCellGroup(Cell.CellGroup cellGroup) {
         NetworkManager mgr = cellGroup.getDatabase().getNetworkManager();
 		Cell mainSchematics = cellGroup.getMainSchematics();
@@ -1042,9 +1040,7 @@ class NetSchem extends NetCell {
 				if (drawnWidths[drawn] == 1)
 					netName = drawnNames[drawn].toString();
 				else if (drawnNames[drawn].isTempname()) {
-                    int busIndex = j;
-                    if (DESCENDING_BUSES && !NetworkTool.isBusAscending())
-                        busIndex = drawnWidths[drawn]-1-j;
+                    int busIndex = NetworkTool.isBusAscendingInNetlistEngine() ? j : drawnWidths[drawn]-1-j;
 					netName = drawnNames[drawn].toString() + "[" + busIndex + "]";
                 } else
 					netName = drawnNames[drawn].subname(j).toString();
