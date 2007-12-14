@@ -97,7 +97,7 @@ public class JELIB extends Output {
      */
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles, boolean oldRevision) {
         this.oldRevision = oldRevision;
-        version = oldRevision ? Version.parseVersion("8.04k") : Version.getVersion();
+        version = oldRevision ? Version.parseVersion("8.03") : Version.getVersion();
 //      this.libFiles = libFiles;
         writeTheLibrary(snapshot, libId);
         return false;
