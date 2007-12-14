@@ -46,9 +46,9 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
     /**
 	 * Constructor creates a new instance of MultiTaskJob.
 	 * @param jobName a string that describes this MultiTaskJob.
-	 * @param tool the Tool that originated this MultiTaskJob.
+	 * @param t the Tool that originated this MultiTaskJob.
 	 * @param jobType the Type of this Job (EXAMINE or CHANGE).
-     * @param consumer interface which consumes the result on server
+     * @param c interface which consumes the result on server
 	 */
     public MultiTaskJob(String jobName, Tool t, Type jobType, Consumer<Result> c) {
         super(jobName, t, jobType, null, null, Job.Priority.USER);
