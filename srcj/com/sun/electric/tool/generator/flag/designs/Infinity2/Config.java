@@ -17,9 +17,9 @@ public class Config extends FlagConfig {
 		fillCellWidth = 264;
 		minM2Len = 10;
 
-		chains.add(new ScanChain("si[1:9]", "so[1:9]", ""));
-		chains.add(new ScanChain("cscanIn[1:9]", "cscanOut[1:9]", ""));
-		chains.add(new ScanChain("rscni[1:9]", "rscnt[1:9]", ""));
+		chains.add(new ScanChain("sid[1:9]", "sod[1:9]", ""));
+		chains.add(new ScanChain("sic[1:9]", "soc[1:9]", ""));
+		chains.add(new ScanChain("sir[1:9]", "sor[1:9]", ""));
 	}
 	public static Config CONFIG = new Config();
 }

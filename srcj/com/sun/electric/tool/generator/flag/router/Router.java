@@ -161,6 +161,10 @@ public class Router {
 		m3Chnls.add(new Channel(false, colBounds.getMinY(),    
                 colBounds.getMaxY(),
                 last.getMax(), colBounds.getMaxX(), "metal-3"));
+		
+		// print status
+		prln("Found: "+m2Chnls.numChannels()+" metal-2 channels");
+		prln("Found: "+m3Chnls.numChannels()+" metal-3 channels");
 	}
 	private void routeTwoOrThreePinNet(ToConnect toConn, LayerChannels m2Chan,
             LayerChannels m3Chan) {

@@ -34,7 +34,7 @@ public class Ring extends FlagDesign {
 
         stitchScanChains(layNets);
         
-        routeSignals(layNets);
+        routeSignalsSog(layNets);
         
         reexportPowerGround(layNets.getLayoutCell());
         

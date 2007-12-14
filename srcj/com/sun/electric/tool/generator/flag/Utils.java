@@ -83,7 +83,12 @@ public class Utils {
 			minY = Math.min(minY, bounds.getMinY());
 			maxY = Math.max(maxY, bounds.getMaxY());
 		}
-		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
+		if (minX==Double.MAX_VALUE) {
+			// empty Cell. Return a zero sized rectangle around origin
+			return new Rectangle2D.Double(0,0,0,0);
+		} else {
+			return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
+		}
 	}
 	public static void printStackTrace(Throwable th) {
 		boolean first = true;

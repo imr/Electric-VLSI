@@ -4,6 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -304,8 +305,33 @@ public class FlagDesign {
         Collections.sort(layInsts, compareLayInstSchPos);
         return layInsts;
 	}
+
+	private Map<Cell,Integer> getCellCounts(List<NodeInst> layInsts) {
+		Map<Cell,Integer> cellToCount = new HashMap<Cell,Integer>();
+		for (NodeInst ni : layInsts) {
+			Cell c = (Cell) ni.getProto();
+			Integer cnt = cellToCount.get(c);
+			if (cnt==null) cnt = 0;
+			cellToCount.put(c, cnt+1);
+		}
+		return cellToCount; 
+	}
 	
-	
+	// Print report in the same order as sortedLayInsts
+	private void printInstanceReport(List<NodeInst> sortedLayInsts) {
+		prln("Here are the Cell's I've instantiated: ");
+		Map<Cell,Integer> cellToCount = getCellCounts(sortedLayInsts);
+		for (NodeInst ni : sortedLayInsts) {
+			Cell c = (Cell) ni.getProto();
+			Integer cnt = cellToCount.get(c);
+			if (cnt!=null) {
+				prln("    "+cnt+"   "+c.describe(false));
+				// Only print report the first time we encounter the Cell
+				cellToCount.remove(c);
+			}
+		}
+		
+	}
 	
 	//	private boolean isPlain(NodeInst ni) {
 //		return ni.getProto().getName().contains("aPlainStage");
@@ -619,8 +645,9 @@ public class FlagDesign {
 		Cell schCell = data.getSchematicCell();
         SchematicVisitor visitor = new SchematicVisitor(layCell);
         HierarchyEnumerator.enumerateCell(schCell, VarContext.globalContext, visitor);
-        return new LayoutNetlist(layCell,
-        		                 getSortedLayInsts(visitor),
+        List<NodeInst> sortedLayInsts = getSortedLayInsts(visitor);
+        printInstanceReport(sortedLayInsts);
+        return new LayoutNetlist(layCell, sortedLayInsts,
         		                 visitor.getLayoutToConnects());
 	}
 	protected void stitchScanChains(LayoutNetlist layNets) {

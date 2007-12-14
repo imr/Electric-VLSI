@@ -82,5 +82,6 @@ public class LayerChannels {
 		
 		return sb.toString();
 	}
+	public int numChannels() {return channels.size();}
 	
 }
