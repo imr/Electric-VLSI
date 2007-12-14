@@ -1630,7 +1630,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         // looking if points around the overlapping area are inside another region
         // to avoid the error
         lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false);
+                pt1d, pt2d, null, pointsFound, false, false);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -2469,7 +2469,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
         // Test first with a vertical line
         boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, true);
+                pointsFound, true, true);
         if (!found)
             return found; // no need of checking horizontal line if the vertical test was not positive
         pt1.setLocation(polyBnd.getMinX(), midPointY);
@@ -2477,7 +2477,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         pointsFound[0] = pointsFound[1] = false;
         pointsFound[2] = true; // no testing pt3 again
         found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, true);
+                pointsFound, true, true);
         return found;
     }
 
@@ -2873,7 +2873,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
 		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap);
+		        pt1, pt2, null, pointsFound, overlap, false);
 
 		return allFound;
 	}
@@ -3106,12 +3106,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
 	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
                                     Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
                                     Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                    boolean overlap)
+                                    boolean overlap, boolean checkAllLayers)
 	{
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
+        // Conditional rules need all layers for checking
+        Layer.Function.Set layerFunction = (!checkAllLayers) ? this.thisLayerFunction : null;
 
-		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
+        for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			RTBounds g = it.next();
 
@@ -3138,7 +3140,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, overlap))
+						pt1, pt2, pt3, pointsFound, overlap, false))
 							return true;
 					continue;
 				}
@@ -3147,13 +3149,12 @@ public class MTDRCLayoutTool extends MTDRCTool {
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!);
-//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
                 int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-                    // sameLayer test required to check if Active layer is not identical to thich actice layer
+                    // sameLayer test required to check if Active layer is not identical to thick active layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
                         continue;
@@ -3179,7 +3180,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 			{
 				ArcInst ai = (ArcInst)g;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, thisLayerFunction); // consistent change!);
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction); // consistent change!);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
