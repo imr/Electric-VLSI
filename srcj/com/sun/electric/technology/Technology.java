@@ -4937,9 +4937,13 @@ public class Technology implements Comparable<Technology>
 			//technologyChangedFromDatabase(tech, true);
             if (tech == null) return;
             if (isUsed(tech)) {
-                Job.getUserInterface().showInformationMessage(getXmlPath() + " changed " + " but " + tech + " is already used\n" +
-                        "Restart Electric to avoid unstable work"
-                        , "Technology parameter changed");
+                Job.getUserInterface().showInformationMessage("There is now inconsistent use of this technology parameter:\n" +
+                	"               " + getDescription() + "\n" +
+                    "Electric cannot handle this situation and errors may result.\n" +
+                    "It is recommended that you restart Electric to avoid this instability.\n" +
+                    "In the future, when the 'Project Settings Reconciliation' dialog appears,\n" +
+                    "Click 'Use All Current Settengs' or select the CURRENT VALUE of this parameter.",
+                    "Technology Parameter Changed");
             }
             tech.setState();
             reloadUIData();
