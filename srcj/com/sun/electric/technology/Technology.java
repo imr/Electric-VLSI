@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -4935,9 +4936,34 @@ public class Technology implements Comparable<Technology>
 		{
 			//technologyChangedFromDatabase(tech, true);
             if (tech == null) return;
+            if (isUsed(tech)) {
+                Job.getUserInterface().showInformationMessage(getXmlPath() + " changed " + " but " + tech + " is already used\n" +
+                        "Restart Electric to avoid unstable work"
+                        , "Technology parameter changed");
+            }
             tech.setState();
             reloadUIData();
 		}
+        
+        private boolean isUsed(Technology tech) {
+            for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
+                Library lib = lit.next();
+                for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
+                    Cell cell = cit.next();
+                    if (cell.getTechnology() != tech) continue;
+                    for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+                        NodeInst ni = nit.next();
+                        if (ni.isCellInstance()) continue;
+                        if (((PrimitiveNode)ni.getProto()).getTechnology() == tech) return true;
+                    }
+                    for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
+                        ArcInst ai = ait.next();
+                        if (ai.getProto().getTechnology() == tech) return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private static void reloadUIData()
         {
