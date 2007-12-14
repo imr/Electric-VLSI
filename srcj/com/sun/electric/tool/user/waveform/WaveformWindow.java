@@ -4314,18 +4314,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				WaveTable table = (WaveTable)dt.getComponent();
 				ww = table.ww;
-				int column = table.columnAtPoint(dtde.getLocation());
 				int row = table.rowAtPoint(dtde.getLocation());
-				if (column != -1 && row != -1)
+				if (row != -1)
 				{
-					Object obj = ww.tableModel.getValueAt(row, column);
-					if (!(obj instanceof OnePanel))
-					{
-						System.out.println("Warning: dragged the undraggable: index (" + row + "," + column + ") = " + obj.getClass());
-						dtde.dropComplete(false);
-						return;
-					}
-					OnePanel op = (OnePanel)ww.tableModel.getValueAt(row, column);
+					Object obj = ww.tableModel.getValueAt(row, 0);
+					OnePanel op = (OnePanel)obj;
 					panel = op.getPanel();
 				}
 			}
