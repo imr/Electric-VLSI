@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* END OF Version 8.06, GNU RELEASE *************
 ************************* Version 8.06o: *******************************
 
 BUG: (12/14/07, GVG) "Change all in this library" is misleading (Bug #1460)
