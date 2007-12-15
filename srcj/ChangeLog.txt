@@ -2,6 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07a: *******************************
+
+IMP: (12/05/07, DN) Only arcs with same name (in case-sensitive sense) are connected into same network.
+    Warning if there are arcs with case-insensitive match. (Bug #1398).
+
 ************************* END OF Version 8.06, GNU RELEASE *************
 ************************* Version 8.06o: *******************************
 

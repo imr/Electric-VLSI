@@ -892,10 +892,10 @@ class NetSchem extends NetCell {
             int mapIndex0 = netNamesOffset + index;
             int mapIndex1 = netNamesOffset + netNames.get(canonicName).intValue();
             if (netMap[mapIndex0] != netMap[mapIndex1]) {
-                String msg = "Network: Schematic " + cell + " connect nets by case-insensitive name match '" + name + "' and '" + canonicName;
+                String msg = "Network: Schematic " + cell + " doesn't connect nets with names '" + name + "' and '" + canonicName + "'";
                 System.out.println(msg);
-                networkManager.logError(msg, NetworkTool.errorSortNetworks);
-                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
+                networkManager.logWarning(msg, NetworkTool.errorSortNetworks);
+//                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
             }
         }
 	}
