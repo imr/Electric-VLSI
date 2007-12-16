@@ -894,11 +894,36 @@ class NetSchem extends NetCell {
             if (netMap[mapIndex0] != netMap[mapIndex1]) {
                 String msg = "Network: Schematic " + cell + " doesn't connect nets with names '" + name + "' and '" + canonicName + "'";
                 System.out.println(msg);
+                pushName(name);
+                pushName(canonicName);
                 networkManager.logWarning(msg, NetworkTool.errorSortNetworks);
 //                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
             }
         }
 	}
+    
+    private void pushName(Name name) {
+        for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
+            Export e = it.next();
+            Name n = e.getNameKey();
+            for (int i = 0; i < n.busWidth(); i++) {
+                if (n.subname(i) == name) {
+                    networkManager.pushHighlight(e);
+                    return;
+                }
+            }
+        }
+        for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+            ArcInst ai = it.next();
+            Name n = ai.getNameKey();
+            for (int i = 0; i < n.busWidth(); i++) {
+                if (n.subname(i) == name) {
+                    networkManager.pushHighlight(ai);
+                    return;
+                }
+            }
+        }
+    }
 
 	private void connectWireCon (int[] netMap, NodeInst ni) {
 		ArcInst ai1 = null;
