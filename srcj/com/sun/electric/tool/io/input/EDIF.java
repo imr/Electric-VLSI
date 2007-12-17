@@ -59,7 +59,6 @@ import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -597,10 +596,8 @@ public class EDIF extends Input
 		if (chr != delim)
 		{
 			throw new IOException("Illegal delimeter");
-		} else
-		{
-			inputBufferPos++;
 		}
+		inputBufferPos++;
 	}
 
 	/**
@@ -675,11 +672,9 @@ public class EDIF extends Input
 					if (delim != iDelim) sBuf.append(chr);
 					inputBufferPos++;
 					return sBuf.toString();
-				} else
-				{
-					sBuf.append(chr);
-					inputBufferPos++;
 				}
+				sBuf.append(chr);
+				inputBufferPos++;
 			}
 		}
 		return null;
@@ -944,12 +939,10 @@ public class EDIF extends Input
 			double Y = (A2C1 - A1C2) / (A1B2 - A2B1);
 			double X = -(B[0].doubleValue() * Y + C[0].doubleValue()) / A[0].doubleValue();
 			return new Point2D.Double(X, Y);
-		} else
-		{
-			double Y = (A1C2 - A2C1) / (A2B1 - A1B2);
-			double X = -(B[1].doubleValue() * Y + C[1].doubleValue()) / A[1].doubleValue();
-			return new Point2D.Double(X, Y);
 		}
+		double Y = (A1C2 - A2C1) / (A2B1 - A1B2);
+		double X = -(B[1].doubleValue() * Y + C[1].doubleValue()) / A[1].doubleValue();
+		return new Point2D.Double(X, Y);
 	}
 
 	/**
@@ -1230,6 +1223,21 @@ public class EDIF extends Input
 		freePointList();
 	}
 
+	/**
+	 * Method to fix symbols that start with &<number> by removing the ampersand.
+	 * @param inStr the original symbol.
+	 * @return the fixed symbol.
+	 */
+	private String fixLeadingAmpersand(String inStr)
+	{
+		if (inStr.startsWith("&"))
+		{
+			if (inStr.length() > 1 && Character.isDigit(inStr.charAt(1)))
+				return inStr.substring(1);
+		}
+		return inStr;
+	}
+
 	/**************************************** PARSING TABLE ****************************************/
 
 	private class EDIFKEY
@@ -1249,12 +1257,111 @@ public class EDIF extends Input
 	};
 
 	private EDIFKEY KUNKNOWN = new EDIFKEY("");
-
 	private EDIFKEY KINIT = new EDIFKEY("");
-
 	private EDIFKEY KANNOTATE = new EDIFKEY("annotate");
-
 	private EDIFKEY KARC = new KeyArc();
+	private EDIFKEY KARRAY = new KeyArray();
+	private EDIFKEY KAUTHOR = new EDIFKEY ("author");
+	private EDIFKEY KBOOLEAN = new EDIFKEY ("boolean");
+	private EDIFKEY KBORDERPATTERN = new EDIFKEY ("borderpattern");
+	private EDIFKEY KBOUNDINGBOX = new KeyBoundingBox();
+	private EDIFKEY KCELL = new KeyCell();
+	private EDIFKEY KCELLREF = new KeyCellRef();
+	private EDIFKEY KCELLTYPE = new EDIFKEY("cellType");
+	private EDIFKEY KCIRCLE = new KeyCircle();
+	private EDIFKEY KCOLOR = new EDIFKEY("color");
+	private EDIFKEY KCOMMENT = new EDIFKEY("comment");
+	private EDIFKEY KCOMMENTGRAPHICS = new EDIFKEY("commentGraphics");
+	private EDIFKEY KCONNECTLOCATION = new EDIFKEY("connectLocation");
+	private EDIFKEY KCONTENTS = new KeyContents();
+	private EDIFKEY KCORNERTYPE = new KeyCornerType();
+	private EDIFKEY KCURVE = new EDIFKEY("curve");
+	private EDIFKEY KDATAORIGIN = new EDIFKEY("dataOrigin");
+	private EDIFKEY KDCFANOUTLOAD = new EDIFKEY("dcFanoutLoad");
+	private EDIFKEY KDCMAXFANOUT = new EDIFKEY("dcMaxFanout");
+	private EDIFKEY KDELTA = new KeyDelta();
+	private EDIFKEY KDESIGN = new KeyDesign();
+	private EDIFKEY KDESIGNATOR = new EDIFKEY("designator");
+	private EDIFKEY KDIRECTION = new KeyDirection();
+	private EDIFKEY KDISPLAY = new KeyDisplay();
+	private EDIFKEY KDOT = new KeyDot();
+	private EDIFKEY KSCALEDINTEGER = new EDIFKEY("e");
+	private EDIFKEY KEDIF = new KeyEDIF();
+	private EDIFKEY KEDIFLEVEL = new EDIFKEY("edifLevel");
+	private EDIFKEY KEDIFVERSION = new EDIFKEY("edifVersion");
+	private EDIFKEY KENDTYPE = new KeyEndType();
+	private EDIFKEY KEXTERNAL = new KeyExternal();
+	private EDIFKEY KFABRICATE = new KeyFabricate();
+	private EDIFKEY KFALSE = new KeyFalse();
+	private EDIFKEY KFIGURE = new KeyFigure();
+	private EDIFKEY KFIGUREGROUP = new EDIFKEY("figureGroup");
+	private EDIFKEY KFIGUREGROUPOVERRIDE = new KeyFigureGroupOverride();
+	private EDIFKEY KFILLPATTERN = new EDIFKEY("fillpattern");
+	private EDIFKEY KGRIDMAP = new EDIFKEY("gridMap");
+	private EDIFKEY KINSTANCE = new KeyInstance();
+	private EDIFKEY KINSTANCEREF = new KeyInstanceRef();
+	private EDIFKEY KINTEGER = new KeyInteger();
+	private EDIFKEY KINTERFACE = new KeyInterface();
+	private EDIFKEY KJOINED = new EDIFKEY("joined");
+	private EDIFKEY KJUSTIFY = new KeyJustify();
+	private EDIFKEY KKEYWORDDISPLAY = new EDIFKEY("keywordDisplay");
+	private EDIFKEY KEDIFKEYLEVEL = new EDIFKEY("keywordLevel");
+	private EDIFKEY KEDIFKEYMAP = new EDIFKEY("keywordMap");
+	private EDIFKEY KLIBRARY = new KeyLibrary();
+	private EDIFKEY KLIBRARYREF = new LibraryRef();
+	private EDIFKEY KLISTOFNETS = new EDIFKEY("listOfNets");
+	private EDIFKEY KLISTOFPORTS = new EDIFKEY("listOfPorts");
+	private EDIFKEY KMEMBER = new KeyMember();
+	private EDIFKEY KNAME = new KeyName();
+	private EDIFKEY KNET = new KeyNet();
+	private EDIFKEY KNETBUNDLE = new KeyNetBundle();
+	private EDIFKEY KNUMBER = new KeyNumber();
+	private EDIFKEY KNUMBERDEFINITION = new EDIFKEY("numberDefinition");
+	private EDIFKEY KOPENSHAPE = new KeyOpenShape();
+	private EDIFKEY KORIENTATION = new KeyOrientation();
+	private EDIFKEY KORIGIN = new EDIFKEY("origin");
+	private EDIFKEY KOWNER = new EDIFKEY("owner");
+	private EDIFKEY KPAGE = new KeyPage();
+	private EDIFKEY KPAGESIZE = new EDIFKEY("pageSize");
+	private EDIFKEY KPATH = new KeyPath();
+	private EDIFKEY KPATHWIDTH = new KeyPathWidth();
+	private EDIFKEY KPOINT = new EDIFKEY("point");
+	private EDIFKEY KPOINTLIST = new EDIFKEY("pointList");
+	private EDIFKEY KPOLYGON = new KeyPolygon();
+	private EDIFKEY KPORT = new KeyPort();
+	private EDIFKEY KPORTBUNDLE = new EDIFKEY("portBundle");
+	private EDIFKEY KPORTIMPLEMENTATION = new KeyPortImplementation();
+	private EDIFKEY KPORTINSTANCE = new EDIFKEY("portInstance");
+	private EDIFKEY KPORTLIST = new EDIFKEY("portList");
+	private EDIFKEY KPORTREF = new KeyPortRef();
+	private EDIFKEY KPROGRAM = new KeyProgram();
+	private EDIFKEY KPROPERTY = new KeyProperty();
+	private EDIFKEY KPROPERTYDISPLAY = new EDIFKEY("propertyDisplay");
+	private EDIFKEY KPT = new KeyPt();
+	private EDIFKEY KRECTANGLE = new KeyRectangle();
+	private EDIFKEY KRENAME = new KeyRename();
+	private EDIFKEY KSCALE = new EDIFKEY("scale");
+	private EDIFKEY KSCALEX = new EDIFKEY("scaleX");
+	private EDIFKEY KSCALEY = new EDIFKEY("scaleY");
+	private EDIFKEY KSHAPE = new EDIFKEY("shape");
+	private EDIFKEY KSTATUS = new EDIFKEY("status");
+	private EDIFKEY KSTRING = new KeyString();
+	private EDIFKEY KSTRINGDISPLAY = new KeyStringDisplay();
+	private EDIFKEY KSYMBOL = new KeySymbol();
+	private EDIFKEY KTECHNOLOGY = new KeyTechnology();
+	private EDIFKEY KTEXTHEIGHT = new KeyTextHeight();
+	private EDIFKEY KTIMESTAMP = new EDIFKEY("timestamp");
+	private EDIFKEY KTRANSFORM = new KeyTransform();
+	private EDIFKEY KTRUE = new KeyTrue();
+	private EDIFKEY KUNIT = new KeyUnit();
+	private EDIFKEY KUSERDATA = new EDIFKEY("userData");
+	private EDIFKEY KVERSION = new EDIFKEY("version");
+	private EDIFKEY KVIEW = new KeyView();
+	private EDIFKEY KVIEWREF = new ViewRef();
+	private EDIFKEY KVIEWTYPE = new KeyViewType();
+	private EDIFKEY KVISIBLE = new EDIFKEY("visible");
+	private EDIFKEY KWRITTEN = new EDIFKEY("written");
+
 	private class KeyArc extends EDIFKEY
 	{
 		private KeyArc() { super("arc"); }
@@ -1277,7 +1384,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KARRAY = new KeyArray();
 	private class KeyArray extends EDIFKEY
 	{
 		private KeyArray() { super("array"); }
@@ -1294,20 +1400,16 @@ public class EDIF extends Input
 			{
 				if (keyStack[keyStackDepth-1] == KCELL)
 				{
-					cellReference = objectName;
-					cellName = objectName;
+					cellName = cellReference = fixLeadingAmpersand(objectName);
 				} else if (keyStack[keyStackDepth-1] == KPORT)
 				{
-					portName = objectName;
-					portReference = objectName;
+					portName = portReference = fixLeadingAmpersand(objectName);
 				} else if (keyStack[keyStackDepth-1] == KINSTANCE)
 				{
-					instanceName = objectName;
-					instanceReference = objectName;
+					instanceName = instanceReference = objectName;
 				} else if (keyStack[keyStackDepth-1] == KNET)
 				{
-					netReference = objectName;
-					netName = objectName;
+					netReference = netName = fixLeadingAmpersand(objectName);
 				} else if (keyStack[keyStackDepth-1] == KPROPERTY)
 				{
 					propertyReference = objectName;
@@ -1322,13 +1424,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KAUTHOR = new EDIFKEY ("author");
-
-	private EDIFKEY KBOOLEAN = new EDIFKEY ("boolean");
-
-	private EDIFKEY KBORDERPATTERN = new EDIFKEY ("borderpattern");
-
-	private EDIFKEY KBOUNDINGBOX = new KeyBoundingBox();
 	private class KeyBoundingBox extends EDIFKEY
 	{
 		private KeyBoundingBox() { super("boundingBox"); }
@@ -1344,7 +1439,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KCELL = new KeyCell();
 	private class KeyCell extends EDIFKEY
 	{
 		private KeyCell() { super("cell"); }
@@ -1357,20 +1451,18 @@ public class EDIF extends Input
 			sheetXPos = sheetYPos = -1;
 			if (checkName())
 			{
-				cellReference = objectName;
-				cellName = objectName;
+				cellName = cellReference = fixLeadingAmpersand(objectName);
 			}
 		}
 	}
 
-	private EDIFKEY KCELLREF = new KeyCellRef();
 	private class KeyCellRef extends EDIFKEY
 	{
 		private KeyCellRef() { super("cellRef"); }
 		protected void push()
 			throws IOException
 		{
-            cellRef = getToken((char)0);
+            cellRef = fixLeadingAmpersand(getToken((char)0));
         }
 
         protected void pop()
@@ -1441,9 +1533,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KCELLTYPE = new EDIFKEY("cellType");
-
-	private EDIFKEY KCIRCLE = new KeyCircle();
 	private class KeyCircle extends EDIFKEY
 	{
 		private KeyCircle() { super("circle"); }
@@ -1492,18 +1581,8 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KCOLOR = new EDIFKEY("color");
-
-	private EDIFKEY KCOMMENT = new EDIFKEY("comment");
-
-	private EDIFKEY KCOMMENTGRAPHICS = new EDIFKEY("commentGraphics");
-
-	private EDIFKEY KCONNECTLOCATION = new EDIFKEY("connectLocation");
-
-	private EDIFKEY KCONTENTS = new KeyContents();
 	private class KeyContents extends EDIFKEY { private KeyContents() { super("contents"); } }
 
-	private EDIFKEY KCORNERTYPE = new KeyCornerType();
 	private class KeyCornerType extends EDIFKEY
 	{
 		private KeyCornerType() { super("cornerType"); }
@@ -1515,15 +1594,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KCURVE = new EDIFKEY("curve");
-
-	private EDIFKEY KDATAORIGIN = new EDIFKEY("dataOrigin");
-
-	private EDIFKEY KDCFANOUTLOAD = new EDIFKEY("dcFanoutLoad");
-
-	private EDIFKEY KDCMAXFANOUT = new EDIFKEY("dcMaxFanout");
-
-	private EDIFKEY KDELTA = new KeyDelta();
 	private class KeyDelta extends EDIFKEY
 	{
 		private KeyDelta() { super("delta"); }
@@ -1536,7 +1606,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KDESIGN = new KeyDesign();
 	private class KeyDesign extends EDIFKEY
 	{
 		private KeyDesign() { super("design"); }
@@ -1556,9 +1625,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KDESIGNATOR = new EDIFKEY("designator");
-
-	private EDIFKEY KDIRECTION = new KeyDirection();
 	private class KeyDirection extends EDIFKEY
 	{
 		private KeyDirection() { super("direction"); }
@@ -1574,7 +1640,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KDISPLAY = new KeyDisplay();
 	private class KeyDisplay extends EDIFKEY
 	{
 		private KeyDisplay() { super("display"); }
@@ -1585,7 +1650,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KDOT = new KeyDot();
 	private class KeyDot extends EDIFKEY
 	{
 		private KeyDot() { super("dot"); }
@@ -1656,9 +1720,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KSCALEDINTEGER = new EDIFKEY("e");
-
-	private EDIFKEY KEDIF = new KeyEDIF();
 	private class KeyEDIF extends EDIFKEY
 	{
 		private KeyEDIF() { super("edif"); }
@@ -1669,11 +1730,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KEDIFLEVEL = new EDIFKEY("edifLevel");
-
-	private EDIFKEY KEDIFVERSION = new EDIFKEY("edifVersion");
-
-	private EDIFKEY KENDTYPE = new KeyEndType();
 	private class KeyEndType extends EDIFKEY
 	{
 		private KeyEndType() { super("endType"); }
@@ -1687,7 +1743,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KEXTERNAL = new KeyExternal();
 	private class KeyExternal extends EDIFKEY
 	{
 		private KeyExternal() { super("external"); }
@@ -1699,7 +1754,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KFABRICATE = new KeyFabricate();
 	private class KeyFabricate extends EDIFKEY
 	{
 		private KeyFabricate() { super("fabricate"); }
@@ -1718,7 +1772,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KFALSE = new KeyFalse();
 	private class KeyFalse extends EDIFKEY
 	{
 		private KeyFalse() { super("false"); }
@@ -1735,7 +1788,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KFIGURE = new KeyFigure();
 	private class KeyFigure extends EDIFKEY
 	{
 		private KeyFigure() { super("figure"); }
@@ -1754,9 +1806,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KFIGUREGROUP = new EDIFKEY("figureGroup");
-
-	private EDIFKEY KFIGUREGROUPOVERRIDE = new KeyFigureGroupOverride();
 	private class KeyFigureGroupOverride extends EDIFKEY
 	{
 		private KeyFigureGroupOverride() { super("figureGroupOverride"); }
@@ -1794,11 +1843,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KFILLPATTERN = new EDIFKEY("fillpattern");
-
-	private EDIFKEY KGRIDMAP = new EDIFKEY("gridMap");
-
-	private EDIFKEY KINSTANCE = new KeyInstance();
 	private class KeyInstance extends EDIFKEY
 	{
 		private KeyInstance() { super("instance"); }
@@ -1884,72 +1928,71 @@ public class EDIF extends Input
 							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create instance");
 							errorCount++;
 							break;
-						} else
+						}
+
+						if (cellRefProto instanceof Cell)
 						{
-							if (cellRefProto instanceof Cell)
+							if (((Cell)cellRefProto).isWantExpanded())
+								ni.setExpanded();
+						}
+
+						// update the current position
+						if ((width + 2) > sheetOffset)
+							sheetOffset = (int)width + 2;
+						if ((sheetYPos += (height + 1)) >= SHEETHEIGHT)
+						{
+							sheetYPos = 1;
+							if ((sheetXPos += sheetOffset) >= SHEETWIDTH)
+								sheetXPos = sheetYPos = -1; else
+									sheetOffset = 2;
+						}
+
+						// name the instance
+						if (instanceReference.length() > 0)
+						{
+							// if single element or array with no offset
+							// construct the representative extended EDIF name (includes [...])
+							String nodeName = instanceReference;
+							if ((arrayXVal > 1 || arrayYVal > 1) &&
+								(deltaPointXX != 0 || deltaPointXY != 0 || deltaPointYX != 0 || deltaPointYY != 0))
 							{
-								if (((Cell)cellRefProto).isWantExpanded())
-									ni.setExpanded();
+								// if array in the x dimension
+								if (arrayXVal > 1)
+								{
+									if (arrayYVal > 1)
+										nodeName = instanceReference + "[" + iX + "," + iY + "]";
+									else
+										nodeName = instanceReference + "[" + iX + "]";
+								} else if (arrayYVal > 1)
+									nodeName = instanceReference + "[" + iY + "]";
 							}
 
-							// update the current position
-							if ((width + 2) > sheetOffset)
-								sheetOffset = (int)width + 2;
-							if ((sheetYPos += (height + 1)) >= SHEETHEIGHT)
+							// check for array element descriptor
+							if (arrayXVal > 1 || arrayYVal > 1)
 							{
-								sheetYPos = 1;
-								if ((sheetXPos += sheetOffset) >= SHEETWIDTH)
-									sheetXPos = sheetYPos = -1; else
-										sheetOffset = 2;
+								// array descriptor is of the form index:index:range index:index:range
+								String baseName = iX + ":" + ((deltaPointXX == 0 && deltaPointYX == 0) ? arrayXVal-1:iX) + ":" + arrayXVal +
+									" " + iY + ":" + ((deltaPointXY == 0 && deltaPointYY == 0) ? arrayYVal-1:iY) + ":" + arrayYVal;
+								ni.newVar("EDIF_array", baseName);
 							}
 
-							// name the instance
-							if (instanceReference.length() > 0)
+							/* now set the name of the component (note that Electric allows any string
+							 * of characters as a name, this name is open to the user, for ECO and other
+							 * consistancies, the EDIF_name is saved on a variable)
+							 */
+							if (instanceReference.equalsIgnoreCase(instanceName))
 							{
-								// if single element or array with no offset
-								// construct the representative extended EDIF name (includes [...])
-								String nodeName = instanceReference;
-								if ((arrayXVal > 1 || arrayYVal > 1) &&
-									(deltaPointXX != 0 || deltaPointXY != 0 || deltaPointYX != 0 || deltaPointYY != 0))
+								ni.setName(convertParens(nodeName));
+							} else
+							{
+								// now add the original name as the displayed name (only to the first element)
+								if (iX == 0 && iY == 0)
 								{
-									// if array in the x dimension
-									if (arrayXVal > 1)
-									{
-										if (arrayYVal > 1)
-											nodeName = instanceReference + "[" + iX + "," + iY + "]";
-										else
-											nodeName = instanceReference + "[" + iX + "]";
-									} else if (arrayYVal > 1)
-										nodeName = instanceReference + "[" + iY + "]";
+									ni.setName(convertParens(instanceName));
 								}
 
-								// check for array element descriptor
-								if (arrayXVal > 1 || arrayYVal > 1)
-								{
-									// array descriptor is of the form index:index:range index:index:range
-									String baseName = iX + ":" + ((deltaPointXX == 0 && deltaPointYX == 0) ? arrayXVal-1:iX) + ":" + arrayXVal +
-										" " + iY + ":" + ((deltaPointXY == 0 && deltaPointYY == 0) ? arrayYVal-1:iY) + ":" + arrayYVal;
-									ni.newVar("EDIF_array", baseName);
-								}
-
-								/* now set the name of the component (note that Electric allows any string
-								 * of characters as a name, this name is open to the user, for ECO and other
-								 * consistancies, the EDIF_name is saved on a variable)
-								 */
-								if (instanceReference.equalsIgnoreCase(instanceName))
-								{
-									ni.setName(convertParens(nodeName));
-								} else
-								{
-									// now add the original name as the displayed name (only to the first element)
-									if (iX == 0 && iY == 0)
-									{
-										ni.setName(convertParens(instanceName));
-									}
-
-									// now save the EDIF name (not displayed)
-									ni.newVar("EDIF_name", nodeName);
-								}
+								// now save the EDIF name (not displayed)
+								ni.newVar("EDIF_name", nodeName);
 							}
 						}
 					}
@@ -1995,7 +2038,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KINSTANCEREF = new KeyInstanceRef();
 	private class KeyInstanceRef extends EDIFKEY
 	{
 		private KeyInstanceRef() { super("instanceRef"); }
@@ -2010,7 +2052,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KINTEGER = new KeyInteger();
 	private class KeyInteger extends EDIFKEY
 	{
 		private KeyInteger() { super("integer"); }
@@ -2023,7 +2064,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KINTERFACE = new KeyInterface();
 	private class KeyInterface extends EDIFKEY
 	{
 		private KeyInterface() { super("interface"); }
@@ -2076,9 +2116,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KJOINED = new EDIFKEY("joined");
-
-	private EDIFKEY KJUSTIFY = new KeyJustify();
 	private class KeyJustify extends EDIFKEY
 	{
 		private KeyJustify() { super("justify"); }
@@ -2108,13 +2145,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KKEYWORDDISPLAY = new EDIFKEY("keywordDisplay");
-
-	private EDIFKEY KEDIFKEYLEVEL = new EDIFKEY("keywordLevel");
-
-	private EDIFKEY KEDIFKEYMAP = new EDIFKEY("keywordMap");
-
-	private EDIFKEY KLIBRARY = new KeyLibrary();
 	private class KeyLibrary extends EDIFKEY
 	{
 		private KeyLibrary() { super("library"); }
@@ -2126,7 +2156,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KLIBRARYREF = new LibraryRef();
     private class LibraryRef extends EDIFKEY
     {
         private LibraryRef() { super ("libraryRef"); }
@@ -2136,11 +2165,6 @@ public class EDIF extends Input
         }
     }
 
-	private EDIFKEY KLISTOFNETS = new EDIFKEY("listOfNets");
-
-	private EDIFKEY KLISTOFPORTS = new EDIFKEY("listOfPorts");
-
-	private EDIFKEY KMEMBER = new KeyMember();
 	private class KeyMember extends EDIFKEY
 	{
 		private KeyMember() { super("member"); }
@@ -2169,7 +2193,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KNAME = new KeyName();
 	private class KeyName extends EDIFKEY
 	{
 		private KeyName() { super("name"); }
@@ -2182,26 +2205,22 @@ public class EDIF extends Input
 			{
 				if (keyStack[kPtr] == KCELL)
 				{
-					cellReference = objectName;
-					cellName = objectName;
+					cellName = cellReference = fixLeadingAmpersand(objectName);
 				} else if (keyStack[kPtr] == KPORTIMPLEMENTATION || keyStack[kPtr] == KPORT)
 				{
-					portName = objectName;
-					portReference = objectName;
+					portName = portReference = fixLeadingAmpersand(objectName);
 				} else if (keyStack[kPtr] == KPORTREF)
 				{
-					portReference = objectName;
+					portReference = fixLeadingAmpersand(objectName);
 				} else if (keyStack[kPtr] == KINSTANCE)
 				{
-					instanceName = objectName;
-					instanceReference = objectName;
+					instanceName = instanceReference = objectName;
 				} else if (keyStack[kPtr] == KINSTANCEREF)
 				{
 					instanceReference = objectName;
 				} else if (keyStack[kPtr] == KNET)
 				{
-					netReference = objectName;
-					netName = objectName;
+					netReference = netName = fixLeadingAmpersand(objectName);
 				} else if (keyStack[kPtr] == KPROPERTY)
 				{
 					propertyReference = objectName;
@@ -2240,7 +2259,6 @@ public class EDIF extends Input
 	 *			(portRef NAME (instanceRef NAME))
 	 *			(portRef NAME)))
 	 */
-	private EDIFKEY KNET = new KeyNet();
 	private class KeyNet extends EDIFKEY
 	{
 		private KeyNet() { super("net"); }
@@ -2280,7 +2298,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KNETBUNDLE = new KeyNetBundle();
 	private class KeyNetBundle extends EDIFKEY
 	{
 		private KeyNetBundle() { super("netBundle"); }
@@ -2307,7 +2324,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KNUMBER = new KeyNumber();
 	private class KeyNumber extends EDIFKEY
 	{
 		private KeyNumber() { super("number"); }
@@ -2318,9 +2334,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KNUMBERDEFINITION = new EDIFKEY("numberDefinition");
-
-	private EDIFKEY KOPENSHAPE = new KeyOpenShape();
 	private class KeyOpenShape extends EDIFKEY
 	{
 		private KeyOpenShape() { super("openShape"); }
@@ -2337,7 +2350,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KORIENTATION = new KeyOrientation();
 	private class KeyOrientation extends EDIFKEY
 	{
 		private KeyOrientation() { super("orientation"); }
@@ -2363,11 +2375,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KORIGIN = new EDIFKEY("origin");
-
-	private EDIFKEY KOWNER = new EDIFKEY("owner");
-
-	private EDIFKEY KPAGE = new KeyPage();
 	private class KeyPage extends EDIFKEY
 	{
 		private KeyPage() { super("page"); }
@@ -2410,9 +2417,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPAGESIZE = new EDIFKEY("pageSize");
-
-	private EDIFKEY KPATH = new KeyPath();
 	private class KeyPath extends EDIFKEY
 	{
 		private KeyPath() { super("path"); }
@@ -2619,7 +2623,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPATHWIDTH = new KeyPathWidth();
 	private class KeyPathWidth extends EDIFKEY
 	{
 		private KeyPathWidth() { super("pathWidth"); }
@@ -2632,11 +2635,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPOINT = new EDIFKEY("point");
-
-	private EDIFKEY KPOINTLIST = new EDIFKEY("pointList");
-
-	private EDIFKEY KPOLYGON = new KeyPolygon();
 	private class KeyPolygon extends EDIFKEY
 	{
 		private KeyPolygon() { super("polygon"); }
@@ -2653,7 +2651,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPORT = new KeyPort();
 	private class KeyPort extends EDIFKEY
 	{
 		private KeyPort() { super("port"); }
@@ -2732,9 +2729,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPORTBUNDLE = new EDIFKEY("portBundle");
-
-	private EDIFKEY KPORTIMPLEMENTATION = new KeyPortImplementation();
 	private class KeyPortImplementation extends EDIFKEY
 	{
 		private KeyPortImplementation() { super("portImplementation"); }
@@ -2758,11 +2752,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPORTINSTANCE = new EDIFKEY("portInstance");
-
-	private EDIFKEY KPORTLIST = new EDIFKEY("portList");
-
-	private EDIFKEY KPORTREF = new KeyPortRef();
 	private class KeyPortRef extends EDIFKEY
 	{
 		private KeyPortRef() { super("portRef"); }
@@ -3039,7 +3028,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPROGRAM = new KeyProgram();
 	private class KeyProgram extends EDIFKEY
 	{
 		private KeyProgram() { super("program"); }
@@ -3057,7 +3045,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPROPERTY = new KeyProperty();
 	private class KeyProperty extends EDIFKEY
 	{
 		private KeyProperty() { super("property"); }
@@ -3109,9 +3096,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KPROPERTYDISPLAY = new EDIFKEY("propertyDisplay");
-
-	private EDIFKEY KPT = new KeyPt();
 	private class KeyPt extends EDIFKEY
 	{
 		private KeyPt() { super("pt"); }
@@ -3160,7 +3144,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KRECTANGLE = new KeyRectangle();
 	private class KeyRectangle extends EDIFKEY
 	{
 		private KeyRectangle() { super("rectangle"); }
@@ -3247,7 +3230,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KRENAME = new KeyRename();
 	private class KeyRename extends EDIFKEY
 	{
 		private KeyRename() { super("rename"); }
@@ -3278,24 +3260,19 @@ public class EDIF extends Input
 				kPtr = kPtr -1;
 			if (keyStack[kPtr] == KCELL)
 			{
-				cellReference = objectName;
-				cellName = originalName;
+				cellName = cellReference = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KPORT)
 			{
-				portReference = objectName;
-				portName = originalName;
+				portReference = portName = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KINSTANCE)
 			{
-				instanceReference = objectName;
-				instanceName = originalName;
+				instanceReference = instanceName = originalName;
 			} else if (keyStack[kPtr] == KNETBUNDLE)
 			{
-				bundleReference = objectName;
-				bundleName = originalName;
+				bundleReference = bundleName = originalName;
 			} else if (keyStack[kPtr] == KNET)
 			{
-				netReference = objectName;
-				netName = originalName;
+				netReference = netName = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KPROPERTY)
 			{
 				propertyReference = objectName;
@@ -3304,17 +3281,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KSCALE = new EDIFKEY("scale");
-
-	private EDIFKEY KSCALEX = new EDIFKEY("scaleX");
-
-	private EDIFKEY KSCALEY = new EDIFKEY("scaleY");
-
-	private EDIFKEY KSHAPE = new EDIFKEY("shape");
-
-	private EDIFKEY KSTATUS = new EDIFKEY("status");
-
-	private EDIFKEY KSTRING = new KeyString();
 	private class KeyString extends EDIFKEY
 	{
 		private KeyString() { super("string"); }
@@ -3334,7 +3300,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KSTRINGDISPLAY = new KeyStringDisplay();
 	private class KeyStringDisplay extends EDIFKEY
 	{
 		private KeyStringDisplay() { super("stringDisplay"); }
@@ -3360,16 +3325,16 @@ public class EDIF extends Input
 			if (keyStack[keyStackDepth - 2] == KARRAY) kPtr = keyStackDepth - 3;
 			if (keyStack[kPtr] == KCELL)
 			{
-				cellName = originalName;
+				cellName = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KPORT)
 			{
-				portName = originalName;
+				portName = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KINSTANCE)
 			{
 				instanceName = originalName;
 			} else if (keyStack[kPtr] == KNET)
 			{
-				netName = originalName;
+				netName = fixLeadingAmpersand(originalName);
 			} else if (keyStack[kPtr] == KNETBUNDLE)
 			{
 				bundleName = originalName;
@@ -3491,7 +3456,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KSYMBOL = new KeySymbol();
 	private class KeySymbol extends EDIFKEY
 	{
 		private KeySymbol() { super("symbol"); }
@@ -3532,7 +3496,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KTECHNOLOGY = new KeyTechnology();
 	private class KeyTechnology extends EDIFKEY
 	{
 		private KeyTechnology() { super("technology"); }
@@ -3574,7 +3537,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KTEXTHEIGHT = new KeyTextHeight();
 	private class KeyTextHeight extends EDIFKEY
 	{
 		private KeyTextHeight() { super("textHeight"); }
@@ -3590,9 +3552,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KTIMESTAMP = new EDIFKEY("timestamp");
-
-	private EDIFKEY KTRANSFORM = new KeyTransform();
 	private class KeyTransform extends EDIFKEY
 	{
 		private KeyTransform() { super("transform"); }
@@ -3618,7 +3577,7 @@ public class EDIF extends Input
 			if (instCount == 0) instCount = 1;
 
 			// create node instance rotations about the origin not center
-			AffineTransform rot = curOrientation.pureRotate();
+//			AffineTransform rot = curOrientation.pureRotate();
 
 			if (instCount == 1 && cellRefProto != null)
 			{
@@ -3765,7 +3724,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KTRUE = new KeyTrue();
 	private class KeyTrue extends EDIFKEY
 	{
 		private KeyTrue() { super("true"); }
@@ -3782,7 +3740,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KUNIT = new KeyUnit();
 	private class KeyUnit extends EDIFKEY
 	{
 		private KeyUnit() { super("unit"); }
@@ -3799,11 +3756,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KUSERDATA = new EDIFKEY("userData");
-
-	private EDIFKEY KVERSION = new EDIFKEY("version");
-
-	private EDIFKEY KVIEW = new KeyView();
 	private class KeyView extends EDIFKEY
 	{
 		private KeyView() { super("view"); }
@@ -3839,7 +3791,6 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KVIEWREF = new ViewRef();
     private class ViewRef extends EDIFKEY
     {
         private ViewRef() { super("viewRef"); }
@@ -3857,7 +3808,6 @@ public class EDIF extends Input
 	 *  	PCBLAYOUT, SCHEMATIC, STRANGER, SYMBOLIC
 	 * we are only concerned about the viewType NETLIST.
 	 */
-	private EDIFKEY KVIEWTYPE = new KeyViewType();
 	private class KeyViewType extends EDIFKEY
 	{
 		private KeyViewType() { super("viewType"); }
@@ -3896,7 +3846,7 @@ public class EDIF extends Input
 
 			// immediately allocate MASKLAYOUT and VGRAPHIC viewtypes
 			if (activeView == VMASKLAYOUT || activeView == VGRAPHIC ||
-					activeView == VNETLIST || activeView == VSCHEMATIC)
+				activeView == VNETLIST || activeView == VSCHEMATIC)
 			{
 				// locate this in the list of cells
 				Cell proto = null;
@@ -3931,7 +3881,4 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KVISIBLE = new EDIFKEY("visible");
-
-	private EDIFKEY KWRITTEN = new EDIFKEY("written");
 }

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (12/17/07, SMR) EDIF input is inconsistent with cell names that start
+     with an ampersand (Bug #1455).
+FIX: In EDIF input, all cell names, port names, and net names that start
+     with & and a number have the ampersand removed.
+
+BUG: (12/17/07, SMR) VHDL generation of layout transistors may miss the poly connection.
+FIX: In GenerateVHDL.addRealPorts(), consider topological equivalences.
+
 IMP: (12/05/07, DN) Only arcs with same name (in case-sensitive sense) are connected into same network.
     Warning if there are arcs with case-insensitive match. (Bug #1398).
 
