@@ -149,7 +149,7 @@ public class CVSLibrary {
             if (lib.isChanged()) bad.libs.add(lib);
         }
         for (Cell cell : cells) {
-            if (cell.isModified(true)) bad.cells.add(cell);
+            if (cell.isModified()) bad.cells.add(cell);
         }
         return bad;
     }

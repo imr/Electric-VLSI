@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableCell;
@@ -68,12 +69,12 @@ public class DatabaseChangeEvent {
     public boolean cellTreeChanged() {
         if (!newSnapshot.getChangedLibraries(oldSnapshot).isEmpty()) return true;
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-            CellRevision oldRevision = oldSnapshot.getCellRevision(cellId);
-            CellRevision newRevision = newSnapshot.getCellRevision(cellId);
-            if (oldRevision == null || newRevision == null) return true;
-            if (oldRevision.modified != newRevision.modified) return true;
-            ImmutableCell oldD = oldRevision.d;
-            ImmutableCell newD = newRevision.d;
+            CellBackup oldBackup = oldSnapshot.getCell(cellId);
+            CellBackup newBackup = newSnapshot.getCell(cellId);
+            if (oldBackup == null || newBackup == null) return true;
+            if (oldBackup.modified != newBackup.modified) return true;
+            ImmutableCell oldD = oldBackup.cellRevision.d;
+            ImmutableCell newD = newBackup.cellRevision.d;
             if (oldD.groupName != newD.groupName) return true;
             if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
         }

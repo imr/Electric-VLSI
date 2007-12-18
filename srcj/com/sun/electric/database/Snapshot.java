@@ -571,12 +571,12 @@ public class Snapshot {
             if (oldBackup == newBackup) continue;
             if (oldBackup == null) {
                 writer.writeInt(i);
-                newBackup.cellRevision.write(writer);
+                newBackup.write(writer);
             } else if (newBackup == null) {
                 writer.writeInt(~i);
             } else {
                 writer.writeInt(i);
-                newBackup.cellRevision.write(writer);
+                newBackup.write(writer);
             }
         }
         writer.writeInt(Integer.MAX_VALUE);

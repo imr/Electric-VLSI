@@ -51,14 +51,16 @@ public class CellBackup {
     static int cellBackupsCreated = 0;
     static int cellBackupsMemoized = 0;
     /** Cell data. */                                               public final CellRevision cellRevision;           
+    /** "Modified" flag of the Cell. */                             public final boolean modified;
 
     /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
     /** Arc shrinkage data */                                       private AbstractShapeBuilder.Shrinkage shrinkage;
     /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
     
     /** Creates a new instance of CellBackup */
-    private CellBackup(CellRevision cellRevision) {
+    private CellBackup(CellRevision cellRevision, boolean modified) {
         this.cellRevision = cellRevision;
+        this.modified = modified;
         cellBackupsCreated++;
 //        if (Job.getDebug())
 //            check();
@@ -66,7 +68,7 @@ public class CellBackup {
     
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d) {
-        this(new CellRevision(d));
+        this(new CellRevision(d), false);
     }
     
     /**
@@ -84,9 +86,9 @@ public class CellBackup {
      */
     public CellBackup with(ImmutableCell d, long revisionDate, boolean modified,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
-        CellRevision newRevision = cellRevision.with(d, revisionDate, modified, nodesArray, arcsArray, exportsArray);
+        CellRevision newRevision = cellRevision.with(d, revisionDate, nodesArray, arcsArray, exportsArray);
         if (newRevision == cellRevision) return this;
-        return new CellBackup(newRevision);
+        return new CellBackup(newRevision, modified);
     }
     
 	/**
@@ -97,7 +99,16 @@ public class CellBackup {
     CellBackup withRenamedIds(IdMapper idMapper, CellName newGroupName) {
         CellRevision newRevision = cellRevision.withRenamedIds(idMapper, newGroupName);
         if (newRevision == cellRevision) return this;
-        return new CellBackup(newRevision);
+        return new CellBackup(newRevision, true);
+    }
+    
+    /**
+     * Writes this CellBackup to SnapshotWriter.
+     * @param writer where to write.
+     */
+    void write(SnapshotWriter writer) throws IOException {
+        cellRevision.write(writer);
+        writer.writeBoolean(modified);
     }
     
     /**
@@ -106,7 +117,8 @@ public class CellBackup {
      */
     static CellBackup read(SnapshotReader reader) throws IOException {
         CellRevision newRevision = CellRevision.read(reader);
-        return new CellBackup(newRevision);
+        boolean modified = reader.readBoolean();
+        return new CellBackup(newRevision, modified);
     }
 
     /**

@@ -882,6 +882,8 @@ public abstract class LibraryFiles extends Input
 				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0);
 			}
 		}
+        for (LibraryFiles reader: libsBeingRead)
+            reader.lib.clearChanged();
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;

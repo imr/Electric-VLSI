@@ -205,11 +205,11 @@ public class Edit {
                 modifiedCells.remove(cellId);
                 continue;
             }
-            if (cell.isModified(false) && !modifiedCells.containsKey(cellId)) {
+            if (cell.isModified() && !modifiedCells.containsKey(cellId)) {
                 modifiedCells.put(cellId, cellId);
                 newlyModifiedCells.add(cell);
             }
-            if (!cell.isModified(false) && modifiedCells.containsKey(cellId)) {
+            if (!cell.isModified() && modifiedCells.containsKey(cellId)) {
                 // undo or save
                 modifiedCells.remove(cellId);
                 newlyUnmodifiedCells.add(cell);
@@ -442,7 +442,7 @@ public class Edit {
                 }
                 if (eobj instanceof Cell) {
                     Cell cell = (Cell)eobj;
-                    if (!cell.isModified(false) && CVSLibrary.getState(cell) == State.NONE)
+                    if (!cell.isModified() && CVSLibrary.getState(cell) == State.NONE)
                         cells.add(cell);
                 }
             }

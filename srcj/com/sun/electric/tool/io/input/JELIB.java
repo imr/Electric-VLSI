@@ -332,7 +332,6 @@ public class JELIB extends LibraryFiles
             }
         }
 
-        lib.clearChanged();
         lib.setFromDisk();
         return false;
     }

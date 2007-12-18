@@ -892,51 +892,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
 
         return idMapper;
-//
-//        // add again to the library and to possibly to new cell group
-//		lowLevelLinkCellName();
-//        notifyRename();
-//        return new IdMapper();
 	}
-
-//	/**
-//	 * Method to move this Cell to another library.
-//	 * @param newLib the new library of this cell.
-//     * @throws IlleagalArgumentException if this cell or new library is not linked to database.
-//	 */
-//	public void move(Library newLib)
-//	{
-//		checkChanging();
-//        if (!isLinked())
-//            throw new IllegalArgumentException();
-//        if (!newLib.isLinked())
-//            throw new IllegalArgumentException("newLib");
-//		if (newLib == lib) return;
-//
-//		// remove temporarily from the library and from cell group
-//		lib.removeCell(this);
-//		cellGroup.remove(this);
-//        cellGroup = null;
-//
-//		// do the rename
-//        setD(getD().withLibrary(newLib.getId()));
-//        lib = newLib;
-//
-//        // add again to the library and to possibly to new cell group
-//		lowLevelLinkCellName(true);
-//        notifyRename();
-//	}
-
-    /**
-     * Signal parent cell about renaming or moving of this subcell.
-     */
-    void notifyRename() {
-        for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
-            CellUsage u = it.next();
-            Cell parent = u.parentId.inDatabase(getDatabase());
-            parent.setModified();
-        }
-    }
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
@@ -1108,7 +1064,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
         this.revisionDate = newRevision.revisionDate;
-        this.modified = newRevision.modified;
+        this.modified = newBackup.modified;
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
@@ -3800,15 +3756,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (!revisionDateFresh)
             this.revisionDate = revisionDate;
         setModified();
-//         if (userName == null) return;
-//         Variable var = getVar(User.FRAME_DESIGNER_NAME);
-//         if (var == null || !var.getObject().equals(userName)) {
-//             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
-//             var = Variable.newInstance(User.FRAME_DESIGNER_NAME, userName, td);
-//             d = getD().withVariable(var);
-//         }
         unfreshBackup();
-        // Don't send to Undo system
 	}
 
 	/**
@@ -4008,12 +3956,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to tell if this Cell has been modified since last save to disk.
 	 * @return true if cell has been modified.
 	 */
-	public boolean isModified(boolean majorChange)
+	public boolean isModified()
     {
         return modified;
-//        if (majorChange) return modified == 1;
-//        // only minor change
-//        return modified == 0;
     }
 
     public void setTopologyModified() {
@@ -4218,7 +4163,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (cellBackupFresh) {
             assert cellRevision.d == getD();
             assert cellRevision.revisionDate == revisionDate;
-            assert cellRevision.modified == modified;
+            assert backup.modified == modified;
             assert cellContentsFresh;
         }
         if (cellContentsFresh) {

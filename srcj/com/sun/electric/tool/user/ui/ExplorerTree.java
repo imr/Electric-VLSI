@@ -1025,14 +1025,12 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			{
 				ExplorerTreeModel.CellAndCount cc = (ExplorerTreeModel.CellAndCount)nodeInfo;
 				nodeInfo = cc.getCell();
-                if (cc.getCell().isModified(true)) setFont(boldFont);
-                else if (cc.getCell().isModified(false)) setFont(italicFont);
+                if (cc.getCell().isModified()) setFont(boldFont);
 			}
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
-                if (cell.isModified(true)) setFont(boldFont);
-                else if (cell.isModified(false)) setFont(italicFont);
+                if (cell.isModified()) setFont(boldFont);
                 if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(cell));
 				IconGroup ig;
 				if (cell.isIcon()) ig = findIconGroup(View.ICON); else
@@ -1060,19 +1058,17 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			if (nodeInfo instanceof Cell.CellGroup)
 			{
                 Cell.CellGroup cg = (Cell.CellGroup)nodeInfo;
-                int status = -1; // hasn't changed , status = 1 -> major change, status = 0 -> minor change
-                for (Iterator<Cell> it = cg.getCells(); status != 1 && it.hasNext();)
+                boolean changed = false;
+                for (Iterator<Cell> it = cg.getCells(); it.hasNext();)
                 {
                     Cell c = it.next();
-                    if (c.isModified(true))
+                    if (c.isModified())
                     {
-                        status = 1;
+                        changed = true;
                         break;  // no need of checking the rest
                     }
-                    else if (c.isModified(false)) status = 0;
                 }
-                if (status == 1) setFont(boldFont);
-                else if (status == 0) setFont(italicFont);
+                if (changed) setFont(boldFont);
                 if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(cg));
 				if (iconGroup == null)
 					iconGroup = Resources.getResource(getClass(), "IconGroup.gif");

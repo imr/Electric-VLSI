@@ -363,7 +363,7 @@ public class CVS extends Listener {
      * @return true if not modified, false if modified
      */
     public static boolean assertNotModified(Cell cell, String cmd, boolean dialog) {
-        if (cell.isModified(true)) {
+        if (cell.isModified()) {
             if (dialog) {
                 Job.getUserInterface().showErrorMessage("Cell "+cell.getName()+" must be saved to run CVS "+cmd, "CVS "+cmd);
             } else {

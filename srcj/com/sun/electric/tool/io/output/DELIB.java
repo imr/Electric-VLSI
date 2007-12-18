@@ -105,7 +105,7 @@ public class DELIB extends JELIB {
             // if any versions are modified or do not exist on disk like they should,
             // mark the file to be modified
             File fd = new File(file);
-            if (cellRevision.modified || !fd.exists()) state.modified = true;
+            if (cellBackup.modified || !fd.exists()) state.modified = true;
         }
 
         boolean b = super.writeLib(snapshot, libId, null, false);

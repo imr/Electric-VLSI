@@ -670,7 +670,6 @@ public class ELIB extends LibraryFiles
 		}
         if (!onlyProjectSettings) {
             lib.lowLevelSetUserBits(userBits);
-            lib.clearChanged();
             lib.setFromDisk();
             lib.setVersion(version);
         }
