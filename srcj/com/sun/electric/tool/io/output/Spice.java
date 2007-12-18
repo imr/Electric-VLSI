@@ -1784,6 +1784,29 @@ public class Spice extends Topology
         return getSafeCellName(uniqueCellName.toString());
     }
 
+    private static class StringBufferQuoteParity
+    {
+    	private StringBuffer sb = new StringBuffer();
+    	private int quoteCount;
+
+    	void append(String str)
+    	{
+    		sb.append(str);
+    		for(int i=0; i<str.length(); i++)
+    			if (str.charAt(i) == '\'') quoteCount++;
+    	}
+
+    	void append(char c)
+    	{
+    		sb.append(c);
+    		if (c == '\'') quoteCount++;
+    	}
+
+    	boolean inQuotes() { return (quoteCount&1) != 0; }
+
+    	StringBuffer getStringBuffer() { return sb; }
+    }
+
     /**
      * Replace ports and vars in 'line'.  Ports and Vars should be
      * referenced via $(name)
@@ -1797,7 +1820,7 @@ public class Spice extends Topology
     private StringBuffer replacePortsAndVars(String line, Nodable no, VarContext context,
                                        CellNetInfo cni, SegmentedNets segmentedNets,
                                        HierarchyEnumerator.CellInfo info, boolean flatNetNames) {
-        StringBuffer infstr = new StringBuffer();
+    	StringBufferQuoteParity infstr = new StringBufferQuoteParity();
         NodeProto prototype = null;
     	PrimitiveNode prim = null;
     	if (no != null)
@@ -1808,16 +1831,20 @@ public class Spice extends Topology
 
         for(int pt = 0; pt < line.length(); pt++)
         {
+        	// see if the character is part of a substitution expression
             char chr = line.charAt(pt);
             if (chr != '$' || pt+1 >= line.length() || line.charAt(pt+1) != '(')
             {
+            	// not part of substitution: just emit it
                 infstr.append(chr);
                 continue;
             }
 
+            // may be part of substitution expression: look for closing parenthesis
             int start = pt + 2;
             for(pt = start; pt < line.length(); pt++)
                 if (line.charAt(pt) == ')') break;
+
             // do the parameter substitution
             String paramName = line.substring(start, pt);
 
@@ -1880,11 +1907,9 @@ public class Spice extends Topology
                         pVal = String.valueOf(context.evalVar(attrVar, no));
                     }
 //                    if (attrVar.getCode() != TextDescriptor.Code.NONE)
-//                    	pVal = formatParam(pVal, attrVar.getUnit());
-                    	pVal = trimSingleQuotes(pVal);
+                	if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal); else
+                    	pVal = formatParam(pVal, attrVar.getUnit());
                     infstr.append(pVal);
-                    //else
-                    //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
                 }
             } else {
                 // look for the network name
@@ -1970,7 +1995,7 @@ public class Spice extends Topology
                 }
             }
         }
-        return infstr;
+        return infstr.getStringBuffer();
     }
 
     private Network findNet(Netlist netlist, String netName) {
