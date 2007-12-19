@@ -68,6 +68,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class reads files in EDIF files.
@@ -255,13 +256,13 @@ public class EDIF extends Input
 	/** the name of the object */				private String objectName;
 	/** the original name of the object */		private String originalName;
 
-	/** cells that have been built so far */	private HashSet<Cell> builtCells;
+	/** cells that have been built so far */	private Set<Cell> builtCells;
 
 	// layer or figure information ...
 	/** the current name mapping table */		private List<NameEntry> nameEntryList;
 	/** the current name table entry */			private NameEntry curNameEntry;
 
-	/** cell name lookup (from rename) */ 		private HashMap<String,NameEntry> cellTable;
+	/** cell name lookup (from rename) */ 		private Map<String,NameEntry> cellTable;
 
 	// port data for port exporting
 	/** active port list */						private EDIFPort portsListHead;
@@ -281,7 +282,8 @@ public class EDIF extends Input
 
     /** Edif equivs for primitives */           private EDIFEquiv equivs;
     /** List of ports in net -> joined list */  private List<PortInst> netPortRefs;  // list of PortInst objects
-    /** mapping of renamed ports */				private Map<String,String> renamedPorts;
+    /** mapping of renamed objects */			private Map<String,String> renamedObjects;
+    /** mapping of named arcs in a cell */		private Map<String,ArcInst> namedArcs;
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -290,7 +292,7 @@ public class EDIF extends Input
 	private PortProto defaultInput;
 	private PortProto defaultOutput;
 
-	/** all keywords for parsing */				private static HashMap<String,EDIFKEY> edifKeys = new HashMap<String,EDIFKEY>();
+	/** all keywords for parsing */				private static Map<String,EDIFKEY> edifKeys = new HashMap<String,EDIFKEY>();
 
 	/**************************************** MAIN CONTROL ****************************************/
 
@@ -401,7 +403,7 @@ public class EDIF extends Input
 
         equivs = new EDIFEquiv();
         netPortRefs = new ArrayList<PortInst>();
-        renamedPorts = new HashMap<String,String>();
+        renamedObjects = new HashMap<String,String>();
 
 		// parse the file
 		try
@@ -479,6 +481,28 @@ public class EDIF extends Input
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": unexpected end-of-file encountered");
 			errorCount++;
+		}
+
+		// clean-up schematic cells with isolated pins
+		for(Cell cell : builtCells)
+		{
+			if (cell.getView() == View.SCHEMATIC)
+			{
+				List<NodeInst> deletePins = new ArrayList<NodeInst>();
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.getProto() == Schematics.tech.wirePinNode)
+					{
+						if (!ni.hasConnections() && !ni.hasExports())
+							deletePins.add(ni);
+					}
+				}
+				for(NodeInst ni : deletePins)
+				{
+					ni.kill();
+				}
+			}
 		}
 	}
 
@@ -567,7 +591,7 @@ public class EDIF extends Input
 			if (inputBuffer == null) return true;
 			if (inputBufferPos >= inputBuffer.length())
 			{
-				inputBuffer = lineReader.readLine();
+				inputBuffer = readWholeLine();
 				if (inputBuffer == null) return true;
 				inputBufferPos = 0;
 				continue;
@@ -630,7 +654,7 @@ public class EDIF extends Input
 			if (inputBufferPos >= inputBuffer.length())
 			{
 				// end of string, get the next line
-				inputBuffer = lineReader.readLine();
+				inputBuffer = readWholeLine();
 				if (inputBuffer == null)
 				{
 					// end-of-file, if no delimiter return NULL, otherwise the string
@@ -726,7 +750,7 @@ public class EDIF extends Input
 		if (chr != '(' && chr != ')')
 		{
 			String aName = getToken((char)0);
-			objectName = aName.startsWith("&") ? aName.substring(1) : aName;
+			objectName = fixLeadingAmpersand(aName);
 			return true;
 		}
 		return false;
@@ -1011,7 +1035,7 @@ public class EDIF extends Input
 					else aName.append(netName + "[" + iY + "]");
 				}
 			}
-			ai.setName(convertParens(aName.toString()));
+			putNameOnArcOnce(ai, convertParens(aName.toString()));
 		} else
 		{
 			if (netReference.length() > 0)
@@ -1021,9 +1045,24 @@ public class EDIF extends Input
 			if (netName.length() > 0)
 			{
 				// set name of arc but don't display name
-				ai.setName(convertParens(netName));
+				putNameOnArcOnce(ai, convertParens(netName));
 			}
 		}
+	}
+
+	private void putNameOnArcOnce(ArcInst ai, String name)
+	{
+		if (namedArcs != null)
+		{
+			ArcInst otherAi = namedArcs.get(name);
+			if (otherAi != null)
+			{
+				if (otherAi.getHeadLocation().distance(otherAi.getTailLocation()) >
+					ai.getHeadLocation().distance(ai.getTailLocation())) return;
+			}
+			namedArcs.put(name, ai);
+		}
+//		ai.setName(name);
 	}
 
 	/**
@@ -1083,7 +1122,6 @@ public class EDIF extends Input
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell);
 			PortInst head = ni.getOnlyPortInst();
 			ArcInst.makeInstance(ap, head, bestPi);
-//			ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), head, bestPi);
 			ports.add(head);
 		}
 
@@ -1118,8 +1156,6 @@ public class EDIF extends Input
 			// create the two new arcinsts
 			ArcInst ar1 = ArcInst.makeInstance(nAp, fPi, pi, fPt, pt, null);
 			ArcInst ar2 = ArcInst.makeInstance(nAp, pi, tPi, pt, tPt, null);
-//			ArcInst ar1 = ArcInst.makeInstanceFull(nAp, nAp.getDefaultLambdaFullWidth(), fPi, pi, fPt, pt, null);
-//			ArcInst ar2 = ArcInst.makeInstanceFull(nAp, nAp.getDefaultLambdaFullWidth(), pi, tPi, pt, tPt, null);
 			if (ar1 == null || ar2 == null)
 			{
 				System.out.println("Error creating the split arc parts");
@@ -1131,6 +1167,17 @@ public class EDIF extends Input
 
 			// delete the old arcinst
 			ai.kill();
+			if (namedArcs != null && namedArcs.containsValue(ai))
+			{
+				for(String name : namedArcs.keySet())
+				{
+					if (namedArcs.get(name) == ai)
+					{
+						namedArcs.put(name, ar1);
+						break;
+					}
+				}
+			}
 		}
 
 		return ports;
@@ -1148,7 +1195,7 @@ public class EDIF extends Input
 					if (aName.length() > base.length() && TextUtils.isDigit(aName.charAt(base.length())))
 					{
 						String newName = base + "[" + aName.substring(base.length()) + "]";
-						ai.setName(newName);
+						putNameOnArcOnce(ai, newName);
 					}
 				}
 			}
@@ -1236,6 +1283,65 @@ public class EDIF extends Input
 				return inStr.substring(1);
 		}
 		return inStr;
+	}
+
+	private String fixAngleBracketBusses(String busName)
+	{
+		int openAngle = busName.indexOf('<');
+		if (openAngle >= 0)
+		{
+			int closeAngle = busName.indexOf('>', openAngle);
+			if (closeAngle >= 0)
+			{
+				String busPart = busName.substring(openAngle+1, closeAngle);
+				if (busPart.startsWith("*")) busPart = ""; else
+					busPart = "[" + busPart + "]";
+				busName = busName.substring(0, openAngle) + busPart + busName.substring(closeAngle+1);
+			}
+		}
+		return busName;
+	}
+
+	private Cell createCell(String name, String view)
+	{
+		Cell proto = null;
+		for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+		{
+			Cell cell = it.next();
+			if (cell.getName().equalsIgnoreCase(name) &&
+				cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
+		}
+		if (proto == null)
+		{
+			String cName = name;
+			if (view.length() > 0) cName += "{" + view + "}";
+			proto = Cell.makeInstance(curLibrary, cName);
+			if (proto != null)
+			{
+				if (view.equals("ic")) proto.setWantExpanded();
+				builtCells.add(proto);
+			}
+		}
+
+//		// if making schematic, build icon also
+//		if (view.equals("sch"))
+//		{
+//			Cell iconCell = null;
+//			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+//			{
+//				Cell cell = it.next();
+//				if (cell.getName().equalsIgnoreCase(name) &&
+//					cell.getView() == View.ICON) { iconCell = cell;   break; }
+//			}
+//			if (iconCell == null)
+//			{
+//				String icName = name + "{" + view + "}";
+//				iconCell = Cell.makeInstance(curLibrary, icName);
+//				iconCell.setWantExpanded();
+//				builtCells.add(iconCell);
+//			}
+//		}
+		return proto;
 	}
 
 	/**************************************** PARSING TABLE ****************************************/
@@ -1500,6 +1606,12 @@ public class EDIF extends Input
 
 			// look for this cell name in the cell list
 			NameEntry nt = cellTable.get(aName);
+			if (nt == null)
+			{
+				String alternateName = renamedObjects.get(aName);
+				if (alternateName != null)
+					nt = cellTable.get(alternateName);
+			}
 			if (nt != null)
 			{
 				aName = nt.replace;
@@ -1508,25 +1620,10 @@ public class EDIF extends Input
 				System.out.println("could not find cellRef <" + aName + ">");
 			}
 
-			// now look for this cell in the list of cells, if not found create it
-			// locate this in the list of cells
-			Cell proto = null;
-			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (cell.getName().equalsIgnoreCase(aName) &&
-					cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
-			}
+			// create cell if not already there
+			Cell proto = createCell(aName, view);
 			if (proto == null)
-			{
-				// allocate the cell
-				if (view.length() > 0) aName += "{" + view + "}";
-				proto = Cell.makeInstance(curLibrary, aName);
-				if (proto == null) {
-                    System.out.println("Error, cannot create cell "+aName+" in library "+curLibrary);
-                }
-				builtCells.add(proto);
-			}
+                System.out.println("Error, cannot create cell "+aName+" in library "+curLibrary);
 
 			// set the parent
 			cellRefProto = proto;
@@ -1897,16 +1994,15 @@ public class EDIF extends Input
 						{
 							// create the new page
 							curCellPage = ++pageNumber;
-							String nodeName = cellName + "{sch}";
 							if (curCellPage == 1)
 							{
-								curCell = Cell.makeInstance(curLibrary, nodeName);
+								curCell = createCell(cellName, "sch");
 								if (curCell == null) throw new IOException("Error creating cell");
-								builtCells.add(curCell);
 								curCell.setMultiPage(true);
 								curCell.newVar(User.FRAME_SIZE, "d");
 							} else
 							{
+								String nodeName = cellName + "{sch}";
 								curCell = curLibrary.findNodeProto(nodeName);
 								if (curCell == null) throw new IOException("Error finding cell");
 							}
@@ -2071,22 +2167,8 @@ public class EDIF extends Input
 			throws IOException
 		{
 			// create schematic page 1 to represent all I/O for this schematic; locate this in the list of cells
-			Cell np = null;
-			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (cell.getName().equals(cellName) &&
-					cell.getView() == View.SCHEMATIC) { np = cell;   break; }
-			}
-			if (np == null)
-			{
-				// allocate the cell
-				String nodeName = cellName + "{sch}";
-				curCell = Cell.makeInstance(curLibrary, nodeName);
-				if (curCell == null) throw new IOException("Error creating cell");
-				builtCells.add(curCell);
-			}
-			else curCell = np;
+			curCell = createCell(cellName, "sch");
+			if (curCell == null) throw new IOException("Error creating cell");
 			curCellPage = 0;
 
 			// now set the current position in the schematic page
@@ -2397,12 +2479,10 @@ public class EDIF extends Input
 			if (proto == null)
 			{
 				// allocate the cell
-				String cname = cellName + "{sch}";
-				proto = Cell.makeInstance(curLibrary, cname);
+				proto = createCell(cellName, "sch");
 				if (proto == null) throw new IOException("Error creating cell");
 				proto.setMultiPage(true);
 				proto.newVar(User.FRAME_SIZE, "d");
-				builtCells.add(proto);
 			} else
 			{
 				if (!builtCells.contains(proto)) ignoreBlock = true;
@@ -2439,6 +2519,11 @@ public class EDIF extends Input
 			List<PortInst> fList = new ArrayList<PortInst>();
 			NodeProto np = Schematics.tech.wirePinNode;
 			if (curGeometryType == GBUS || isArray) np = Schematics.tech.busPinNode;
+			if (curGeometryType == GNET)
+			{
+				if (netName.length() > 0 && netName.endsWith("]"))
+					np = Schematics.tech.busPinNode;
+			}
 			for(int i=0; i<curPoints.size()-1; i++)
 			{
 				Point2D fPoint = curPoints.get(i);
@@ -2469,8 +2554,6 @@ public class EDIF extends Input
                                             ne.externalView, port, orientation);
                                     if ((curPoint.getX() != fX) || (curPoint.getY() != fY)) {
                                         fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
-//                                        System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
-//                                                ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+fList.size());
                                         if (fList.size() != 0) {
                                             // found exact match, move port
                                             fX = curPoint.getX();
@@ -2563,10 +2646,23 @@ public class EDIF extends Input
 							// if bus to bus
 							ArcProto ap = Schematics.tech.wire_arc;
 							if ((fPi.getPortProto() == defaultBusPort || fbus) &&
-								(tPi.getPortProto() == defaultBusPort || tbus)) ap = Schematics.tech.bus_arc;
+								(tPi.getPortProto() == defaultBusPort || tbus))
+							{
+								ap = Schematics.tech.bus_arc;
+							} else
+							{
+								if (curGeometryType == GNET)
+								{
+									if (netName.length() > 0 && netName.endsWith("]"))
+										ap = Schematics.tech.bus_arc;
+								} else if (curGeometryType == GBUS)
+								{
+									if (bundleName.length() > 0 && bundleName.endsWith("]"))
+										ap = Schematics.tech.bus_arc;
+								}
+							}
 
 							ai = ArcInst.makeInstance(ap, fPi, tPi,
-//							ai = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), fPi, tPi,
 								new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 							if (ai == null)
 							{
@@ -2575,11 +2671,11 @@ public class EDIF extends Input
 							} else if (curGeometryType == GNET && i == 0)
 							{
 								if (netReference.length() > 0) ai.newVar("EDIF_name", netReference);
-								if (netName.length() > 0) ai.setName(convertParens(netName));
+								if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
 							} else if (curGeometryType == GBUS && i == 0)
 							{
 								if (bundleReference.length() > 0) ai.newVar("EDIF_name", bundleReference);
-								if (bundleName.length() > 0) ai.setName(convertParens(bundleName));
+								if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
 							}
 						}
 						if (ai != null) curArc = ai;
@@ -2820,6 +2916,16 @@ public class EDIF extends Input
 						}
 						if (ni == null)
 						{
+							String alternateName = renamedObjects.get(nodeName);
+							for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
+							{
+								NodeInst oNi = nIt.next();
+								String name = oNi.getName();
+								if (name.equalsIgnoreCase(alternateName)) { ni = oNi;   break; }
+							}
+						}
+						if (ni == null)
+						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate schematic node '" +
 								nodeName + "' in " + curCell);
 							return;
@@ -2832,7 +2938,7 @@ public class EDIF extends Input
 					pp = ni.getProto().findPortProto(portReference);
 					if (pp == null)
 					{
-						String alternateName = renamedPorts.get(portReference);
+						String alternateName = renamedObjects.get(portReference);
 						if (alternateName != null)
 						{
 							alternateName = convertParens(alternateName);
@@ -2841,9 +2947,9 @@ public class EDIF extends Input
 						if (pp == null)
 						{
 							String errorMsg = "error, line " + lineReader.getLineNumber() +
-								": could not locate port (" + portReference;
-							if (alternateName != null) errorMsg += ") or (" + alternateName;
-							errorMsg += ") on node (" + nodeName + ")";
+								": could not locate port '" + portReference;
+							if (alternateName != null) errorMsg += "' or '" + alternateName;
+							errorMsg += "' on node '" + nodeName + "' in cell " + curCell.describe(false);
 							System.out.println(errorMsg);
 							return;
 						}
@@ -2900,7 +3006,6 @@ public class EDIF extends Input
 							PortInst head = lNi.findPortInstFromProto(lPp);
 							PortInst tail = ni.findPortInstFromProto(pp);
 							curArc = ArcInst.makeInstance(lAp, head, tail);
-//							curArc = ArcInst.makeInstanceFull(lAp, lAp.getDefaultLambdaFullWidth(), head, tail);
 							if (curArc == null)
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
 							else
@@ -2934,7 +3039,14 @@ public class EDIF extends Input
 							pp = np.findPortProto(originalName);
 						if (pp == null)
 						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" + portReference + "'");
+							String alternateName = renamedObjects.get(portReference);
+							if (alternateName != null)
+								pp = np.findPortProto(alternateName);
+						}
+						if (pp == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" +
+								portReference + "' on cell " + np.describe(false));
 							return;
 						}
 					}
@@ -2994,16 +3106,15 @@ public class EDIF extends Input
 
 						// for nets with no physical representation ...
 						curArc = null;
-						double dist = 0;
 						PortInst head = fNi.findPortInstFromProto(fPp);
 						Point2D headPt = new Point2D.Double(lX, lY);
 						PortInst tail = ni.findPortInstFromProto(pp);
 						Point2D tailPt = new Point2D.Double(hX, hY);
+						double dist = 0;
 						if (lX != hX || lY != hY) dist = headPt.distance(tailPt);
 						if (dist <= 1)
 						{
 							curArc = ArcInst.makeInstance(ap, head, tail, headPt, tailPt, null);
-//							curArc = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), head, tail, headPt, tailPt, null);
 							if (curArc == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) among cells");
@@ -3012,7 +3123,6 @@ public class EDIF extends Input
 						{
 							// use unrouted connection for NETLIST views
 							curArc = ArcInst.makeInstance(ap, head, tail, headPt, tailPt, null);
-//							curArc = ArcInst.makeInstanceFull(ap, ap.getDefaultLambdaFullWidth(), head, tail, headPt, tailPt, null);
 							if (curArc == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path in portRef");
@@ -3075,13 +3185,12 @@ public class EDIF extends Input
 					if (np == null)
 					{
 						// allocate the cell
-						np = Cell.makeInstance(curLibrary, desiredName);
+						np = createCell(cellName, "sch");
 						if (np == null) throw new IOException("Error creating cell");
-						builtCells.add(np);
 						np.newVar(propertyReference, propertyValue);
 					}
 				} else if (keyStack[keyStackDepth - 1] == KINSTANCE || keyStack[keyStackDepth - 1] == KNET ||
-						keyStack[keyStackDepth - 1] == KPORT)
+					keyStack[keyStackDepth - 1] == KPORT)
 				{
 					// add to the current property list, will be added latter
 					EDIFProperty property = new EDIFProperty();
@@ -3238,7 +3347,7 @@ public class EDIF extends Input
 		{
 			// get the name of the object
 			String aName = getToken((char)0);
-			objectName = aName.startsWith("&") ? aName.substring(1) : aName;
+			objectName = aName;
 
 			// and the original name
 			positionToNextToken();
@@ -3254,16 +3363,18 @@ public class EDIF extends Input
 				// copy name without quotes
 				originalName = aName.substring(1, aName.length()-1);
 			}
+			originalName = fixAngleBracketBusses(fixLeadingAmpersand(originalName));
 			int kPtr = keyStackDepth;
 			if (keyStack[keyStackDepth - 1] == KNAME) kPtr = keyStackDepth - 1;
 			if (keyStack[kPtr - 1] == KARRAY) kPtr = kPtr - 2; else
 				kPtr = kPtr -1;
 			if (keyStack[kPtr] == KCELL)
 			{
-				cellName = cellReference = fixLeadingAmpersand(originalName);
+				cellName = cellReference = originalName;
 			} else if (keyStack[kPtr] == KPORT)
 			{
-				portReference = portName = fixLeadingAmpersand(originalName);
+				// convert <> to [] in port names
+				portReference = portName = originalName;
 			} else if (keyStack[kPtr] == KINSTANCE)
 			{
 				instanceReference = instanceName = originalName;
@@ -3272,12 +3383,13 @@ public class EDIF extends Input
 				bundleReference = bundleName = originalName;
 			} else if (keyStack[kPtr] == KNET)
 			{
-				netReference = netName = fixLeadingAmpersand(originalName);
+				netReference = netName = originalName;
 			} else if (keyStack[kPtr] == KPROPERTY)
 			{
 				propertyReference = objectName;
 			}
-			renamedPorts.put(objectName, originalName);
+			if (!objectName.equals(originalName))
+				renamedObjects.put(objectName, originalName);
 		}
 	}
 
@@ -3320,7 +3432,7 @@ public class EDIF extends Input
 
 			// check for RENAME
 			if (keyStack[keyStackDepth-1] != KRENAME) return;
-			originalName = textString;
+			originalName = fixAngleBracketBusses(textString);
 			int kPtr = keyStackDepth - 2;
 			if (keyStack[keyStackDepth - 2] == KARRAY) kPtr = keyStackDepth - 3;
 			if (keyStack[kPtr] == KCELL)
@@ -3475,11 +3587,8 @@ public class EDIF extends Input
 			if (proto == null)
 			{
 				// allocate the cell
-				String cname = cellName + "{ic}";
-				proto = Cell.makeInstance(curLibrary, cname);
+				proto = createCell(cellName, "ic");
 				if (proto == null) throw new IOException("Error creating cell");
-				proto.setWantExpanded();
-				builtCells.add(proto);
 			} else
 			{
 				if (!builtCells.contains(proto)) ignoreBlock = true;
@@ -3576,9 +3685,6 @@ public class EDIF extends Input
 			// if no points are specified, presume the origin
 			if (instCount == 0) instCount = 1;
 
-			// create node instance rotations about the origin not center
-//			AffineTransform rot = curOrientation.pureRotate();
-
 			if (instCount == 1 && cellRefProto != null)
 			{
 				for (int iX = 0; iX < arrayXVal; iX++)
@@ -3592,7 +3698,6 @@ public class EDIF extends Input
                         Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
 							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
-//System.out.println("CREATED "+ni+" F");
 						curNode = ni;
 						if (ni == null)
 						{
@@ -3703,11 +3808,12 @@ public class EDIF extends Input
 									 * determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in
 									 * fonts range from 4 to 20 points
 									 */
-
-
-									TextDescriptor td = ni.getTextDescriptor(varKey);
-                                    td = td.withRelSize(convertTextSize(saveTextHeight)).withPos(saveTextJustification).withOff(xOff, yOff);
-									ni.setTextDescriptor(varKey, td);
+									if (varKey != NodeInst.NODE_NAME)
+									{
+										TextDescriptor td = ni.getTextDescriptor(varKey);
+	                                    td = td.withRelSize(convertTextSize(saveTextHeight)).withPos(saveTextJustification).withOff(xOff, yOff);
+										ni.setTextDescriptor(varKey, td);
+									}
 								}
 							}
 						}
@@ -3763,6 +3869,7 @@ public class EDIF extends Input
 			throws IOException
 		{
 			activeView = VNULL;
+		    namedArcs = new HashMap<String,ArcInst>();
 		}
 
 		protected void pop()
@@ -3786,6 +3893,14 @@ public class EDIF extends Input
 					}
 				}
 			}
+
+			// put names on named arcs
+			for(String name : namedArcs.keySet())
+			{
+				ArcInst ai = namedArcs.get(name);
+				ai.setName(name);
+			}
+			namedArcs = null;
 
 			portsListHead = null;
 		}
@@ -3859,10 +3974,8 @@ public class EDIF extends Input
 				if (proto == null)
 				{
 					// allocate the cell
-					String cname = cellName + "{" + view + "}";
-					proto = Cell.makeInstance(curLibrary, cname);
+					proto = createCell(cellName, view);
 					if (proto == null) throw new IOException("Error creating cell");
-					builtCells.add(proto);
 				} else
 				{
 					if (!builtCells.contains(proto)) ignoreBlock = true;
@@ -3880,5 +3993,4 @@ public class EDIF extends Input
 			cellTable.put(cellReference, nt);
 		}
 	}
-
 }

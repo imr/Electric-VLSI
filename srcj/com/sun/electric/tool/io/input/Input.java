@@ -390,6 +390,12 @@ public class Input
         lineBufferPosition = 0;
     }
 
+    protected String readWholeLine() throws IOException
+    {
+    	readNewLine();
+    	return lineBuffer;
+    }
+
     protected String getAKeyword()
 		throws IOException
 	{
