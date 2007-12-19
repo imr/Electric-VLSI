@@ -89,7 +89,9 @@ public class ProjectSettingsFrame extends EDialog
 	private DefaultMutableTreeNode currentDMTN;
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
 
-	/**
+    private static String staClass = "com.sun.electric.plugins.sctiming.STAOptionsDialog";
+
+    /**
 	 * This method implements the command to show the Project Settings dialog.
 	 */
 	public static void projectSettingsCommand()
@@ -132,8 +134,10 @@ public class ProjectSettingsFrame extends EDialog
 			addTreeNode(rootNode, "Skill");
 		addTreeNode(rootNode, "Technology");
 		addTreeNode(rootNode, "Verilog");
+        if (getPluginPanel(staClass, this, true) != null)
+            addTreeNode(rootNode, "Static Timing Analysis");
 
-		// pre-expand the tree
+        // pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
 		optionTree.expandPath(topPath);
 		topPath = optionTree.getPathForRow(1);
@@ -360,6 +364,8 @@ public class ProjectSettingsFrame extends EDialog
             return new TechnologyTab(this, modal);
         if (currentTabName.equals("Verilog"))
             return new VerilogTab(this, modal);
+        if (currentTabName.equals("Static Timing Analysis"))
+            return getPluginPanel(staClass, this, modal);
         return null;
     }
 
@@ -373,8 +379,19 @@ public class ProjectSettingsFrame extends EDialog
     public static void updateProjectSettings(Setting.SettingChangeBatch changeBatch, EDialog dialogToClose) {
         new OKUpdate(dialogToClose, changeBatch, false, false);
     }
-    
-	/**
+
+    private ProjSettingsPanel getPluginPanel(String className, ProjectSettingsFrame frame, boolean modal) {
+        try {
+            Class<?> panelClass = Class.forName(className);
+            Object panel = panelClass.getConstructor(ProjectSettingsFrame.class, Boolean.class).newInstance(frame, modal);
+            return (ProjSettingsPanel)panel;
+        } catch (Exception e) {
+            System.out.println("Exception while loading plugin class "+className+": "+e.getMessage());
+        }
+        return null;
+    }
+
+    /**
 	 * Class to update primitive node information.
 	 */
 	private static class OKUpdate extends Job

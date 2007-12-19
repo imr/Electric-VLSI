@@ -189,6 +189,7 @@ public class Verilog extends Topology
     /** those cells that have overridden models */	        private HashSet<Cell> modelOverrides = new HashSet<Cell>();
     /** those cells that have modules defined */            private HashMap<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
     /** those cells that have primitives defined */         private HashMap<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
+    /** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
 
     /**
      * The main entry point for Verilog deck writing.
@@ -263,6 +264,13 @@ public class Verilog extends Topology
 			printWriter.print("endmodule\n");
 		}
 */
+        if (Simulation.getVerilogStopAtStandardCells()) {
+            // enumerate to find which cells contain standard cells
+            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
+            for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
+                System.out.println("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
+            }
+        }
     }
 
     protected void done()
@@ -342,8 +350,12 @@ public class Verilog extends Topology
             return true;
         }
 
-        if (Simulation.getVerilogStopAtStandardCells() && SCLibraryGen.isStandardCell(cell))
-            return true;
+        if (Simulation.getVerilogStopAtStandardCells()) {
+            // do not netlist contents of standard cells
+            if (!standardCells.containsStandardCell(cell)) {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -635,6 +647,16 @@ public class Verilog extends Topology
                         }
                     }
                     continue;
+                }
+
+                // if writing standard cell netlist, do not write out cells that
+                // do not contain standard cells
+                if (Simulation.getVerilogStopAtStandardCells()) {
+                    if (!standardCells.containsStandardCell((Cell)niProto) &&
+                            !SCLibraryGen.isStandardCell((Cell)niProto)) {
+                    //if (!SCLibraryGen.isStandardCell((Cell)niProto)) {
+                        continue;
+                    }
                 }
             }
 

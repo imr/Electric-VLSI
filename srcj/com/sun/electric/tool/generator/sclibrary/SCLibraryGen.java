@@ -5,13 +5,12 @@ import java.util.*;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -285,27 +284,14 @@ public class SCLibraryGen {
 
     /**
      * Return the standard cells in a hierarchy starting from
-     * the specified top cell. Note this returns only schematic cells.
-     * @param topCell the top cell in the hierarchy
+     * the specified top cell.
+     * @param topCell the top cell in the hierarchy (sch or lay view)
      * @return a set of standard cells in the hierarchy
      */
     public static Set<Cell> getStandardCellsInHierarchy(Cell topCell) {
-        Set<Cell> cells = new TreeSet<Cell>();
-        if (topCell.getView() == View.ICON)
-            topCell = topCell.getCellGroup().getMainSchematics();
-        for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (ni.isCellInstance()) {
-                Cell subcell = (Cell)ni.getProto();
-                if (subcell.isIconOf(topCell)) continue;
-                if (isStandardCell(subcell.getCellGroup().getMainSchematics())) {
-                    cells.add(subcell.getCellGroup().getMainSchematics());
-                } else {
-                    cells.addAll(getStandardCellsInHierarchy(subcell));
-                }
-            }
-        }
-        return cells;
+        StandardCellHierarchy cells = new StandardCellHierarchy();
+        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, cells);
+        return cells.getStandardCellsInHier();
     }
 
     /**
@@ -315,6 +301,8 @@ public class SCLibraryGen {
      * @return true if standard cell, false otherwise
      */
     public static boolean isStandardCell(Cell cell) {
+        Cell schcell = cell.getCellGroup().getMainSchematics();
+        if (schcell != null) cell = schcell;
         return cell.getVar(STANDARDCELL) != null;
     }
 
@@ -327,4 +315,107 @@ public class SCLibraryGen {
     private void prMsg(String msg) {
         System.out.println("Standard Cell Library Generator: "+msg);
     }
+
+    /****************************** Standard Cell Enumerator *************************/
+
+    public static class StandardCellHierarchy extends HierarchyEnumerator.Visitor {
+
+        private static final Integer standardCell = new Integer(0);
+        private static final Integer containsStandardCell = new Integer(1);
+        private static final Integer doesNotContainStandardCell = new Integer(2);
+
+        private Map<Cell,Integer> standardCellMap = new HashMap<Cell,Integer>();
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+            if (standardCellMap.containsKey(cell)) return false; // cached already
+            if (SCLibraryGen.isStandardCell(cell)) {
+                standardCellMap.put(cell, standardCell);
+                return false;
+            }
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (!ni.isCellInstance()) continue;
+                if (ni.isIconOfParent()) continue;
+                // standard cell tag is on schematic view
+                Cell proto = ni.getProtoEquivalent();
+                if (proto == null) proto = (Cell)ni.getProto();
+                if (containsStandardCell(proto) || SCLibraryGen.isStandardCell(proto)) {
+                    standardCellMap.put(cell, containsStandardCell);
+                    return;
+                }
+            }
+            standardCellMap.put(cell, doesNotContainStandardCell);
+        }
+
+        public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
+            return true;
+        }
+
+        /**
+         * True if the cell contains standard cells (but false if it does not,
+         * or if it is a standard cell.
+         * @param cell the cell in question
+         * @return true if the clel contains a standard cell, false otherwise.
+         */
+        public boolean containsStandardCell(Cell cell) {
+            if (standardCellMap.get(cell) == containsStandardCell)
+                return true;
+            return false;
+        }
+
+        /**
+         * Get the standard cells in the hiearchy after the hierarchy has
+         * been enumerated
+         * @return a set of the standard cells
+         */
+        public Set<Cell> getStandardCellsInHier() {
+            return getCells(standardCell);
+        }
+
+        /**
+         * Get the cells that contain standard cells
+         * in the hiearchy after the hierarchy has
+         * been enumerated
+         * @return a set of the cells that contain standard cells
+         */
+        public Set<Cell> getContainsStandardCellsInHier() {
+            return getCells(containsStandardCell);
+        }
+
+        /**
+         * Get the cells that do not contain standard cells
+         * in the hiearchy after the hierarchy has
+         * been enumerated
+         * @return a set of the cells that contain standard cells
+         */
+        public Set<Cell> getDoesNotContainStandardCellsInHier() {
+            return getCells(doesNotContainStandardCell);
+        }
+
+        /**
+         * Get cells of the given type. The type is one of
+         * Type.StandardCell
+         * Type.ContainsStandardCell
+         * Type.DoesNotContainStandardCell
+         * @param type the type of cells to get
+         * @return a set of cells
+         */
+        private Set<Cell> getCells(Integer type) {
+            TreeSet<Cell> set = new TreeSet<Cell>();
+            for (Map.Entry<Cell,Integer> entry : standardCellMap.entrySet()) {
+                if (entry.getValue() == type)
+                    set.add(entry.getKey());
+            }
+            return set;
+        }
+    }
+
+
 }

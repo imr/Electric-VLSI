@@ -47,6 +47,7 @@ import com.sun.electric.tool.generator.layout.GateLayGenSettings;
 import com.sun.electric.tool.cvspm.CVS;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -129,6 +130,15 @@ public class Tool implements Comparable
         LayerCoverageTool.getLayerCoverageTool().init();
         GateLayGenSettings.tool.init();
         CVS.getCVSTool().init();
+        try {
+            Class<?> staClass = Class.forName("com.sun.electric.plugins.sctiming.RunSTA");
+            if (staClass != null) {
+                Method staInit = staClass.getMethod("staticinit");
+                staInit.invoke(Tool.class);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         
         for (Tool tool: tools.values())
             tool.initProjectSettings();
