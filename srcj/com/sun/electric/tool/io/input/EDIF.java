@@ -34,6 +34,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -63,6 +65,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -159,14 +163,6 @@ public class EDIF extends Input
 		private EDIFPort next;
 	};
 
-	private static class EDIFNetPort
-	{
-//		/** unique node port is attached to */	private NodeInst ni;
-//		/** port type */						private PortProto pp;
-//		/** member for an array */				private int member;
-//		/** next common to a net */				private EDIFNetPort next;
-	}
-
 	private static class VendorType {}
 	private static final VendorType EVUNKNOWN    = new VendorType();
 	private static final VendorType EVCADENCE    = new VendorType();
@@ -199,7 +195,6 @@ public class EDIF extends Input
 	/** the current active instance */			private NodeInst curNode;
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
-//	/** the current (if exists) arc type */		private ArcProto curArcType;
 	/** the cellRef type */						private NodeProto cellRefProto;
 	/** the cellRef tech bits if primitive */	private int cellRefProtoTechBits;
 	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
@@ -270,12 +265,8 @@ public class EDIF extends Input
 	// property data for all objects
 	/** active property list */					private EDIFProperty propertiesListHead;
 
-	// net constructors
-	/** the list of ports on a net */			private EDIFNetPort netPortListHead;
-
 	// view NETLIST layout
 	/** current sheet position */				private int sheetXPos, sheetYPos;
-	/** current position pointers */			private int inPortPos, bidirPortPos;
 
 	/** stack of keywords at this point */		private EDIFKEY [] keyStack = new EDIFKEY[1000];
 	/** depth of keyword stack */				private int keyStackDepth;
@@ -283,7 +274,9 @@ public class EDIF extends Input
     /** Edif equivs for primitives */           private EDIFEquiv equivs;
     /** List of ports in net -> joined list */  private List<PortInst> netPortRefs;  // list of PortInst objects
     /** mapping of renamed objects */			private Map<String,String> renamedObjects;
-    /** mapping of named arcs in a cell */		private Map<String,ArcInst> namedArcs;
+    /** list of offpage nodes in the cell */	private List<NodeInst> offpageNodes;
+    /** list of nodes that were equived */		private Map<String,EDIFEquiv.NodeEquivalence> mappedNodes;
+    /** mapping of named arcs in each cell */	private Map<Cell,Map<String,List<ArcInst>>> namedArcs = new HashMap<Cell,Map<String,List<ArcInst>>>();
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -339,7 +332,6 @@ public class EDIF extends Input
 		KWRITTEN.stateArray = new EDIFKEY [] {KSTATUS};
 
 		// inits
-		netPortListHead = null;
 		propertyValue = null;
 		curPoints = new ArrayList<Point2D>();
 		saveTextPoints = new ArrayList<Point2D>();
@@ -360,7 +352,6 @@ public class EDIF extends Input
 		cellTable = new HashMap<String,NameEntry>();
 		portsListHead = null;
 		propertiesListHead = null;
-		freeNetPorts();
 
 		// active database inits
 		curCell = null;
@@ -504,6 +495,47 @@ public class EDIF extends Input
 				}
 			}
 		}
+
+		// put names on named arcs
+		for(Cell cell : namedArcs.keySet())
+		{
+			Netlist nl = cell.acquireUserNetlist();
+			Map<String,List<ArcInst>> arcsInCell = namedArcs.get(cell);
+			for(String name : arcsInCell.keySet())
+			{
+				List<ArcInst> arcsWithName = arcsInCell.get(name);
+				Collections.sort(arcsWithName, new ArcsByLength());
+				Set<Network> netsNamed = new HashSet<Network>();
+				for(int i=0; i<arcsWithName.size(); i++)
+				{
+					ArcInst ai = arcsWithName.get(i);
+					if (!ai.isLinked()) { arcsWithName.remove(i);   i--;   continue; }
+					Network net = nl.getNetwork(ai, 0);
+					if (netsNamed.contains(net)) { arcsWithName.remove(i);   i--;   continue; }
+					netsNamed.add(net);
+				}
+				for(ArcInst ai : arcsWithName)
+					ai.setName(name);
+			}
+		}
+	}
+
+	/**
+	 * Comparator class for sorting ArcInst by their length.
+	 */
+	private static class ArcsByLength implements Comparator<ArcInst>
+	{
+		/**
+		 * Method to sort ArcInst by their length.
+		 */
+		public int compare(ArcInst a1, ArcInst a2)
+		{
+			double len1 = a1.getHeadLocation().distance(a1.getTailLocation());
+			double len2 = a2.getHeadLocation().distance(a2.getTailLocation());
+			if (len1 == len2) return 0;
+			if (len1 < len2) return 1;
+			return -1;
+		}
 	}
 
 	/**
@@ -561,23 +593,6 @@ public class EDIF extends Input
 	}
 
 	/**************************************** SUPPORT ****************************************/
-
-	/**
-	 * Method to allocate net ports
-	 */
-	private void makeNetPort()
-	{
-		EDIFNetPort netPort = new EDIFNetPort();
-		if (netPortListHead == null) netPortListHead = netPort;
-	}
-
-	/**
-	 * Method to free the netport list
-	 */
-	private void freeNetPorts()
-	{
-		netPortListHead = null;
-	}
 
 	/**
 	 * Method to position to the next token
@@ -815,8 +830,7 @@ public class EDIF extends Input
 	private double convertTextSize(double textHeight)
 	{
 		double i = textHeight / 4;
-        if (i >= 0 && i < 2) i = 2;
-		if (i < 0) i = 4;
+		if (i <= 0) i = 0.5;
 		return i;
 	}
 
@@ -1054,15 +1068,20 @@ public class EDIF extends Input
 	{
 		if (namedArcs != null)
 		{
-			ArcInst otherAi = namedArcs.get(name);
-			if (otherAi != null)
+			Map<String,List<ArcInst>> cellArcNames = namedArcs.get(curCell);
+			if (cellArcNames == null)
 			{
-				if (otherAi.getHeadLocation().distance(otherAi.getTailLocation()) >
-					ai.getHeadLocation().distance(ai.getTailLocation())) return;
+				cellArcNames = new HashMap<String,List<ArcInst>>();
+				namedArcs.put(curCell, cellArcNames);
 			}
-			namedArcs.put(name, ai);
+			List<ArcInst> arcsWithName = cellArcNames.get(name);
+			if (arcsWithName == null)
+			{
+				arcsWithName = new ArrayList<ArcInst>();
+				cellArcNames.put(name, arcsWithName);
+			}
+			arcsWithName.add(ai);
 		}
-//		ai.setName(name);
 	}
 
 	/**
@@ -1167,17 +1186,6 @@ public class EDIF extends Input
 
 			// delete the old arcinst
 			ai.kill();
-			if (namedArcs != null && namedArcs.containsValue(ai))
-			{
-				for(String name : namedArcs.keySet())
-				{
-					if (namedArcs.get(name) == ai)
-					{
-						namedArcs.put(name, ar1);
-						break;
-					}
-				}
-			}
 		}
 
 		return ports;
@@ -1322,25 +1330,6 @@ public class EDIF extends Input
 				builtCells.add(proto);
 			}
 		}
-
-//		// if making schematic, build icon also
-//		if (view.equals("sch"))
-//		{
-//			Cell iconCell = null;
-//			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-//			{
-//				Cell cell = it.next();
-//				if (cell.getName().equalsIgnoreCase(name) &&
-//					cell.getView() == View.ICON) { iconCell = cell;   break; }
-//			}
-//			if (iconCell == null)
-//			{
-//				String icName = name + "{" + view + "}";
-//				iconCell = Cell.makeInstance(curLibrary, icName);
-//				iconCell.setWantExpanded();
-//				builtCells.add(iconCell);
-//			}
-//		}
 		return proto;
 	}
 
@@ -1392,7 +1381,7 @@ public class EDIF extends Input
 	private EDIFKEY KDISPLAY = new KeyDisplay();
 	private EDIFKEY KDOT = new KeyDot();
 	private EDIFKEY KSCALEDINTEGER = new EDIFKEY("e");
-	private EDIFKEY KEDIF = new KeyEDIF();
+	private EDIFKEY KEDIF = new EDIFKEY("edif");
 	private EDIFKEY KEDIFLEVEL = new EDIFKEY("edifLevel");
 	private EDIFKEY KEDIFVERSION = new EDIFKEY("edifVersion");
 	private EDIFKEY KENDTYPE = new KeyEndType();
@@ -1591,7 +1580,9 @@ public class EDIF extends Input
 
             // look for an equivalent primitive
             EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(libraryRef, cellRef, viewRef);
-            if (ne != null && ne.np != null) {
+            if (ne != null && ne.np != null)
+            {
+    			mappedNodes.put(instanceName, ne);
                 cellRefProto = ne.np;
                 cellRefProtoTechBits = 0;
                 cellRefProtoRotation = ne.rotation;
@@ -1768,34 +1759,32 @@ public class EDIF extends Input
 				}
 				if (ePort != null)
 				{
-					// create a internal wire port using the pin-proto, and create the port and export
-					Point2D p0 = curPoints.get(0);
-					double xPos = p0.getX();
-					double yPos = p0.getY();
-					if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-					NodeInst ni = placePin(cellRefProto, xPos, yPos, cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curOrientation, curCell);
-					if (ni == null)
-					{
-						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
-						errorCount++;
-					}
 					String pName = ePort.name;
-					for (int dup = 0; ; dup++)
-					{
-						PortProto ppt = curCell.findPortProto(pName);
-						if (ppt == null) break;
-						pName = ePort.name + "_" + (dup+1);
-					}
-					PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-					Export ppt = makeExport(curCell, pi, pName);
+					Export ppt = (Export)curCell.findPortProto(pName);
 					if (ppt == null)
 					{
-						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
-						errorCount++;
-					} else
-					{
-						// set the direction
-						ppt.setCharacteristic(ePort.direction);
+						// create a internal wire port using the pin-proto, and create the port and export
+						Point2D p0 = curPoints.get(0);
+						double xPos = p0.getX();
+						double yPos = p0.getY();
+						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+						NodeInst ni = placePin(cellRefProto, xPos, yPos, cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curOrientation, curCell);
+						if (ni == null)
+						{
+							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
+							errorCount++;
+						}
+						PortInst pi = ni.findPortInstFromProto(defaultIconPort);
+						ppt = makeExport(curCell, pi, pName);
+						if (ppt == null)
+						{
+							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
+							errorCount++;
+						} else
+						{
+							// set the direction
+							ppt.setCharacteristic(ePort.direction);
+						}
 					}
 				}
 			} else
@@ -1814,16 +1803,6 @@ public class EDIF extends Input
 				}
 			}
 			freePointList();
-		}
-	}
-
-	private class KeyEDIF extends EDIFKEY
-	{
-		private KeyEDIF() { super("edif"); }
-		protected void pop()
-		{
-			// free the netport list
-			freeNetPorts();
 		}
 	}
 
@@ -2167,12 +2146,9 @@ public class EDIF extends Input
 			throws IOException
 		{
 			// create schematic page 1 to represent all I/O for this schematic; locate this in the list of cells
-			curCell = createCell(cellName, "sch");
+			curCell = createCell(cellName, activeView == VGRAPHIC ? "ic" : "sch");
 			if (curCell == null) throw new IOException("Error creating cell");
 			curCellPage = 0;
-
-			// now set the current position in the schematic page
-			inPortPos = bidirPortPos = 0;
 		}
 
 		protected void pop()
@@ -2352,7 +2328,6 @@ public class EDIF extends Input
 			curArc = null;
 			curNode = null;
 			curPort = null;
-			freeNetPorts();
 			isArray = false;
 			arrayXVal = arrayYVal = 1;
 			if (keyStack[keyStackDepth-2] != KNETBUNDLE) curGeometryType = GNET;
@@ -2776,22 +2751,8 @@ public class EDIF extends Input
 
 			double cX = 0, cY = 0;
 			PortProto fPp = defaultInput;
-			if (portsListHead.direction == PortCharacteristic.IN)
-			{
-				cY = inPortPos;
-				inPortPos += INCH;
-			} else if (portsListHead.direction == PortCharacteristic.BIDIR)
-			{
-				cX = 3*INCH;
-				cY = bidirPortPos;
-				bidirPortPos += INCH;
-			} else if (portsListHead.direction == PortCharacteristic.OUT)
-			{
-				cX = 6*INCH;
-				cY = bidirPortPos;
-				bidirPortPos += INCH;
+			if (portsListHead.direction == PortCharacteristic.OUT)
 				fPp = defaultOutput;
-			}
 
 			// now create the off-page reference
 			double psX = Schematics.tech.offpageNode.getDefWidth();
@@ -2804,6 +2765,7 @@ public class EDIF extends Input
 				errorCount++;
 				return;
 			}
+			if (offpageNodes != null) offpageNodes.add(ni);
 
 			// now create the port
 			PortInst pi = ni.findPortInstFromProto(fPp);
@@ -2860,9 +2822,6 @@ public class EDIF extends Input
 			{
 				portReference = objectName;
 			}
-
-			// allocate a netport
-			makeNetPort();
 		}
 
 		protected void pop()
@@ -2943,6 +2902,21 @@ public class EDIF extends Input
 						{
 							alternateName = convertParens(alternateName);
 							pp = ni.getProto().findPortProto(alternateName);
+						}
+						if (pp == null)
+						{
+							EDIFEquiv.NodeEquivalence ne = mappedNodes.get(nodeName);
+							if (ne != null)
+							{
+								for(EDIFEquiv.PortEquivalence pe : ne.portEquivs)
+								{
+									if (pe.getExtPort().name.equals(portReference))
+									{
+										pp = ni.getProto().findPortProto(pe.getElecPort().name);
+										break;
+									}
+								}
+							}
 						}
 						if (pp == null)
 						{
@@ -3322,15 +3296,17 @@ public class EDIF extends Input
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
 						errorCount++;
 					}
-					PortProto ppt = curCell.findPortProto(objectName);
+					String exportName = renamedObjects.get(objectName);
+					if (exportName == null) exportName = objectName;
+					PortProto ppt = curCell.findPortProto(exportName);
 					if (ppt == null)
 					{
 						PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-						ppt = makeExport(curCell, pi, objectName);
+						ppt = makeExport(curCell, pi, exportName);
 					}
 					if (ppt == null)
 					{
-						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + objectName + ">");
+						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + exportName + ">");
 						errorCount++;
 					}
 				}
@@ -3504,20 +3480,21 @@ public class EDIF extends Input
 						double yPos = p0.getY();
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
-						key = "EDIF_annotate";
+						key = Artwork.ART_MESSAGE.getName(); // "EDIF_annotate";
 					}
 					if (ni != null || ai != null)
 					{
                         Variable.Key varKey = Variable.newKey(key);
     					// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
                         double relSize = convertTextSize(textHeight);
+                        boolean thisVisible = false; // textVisible;
 						if (ni != null)
 						{
                             TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - ni.getAnchorCenterX();
 							yOff = p0.getY() - ni.getAnchorCenterY();
-                            td = td.withDisplay(textVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+                            td = td.withDisplay(thisVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
                             ni.newVar(varKey, textString, td);
 						} else
 						{
@@ -3525,32 +3502,9 @@ public class EDIF extends Input
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
 							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
-                            td = td.withDisplay(textVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+                            td = td.withDisplay(thisVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
                             ai.newVar(varKey, textString, td);
 						}
-//						Variable var = null;
-//						if (ni != null)
-//						{
-//                            var = ni.newVar(Variable.newKey(key), textString, textVisible);
-////							if (var != null && textVisible) var.setDisplay(true);
-//							// now set the position, relative to the center of the current object
-//							xOff = p0.getX() - ni.getAnchorCenterX();
-//							yOff = p0.getY() - ni.getAnchorCenterY();
-//						} else
-//						{
-//                            var = ai.newVar(Variable.newKey(key), textString, textVisible);
-////							if (var != null && textVisible) var.setDisplay(true);
-//
-//							// now set the position, relative to the center of the current object
-//							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
-//							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
-//						}
-//
-//						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
-//						var.setOff(xOff, yOff);
-//						var.setRelSize(convertTextSize(textHeight));
-//						var.setPos(textJustification);
-						
 					} else
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": nothing to attach text to");
@@ -3869,7 +3823,8 @@ public class EDIF extends Input
 			throws IOException
 		{
 			activeView = VNULL;
-		    namedArcs = new HashMap<String,ArcInst>();
+			offpageNodes = new ArrayList<NodeInst>();
+			mappedNodes = new HashMap<String,EDIFEquiv.NodeEquivalence>();
 		}
 
 		protected void pop()
@@ -3894,15 +3849,46 @@ public class EDIF extends Input
 				}
 			}
 
-			// put names on named arcs
-			for(String name : namedArcs.keySet())
+			// reorganize the offpage nodes to be in a good place
+			int inCount = 0, outCount = 0, bidirCount = 0;
+			for(NodeInst ni : offpageNodes)
 			{
-				ArcInst ai = namedArcs.get(name);
-				ai.setName(name);
+				if (!ni.hasExports()) continue;
+				Export e = ni.getExports().next();
+				if (e.getCharacteristic() == PortCharacteristic.IN) inCount++; else
+					if (e.getCharacteristic() == PortCharacteristic.BIDIR) bidirCount++; else
+						if (e.getCharacteristic() == PortCharacteristic.OUT) outCount++;
 			}
-			namedArcs = null;
-
+			double inPos = 0, outPos = 0, bidirPos = 0;
+			double bidirOffset = inCount > 0 ? INCH*2 : 0;
+			double outOffset = bidirOffset + (bidirCount > 0 ? INCH*2 : 0);
+			Rectangle2D cellBounds = curCell.getBounds();
+			for(NodeInst ni : offpageNodes)
+			{
+				if (!ni.hasExports()) continue;
+				Export e = ni.getExports().next();
+				double cX = cellBounds.getMaxX() + INCH/2;
+				double cY = cellBounds.getMinY();
+				if (e.getCharacteristic() == PortCharacteristic.IN)
+				{
+					cY += inPos;
+					inPos += INCH/2;
+				} else if (e.getCharacteristic() == PortCharacteristic.BIDIR)
+				{
+					cX += bidirOffset;
+					cY += bidirPos;
+					bidirPos += INCH/2;
+				} else if (e.getCharacteristic() == PortCharacteristic.OUT)
+				{
+					cX += outOffset;
+					cY += outPos;
+					outPos += INCH/2;
+				}
+				ni.modifyInstance(cX-ni.getAnchorCenterX(), cY-ni.getAnchorCenterY(), 0, 0, Orientation.IDENT);
+			}
+			offpageNodes = null;
 			portsListHead = null;
+			mappedNodes = null;
 		}
 	}
 
@@ -3938,6 +3924,7 @@ public class EDIF extends Input
 			else if (aName.equalsIgnoreCase("GRAPHIC"))
 			{
 				activeView = VGRAPHIC;
+				view = "ic";
 			}
 			else if (aName.equalsIgnoreCase("LOGICMODEL")) activeView = VLOGICMODEL;
 			else if (aName.equalsIgnoreCase("MASKLAYOUT"))
