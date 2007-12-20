@@ -494,7 +494,12 @@ public class GenerateVHDL
 					Connection con = cIt.next();
 					PortProto otherPP = con.getPortInst().getPortProto();
 					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
-					if (otherPP == pp)
+					boolean aka = false;
+					if (otherPP instanceof PrimitivePort && pp instanceof PrimitivePort)
+					{
+						if (((PrimitivePort)otherPP).getTopology() == ((PrimitivePort)pp).getTopology()) aka = true;
+					}
+					if (otherPP == pp || aka)
 					{
 						ArcInst ai = con.getArc();
 						if (ai.getProto().getFunction() != ArcProto.Function.NONELEC)
