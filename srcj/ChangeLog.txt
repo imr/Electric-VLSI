@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (12/20/07, RK) Fix NCC regressions. qFourP2 had arc names that depended
+     upon case insensitive matching.
+
 BUG: (12/13/07, SMR) Spice still writes too many "'" wrappers (Bug #1452).
 FIX: In Spice:replacePortsAndVars() to add quotes only if not already in them.
 
