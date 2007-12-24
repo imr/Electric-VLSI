@@ -29,7 +29,6 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.TimedSignal;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.geom.Rectangle2D;
@@ -43,11 +42,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.Vector;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -108,6 +104,19 @@ public class EpicAnalysis extends Analysis {
      * @param currentResolution in amperes ( milliamperes? ).
      */
     void setCurrentResolution(double currentResolution) { this.currentResolution = currentResolution; }
+    
+    double getValueResolution(byte type) {
+        double resolution = 1;
+        switch (type) {
+            case VOLTAGE_TYPE:
+                resolution = voltageResolution;
+                break;
+            case CURRENT_TYPE:
+                resolution = currentResolution;
+                break;
+        }
+        return resolution;
+    }
     
     /**
      * Set simulation time of this EpicAnalysis.
@@ -688,14 +697,9 @@ public class EpicAnalysis extends Analysis {
      */
     static class EpicSignal extends AnalogSignal {
         
-        /**
-         * Physical type of this EpicSignal.
-         */
-        byte type;
-        /**
-         * Chronological index of this EpicSignal.
-         */
-        int index;
+        /** Physical type of this EpicSignal. */        byte type;
+        /** Chronological index of this EpicSignal. */  int index;
+        /** Time/value pairs which define waveform.*/   int[] waveform;
         
         EpicSignal(EpicAnalysis an, byte type, int index) {
             super(an);
@@ -709,6 +713,7 @@ public class EpicAnalysis extends Analysis {
          * instance names of cells farther up the hierarchy, all separated by dots.
          * @param signalContext the context of this simulation signal.
          */
+        @Override
         public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
         
         /**
@@ -718,6 +723,7 @@ public class EpicAnalysis extends Analysis {
          * @return the context of this simulation signal.
          * If there is no context, this returns null.
          */
+        @Override
         public String getSignalContext() { return ((EpicAnalysis)an).makeName(index, false); }
         
         /**
@@ -725,6 +731,7 @@ public class EpicAnalysis extends Analysis {
          * The full name includes the context, if any.
          * @return the full name of this simulation signal.
          */
+        @Override
         public String getFullName() { return ((EpicAnalysis)an).makeName(index, true); }
         
         /**
@@ -734,12 +741,17 @@ public class EpicAnalysis extends Analysis {
          * @param result double array of length 3 to return (time, lowValue, highValue)
          * If this signal is not a basic signal, return 0 and print an error message.
          */
+        @Override
         public void getEvent(int sweep, int index, double[] result) {
             if (sweep != 0)
                 throw new IndexOutOfBoundsException();
-            if (getTimeVector() == null)
+            if (waveform == null)
                 makeData();
-            super.getEvent(sweep, index, result);
+            EpicAnalysis an = (EpicAnalysis)this.an;
+            double time = waveform[index*2] * an.timeResolution;
+            double value = waveform[index*2 + 1] * an.getValueResolution(type);
+            result[0] = time;
+            result[1] = result[2] = value;
         }
         
         /**
@@ -749,42 +761,35 @@ public class EpicAnalysis extends Analysis {
          * @param sweep the sweep number to query.
          * @return the number of events in this signal.
          */
+        @Override
         public int getNumEvents(int sweep) {
             if (sweep != 0)
                 throw new IndexOutOfBoundsException();
-            if (getTimeVector() == null)
+            if (waveform == null)
                 makeData();
-            return super.getNumEvents(0);
+            return waveform.length >> 1;
         }
         
         private void makeData() {
             EpicAnalysis an = (EpicAnalysis)this.an;
-            double resolution = 1;
-            switch (type) {
-                case VOLTAGE_TYPE:
-                    resolution = an.voltageResolution;
-                    break;
-                case CURRENT_TYPE:
-                    resolution = an.currentResolution;
-                    break;
-            }
-            
             int start = an.waveStarts[index];
             int len = an.waveStarts[index + 1] - start;
-            byte[] waveform = new byte[len];
+            byte[] packedWaveform = new byte[len];
             try {
                 an.waveFile.seek(start);
-                an.waveFile.readFully(waveform);
+                an.waveFile.readFully(packedWaveform);
             } catch (IOException e) {
+                waveform = new int[0];
                 buildTime(0);
                 buildValues(0);
                 ActivityLogger.logException(e);
+                return;
             }
             
             int count = 0;
             for (int i = 0; i < len; count++) {
                 int l;
-                int b = waveform[i++] & 0xff;
+                int b = packedWaveform[i++] & 0xff;
                 if (b < 0xC0)
                     l = 0;
                 else if (b < 0xFF)
@@ -792,7 +797,7 @@ public class EpicAnalysis extends Analysis {
                 else
                     l = 4;
                 i += l;
-                b = waveform[i++] & 0xff;
+                b = packedWaveform[i++] & 0xff;
                 if (b < 0xC0)
                     l = 0;
                 else if (b < 0xFF)
@@ -802,15 +807,13 @@ public class EpicAnalysis extends Analysis {
                 i += l;
             }
             
-            buildTime(count);
-            buildValues(count);
             int[] w = new int[count*2];
             count = 0;
             int t = 0;
             int v = 0;
             for (int i = 0; i < len; count++) {
                 int l;
-                int b = waveform[i++] & 0xff;
+                int b = packedWaveform[i++] & 0xff;
                 if (b < 0xC0) {
                     l = 0;
                 } else if (b < 0xFF) {
@@ -820,13 +823,13 @@ public class EpicAnalysis extends Analysis {
                     l = 4;
                 }
                 while (l > 0) {
-                    b = (b << 8) | waveform[i++] & 0xff;
+                    b = (b << 8) | packedWaveform[i++] & 0xff;
                     l--;
                 }
                 t = t + b;
-                setTime(count, t * an.timeResolution);
+                w[count*2] = t;
                 
-                b = waveform[i++] & 0xff;
+                b = packedWaveform[i++] & 0xff;
                 if (b < 0xC0) {
                     l = 0;
                     b -= 0x60;
@@ -837,26 +840,18 @@ public class EpicAnalysis extends Analysis {
                     l = 4;
                 }
                 while (l > 0) {
-                    b = (b << 8) | waveform[i++] & 0xff;
+                    b = (b << 8) | packedWaveform[i++] & 0xff;
                     l--;
                 }
                 v = v + b;
-                setValue(count, v * resolution);
+                w[count*2 + 1] = v;
             }
             assert count*2 == w.length;
         }
         
         void setBounds(int minV, int maxV) {
             EpicAnalysis an = (EpicAnalysis)this.an;
-            double resolution = 1;
-            switch (type) {
-                case VOLTAGE_TYPE:
-                    resolution = an.voltageResolution;
-                    break;
-                case CURRENT_TYPE:
-                    resolution = an.currentResolution;
-                    break;
-            }
+            double resolution = an.getValueResolution(type);
             bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
         }
     }
