@@ -66,7 +66,7 @@ public class Diode
 		ExprEval.DoubleExpr evd = vd.divide(vt).exp(); evd.setName("evd");
 		// cdp = is*(evd-1)
 		ExprEval.DoubleExpr cdp = is.multiply(evd.subtract(ev.newConst(1.0))); cdp.setName("cdp");
-		// gd[ = (is/vt)*evd
+		// gdp = (is/vt)*evd
 		ExprEval.DoubleExpr gdp = is.divide(vt).multiply(evd); gdp.setName("gdp");
 		// arg = vt*(3/e)/vd
 		ExprEval.DoubleExpr arg = vt.multiply(ev.newConst(3.0/Math.E)).divide(vd); arg.setName("arg");

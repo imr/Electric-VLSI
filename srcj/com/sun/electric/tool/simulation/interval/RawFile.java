@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Interval.java
+ * File: RawFile.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -113,7 +113,7 @@ public class RawFile {
 	private void write(String fileName, boolean binaryFormat, ByteOrder byteOrder) {
 		try {
 			DecimalFormat fmt = new DecimalFormat("0.000000000000000000E00");
-			fmt.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
+			fmt.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.ROOT));
 
 			FileOutputStream outStream = new FileOutputStream(fileName);
 			PrintWriter FILE = new PrintWriter(outStream);
