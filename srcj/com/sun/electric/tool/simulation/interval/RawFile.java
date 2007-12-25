@@ -113,7 +113,7 @@ public class RawFile {
 	private void write(String fileName, boolean binaryFormat, ByteOrder byteOrder) {
 		try {
 			DecimalFormat fmt = new DecimalFormat("0.000000000000000000E00");
-			fmt.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.ROOT));
+			fmt.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
 
 			FileOutputStream outStream = new FileOutputStream(fileName);
 			PrintWriter FILE = new PrintWriter(outStream);
