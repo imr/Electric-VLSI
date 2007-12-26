@@ -45,7 +45,7 @@ public class UnivariateBigPolynomial {
      * A constant holding minimal positive normalized double number.
      */
     private static final double MIN_NORMAL = Double.MIN_VALUE*(1L << 52); // 0x1.0p-1022;
-    private static final long HIDDEN_MANTISSA_BIT = Double.doubleToLongBits(Double.MIN_NORMAL);
+    private static final long HIDDEN_MANTISSA_BIT = Double.doubleToLongBits(MIN_NORMAL);
     private static final int MANTISSA_SIZE = Long.numberOfTrailingZeros(HIDDEN_MANTISSA_BIT);
     private static final long MANTISSA_MASK = HIDDEN_MANTISSA_BIT - 1;
     
