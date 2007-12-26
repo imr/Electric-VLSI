@@ -27,8 +27,8 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -70,9 +70,10 @@ public class SmartSpiceOut extends Simulate
 	{
 		boolean first = true;
 		int signalCount = -1;
-		AnalogSignal [] allSignals = null;
+        String[] signalNames = null;
 		int rowCount = -1;
-		Analysis an = null;
+		AnalogAnalysis an = null;
+        double[][] values = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -120,9 +121,10 @@ public class SmartSpiceOut extends Simulate
 					return null;
 				}
 				Stimuli sd = new Stimuli();
-				an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 				sd.setCell(cell);
-				allSignals = new AnalogSignal[signalCount];
+                signalNames = new String[signalCount];
+                values = new double[signalCount][rowCount];
 				for(int i=0; i<=signalCount; i++)
 				{
 					if (i != 0)
@@ -150,17 +152,7 @@ public class SmartSpiceOut extends Simulate
 							System.out.println("Warning: the first variable (the sweep variable) should be time, is '" + name + "'");
 					} else
 					{
-						AnalogSignal as = new AnalogSignal(an);
-						int lastDotPos = name.lastIndexOf('.');
-						if (lastDotPos >= 0)
-						{
-							as.setSignalContext(name.substring(0, lastDotPos));
-							as.setSignalName(name.substring(lastDotPos+1));
-						} else
-						{
-							as.setSignalName(name);
-						}
-						allSignals[i-1] = as;
+                        signalNames[i - 1] = name;
 					}
 				}
 				continue;
@@ -178,8 +170,6 @@ public class SmartSpiceOut extends Simulate
 					return null;
 				}
 				an.buildCommonTime(rowCount);
-				for(int i=0; i<signalCount; i++)
-					allSignals[i].buildValues(rowCount);
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
@@ -200,7 +190,7 @@ public class SmartSpiceOut extends Simulate
 						line = getLineFromBinary();
 						if (line == null) break;
 						double value = TextUtils.atof(line.trim());
-						allSignals[i].setValue(j, value);
+						values[i][j] = value;
 					}
 				}
 			}
@@ -217,8 +207,6 @@ public class SmartSpiceOut extends Simulate
 					return null;
 				}
 				an.buildCommonTime(rowCount);
-				for(int i=0; i<signalCount; i++)
-					allSignals[i].buildValues(rowCount);
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
@@ -240,12 +228,23 @@ public class SmartSpiceOut extends Simulate
                             // do smartspice output files on other OS's have this byte order?
                             value = dataInputStream.readDouble();
                         }
-						allSignals[i].setValue(j, value);
+						values[i][j] = value;
                         //System.out.println("Read["+i+"]\t"+value);
 					}
 				}
 			}
 		}
+        for (int i = 0; i < signalCount; i++) {
+            String name = signalNames[i];
+            int lastDotPos = name.lastIndexOf('.');
+            String context = null;
+            if (lastDotPos >= 0) {
+                context = name.substring(0, lastDotPos);
+                name = name.substring(lastDotPos + 1);
+            }
+            AnalogSignal as = an.addSignal(signalNames[i], values[i]);
+            as.setSignalContext(context);
+        }
 		return an.getStimuli();
 	}
 }

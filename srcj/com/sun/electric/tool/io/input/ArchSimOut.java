@@ -27,7 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -103,7 +102,7 @@ public class ArchSimOut extends Simulate
 
 		// make a data structure for it
 		Stimuli sd = new Stimuli();
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		DigitalAnalysis an = new DigitalAnalysis(sd);
 		sd.setCell(cell);
 		for(String signalName : symbolTable.keySet())
 		{

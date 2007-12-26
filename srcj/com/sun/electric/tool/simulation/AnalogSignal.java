@@ -28,81 +28,44 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define an analog signal in the simulation waveform window.
  */
-public class AnalogSignal extends TimedSignal
+public class AnalogSignal extends Signal
 {
-	/** the array of values on this signal */		private double [] values;
-
-	/**
-	 * Constructor for an analog signal.
-	 * @param an the Analysis object in which this signal will reside.
-	 */
-	public AnalogSignal(Analysis an)
-	{
-		super(an);
-	}
-
-    public void finished()
-    {
-        values = null;
-    }
-
-	/**
-	 * Method to initialize this as a basic simulation signal with a specified number of events.
-	 * Allocates an array to hold those events.
-	 * @param numEvents the number of events in this signal.
-	 */
-	public void buildValues(int numEvents)
-	{
-		values = new double[numEvents];
-	}
-
-	/**
-	 * Method to set the value of this signal at a given event index.
-	 * @param index the event index (0-based).
-	 * @param value the value to set at the given event index.
-	 * If this signal is not a basic signal, print an error message.
-	 */
-	public void setValue(int index, double value)
-	{
-		values[index] = value;
-		bounds = null;
-	}
-
-	/**
-	 * Method to return the value of this signal at a given event index.
-     * @param sweep sweep index
-	 * @param index the event index (0-based).
-     * @param result double array of length 3 to return (time, lowValue, highValue)
-	 * If this signal is not a basic signal, return 0 and print an error message.
-	 */
-    public void getEvent(int sweep, int index, double[] result) {
-        if (sweep != 0)
-            throw new IndexOutOfBoundsException();
-        result[0] = getTime(index);
-        result[1] = result[2] = values[index];
-    }
+	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
+    /** index of this signal in its AnalogAnalysis */                   private final int index;
     
 	/**
-	 * Method to return the number of events in this signal.
-	 * This is the number of events along the horizontal axis, usually "time".
-	 * @return the number of events in this signal.
+	 * Constructor for an analog signal.
+	 * @param an the AnalogAnalysis object in which this signal will reside.
 	 */
-	public int getNumEvents() { return getNumEvents(0); }
-
-	/**
-	 * Method to return the number of events in one sweep of this signal.
-	 * This is the number of events along the horizontal axis, usually "time".
-	 * The method only works for sweep signals.
-	 * @param sweep the sweep number to query.
-	 * @return the number of events in this signal.
-	 */
-	public int getNumEvents(int sweep)
+	protected AnalogSignal(AnalogAnalysis an)
 	{
-        if (sweep != 0)
-            throw new IndexOutOfBoundsException();
-        return values.length;
+        this.an = an;
+        index = an.getSignals().size();
+		an.addSignal(this);
 	}
 
+	/**
+	 * Method to return the AnalogAnalysis in which this signal resides.
+	 * @return the AnalogAnalysis in which this signal resides.
+	 */
+    @Override
+	public AnalogAnalysis getAnalysis() { return an; }
+    
+	/**
+	 * Method to return the index of this AnalogSignal in its AnalogAnalysis.
+	 * @return the index of this AnalogSignal in its AnalogAnalysis.
+	 */
+	public int getIndexInAnalysis() { return index; }
+    
+	/**
+	 * Method to return the waveform of this signal in specified sweep.
+     * @param sweep sweep index
+     * @return the waveform of this signal in specified sweep.
+	 */
+    public Waveform getWaveform(int sweep) {
+        return an.getWaveform(this, sweep);
+    }
+    
 	/**
 	 * Method to return the number of sweeps in this signal.
 	 * @return the number of sweeps in this signal.
@@ -110,7 +73,7 @@ public class AnalogSignal extends TimedSignal
 	 */
 	public int getNumSweeps()
 	{
-		return 1;
+		return an.getNumSweeps();
 	}
 
 	/**
@@ -124,9 +87,10 @@ public class AnalogSignal extends TimedSignal
 		boolean first = true;
         double[] result = new double[3];
         for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++) {
-			for(int i=0, numEvents=getNumEvents(sweep); i<numEvents; i++)
+            Waveform waveform = getWaveform(sweep);
+			for(int i=0, numEvents = waveform.getNumEvents(); i<numEvents; i++)
 			{
-                getEvent(sweep, i, result);
+                waveform.getEvent(i, result);
 				double time = result[0];
 				double lowVal = result[1];
 				double highVal = result[2];

@@ -49,13 +49,14 @@ import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.TimedSignal;
+import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -1725,10 +1726,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-			int maxNum = an.getNumSweeps();
+            if (!(an instanceof AnalogAnalysis)) continue;
+            AnalogAnalysis aa = (AnalogAnalysis)an;
+			int maxNum = aa.getNumSweeps();
+            if (maxNum <= 1) continue;
 			for (int i = 0; i < maxNum; i++)
 			{
-				Object obj = an.getSweep(i);
+				Object obj = aa.getSweep(i);
 				new SweepSignal(obj, this, an);
 			}
 		}
@@ -1755,7 +1759,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to check whether this particular sweep is included.
 	 * @return true if the sweep is included
 	 */
-	public boolean isSweepSignalIncluded(Analysis an, int index)
+	public boolean isSweepSignalIncluded(AnalogAnalysis an, int index)
 	{
 		Object sweep = an.getSweep(index);
 		for (SweepSignal ss : sweepSignals)
@@ -2096,7 +2100,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		char separatorChar = sd.getSeparatorChar();
 		for(Signal sSig : signals)
 		{
-			if (!(sSig instanceof TimedSignal)) continue;
+//			if (!(sSig instanceof TimedSignal)) continue;
 			if (sSig.getSignalContext() != null)
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
@@ -2105,7 +2109,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Set<String> sharpSet = new HashSet<String>();
 		for(Signal sSig : signals)
 		{
-			if (!(sSig instanceof TimedSignal)) continue;
+//			if (!(sSig instanceof TimedSignal)) continue;
 			String sigName = sSig.getSignalName();
 			int hashPos = sigName.indexOf('#');
 			if (hashPos > 0)
@@ -2120,7 +2124,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// add all signals to the tree
 		for(Signal sSig : signals)
 		{
-			if (!(sSig instanceof TimedSignal)) continue;
+//			if (!(sSig instanceof TimedSignal)) continue;
 			TreePath thisTree = analysisPath;
 
 			String nodeName = sSig.getSignalContext();
@@ -2208,7 +2212,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* SIGNALS *************************************
 
-	private Signal findSignal(String name, Analysis an)
+	private Signal findSignal(String name, Analysis<Signal> an)
 	{
 		for(Signal sSig : an.getSignals())
 		{
@@ -3067,7 +3071,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				List<Signal> bussedSignals = ds.getBussedSignals();
+				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
@@ -3230,7 +3234,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			panelList.add(wp);
 		for(Panel wp : panelList)
 		{
-			Analysis an = sd.findAnalysis(wp.getAnalysisType());
+			Analysis<Signal> an = sd.findAnalysis(wp.getAnalysisType());
 			boolean redoPanel = false;
 
 			// adjust the panel's X axis signal (if it is not time)
@@ -3267,19 +3271,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal ss = ws.getSignal();
-				if (ss.getBussedSignals() != null)
+				if (ss instanceof DigitalSignal && ((DigitalSignal)ss).getBussedSignals() != null)
 				{
-					List<Signal> inBus = ss.getBussedSignals();
+					List<DigitalSignal> inBus = ((DigitalSignal)ss).getBussedSignals();
 					for(int b=0; b<inBus.size(); b++)
 					{
-						Signal subDS = inBus.get(b);
+						DigitalSignal subDS = inBus.get(b);
 						String oldSigName = subDS.getFullName();
-						Signal newBus = null;
+						DigitalSignal newBus = null;
 						for(Signal newSs :  an.getSignals() )
 						{
 							String newSigName = newSs.getFullName();
 							if (!newSigName.equals(oldSigName)) continue;
-							newBus = newSs;
+							newBus = (DigitalSignal)newSs;
 							break;
 						}
 						if (newBus == null)
@@ -3316,8 +3320,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				redoPanel = false;
 				for(WaveSignal ws : wp.getSignals())
 				{
-					if (ws.getSignal() == null ||
-						(ws.getSignal().getBussedSignals() != null && ws.getSignal().getBussedSignals().size() == 0))
+                    Signal s = ws.getSignal();
+					if (s == null ||
+						(s instanceof DigitalSignal &&
+                        ((DigitalSignal)s).getBussedSignals() != null &&
+                        ((DigitalSignal)s).getBussedSignals().size() == 0))
 					{
 						redoPanel = true;
                         if (wp.getSignalButtons() != null)
@@ -3374,34 +3381,35 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			List<Signal> dumpSignals = new ArrayList<Signal>();
 			List<Integer> dumpSweeps = new ArrayList<Integer>();
+            List<Waveform> dumpWaveforms = new ArrayList<Waveform>();
 			for(Panel wp : ww.wavePanels)
 			{
 				if (wp.isHidden()) continue;
 				Signal signalInX = ww.xAxisSignalAll;
 				if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
-				if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps);
+				if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 				for(WaveSignal ws : wp.getSignals())
 				{
 					Signal sig = ws.getSignal();
 					if (sig instanceof AnalogSignal)
 					{
 						AnalogSignal as = (AnalogSignal)sig;
-		                Analysis an = as.getAnalysis();
+		                AnalogAnalysis an = as.getAnalysis();
 		                int numSweeps = as.getNumSweeps();
 		                if (numSweeps <= 1)
 		                {
-		                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
+		                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 		                } else
 		                {
 			                for (int s = 0; s < numSweeps; s++)
 							{
 			                    if (!ww.isSweepSignalIncluded(an, s)) continue;
-			                    addSignalSweep(sig, s, dumpSignals, dumpSweeps);
+			                    addSignalSweep(sig, s, dumpSignals, dumpSweeps, dumpWaveforms);
 							}
 		                }
 					} else
 					{
-	                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
+	                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 					}
 				}
 			}
@@ -3415,7 +3423,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				int s = dumpSweeps.get(i-1).intValue();
 				if (s >= 0)
 				{
-					Analysis an = sig.getAnalysis();
+					AnalogAnalysis an = (AnalogAnalysis)sig.getAnalysis();
 					Object sweepObj = an.getSweep(s);
 					entries[i] += "/S=" + sweepObj;
 				}
@@ -3438,12 +3446,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Signal sig = dumpSignals.get(i-1);
 					if (sig instanceof AnalogSignal)
 					{
-						AnalogSignal as = (AnalogSignal)sig;
-						int s = dumpSweeps.get(i-1).intValue();
-						if (s < 0) s = 0;
-						if (j < as.getNumEvents(s))
+                        Waveform waveform = dumpWaveforms.get(i - 1);
+						if (j < waveform.getNumEvents())
 						{
-							as.getEvent(s, j, result);
+							waveform.getEvent(j, result);
 							if (entries[0] == null) entries[0] = "" + result[0];
 							entries[i] = "" + result[1];
 							haveData = true;
@@ -3477,7 +3483,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		System.out.println("Wrote " + configurationFileName);
 	}
 
-	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps)
+	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps, List<Waveform> waveforms)
 	{
 		for(int i=0; i<dumpSignals.size(); i++)
 		{
@@ -3485,6 +3491,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		dumpSignals.add(sig);
 		dumpSweeps.add(new Integer(s));
+        Waveform waveform = null;
+        if (sig instanceof AnalogSignal)
+            waveform = ((AnalogSignal)sig).getWaveform(s == -1 ? 0 : s);
+        waveforms.add(waveform);
 	}
 
 	/**

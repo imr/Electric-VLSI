@@ -800,7 +800,7 @@ public class Simulation extends Tool
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
 			List<Signal> allSignals = an.getSignals();
-			makeBussedSignals(an);
+			makeBussedSignals((DigitalAnalysis)an);
 			for(int i=0; i<allSignals.size(); i++)
 			{
 				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
@@ -818,9 +818,9 @@ public class Simulation extends Tool
 		ww.fillScreen();
 	}
 
-	private static void makeBussedSignals(Analysis an)
+	private static void makeBussedSignals(DigitalAnalysis an)
 	{
-		List<Signal> signals = an.getSignals();
+		List<DigitalSignal> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
 			Signal sSig = signals.get(i);
@@ -859,7 +859,7 @@ public class Simulation extends Tool
 			busSig.buildBussedSignalList();
 			for(int k=i; k<j; k++)
 			{
-				Signal subSig = signals.get(k);
+				DigitalSignal subSig = signals.get(k);
 				busSig.addToBussedSignalList(subSig);
 			}
 			i = j - 1;

@@ -24,48 +24,28 @@
 package com.sun.electric.tool.simulation;
 
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Class to define the basic parts of a signal in the simulation waveform window.
  * This is a superclass for specific signal types: Measurement and TimedSignal
  * (which has under it DigitalSignal and AnalogSignal).
  */
-public class Signal
+public abstract class Signal
 {
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
-	/** the Analysis object in which this Signal resides. */		protected Analysis an;
-	/** a list of signals on this bussed signal */					private List<Signal> bussedSignals;
-	/** the number of busses that reference this signal */			private int busCount;
 	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
-
-	/**
-	 * Constructor for a simulation signal.
-	 * @param an the Simulation Data object in which this signal will reside.
-	 */
-	protected Signal(Analysis an)
-	{
-		this.an = an;
-		bounds = null;
-		busCount = 0;
-		if (an != null) an.addSignal(this);
-	}
 
     public void finished()
     {
         System.out.println("Signal finish");
-        for (Signal s : bussedSignals)
-            s.finished();
-        bussedSignals.clear();
     }
 
 	/**
 	 * Method to return the Analysis in which this signal resides.
 	 * @return the Analysis in which this signal resides.
 	 */
-	public Analysis getAnalysis() { return an; }
+	public abstract Analysis getAnalysis();
 
 	/**
 	 * Method to set the name of this simulation signal.
@@ -75,7 +55,7 @@ public class Signal
 	public void setSignalName(String signalName)
 	{
 		this.signalName = signalName;
-		an.nameSignal(this, getFullName());
+		getAnalysis().nameSignal(this, getFullName());
 	}
 
 	/**
@@ -109,52 +89,9 @@ public class Signal
 	 */
 	public String getFullName()
 	{
-		if (signalContext != null) return signalContext + an.getStimuli().getSeparatorChar() + signalName;
+		if (signalContext != null) return signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName;
 		return signalName;
 	}
-
-	/**
-	 * Method to request that this signal be a bus.
-	 * Builds the necessary data structures to hold bus information.
-	 */
-	public void buildBussedSignalList()
-	{
-		bussedSignals = new ArrayList<Signal>();
-		an.getBussedSignals().add(this);
-	}
-
-	/**
-	 * Method to return a List of signals on this bus signal.
-	 * Each entry in the List points to another simulation signal that is on this bus.
-	 * @return a List of signals on this bus signal.
-	 */
-	public List<Signal> getBussedSignals() { return bussedSignals; }
-
-	/**
-	 * Method to request that this bussed signal be cleared of all signals on it.
-	 */
-	public void clearBussedSignalList()
-	{
-		for(Signal sig : bussedSignals)
-			sig.busCount--;
-		bussedSignals.clear();
-	}
-
-	/**
-	 * Method to add a signal to this bus signal.
-	 * @param ws a single-wire signal to be added to this bus signal.
-	 */
-	public void addToBussedSignalList(Signal ws)
-	{
-		bussedSignals.add(ws);
-		ws.busCount++;
-	}
-
-	/**
-	 * Method to tell whether this signal is part of a bus.
-	 * @return true if this signal is part of a bus.
-	 */
-	public boolean isInBus() { return busCount != 0; }
 
 	/**
 	 * Method to return a list of control points associated with this signal.
@@ -166,7 +103,7 @@ public class Signal
 	 * @return an array of times where there are control points.
 	 * Null if no control points are defined.
 	 */
-	public Double [] getControlPoints() { return an.getStimuli().getControlPoints(this); }
+	public Double [] getControlPoints() { return getAnalysis().getStimuli().getControlPoints(this); }
 
 	/**
 	 * Method to clear the list of control points associated with this signal.
@@ -176,7 +113,7 @@ public class Signal
 	 * too much memory for such little-used information.
 	 * Instead, the control point data is stored in HashMaps on the Stimuli.
 	 */
-	public void clearControlPoints() { an.getStimuli().clearControlPoints(this); }
+	public void clearControlPoints() { getAnalysis().getStimuli().clearControlPoints(this); }
 
 	/**
 	 * Method to add a new control point to the list on this signal.
@@ -189,7 +126,7 @@ public class Signal
 	 */
 	public void addControlPoint(double time)
 	{
-		an.getStimuli().addControlPoint(this, time);
+		getAnalysis().getStimuli().addControlPoint(this, time);
 	}
 
 	/**
@@ -203,16 +140,8 @@ public class Signal
 	 */
 	public void removeControlPoint(double time)
 	{
-		an.getStimuli().removeControlPoint(this, time);
+		getAnalysis().getStimuli().removeControlPoint(this, time);
 	}
-
-	/**
-	 * Method to return the number of events in this signal.
-	 * This is the number of events along the horizontal axis, usually "time".
-	 * This superclass method must be overridden by a subclass that actually has data.
-	 * @return the number of events in this signal.
-	 */
-	public int getNumEvents() { return 0; }
 
 	/**
 	 * Method to compute the time and value bounds of this simulation signal.

@@ -27,7 +27,7 @@ import com.sun.electric.Launcher;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -175,7 +174,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
         an.initSignals();
-        List<Signal> signals = an.getSignals();
+        List<AnalogSignal> signals = an.getSignals();
         assert numSignals == signals.size();
         an.waveStarts = new int[numSignals + 1];
         int start = 0;

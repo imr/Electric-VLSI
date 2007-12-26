@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (12/26/07, DN) Ploting of .ac0 (ac analysis ) not working properly (Bug #1522).
+FIX: Refactor simulation code so that it handles complex waveforms.
+     Only amplitude plot is shown. Phase information is available internally,
+     but GUI is still to be changed to show it.
+
 IMP: (12/20/07, RK) Fix NCC regressions. qFourP2 had arc names that depended
      upon case insensitive matching.
 

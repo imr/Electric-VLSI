@@ -27,8 +27,8 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -80,9 +80,9 @@ public class PSpiceOut extends Simulate
 		boolean first = true;
 //		boolean knows = false;
 		Stimuli sd = new Stimuli();
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
-		AnalogSignal [] signals = null;
+		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;
 		int numSignals = 0;
 		for(;;)
@@ -107,7 +107,6 @@ public class PSpiceOut extends Simulate
 
 				// parse the signal names on the first line
 				int ptr = 0;
-				List<String> signalNames = new ArrayList<String>();
 				for(;;)
 				{
 					while (ptr < line.length() && Character.isWhitespace(line.charAt(ptr))) ptr++;
@@ -117,17 +116,9 @@ public class PSpiceOut extends Simulate
 					signalNames.add(line.substring(start, ptr));
 				}
 				numSignals = signalNames.size();
-				signals = new AnalogSignal[numSignals-1];
 				values = new List[numSignals];
 				for(int i=0; i<numSignals; i++)
-				{
-					if (i != 0)
-					{
-						signals[i-1] = new AnalogSignal(an);
-						signals[i-1].setSignalName(signalNames.get(i));
-					}
 					values[i] = new ArrayList<Double>();
-				}
 				continue;
 			}
 
@@ -179,12 +170,10 @@ public class PSpiceOut extends Simulate
 		}
 		for(int j=1; j<numSignals; j++)
 		{
-			AnalogSignal as = signals[j-1];
-			as.buildValues(numEvents);
+            double[] doubleValues = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
-			{
-				as.setValue(i, values[j].get(i).doubleValue());
-			}
+				doubleValues[i] = values[j].get(i).doubleValue();
+			an.addSignal(signalNames.get(j), doubleValues);
 		}
 		return sd;
 	}

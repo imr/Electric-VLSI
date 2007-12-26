@@ -27,10 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
@@ -73,9 +72,10 @@ public class RawSpiceOut extends Simulate
 		int numSignals = -1;
 		int eventCount = -1;
 		Stimuli sd = new Stimuli();
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
-		AnalogSignal [] signals = null;
+        String[] signalNames = null;
+        double[][] values = null;
 		for(;;)
 		{
 			String line = getLineFromSimulator();
@@ -111,11 +111,6 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Variables"))
 			{
 				numSignals = TextUtils.atoi(postColon) - 1;
-				signals = new AnalogSignal[numSignals];
-				for(int i=0; i<numSignals; i++)
-				{
-					signals[i] = new AnalogSignal(an);
-				}
 				continue;
 			}
 
@@ -123,8 +118,6 @@ public class RawSpiceOut extends Simulate
 			{
 				eventCount = TextUtils.atoi(postColon);
 				an.buildCommonTime(eventCount);
-				for(int i=0; i<numSignals; i++)
-					signals[i].buildValues(eventCount);
 				continue;
 			}
 
@@ -135,6 +128,8 @@ public class RawSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
+                signalNames = new String[numSignals];
+                values = new double[numSignals][eventCount];
 				for(int i=0; i<=numSignals; i++)
 				{
 					line = getLineFromSimulator();
@@ -161,7 +156,7 @@ public class RawSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						signals[i-1].setSignalName(name);
+						signalNames[i-1] = name;
 					}
 				}
 				continue;
@@ -199,7 +194,7 @@ public class RawSpiceOut extends Simulate
 						}
 						line = line.trim();
 						if (i == 0) an.setCommonTime(j, TextUtils.atof(line)); else
-							signals[i-1].setValue(j, TextUtils.atof(line));
+							values[i-1][j] = TextUtils.atof(line);
 					}
 				}
 			}
@@ -221,12 +216,14 @@ public class RawSpiceOut extends Simulate
 				{
 					an.setCommonTime(j, dataInputStream.readDouble());
 					for(int i=0; i<numSignals; i++)
-						signals[i].setValue(j, dataInputStream.readDouble());
+						values[i][j] = dataInputStream.readDouble();
 				}
 			}
 		}
 
-		return sd;
+        for (int i = 0; i < numSignals; i++)
+            an.addSignal(signalNames[i], values[i]);
+      	return sd;
 	}
 
 }

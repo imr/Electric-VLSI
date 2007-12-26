@@ -27,8 +27,8 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -181,7 +181,7 @@ public class SpiceOut extends Simulate
 		}
 
 		Stimuli sd = new Stimuli();
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
 
 		// convert lists to arrays
@@ -194,14 +194,13 @@ public class SpiceOut extends Simulate
 		}
 		for(int j=0; j<mostSignals; j++)
 		{
-			AnalogSignal as = new AnalogSignal(an);
-			as.setSignalName("Signal " + (j+1));
-			as.buildValues(numEvents);
+            double[] values = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
 			{
 				List<Double> row = allNumbers.get(i);
-				as.setValue(i, row.get(j+1).doubleValue());
+                values[i] = row.get(j+1).doubleValue();
 			}
+			an.addSignal("Signal " + (j+1), values);
 		}
 		return sd;
 	}

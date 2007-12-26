@@ -37,7 +37,7 @@ import java.util.List;
  * It includes the labels and values.
  * It can handle digital, analog, and many variations (intervals, sweeps).
  */
-public class Analysis
+public abstract class Analysis<S extends Signal>
 {
 	public static class AnalysisType
 	{
@@ -69,26 +69,14 @@ public class Analysis
 
 	/** the Stimuli in which this Analysis resides */			private Stimuli sd;
 	/** the type of analysis data here */						private AnalysisType type;
-	/** a list of all signals in this Analysis */				private List<Signal> signals;
-	/** a map of all signal names in this Analysis */			private HashMap<String,Signal> signalNames;
-	/** a list of all bussed signals in this Analysis */		private List<Signal> allBussedSignals;
-	/** all sweeps in this Analysis */							private List<Object> sweeps;
-	/** the common time array (if there is common time) */		private double [] commonTime;
-	/** a list of time arrays for each sweep */					private List<double[]> sweepCommonTime;
+	/** a list of all signals in this Analysis */				private List<S> signals = new ArrayList<S>();
+	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
 	/** the range of values in this Analysis */					private Rectangle2D bounds;
 
 	public Analysis(Stimuli sd, AnalysisType type)
 	{
 		this.sd = sd;
 		this.type = type;
-		signals = new ArrayList<Signal>();
-		signalNames = new HashMap<String,Signal>();
-		allBussedSignals = new ArrayList<Signal>();
-		if (type != ANALYSIS_MEAS)
-		{
-			sweeps = new ArrayList<Object>();
-			sweepCommonTime = new ArrayList<double[]>();
-		}
 		sd.addAnalysis(this);
 	}
 
@@ -97,13 +85,9 @@ public class Analysis
      */
     public void finished()
     {
-        for (Signal s : signals)
+        for (S s : signals)
             s.finished();
         signals.clear();
-        for (Signal s : allBussedSignals)
-            s.finished();
-        if (sweeps != null) sweeps.clear();
-        if (sweepCommonTime != null) sweepCommonTime.clear();
         signalNames.clear();
     }
     
@@ -130,15 +114,9 @@ public class Analysis
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
-	public List<Signal> getSignals() { return signals; }
+	public List<S> getSignals() { return signals; }
 
-	/**
-	 * Method to get the list of bussed signals in this Simulation Data object.
-	 * @return a List of signals.
-	 */
-	public List<Signal> getBussedSignals() { return allBussedSignals; }
-
-	public void nameSignal(Signal ws, String sigName)
+	public void nameSignal(S ws, String sigName)
 	{
 		String name = TextUtils.canonicString(sigName);
 		signalNames.put(name, ws);
@@ -154,108 +132,13 @@ public class Analysis
 	 * @param ws the signal to add.
 	 * Instead of a "Signal", use either DigitalSignal or AnalogSignal.
 	 */
-	public void addSignal(Signal ws)
+	public void addSignal(S ws)
 	{
 		signals.add(ws);
 		String sigName = ws.getFullName();
 		if (sigName != null) nameSignal(ws, sigName);
 		setBoundsDirty();
 	}
-
-	/**
-	 * Method to construct an array of time values that are common to all signals.
-	 * Some simulation data has all of its stimuli at the same time interval for every signal.
-	 * To save space, such data can use a common time array, kept in the Simulation Data.
-	 * If a signal wants to use its own time values, that can be done by placing the time
-	 * array in the signal.
-	 * @param numEvents the number of time events in the common time array.
-	 */
-	public void buildCommonTime(int numEvents)
-	{
-		commonTime = new double[numEvents];
-	}
-
-	/**
-	 * Method to construct an array of time values that are common to all signals, but different
-	 * for the next sweep.
-	 * This method must be called in the order of sweeps.
-	 * Some simulation data has all of its stimuli at the same time interval for every signal.
-	 * To save space, such data can use a common time array, kept in the Simulation Data.
-	 * If a signal wants to use its own time values, that can be done by placing the time
-	 * array in the signal.
-	 * @param numEvents the number of time events in the common time array.
-	 */
-	public void addCommonTime(int numEvents)
-	{
-		double [] sct = new double[numEvents];
-		sweepCommonTime.add(sct);
-		setBoundsDirty();
-	}
-
-	/**
-	 * Method to load an entry in the common time array.
-	 * @param index the entry number.
-	 * @param time the time value at
-	 */
-	public void setCommonTime(int index, double time)
-	{
-		commonTime[index] = time;
-		setBoundsDirty();
-	}
-
-	/**
-	 * Method to get the array of time entries for this signal.
-	 * @return the array of time entries for this signal.
-	 */
-	public double [] getCommonTimeArray() { return commonTime; }
-
-	/**
-	 * Method to load an entry in the common time array for a particular sweep.
-	 * @param index the entry number.
-	 * @param sweep the sweep number.
-	 * @param time the time value at
-	 */
-	public void setCommonTime(int index, int sweep, double time)
-	{
-		double [] sct = sweepCommonTime.get(sweep);
-		sct[index] = time;
-		setBoundsDirty();
-	}
-
-	/**
-	 * Method to get the array of time entries for a sweep on this signal.
-	 * @param sweep the sweep number.
-	 * @return the array of time entries for a sweep on this signal.
-	 */
-	public double [] getCommonTimeArray(int sweep) { return sweepCommonTime.get(sweep); }
-
-	/**
-	 * Method to add information about another sweep in this simulation data.
-	 * @param obj sweep information (typically a Double).
-	 */
-	public void addSweep(Object obj)
-	{
-		sweeps.add(obj);
-		setBoundsDirty();
-	}
-
-	/**
-	 * Method to return the number of sweep objects in this simulation data.
-	 * @return number of sweep objects in this simulation data.
-	 * If there is no sweep information, the list is empty.
-	 */
-	public int getNumSweeps() { return (sweeps != null) ? sweeps.size() : 0; }
-
-    /**
-     * Method to return sweep object in a given position.
-     * @param i the position to get.
-     * @return the sweep object for that position.
-     */
-    public Object getSweep(int i)
-    {
-        if (sweeps == null || sweeps.size() == 0) return null;
-        return sweeps.get(i);
-    }
 
 	/**
 	 * Method to compute the time and value bounds of this simulation data.
@@ -288,15 +171,7 @@ public class Analysis
 	 * Method to tell whether this simulation data is analog or digital.
 	 * @return true if this simulation data is analog.
 	 */
-	public boolean isAnalog()
-	{
-		if (getSignals().size() > 0)
-		{
-			TimedSignal sSig = (TimedSignal)getSignals().get(0);
-			if (sSig instanceof AnalogSignal) return true;
-		}
-		return false;
-	}
+	public abstract boolean isAnalog();
 
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.
@@ -306,10 +181,10 @@ public class Analysis
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-	public Signal findSignalForNetworkQuickly(String netName)
+	public S findSignalForNetworkQuickly(String netName)
 	{
 		String lookupName = TextUtils.canonicString(netName);
-		Signal sSig = signalNames.get(lookupName);
+		S sSig = signalNames.get(lookupName);
 		return sSig;
 	}
 
@@ -319,12 +194,12 @@ public class Analysis
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-	public Signal findSignalForNetwork(String netName)
+	public S findSignalForNetwork(String netName)
 	{
 		// look at all signal names in the cell
-		for(Iterator it = getSignals().iterator(); it.hasNext(); )
+		for(Iterator<S> it = getSignals().iterator(); it.hasNext(); )
 		{
-			Signal sSig = (Signal)it.next();
+			S sSig = it.next();
 
 			String signalName = sSig.getFullName();
 			if (netName.equalsIgnoreCase(signalName)) return sSig;

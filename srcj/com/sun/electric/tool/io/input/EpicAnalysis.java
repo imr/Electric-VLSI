@@ -25,10 +25,11 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.geom.Rectangle2D;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -57,7 +59,7 @@ import javax.swing.tree.TreePath;
  * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
-public class EpicAnalysis extends Analysis {
+public class EpicAnalysis extends AnalogAnalysis {
     
     /** Separator in Epic signal names. */              static final char separator = '.';
     
@@ -65,7 +67,7 @@ public class EpicAnalysis extends Analysis {
     /** Type of current signal. */                      static final byte CURRENT_TYPE = 2;
     
     /** Fake context which denotes voltage signal. */   static final Context VOLTAGE_CONTEXT = new Context(VOLTAGE_TYPE);
-    /** Fake context which denotes current signal. */   static final Context CURRENT_CONTEXT = new Context(VOLTAGE_TYPE);
+    /** Fake context which denotes current signal. */   static final Context CURRENT_CONTEXT = new Context(CURRENT_TYPE);
     
     /** File name of File with waveforms. */            private File waveFileName;
     /** Opened file with waveforms. */                  private RandomAccessFile waveFile;
@@ -76,7 +78,8 @@ public class EpicAnalysis extends Analysis {
     /** Current resolution of integer current unit. */  private double currentResolution;
     /** Simulation time. */                             private double maxTime;
     
-    /** Unmodifieable view of signals list. */          private List<Signal> signalsUnmodifiable;
+    /** Unmodifieable view of signals list. */          private List<AnalogSignal> signalsUnmodifiable;
+    /** a set of voltage signals. */                    private BitSet voltageSignals = new BitSet(); 
     /** Top-most context. */                            private Context rootContext;
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
     /** Count of contexts in the hash. */               private int numContexts = 0;
@@ -85,7 +88,7 @@ public class EpicAnalysis extends Analysis {
      * Package-private constructor.
      * @param sd Stimuli.
      */
-    EpicAnalysis(Stimuli sd) { super(sd, Analysis.ANALYSIS_TRANS); }
+    EpicAnalysis(Stimuli sd) { super(sd, AnalogAnalysis.ANALYSIS_TRANS); }
     
     /**
      * Set time resolution of this EpicAnalysis.
@@ -105,17 +108,8 @@ public class EpicAnalysis extends Analysis {
      */
     void setCurrentResolution(double currentResolution) { this.currentResolution = currentResolution; }
     
-    double getValueResolution(byte type) {
-        double resolution = 1;
-        switch (type) {
-            case VOLTAGE_TYPE:
-                resolution = voltageResolution;
-                break;
-            case CURRENT_TYPE:
-                resolution = currentResolution;
-                break;
-        }
-        return resolution;
+    double getValueResolution(int signalIndex) {
+        return voltageSignals.get(signalIndex) ? voltageResolution : currentResolution;
     }
     
     /**
@@ -143,6 +137,7 @@ public class EpicAnalysis extends Analysis {
     /**
      * Free allocated resources before closing.
      */
+    @Override
     public void finished() {
         try {
             waveFile.close();
@@ -159,8 +154,9 @@ public class EpicAnalysis extends Analysis {
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-    public Signal findSignalForNetworkQuickly(String netName) {
-        Signal old = super.findSignalForNetworkQuickly(netName);
+    @Override
+    public AnalogSignal findSignalForNetworkQuickly(String netName) {
+        AnalogSignal old = super.findSignalForNetworkQuickly(netName);
         
         String lookupName = TextUtils.canonicString(netName);
         int index = searchName(lookupName);
@@ -168,7 +164,7 @@ public class EpicAnalysis extends Analysis {
             assert old == null;
             return null;
         }
-        Signal sig = signalsUnmodifiable.get(index);
+        AnalogSignal sig = signalsUnmodifiable.get(index);
         return sig;
     }
 
@@ -212,7 +208,8 @@ public class EpicAnalysis extends Analysis {
      * List is unmodifieable.
 	 * @return a List of signals.
 	 */
-	public List<Signal> getSignals() { return signalsUnmodifiable; }
+    @Override
+	public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
 
     /**
      * Package-private method to init unmodifiable List of signals.
@@ -225,12 +222,13 @@ public class EpicAnalysis extends Analysis {
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.
      */
-	public void nameSignal(Signal ws, String sigName) {}
+    @Override
+	public void nameSignal(AnalogSignal ws, String sigName) {}
     
     /**
-     * Finds signal index of Signal with given full name.
+     * Finds signal index of AnalogSignal with given full name.
      * @param name full name.
-     * @return signal index of Signal in unmodifiable list of signals or -1.
+     * @return signal index of AnalogSignal in unmodifiable list of signals or -1.
      */
     int searchName(String name) {
         Context context = rootContext;
@@ -280,8 +278,8 @@ public class EpicAnalysis extends Analysis {
     }
     
     /**
-     * Method to get Fake context of Signal.
-     * @param byte physical type of Signal.
+     * Method to get Fake context of AnalogSignal.
+     * @param byte physical type of AnalogSignal.
      * @return Fake context.
      */ 
     static Context getContext(byte type) {
@@ -348,6 +346,85 @@ public class EpicAnalysis extends Analysis {
         contextHash = newHash;
     }
 
+    @Override
+    protected Waveform[] loadWaveforms(AnalogSignal signal) {
+        int index = signal.getIndexInAnalysis();
+        double valueResolution = getValueResolution(index);
+        int start = waveStarts[index];
+        int len = waveStarts[index + 1] - start;
+        byte[] packedWaveform = new byte[len];
+        try {
+            waveFile.seek(start);
+            waveFile.readFully(packedWaveform);
+        } catch (IOException e) {
+            ActivityLogger.logException(e);
+            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
+        }
+            
+        int count = 0;
+        for (int i = 0; i < len; count++) {
+            int l;
+            int b = packedWaveform[i++] & 0xff;
+            if (b < 0xC0)
+                l = 0;
+            else if (b < 0xFF)
+                l = 1;
+            else
+                l = 4;
+            i += l;
+            b = packedWaveform[i++] & 0xff;
+            if (b < 0xC0)
+                l = 0;
+            else if (b < 0xFF)
+                l = 1;
+            else
+                l = 4;
+            i += l;
+        }
+
+        double[] time = new double[count];
+        double[] value = new double[count];
+        count = 0;
+        int t = 0;
+        int v = 0;
+        for (int i = 0; i < len; count++) {
+            int l;
+            int b = packedWaveform[i++] & 0xff;
+            if (b < 0xC0) {
+                l = 0;
+            } else if (b < 0xFF) {
+                l = 1;
+                b -= 0xC0;
+            } else {
+                l = 4;
+            }
+            while (l > 0) {
+                b = (b << 8) | packedWaveform[i++] & 0xff;
+                l--;
+            }
+            t = t + b;
+            time[count] = t * timeResolution;
+
+            b = packedWaveform[i++] & 0xff;
+            if (b < 0xC0) {
+                l = 0;
+                b -= 0x60;
+            } else if (b < 0xFF) {
+                l = 1;
+                b -= 0xDF;
+            } else {
+                l = 4;
+            }
+            while (l > 0) {
+                b = (b << 8) | packedWaveform[i++] & 0xff;
+                l--;
+            }
+            v = v + b;
+            value[count] = v * valueResolution;
+        }
+        assert count == time.length;
+        return new Waveform[] { new WaveformImpl(time, value) };
+    }
     
     /************************* EpicRootTreeNode *********************************************
      * This class is for root node of EpicTreeNode tree.
@@ -562,7 +639,7 @@ public class EpicAnalysis extends Analysis {
         
         /**
          * Searches an EpicTreeNode in this context where signal with specified flat offset lives.
-         * @param offset flat offset of Signal.
+         * @param offset flat offset of EpicSignal.
          * @return index of EpicTreeNode in this Context or -1.
          */
         private int localSearch(int offset) {
@@ -697,14 +774,13 @@ public class EpicAnalysis extends Analysis {
      */
     static class EpicSignal extends AnalogSignal {
         
-        /** Physical type of this EpicSignal. */        byte type;
-        /** Chronological index of this EpicSignal. */  int index;
-        /** Time/value pairs which define waveform.*/   int[] waveform;
-        
         EpicSignal(EpicAnalysis an, byte type, int index) {
             super(an);
-            this.type = type;
-            this.index = index;
+            assert getIndexInAnalysis() == index;
+            if (type == VOLTAGE_TYPE)
+                an.voltageSignals.set(index);
+            else
+                assert type == CURRENT_TYPE;
         }
         
         /**
@@ -724,7 +800,9 @@ public class EpicAnalysis extends Analysis {
          * If there is no context, this returns null.
          */
         @Override
-        public String getSignalContext() { return ((EpicAnalysis)an).makeName(index, false); }
+        public String getSignalContext() {
+            return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
+        }
         
         /**
          * Method to return the full name of this simulation signal.
@@ -732,126 +810,13 @@ public class EpicAnalysis extends Analysis {
          * @return the full name of this simulation signal.
          */
         @Override
-        public String getFullName() { return ((EpicAnalysis)an).makeName(index, true); }
-        
-        /**
-         * Method to return the value of this signal at a given event index.
-         * @param sweep sweep index
-         * @param index the event index (0-based).
-         * @param result double array of length 3 to return (time, lowValue, highValue)
-         * If this signal is not a basic signal, return 0 and print an error message.
-         */
-        @Override
-        public void getEvent(int sweep, int index, double[] result) {
-            if (sweep != 0)
-                throw new IndexOutOfBoundsException();
-            if (waveform == null)
-                makeData();
-            EpicAnalysis an = (EpicAnalysis)this.an;
-            double time = waveform[index*2] * an.timeResolution;
-            double value = waveform[index*2 + 1] * an.getValueResolution(type);
-            result[0] = time;
-            result[1] = result[2] = value;
-        }
-        
-        /**
-         * Method to return the number of events in one sweep of this signal.
-         * This is the number of events along the horizontal axis, usually "time".
-         * The method only works for sweep signals.
-         * @param sweep the sweep number to query.
-         * @return the number of events in this signal.
-         */
-        @Override
-        public int getNumEvents(int sweep) {
-            if (sweep != 0)
-                throw new IndexOutOfBoundsException();
-            if (waveform == null)
-                makeData();
-            return waveform.length >> 1;
-        }
-        
-        private void makeData() {
-            EpicAnalysis an = (EpicAnalysis)this.an;
-            int start = an.waveStarts[index];
-            int len = an.waveStarts[index + 1] - start;
-            byte[] packedWaveform = new byte[len];
-            try {
-                an.waveFile.seek(start);
-                an.waveFile.readFully(packedWaveform);
-            } catch (IOException e) {
-                waveform = new int[0];
-                buildTime(0);
-                buildValues(0);
-                ActivityLogger.logException(e);
-                return;
-            }
-            
-            int count = 0;
-            for (int i = 0; i < len; count++) {
-                int l;
-                int b = packedWaveform[i++] & 0xff;
-                if (b < 0xC0)
-                    l = 0;
-                else if (b < 0xFF)
-                    l = 1;
-                else
-                    l = 4;
-                i += l;
-                b = packedWaveform[i++] & 0xff;
-                if (b < 0xC0)
-                    l = 0;
-                else if (b < 0xFF)
-                    l = 1;
-                else
-                    l = 4;
-                i += l;
-            }
-            
-            int[] w = new int[count*2];
-            count = 0;
-            int t = 0;
-            int v = 0;
-            for (int i = 0; i < len; count++) {
-                int l;
-                int b = packedWaveform[i++] & 0xff;
-                if (b < 0xC0) {
-                    l = 0;
-                } else if (b < 0xFF) {
-                    l = 1;
-                    b -= 0xC0;
-                } else {
-                    l = 4;
-                }
-                while (l > 0) {
-                    b = (b << 8) | packedWaveform[i++] & 0xff;
-                    l--;
-                }
-                t = t + b;
-                w[count*2] = t;
-                
-                b = packedWaveform[i++] & 0xff;
-                if (b < 0xC0) {
-                    l = 0;
-                    b -= 0x60;
-                } else if (b < 0xFF) {
-                    l = 1;
-                    b -= 0xDF;
-                } else {
-                    l = 4;
-                }
-                while (l > 0) {
-                    b = (b << 8) | packedWaveform[i++] & 0xff;
-                    l--;
-                }
-                v = v + b;
-                w[count*2 + 1] = v;
-            }
-            assert count*2 == w.length;
+        public String getFullName() {
+            return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
         }
         
         void setBounds(int minV, int maxV) {
-            EpicAnalysis an = (EpicAnalysis)this.an;
-            double resolution = an.getValueResolution(type);
+            EpicAnalysis an = (EpicAnalysis)getAnalysis();
+            double resolution = an.getValueResolution(getIndexInAnalysis());
             bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
         }
     }

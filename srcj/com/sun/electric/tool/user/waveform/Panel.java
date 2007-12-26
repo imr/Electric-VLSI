@@ -29,12 +29,14 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -43,7 +45,6 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
-import com.sun.electric.tool.user.waveform.WaveformWindow.OnePanel;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -103,7 +104,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 /**
  * This class defines a single panel of WaveSignals with an associated list of signal names.
@@ -658,7 +658,7 @@ public class Panel extends JPanel
 
 		// the digital signal must be a bus
 		DigitalSignal sDSig = (DigitalSignal)ws.getSignal();
-		List<Signal> bussedSignals = sDSig.getBussedSignals();
+		List<DigitalSignal> bussedSignals = sDSig.getBussedSignals();
 		if (bussedSignals == null) return;
 
 		// see if any of the bussed signals are displayed
@@ -1405,24 +1405,27 @@ public class Panel extends JPanel
 			{
 				// draw analog trace
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
-                Analysis an = as.getAnalysis();
+                AnalogAnalysis an = as.getAnalysis();
                 for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 				{
                     boolean included = waveWindow.isSweepSignalIncluded(an, s);
                     if (!included)
                         continue;
+                    Waveform waveform = as.getWaveform(s);
+                    Waveform xWaveform = null;
+                    if (xSignal != null)
+                        xWaveform = ((AnalogSignal)xSignal).getWaveform(s);
 					int lastX = 0, lastLY = 0, lastHY = 0;
-					int numEvents = as.getNumEvents(s);
+					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++)
 					{
-                        as.getEvent(s, i, result);
+                        waveform.getEvent(i, result);
                         int x = convertXDataToScreen(result[0]);
                         int lowY = convertYDataToScreen(result[1]);
                         int highY = convertYDataToScreen(result[2]);
-						if (xSignal != null)
+						if (xWaveform != null)
 						{
-							AnalogSignal oSig = (AnalogSignal)xSignal;
-							oSig.getEvent(s, i, result);
+							xWaveform.getEvent(i, result);
 							x = convertXDataToScreen(result[1]);
 						}
 						if ((x >= vertAxisPos && x <= sz.width) ||
@@ -1466,7 +1469,7 @@ public class Panel extends JPanel
 			{
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				List<Signal> bussedSignals = ds.getBussedSignals();
+				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
@@ -2060,15 +2063,16 @@ public class Panel extends JPanel
 			// draw analog trace
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
-            Analysis an = as.getAnalysis();
+            AnalogAnalysis an = as.getAnalysis();
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
-				int numEvents = as.getNumEvents(s);
+                Waveform waveform = as.getWaveform(s);
+				int numEvents = waveform.getNumEvents();
 				for(int i=0; i<numEvents; i++)
 				{
-                    as.getEvent(s, i, result);
+                    waveform.getEvent(i, result);
 					int x = convertXDataToScreen(result[0]);
                     int lowY = convertYDataToScreen(result[1]);
                     int highY = convertYDataToScreen(result[2]);
@@ -2092,17 +2096,18 @@ public class Panel extends JPanel
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
-            Analysis an = as.getAnalysis();
+            AnalogAnalysis an = as.getAnalysis();
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
-				int numEvents = as.getNumEvents(s);
-                as.getEvent(s, 0, lastResult);
+                Waveform waveform = as.getWaveform(s);
+				int numEvents = waveform.getNumEvents();
+                waveform.getEvent(0, lastResult);
 				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));
 				for(int i=1; i<numEvents; i++)
 				{
-                    as.getEvent(s, i, result);
+                    waveform.getEvent(i, result);
 					Point2D thisPt = new Point2D.Double(convertXDataToScreen(result[0]), convertYDataToScreen((result[1] + result[2]) / 2));
 					Point2D closest = GenMath.closestPointToSegment(lastPt, thisPt, snap);
 					if (closest.distance(snap) < 5)

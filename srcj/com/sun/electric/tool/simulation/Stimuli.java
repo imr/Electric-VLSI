@@ -300,11 +300,7 @@ public class Stimuli
 	{
 		for(Analysis an : analysisList)
 		{
-			if (an.getSignals().size() > 0)
-			{
-				Signal sSig = an.getSignals().get(0);
-				if (sSig instanceof AnalogSignal) return true;
-			}
+            if (an.isAnalog()) return true;
 		}
 		return false;
 	}

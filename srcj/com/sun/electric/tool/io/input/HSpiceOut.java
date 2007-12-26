@@ -27,16 +27,20 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.ComplexWaveform;
 import com.sun.electric.tool.simulation.Stimuli;
 
+import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.WaveformImpl;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
@@ -66,60 +70,42 @@ public class HSpiceOut extends Simulate
 		String string;
 	}
 
-	private static class HSpiceAnalogSignal extends AnalogSignal
-	{
-		float [][] sigData;
-
-		HSpiceAnalogSignal(Analysis an)
-		{
-			super(an);
-		}
-
-		/**
-		 * Free allocated resources before closing.
-		 */
-		public void finished()
-		{
-			sigData = null; // making memory available for GC
-		}
-
-		/**
-		 * Method to return the value of this signal at a given event index.
-		 * @param sweep sweep index
-		 * @param index the event index (0-based).
-		 * @param result double array of length 3 to return (time, lowValue, highValue)
-		 * If this signal is not a basic signal, return 0 and print an error message.
-		 */
-		public void getEvent(int sweep, int index, double[] result)
-		{
-			result[0] = getTime(index, sweep);
-			result[1] = result[2] = sigData[sweep][index];
-		}
-
-		/**
-		 * Method to return the number of events in one sweep of this signal.
-		 * This is the number of events along the horizontal axis, usually "time".
-		 * The method only works for sweep signals.
-		 * @param sweep the sweep number to query.
-		 * @return the number of events in this signal.
-		 */
-		public int getNumEvents(int sweep)
-		{
-			return sigData[sweep].length;
-		}
-
-		/**
-		 * Method to return the number of sweeps in this signal.
-		 * @return the number of sweeps in this signal.
-		 * If this signal is not a sweep signal, returns 1.
-		 */
-		public int getNumSweeps()
-		{
-			if (sigData == null) return 0;
-			return sigData.length;
-		}
-	}
-
+    private static class SweepAnalysis extends AnalogAnalysis {
+        double [][] commonTime; // sweep, signal
+		List<List<float[]>> theSweeps = new ArrayList<List<float[]>>(); // sweep, event, signal
+        
+        private SweepAnalysis(Stimuli sd, AnalogAnalysis.AnalysisType type) {
+            super(sd, type);
+        }
+        
+        protected Waveform[] loadWaveforms(AnalogSignal signal) {
+            int sigIndex = signal.getIndexInAnalysis();
+            Waveform[] waveforms = new Waveform[commonTime.length];
+            for (int sweep = 0; sweep < waveforms.length; sweep++) {
+                double[] times = commonTime[sweep];
+                List<float[]> theSweep = theSweeps.get(sweep);
+                Waveform waveform;
+                if (getAnalysisType() == ANALYSIS_AC) {
+                    double[] realValues = new double[times.length];
+                    double[] imagValues = new double[times.length];
+                    for (int eventNum = 0; eventNum < realValues.length; eventNum++) {
+                        float[] eventValues = theSweep.get(eventNum);
+                        realValues[eventNum] = eventValues[sigIndex*2 + 1];
+                        imagValues[eventNum] = eventValues[sigIndex*2 + 2];
+                    }
+                    waveform = new ComplexWaveform(times, realValues, imagValues);
+                } else {
+                    double[] values = new double[times.length];
+                    for (int eventNum = 0; eventNum < values.length; eventNum++)
+                        values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
+                    waveform = new WaveformImpl(times, values);
+                }
+                waveforms[sweep] = waveform;
+            }
+            return waveforms;
+        }
+    }
+    
 	HSpiceOut() {}
 
 	/**
@@ -200,7 +186,7 @@ public class HSpiceOut extends Simulate
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_MEAS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_MEAS);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -273,10 +259,9 @@ public class HSpiceOut extends Simulate
 		for(String mName : measurementNames)
 		{
 			List<Double> mData = measurementData.get(mName);
-			AnalogSignal as = new AnalogSignal(an);
-			as.setSignalName(mName);
-			as.buildValues(mData.size());
-			for(int i=0; i<mData.size(); i++) as.setValue(i, mData.get(i).doubleValue());
+            double[] values = new double[mData.size()];
+			for(int i=0; i<mData.size(); i++) values[i] = mData.get(i).doubleValue();
+			AnalogSignal as = an.addSignal(mName, values);
 			measData.add(as);
 		}
 
@@ -462,7 +447,7 @@ public class HSpiceOut extends Simulate
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		Analysis an = new Analysis(sd, analysisType);
+		SweepAnalysis an = new SweepAnalysis(sd, analysisType);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'");
 
@@ -714,23 +699,11 @@ public class HSpiceOut extends Simulate
 		resetBinaryTRACDCReader();
 
 		// setup the simulation information
-		HSpiceAnalogSignal [] allSignals = new HSpiceAnalogSignal[numSignals];
-		for(int k=0; k<numSignals; k++)
-		{
-			HSpiceAnalogSignal as = new HSpiceAnalogSignal(an);
-			allSignals[k] = as;
-			int lastDotPos = signalNames[k].lastIndexOf('.');
-			if (lastDotPos >= 0)
-			{
-				as.setSignalContext(signalNames[k].substring(0, lastDotPos));
-				as.setSignalName(signalNames[k].substring(lastDotPos+1));
-			} else
-			{
-				as.setSignalName(signalNames[k]);
-			}
-		}
-
-		List<List<float[]>> theSweeps = new ArrayList<List<float[]>>();
+        boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
+        double[] minValues = new double[numSignals];
+        double[] maxValues = new double[numSignals];
+        Arrays.fill(minValues, Double.POSITIVE_INFINITY);
+        Arrays.fill(maxValues, Double.NEGATIVE_INFINITY);
 		int sweepCounter = sweepcnt;
 		for(;;)
 		{
@@ -752,27 +725,38 @@ public class HSpiceOut extends Simulate
 				// get the first number, see if it terminates
 				float time = getHSpiceFloat();
 				if (eofReached) break;
-				float [] oneSetOfData = new float[numSignals+1];
+				float [] oneSetOfData = new float[isComplex ? numSignals*2 + 1 : numSignals + 1];
 				oneSetOfData[0] = time;
 
 				// get a row of numbers
 				for(int k=0; k<numSignals; k++)
 				{
-					float value = getHSpiceFloat();
-					if (eofReached)
-					{
-						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +
-							" after " + allTheData.size() + " sets of data)");
-						break;
-					}
-					oneSetOfData[(k+numnoi)%numSignals+1] = value;
+                    int numSignal = (k + numnoi) % numSignals;
+                    double value;
+                    if (isComplex) {
+                        float realPart = getHSpiceFloat();
+                        float imagPart = getHSpiceFloat();
+                        oneSetOfData[numSignal*2 + 1] = realPart;
+                        oneSetOfData[numSignal*2 + 2] = imagPart;
+                        value = Math.hypot(realPart, imagPart); // amplitude of complex number
+                    } else {
+                        value = oneSetOfData[numSignal + 1] = getHSpiceFloat();
+                    }
+                    if (eofReached) {
+                        System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +
+                                " after " + allTheData.size() + " sets of data)");
+                        break;
+                    }
+                    if (value < minValues[numSignal]) 
+                        minValues[numSignal] = value;
+                    if (value > maxValues[numSignal])
+                        maxValues[numSignal] = value;
 				}
 				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
 				allTheData.add(oneSetOfData);
 			}
 			int numEvents = allTheData.size();
-			an.addCommonTime(numEvents);
-			theSweeps.add(allTheData);
+			an.theSweeps.add(allTheData);
 			sweepCounter--;
 			if (sweepCounter <= 0) break;
 			eofReached = false;
@@ -780,23 +764,34 @@ public class HSpiceOut extends Simulate
 		closeInput();
 
 		// Put data to Stimuli
-		for(int sigNum=0; sigNum<numSignals; sigNum++)
+        an.commonTime = new double[an.theSweeps.size()][];
+        double minTime = Double.POSITIVE_INFINITY;
+        double maxTime = Double.NEGATIVE_INFINITY;
+        for (int sweepNum=0; sweepNum<an.commonTime.length; sweepNum++) {
+            List<float[]> allTheData = an.theSweeps.get(sweepNum);
+            an.commonTime[sweepNum] = new double[allTheData.size()];
+            for (int eventNum = 0; eventNum < allTheData.size(); eventNum++) {
+                double time = allTheData.get(eventNum)[0];
+                an.commonTime[sweepNum][eventNum] = time;
+                if (time < minTime)
+                    minTime = time;
+                if (time > maxTime)
+                    maxTime = time;
+            }
+        }
+		for(int k=0; k<numSignals; k++)
 		{
-			HSpiceAnalogSignal as = allSignals[sigNum];
-			as.sigData = new float[theSweeps.size()][];
-			for(int sweepNum=0; sweepNum<theSweeps.size(); sweepNum++)
+            String name = signalNames[k];
+            String context = null;
+			int lastDotPos = signalNames[k].lastIndexOf('.');
+			if (lastDotPos >= 0)
 			{
-				List<float[]> allTheData = theSweeps.get(sweepNum);
-				as.sigData[sweepNum] = new float[allTheData.size()];
-				for (int eventNum = 0; eventNum < allTheData.size(); eventNum++)
-				{
-					float [] oneSetOfData = allTheData.get(eventNum);
-					as.sigData[sweepNum][eventNum] = oneSetOfData[sigNum+1];
-					if (sigNum == 0) an.setCommonTime(eventNum, sweepNum, oneSetOfData[0]);
-				}
+				context = name.substring(0, lastDotPos);
+				name = name.substring(lastDotPos+1);
 			}
+            AnalogSignal as = an.addSignal(name, minTime, maxTime, minValues[k], maxValues[k]);
+            as.setSignalContext(context);
 		}
-		an.setBoundsDirty();
 		stopProgressDialog();
 		System.out.println("Done reading " + analysisType.toString() + " analysis");
 	}
