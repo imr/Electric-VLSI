@@ -28,7 +28,7 @@ package com.sun.electric.tool.io.input.verilog;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -86,7 +86,7 @@ public class VerilogOut extends Simulate
 		throws IOException
 	{
 		Stimuli sd = new Stimuli();
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		DigitalAnalysis an = new DigitalAnalysis(sd);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
@@ -387,7 +387,7 @@ public class VerilogOut extends Simulate
 		return sd;
 	}
 
-	private void cleanUpScope(List<DigitalSignal> curArray, Analysis an)
+	private void cleanUpScope(List<DigitalSignal> curArray, DigitalAnalysis an)
 	{
 		if (curArray == null) return;
 
