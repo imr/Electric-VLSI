@@ -28,10 +28,9 @@ package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
@@ -65,7 +64,7 @@ public class ALS extends Engine
 	/** the simulation engine */						Sim               theSim;
 	/** the circuit flattener */						Flat              theFlat;
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
-	/** the stimuli set currently being displayed */	Analysis          an;
+	/** the stimuli set currently being displayed */	DigitalAnalysis   an;
 	/** current time in the simulator */				double            timeAbs;
 	/** saved list of stimuli when refreshing */		List<String>      stimuliList;
 
@@ -948,13 +947,13 @@ public class ALS extends Engine
 		}
 	}
 
-	private Analysis getCircuit(Cell cell)
+	private DigitalAnalysis getCircuit(Cell cell)
 	{
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
 		sd.setDataType(FileType.ALS);
 		sd.setEngine(this);
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS);
+		DigitalAnalysis an = new DigitalAnalysis(sd);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();
@@ -969,7 +968,7 @@ public class ALS extends Engine
 		return an;
 	}
 
-	private void addExports(Connect cr, Analysis an, String context)
+	private void addExports(Connect cr, DigitalAnalysis an, String context)
 	{
 		// determine type of model
 		for(Model modPtr1 : modelList)
