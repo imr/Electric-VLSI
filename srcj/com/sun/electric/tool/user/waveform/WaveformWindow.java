@@ -1446,6 +1446,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
+	public void repaintAllPanels()
+	{
+		if (USETABLES)
+		{
+			table.repaint();
+		} else
+		{
+			right.repaint();
+		}
+	}
+
 	/**
 	 * Method called when a Panel is to be closed.
 	 * @param wp the Panel to close.

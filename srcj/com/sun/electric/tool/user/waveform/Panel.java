@@ -88,6 +88,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -115,7 +116,7 @@ public class Panel extends JPanel
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** true if the size field is valid */					private boolean szValid;
 	/** the signal on the X axis (null for time) */			private Signal xAxisSignal;
-	/** maps signal buttons to the actual Signal */			private HashMap<JButton,WaveSignal> waveSignals;
+	/** maps signal buttons to the actual Signal */			private LinkedHashMap<JButton,WaveSignal> waveSignals = new LinkedHashMap<JButton,WaveSignal>();
 	/** the list of signal name buttons on the left */		private JPanel signalButtons;
 	/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
 	/** the left side: with signal names etc. */			private JPanel leftHalf;
@@ -179,7 +180,6 @@ public class Panel extends JPanel
 		horizRulerPanelLogarithmic = false;
 		vertPanelLogarithmic = false;
 		xAxisSignal = null;
-		waveSignals = new HashMap<JButton,WaveSignal>();
 		measurementList = new ArrayList<Rectangle2D>();
 		curMeasurement = null;
 
@@ -996,11 +996,13 @@ public class Panel extends JPanel
 		}
 
 		g.drawImage(offscreen, 0, 0, null);
+        
+        paintDragging((Graphics2D)g);
 	}
 
 	private void repaintOffscreenImage()
 	{
-		// rebuild the offscreen image if necessary
+ 		// rebuild the offscreen image if necessary
 		int wid = sz.width;
 		int hei = sz.height;
 		if (offscreen == null || offscreenWid != wid | offscreenHei != hei)
@@ -1016,31 +1018,36 @@ public class Panel extends JPanel
 		offscreenGraphics.fillRect(0, 0, wid, hei);
 
 		drawPanelContents(wid, hei, null, null);
+        
+//        paintDragging((Graphics2D)offscreenGraphics);
+    }
+    
+    private void paintDragging(Graphics2D g) {
 
+		g.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
+            
 		// draw the X position cursors
-		Graphics2D g2 = (Graphics2D)offscreenGraphics;
-		g2.setStroke(Highlight2.dashedLine);
+		g.setStroke(Highlight2.dashedLine);
 		int x = convertXDataToScreen(waveWindow.getMainXPositionCursor());
 		if (x >= vertAxisPos)
-			offscreenGraphics.drawLine(x, 0, x, hei);
-		g2.setStroke(farDottedLine);
+			g.drawLine(x, 0, x, offscreen.getHeight());
+		g.setStroke(farDottedLine);
 		x = convertXDataToScreen(waveWindow.getExtensionXPositionCursor());
 		if (x >= vertAxisPos)
-			offscreenGraphics.drawLine(x, 0, x, hei);
-		g2.setStroke(Highlight2.solidLine);
+			g.drawLine(x, 0, x, offscreen.getHeight());
+		g.setStroke(Highlight2.solidLine);
 
 		// show dragged area if there
 		if (draggingArea)
 		{
-			offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
 			int lowX = Math.min(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
 			int highX = Math.max(convertXDataToScreen(dragStartXD), convertXDataToScreen(dragEndXD));
 			int lowY = Math.min(convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
 			int highY = Math.max(convertYDataToScreen(dragStartYD), convertYDataToScreen(dragEndYD));
-			offscreenGraphics.drawLine(lowX, lowY, lowX, highY);
-			offscreenGraphics.drawLine(lowX, highY, highX, highY);
-			offscreenGraphics.drawLine(highX, highY, highX, lowY);
-			offscreenGraphics.drawLine(highX, lowY, lowX, lowY);
+			g.drawLine(lowX, lowY, lowX, highY);
+			g.drawLine(lowX, highY, highX, highY);
+			g.drawLine(highX, highY, highX, lowY);
+			g.drawLine(highX, lowY, lowX, lowY);
 		}
 		for(Rectangle2D meas : measurementList)
 		{
@@ -1048,17 +1055,17 @@ public class Panel extends JPanel
 			int highX = Math.max(convertXDataToScreen(meas.getMinX()), convertXDataToScreen(meas.getMaxX()));
 			int lowY = Math.min(convertYDataToScreen(meas.getMinY()), convertYDataToScreen(meas.getMaxY()));
 			int highY = Math.max(convertYDataToScreen(meas.getMinY()), convertYDataToScreen(meas.getMaxY()));
-			offscreenGraphics.drawLine(lowX, lowY, lowX, highY);
-			offscreenGraphics.drawLine(lowX, highY, highX, highY);
-			offscreenGraphics.drawLine(highX, highY, highX, lowY);
-			offscreenGraphics.drawLine(highX, lowY, lowX, lowY);
+			g.drawLine(lowX, lowY, lowX, highY);
+			g.drawLine(lowX, highY, highX, highY);
+			g.drawLine(highX, highY, highX, lowY);
+			g.drawLine(highX, lowY, lowX, lowY);
 
 			// show dimensions while dragging
 			double lowXValue = convertXScreenToData(lowX);
 			double highXValue = convertXScreenToData(highX);
 			double lowValue = convertYScreenToData(highY);
 			double highValue = convertYScreenToData(lowY);
-			offscreenGraphics.setFont(waveWindow.getFont());
+			g.setFont(waveWindow.getFont());
 
 			// show the low X value and arrow
 			String lowXValueString = TextUtils.convertToEngineeringNotation(lowXValue, "s");
@@ -1067,10 +1074,10 @@ public class Panel extends JPanel
 			int textWid = (int)glyphBounds.getWidth();
 			int textHei = (int)glyphBounds.getHeight();
 			int textY = (lowY+highY)/2;
-			offscreenGraphics.drawString(lowXValueString, lowX-textWid-6, textY+textHei/2-10);
-			offscreenGraphics.drawLine(lowX-1, textY, lowX-textWid, textY);
-			offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY+4);
-			offscreenGraphics.drawLine(lowX-1, textY, lowX-6, textY-4);
+			g.drawString(lowXValueString, lowX-textWid-6, textY+textHei/2-10);
+			g.drawLine(lowX-1, textY, lowX-textWid, textY);
+			g.drawLine(lowX-1, textY, lowX-6, textY+4);
+			g.drawLine(lowX-1, textY, lowX-6, textY-4);
 
 			// show the high X value and arrow
 			String highXValueString = TextUtils.convertToEngineeringNotation(highXValue, "s");
@@ -1079,10 +1086,10 @@ public class Panel extends JPanel
 			textWid = (int)glyphBounds.getWidth();
 			textHei = (int)glyphBounds.getHeight();
 			int highXValueTextWid = textWid;
-			offscreenGraphics.drawString(highXValueString, highX+6, textY+textHei/2-10);
-			offscreenGraphics.drawLine(highX+1, textY, highX+textWid, textY);
-			offscreenGraphics.drawLine(highX+1, textY, highX+6, textY+4);
-			offscreenGraphics.drawLine(highX+1, textY, highX+6, textY-4);
+			g.drawString(highXValueString, highX+6, textY+textHei/2-10);
+			g.drawLine(highX+1, textY, highX+textWid, textY);
+			g.drawLine(highX+1, textY, highX+6, textY+4);
+			g.drawLine(highX+1, textY, highX+6, textY-4);
 
 			// show the difference X value
 			String xDiffString = TextUtils.convertToEngineeringNotation(highXValue-lowXValue, "s");
@@ -1096,25 +1103,25 @@ public class Panel extends JPanel
 				int yPosText = highY + textHei*5;
 				int yPos = yPosText - textHei/2;
 				int xCtr = (highX+lowX)/2;
-				offscreenGraphics.drawString(xDiffString, xCtr - textWid/2, yPosText);
-				offscreenGraphics.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
-				offscreenGraphics.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
-				offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos+4);
-				offscreenGraphics.drawLine(lowX, yPos, lowX+5, yPos-4);
-				offscreenGraphics.drawLine(highX, yPos, highX-5, yPos+4);
-				offscreenGraphics.drawLine(highX, yPos, highX-5, yPos-4);
+				g.drawString(xDiffString, xCtr - textWid/2, yPosText);
+				g.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
+				g.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
+				g.drawLine(lowX, yPos, lowX+5, yPos+4);
+				g.drawLine(lowX, yPos, lowX+5, yPos-4);
+				g.drawLine(highX, yPos, highX-5, yPos+4);
+				g.drawLine(highX, yPos, highX-5, yPos-4);
 			} else
 			{
 				// does not fit inside: draw outside of arrows
 				int yPosText = highY + textHei*5;
 				int yPos = yPosText - textHei/2;
-				offscreenGraphics.drawString(xDiffString, highX + 12, yPosText);
-				offscreenGraphics.drawLine(lowX, yPos, lowX-10, yPos);
-				offscreenGraphics.drawLine(highX, yPos, highX+10, yPos);
-				offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos+4);
-				offscreenGraphics.drawLine(lowX, yPos, lowX-5, yPos-4);
-				offscreenGraphics.drawLine(highX, yPos, highX+5, yPos+4);
-				offscreenGraphics.drawLine(highX, yPos, highX+5, yPos-4);
+				g.drawString(xDiffString, highX + 12, yPosText);
+				g.drawLine(lowX, yPos, lowX-10, yPos);
+				g.drawLine(highX, yPos, highX+10, yPos);
+				g.drawLine(lowX, yPos, lowX-5, yPos+4);
+				g.drawLine(lowX, yPos, lowX-5, yPos-4);
+				g.drawLine(highX, yPos, highX+5, yPos+4);
+				g.drawLine(highX, yPos, highX+5, yPos-4);
 			}
 
 			if (analog)
@@ -1127,10 +1134,10 @@ public class Panel extends JPanel
 				textHei = (int)glyphBounds.getHeight();
 				int xP = (lowX+highX)/2;
 				int yText = lowY - 10 - textHei;
-				offscreenGraphics.drawString(lowValueString, xP, yText - 2);
-				offscreenGraphics.drawLine(xP, lowY-1, xP, yText);
-				offscreenGraphics.drawLine(xP, lowY-1, xP+4, lowY-5);
-				offscreenGraphics.drawLine(xP, lowY-1, xP-4, lowY-5);
+				g.drawString(lowValueString, xP, yText - 2);
+				g.drawLine(xP, lowY-1, xP, yText);
+				g.drawLine(xP, lowY-1, xP+4, lowY-5);
+				g.drawLine(xP, lowY-1, xP-4, lowY-5);
 
 				// show the high value
 				String highValueString = TextUtils.convertToEngineeringNotation(lowValue, null);
@@ -1139,10 +1146,10 @@ public class Panel extends JPanel
 				textWid = (int)glyphBounds.getWidth();
 				textHei = (int)glyphBounds.getHeight();
 				yText = highY + 10 + textHei;
-				offscreenGraphics.drawString(highValueString, xP, yText + textHei + 2);
-				offscreenGraphics.drawLine(xP, highY+1, xP, yText);
-				offscreenGraphics.drawLine(xP, highY+1, xP+4, highY+5);
-				offscreenGraphics.drawLine(xP, highY+1, xP-4, highY+5);
+				g.drawString(highValueString, xP, yText + textHei + 2);
+				g.drawLine(xP, highY+1, xP, yText);
+				g.drawLine(xP, highY+1, xP+4, highY+5);
+				g.drawLine(xP, highY+1, xP-4, highY+5);
 
 				// show the value difference
 				String valueDiffString = TextUtils.convertToEngineeringNotation(highValue - lowValue, null);
@@ -1155,23 +1162,23 @@ public class Panel extends JPanel
 					// fits inside: draw arrows around text
 					int xPos = highX + highXValueTextWid + 30;
 					int yCtr = (highY+lowY)/2;
-					offscreenGraphics.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
-					offscreenGraphics.drawLine(xPos, lowY, xPos, highY);
-					offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY+5);
-					offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY+5);
-					offscreenGraphics.drawLine(xPos, highY, xPos+4, highY-5);
-					offscreenGraphics.drawLine(xPos, highY, xPos-4, highY-5);
+					g.drawString(valueDiffString, xPos+2, yCtr + textHei/2);
+					g.drawLine(xPos, lowY, xPos, highY);
+					g.drawLine(xPos, lowY, xPos+4, lowY+5);
+					g.drawLine(xPos, lowY, xPos-4, lowY+5);
+					g.drawLine(xPos, highY, xPos+4, highY-5);
+					g.drawLine(xPos, highY, xPos-4, highY-5);
 				} else
 				{
 					// does not fit inside: draw outside of arrows
 					int xPos = highX + highXValueTextWid + 30;
-					offscreenGraphics.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
-					offscreenGraphics.drawLine(xPos, lowY, xPos, lowY-10);
-					offscreenGraphics.drawLine(xPos, highY, xPos, highY+10);
-					offscreenGraphics.drawLine(xPos, lowY, xPos+4, lowY-5);
-					offscreenGraphics.drawLine(xPos, lowY, xPos-4, lowY-5);
-					offscreenGraphics.drawLine(xPos, highY, xPos+4, highY+5);
-					offscreenGraphics.drawLine(xPos, highY, xPos-4, highY+5);
+					g.drawString(valueDiffString, xPos+4, lowY - textHei/2 - 4);
+					g.drawLine(xPos, lowY, xPos, lowY-10);
+					g.drawLine(xPos, highY, xPos, highY+10);
+					g.drawLine(xPos, lowY, xPos+4, lowY-5);
+					g.drawLine(xPos, lowY, xPos-4, lowY-5);
+					g.drawLine(xPos, highY, xPos+4, highY+5);
+					g.drawLine(xPos, highY, xPos-4, highY+5);
 				}
 			}
 		}
@@ -2197,13 +2204,15 @@ public class Panel extends JPanel
 			if (evt.getX() <= 0) return;
 			double value = convertXScreenToData(evt.getX());
 			waveWindow.setMainXPositionCursor(value);
-			waveWindow.redrawAllPanels();
+            waveWindow.repaintAllPanels();
+//            waveWindow.redrawAllPanels();
 		} else if (draggingExt)
 		{
 			if (evt.getX() <= 0) return;
 			double value = convertXScreenToData(evt.getX());
 			waveWindow.setExtensionXPositionCursor(value);
-			waveWindow.redrawAllPanels();
+            waveWindow.repaintAllPanels();
+//            waveWindow.redrawAllPanels();
 		} else if (draggingVertAxis)
 		{
 			if (evt.getX() <= 0) return;
@@ -2302,10 +2311,12 @@ public class Panel extends JPanel
 					wp.dragEndXD = dragEndXD;
 					wp.dragEndYD = dragEndYD;
 					wp.draggingArea = true;
-					wp.repaintContents();
+                    wp.repaint();
+//                    wp.repaintContents();
 				}
 			}
-			repaintContents();
+            repaint();
+//            repaintContents();
 		}
 	}
 
@@ -2452,7 +2463,8 @@ public class Panel extends JPanel
 		{
 			dragEndXD = convertXScreenToData(evt.getX());
 			dragEndYD = convertYScreenToData(evt.getY());
-			repaintContents();
+            repaint();
+//            repaintContents();
 		}
 	}
 

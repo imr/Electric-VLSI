@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (12/27/07, DN) Dragging main/ext cursors in waveform window is slow when waveforms are large.
+FIX: In user.waveform.Panel paint cursors directly to screen instead of offscreen buffer.
+
 BUG: (12/26/07, DN) Ploting of .ac0 (ac analysis ) not working properly (Bug #1522).
 FIX: Refactor simulation code so that it handles complex waveforms.
      Only amplitude plot is shown. Phase information is available internally,
