@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (12/28/07, DN) Offscreen buffer in waveform window is VolatileImage for faster repaint.
+
 BUG: (12/27/07, DN) Dragging main/ext cursors in waveform window is slow when waveforms are large.
 FIX: In user.waveform.Panel paint cursors directly to screen instead of offscreen buffer.
 

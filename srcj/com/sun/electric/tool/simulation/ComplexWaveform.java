@@ -45,7 +45,7 @@ public class ComplexWaveform extends WaveformImpl {
     public ComplexWaveform(double[] time, double[] realValue, double[] imagValue) {
         super(time, calcAmplitude(realValue, imagValue));
         realWaveform = new WaveformImpl(time, realValue);
-        imagWaveform = new WaveformImpl(time, realValue);
+        imagWaveform = new WaveformImpl(time, imagValue);
         
         // calc phase
         double[] phaseValue = new double[time.length];

@@ -38,7 +38,7 @@ public abstract class Signal
 
     public void finished()
     {
-        System.out.println("Signal finish");
+//        System.out.println("Signal finish");
     }
 
 	/**

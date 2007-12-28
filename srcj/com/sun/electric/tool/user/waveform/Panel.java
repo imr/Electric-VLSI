@@ -56,9 +56,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -83,9 +85,9 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -112,6 +114,9 @@ import javax.swing.SwingConstants;
 public class Panel extends JPanel
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
+    /** Use VolatileImage for offscreen buffer */           private static final boolean USE_VOLATILE_IMAGE = true;
+    /** Use anti-aliasing for lines */                      private static final boolean USE_ANTIALIASING = false;
+    
 	/** the main waveform window this is part of */			private WaveformWindow waveWindow;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** true if the size field is valid */					private boolean szValid;
@@ -753,8 +758,10 @@ public class Panel extends JPanel
 		if (an == null) return;
 		Rectangle2D anBounds = an.getBounds();
         if (anBounds == null) return; // no signals
-		smallestXValue = anBounds.getWidth() / 1000;
-		smallestYValue = anBounds.getHeight() / 1000;
+        smallestXValue = anBounds.getMinX();
+        smallestYValue = anBounds.getMinY();
+//		smallestXValue = anBounds.getWidth() / 1000;
+//		smallestYValue = anBounds.getHeight() / 1000;
 	}
 
 	/**
@@ -952,7 +959,8 @@ public class Panel extends JPanel
 	 */
 	public void repaintContents()
 	{
-		repaintOffscreenImage();
+        needRepaintOffscreenImage = true;
+//		repaintOffscreenImage();
 		if (WaveformWindow.USETABLES)
 		{
 			waveWindow.getWaveformTable().repaint();
@@ -962,9 +970,8 @@ public class Panel extends JPanel
 		}
 	}
 
-	private BufferedImage offscreen;
-	private Graphics offscreenGraphics;
-	private int offscreenWid, offscreenHei;
+    private boolean needRepaintOffscreenImage;
+	private Image offscreen;
 
 	/**
 	 * Method to repaint this Panel.
@@ -980,11 +987,45 @@ public class Panel extends JPanel
 		szValid = true;
 		int wid = sz.width;
 		int hei = sz.height;
-		if (offscreen == null || offscreenWid != wid | offscreenHei != hei)
-		{
-			repaintOffscreenImage();
-		}
-		if (WaveformWindow.USETABLES)
+//        long startTime = System.currentTimeMillis();
+//        long repaintOffscreenTime = startTime;
+        if (USE_VOLATILE_IMAGE) {
+            VolatileImage offscreen = (VolatileImage)this.offscreen;
+            do {
+                int returnCode = VolatileImage.IMAGE_INCOMPATIBLE;
+                if (offscreen != null && offscreen.getWidth() == wid && offscreen.getHeight() == hei)
+                    returnCode = offscreen.validate(getGraphicsConfiguration());
+                if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
+                    // old offscreen doesn't work with new GraphicsConfig; re-create it
+                    if (offscreen != null)
+                        offscreen.flush();
+                    this.offscreen = offscreen = createVolatileImage(wid, hei);
+                    needRepaintOffscreenImage = true;
+                }
+                if (returnCode != VolatileImage.IMAGE_OK || needRepaintOffscreenImage) {
+                    // Contents need to be restored
+                    repaintOffscreenImage(wid, hei);
+                }
+                if (offscreen.contentsLost())
+                    continue;
+//                repaintOffscreenTime = System.currentTimeMillis();
+                g.drawImage(offscreen, 0, 0, null);
+            } while (offscreen.contentsLost());
+
+        } else {
+            BufferedImage offscreen = (BufferedImage)this.offscreen;
+            if (offscreen == null || offscreen.getWidth() != wid || offscreen.getHeight() != hei) {
+                this.offscreen = offscreen = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_RGB);
+                needRepaintOffscreenImage = true;
+            }
+            if (needRepaintOffscreenImage) {
+                repaintOffscreenImage(wid, hei);
+            }
+//            repaintOffscreenTime = System.currentTimeMillis();
+            g.drawImage(offscreen, 0, 0, null);
+        }
+//        long drawImageTime = System.currentTimeMillis();
+      	if (WaveformWindow.USETABLES)
 		{
 			Dimension tableSz = waveWindow.getWaveformTable().getSize();
 			Point screenLoc = waveWindow.getWaveformTable().getLocationOnScreen();
@@ -995,34 +1036,27 @@ public class Panel extends JPanel
 			waveWindow.setScreenXSize(screenLoc.x, screenLoc.x + wid);
 		}
 
-		g.drawImage(offscreen, 0, 0, null);
-        
-        paintDragging((Graphics2D)g);
+        paintDragging((Graphics2D)g, wid, hei);
+//        long dragTime = System.currentTimeMillis();
+//        System.out.println("Panel" + panelNumber +
+//                " offscreen " + (repaintOffscreenTime - startTime) + " msec;" +
+//                " drawImage " + (drawImageTime - repaintOffscreenTime) + " msec;" +
+//                " dragging " + (dragTime - drawImageTime) + " msec");
 	}
-
-	private void repaintOffscreenImage()
-	{
- 		// rebuild the offscreen image if necessary
-		int wid = sz.width;
-		int hei = sz.height;
-		if (offscreen == null || offscreenWid != wid | offscreenHei != hei)
-		{
-			offscreen = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_RGB);
-			offscreenGraphics = offscreen.getGraphics();
-			offscreenWid = wid;
-			offscreenHei = hei;
-		}
-
-		// clear the buffer
-		offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
-		offscreenGraphics.fillRect(0, 0, wid, hei);
-
-		drawPanelContents(wid, hei, null, null);
-        
-//        paintDragging((Graphics2D)offscreenGraphics);
-    }
     
-    private void paintDragging(Graphics2D g) {
+    private void repaintOffscreenImage(int wid, int hei) {
+        needRepaintOffscreenImage = false;
+        Graphics2D offscreenGraphics = (Graphics2D)offscreen.getGraphics();
+
+        // clear the buffer
+        offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
+        offscreenGraphics.fillRect(0, 0, wid, hei);
+
+        drawPanelContents(wid, hei, (Graphics2D) offscreenGraphics, null, null);
+        offscreenGraphics.dispose();
+    }
+
+    private void paintDragging(Graphics2D g, int wid, int hei) {
 
 		g.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
             
@@ -1030,11 +1064,11 @@ public class Panel extends JPanel
 		g.setStroke(Highlight2.dashedLine);
 		int x = convertXDataToScreen(waveWindow.getMainXPositionCursor());
 		if (x >= vertAxisPos)
-			g.drawLine(x, 0, x, offscreen.getHeight());
+			g.drawLine(x, 0, x, hei);
 		g.setStroke(farDottedLine);
 		x = convertXDataToScreen(waveWindow.getExtensionXPositionCursor());
 		if (x >= vertAxisPos)
-			g.drawLine(x, 0, x, offscreen.getHeight());
+			g.drawLine(x, 0, x, hei);
 		g.setStroke(Highlight2.solidLine);
 
 		// show dragged area if there
@@ -1184,20 +1218,14 @@ public class Panel extends JPanel
 		}
 	}
 	
-	private void drawPanelContents(int wid, int hei, Rectangle2D bounds, List<PolyBase> polys)
+	private void drawPanelContents(int wid, int hei, Graphics2D localGraphics, Rectangle2D bounds, List<PolyBase> polys)
 	{
 		// draw the grid first (behind the signals)
-		Graphics localGraphics = null;
-		if (polys == null)
-		{
-			localGraphics = offscreenGraphics;
-		}
 		if (analog && waveWindow.isShowGrid())
 		{
 			if (localGraphics != null)
 			{
-				Graphics2D g2 = (Graphics2D)offscreenGraphics;
-				g2.setStroke(Highlight2.dottedLine);
+				localGraphics.setStroke(Highlight2.dottedLine);
 				localGraphics.setColor(gridColor);
 			}
 
@@ -1253,13 +1281,19 @@ public class Panel extends JPanel
 			}
 			if (localGraphics != null)
 			{
-				Graphics2D g2 = (Graphics2D)localGraphics;
-				g2.setStroke(Highlight2.solidLine);
+				localGraphics.setStroke(Highlight2.solidLine);
 			}
 		}
 
 		// draw all of the signals
-		processSignals(localGraphics, bounds, polys);
+        if (USE_ANTIALIASING && analog && localGraphics != null) {
+            Object oldAntialiasing = localGraphics.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+            localGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            processSignals(localGraphics, bounds, polys);
+            localGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldAntialiasing);
+        } else {
+            processSignals(localGraphics, bounds, polys);
+        }
 
 		// draw all of the control points
 		if (localGraphics != null) processControlPoints(localGraphics, bounds);
@@ -1990,7 +2024,7 @@ public class Panel extends JPanel
 		}
 		sz = getSize();
 		List<PolyBase> polys = new ArrayList<PolyBase>();
-		drawPanelContents(sz.width, sz.height, new Rectangle2D.Double(vertAxisPos, 0, sz.width, sz.height), polys);
+		drawPanelContents(sz.width, sz.height, null, new Rectangle2D.Double(vertAxisPos, 0, sz.width, sz.height), polys);
 		return polys;
 	}
 
