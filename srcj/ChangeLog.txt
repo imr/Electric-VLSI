@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/3/08, SMR) Geometry extraction fails to handle rotated contacts (Bug #1475).
+FIX: Added detection of asymetric contacts.
+
 IMP: (12/28/07, DN) Offscreen buffer in waveform window is VolatileImage for faster repaint.
 
 BUG: (12/27/07, DN) Dragging main/ext cursors in waveform window is slow when waveforms are large.

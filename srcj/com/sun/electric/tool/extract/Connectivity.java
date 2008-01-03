@@ -1406,12 +1406,6 @@ public class Connectivity
 						{
 							if (ignorePWell && pv.layers[i].getFunction() == Layer.Function.WELLP) continue;
 							if (ignoreNWell && pv.layers[i].getFunction() == Layer.Function.WELLN) continue;
-//String cutName = pv.pNp.describe(false);
-//if (cutName.equals("Metal-1-N-Active-Con"))
-//{
-//	System.out.println("For contact "+cutName+" at ("+(ctr.getX()/SCALEFACTOR)+","+(ctr.getY()/SCALEFACTOR)+"), layer "+pv.layers[i].getName()+" is missing");
-//	System.out.print("  Have layers:"); for(Layer l : layersPresent) System.out.print(" "+l.getName()); System.out.println();
-//}
 							someLayersMissing = true;
 							break;
 						}
@@ -1419,6 +1413,13 @@ public class Connectivity
 					if (someLayersMissing) continue;
 
 					// if selected, look for larger collection of cuts and place larger multi-cut contact
+					double trueWidth = pv.minWidth;
+					double trueHeight = pv.minHeight;
+					if (pv.rotation == 90 || pv.rotation == 270)
+					{
+						trueWidth = pv.minHeight;
+						trueHeight = pv.minWidth;
+					}
 					if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
 					{
 						// look for other cuts in the vicinity
@@ -1453,16 +1454,23 @@ public class Connectivity
 						}
 
 						// see if a multi-cut contact fits
-						double lX = multiCutArea.getMinX() - pv.minWidth/2;
-						double hX = multiCutArea.getMaxX() + pv.minWidth/2;
-						double lY = multiCutArea.getMinY() - pv.minHeight/2;
-						double hY = multiCutArea.getMaxY() + pv.minHeight/2;
+						double lX = multiCutArea.getMinX() - trueWidth/2;
+						double hX = multiCutArea.getMaxX() + trueWidth/2;
+						double lY = multiCutArea.getMinY() - trueHeight/2;
+						double hY = multiCutArea.getMaxY() + trueHeight/2;
 						multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
 						Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
 						if (badLayer == null)
 						{
 							// it fits: create it
-							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), multiCutArea.getWidth(), multiCutArea.getHeight(),
+							double mw = multiCutArea.getWidth();
+							double mh = multiCutArea.getHeight();
+							if (pv.rotation == 90 || pv.rotation == 270)
+							{
+								mw = multiCutArea.getHeight();
+								mh = multiCutArea.getWidth();
+							}
+							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
 								pv.rotation*10, null, merge, newCell, contactNodes);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
@@ -1473,13 +1481,13 @@ public class Connectivity
 					}
 
 					// see if a single-cut contact fits
-					Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - pv.minWidth/2,
-						cutBox.getCenterY() - pv.minHeight/2, pv.minWidth, pv.minHeight);
+					Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
+						cutBox.getCenterY() - trueHeight/2, trueWidth, trueHeight);
 					Layer badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
 					if (badLayer == null)
 					{
 						// it fits: create it
-						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), contactLoc.getWidth(), contactLoc.getHeight(),
+						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
 							pv.rotation*10, null, merge, newCell, contactNodes);
 						cutList.remove(cut);
 						foundCut = true;
@@ -1487,6 +1495,7 @@ public class Connectivity
 					}
 
 					reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
+					if (pv.rotation != 0) reason += " (when rotated " + pv.rotation + ")";
 				}
 				if (!foundCut)
 				{
@@ -1717,7 +1726,7 @@ public class Connectivity
 					rotSymmetry = false;
 					break;
 				}
-				if (pv.shrinkL[i] != pv.shrinkT[i])
+				if (pv.shrinkL[i] != pv.shrinkT[i] || pNp.getDefWidth() != pNp.getDefHeight())
 				{
 					hvSymmetry = false;
 				}
@@ -2773,7 +2782,6 @@ public class Connectivity
 		// first make a list of all parallel wires in the polygon
 		List<Centerline> centerlines = new ArrayList<Centerline>();
 		Point2D [] points = poly.getPoints();
-//if (points.length > 1000) return null;
 		if (DEBUGCENTERLINES)
 		{
 			System.out.print("POLYGON ON LAYER "+poly.getLayer().getName()+":");
