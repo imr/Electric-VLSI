@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/3/08, SMR) Node/Arc/Export Properties sometimes truncates data.
+FIX: Must pack dialogs when reloading them.
+
 BUG: (1/3/08, DN) Crash reading HSpice ".mt0" file.
 FIX: In HSpiceOut.addMeasurmentData prepare common "time" array.
 
