@@ -39,8 +39,8 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
     private boolean hasIntBounds, hasDoubleBounds;
     
-    public BoundsBuilder(Shrinkage shrinkage) {
-        setShrinkage(shrinkage);
+    public BoundsBuilder(CellBackup.Memoization m, Shrinkage shrinkage) {
+        setShrinkage(m, shrinkage);
         clear();
     }
     

@@ -46,6 +46,7 @@ public abstract class AbstractShapeBuilder {
     protected double[] doubleCoords = new double[8];
     protected int pointCount; 
     public int[] intCoords = new int[4];
+    private CellBackup.Memoization m;
     private Shrinkage shrinkage;
     
     /** Creates a new instance of AbstractShapeBuilder */
@@ -60,10 +61,14 @@ public abstract class AbstractShapeBuilder {
     public void setReasonable(boolean b) { reasonable = b; }
     public void setElectrical(boolean b) { electrical = b; }
     
+    public CellBackup.Memoization getMemoization() {
+        return m;
+    }
     public Shrinkage getShrinkage() {
         return shrinkage;
     }
-    public void setShrinkage(Shrinkage shrinkage) {
+    public void setShrinkage(CellBackup.Memoization m, Shrinkage shrinkage) {
+        this.m = m;
         this.shrinkage = shrinkage;
     }
     
@@ -269,7 +274,7 @@ public abstract class AbstractShapeBuilder {
      * @return true if shape was generated.
      */
     public boolean genShapeEasy(ImmutableArcInst a) {
-        if (!a.isEasyShape()) return false;
+        if (m.isHardArc(a.arcId)) return false;
         ArcProto protoType = a.protoType;
         int gridExtendOverMin = (int)a.getGridExtendOverMin();
         int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 

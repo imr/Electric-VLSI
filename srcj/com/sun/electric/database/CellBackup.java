@@ -170,10 +170,11 @@ public class CellBackup {
         if (arcs.isEmpty()) return null;
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
         int[] intCoords = new int[4];
+        CellBackup.Memoization m = getMemoization();
         AbstractShapeBuilder.Shrinkage shrinkage = getShrinkage();
-        BoundsBuilder boundsBuilder = new BoundsBuilder(shrinkage);
+        BoundsBuilder boundsBuilder = new BoundsBuilder(m, shrinkage);
         for (ImmutableArcInst a: arcs) {
-            if (a.genBoundsEasy(shrinkage, intCoords)) {
+            if (a.genBoundsEasy(m, shrinkage, intCoords)) {
                 int x1 = intCoords[0];
                 if (x1 < intMinX) intMinX = x1;
                 int y1 = intCoords[1];
@@ -215,7 +216,8 @@ public class CellBackup {
         public final int[] connections;
         /** ImmutableExports sorted by original PortInst. */
         private final ImmutableExport[] exportIndexByOriginalPort;
-        private final BitSet wiped;
+        private final BitSet wiped = new BitSet();
+        private final BitSet hardArcs = new BitSet();
         
         Memoization() {
 //            long startTime = System.currentTimeMillis();
@@ -265,13 +267,15 @@ public class CellBackup {
             Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
-            BitSet wiped = new BitSet();
             for (ImmutableArcInst a: arcs) {
                 // wipe status
                 if (a.protoType.isWipable()) {
                     wiped.set(a.tailNodeId);
                     wiped.set(a.headNodeId);
                 }
+                // hard arcs
+                if (!a.isEasyShape(a.protoType))
+                    hardArcs.set(a.arcId);
             }
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
@@ -279,7 +283,6 @@ public class CellBackup {
                 if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe()))
                     wiped.clear(n.nodeId);
             }
-            this.wiped = wiped;
 //            long stopTime = System.currentTimeMillis();
 //            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
         }
@@ -380,6 +383,10 @@ public class CellBackup {
          */
         public boolean isWiped(int nodeId) {
             return wiped.get(nodeId);
+        }
+        
+        public boolean isHardArc(int arcId) {
+            return hardArcs.get(arcId);
         }
         
         /**

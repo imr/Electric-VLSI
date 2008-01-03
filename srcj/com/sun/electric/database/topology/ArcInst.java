@@ -686,7 +686,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
     
     void computeBounds(BoundsBuilder b, int[] intCoords) {
-        if (d.genBoundsEasy(b.getShrinkage(), intCoords)) {
+        if (d.genBoundsEasy(b.getMemoization(), b.getShrinkage(), intCoords)) {
             double x = intCoords[0];
             double y = intCoords[1];
             double w = intCoords[2] - x;
@@ -727,7 +727,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         polyBuilder.setOnlyTheseLayers(null);
-        polyBuilder.setShrinkage(parent.getShrinkage());
+        polyBuilder.setShrinkage(parent.getMemoization(), parent.getShrinkage());
         return polyBuilder.makePoly(getD(), gridWidth, style);
     }
 	
@@ -752,7 +752,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, long gridRadius) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         polyBuilder.setOnlyTheseLayers(null);
-        polyBuilder.setShrinkage(parent.getShrinkage());
+        polyBuilder.setShrinkage(parent.getMemoization(), parent.getShrinkage());
         Variable radius = Variable.newInstance(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridRadius)), TextDescriptor.getArcTextDescriptor());
         return polyBuilder.makePoly(getD().withVariable(radius), gridWidth, style);
     }

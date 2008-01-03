@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -476,7 +477,8 @@ public class Poly extends PolyBase {
          */
         public Iterator<Poly> getShape(ArcInst ai) {
             isChanging = true;
-            setShrinkage(ai.getParent().getShrinkage());
+            Cell parent = ai.getParent();
+            setShrinkage(parent.getMemoization(), parent.getShrinkage());
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (inLambda) {
@@ -494,7 +496,8 @@ public class Poly extends PolyBase {
          */
     	public Poly [] getShapeArray(ArcInst ai) {
             isChanging = true;
-            setShrinkage(ai.getParent().getShrinkage());
+            Cell parent = ai.getParent();
+            setShrinkage(parent.getMemoization(), parent.getShrinkage());
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (lastPolys.isEmpty()) {

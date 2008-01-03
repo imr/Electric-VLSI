@@ -120,8 +120,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     private static final int HARD_SELECT_MASK   = 0x400;
     private static final int DATABASE_FLAGS     = 0x7ff;
     
-    private static final int EASY_MASK          = 0x800;
-    
 	/**
 	 * Flag to set an ImmutableArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
@@ -468,7 +466,51 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         }
     }
     
-    public boolean isEasyShape() { return (flags & EASY_MASK) != 0; }
+    public boolean isEasyShape(ArcProto protoType) {
+        assert protoType == this.protoType;
+        Technology tech = protoType.getTechnology();
+        Variable[] vars = getVars();
+        if (tech == Artwork.tech && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
+            return false;
+        if (tech == FPGA.tech)
+            return false;
+        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK|TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0)
+            return false;
+        if (protoType.isCurvable() && searchVar(vars, ARC_RADIUS) >= 0)
+            return false;
+        if (!(tailLocation.isSmall() && headLocation.isSmall()))
+            return false;
+        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
+        if (minLayerExtend <= 0) {
+            if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) return false;
+            return true;
+        }
+        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
+            if (protoType.getLayerStyle(i) != Poly.Type.FILLED)
+                return false;
+        }
+        int tx = (int)tailLocation.getGridX();
+        int ty = (int)tailLocation.getGridY();
+        int hx = (int)headLocation.getGridX();
+        int hy = (int)headLocation.getGridY();
+        switch (angle) {
+            case 0:
+                if (ty != hy) return false;
+                break;
+            case 900:
+                if (tx != hx) return false;
+                break;
+            case 1800:
+                if (ty != hy) return false;
+                break;
+            case 2700:
+                if (tx != hx) return false;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
     
     public void explainEasyShape() {
         Technology tech = protoType.getTechnology();
@@ -549,53 +591,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         }
         assert false;
     }
-    
-    
-    private static int updateEasyShape(ArcProto protoType, int gridExtendOverMin, EPoint tailLocation, EPoint headLocation, short angle, Variable[] vars, int flags) {
-        Technology tech = protoType.getTechnology();
-        flags = flags & DATABASE_FLAGS;
-        if (tech == Artwork.tech && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
-            return flags;
-        if (tech == FPGA.tech)
-            return flags;
-        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK|TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0)
-            return flags;
-        if (protoType.isCurvable() && searchVar(vars, ARC_RADIUS) >= 0)
-            return flags;
-        if (!(tailLocation.isSmall() && headLocation.isSmall()))
-            return flags;
-        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
-        if (minLayerExtend <= 0) {
-            if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) return flags;
-            return flags | EASY_MASK;
-        }
-        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
-            if (protoType.getLayerStyle(i) != Poly.Type.FILLED)
-                return flags;
-        }
-        int tx = (int)tailLocation.getGridX();
-        int ty = (int)tailLocation.getGridY();
-        int hx = (int)headLocation.getGridX();
-        int hy = (int)headLocation.getGridY();
-        switch (angle) {
-            case 0:
-                if (ty != hy) return flags;
-                break;
-            case 900:
-                if (tx != hx) return flags;
-                break;
-            case 1800:
-                if (ty != hy) return flags;
-                break;
-            case 2700:
-                if (tx != hx) return flags;
-                break;
-            default:
-                return flags;
-        }
-        return flags | EASY_MASK;
-    }
-    
+        
     /**
      * Returns new ImmutableArcInst object.
      * @param arcId id of this ArcInst in parent.
@@ -644,7 +640,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             flags &= ~HEAD_NEGATED_MASK;
         if (protoType.getTechnology().isNoNegatedArcs())
             flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
-        flags = updateEasyShape(protoType, intGridExtendOverMin, tailLocation, headLocation, shortAngle, Variable.NULL_ARRAY, flags);
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
@@ -695,11 +690,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
         short angle = updateAngle(this.angle, tailLocation, headLocation);
-        int flags = updateEasyShape(this.protoType, this.gridExtendOverMin, tailLocation, headLocation, angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.gridExtendOverMin, angle, flags, getVars());
+                this.gridExtendOverMin, angle, this.flags, getVars());
 	}
 
 	/**
@@ -711,11 +705,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public ImmutableArcInst withGridExtendOverMin(long gridExtendOverMin) {
         if (this.gridExtendOverMin == gridExtendOverMin) return this;
         if (gridExtendOverMin <= -MAX_EXTEND || gridExtendOverMin >= MAX_EXTEND) throw new IllegalArgumentException("gridWidth");
-        int flags = updateEasyShape(this.protoType, (int)gridExtendOverMin, this.tailLocation, this.headLocation, this.angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                (int)gridExtendOverMin, this.angle, flags, getVars());
+                (int)gridExtendOverMin, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -730,11 +723,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (angle < 0) angle += 3600;
 		if (this.angle == angle) return this;
         short shortAngle = (short)angle;
-        int flags = updateEasyShape(this.protoType, this.gridExtendOverMin, this.tailLocation, this.headLocation, shortAngle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridExtendOverMin, shortAngle, flags, getVars());
+                this.gridExtendOverMin, shortAngle, this.flags, getVars());
 	}
 
 	/**
@@ -750,7 +742,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             flags &= ~HEAD_NEGATED_MASK;
         if (protoType.getTechnology().isNoNegatedArcs())
             flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
-        flags = updateEasyShape(this.protoType, this.gridExtendOverMin, this.tailLocation, this.headLocation, this.angle, getVars(), flags);
         if (this.flags == flags) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -779,14 +770,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-        int flags = this.flags;
-        Variable.Key key = var.getKey();
-        if (key == Artwork.ART_COLOR || key == Artwork.ART_PATTERN || key == ARC_RADIUS)
-            flags = updateEasyShape(this.protoType, this.gridExtendOverMin, this.tailLocation, this.headLocation, this.angle, vars, flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridExtendOverMin, this.angle, flags, vars);
+                this.gridExtendOverMin, this.angle, this.flags, vars);
     }
     
 	/**
@@ -799,13 +786,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-        int flags = this.flags;
-        if (key == Artwork.ART_COLOR || key == Artwork.ART_PATTERN || key == ARC_RADIUS)
-            flags = updateEasyShape(this.protoType, this.gridExtendOverMin, this.tailLocation, this.headLocation, this.angle, vars, flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridExtendOverMin, this.angle, flags, vars);
+                this.gridExtendOverMin, this.angle, this.flags, vars);
     }
     
 	/**
@@ -908,8 +892,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param intCoords integer coords to fill.
      * @return true if bounds were generated.
      */
-    public boolean genBoundsEasy(AbstractShapeBuilder.Shrinkage shrinkage, int[] intCoords) {
-        if (!isEasyShape()) return false;
+    public boolean genBoundsEasy(CellBackup.Memoization m, AbstractShapeBuilder.Shrinkage shrinkage, int[] intCoords) {
+        if (m.isHardArc(arcId)) return false;
         int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
         if (minLayerExtend == 0) {
             assert protoType.getNumArcLayers() == 1;
@@ -1042,8 +1026,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headPortId != null;
         assert headLocation != null;
         assert -MAX_EXTEND < gridExtendOverMin && gridExtendOverMin < MAX_EXTEND;
-        assert (flags & ~(DATABASE_FLAGS|EASY_MASK)) == 0;
-        assert flags == updateEasyShape(protoType, gridExtendOverMin, tailLocation, headLocation, angle, getVars(), flags);
+        assert (flags & ~DATABASE_FLAGS) == 0;
         if (isTailNegated())
             assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
         if (isHeadNegated())
