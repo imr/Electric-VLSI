@@ -2763,6 +2763,9 @@ public class Spice extends Topology
     protected Netlist.ShortResistors getShortResistors() {
         if (useCDL && Simulation.getCDLIgnoreResistors())
             return Netlist.ShortResistors.PARASITIC;
+        // this option is used for writing spice netlists for LVS and RCX
+        if (Simulation.isSpiceIgnoreParasiticResistors())
+            return Netlist.ShortResistors.PARASITIC;
         return Netlist.ShortResistors.NO;
     }
     

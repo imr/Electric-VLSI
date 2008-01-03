@@ -1729,8 +1729,12 @@ public class Simulation extends Tool
 //    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, true);
 //    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
 //    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
-    
-	private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
+
+    private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, true);
+    public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }
+    public static void setSpiceIgnoreParasiticResistors(boolean b) { cachedSpiceIgnoreParasiticResistors.setBoolean(b); }
+
+    private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
 	/**
 	 * Method to tell the maximum memory to use for EpicReaderProcess, in megatybes.
 	 * The default is 1000 (1 gigabyte).
