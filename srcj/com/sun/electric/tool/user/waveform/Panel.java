@@ -472,6 +472,22 @@ public class Panel extends JPanel
 		computeSmallestValues();
 	}
 
+	/**
+	 * Method to ensure that a signal can be shown in this panel.
+	 * Displays an error if not.
+	 * @param sSig the signal being tested.
+	 * @return true if the signal is wrong and cannot appear in this panel.
+	 */
+	public boolean wrongPanelType(Signal sSig)
+	{
+		if (sSig.getAnalysis().getAnalysisType() == getAnalysisType()) return false;
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + getAnalysisType() + " panel.  " +
+			"First convert the panel with the popup in the upper-left.",
+			"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+		return true;
+	}
+
 	public JPanel getSignalButtons() { return signalButtons; };
 
 	public JScrollPane getSignalButtonsPane() { return signalButtonsPane; };
@@ -709,7 +725,7 @@ public class Panel extends JPanel
 			for(Signal subSig : bussedSignals)
 			{
 				DigitalSignal subDS = (DigitalSignal)subSig;
-				Panel wp = waveWindow.makeNewPanel();
+				Panel wp = waveWindow.makeNewPanel(null);
 				WaveSignal wsig = new WaveSignal(wp, subDS);
 
 				if (WaveformWindow.USETABLES)

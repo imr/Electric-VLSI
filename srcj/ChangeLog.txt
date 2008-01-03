@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/3/08, SMR) Adding AC or DC signals to the waveform window brings
+     them up in a Transient panel, and they are not remembered (#1469).
+FIX: Set the panel type correctly when creating them.
+
 BUG: (1/3/08, SMR) Node/Arc/Export Properties sometimes truncates data.
 FIX: Must pack dialogs when reloading them.
 

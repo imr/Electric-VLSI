@@ -990,13 +990,12 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
-		private Font plainFont, boldFont, italicFont;
+		private Font plainFont, boldFont;
 
 		public MyRenderer()
 		{
 			plainFont = new Font("arial", Font.PLAIN, 11);
 			boldFont = new Font("arial", Font.BOLD, 11);
-            italicFont = new Font("arial", Font.ITALIC, 11);
 		}
 
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
@@ -2154,11 +2153,11 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 			if (!(wf.getContent() instanceof WaveformWindow)) return;
 			WaveformWindow ww = (WaveformWindow)wf.getContent();
-			Signal [] sigs = new Signal[numCurrentlySelectedObjects()];
+			List<Signal> sigs = new ArrayList<Signal>();
 			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
 				Signal sig = (Signal)getCurrentlySelectedObject(i);
-				sigs[i] = sig;
+				sigs.add(sig);
 			}
 			ww.showSignals(sigs, newPanel);
 		}

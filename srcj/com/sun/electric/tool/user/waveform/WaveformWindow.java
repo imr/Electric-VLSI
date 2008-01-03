@@ -331,7 +331,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			overall.add(addPanel, gbc);
 			addPanel.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
+				public void actionPerformed(ActionEvent evt) { makeNewPanel(null); }
 			});
 
 			showPoints = new JButton(iconLineOnPointOff);
@@ -1251,22 +1251,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to create a new panel with an X range similar to others on the display.
 	 * @return the newly created Panel.
 	 */
-	public Panel makeNewPanel()
+	public Panel makeNewPanel(Analysis analysis)
 	{
 		// determine panel's analysis type
-		Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
-		int panelSize = panelSizeDigital;
-		if (sd.isAnalog())
+		Analysis.AnalysisType analysisType;
+		if (analysis != null) analysisType = analysis.getAnalysisType(); else
 		{
-			panelSize = panelSizeAnalog;
-			if (sd.getNumAnalyses() > 0)
-				analysisType = sd.getAnalyses().next().getAnalysisType();
-			if (xAxisLocked && xAxisSignalAll != null)
+			analysisType = Analysis.ANALYSIS_SIGNALS;
+			if (sd.isAnalog())
 			{
-				AnalogSignal as = (AnalogSignal)xAxisSignalAll;
-				analysisType = as.getAnalysis().getAnalysisType();
+				if (sd.getNumAnalyses() > 0)
+					analysisType = sd.getAnalyses().next().getAnalysisType();
+				if (xAxisLocked && xAxisSignalAll != null)
+				{
+					AnalogSignal as = (AnalogSignal)xAxisSignalAll;
+					analysisType = as.getAnalysis().getAnalysisType();
+				}
 			}
 		}
+		int panelSize = panelSizeDigital;
+		if (sd.isAnalog()) panelSize = panelSizeAnalog;
 
 		// determine the X and Y ranges
 		Rectangle2D bounds = null;
@@ -2234,19 +2238,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
-	 * Method to add an array of signals to the waveform display.
-	 * @param sigs the signals to add
-	 * @param newPanel true to create new panels for each signal.
-	 */
-	public void showSignals(Signal [] sigs, boolean newPanel)
-	{
-		List<Signal> these = new ArrayList<Signal>();
-		for(int i=0; i<sigs.length; i++)
-			these.add(sigs[i]);
-		showTheseSignals(these, newPanel);
-	}
-
-	/**
 	 * Method to add a selection to the waveform display.
 	 * @param h a Highlighter of what is selected.
 	 * @param context the context of these networks
@@ -2256,10 +2247,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void showSignals(Highlighter h, VarContext context, boolean newPanel)
 	{
 		List<Signal> found = findSelectedSignals(h, context);
-		showTheseSignals(found, newPanel);
+		showSignals(found, newPanel);
 	}
 
-	private void showTheseSignals(List<Signal> found, boolean newPanel)
+	/**
+	 * Method to add a list of signals to the waveform display.
+	 * @param sigs the signals to add.
+	 * @param newPanel true to create new panels for each signal.
+	 */
+	public void showSignals(List<Signal> found, boolean newPanel)
 	{
 		// determine the current panel
 		Panel wp = null;
@@ -2284,7 +2280,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// add the signal
 			if (newPanel)
 			{
-				wp = makeNewPanel();
+				wp = makeNewPanel(sSig.getAnalysis());
 				boolean isAnalog = false;
 				if (sSig instanceof AnalogSignal) isAnalog = true;
 				if (isAnalog)
@@ -2305,6 +2301,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Rectangle2D rangeBounds = sSig.getBounds();
 					wp.setXAxisRange(rangeBounds.getMinX(), rangeBounds.getMaxX());
 				}
+			} else
+			{
+				// make sure the analysis type is correct
+				if (wp.wrongPanelType(sSig)) break;
 			}
 
 			// check if signal already in panel
@@ -3878,14 +3878,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				if (wp.isSelected())
 				{
-					if (as.getAnalysis().getAnalysisType() != wp.getAnalysisType())
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + wp.getAnalysisType() + " panel.  " +
-							"First convert the panel with the popup in the upper-left.",
-							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
-						return;					
-					}
+					if (wp.wrongPanelType(as)) return;
 					WaveSignal.addSignalToPanel(sig, wp, null);
 					if (getMainHorizRuler() != null)
 						getMainHorizRuler().repaint();
@@ -3895,7 +3888,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		} else
 		{
 			// add digital signal in new panel
-			Panel wp = makeNewPanel();
+			Panel wp = makeNewPanel(sig.getAnalysis());
 			new WaveSignal(wp, sig);
 			overall.validate();
 			wp.repaintContents();
@@ -4411,12 +4404,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (!ws.getSignal().getFullName().equals(signalName)) continue;
 					sSig = ws.getSignal();
-					if (sSig.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					if (panel.wrongPanelType(sSig))
 					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
-							"First convert the panel with the popup in the upper-left.",
-							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 						dtde.dropComplete(true);
 						return;					
 					}
@@ -4457,12 +4446,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					// overlay this signal onto an existing panel
 					AnalogSignal as = (AnalogSignal)sSig;
-					if (as.getAnalysis().getAnalysisType() != panel.getAnalysisType())
+					if (panel.wrongPanelType(as))
 					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot drop a " + as.getAnalysis().getAnalysisType() + " signal onto a " + panel.getAnalysisType() + " panel.  " +
-							"First convert the panel with the popup in the upper-left.",
-							"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 						dtde.dropComplete(true);
 						return;					
 					}
@@ -4472,7 +4457,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// add this signal in a new panel
-				panel = ww.makeNewPanel();
+				panel = ww.makeNewPanel(sSig.getAnalysis());
 				panel.fitToSignal(sSig);
 				new WaveSignal(panel, sSig);
 			}
