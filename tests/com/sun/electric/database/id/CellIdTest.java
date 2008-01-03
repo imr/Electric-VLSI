@@ -21,14 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.*;
 import org.junit.Before;

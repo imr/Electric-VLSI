@@ -23,16 +23,16 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-
 import java.util.Iterator;
 
 import static org.junit.Assert.*;

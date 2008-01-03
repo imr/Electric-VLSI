@@ -26,7 +26,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -36,6 +36,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
+
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 

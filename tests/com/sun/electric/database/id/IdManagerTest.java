@@ -21,9 +21,13 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
-import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.SnapshotReader;
+import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.text.CellName;
 
 import java.io.ByteArrayInputStream;

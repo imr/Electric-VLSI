@@ -24,12 +24,13 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;

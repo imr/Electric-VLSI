@@ -25,6 +25,10 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.Technology;
