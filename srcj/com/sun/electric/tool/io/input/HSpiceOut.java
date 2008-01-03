@@ -255,9 +255,15 @@ public class HSpiceOut extends Simulate
 		}
 
 		// convert this to a list of Measurements
+        List<Double> argMeas = measurementData.get(measurementNames.get(0));
+        an.buildCommonTime(argMeas.size());
+        for (int i = 0; i < argMeas.size(); i++)
+            an.setCommonTime(i, argMeas.get(i).doubleValue());
 		List<AnalogSignal> measData = new ArrayList<AnalogSignal>();
 		for(String mName : measurementNames)
 		{
+//            if (mName.equals(measurementNames.get(0)))
+//                continue;
 			List<Double> mData = measurementData.get(mName);
             double[] values = new double[mData.size()];
 			for(int i=0; i<mData.size(); i++) values[i] = mData.get(i).doubleValue();
