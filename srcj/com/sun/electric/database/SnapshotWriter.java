@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: SnapshotWriter.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -26,8 +27,12 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -44,11 +49,11 @@ import java.util.HashMap;
  */
 public class SnapshotWriter {
     
-    final IdManager idManager;
+    public final IdManager idManager;
     private final DataOutputStream out;
-    int techCount;
-    int libCount;
-    int[] exportCounts = {};
+    public int techCount;
+    public int libCount;
+    public int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
@@ -62,15 +67,15 @@ public class SnapshotWriter {
         this.out = out;
     }
 
-    void setTechCount(int techCount) {
+    public void setTechCount(int techCount) {
         this.techCount = techCount;
     }
     
-    void setLibCount(int libCount) {
+    public void setLibCount(int libCount) {
         this.libCount = libCount;
     }
     
-    void setCellCount(int cellCount) {
+    public void setCellCount(int cellCount) {
         if (cellCount == exportCounts.length) return;
         int[] newExportCounts = new int[cellCount];
         System.arraycopy(exportCounts, 0, newExportCounts, 0, exportCounts.length);

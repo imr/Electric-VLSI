@@ -27,12 +27,11 @@ package com.sun.electric.tool.cvspm;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.ToolBar;
 
 import javax.swing.*;
 import javax.swing.table.*;

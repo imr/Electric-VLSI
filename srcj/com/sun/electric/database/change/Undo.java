@@ -24,15 +24,13 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ArcProtoId.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
@@ -21,7 +22,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
 /**
  * The ArcProtoId immutable class identifies arc proto independently of threads.

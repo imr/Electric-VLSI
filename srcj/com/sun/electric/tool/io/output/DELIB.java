@@ -25,14 +25,14 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.CellUsage;
-import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Version;
 
 import java.io.BufferedWriter;

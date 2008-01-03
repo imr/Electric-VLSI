@@ -25,14 +25,13 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;

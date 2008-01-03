@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Client;
 
 import java.awt.Color;
 import java.io.File;

@@ -24,15 +24,12 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.ExportId;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
@@ -40,6 +37,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;

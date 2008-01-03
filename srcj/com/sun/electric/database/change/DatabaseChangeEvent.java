@@ -24,11 +24,10 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.variable.ElectricObject;
 
 /**

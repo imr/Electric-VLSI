@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableCell.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -24,6 +25,9 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.Variable;
 

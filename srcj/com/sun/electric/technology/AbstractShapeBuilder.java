@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: AbstractShapeBuilder.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -31,7 +32,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.id.NodeProtoId;
 import java.awt.geom.Point2D;
 
 /**

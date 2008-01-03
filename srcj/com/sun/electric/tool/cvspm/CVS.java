@@ -32,7 +32,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.CellId;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
@@ -51,7 +50,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.net.URL;
-import java.net.URI;
 
 /**
  * The CVS Module

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: IdManager.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,8 +22,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.SnapshotReader;
+import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.text.CellName;
 
 import java.io.IOException;
@@ -142,9 +146,9 @@ public class IdManager {
     
     public Snapshot getInitialSnapshot() { return initialSnapshot; }
     
-    int newSnapshotId() { return snapshotCount.incrementAndGet(); }
+    public int newSnapshotId() { return snapshotCount.incrementAndGet(); }
     
-    void writeDiffs(SnapshotWriter writer) throws IOException {
+    public void writeDiffs(SnapshotWriter writer) throws IOException {
         assert writer.idManager == this;
         TechId[] techIdsArray;
         LibId[] libIdsArray;
@@ -190,7 +194,7 @@ public class IdManager {
         writer.writeInt(-1);
     }
     
-    void readDiffs(SnapshotReader reader) throws IOException {
+    public void readDiffs(SnapshotReader reader) throws IOException {
         int oldTechIdsCount, oldLibIdsCount, oldCellIdsCount;
         synchronized (this) {
             oldTechIdsCount = techIds.size();

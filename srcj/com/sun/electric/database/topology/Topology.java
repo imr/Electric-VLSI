@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Topology.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
@@ -23,12 +24,12 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;

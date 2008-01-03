@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: LibraryBackup.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -23,11 +24,10 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.ImmutableArrayList;
+
 import java.io.IOException;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  *

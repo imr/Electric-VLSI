@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.io;
 
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.ExportId;
-import com.sun.electric.database.LibId;
-import com.sun.electric.database.TechId;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 

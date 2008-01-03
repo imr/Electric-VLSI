@@ -2,7 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Library.java
+ * File: EDatabase.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -24,15 +25,15 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.CellUsage;
-import com.sun.electric.database.IdManager;
-import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;

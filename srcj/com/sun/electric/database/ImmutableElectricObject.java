@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableElectricObject.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -25,8 +26,8 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.variable.Variable;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 /**

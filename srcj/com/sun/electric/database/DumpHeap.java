@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: DumpHeap.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -25,13 +26,13 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.GenMath;
+
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

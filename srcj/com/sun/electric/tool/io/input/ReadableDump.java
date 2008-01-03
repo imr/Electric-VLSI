@@ -25,21 +25,21 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.LibId;
-import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;

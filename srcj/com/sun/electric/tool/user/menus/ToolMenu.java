@@ -25,21 +25,6 @@
 package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -49,6 +34,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
@@ -138,6 +124,19 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Tool" pulldown menu.

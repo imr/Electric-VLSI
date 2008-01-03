@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.variable;
 
-import java.io.ObjectStreamException;
 import java.util.HashMap;
 
 /**

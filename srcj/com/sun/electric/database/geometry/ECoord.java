@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EPoint.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -29,7 +30,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 

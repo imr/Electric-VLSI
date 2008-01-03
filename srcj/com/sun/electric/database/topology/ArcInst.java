@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.constraint.Constraints;
@@ -34,6 +33,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;

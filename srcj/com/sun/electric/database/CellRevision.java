@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: CellRevision.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -24,26 +25,22 @@
 package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
-import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.database.prototype.PortProtoId;
-import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.AbstractShapeBuilder;
-import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Comparator;
-import java.util.Iterator;
 
 /**
  * This class represents Cell data (with all arcs/nodes/exports) as it is saved to disk.

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableNodeInst.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -27,8 +28,10 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;

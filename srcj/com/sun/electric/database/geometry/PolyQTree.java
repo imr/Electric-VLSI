@@ -26,6 +26,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
+
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;

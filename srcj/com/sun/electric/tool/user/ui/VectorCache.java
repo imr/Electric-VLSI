@@ -24,9 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -41,6 +39,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;

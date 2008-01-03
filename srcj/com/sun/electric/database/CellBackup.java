@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: CellBackup.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -25,15 +26,14 @@ package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.Job;
 
 import java.io.IOException;
 import java.util.Arrays;

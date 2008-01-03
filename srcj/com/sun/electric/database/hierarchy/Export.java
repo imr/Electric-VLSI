@@ -24,12 +24,12 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
-import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;

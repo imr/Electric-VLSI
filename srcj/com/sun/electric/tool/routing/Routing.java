@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.routing;
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -33,11 +32,12 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;

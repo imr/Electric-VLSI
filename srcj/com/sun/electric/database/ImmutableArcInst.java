@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableArcInst.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -27,7 +28,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -38,6 +40,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
+
 import java.io.IOException;
 
 /**

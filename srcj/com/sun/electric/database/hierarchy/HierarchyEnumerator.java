@@ -23,15 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import java.awt.geom.AffineTransform;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -42,8 +34,14 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+
+import java.awt.geom.AffineTransform;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /** The HierarchyEnumerator can help programs that need to "flatten"
  * the design hierarchy. Examples of such programs include the logical

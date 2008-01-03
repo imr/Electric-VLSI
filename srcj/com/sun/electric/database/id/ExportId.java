@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ExportId.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,12 +22,15 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
+import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 
 import java.io.InvalidObjectException;

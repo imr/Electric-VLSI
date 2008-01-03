@@ -24,11 +24,11 @@
  */
 package com.sun.electric.database.network;
 
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;

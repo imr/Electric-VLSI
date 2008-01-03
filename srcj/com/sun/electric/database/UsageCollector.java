@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: UsageCollector.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -23,7 +24,11 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;

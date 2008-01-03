@@ -24,7 +24,6 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -33,6 +32,7 @@ import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -41,7 +41,12 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -50,6 +55,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.util.*;

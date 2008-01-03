@@ -24,7 +24,6 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
@@ -40,10 +39,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;

@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
@@ -32,6 +31,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.PortInst;

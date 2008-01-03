@@ -26,11 +26,14 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * To handle merge operation. Two different classes have been proposed

@@ -24,7 +24,6 @@
 package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;

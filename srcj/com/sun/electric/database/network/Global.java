@@ -28,9 +28,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Name;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;

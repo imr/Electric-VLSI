@@ -26,7 +26,6 @@
 package com.sun.electric.tool.project;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -35,6 +34,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;

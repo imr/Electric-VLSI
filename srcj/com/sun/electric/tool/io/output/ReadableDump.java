@@ -26,17 +26,17 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.LibId;
-import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;

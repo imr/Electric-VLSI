@@ -23,15 +23,13 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -60,7 +58,6 @@ import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 
 /**

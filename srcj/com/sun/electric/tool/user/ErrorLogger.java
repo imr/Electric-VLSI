@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -31,6 +30,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;

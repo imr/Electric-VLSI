@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Nodable.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -27,7 +28,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 
 import java.util.Iterator;
 

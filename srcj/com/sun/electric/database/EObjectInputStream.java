@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EObjectInputStream.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,16 +24,12 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 /**

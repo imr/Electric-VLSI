@@ -23,17 +23,17 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.ExportId;
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.LibId;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
-import com.sun.electric.database.TechId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;

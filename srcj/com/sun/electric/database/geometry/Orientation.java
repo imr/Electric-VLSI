@@ -27,7 +27,6 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.ObjectStreamException;
 import java.util.HashMap;
 import java.io.Serializable;
 

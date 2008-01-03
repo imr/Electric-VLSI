@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Snapshot.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -24,15 +25,18 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.ncc.result.NccResult.CellSummary;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,7 +91,7 @@ public class Snapshot {
     /**
      * Creates empty snapshot.
      */
-    Snapshot(IdManager idManager) {
+    public Snapshot(IdManager idManager) {
         this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], LibraryBackup.EMPTY_LIST, Technology.EMPTY_LIST, ERectangle.NULL_ARRAY);
     }
     

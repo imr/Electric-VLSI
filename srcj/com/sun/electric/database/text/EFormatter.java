@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EFormatter.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *

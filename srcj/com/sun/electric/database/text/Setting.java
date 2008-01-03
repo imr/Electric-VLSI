@@ -25,7 +25,6 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
@@ -42,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
 
 /**
  *
