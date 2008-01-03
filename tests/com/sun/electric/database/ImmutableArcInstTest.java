@@ -374,7 +374,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testIsEasyShape() {
         System.out.println("isEasyShape");
-        assertTrue(a0.isEasyShape());
+        assertTrue(a0.isEasyShape(ap));
     }
 
     /**
@@ -614,11 +614,11 @@ public class ImmutableArcInstTest {
         assertSame(n1.anchor, a1.tailLocation);
         assertSame(n0.anchor, a1.headLocation);
         assertEquals(1800, a1.getAngle());
-        assertTrue(a1.isEasyShape());
+        assertTrue(a1.isEasyShape(ap));
         
         ImmutableArcInst a2 = a0.withLocations(n0.anchor, EPoint.fromGrid(1500*1000*1000, n1.anchor.getGridY()));
         a2.check();
-        assertFalse(a2.isEasyShape());
+        assertFalse(a2.isEasyShape(ap));
     }
 
     /**
@@ -639,12 +639,12 @@ public class ImmutableArcInstTest {
         long largeExtendOverMin = 130*1000*1000;
         ImmutableArcInst a1 = a0.withGridExtendOverMin(largeExtendOverMin);
         assertEquals(largeExtendOverMin, a1.getGridExtendOverMin());
-        assertTrue(a1.isEasyShape());
+        assertTrue(a1.isEasyShape(ap));
         
         long smallExtendOverMin = -1;
         ImmutableArcInst a2 = a0.withGridExtendOverMin(smallExtendOverMin);
         assertEquals(smallExtendOverMin, a2.getGridExtendOverMin());
-        assertTrue(a2.isEasyShape());
+        assertTrue(a2.isEasyShape(ap));
     }
 
    /**
@@ -673,12 +673,12 @@ public class ImmutableArcInstTest {
         ImmutableArcInst a1 = a0.withLocations(a0.tailLocation, a0.tailLocation).withAngle(900);
         a1.check();
         assertEquals(900, a1.getAngle());
-        assertTrue(a1.isEasyShape());
+        assertTrue(a1.isEasyShape(ap));
         
         ImmutableArcInst a2 = a1.withAngle(-1);
         a2.check();
         assertEquals(3599, a2.getAngle());
-        assertFalse(a2.isEasyShape());
+        assertFalse(a2.isEasyShape(ap));
     }
 
     /**
@@ -703,7 +703,7 @@ public class ImmutableArcInstTest {
         a1.check();
         assertTrue(a1.is(ImmutableArcInst.BODY_ARROWED));
         assertTrue(a1.isBodyArrowed());
-        assertFalse(a1.isEasyShape());
+        assertFalse(a1.isEasyShape(ap));
     }
 
     /**
@@ -716,7 +716,7 @@ public class ImmutableArcInstTest {
         a1.check();
         assertEquals(1, a1.getNumVariables());
         assertSame(var, a1.getVar(0));
-        assertTrue(a1.isEasyShape());
+        assertTrue(a1.isEasyShape(ap));
     
         Variable var1 = var.withParam(true);
         ImmutableArcInst a2 = a0.withVariable(var1);
@@ -731,11 +731,11 @@ public class ImmutableArcInstTest {
                 0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
-        assertTrue(a3.isEasyShape());
+        assertTrue(a3.isEasyShape(Artwork.tech.solidArc));
         
         ImmutableArcInst a4 = a3.withVariable(var);
         a4.check();
-        assertFalse(a4.isEasyShape());
+        assertFalse(a4.isEasyShape(Artwork.tech.solidArc));
     }
 
     /**
@@ -749,13 +749,13 @@ public class ImmutableArcInstTest {
                 0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS).withVariable(var);
         a1.check();
-        assertFalse(a1.isEasyShape());
+        assertFalse(a1.isEasyShape(Artwork.tech.solidArc));
         
         assertSame(a1, a1.withoutVariable(Artwork.ART_PATTERN));
         
         ImmutableArcInst a2 = a1.withoutVariable(Artwork.ART_COLOR);
         assertEquals(0, a2.getNumVariables());
-        assertTrue(a2.isEasyShape());
+        assertTrue(a2.isEasyShape(Artwork.tech.solidArc));
     }
 
     /**
@@ -850,7 +850,7 @@ public class ImmutableArcInstTest {
         double w2;
         
         void setTest(CellBackup cellBackup, ImmutableArcInst a, long width) {
-            setShrinkage(cellBackup.getShrinkage());
+            setShrinkage(cellBackup.getMemoization(), cellBackup.getShrinkage());
             this.a = a;
             w2 = width*0.5;
             pointCount = 0;
