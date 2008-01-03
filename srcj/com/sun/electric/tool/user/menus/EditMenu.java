@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -959,7 +960,18 @@ public class EditMenu {
         Set<Object> likeThis = new HashSet<Object>();
         for(Highlight2 h : highlighter.getHighlights())
         {
-    		ElectricObject eObj = h.getElectricObject();
+        	// handle attribute text
+        	if (h.isHighlightText())
+        	{
+        		Key key = h.getVarKey();
+        		if (key != null && key != Export.EXPORT_NAME)
+        		{
+        			likeThis.add(key.getName());
+        			continue;
+        		}
+        	}
+
+        	ElectricObject eObj = h.getElectricObject();
     		if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
             if (eObj instanceof NodeInst)
             {
@@ -981,28 +993,42 @@ public class EditMenu {
         for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            if (!likeThis.contains(ni.getProto())) continue;
-            if (ni.isInvisiblePinWithText())
+            if (likeThis.contains(ni.getProto()))
             {
-                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-                {
-                    Variable var = vIt.next();
-                    if (var.isDisplay())
-                    {
-                        highlighter.addText(ni, curCell, var.getKey());
-                        break;
-                    }
-                }
-            } else
+	            if (ni.isInvisiblePinWithText())
+	            {
+	                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+	                {
+	                    Variable var = vIt.next();
+	                    if (var.isDisplay())
+	                    {
+	                        highlighter.addText(ni, curCell, var.getKey());
+	                        break;
+	                    }
+	                }
+	            } else
+	            {
+	                highlighter.addElectricObject(ni, curCell);
+	            }
+            }
+            for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
             {
-                highlighter.addElectricObject(ni, curCell);
+            	Variable var = vIt.next();
+            	if (likeThis.contains(var.getKey().getName()))
+                    highlighter.addText(ni, curCell, var.getKey());
             }
         }
         for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
         {
             ArcInst ai = it.next();
-            if (!likeThis.contains(ai.getProto())) continue;
-            highlighter.addElectricObject(ai, curCell);
+            if (likeThis.contains(ai.getProto()))
+            	highlighter.addElectricObject(ai, curCell);
+            for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+            {
+            	Variable var = vIt.next();
+            	if (likeThis.contains(var.getKey().getName()))
+                    highlighter.addText(ai, curCell, var.getKey());
+            }
         }
         for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
         {
@@ -1010,6 +1036,12 @@ public class EditMenu {
     		PortCharacteristic pc = e.getCharacteristic();
         	if (!likeThis.contains(pc.getName())) continue;
         	highlighter.addText(e, curCell, Export.EXPORT_NAME);
+        }
+        for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
+        {
+        	Variable var = vIt.next();
+        	if (likeThis.contains(var.getKey().getName()))
+                highlighter.addText(curCell, curCell, var.getKey());
         }
         highlighter.finished();
         System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");
@@ -1093,29 +1125,80 @@ public class EditMenu {
         {
             if (eObj instanceof Export)
             {
-                Export [] allExports = new Export[curCell.getNumPorts()];
-                int i = 0;
+        		PortCharacteristic pc = ((Export)eObj).getCharacteristic();
+        		List<Export> allExports = new ArrayList<Export>();
                 int which = 0;
                 for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
                 {
                     Export e = it.next();
-                    if (e == eObj) which = i;
-                    allExports[i++] = e;
+                    if (e.getCharacteristic() != pc) continue;
+                    if (e == eObj) which = allExports.size();
+                    allExports.add(e);
                 }
                 if (next)
                 {
                     which++;
-                    if (which >= allExports.length) which = 0;
+                    if (which >= allExports.size()) which = 0;
                 } else
                 {
                     which--;
-                    if (which < 0) which = allExports.length - 1;
+                    if (which < 0) which = allExports.size() - 1;
                 }
                 highlighter.clear();
-                highlighter.addText(allExports[which], curCell, Export.EXPORT_NAME);
+                highlighter.addText(allExports.get(which), curCell, Export.EXPORT_NAME);
                 highlighter.finished();
-                return;
+            } else
+            {
+            	// advance to next with this name
+        		List<Key> allVarKeys = new ArrayList<Key>();
+        		List<ElectricObject> allVarObjs = new ArrayList<ElectricObject>();
+                int which = 0;
+                for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+                {
+                    ArcInst ai = it.next();
+                    for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+                    {
+                    	Variable var = vIt.next();
+                    	if (var.getKey() != high.getVarKey()) continue;
+	                    if (ai == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+	                    allVarKeys.add(var.getKey());
+	                    allVarObjs.add(ai);
+                    }
+                }
+                for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+                {
+                	NodeInst ni = it.next();
+                    for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+                    {
+                    	Variable var = vIt.next();
+                    	if (var.getKey() != high.getVarKey()) continue;
+	                    if (ni == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+	                    allVarKeys.add(var.getKey());
+	                    allVarObjs.add(ni);
+                    }
+                }
+                for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
+                {
+                	Variable var = vIt.next();
+                	if (var.getKey() != high.getVarKey()) continue;
+                    if (curCell == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+                    allVarKeys.add(var.getKey());
+                    allVarObjs.add(curCell);
+                }
+                if (next)
+                {
+                    which++;
+                    if (which >= allVarKeys.size()) which = 0;
+                } else
+                {
+                    which--;
+                    if (which < 0) which = allVarKeys.size() - 1;
+                }
+                highlighter.clear();
+                highlighter.addText(allVarObjs.get(which), curCell, allVarKeys.get(which));
+                highlighter.finished();            	
             }
+            return;
         }
         System.out.println("Cannot advance the current selection");
     }
