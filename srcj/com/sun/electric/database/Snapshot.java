@@ -29,6 +29,8 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
@@ -533,10 +535,10 @@ public class Snapshot {
 //                this.cellBounds.equals(that.cellBounds);
 //    }
     
-    public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
+    public void writeDiffs(IdWriter writer, Snapshot oldSnapshot) throws IOException {
         assert oldSnapshot.cellBoundsDefined();
         assert cellBoundsDefined();
-        idManager.writeDiffs(writer);
+        writer.writeDiffs();
         writer.writeInt(snapshotId);
         writer.writeBoolean(tool != null);
         if (tool != null)
@@ -619,9 +621,10 @@ public class Snapshot {
         }
     }
     
-    public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
+    public static Snapshot readSnapshot(IdReader reader, Snapshot oldSnapshot) throws IOException {
+        assert reader.idManager == oldSnapshot.idManager;
         assert oldSnapshot.cellBoundsDefined();
-        oldSnapshot.idManager.readDiffs(reader);
+        reader.readDiffs();
         int snapshotId = reader.readInt();
         boolean hasTool = reader.readBoolean();
         Tool tool = hasTool ? reader.readTool() : null;

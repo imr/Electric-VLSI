@@ -29,6 +29,8 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
@@ -821,10 +823,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
     
     /**
-     * Writes this ImmutableArcInst to SnapshotWriter.
+     * Writes this ImmutableArcInst to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         writer.writeArcId(arcId);
         writer.writeArcProto(protoType);
         writer.writeNameKey(name);
@@ -845,7 +847,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * Reads ImmutableArcInst from SnapshotReader.
      * @param reader where to read.
      */
-    static ImmutableArcInst read(SnapshotReader reader) throws IOException {
+    static ImmutableArcInst read(IdReader reader) throws IOException {
         int arcId = reader.readNodeId();
         ArcProto protoType = reader.readArcProto();
         Name name = reader.readNameKey();

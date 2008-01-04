@@ -24,7 +24,9 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -234,10 +236,10 @@ public class ImmutableExport extends ImmutableElectricObject {
     }
     
     /**
-     * Writes this ImmutableArcInst to SnapshotWriter.
+     * Writes this ImmutableArcInst to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         writer.writePortProtoId(exportId);
         writer.writeNameKey(name);
         writer.writeTextDescriptor(nameDescriptor);
@@ -253,7 +255,7 @@ public class ImmutableExport extends ImmutableElectricObject {
      * Reads ImmutableExport from SnapshotReader.
      * @param reader where to read.
      */
-    static ImmutableExport read(SnapshotReader reader) throws IOException {
+    static ImmutableExport read(IdReader reader) throws IOException {
         ExportId exportId = (ExportId)reader.readPortProtoId();
         Name name = reader.readNameKey();
         TextDescriptor nameDescriptor = reader.readTextDescriptor();

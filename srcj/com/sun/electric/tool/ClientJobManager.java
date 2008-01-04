@@ -24,8 +24,8 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
@@ -39,7 +39,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,14 +75,14 @@ class ClientJobManager extends JobManager {
     
     public void runLoop() {
         logger.entering(CLASS_NAME, "clinetLoop", port);
-        SnapshotReader reader = null;
+        IdReader reader = null;
         Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
         Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
         assert currentSnapshot == oldSnapshot;
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = new Socket(serverMachineName, port);
-            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
+            reader = new IdReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
             clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {

@@ -24,6 +24,8 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.variable.Variable;
 
@@ -227,7 +229,7 @@ public abstract class ImmutableElectricObject {
      * Writes optional variable part of this ImmutableElectricObject.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         boolean hasVars = vars.length > 0;
         writer.writeBoolean(hasVars);
         if (hasVars)
@@ -238,7 +240,7 @@ public abstract class ImmutableElectricObject {
      * Writes variables of this ImmutableElectricObject.
      * @param writer where to write.
      */
-    void writeVars(SnapshotWriter writer) throws IOException {
+    void writeVars(IdWriter writer) throws IOException {
         writer.writeInt(vars.length);
         for (int i = 0; i < vars.length; i++)
             vars[i].write(writer);
@@ -248,7 +250,7 @@ public abstract class ImmutableElectricObject {
      * Reads variables of this ImmutableElectricObject.
      * @param reader where to read.
      */
-    static Variable[] readVars(SnapshotReader reader) throws IOException {
+    static Variable[] readVars(IdReader reader) throws IOException {
         int length = reader.readInt();
         if (length == 0) return Variable.NULL_ARRAY;
         Variable[] vars = new Variable[length];

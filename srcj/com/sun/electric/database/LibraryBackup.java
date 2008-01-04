@@ -24,6 +24,8 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.ImmutableArrayList;
 
@@ -74,10 +76,10 @@ public class LibraryBackup {
     }
     
     /**
-     * Writes this LibraryBackup to SnapshotWriter.
+     * Writes this LibraryBackup to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         d.write(writer);
         writer.writeBoolean(modified);
         writer.writeInt(referencedLibs.length);
@@ -89,7 +91,7 @@ public class LibraryBackup {
      * Reads LibraryBackup from SnapshotReader.
      * @param reader where to read.
      */
-    static LibraryBackup read(SnapshotReader reader) throws IOException {
+    static LibraryBackup read(IdReader reader) throws IOException {
         ImmutableLibrary d = ImmutableLibrary.read(reader);
         boolean modified = reader.readBoolean();
         int refsLength = reader.readInt();

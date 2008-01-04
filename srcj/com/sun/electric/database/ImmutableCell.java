@@ -26,6 +26,8 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
@@ -183,10 +185,10 @@ public class ImmutableCell extends ImmutableElectricObject {
     public LibId getLibId() { return cellId.libId; }
     
     /**
-     * Writes this ImmutableCell to SnapshotWriter.
+     * Writes this ImmutableCell to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         writer.writeNodeProtoId(cellId);
         writer.writeString(groupName.toString());
         writer.writeLong(creationDate);
@@ -201,7 +203,7 @@ public class ImmutableCell extends ImmutableElectricObject {
      * Reads ImmutableCell from SnapshotReader.
      * @param reader where to read.
      */
-    static ImmutableCell read(SnapshotReader reader) throws IOException {
+    static ImmutableCell read(IdReader reader) throws IOException {
         CellId cellId = (CellId)reader.readNodeProtoId();
         String groupNameString = reader.readString();
         CellName groupName = CellName.parseName(groupNameString);

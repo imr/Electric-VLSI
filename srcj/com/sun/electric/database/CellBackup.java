@@ -26,6 +26,8 @@ package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
@@ -103,10 +105,10 @@ public class CellBackup {
     }
     
     /**
-     * Writes this CellBackup to SnapshotWriter.
+     * Writes this CellBackup to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         cellRevision.write(writer);
         writer.writeBoolean(modified);
     }
@@ -115,7 +117,7 @@ public class CellBackup {
      * Reads CellBackup from SnapshotReader.
      * @param reader where to read.
      */
-    static CellBackup read(SnapshotReader reader) throws IOException {
+    static CellBackup read(IdReader reader) throws IOException {
         CellRevision newRevision = CellRevision.read(reader);
         boolean modified = reader.readBoolean();
         return new CellBackup(newRevision, modified);

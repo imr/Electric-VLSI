@@ -24,6 +24,8 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.Variable;
@@ -142,10 +144,10 @@ public class ImmutableLibrary extends ImmutableElectricObject {
     }
     
     /**
-     * Writes this ImmutableLibrary to SnapshotWriter.
+     * Writes this ImmutableLibrary to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         writer.writeLibId(libId);
         writer.writeString(libFile != null ? libFile.toString() : "");
         writer.writeString(version != null ? version.toString() : "");
@@ -157,7 +159,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      * Reads ImmutableLibrary from SnapshotReader.
      * @param reader where to read.
      */
-    static ImmutableLibrary read(SnapshotReader reader) throws IOException {
+    static ImmutableLibrary read(IdReader reader) throws IOException {
         LibId libId = reader.readLibId();
         String libFileString = reader.readString();
         URL libFile = libFileString.length() > 0 ? new URL(libFileString) : null;

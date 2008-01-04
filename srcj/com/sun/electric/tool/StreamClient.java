@@ -24,8 +24,8 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.tool.Client.ServerEvent;
 
 import java.io.BufferedInputStream;
@@ -45,7 +45,7 @@ public class StreamClient extends Client {
     private static final Condition queueChanged = lock.newCondition();
     private static ServerEvent queueTail = new ServerEvent();
     
-    private final SnapshotWriter writer;
+    private final IdWriter writer;
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
     private Snapshot initialSnapshot;
     private final ServerEventDispatcher dispatcher; 
@@ -56,7 +56,7 @@ public class StreamClient extends Client {
     StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream, Snapshot initialSnapshot) {
         super(connectionId);
 //        writer = new ClientWriter(outputStream, initialSnapshot);
-        writer = new SnapshotWriter(initialSnapshot.idManager, new DataOutputStream(outputStream));
+        writer = new IdWriter(initialSnapshot.idManager, new DataOutputStream(outputStream));
         this.initialSnapshot = initialSnapshot;
         dispatcher = new ServerEventDispatcher();
         reader = inputStream != null ? new ClientReader(inputStream) : null;

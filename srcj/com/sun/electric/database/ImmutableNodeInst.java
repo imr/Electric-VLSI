@@ -24,12 +24,14 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
@@ -601,10 +603,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //	public byte getTechSpecific() { return techBits; }
 
     /**
-     * Writes this ImmutableNodeInst to SnapshotWriter.
+     * Writes this ImmutableNodeInst to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         writer.writeNodeId(nodeId);
         writer.writeNodeProtoId(protoId);
         writer.writeNameKey(name);
@@ -628,7 +630,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * Reads ImmutableNodeInst from SnapshotReader.
      * @param reader where to read.
      */
-    static ImmutableNodeInst read(SnapshotReader reader) throws IOException {
+    static ImmutableNodeInst read(IdReader reader) throws IOException {
         int nodeId = reader.readNodeId();
         NodeProtoId protoId = reader.readNodeProtoId();
         Name name = reader.readNameKey();

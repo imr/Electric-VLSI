@@ -24,8 +24,8 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
 import java.io.BufferedInputStream;
@@ -46,7 +46,7 @@ public class Regression {
     }
 
     public static void runScript(String script) {
-        SnapshotReader reader = null;
+        IdReader reader = null;
         EDatabase database = EDatabase.clientDatabase();
         Snapshot currentSnapshot = database.getInitialSnapshot();
         System.out.println("Running " + script);
@@ -68,7 +68,7 @@ public class Regression {
                 System.out.println("Can't connect");
                 return;
             }
-            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), database.getIdManager());
+            reader = new IdReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), database.getIdManager());
             DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {

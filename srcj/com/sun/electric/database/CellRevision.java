@@ -28,6 +28,8 @@ import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
@@ -335,10 +337,10 @@ public class CellRevision {
     }
 
     /**
-     * Writes this CellRevision to SnapshotWriter.
+     * Writes this CellRevision to IdWriter.
      * @param writer where to write.
      */
-    void write(SnapshotWriter writer) throws IOException {
+    void write(IdWriter writer) throws IOException {
         d.write(writer);
         writer.writeLong(revisionDate);
         writer.writeInt(nodes.size());
@@ -356,7 +358,7 @@ public class CellRevision {
      * Reads CellRevision from SnapshotReader.
      * @param reader where to read.
      */
-    static CellRevision read(SnapshotReader reader) throws IOException {
+    static CellRevision read(IdReader reader) throws IOException {
         ImmutableCell d = ImmutableCell.read(reader);
         long revisionDate = reader.readLong();
         CellRevision revision = new CellRevision(d.withoutVariables());

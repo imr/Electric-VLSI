@@ -25,11 +25,8 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.text.CellName;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,15 +38,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IdManager {
 
     /** List of TechIds created so far. */
-    private final ArrayList<TechId> techIds = new ArrayList<TechId>();
+    final ArrayList<TechId> techIds = new ArrayList<TechId>();
     /** HashMap of TechIds by their tech name. */
     private final HashMap<String,TechId> techIdsByName = new HashMap<String,TechId>();
     /** List of LibIds created so far. */
-    private final ArrayList<LibId> libIds = new ArrayList<LibId>();
+    final ArrayList<LibId> libIds = new ArrayList<LibId>();
     /** HashMap of LibIds by their lib name. */
     private final HashMap<String,LibId> libIdsByName = new HashMap<String,LibId>();
     /** List of CellIds created so far. */
-    private final ArrayList<CellId> cellIds = new ArrayList<CellId>();
+    final ArrayList<CellId> cellIds = new ArrayList<CellId>();
     /** Count of Snapshots created with this IdManager. */
     private final AtomicInteger snapshotCount = new AtomicInteger();
     /** Initial Snapshot. */
@@ -147,87 +144,6 @@ public class IdManager {
     public Snapshot getInitialSnapshot() { return initialSnapshot; }
     
     public int newSnapshotId() { return snapshotCount.incrementAndGet(); }
-    
-    public void writeDiffs(SnapshotWriter writer) throws IOException {
-        assert writer.idManager == this;
-        TechId[] techIdsArray;
-        LibId[] libIdsArray;
-        CellId[] cellIdsArray;
-        synchronized (this) {
-            techIdsArray = techIds.toArray(TechId.NULL_ARRAY);
-            libIdsArray = libIds.toArray(LibId.NULL_ARRAY);
-            cellIdsArray = cellIds.toArray(CellId.NULL_ARRAY);
-        }
-        writer.writeInt(techIdsArray.length);
-        for (int techIndex = writer.techCount; techIndex < techIdsArray.length; techIndex++) {
-            TechId techId = techIdsArray[techIndex];
-            writer.writeString(techId.techName);
-        }
-        writer.setTechCount(techIdsArray.length);
-        writer.writeInt(libIdsArray.length);
-        for (int libIndex = writer.libCount; libIndex < libIdsArray.length; libIndex++) {
-            LibId libId = libIdsArray[libIndex];
-            writer.writeString(libId.libName);
-        }
-        writer.setLibCount(libIdsArray.length);
-        writer.writeInt(cellIdsArray.length);
-        for (int cellIndex = writer.exportCounts.length; cellIndex < cellIdsArray.length; cellIndex++) {
-            CellId cellId = cellIdsArray[cellIndex];
-            writer.writeLibId(cellId.libId);
-            writer.writeString(cellId.cellName.toString());
-        }
-        writer.setCellCount(cellIdsArray.length);
-        for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
-            CellId cellId = cellIdsArray[cellIndex];
-            int numExportIds = cellId.numExportIds();
-            int exportCount = writer.exportCounts[cellIndex];
-            if (numExportIds != exportCount) {
-                writer.writeInt(cellIndex);
-                int numNewExportIds = numExportIds - exportCount;
-                assert numNewExportIds > 0;
-                writer.writeInt(numNewExportIds);
-                for (int i = 0; i < numNewExportIds; i++)
-                    writer.writeString(cellId.getPortId(exportCount + i).externalId);
-                writer.exportCounts[cellIndex] = numExportIds;
-            }
-        }
-        writer.writeInt(-1);
-    }
-    
-    public void readDiffs(SnapshotReader reader) throws IOException {
-        int oldTechIdsCount, oldLibIdsCount, oldCellIdsCount;
-        synchronized (this) {
-            oldTechIdsCount = techIds.size();
-            oldLibIdsCount = libIds.size();
-            oldCellIdsCount = cellIds.size();
-        }
-        int techIdsCount = reader.readInt();
-        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
-            newTechId(reader.readString());
-        int libIdsCount = reader.readInt();
-        for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
-            newLibId(reader.readString());
-        int cellIdsCount = reader.readInt();
-        for (int cellIndex = oldCellIdsCount; cellIndex < cellIdsCount; cellIndex++) {
-            LibId libId = reader.readLibId();
-            newCellId(libId, CellName.parseName(reader.readString()));
-        }
-        synchronized (this) {
-            assert techIdsCount == techIds.size();
-            assert libIdsCount == libIds.size();
-            assert cellIdsCount == cellIds.size();
-        }
-        for (;;) {
-            int cellIndex = reader.readInt();
-            if (cellIndex == -1) break;
-            CellId cellId = getCellId(cellIndex);
-            int numNewExportIds = reader.readInt();
-            for (int i = 0; i < numNewExportIds; i++) {
-                String exportIdString = reader.readString();
-                cellId.newExportId(exportIdString);
-            }
-        }
-    }
     
 	/**
 	 * Method to check invariants in all Libraries.

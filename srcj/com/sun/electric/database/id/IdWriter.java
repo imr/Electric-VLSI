@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: SnapshotWriter.java
+ * File: IdWriter.java
  * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
@@ -22,17 +22,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.id.LibId;
-import com.sun.electric.database.id.NodeProtoId;
-import com.sun.electric.database.id.PortProtoId;
-import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -40,6 +34,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -47,13 +42,13 @@ import java.util.HashMap;
 /**
  * Class to write trace of Snapshots to DataOutput byte sequence.
  */
-public class SnapshotWriter {
+public class IdWriter {
     
     public final IdManager idManager;
     private final DataOutputStream out;
-    public int techCount;
-    public int libCount;
-    public int[] exportCounts = {};
+    private int techCount;
+    private int libCount;
+    private int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
@@ -62,24 +57,58 @@ public class SnapshotWriter {
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
    
     /** Creates a new instance of SnapshotWriter */
-    public SnapshotWriter(IdManager idManager, DataOutputStream out) {
+    public IdWriter(IdManager idManager, DataOutputStream out) {
         this.idManager = idManager;
         this.out = out;
     }
 
-    public void setTechCount(int techCount) {
-        this.techCount = techCount;
-    }
-    
-    public void setLibCount(int libCount) {
-        this.libCount = libCount;
-    }
-    
-    public void setCellCount(int cellCount) {
-        if (cellCount == exportCounts.length) return;
-        int[] newExportCounts = new int[cellCount];
-        System.arraycopy(exportCounts, 0, newExportCounts, 0, exportCounts.length);
-        exportCounts = newExportCounts;
+    public void writeDiffs() throws IOException {
+        TechId[] techIdsArray;
+        LibId[] libIdsArray;
+        CellId[] cellIdsArray;
+        synchronized (idManager) {
+            techIdsArray = idManager.techIds.toArray(TechId.NULL_ARRAY);
+            libIdsArray = idManager.libIds.toArray(LibId.NULL_ARRAY);
+            cellIdsArray = idManager.cellIds.toArray(CellId.NULL_ARRAY);
+        }
+        writeInt(techIdsArray.length);
+        for (int techIndex = techCount; techIndex < techIdsArray.length; techIndex++) {
+            TechId techId = techIdsArray[techIndex];
+            writeString(techId.techName);
+        }
+        techCount = techIdsArray.length;
+        writeInt(libIdsArray.length);
+        for (int libIndex = libCount; libIndex < libIdsArray.length; libIndex++) {
+            LibId libId = libIdsArray[libIndex];
+            writeString(libId.libName);
+        }
+        libCount = libIdsArray.length;
+        writeInt(cellIdsArray.length);
+        for (int cellIndex = exportCounts.length; cellIndex < cellIdsArray.length; cellIndex++) {
+            CellId cellId = cellIdsArray[cellIndex];
+            writeLibId(cellId.libId);
+            writeString(cellId.cellName.toString());
+        }
+        if (cellIdsArray.length != exportCounts.length) {
+            int[] newExportCounts = new int[cellIdsArray.length];
+            System.arraycopy(exportCounts, 0, newExportCounts, 0, exportCounts.length);
+            exportCounts = newExportCounts;
+        }
+        for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
+            CellId cellId = cellIdsArray[cellIndex];
+            int numExportIds = cellId.numExportIds();
+            int exportCount = exportCounts[cellIndex];
+            if (numExportIds != exportCount) {
+                writeInt(cellIndex);
+                int numNewExportIds = numExportIds - exportCount;
+                assert numNewExportIds > 0;
+                writeInt(numNewExportIds);
+                for (int i = 0; i < numNewExportIds; i++)
+                    writeString(cellId.getPortId(exportCount + i).externalId);
+                exportCounts[cellIndex] = numExportIds;
+            }
+        }
+        writeInt(-1);
     }
     
     /** Flushes this SnapshotWriter */

@@ -24,14 +24,14 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
@@ -389,10 +389,10 @@ public class Variable implements Serializable
     public Object getObject() { return (type & ARRAY) != 0 ? ((Object[])value).clone() : value; }
 
     /**
-     * Write this Variable to SnapshotWriter.
+     * Write this Variable to IdWriter.
      * @param writer where to write.
      */
-    public void write(SnapshotWriter writer) throws IOException {
+    public void write(IdWriter writer) throws IOException {
         writer.writeVariableKey(key);
         writer.writeTextDescriptor(descriptor);
         writer.writeByte(type);
@@ -410,7 +410,7 @@ public class Variable implements Serializable
         }
     }
     
-    private void writeObj(SnapshotWriter writer, Object obj) throws IOException {
+    private void writeObj(IdWriter writer, Object obj) throws IOException {
         switch (type & ~ARRAY) {
             case LIBRARY:
                 writer.writeLibId((LibId)obj);
@@ -467,7 +467,7 @@ public class Variable implements Serializable
      * Read Variable from SnapshotReader.
      * @param reader from to write.
      */
-    public static Variable read(SnapshotReader reader) throws IOException {
+    public static Variable read(IdReader reader) throws IOException {
         Variable.Key varKey = reader.readVariableKey();
         TextDescriptor td = reader.readTextDescriptor();
         int type = reader.readByte();
@@ -508,7 +508,7 @@ public class Variable implements Serializable
         return Variable.newInstance(varKey, value, td);
     }
     
-    private static Object readObj(SnapshotReader reader, int type) throws IOException {
+    private static Object readObj(IdReader reader, int type) throws IOException {
         switch (type) {
             case LIBRARY:
                 return reader.readLibId();

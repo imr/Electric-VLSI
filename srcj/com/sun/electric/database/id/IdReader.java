@@ -23,16 +23,12 @@
  * Boston, Mass 02111-1307, USA.
  */
 
-package com.sun.electric.database;
+package com.sun.electric.database.id;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.id.LibId;
-import com.sun.electric.database.id.NodeProtoId;
-import com.sun.electric.database.id.PortProtoId;
-import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -48,10 +44,10 @@ import java.util.ArrayList;
 
 /**
  */
-public class SnapshotReader {
+public class IdReader {
     
+    public final IdManager idManager;
     private final DataInputStream in;
-    private final IdManager idManager;
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
@@ -60,12 +56,47 @@ public class SnapshotReader {
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
     /** Creates a new instance of SnapshotWriter */
-    public SnapshotReader(DataInputStream in, IdManager idManager) {
+    public IdReader(DataInputStream in, IdManager idManager) {
         if (in == null || idManager == null) throw new NullPointerException();
         this.in = in;
         this.idManager = idManager;
     }
 
+    public void readDiffs() throws IOException {
+        int oldTechIdsCount, oldLibIdsCount, oldCellIdsCount;
+        synchronized (idManager) {
+            oldTechIdsCount = idManager.techIds.size();
+            oldLibIdsCount = idManager.libIds.size();
+            oldCellIdsCount = idManager.cellIds.size();
+        }
+        int techIdsCount = readInt();
+        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
+            idManager.newTechId(readString());
+        int libIdsCount = readInt();
+        for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
+            idManager.newLibId(readString());
+        int cellIdsCount = readInt();
+        for (int cellIndex = oldCellIdsCount; cellIndex < cellIdsCount; cellIndex++) {
+            LibId libId = readLibId();
+            idManager.newCellId(libId, CellName.parseName(readString()));
+        }
+        synchronized (idManager) {
+            assert techIdsCount == idManager.techIds.size();
+            assert libIdsCount == idManager.libIds.size();
+            assert cellIdsCount == idManager.cellIds.size();
+        }
+        for (;;) {
+            int cellIndex = readInt();
+            if (cellIndex == -1) break;
+            CellId cellId = idManager.getCellId(cellIndex);
+            int numNewExportIds = readInt();
+            for (int i = 0; i < numNewExportIds; i++) {
+                String exportIdString = readString();
+                cellId.newExportId(exportIdString);
+            }
+        }
+    }
+    
     /**
      * Reads boolean.
      * @return boolean.
