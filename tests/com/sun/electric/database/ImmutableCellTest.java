@@ -26,6 +26,8 @@ package com.sun.electric.database;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
@@ -242,14 +244,14 @@ public class ImmutableCellTest {
         
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
+            IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
             d.write(writer);
             writer.flush();
             byte[] bytes = byteStream.toByteArray();
             byteStream.reset();
             
             // First update of mirrorIdManager
-            SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
+            IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
             
             // Check mirrorIdManager after first update
             ImmutableCell d1 = ImmutableCell.read(reader);

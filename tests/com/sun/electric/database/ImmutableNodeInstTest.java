@@ -26,6 +26,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
@@ -436,20 +437,20 @@ public class ImmutableNodeInstTest {
         fail("The test case is a prototype.");
     }
 
-    /**
-     * Test of write method, of class com.sun.electric.database.ImmutableNodeInst.
-     */
-    public void testWrite() throws Exception {
-        System.out.println("write");
-        
-        SnapshotWriter writer = null;
-        ImmutableNodeInst instance = null;
-        
-        instance.write(writer);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
+//    /**
+//     * Test of write method, of class com.sun.electric.database.ImmutableNodeInst.
+//     */
+//    public void testWrite() throws Exception {
+//        System.out.println("write");
+//        
+//        SnapshotWriter writer = null;
+//        ImmutableNodeInst instance = null;
+//        
+//        instance.write(writer);
+//        
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
 
     /**
      * Test of read method, of class com.sun.electric.database.ImmutableNodeInst.
@@ -457,7 +458,7 @@ public class ImmutableNodeInstTest {
     public void testRead() throws Exception {
         System.out.println("read");
         
-        SnapshotReader reader = null;
+        IdReader reader = null;
         
         ImmutableNodeInst expResult = null;
         ImmutableNodeInst result = ImmutableNodeInst.read(reader);

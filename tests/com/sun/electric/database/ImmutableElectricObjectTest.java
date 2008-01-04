@@ -24,6 +24,8 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
@@ -205,7 +207,7 @@ public class ImmutableElectricObjectTest {
         try {
             IdManager idManager = new IdManager();
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
+            IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
             obj0.write(writer);
             obj0.writeVars(writer);
             obj_Aa.write(writer);
@@ -215,7 +217,7 @@ public class ImmutableElectricObjectTest {
             byteStream.reset();
             
             // First update of mirrorIdManager
-            SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
+            IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
             
             // Check mirrorIdManager after first update
             assertEquals( false, reader.readBoolean() );

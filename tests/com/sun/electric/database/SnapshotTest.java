@@ -27,6 +27,8 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
@@ -68,7 +70,7 @@ public class SnapshotTest {
         
         // Init emptyDiffEmpty
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(out));
+        IdWriter writer = new IdWriter(idManager, new DataOutputStream(out));
         Snapshot oldSnapshot = initialSnapshot;
         Snapshot instance = initialSnapshot;
         try {
@@ -251,7 +253,7 @@ public class SnapshotTest {
         System.out.println("writeDiffs");
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(out));
+        IdWriter writer = new IdWriter(idManager, new DataOutputStream(out));
         Snapshot oldSnapshot = initialSnapshot;
         Snapshot instance = initialSnapshot;
         
@@ -266,7 +268,7 @@ public class SnapshotTest {
         System.out.println("readSnapshot");
         
         IdManager idManager = new IdManager();
-        SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)), idManager);
+        IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)), idManager);
         Snapshot oldSnapshot = idManager.getInitialSnapshot();
         
         ImmutableArrayList<CellBackup> expCellBackups = new ImmutableArrayList<CellBackup>(CellBackup.NULL_ARRAY);

@@ -26,8 +26,6 @@ package com.sun.electric.database.id;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.text.CellName;
 
 import java.io.ByteArrayInputStream;
@@ -188,8 +186,8 @@ public class IdManagerTest {
             idManager.getCellId(1).newExportId(nameA);
             
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            SnapshotWriter writer = new SnapshotWriter(idManager, new DataOutputStream(byteStream));
-            idManager.writeDiffs(writer);
+            IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
+            writer.writeDiffs();
             writer.flush();
             byte[] diffs1 = byteStream.toByteArray();
             byteStream.reset();
@@ -197,8 +195,8 @@ public class IdManagerTest {
             IdManager mirrorIdManager = new IdManager();
             
             // First update of mirrorIdManager
-            SnapshotReader reader1 = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(diffs1)), mirrorIdManager);
-            mirrorIdManager.readDiffs(reader1);
+            IdReader reader1 = new IdReader(new DataInputStream(new ByteArrayInputStream(diffs1)), mirrorIdManager);
+            reader1.readDiffs();
             
             // Check mirrorIdManager after first update
             assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
@@ -219,11 +217,11 @@ public class IdManagerTest {
             idManager.getCellId(2).newExportId(nameC);
             
             // Second update of mirrirIdManager
-            idManager.writeDiffs(writer);
+            writer.writeDiffs();
             writer.flush();
             byte[] diffs2 = byteStream.toByteArray();
-            SnapshotReader reader2 = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(diffs2)), mirrorIdManager);
-            mirrorIdManager.readDiffs(reader2);
+            IdReader reader2 = new IdReader(new DataInputStream(new ByteArrayInputStream(diffs2)), mirrorIdManager);
+            reader2.readDiffs();
             
             assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
             assertEquals( libId1.libName, mirrorIdManager.getLibId(1).libName );
