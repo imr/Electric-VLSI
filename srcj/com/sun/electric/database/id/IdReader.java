@@ -70,7 +70,7 @@ public class IdReader {
             oldCellIdsCount = idManager.cellIds.size();
         }
         int techIdsCount = readInt();
-        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
+        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++) 
             idManager.newTechId(readString());
         int libIdsCount = readInt();
         for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
@@ -84,6 +84,16 @@ public class IdReader {
             assert techIdsCount == idManager.techIds.size();
             assert libIdsCount == idManager.libIds.size();
             assert cellIdsCount == idManager.cellIds.size();
+        }
+        for (;;) {
+            int techIndex = readInt();
+            if (techIndex == -1) break;
+            TechId techId = idManager.getTechId(techIndex);
+            int numNewArcProtoIds = readInt();
+            for (int i = 0; i < numNewArcProtoIds; i++) {
+                String arcProtoName = readString();
+                techId.newArcProtoId(arcProtoName);
+            }
         }
         for (;;) {
             int cellIndex = readInt();

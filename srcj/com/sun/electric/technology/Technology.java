@@ -3863,13 +3863,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	static boolean jelibSafeName(String str)
 	{
-		for (int i = 0; i < str.length(); i++)
-		{
-			char ch = str.charAt(i);
-			if (ch == '\n' || ch == '|' || ch == '^' || ch == '"')
-				return false;
-		}
-		return true;
+        return TechId.jelibSafeName(str);
 	}
 
 	/**

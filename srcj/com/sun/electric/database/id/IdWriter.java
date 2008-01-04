@@ -46,7 +46,7 @@ public class IdWriter {
     
     public final IdManager idManager;
     private final DataOutputStream out;
-    private int techCount;
+    private TechCounts[] techCounts = {};
     private int libCount;
     private int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
@@ -55,6 +55,10 @@ public class IdWriter {
     private HashMap<ArcProto,Integer> arcProtos = new HashMap<ArcProto,Integer>();
     private HashMap<PrimitiveNode,Integer> primNodes = new HashMap<PrimitiveNode,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
+    
+    private static class TechCounts {
+        int arcCount;
+    }
    
     /** Creates a new instance of SnapshotWriter */
     public IdWriter(IdManager idManager, DataOutputStream out) {
@@ -71,29 +75,54 @@ public class IdWriter {
             libIdsArray = idManager.libIds.toArray(LibId.NULL_ARRAY);
             cellIdsArray = idManager.cellIds.toArray(CellId.NULL_ARRAY);
         }
+        
         writeInt(techIdsArray.length);
-        for (int techIndex = techCount; techIndex < techIdsArray.length; techIndex++) {
-            TechId techId = techIdsArray[techIndex];
-            writeString(techId.techName);
+        if (techIdsArray.length != techCounts.length) {
+            TechCounts[] newTechCounts = new TechCounts[techIdsArray.length];
+            System.arraycopy(techCounts, 0, newTechCounts, 0, techCounts.length);
+            for (int techIndex = techCounts.length; techIndex < techIdsArray.length; techIndex++) {
+                TechId techId = techIdsArray[techIndex];
+                writeString(techId.techName);
+                newTechCounts[techIndex] = new TechCounts();
+            }
+            techCounts = newTechCounts;
         }
-        techCount = techIdsArray.length;
+        
         writeInt(libIdsArray.length);
         for (int libIndex = libCount; libIndex < libIdsArray.length; libIndex++) {
             LibId libId = libIdsArray[libIndex];
             writeString(libId.libName);
         }
         libCount = libIdsArray.length;
+        
         writeInt(cellIdsArray.length);
-        for (int cellIndex = exportCounts.length; cellIndex < cellIdsArray.length; cellIndex++) {
-            CellId cellId = cellIdsArray[cellIndex];
-            writeLibId(cellId.libId);
-            writeString(cellId.cellName.toString());
-        }
         if (cellIdsArray.length != exportCounts.length) {
             int[] newExportCounts = new int[cellIdsArray.length];
             System.arraycopy(exportCounts, 0, newExportCounts, 0, exportCounts.length);
+            for (int cellIndex = exportCounts.length; cellIndex < cellIdsArray.length; cellIndex++) {
+                CellId cellId = cellIdsArray[cellIndex];
+                writeLibId(cellId.libId);
+                writeString(cellId.cellName.toString());
+            }
             exportCounts = newExportCounts;
         }
+        
+        for (int techIndex = 0; techIndex < techIdsArray.length; techIndex++) {
+            TechId techId = techIdsArray[techIndex];
+            int numArcProtoIds = techId.numArcProtoIds();
+            TechCounts techCount = techCounts[techIndex];
+            if (numArcProtoIds != techCount.arcCount) {
+                writeInt(techIndex);
+                int numNewArcProtoIds = numArcProtoIds - techCount.arcCount;
+                assert numNewArcProtoIds > 0;
+                writeInt(numNewArcProtoIds);
+                for (int i = 0; i < numNewArcProtoIds; i++)
+                    writeString(techId.getArcProtoId(techCount.arcCount + i).name);
+                techCount.arcCount = numArcProtoIds;
+            }
+        }
+        writeInt(-1);
+        
         for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
             CellId cellId = cellIdsArray[cellIndex];
             int numExportIds = cellId.numExportIds();

@@ -24,6 +24,13 @@
  */
 package com.sun.electric.database.id;
 
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
+
 /**
  * The ArcProtoId immutable class identifies arc proto independently of threads.
  * It differs from ArcProto objects, which will be owned by threads in transactional database.
@@ -34,18 +41,65 @@ public class ArcProtoId {
     public final TechId techId;
     /** ArcProto name */
     public final String name;
+    /** ArcProto full name */
+    public final String fullName;
     /** Unique index of this ArcProtoId in TechId. */
     public final int chronIndex;
     
     /**
      * ArcProtoId constructor.
      */
-    ArcProtoId(TechId techId, int chronIndex, String name) {
+    ArcProtoId(TechId techId, String name, int chronIndex) {
         assert techId != null;
-        if (name.length() == 0)
+        if (name.length() == 0 || !TechId.jelibSafeName(name))
             throw new IllegalArgumentException("ArcProtoId.name");
         this.techId = techId;
-        this.chronIndex = chronIndex;
         this.name = name;
+        fullName = techId.techName + ":" + name;
+        this.chronIndex = chronIndex;
+     }
+    
+    private Object writeReplace() { return new ArcProtoIdKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ArcProtoId"); }
+    
+    private static class ArcProtoIdKey extends EObjectInputStream.Key {
+        private final int techIndex;
+        private final int chronIndex;
+       
+        private ArcProtoIdKey(ArcProtoId arcProtoId) {
+            techIndex = arcProtoId.techId.techIndex;
+            chronIndex = arcProtoId.chronIndex;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            return database.getIdManager().getTechId(techIndex).getArcProtoId(chronIndex);
+        }
+    }
+         
+    /**
+     * Method to return the ArcProto representing ArcProtoId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the ArcProto representing ArcProtoId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public ArcProto inDatabase(EDatabase database) {
+        Technology tech = techId.inDatabase(database);
+        return tech != null ? tech.findArcProto(name) : null;
+    }
+    
+	/**
+	 * Returns a printable version of this ArcProtoId.
+	 * @return a printable version of this ArcProtoId.
+	 */
+    @Override
+    public String toString() { return fullName; }
+    
+	/**
+	 * Checks invariants in this ArcProtoId.
+     * @exception AssertionError if invariants are not valid
+	 */
+    void check() {
+        assert this == techId.getArcProtoId(chronIndex);
+        assert name.length() > 0 && TechId.jelibSafeName(name);
     }
 }

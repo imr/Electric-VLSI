@@ -31,6 +31,9 @@ import com.sun.electric.technology.Technology;
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The TechId immutable class identifies technology independently of threads.
@@ -47,8 +50,10 @@ public final class TechId implements Serializable {
     public final String techName;
     /** Unique index of this TechId. */
     public final int techIndex;
-//    /** HashMap of CellIds in this library by their cell name. */
-//    private final HashMap<CellName,CellId> cellIdsByCellName = new HashMap<CellName,CellId>();
+    /** List of ArcProtoIds created so far. */
+    final ArrayList<ArcProtoId> arcProtoIds = new ArrayList<ArcProtoId>();
+    /** HashMap of ArcProtoIds by their tech name. */
+    private final HashMap<String,ArcProtoId> arcProtoIdsByName = new HashMap<String,ArcProtoId>();
     
     /**
      * TechId constructor.
@@ -56,7 +61,7 @@ public final class TechId implements Serializable {
     TechId(IdManager idManager, String techName, int techIndex) {
         if (techName == null)
             throw new NullPointerException();
-        if (legalTechnologyName(techName) != techName)
+        if (techName.length() == 0 || !jelibSafeName(techName))
             throw new IllegalArgumentException(techName);
         this.idManager = idManager;
         this.techName = techName;
@@ -78,13 +83,43 @@ public final class TechId implements Serializable {
         }
     }
          
-//    /**
-//     * Returns new CellId with cellIndex unique in this IdManager.
-//     * @return new CellId.
-//     */
-//    public CellId newCellId(CellName cellName) {
-//        return idManager.newCellId(this, cellName);
-//    }
+    /**
+     * Returns a number ArcProtoIds in this TechId.
+     * This number may grow in time.
+     * @return a number of ArcProtoIds.
+     */
+    public synchronized int numArcProtoIds() {
+        return arcProtoIds.size();
+    }
+    
+    /**
+     * Returns ArcProtoId in this TechId with specified chronological index.
+     * @param chronIndex chronological index of ArcProtoId.
+     * @return ArcProtoId with specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such ArcProtoId.
+     */
+    public synchronized ArcProtoId getArcProtoId(int chronIndex) {
+        return arcProtoIds.get(chronIndex);
+    }
+    
+    /**
+     * Returns ArcProtoId with specified arcProtoName.
+     * @param arcProtoName arc proto name.
+     * @return ArcProtoId with specified arcProtoName.
+     */
+    public synchronized ArcProtoId newArcProtoId(String arcProtoName) {
+        ArcProtoId arcProtoId = arcProtoIdsByName.get(arcProtoName);
+        return arcProtoId != null ? arcProtoId : newArcProtoIdInternal(arcProtoName);
+    }
+    
+    private ArcProtoId newArcProtoIdInternal(String arcProtoName) {
+        int chronIndex = arcProtoIds.size();
+        ArcProtoId arcProtoId = new ArcProtoId(this, techName, techIndex);
+        arcProtoIds.add(arcProtoId);
+        arcProtoIdsByName.put(arcProtoName, arcProtoId);
+        assert arcProtoIds.size() == arcProtoIdsByName.size();
+        return arcProtoId;
+    }
     
     /**
      * Method to return the Technology representing TechId in the specified EDatabase.
@@ -95,51 +130,45 @@ public final class TechId implements Serializable {
     public Technology inDatabase(EDatabase database) { return database.getTech(this); }
     
 	/**
-	 * Returns a printable version of this LibId.
-	 * @return a printable version of this LibId.
+	 * Returns a printable version of this TechId.
+	 * @return a printable version of this TechId.
 	 */
     public String toString() { return techName; }
     
-//    CellId getCellId(CellName cellName) { return cellIdsByCellName.get(cellName); }
-//    void putCellId(CellId cellId) { cellIdsByCellName.put(cellId.cellName, cellId); }
-    
 	/**
-	 * Checks invariants in this LibId.
+	 * Checks invariants in this TechId.
      * @exception AssertionError if invariants are not valid
 	 */
     void check() {
         assert this == idManager.getTechId(techIndex);
-        assert techName != null && legalTechnologyName(techName) == techName;
-//        for (Map.Entry<CellName,CellId> e: cellIdsByCellName.entrySet()) {
-//            CellId cellId = e.getValue();
-//            assert cellId.libId == this;
-//            assert cellId.cellName == e.getKey();
-//            assert idManager.getCellId(cellId.cellIndex) == cellId;
-//        }
+        assert techName.length() > 0 && jelibSafeName(techName);
+        for (Map.Entry<String,ArcProtoId> e: arcProtoIdsByName.entrySet()) {
+            ArcProtoId arcProtoId = e.getValue();
+            assert arcProtoId.techId == this;
+            assert arcProtoId.name == e.getKey();
+            arcProtoId.check();
+        }
+        for (int chronIndex = 0; chronIndex < arcProtoIds.size(); chronIndex++) {
+            ArcProtoId arcProtoId = arcProtoIds.get(chronIndex);
+            arcProtoId.check();
+            assert arcProtoIdsByName.get(arcProtoId.name) == arcProtoId;
+        }
     }
-
     
-    /**
-     * Checks that string is legal technology name.
-     * If not, tries to convert string to legal technology name.
-     * @param techName specified library name.
-     * @return legal technology name obtained from specified technology name,
-     *   or null if speicifed name is null or empty.
-     */
-    public static String legalTechnologyName(String techName) {
-        if (techName == null || techName.length() == 0) return null;
-        int i = 0;
-        for (; i < techName.length(); i++) {
-            char ch = techName.charAt(i);
-            if (Character.isWhitespace(ch) || ch == ':') break;
-        }
-        if (i == techName.length()) return techName;
-        
-        char[] chars = techName.toCharArray();
-        for (; i < techName.length(); i++) {
-            char ch = chars[i];
-            chars[i] = Character.isWhitespace(ch) || ch == ':' ? '-' : ch;
-        }
-        return new String(chars);
-    }
+	/**
+	 * Method checks that string is safe to write into JELIB file without
+	 * conversion.
+	 * @param str the string to check.
+	 * @return true if string is safe to write into JELIB file.
+	 */
+	public static boolean jelibSafeName(String str)
+	{
+		for (int i = 0; i < str.length(); i++)
+		{
+			char ch = str.charAt(i);
+			if (Character.isWhitespace(ch) || ch == ':' || ch == '|' || ch == '^' || ch == '"')
+				return false;
+		}
+		return true;
+	}
 }
