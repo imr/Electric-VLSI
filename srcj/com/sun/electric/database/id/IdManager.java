@@ -27,6 +27,7 @@ package com.sun.electric.database.id;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.CellName;
 
+import com.sun.electric.technology.TechPool;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +50,8 @@ public class IdManager {
     final ArrayList<CellId> cellIds = new ArrayList<CellId>();
     /** Count of Snapshots created with this IdManager. */
     private final AtomicInteger snapshotCount = new AtomicInteger();
+    /** Initial TechPool. */
+    private final TechPool initialTechPool = new TechPool(this);
     /** Initial Snapshot. */
     private final Snapshot initialSnapshot = new Snapshot(this);
     
@@ -140,6 +143,8 @@ public class IdManager {
         libId.putCellId(cellId);
         return cellId;
     }
+    
+    public TechPool getInitialTechPool() { return initialTechPool; }
     
     public Snapshot getInitialSnapshot() { return initialSnapshot; }
     

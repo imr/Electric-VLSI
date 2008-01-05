@@ -77,7 +77,7 @@ public class Schematics extends Technology
 	/** key of Variable holding transistor length. */	public static final Variable.Key ATTR_LENGTH = Variable.newKey("ATTR_length");
 	/** key of Variable holding transistor area. */		public static final Variable.Key ATTR_AREA = Variable.newKey("ATTR_area");
 
-	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
+	/** the Schematics Technology object. */			public static Schematics tech() { return sysSchematics; }
 
 //	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;
 	/** Defines an RS Flip-flop. */						private static final int FFTYPERS =   0;
@@ -247,9 +247,9 @@ public class Schematics extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-	private Schematics()
+	public Schematics(Generic generic)
 	{
-		super("schematic", Foundry.Type.NONE, 1);
+		super(generic, "schematic", Foundry.Type.NONE, 1);
 		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -2475,7 +2475,7 @@ public class Schematics extends Technology
 		{
 			Technology tech = it.next();
 			DBMath.MutableInteger mi = usedTechnologies.get(tech);
-			if (tech == Schematics.tech || tech == Generic.tech ||
+			if (!tech.isLayout() ||
 				tech.isNonElectrical() || tech.isNoPrimitiveNodes()) mi.setValue(-1);
 		}
 
@@ -2532,11 +2532,11 @@ public class Schematics extends Technology
 		if (pref == null)
 		{
 			String def = "";
-			if (np == Schematics.tech.bufferNode) def = "buffer/inverter"; else
-				if (np == Schematics.tech.andNode) def = "and/nand"; else
-					if (np == Schematics.tech.orNode) def = "or/nor"; else
-						if (np == Schematics.tech.xorNode) def = "xor/xnor"; else
-							if (np == Schematics.tech.muxNode) def = "mux";
+			if (np == Schematics.tech().bufferNode) def = "buffer/inverter"; else
+				if (np == Schematics.tech().andNode) def = "and/nand"; else
+					if (np == Schematics.tech().orNode) def = "or/nor"; else
+						if (np == Schematics.tech().xorNode) def = "xor/xnor"; else
+							if (np == Schematics.tech().muxNode) def = "mux";
 			pref = Pref.makeStringPref("SchematicVHDLStringFor"+np.getName(), getTechnologyPreferences(), def);
 			primPrefs.put(np, pref);
 		}

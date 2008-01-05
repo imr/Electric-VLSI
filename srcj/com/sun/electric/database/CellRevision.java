@@ -157,7 +157,7 @@ public class CellRevision {
             ImmutableNodeInst prevN = null;
             for (int i = 0; i < nodes.size(); i++) {
                 ImmutableNodeInst n = nodes.get(i);
-                if (n.protoId == Generic.tech.cellCenterNode) {
+                if (ImmutableNodeInst.isCellCenter(n.protoId)) {
                     if (hasCellCenter)
                         throw new IllegalArgumentException("Duplicate cell center");
                     hasCellCenter = true;
@@ -397,7 +397,7 @@ public class CellRevision {
         ImmutableNodeInst prevN = null;
         for (ImmutableNodeInst n: nodes) {
             n.check();
-            if (n.protoId == Generic.tech.cellCenterNode) {
+            if (ImmutableNodeInst.isCellCenter(n.protoId)) {
                 assert !hasCellCenter;
                 hasCellCenter = true;
             }
@@ -419,7 +419,7 @@ public class CellRevision {
                 }
             } else {
                 Technology tech = ((PrimitiveNode)n.protoId).getTechnology();
-                checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
+                checkTechUsages.set(tech.getId().techIndex);
             }
         }
         for (int i = 0; i < checkCellUsages.length; i++)
@@ -444,7 +444,7 @@ public class CellRevision {
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
             
             Technology tech = a.protoType.getTechnology();
-            checkTechUsages.set(d.cellId.idManager.newTechId(tech.getTechName()).techIndex);
+            checkTechUsages.set(tech.getId().techIndex);
         }
         
         if (exportIndex.length > 0)

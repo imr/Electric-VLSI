@@ -148,7 +148,7 @@ public class L extends Output
 					if (e.getCharacteristic() == PortCharacteristic.IN) type = "IN"; else
 						if (e.getCharacteristic() == PortCharacteristic.OUT) type = "OUT"; else
 							if (e.getCharacteristic() == PortCharacteristic.BIDIR) type = "INOUT";
-			ArcProto ap = e.getBasePort().getConnections()[0];
+			ArcProto ap = e.getBasePort().getConnection();
 			String lay = getArcFunctionName(ap, ap.getName());
 			printWriter.println("\t" + type + " " + lay + " " + getLegalName(e.getName()) +
 				" (" + TextUtils.formatDouble(xPos) + "," + TextUtils.formatDouble(yPos) + ") ;");
@@ -183,7 +183,7 @@ public class L extends Output
 					// if pin is an export, don't write separate node statement
 					if (ni.hasExports()) continue;
 					PrimitivePort primPp = npPrim.getPort(0);
-					ArcProto ap = primPp.getConnections()[0];
+					ArcProto ap = primPp.getConnection();
 					type = "NODE " + getArcFunctionName(ap, "???");
 				}
 

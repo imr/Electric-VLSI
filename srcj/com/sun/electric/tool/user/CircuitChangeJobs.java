@@ -744,7 +744,7 @@ public class CircuitChangeJobs
 
 			for(ArcInst ai : list)
 			{
-				if (ai.getProto() != Schematics.tech.bus_arc) continue;
+				if (ai.getProto() != Schematics.tech().bus_arc) continue;
 				Netlist netList = ai.getParent().acquireUserNetlist();
 				if (netList == null)
 				{
@@ -827,21 +827,21 @@ public class CircuitChangeJobs
 //						localStrings[i] = subNet.describe(false);
 				}
 
-				double sxw = Schematics.tech.wirePinNode.getDefWidth();
-				double syw = Schematics.tech.wirePinNode.getDefHeight();
-				double sxb = Schematics.tech.busPinNode.getDefWidth();
-				double syb = Schematics.tech.busPinNode.getDefHeight();
-				ArcProto apW = Schematics.tech.wire_arc;
-				ArcProto apB = Schematics.tech.bus_arc;
+				double sxw = Schematics.tech().wirePinNode.getDefWidth();
+				double syw = Schematics.tech().wirePinNode.getDefHeight();
+				double sxb = Schematics.tech().busPinNode.getDefWidth();
+				double syb = Schematics.tech().busPinNode.getDefHeight();
+				ArcProto apW = Schematics.tech().wire_arc;
+				ArcProto apB = Schematics.tech().bus_arc;
 				NodeInst niBLast = null;
 				for(int i=0; i<busWidth; i++)
 				{
 					// make the wire pin
-					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent());
+					NodeInst niw = NodeInst.makeInstance(Schematics.tech().wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent());
 					if (niw == null) break;
 
 					// make the bus pin
-					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent());
+					NodeInst nib = NodeInst.makeInstance(Schematics.tech().busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent());
 					if (nib == null) break;
 
 					// wire them
@@ -2458,21 +2458,21 @@ public class CircuitChangeJobs
 
 		static
 		{
-			add("ATTR_length",       Schematics.tech.transistorNode);
-			add("ATTR_length",       Schematics.tech.transistor4Node);
-			add("ATTR_width",        Schematics.tech.transistorNode);
-			add("ATTR_width",        Schematics.tech.transistor4Node);
-			add("ATTR_area",         Schematics.tech.transistorNode);
-			add("ATTR_area",         Schematics.tech.transistor4Node);
-			add("SIM_spice_model",   Schematics.tech.sourceNode);
-			add("SIM_spice_model",   Schematics.tech.transistorNode);
-			add("SIM_spice_model",   Schematics.tech.transistor4Node);
-			add("SCHEM_meter_type",  Schematics.tech.meterNode);
-			add("SCHEM_diode",       Schematics.tech.diodeNode);
-			add("SCHEM_capacitance", Schematics.tech.capacitorNode);
-			add("SCHEM_resistance",  Schematics.tech.resistorNode);
-			add("SCHEM_inductance",  Schematics.tech.inductorNode);
-			add("SCHEM_function",    Schematics.tech.bboxNode);
+			add("ATTR_length",       Schematics.tech().transistorNode);
+			add("ATTR_length",       Schematics.tech().transistor4Node);
+			add("ATTR_width",        Schematics.tech().transistorNode);
+			add("ATTR_width",        Schematics.tech().transistor4Node);
+			add("ATTR_area",         Schematics.tech().transistorNode);
+			add("ATTR_area",         Schematics.tech().transistor4Node);
+			add("SIM_spice_model",   Schematics.tech().sourceNode);
+			add("SIM_spice_model",   Schematics.tech().transistorNode);
+			add("SIM_spice_model",   Schematics.tech().transistor4Node);
+			add("SCHEM_meter_type",  Schematics.tech().meterNode);
+			add("SCHEM_diode",       Schematics.tech().diodeNode);
+			add("SCHEM_capacitance", Schematics.tech().capacitorNode);
+			add("SCHEM_resistance",  Schematics.tech().resistorNode);
+			add("SCHEM_inductance",  Schematics.tech().inductorNode);
+			add("SCHEM_function",    Schematics.tech().bboxNode);
 		}
 
         /**

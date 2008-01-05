@@ -108,7 +108,7 @@ public class PaletteFrame implements MouseListener
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = it.next();
-            if (tech == Generic.tech) continue;
+            if (tech == Generic.tech()) continue;
             techSelector.addItem(tech.getTechName());
         }
         setSelectedItem(cur.getTechName());
@@ -241,7 +241,7 @@ public class PaletteFrame implements MouseListener
 		{
 			placeText = (String)obj;
 			whatToCreate = Variable.betterVariableName(placeText);
-			obj = Generic.tech.invisiblePinNode;
+			obj = Generic.tech().invisiblePinNode;
 		}
 		if (obj instanceof NodeProto)
 		{
@@ -506,7 +506,7 @@ public class PaletteFrame implements MouseListener
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
 			if (newNi == null) return false;
-			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode ||
+			if (np == Generic.tech().cellCenterNode || np == Generic.tech().essentialBoundsNode ||
                 (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
 					newNi.setHardSelect();
 			if (varName != null)
@@ -519,7 +519,7 @@ public class PaletteFrame implements MouseListener
 				fieldVariableChanged("varKeyToHighlight");
 			} else
 			{
-				if (np == Schematics.tech.resistorNode)
+				if (np == Schematics.tech().resistorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
                     // Adding two extra variables: length and width
@@ -542,16 +542,16 @@ public class PaletteFrame implements MouseListener
 						td = td.withOff(-1.5, 0);
 						newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
                     }
-				} else if (np == Schematics.tech.capacitorNode)
+				} else if (np == Schematics.tech().capacitorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");
-				} else if (np == Schematics.tech.inductorNode)
+				} else if (np == Schematics.tech().inductorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_INDUCTANCE, "100");
-				} else if (np == Schematics.tech.diodeNode)
+				} else if (np == Schematics.tech().diodeNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_DIODE, "10");
-				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+				} else if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 				{
 					if (newNi.isFET())
 					{
@@ -569,7 +569,7 @@ public class PaletteFrame implements MouseListener
 					{
 						newNi.newDisplayVar(Schematics.ATTR_AREA, "10");
 					}
-				} else if (np == Artwork.tech.circleNode)
+				} else if (np == Artwork.tech().circleNode)
 				{
 					if (angles != null)
 					{

@@ -144,7 +144,7 @@ public class Example implements Serializable
 								tcr.markError(otherNi, np, "Ports can only exist in nodes");
 								return null;
 							}
-							ns.layer = Generic.tech.portNode;
+							ns.layer = Generic.tech().portNode;
 							break;
 						case Info.CENTEROBJ:
 							if (!isNode)
@@ -152,7 +152,7 @@ public class Example implements Serializable
 								tcr.markError(otherNi, np, "Grab points can only exist in nodes");
 								return null;
 							}
-							ns.layer = Generic.tech.cellCenterNode;
+							ns.layer = Generic.tech().cellCenterNode;
 							break;
 						case Info.HIGHLIGHTOBJ:
 							hCount++;
@@ -168,7 +168,7 @@ public class Example implements Serializable
 					}
 
 					// accumulate state if this is not a "grab point" mark
-					if (otherNi.getProto() != Generic.tech.cellCenterNode)
+					if (otherNi.getProto() != Generic.tech().cellCenterNode)
 					{
 						if (!gotBBox)
 						{

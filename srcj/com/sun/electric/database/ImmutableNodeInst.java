@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -215,7 +216,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
         if (protoId instanceof CellId)
             size = EPoint.ORIGIN;
-        if (protoId == Generic.tech.cellCenterNode) {
+        if (isCellCenter(protoId)) {
             orient = Orientation.IDENT;
             anchor = EPoint.ORIGIN;
             size = EPoint.ORIGIN;
@@ -278,7 +279,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public ImmutableNodeInst withOrient(Orientation orient) {
         if (this.orient == orient) return this;
         if (orient == null) throw new NullPointerException("orient");
-        if (protoId == Generic.tech.cellCenterNode) return this;
+        if (isCellCenter(protoId)) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
@@ -292,7 +293,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public ImmutableNodeInst withAnchor(EPoint anchor) {
 		if (this.anchor.equals(anchor)) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
-        if (protoId == Generic.tech.cellCenterNode) return this;
+        if (isCellCenter(protoId)) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
@@ -306,7 +307,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public ImmutableNodeInst withSize(EPoint size) {
 		if (this.size.equals(size)) return this;
         if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
-        if (protoId == Generic.tech.cellCenterNode) return this;
+        if (isCellCenter(protoId)) return this;
         if (protoId instanceof CellId) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
@@ -707,7 +708,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoId instanceof CellId) {
             assert size == EPoint.ORIGIN;
         }
-        if (protoId == Generic.tech.cellCenterNode) {
+        if (isCellCenter(protoId)) {
             assert orient == Orientation.IDENT && anchor == EPoint.ORIGIN && size == EPoint.ORIGIN;
         }
         for (int i = 0; i < ports.length; i++) {
@@ -721,6 +722,14 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             assert ports[ports.length - 1].getNumVariables() > 0;
 	}
 
+    static boolean isCellCenter(NodeProtoId protoId) {
+        if (!(protoId instanceof PrimitiveNode)) return false;
+        Technology tech = ((PrimitiveNode)protoId).getTechnology();
+        if (!(tech instanceof Generic)) return false;
+        return protoId == ((Generic)tech).cellCenterNode;
+        
+    }
+    
     /**
      * Returns ELIB user bits of this ImmutableNodeInst in ELIB.
      * @return ELIB user bits of this ImmutableNodeInst.
@@ -763,7 +772,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		PrimitiveNode pn = (PrimitiveNode)protoId;
 
 		// special case for arcs of circles
-		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
+		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
 		{
 			// see if this circle is only a partial one
 			double [] angles = real.getArcDegrees();
@@ -782,9 +791,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (pn.isWipeOn1or2())
 		{
 			// schematic bus pins are so complex that only the technology knows their true size
-			if (real.getProto() == Schematics.tech.busPinNode)
+			if (real.getProto() == Schematics.tech().busPinNode)
 			{
-				Poly [] polys = Schematics.tech.getShapeOfNode(real);
+				Poly [] polys = Schematics.tech().getShapeOfNode(real);
 				if (polys.length > 0)
 				{
 					Rectangle2D bounds = polys[0].getBounds2D();

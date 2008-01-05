@@ -415,7 +415,7 @@ public abstract class Highlight2 implements Cloneable{
             }
 
             // special case for circular nodes
-    		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
+    		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
     		{
     			// see if this circle is only a partial one
     			double [] angles = ni.getArcDegrees();
@@ -875,7 +875,7 @@ class HighlightEOBJ extends Highlight2
 				if (points != null)
 				{
 					// if this is a spline, highlight the true shape
-					if (ni.getProto() == Artwork.tech.splineNode)
+					if (ni.getProto() == Artwork.tech().splineNode)
 					{
 						Point2D [] changedPoints = new Point2D[points.length];
 						for(int i=0; i<points.length; i++)
@@ -892,7 +892,7 @@ class HighlightEOBJ extends Highlight2
 								changedPoints[i] = new Point2D.Double(db.getX() - ni.getAnchorCenterX(), db.getY() - ni.getAnchorCenterY());
 							}
 						}
-						Point2D [] spPoints = Artwork.tech.fillSpline(ni.getAnchorCenterX(), ni.getAnchorCenterY(), changedPoints);
+						Point2D [] spPoints = Artwork.tech().fillSpline(ni.getAnchorCenterX(), ni.getAnchorCenterY(), changedPoints);
 						Point cLast = wnd.databaseToScreen(spPoints[0]);
 						for(int i=1; i<spPoints.length; i++)
 						{

@@ -377,7 +377,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 			directionality.setSelectedIndex(initialDirectional);
 
 			// arc color
-			colorAndPattern.setEnabled(ai.getProto().getTechnology() == Artwork.tech);
+			colorAndPattern.setEnabled(ai.getProto().getTechnology() == Artwork.tech());
 
 			// grab all attributes and parameters
 			allAttributes.clear();

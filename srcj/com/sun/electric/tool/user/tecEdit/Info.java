@@ -173,7 +173,7 @@ public class Info
 		for(int i=0; i < table.length; i++)
 		{
 			if (table[i].ni != null) continue;
-			table[i].ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
+			table[i].ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
 			if (table[i].ni == null) return;
 			String str = null;
 			switch (table[i].funct)
@@ -469,8 +469,8 @@ public class Info
 
 	static String getSampleName(NodeProto layerCell)
 	{
-		if (layerCell == Generic.tech.portNode) return "PORT";
-		if (layerCell == Generic.tech.cellCenterNode) return "GRAB";
+		if (layerCell == Generic.tech().portNode) return "PORT";
+		if (layerCell == Generic.tech().cellCenterNode) return "GRAB";
 		if (layerCell == null) return "HIGHLIGHT";
 		return layerCell.getName().substring(6);
 	}

@@ -348,10 +348,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 specialMenu.addSeparator();
 
                 menuItem = new JMenuItem("Cell Center");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.cellCenterNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().cellCenterNode));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Essential Bounds");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.essentialBoundsNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().essentialBoundsNode));
                 specialMenu.add(menuItem);
 
                 specialMenu.addSeparator();
@@ -369,26 +369,26 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_declaration"));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Simulation Probe");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.simProbeNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().simProbeNode));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("DRC Exclusion");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.drcNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().drcNode));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("AFG Exclusion");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.afgNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().afgNode));
                 specialMenu.add(menuItem);
 
 
                 specialMenu.addSeparator();
 
                 menuItem = new JMenuItem("Invisible Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.invisiblePinNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().invisiblePinNode));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Universal Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.universalPinNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().universalPinNode));
                 specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Unrouted Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.unroutedPinNode));
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().unroutedPinNode));
                 specialMenu.add(menuItem);
                 specialMenu.show(panel, e.getX(), e.getY());
             } else if (msg.equals(Technology.SPECIALMENUPURE))
@@ -441,13 +441,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } if (msg.equals(Technology.SPECIALMENUHIGH))
             {
             	// place a technology-edit highlight box
-            	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech.boxNode);
+            	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech().boxNode);
     			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
                 PaletteFrame.placeInstance(ni, panel, false);
             } if (msg.equals(Technology.SPECIALMENUPORT))
             {
             	// place a technology-edit port
-                PaletteFrame.placeInstance(Generic.tech.portNode, panel, false);
+                PaletteFrame.placeInstance(Generic.tech().portNode, panel, false);
             }
         }
         repaint();
@@ -455,9 +455,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     private void makeExport(String type)
     {
-        if (type.equals("wire")) PaletteFrame.placeInstance(Schematics.tech.wirePinNode, this, true); else
-        if (type.equals("bus")) PaletteFrame.placeInstance(Schematics.tech.busPinNode, this, true); else
-        if (type.equals("universal")) PaletteFrame.placeInstance(Generic.tech.invisiblePinNode, this, true);
+        if (type.equals("wire")) PaletteFrame.placeInstance(Schematics.tech().wirePinNode, this, true); else
+        if (type.equals("bus")) PaletteFrame.placeInstance(Schematics.tech().busPinNode, this, true); else
+        if (type.equals("universal")) PaletteFrame.placeInstance(Generic.tech().invisiblePinNode, this, true);
     }
 
     public void makeLayoutTextCommand()
@@ -824,8 +824,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // rendering a node: create the temporary node
                         NodeProto np = (NodeProto)toDraw;
                         ni = NodeInst.makeDummyInstance(np);
-                        if (np == Schematics.tech.diodeNode || np == Schematics.tech.capacitorNode ||
-                            np == Schematics.tech.flipflopNode) drawArrow = true;
+                        if (np == Schematics.tech().diodeNode || np == Schematics.tech().capacitorNode ||
+                            np == Schematics.tech().flipflopNode) drawArrow = true;
                     }
                     
                     // determine scale for rendering

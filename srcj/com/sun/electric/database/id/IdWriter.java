@@ -46,7 +46,7 @@ public class IdWriter {
     
     public final IdManager idManager;
     private final DataOutputStream out;
-    private TechCounts[] techCounts = {};
+    private TechCounts[] techCounts = {}; // One entry is for Generic technology
     private int libCount;
     private int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
@@ -283,6 +283,7 @@ public class IdWriter {
      * @param techId TechId to write.
      */
     public void writeTechId(TechId techId) throws IOException {
+        assert techId.idManager == idManager;
         out.writeInt(techId.techIndex);
     }
     
@@ -291,8 +292,7 @@ public class IdWriter {
      * @param tech Technology to write.
      */
     private void writeTechnology(Technology tech) throws IOException {
-        TechId techId = idManager.newTechId(tech.getTechName());
-        writeTechId(techId);
+        writeTechId(tech.getId());
     }
     
     /**
@@ -326,7 +326,9 @@ public class IdWriter {
      */
     public void writeNodeProtoId(NodeProtoId nodeProtoId) throws IOException {
         if (nodeProtoId instanceof CellId) {
-            out.writeInt(((CellId)nodeProtoId).cellIndex);
+            CellId cellId = (CellId)nodeProtoId;
+            assert cellId.idManager == idManager;
+            out.writeInt(cellId.cellIndex);
             return;
         }
         PrimitiveNode pn = (PrimitiveNode)nodeProtoId;

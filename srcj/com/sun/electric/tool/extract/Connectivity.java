@@ -519,7 +519,7 @@ public class Connectivity
 			NodeInst ni = nIt.next();
 			soFar++;
 			if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalNodes);
-			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode) continue;
 
 			// see if the node can be copied or must be extracted
 			NodeProto copyType = null;
@@ -3358,7 +3358,7 @@ public class Connectivity
 		boolean [] found = new boolean[arcs2.length];
 		for(int i=0; i<arcs1.length; i++)
 		{
-			if (arcs1[i].getTechnology() == Generic.tech) continue;
+			if (arcs1[i].getTechnology() == Generic.tech()) continue;
 			int j = 0;
 			for( ; j<arcs2.length; j++)
 			{
@@ -3373,7 +3373,7 @@ public class Connectivity
 		for(int j=0; j<arcs2.length; j++)
 		{
 			if (found[j]) continue;
-			if (arcs2[j].getTechnology() != Generic.tech) return false;
+			if (arcs2[j].getTechnology() != Generic.tech()) return false;
 		}
 		return true;
 	}

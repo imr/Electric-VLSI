@@ -141,7 +141,7 @@ public class IRSIM extends Output
         context = null;
 
         technology = cell.getTechnology();
-		if (technology == Schematics.tech)
+		if (technology == Schematics.tech())
 			technology = User.getSchematicTechnology();
 	}
 

@@ -1347,7 +1347,7 @@ public class View3DWindow extends JPanel
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = it.next();
-            if (ni.getProto() == Artwork.tech.pinNode)
+            if (ni.getProto() == Artwork.tech().pinNode)
             {
                 Rectangle2D rect = ni.getBounds();
                 Variable var = (Variable)ni.getVar("3D_Z_VALUE");

@@ -553,7 +553,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			// convert to new style
 			NodeProto np = nil.protoType[j];
-			if (np == Generic.tech.cellCenterNode)
+			if (np == Generic.tech().cellCenterNode)
 			{
 				realizeNode(nil, j, xoff, yoff, lambda, cell, np);
 				xoff = (nil.lowX[j] + nil.highX[j]) / 2;
@@ -568,7 +568,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			NodeProto np = nil.protoType[j];
 			if (np == null) continue;
-			if (np == Generic.tech.cellCenterNode) continue;
+			if (np == Generic.tech().cellCenterNode) continue;
             realizeNode(nil, j, xoff, yoff, lambda, cell, np);
 		}
 		return offset;
@@ -1120,7 +1120,7 @@ public class ReadableDump extends LibraryFiles
 			nodeInstList[curCellNumber] = nil;
 
 			// create a cell-center node
-			nil.protoType[0] = Generic.tech.cellCenterNode;
+			nil.protoType[0] = Generic.tech().cellCenterNode;
 			nil.name[0] = null;
 			nil.lowX[0] = 0;
 			nil.highX[0] = 0;
@@ -1130,7 +1130,7 @@ public class ReadableDump extends LibraryFiles
 			nil.transpose[0] = 0;
 
 			// create an artwork "Crossed box" to define the cell size
-			nil.protoType[1] = Artwork.tech.crossedBoxNode;
+			nil.protoType[1] = Artwork.tech().crossedBoxNode;
 			nil.name[1] = null;
 			nil.lowX[1] = curCellLowX;
 			nil.highX[1] = curCellHighX;

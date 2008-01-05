@@ -937,10 +937,10 @@ public class JELIB extends LibraryFiles
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), 0, 0, dummyCell);
+					NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), 0, 0, dummyCell);
 				} else
 				{
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
+					NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
 						bounds.getWidth(), bounds.getHeight(), dummyCell);
 				}
 
@@ -1323,7 +1323,7 @@ public class JELIB extends LibraryFiles
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
-			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
+			NodeInst portNI = NodeInst.newInstance(Generic.tech().universalPinNode, pos, 0, 0, cell);
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1339,7 +1339,7 @@ public class JELIB extends LibraryFiles
 		String name = portName;
 		if (name.length() == 0) name = "X";
         ni.transformIn().transform(pos, pos);
-		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, subCell);
+		NodeInst portNI = NodeInst.newInstance(Generic.tech().universalPinNode, pos, 0, 0, subCell);
 		if (portNI == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +

@@ -113,8 +113,8 @@ public class AnnularRing extends EDialog
 			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
 			layerModel.addElement(new AnnularRingNode(np));
 		}
-        layerModel.addElement(new AnnularRingNode(Generic.tech.drcNode));
-        layerModel.addElement(new AnnularRingNode(Generic.tech.afgNode));
+        layerModel.addElement(new AnnularRingNode(Generic.tech().drcNode));
+        layerModel.addElement(new AnnularRingNode(Generic.tech().afgNode));
 		layerJList.setSelectedIndex(0);
 
 		innerRadius.setText(TextUtils.formatDouble(lastInner));

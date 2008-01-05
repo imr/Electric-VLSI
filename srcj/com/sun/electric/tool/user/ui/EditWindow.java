@@ -669,7 +669,7 @@ public class EditWindow extends JPanel
 			if (parent.getNumNodes() == 1)
 			{
 				NodeInst onlyNi = parent.getNode(0);
-				if (onlyNi.getProto() != Generic.tech.cellCenterNode) empty = false;
+				if (onlyNi.getProto() != Generic.tech().cellCenterNode) empty = false;
 			}
 		}
 		if (empty && np instanceof Cell)
@@ -1654,7 +1654,7 @@ public class EditWindow extends JPanel
         float bBlue = backgroundComps[2];
         for(Layer layer : sortedLayers) {
             if (!layer.isVisible()) continue;
-            if (layer == Generic.tech.glyphLay && !patternedDisplay) continue;
+            if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
             Color color = new Color(layer.getGraphics().getRGB());
             float[] compArray = color.getRGBComponents(null);
             float red = compArray[0];

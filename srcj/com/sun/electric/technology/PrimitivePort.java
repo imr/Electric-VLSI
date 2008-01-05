@@ -127,14 +127,16 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	{
 		if (parent == null)
 			System.out.println("PrimitivePort " + protoName + " has no parent");
-		if (tech != Generic.tech && Generic.tech != null)
+        assert tech == parent.getTechnology();
+		if (!(tech instanceof Generic))
 		{
+            Generic generic = tech.generic;
 			ArcProto [] realPortArcs = new ArcProto[portArcs.length + 3];
 			for(int i=0; i<portArcs.length; i++)
 				realPortArcs[i] = portArcs[i];
-			realPortArcs[portArcs.length] = Generic.tech.universal_arc;
-			realPortArcs[portArcs.length+1] = Generic.tech.invisible_arc;
-			realPortArcs[portArcs.length+2] = Generic.tech.unrouted_arc;
+			realPortArcs[portArcs.length] = generic.universal_arc;
+			realPortArcs[portArcs.length+1] = generic.invisible_arc;
+			realPortArcs[portArcs.length+2] = generic.unrouted_arc;
 			portArcs = realPortArcs;
 		}
 		PrimitivePort pp = new PrimitivePort(tech, parent, portArcs, protoName,
@@ -212,9 +214,30 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 
 	/**
 	 * Method to return the list of allowable connections on this PrimitivePort.
+     * @param allTechs pool of all known technologies
 	 * @return an array of ArcProtos which can connect to this PrimitivePort.
 	 */
-	public ArcProto [] getConnections() { return portArcs; }
+	public ArcProto [] getConnections(TechPool allTechs) {
+        if (parent.getTechnology().isUniversalConnectivityPort(this))
+            return allTechs.getUnivList();
+        return portArcs;
+    }
+
+	/**
+	 * Method to return the list of allowable connections on this PrimitivePort.
+	 * @return an array of ArcProtos which can connect to this PrimitivePort.
+	 */
+	public ArcProto [] getConnections() {
+        if (parent.getTechnology().isUniversalConnectivityPort(this))
+            return EDatabase.theDatabase.getTechPool().getUnivList();
+        return portArcs;
+    }
+
+	/**
+	 * Method to return one of allowable connections on this PrimitivePort.
+	 * @return ArcProto which can connect to this PrimitivePort.
+	 */
+	public ArcProto getConnection() { return portArcs[0]; }
 
 	/**
 	 * Method to return the base-level port that this PortProto is created from.
@@ -361,7 +384,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 			if (portArcs[i] == arc)
 				return true;
 		}
-		return false;
+		return parent.getTechnology().isUniversalConnectivityPort(this);
 	}
 
 	/**

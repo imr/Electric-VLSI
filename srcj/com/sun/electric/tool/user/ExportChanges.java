@@ -355,7 +355,7 @@ public final class ExportChanges
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = it.next();
-				if (tech == Generic.tech) continue;
+				if (tech == Generic.tech()) continue;
 				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 				{
 					ArcProto ap = aIt.next();

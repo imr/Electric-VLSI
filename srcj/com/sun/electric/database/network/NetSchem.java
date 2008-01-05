@@ -620,9 +620,9 @@ class NetSchem extends NetCell {
 
 	private static Global globalInst(NodeInst ni) {
 		NodeProto np = ni.getProto();
-		if (np == Schematics.tech.groundNode) return Global.ground;
-		if (np == Schematics.tech.powerNode) return Global.power;
-		if (np == Schematics.tech.globalNode) {
+		if (np == Schematics.tech().groundNode) return Global.ground;
+		if (np == Schematics.tech().powerNode) return Global.power;
+		if (np == Schematics.tech().globalNode) {
 			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME, String.class);
 			if (var != null) return Global.newGlobal((String)var.getObject());
 		}
@@ -675,7 +675,7 @@ class NetSchem extends NetCell {
                 }
             }
 		}
-		ArcProto busArc = Schematics.tech.bus_arc;
+		ArcProto busArc = Schematics.tech().bus_arc;
 		for (int i = 0; i < numArcs; i++) {
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
@@ -694,7 +694,7 @@ class NetSchem extends NetCell {
 			NodeProto np = ni.getProto();
 			if (!ni.isCellInstance()) {
 				if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
-				if (np == Schematics.tech.offpageNode) continue;
+				if (np == Schematics.tech().offpageNode) continue;
 			}
 			int numPortInsts = np.getNumPorts();
 			for (int j = 0; j < numPortInsts; j++) {
@@ -803,7 +803,7 @@ class NetSchem extends NetCell {
 					int drawn = drawns[ni_pi[k]];
 					Netlist.connectMap(netMap, globals.indexOf(g), drawnOffsets[drawn]);
 				}
-				if (np == Schematics.tech.wireConNode)
+				if (np == Schematics.tech().wireConNode)
 					connectWireCon(netMap, ni);
 				continue;
 			}

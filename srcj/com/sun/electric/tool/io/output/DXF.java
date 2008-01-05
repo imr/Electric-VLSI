@@ -234,7 +234,7 @@ public class DXF extends Output
 			double yC = ni.getAnchorCenterY();
 
 			// handle circles and arcs
-			if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
+			if (np == Artwork.tech().circleNode || np == Artwork.tech().thickCircleNode)
 			{
 				double [] angles = ni.getArcDegrees();
 				double startOffset = angles[0];
@@ -269,13 +269,13 @@ public class DXF extends Output
 			}
 
 			// handle polygons
-			if (np == Artwork.tech.openedPolygonNode || np == Artwork.tech.openedDashedPolygonNode ||
-				np == Artwork.tech.closedPolygonNode)
+			if (np == Artwork.tech().openedPolygonNode || np == Artwork.tech().openedDashedPolygonNode ||
+				np == Artwork.tech().closedPolygonNode)
 			{
 				AffineTransform trans = ni.rotateOut();
 				Point2D [] points = ni.getTrace();
 				int len = points.length;
-				if (len == 2 && np != Artwork.tech.closedPolygonNode)
+				if (len == 2 && np != Artwork.tech().closedPolygonNode)
 				{
 					// line
 					printWriter.print("  0\nLINE\n");
@@ -319,7 +319,7 @@ public class DXF extends Output
 						printWriter.print(" 21\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 31\n0\n");
 					}
-					if (np == Artwork.tech.closedPolygonNode)
+					if (np == Artwork.tech().closedPolygonNode)
 					{
 						printWriter.print("  0\nLINE\n");
 						printWriter.print("  8\n" + layerName + "\n");

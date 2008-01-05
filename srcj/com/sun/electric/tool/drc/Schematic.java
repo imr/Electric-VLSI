@@ -105,7 +105,7 @@ public class Schematic
 		nodesChecked.add(cell);
 
 		// ignore if not a schematic
-		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech)
+		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech())
 			return;
 
 		// recursively check contents in case of hierchically checking
@@ -147,7 +147,7 @@ public class Schematic
             {
                 NodeInst ni = it.next();
                 if (!ni.isCellInstance() &&
-                    ni.getProto().getTechnology() == Generic.tech) continue;
+                    ni.getProto().getTechnology() == Generic.tech()) continue;
                 schematicDoCheck(netlist, ni);
             }
             for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -203,7 +203,7 @@ public class Schematic
 			NodeProto np = ni.getProto();
 
 			// check for bus pins that don't connect to any bus arcs
-			if (np == Schematics.tech.busPinNode)
+			if (np == Schematics.tech().busPinNode)
 			{
 				// proceed only if it has no exports on it
 				if (!ni.hasExports())
@@ -213,7 +213,7 @@ public class Schematic
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = it.next();
-						if (con.getArc().getProto() == Schematics.tech.bus_arc) { found = true;   break; }
+						if (con.getArc().getProto() == Schematics.tech().bus_arc) { found = true;   break; }
 					}
 					if (!found)
 					{
@@ -227,7 +227,7 @@ public class Schematic
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{
 					Connection con = it.next();
-					if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
+					if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
 				}
 				if (i > 1)
 				{
@@ -236,7 +236,7 @@ public class Schematic
 					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = it.next();
-						if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
+						if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
 							geomList.add(con.getArc());
 					}
 					errorLogger.logError("Wire arcs cannot connect through a bus pin", geomList, null, cell, 0);
@@ -366,7 +366,7 @@ public class Schematic
 			if (checkDangle)
 			{
 				// do not check for dangle when busses are on named networks
-				if (ai.getProto() == Schematics.tech.bus_arc)
+				if (ai.getProto() == Schematics.tech().bus_arc)
 				{
 					Name name = netlist.getBusName(ai);
 					if (name != null && !name.isTempname()) checkDangle = false;
@@ -441,8 +441,8 @@ public class Schematic
 	 */
 	private static void checkPortOverlap(Netlist netlist, NodeInst ni)
 	{
-		if (ni.getProto().getTechnology() == Generic.tech ||
-			ni.getProto().getTechnology() == Artwork.tech) return;
+		if (ni.getProto().getTechnology() == Generic.tech() ||
+			ni.getProto().getTechnology() == Artwork.tech()) return;
 		Cell cell = ni.getParent();
 		for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 		{
@@ -456,8 +456,8 @@ public class Schematic
 				NodeInst oNi = (NodeInst)oGeom;
 				if (ni == oNi) continue;
 				if (ni.getNodeIndex() > oNi.getNodeIndex()) continue;
-				if (oNi.getProto().getTechnology() == Generic.tech ||
-					oNi.getProto().getTechnology() == Artwork.tech) continue;
+				if (oNi.getProto().getTechnology() == Generic.tech() ||
+					oNi.getProto().getTechnology() == Artwork.tech()) continue;
 	
 				// see if ports touch
 				for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )

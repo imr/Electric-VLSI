@@ -187,7 +187,7 @@ public class ELIB extends Output
         
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
-            TechId techId = idManager.newTechId(tech.getTechName());
+            TechId techId = tech.getId();
             if (!objInfo.containsKey(techId))
                 continue;
             technologies.add(tech);
@@ -206,7 +206,7 @@ public class ELIB extends Output
 		for(Technology tech: technologies)
 		{
 			if (tech.isScaleRelevant()) continue;
-			if (tech == Generic.tech) continue;
+			if (tech == Generic.tech()) continue;
 			irrelevantScale = Math.max(irrelevantScale, tech.getScale());
 		}
         
@@ -301,7 +301,7 @@ public class ELIB extends Output
         primArcCounts = new int[technologies.size()];
         for (int techCount = 0; techCount < technologies.size(); techCount++) {
             Technology tech = technologies.get(techCount);
-            TechId techId = idManager.newTechId(tech.getTechName());
+            TechId techId = tech.getId();
             putObjIndex(techId, techCount);
             int primNodeStart = primNodeProtoIndex;
             for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); ) {
@@ -626,7 +626,7 @@ public class ELIB extends Output
 	 */
 	private void gatherTech(Technology tech)
 	{
-        gatherObj(idManager.newTechId(tech.getTechName()));
+        gatherObj(tech.getId());
 	}
 
 	/**
@@ -1351,7 +1351,7 @@ public class ELIB extends Output
     }
     
     double getScale(Technology tech) {
-        return tech.isScaleRelevant() || tech == Generic.tech ? tech.getScale() : irrelevantScale;
+        return tech.isScaleRelevant() || tech == Generic.tech() ? tech.getScale() : irrelevantScale;
     }
     
     private Technology.SizeCorrector getSizeCorrector(Technology tech) {

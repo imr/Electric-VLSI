@@ -509,7 +509,7 @@ public class CellChangeJobs
 
 			// write the header message
 			double xsc = maxWidth * xScale / 2;
-			NodeInst titleNi = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, graphCell);
+			NodeInst titleNi = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, graphCell);
 			if (titleNi == null) return false;
 			StringBuffer infstr = new StringBuffer();
 			if (top != null)
@@ -535,17 +535,17 @@ public class CellChangeJobs
 					if (cgn.depth == -1) continue;
 
 					double x = cgn.x;   double y = cgn.y;
-					cgn.pin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
+					cgn.pin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
 					if (cgn.pin == null) return false;
-					cgn.topPin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y+TEXTHEIGHT/2), 0, 0, graphCell);
+					cgn.topPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y+TEXTHEIGHT/2), 0, 0, graphCell);
 					if (cgn.topPin == null) return false;
-					cgn.botPin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y-TEXTHEIGHT/2), 0, 0, graphCell);
+					cgn.botPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y-TEXTHEIGHT/2), 0, 0, graphCell);
 					if (cgn.botPin == null) return false;
 					PortInst pinPi = cgn.pin.getOnlyPortInst();
 					PortInst toppinPi = cgn.botPin.getOnlyPortInst();
 					PortInst botPinPi = cgn.topPin.getOnlyPortInst();
-					ArcInst link1 = ArcInst.makeInstanceBase(Generic.tech.invisible_arc, 0, toppinPi, pinPi);
-					ArcInst link2 = ArcInst.makeInstanceBase(Generic.tech.invisible_arc, 0, pinPi, botPinPi);
+					ArcInst link1 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, toppinPi, pinPi);
+					ArcInst link2 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, pinPi, botPinPi);
 					link1.setRigid(true);
 					link2.setRigid(true);
 					link1.setHardSelect(true);
@@ -573,7 +573,7 @@ public class CellChangeJobs
 					if (cgn.main == null) continue;
 
 					PortInst firstPi = cgn.pin.getOnlyPortInst();
-					ArcInst ai = ArcInst.makeInstanceBase(Artwork.tech.solidArc, 0, firstPi, firstPi);
+					ArcInst ai = ArcInst.makeInstanceBase(Artwork.tech().solidArc, 0, firstPi, firstPi);
 					if (ai == null) return false;
 					ai.setRigid(true);
 					ai.setHardSelect(true);
@@ -621,7 +621,7 @@ public class CellChangeJobs
 						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, toppinPi, niBotPi);
+						ArcInst ai = ArcInst.makeInstance(Artwork.tech().solidArc, toppinPi, niBotPi);
 						if (ai == null) return false;
 						ai.setRigid(false);
 						ai.setFixedAngle(false);
@@ -876,7 +876,7 @@ public class CellChangeJobs
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np == Generic.tech.essentialBoundsNode) { hasEssentialBounds = true;   break; }
+			if (np == Generic.tech().essentialBoundsNode) { hasEssentialBounds = true;   break; }
 		}
 
 		// make transformation matrix for this cell
@@ -892,10 +892,10 @@ public class CellChangeJobs
 
 			// do not extract "cell center" primitives
 			NodeProto np = ni.getProto();
-			if (np == Generic.tech.cellCenterNode) continue;
+			if (np == Generic.tech().cellCenterNode) continue;
 
 			// do not extract "essential bounds" primitives if they exist in the top-level cell
-			if (np == Generic.tech.essentialBoundsNode && hasEssentialBounds) continue;
+			if (np == Generic.tech().essentialBoundsNode && hasEssentialBounds) continue;
 
 			boolean extractCell = false;
 			if (ni.isCellInstance() && curDepth < totDepth) extractCell = true;

@@ -1415,7 +1415,7 @@ public class Highlighter implements DatabaseChangeListener {
                 		}
 
                 		// look at all variables on the node
-                		if (ni.getProto() != Generic.tech.invisiblePinNode || User.isTextVisibilityOnAnnotation())
+                		if (ni.getProto() != Generic.tech().invisiblePinNode || User.isTextVisibilityOnAnnotation())
                 		{
 	                		for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
 	                    	{

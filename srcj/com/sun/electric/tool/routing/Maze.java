@@ -231,7 +231,7 @@ public class Maze
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
-			if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+			if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 			Network net = netList.getNetwork(ai, 0);
 			if (nets.contains(net))
 			{
@@ -282,7 +282,7 @@ public class Maze
 			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 			{
 				ArcInst ai = it.next();
-				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+				if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 				Network net = netList.getNetwork(ai, 0);
 				if (nets.contains(net)) continue;
 				arcsToRoute.add(ai);
@@ -344,7 +344,7 @@ public class Maze
 
 		// determine arc to route
 		ArcProto routingArc = User.getUserTool().getCurrentArcProto();
-		if (routingArc == Generic.tech.unrouted_arc) routingArc = null;
+		if (routingArc == Generic.tech().unrouted_arc) routingArc = null;
 		if (routingArc != null)
 		{
 			// see if the default arc can be used to route
@@ -368,14 +368,14 @@ public class Maze
 				for(int j = 0; j < connections.length; j++)
 				{
 					ArcProto ap = connections[j];
-					if (ap.getTechnology() == Generic.tech) continue;
+					if (ap.getTechnology() == Generic.tech()) continue;
 					arcsUsed.add(ap);
 				}
 			}
 			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = it.next();
-				if (tech == Generic.tech) continue;
+				if (tech == Generic.tech()) continue;
 				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 				{
 					ArcProto ap = aIt.next();
@@ -1592,7 +1592,7 @@ public class Maze
 	private void drawArcInst(ArcInst ai, AffineTransform trans, SRREGION region)
 	{
 		// get the polygons of the arcinst, force line for path generation?
-		if (ai.getProto() == Generic.tech.unrouted_arc) return;
+		if (ai.getProto() == Generic.tech().unrouted_arc) return;
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] polys = tech.getShapeOfArc(ai);
 		int total = polys.length;

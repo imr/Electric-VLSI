@@ -336,7 +336,7 @@ public class Routing extends Listener
 			cell.killNodes(nodesToDelete);
 
 			// now create the new unrouted wires
-			double wid = Generic.tech.unrouted_arc.getDefaultLambdaBaseWidth();
+			double wid = Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth();
 			int count = netEnds.size();
 			int [] covered = new int[count];
 			Point2D [] points = new Point2D[count];
@@ -375,7 +375,7 @@ public class Routing extends Listener
 				covered[besti] = covered[bestj] = 1;
 				PortInst head = netEnds.get(besti).getPortInst();
 				PortInst tail = netEnds.get(bestj).getPortInst();
-				ArcInst ai = ArcInst.makeInstanceBase(Generic.tech.unrouted_arc, wid, head, tail);
+				ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
 				if (ai == null)
 				{
 					System.out.println("Could not create unrouted arc");
@@ -426,7 +426,7 @@ public class Routing extends Listener
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
-			if (mustBeUnrouted && ai.getProto() != Generic.tech.unrouted_arc) continue;
+			if (mustBeUnrouted && ai.getProto() != Generic.tech().unrouted_arc) continue;
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
 
@@ -449,7 +449,7 @@ public class Routing extends Listener
 				{
 					Connection con = cIt.next();
 					ArcInst conAi = con.getArc();
-					if (mustBeUnrouted && conAi.getProto() != Generic.tech.unrouted_arc) continue;
+					if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc) continue;
 					if (conAi != ai && netList.getNetwork(conAi, 0) == net) { term = false;   break; }
 				}
 				if (ni.hasExports()) term = true;
@@ -689,8 +689,8 @@ public class Routing extends Listener
 		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() == Generic.tech.cellCenterNode ||
-				ni.getProto() == Generic.tech.essentialBoundsNode) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode ||
+				ni.getProto() == Generic.tech().essentialBoundsNode) continue;
 
 			// ignore connecting primitives with no exports
 			if (!ni.isCellInstance() &&!ni.hasExports())
@@ -901,7 +901,7 @@ public class Routing extends Listener
 					Poly poly = pi.getPoly();
 					Point2D lPt = new Point2D.Double(lPoly.getCenterX(), lPoly.getCenterY());
 					Point2D pt = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-					ArcInst newAi = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, pi, lPt, pt, null);
+					ArcInst newAi = ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, pi, lPt, pt, null);
 					if (newAi == null) break;
 					wiresMade++;
 				}

@@ -150,7 +150,7 @@ public abstract class Router {
             }
         }
 
-        if (arcsCreatedMap.get(Generic.tech.unrouted_arc) == null)
+        if (arcsCreatedMap.get(Generic.tech().unrouted_arc) == null)
         {
             // update current unrouted arcs
         	RouteElementPort rep = route.getStart();
@@ -161,7 +161,7 @@ public abstract class Router {
 	            {
 	                Connection conn = it.next();
 	                ArcInst ai = conn.getArc();
-	                if (ai.getProto() == Generic.tech.unrouted_arc)
+	                if (ai.getProto() == Generic.tech().unrouted_arc)
 	                {
 	                    Connection oconn = ai.getConnection(1-conn.getEndIndex());
 	                    // make new unrouted arc from end of route to arc end point,
@@ -169,8 +169,8 @@ public abstract class Router {
 	                    if (oconn.getPortInst() != route.getEnd().getPortInst())
 	                    {
 	                    	RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
-	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
-	                                Generic.tech.unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
+	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech().unrouted_arc,
+	                                Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
 	                                route.getEnd().getLocation(), oconn.getLocation(), null,
 	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
 	                        newArc.doAction();
@@ -304,9 +304,9 @@ public abstract class Router {
     public static ArcProto getArcToUse(PortProto port1, PortProto port2) {
         // current user selected arc
         ArcProto curAp = User.getUserTool().getCurrentArcProto();
-        ArcProto uni = Generic.tech.universal_arc;
-        ArcProto invis = Generic.tech.invisible_arc;
-        ArcProto unr = Generic.tech.unrouted_arc;
+        ArcProto uni = Generic.tech().universal_arc;
+        ArcProto invis = Generic.tech().invisible_arc;
+        ArcProto unr = Generic.tech().unrouted_arc;
 
         PortProto pp1 = null, pp2 = null;
         // Note: this makes it so either port1 or port2 can be null,

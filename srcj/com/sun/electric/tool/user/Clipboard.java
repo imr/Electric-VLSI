@@ -780,7 +780,7 @@ public class Clipboard
         List<Export> reExports = new ArrayList<Export>();
 		for(NodeInst ni : theNodes)
 		{
-			if (ni.getProto() == Generic.tech.cellCenterNode && toCell.alreadyCellCenter()) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode && toCell.alreadyCellCenter()) continue;
 			double width = ni.getXSize();
 			double height = ni.getYSize();
 			String name = null;

@@ -116,7 +116,7 @@ public class AutoStitch
 					if (!ni.isCellInstance())
 					{
 						PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-						if (pnp.getTechnology() == Generic.tech) continue;
+						if (pnp.getTechnology() == Generic.tech()) continue;
 						if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 					}
 					nodesToStitch.add((NodeInst)eObj);
@@ -231,7 +231,7 @@ public class AutoStitch
 				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-					if (pnp.getTechnology() == Generic.tech) continue;
+					if (pnp.getTechnology() == Generic.tech()) continue;
 					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 				}
 				nodesToStitch.add(ni);
@@ -623,7 +623,7 @@ public class AutoStitch
 				if (!oNi.isCellInstance())
 				{
 					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
-					if (pnp.getTechnology() == Generic.tech) continue;
+					if (pnp.getTechnology() == Generic.tech()) continue;
 					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 				}
 
@@ -705,7 +705,7 @@ public class AutoStitch
 						boolean usePortPoly = false;
 						Poly [] nodePolys = shapeOfNode(rNi);
 						int tot = nodePolys.length;
-						if (tot == 0 || rNi.getProto() == Generic.tech.simProbeNode)
+						if (tot == 0 || rNi.getProto() == Generic.tech().simProbeNode)
 						{
 							usePortPoly = true;
 							tot = 1;
@@ -815,7 +815,7 @@ public class AutoStitch
 					boolean usePortPoly = false;
 					Poly [] nodePolys = shapeOfNode(rNi);
 					int tot = nodePolys.length;
-					if (tot == 0 || rNi.getProto() == Generic.tech.simProbeNode)
+					if (tot == 0 || rNi.getProto() == Generic.tech().simProbeNode)
 					{
 						usePortPoly = true;
 						tot = 1;
@@ -895,7 +895,7 @@ public class AutoStitch
 			boolean usePortPoly = false;
 			Poly [] polys = shapeOfNode(ni);
 			int tot = polys.length;
-			if (tot == 0 || ni.getProto() == Generic.tech.simProbeNode)
+			if (tot == 0 || ni.getProto() == Generic.tech().simProbeNode)
 			{
 				usePortPoly = true;
 				tot = 1;
@@ -1310,7 +1310,7 @@ public class AutoStitch
 								if (!subNetlist.portsConnected(rNi, rPp, oPoly.getPort())) continue;
 
 								// if the polygon layer is pseudo, substitute real layer
-								if (ni.getProto() != Generic.tech.simProbeNode)
+								if (ni.getProto() != Generic.tech().simProbeNode)
 								{
 									Layer oLayer = oPoly.getLayer();
 									if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
@@ -1402,7 +1402,7 @@ public class AutoStitch
 							if (!subNetlist.portsConnected(rNi, rPp, oPoly.getPort())) continue;
 	
 							// if the polygon layer is pseudo, substitute real layer
-							if (ni.getProto() != Generic.tech.simProbeNode)
+							if (ni.getProto() != Generic.tech().simProbeNode)
 							{
 								Layer oLayer = oPoly.getLayer();
 								if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();

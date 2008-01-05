@@ -38,7 +38,7 @@ public class DXFTab extends ProjSettingsPanel
 {
 	private TextUtils.UnitScale [] scales;
     
-    private Setting artworkDXFLayerSetting = Artwork.tech.findLayer("Graphics").getDXFLayerSetting();
+    private Setting artworkDXFLayerSetting = Artwork.tech().findLayer("Graphics").getDXFLayerSetting();
     private Setting dxfScaleSetting = IOTool.getDXFScaleSetting();
 
 	/** Creates new form DXFTab */

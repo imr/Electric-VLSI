@@ -28,7 +28,14 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
 
@@ -37,12 +44,10 @@ import java.awt.Color;
  */
 public class PCB extends Technology
 {
-	/** the Printed Circuit Board (eight-layer) Technology object. */	public static final PCB tech = new PCB();
-
 	// -------------------- private and protected methods ------------------------
-	private PCB()
+	public PCB(Generic generic)
 	{
-		super("pcb", Foundry.Type.NONE, 8);
+		super(generic, "pcb", Foundry.Type.NONE, 8);
 		setTechDesc("Printed Circuit Board (eight-layer)");
 		setFactoryScale(1270000, true);   // in nanometers: really 1270 microns
 		setNoNegatedArcs();

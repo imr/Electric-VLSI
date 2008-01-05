@@ -161,37 +161,37 @@ public class Sue extends Input
 	private SueEquiv [] sueEquivs =
 	{
 		//            name         primitive                        NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
-		new SueEquiv("pmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
-		new SueEquiv("nmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
-		new SueEquiv("pmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
-		new SueEquiv("nmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
-		new SueEquiv("pmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
-		new SueEquiv("nmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
-		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,  false,   0,false,  0,    0,     null,                           capacitorWires),
-		new SueEquiv("resistor",   Schematics.tech.resistorNode,   false, 900,false,  0,    0,     null,                           resistorWires),
-		new SueEquiv("inductor",   Schematics.tech.inductorNode,   false,   0,false,  0,    0,     null,                           null),
-		new SueEquiv("cccs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
-		new SueEquiv("ccvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
-		new SueEquiv("vcvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
-		new SueEquiv("vccs",       Schematics.tech.twoportNode,    false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
+		new SueEquiv("pmos10",     Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos10",     Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("pmos4",      Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos4",      Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("pmos",       Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos",       Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("capacitor",  Schematics.tech().capacitorNode,  false,   0,false,  0,    0,     null,                           capacitorWires),
+		new SueEquiv("resistor",   Schematics.tech().resistorNode,   false, 900,false,  0,    0,     null,                           resistorWires),
+		new SueEquiv("inductor",   Schematics.tech().inductorNode,   false,   0,false,  0,    0,     null,                           null),
+		new SueEquiv("cccs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
+		new SueEquiv("ccvs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
+		new SueEquiv("vcvs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
+		new SueEquiv("vccs",       Schematics.tech().twoportNode,    false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
 	};
 
 	private SueEquiv [] sueEquivs4 =
 	{
 		//            name         primitive                         NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
-		new SueEquiv("pmos10",     Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
-		new SueEquiv("nmos10",     Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
-		new SueEquiv("pmos4",      Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
-		new SueEquiv("nmos4",      Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
-		new SueEquiv("pmos",       Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
-		new SueEquiv("nmos",       Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
-		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,   false,   0,false,  0,    0,     null,                           capacitorWires),
-		new SueEquiv("resistor",   Schematics.tech.resistorNode,    false, 900,false,  0,    0,     null,                           resistorWires),
-		new SueEquiv("inductor",   Schematics.tech.inductorNode,    false,   0,false,  0,    0,     null,                           null),
-		new SueEquiv("cccs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
-		new SueEquiv("ccvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
-		new SueEquiv("vcvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
-		new SueEquiv("vccs",       Schematics.tech.twoportNode,     false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
+		new SueEquiv("pmos10",     Schematics.tech().transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos10",     Schematics.tech().transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("pmos4",      Schematics.tech().transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos4",      Schematics.tech().transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("pmos",       Schematics.tech().transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos",       Schematics.tech().transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("capacitor",  Schematics.tech().capacitorNode,   false,   0,false,  0,    0,     null,                           capacitorWires),
+		new SueEquiv("resistor",   Schematics.tech().resistorNode,    false, 900,false,  0,    0,     null,                           resistorWires),
+		new SueEquiv("inductor",   Schematics.tech().inductorNode,    false,   0,false,  0,    0,     null,                           null),
+		new SueEquiv("cccs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
+		new SueEquiv("ccvs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
+		new SueEquiv("vcvs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
+		new SueEquiv("vccs",       Schematics.tech().twoportNode,     false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
 	};
 
 	/*************** SUE WIRES ***************/
@@ -405,7 +405,7 @@ public class Sue extends Input
 				SueExtraWire [] extraWires = null;
 				if (keyword1.equalsIgnoreCase("inout"))
 				{
-					proto = Schematics.tech.offpageNode;
+					proto = Schematics.tech().offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
@@ -413,7 +413,7 @@ public class Sue extends Input
 					type = PortCharacteristic.BIDIR;
 				} else if (keyword1.equalsIgnoreCase("input"))
 				{
-					proto = Schematics.tech.offpageNode;
+					proto = Schematics.tech().offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(-2, 0);
 					trans.transform(offPt, offPt);
@@ -421,7 +421,7 @@ public class Sue extends Input
 					type = PortCharacteristic.IN;
 				} else if (keyword1.equalsIgnoreCase("output"))
 				{
-					proto = Schematics.tech.offpageNode;
+					proto = Schematics.tech().offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
@@ -429,32 +429,32 @@ public class Sue extends Input
 					type = PortCharacteristic.OUT;
 				} else if (keyword1.equalsIgnoreCase("rename_net"))
 				{
-					proto = Schematics.tech.wirePinNode;
+					proto = Schematics.tech().wirePinNode;
 				} else if (keyword1.equalsIgnoreCase("global"))
 				{
 					Name busName = Name.findName(parP.theName);
 					int busWidth = busName.busWidth();
-					if (busWidth > 1) proto = Schematics.tech.busPinNode; else
+					if (busWidth > 1) proto = Schematics.tech().busPinNode; else
 					{
-						proto = Schematics.tech.wirePinNode;
+						proto = Schematics.tech().wirePinNode;
 						if (parP.theName.equalsIgnoreCase("gnd"))
 						{
                             AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 							Point2D offPt = new Point2D.Double(0, -2);
 							trans.transform(offPt, offPt);
 							xOff = offPt.getX();   yOff = offPt.getY();
-							proto = Schematics.tech.groundNode;
+							proto = Schematics.tech().groundNode;
 							type = PortCharacteristic.GND;
 						}
 						if (parP.theName.equalsIgnoreCase("vdd"))
 						{
-							proto = Schematics.tech.powerNode;
+							proto = Schematics.tech().powerNode;
 							type = PortCharacteristic.PWR;
 						}
 					}
 				} else if (keyword1.equalsIgnoreCase("join_net"))
 				{
-					proto = Schematics.tech.wireConNode;
+					proto = Schematics.tech().wireConNode;
 					xShrink = -2;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(1.25, 0);
@@ -557,18 +557,18 @@ public class Sue extends Input
 						AffineTransform trans = ni.getOrient().pureRotate();
 						Point2D dPt = new Point2D.Double(extraWires[i].xOffset, extraWires[i].yOffset);
 						trans.transform(dPt, dPt);
-						PrimitiveNode wirePin = Schematics.tech.wirePinNode;
+						PrimitiveNode wirePin = Schematics.tech().wirePinNode;
 						double pinx = x + dPt.getX();
 						double piny = y + dPt.getY();
 						PortInst ppi = findPinNode(pinx, piny, cell);
 						if (ppi == null)
 						{
-							NodeInst nni = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(pinx, piny),
+							NodeInst nni = NodeInst.makeInstance(Schematics.tech().wirePinNode, new Point2D.Double(pinx, piny),
 								wirePin.getDefWidth(), wirePin.getDefHeight(), cell);
 							if (nni == null) continue;
 							ppi = nni.getOnlyPortInst();
 						}
-						ArcInst ai = ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0, pi, ppi);
+						ArcInst ai = ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0, pi, ppi);
 						if (ai == null)
 						{
 							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -583,7 +583,7 @@ public class Sue extends Input
 				if (parP.theName != null)
 				{
 					// export a port if this is an input, output, inout
-					if (proto == Schematics.tech.offpageNode && parP.theName != null)
+					if (proto == Schematics.tech().offpageNode && parP.theName != null)
 					{
 						Iterator<PortInst> it = ni.getPortInsts();
 						PortInst pi = it.next();
@@ -655,10 +655,10 @@ public class Sue extends Input
 						xpos = -2;
 						ypos = -4;
 						halveSize = true;
-					} else if (keyword.substring(1).equals("capacitance") && proto == Schematics.tech.capacitorNode)
+					} else if (keyword.substring(1).equals("capacitance") && proto == Schematics.tech().capacitorNode)
 					{
 						sueVarName = Schematics.SCHEM_CAPACITANCE.getName();
-					} else if (keyword.substring(1).equals("resistance") && proto == Schematics.tech.resistorNode)
+					} else if (keyword.substring(1).equals("resistance") && proto == Schematics.tech().resistorNode)
 					{
 						sueVarName = Schematics.SCHEM_RESISTANCE.getName();
 					} else
@@ -802,7 +802,7 @@ public class Sue extends Input
 			if (keyword0.equalsIgnoreCase("icon_term"))
 			{
 				ParseParameters parP = new ParseParameters(keywords, 1);
-				NodeProto proto = Schematics.tech.busPinNode;
+				NodeProto proto = Schematics.tech().busPinNode;
 				double pX = proto.getDefWidth();
 				double pY = proto.getDefHeight();
 				NodeInst ni = NodeInst.makeInstance(proto, parP.pt, pX, pY, cell);
@@ -842,7 +842,7 @@ public class Sue extends Input
 				double sY = Math.abs(p1Y - p2Y);
 				Point2D ctr = new Point2D.Double((p1X+p2X)/2, (p1Y+p2Y)/2);
 
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, ctr, sX, sY, cell);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech().circleNode, ctr, sX, sY, cell);
 				if (ni == null) continue;
 				if (extent != 359)
 				{
@@ -896,7 +896,7 @@ public class Sue extends Input
 				double cX = (lX + hX) / 2;
 				double cY = (lY + hY) / 2;
 				Point2D ctr = new Point2D.Double(cX, cY);
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hX-lX, hY-lY, cell);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech().openedPolygonNode, ctr, hX-lX, hY-lY, cell);
 				if (ni == null) return null;
 				EPoint [] points = new EPoint[keyCount];
 				for(int i=0; i<keyCount; i++)
@@ -1000,7 +1000,7 @@ public class Sue extends Input
 				}
 				parP.theLabel = infstr.toString();
 
-				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
+				NodeInst ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
 				continue;
@@ -1013,7 +1013,7 @@ public class Sue extends Input
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				if (parP.theText == null) continue;
 
-				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
+				NodeInst ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				if (parP.theText.startsWith("^"))
 				{
@@ -1281,8 +1281,8 @@ public class Sue extends Input
 					if (sw.pt[i].getX() == sn.pt.getX() && sw.pt[i].getY() == sn.pt.getY())
 					{
 						Name snName = Name.findName(sn.label);
-						if (snName != null && snName.busWidth() > 1) sw.proto = Schematics.tech.bus_arc; else
-							sw.proto = Schematics.tech.wire_arc;
+						if (snName != null && snName.busWidth() > 1) sw.proto = Schematics.tech().bus_arc; else
+							sw.proto = Schematics.tech().wire_arc;
 					}
 				}
 			}
@@ -1306,8 +1306,8 @@ public class Sue extends Input
 					PortOriginal fp = new PortOriginal(pi);
 					PortInst bottomPort = fp.getBottomPort();
 					NodeInst bottomNi = bottomPort.getNodeInst();
-					if (bottomNi.getProto() == Schematics.tech.wireConNode) continue;
-					if (!isBus && ni.getProto() == Schematics.tech.offpageNode)
+					if (bottomNi.getProto() == Schematics.tech().wireConNode) continue;
+					if (!isBus && ni.getProto() == Schematics.tech().offpageNode)
 					{
 						// see if there is a bus port on this primitive
 						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -1320,11 +1320,11 @@ public class Sue extends Input
 
 					if (isBus)
 					{
-						sw.proto = Schematics.tech.bus_arc;
+						sw.proto = Schematics.tech().bus_arc;
 					} else
 					{
 						if (sw.proto == null)
-							sw.proto = Schematics.tech.wire_arc;
+							sw.proto = Schematics.tech().wire_arc;
 					}
 				}
 			}
@@ -1337,7 +1337,7 @@ public class Sue extends Input
 			propagatedBus = false;
 			for(SueWire sw : sueWires)
 			{
-				if (sw.proto != Schematics.tech.bus_arc) continue;
+				if (sw.proto != Schematics.tech().bus_arc) continue;
 				for(SueWire oSw : sueWires)
 				{
 					if (oSw.proto != null) continue;
@@ -1348,7 +1348,7 @@ public class Sue extends Input
 							if (sw.pt[i].getX() == oSw.pt[j].getX() && sw.pt[i].getY() == oSw.pt[j].getY())
 							{
 								// common point found: continue the bus request
-								oSw.proto = Schematics.tech.bus_arc;
+								oSw.proto = Schematics.tech().bus_arc;
 								propagatedBus = true;
 							}
 						}
@@ -1363,8 +1363,8 @@ public class Sue extends Input
 			for(int i=0; i<2; i++)
 			{
 				if (sw.pi[i] != null) continue;
-				NodeProto proto = Schematics.tech.wirePinNode;
-				if (sw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
+				NodeProto proto = Schematics.tech().wirePinNode;
+				if (sw.proto == Schematics.tech().bus_arc) proto = Schematics.tech().busPinNode;
 
 				// look at all other wires at this point and figure out type of pin to make
 				for(SueWire oSw : sueWires)
@@ -1378,7 +1378,7 @@ public class Sue extends Input
 							sw.pi[i] = oSw.pi[j];
 							break;
 						}
-						if (oSw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
+						if (oSw.proto == Schematics.tech().bus_arc) proto = Schematics.tech().busPinNode;
 					}
 					if (sw.pi[i] != null) break;
 				}
@@ -1414,8 +1414,8 @@ public class Sue extends Input
 				sw.pi[i] = findNode(sw.pt[i], sw.pt[1-i], cell, sw.pi[1-i]);
 				if (sw.pi[i] == null)
 				{
-					NodeProto proto = Schematics.tech.wirePinNode;
-					if (sw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
+					NodeProto proto = Schematics.tech().wirePinNode;
+					if (sw.proto == Schematics.tech().bus_arc) proto = Schematics.tech().busPinNode;
 					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
@@ -1425,26 +1425,26 @@ public class Sue extends Input
 		// now make the connections
 		for(SueWire sw : sueWires)
 		{
-			if (sw.proto == null) sw.proto = Schematics.tech.wire_arc;
+			if (sw.proto == null) sw.proto = Schematics.tech().wire_arc;
 //			double wid = sw.proto.getDefaultLambdaFullWidth();
 
 			// if this is a bus, make sure it can connect */
-			if (sw.proto == Schematics.tech.bus_arc)
+			if (sw.proto == Schematics.tech().bus_arc)
 			{
 				for(int i=0; i<2; i++)
 				{
-					if (!sw.pi[i].getPortProto().getBasePort().connectsTo(Schematics.tech.bus_arc))
+					if (!sw.pi[i].getPortProto().getBasePort().connectsTo(Schematics.tech().bus_arc))
 					{
 						// this end cannot connect: fake the connection
 						double px = (sw.pt[0].getX() + sw.pt[1].getX()) / 2;
 						double py = (sw.pt[0].getY() + sw.pt[1].getY()) / 2;
 						Point2D pt = new Point2D.Double(px, py);
-						double xsize = Schematics.tech.busPinNode.getDefWidth();
-						double ysize = Schematics.tech.busPinNode.getDefHeight();
-						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell);
+						double xsize = Schematics.tech().busPinNode.getDefWidth();
+						double ysize = Schematics.tech().busPinNode.getDefHeight();
+						NodeInst ni = NodeInst.makeInstance(Schematics.tech().busPinNode, pt, xsize, ysize, cell);
 						if (ni == null) break;
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstanceBase(Generic.tech.unrouted_arc, 0, pi, sw.pi[i]);
+						ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, 0, pi, sw.pi[i]);
 //						ArcInst ai = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), pi, sw.pi[i]);
 						if (ai == null)
 						{
@@ -1477,7 +1477,7 @@ public class Sue extends Input
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() != Schematics.tech.offpageNode) continue;
+			if (ni.getProto() != Schematics.tech().offpageNode) continue;
 			if (ni.hasConnections()) continue;
 			PortInst pi = ni.getPortInst(1);
 			Poly piPoly = pi.getPoly();
@@ -1503,9 +1503,9 @@ public class Sue extends Input
 					{
 						switch (i)
 						{
-							case 0: ap = Schematics.tech.bus_arc;     break;
-							case 1: ap = Schematics.tech.wire_arc;    break;
-							case 2: ap = Generic.tech.unrouted_arc;   break;
+							case 0: ap = Schematics.tech().bus_arc;     break;
+							case 1: ap = Schematics.tech().wire_arc;    break;
+							case 2: ap = Generic.tech().unrouted_arc;   break;
 						}
 						if (!pi.getPortProto().getBasePort().connectsTo(ap)) continue;
 						if (!oPi.getPortProto().getBasePort().connectsTo(ap)) continue;
@@ -1540,7 +1540,7 @@ public class Sue extends Input
 			if (notThisPort != null && ni == notThisPort.getNodeInst()) continue;
 
 			// ignore pins
-			if (ni.getProto() == Schematics.tech.wirePinNode) continue;
+			if (ni.getProto() == Schematics.tech().wirePinNode) continue;
 
 			// find closest port
 			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
@@ -1652,10 +1652,10 @@ public class Sue extends Input
 					ArcInst ai = (ArcInst)geom;
 					if (isBus)
 					{
-						if (ai.getProto() != Schematics.tech.bus_arc) continue;
+						if (ai.getProto() != Schematics.tech().bus_arc) continue;
 					} else
 					{
-						if (ai.getProto() == Schematics.tech.bus_arc) continue;
+						if (ai.getProto() == Schematics.tech().bus_arc) continue;
 					}
 					double cx = (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
 					double cy = (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
@@ -1674,11 +1674,11 @@ public class Sue extends Input
 					if (pass == 1)
 					{
 						// only allow busses
-						if (bestAi.getProto() != Schematics.tech.bus_arc) continue;
+						if (bestAi.getProto() != Schematics.tech().bus_arc) continue;
 					} else if (pass == 2)
 					{
 						// disallow busses
-						if (bestAi.getProto() == Schematics.tech.bus_arc) continue;
+						if (bestAi.getProto() == Schematics.tech().bus_arc) continue;
 					}
 					String netName = sn.label;
 					if (netName.startsWith("["))
@@ -1727,7 +1727,7 @@ public class Sue extends Input
 	private String searchBusName(ArcInst ai, Set<ArcInst> arcsSeen)
 	{
 		arcsSeen.add(ai);
-		if (ai.getProto() == Schematics.tech.bus_arc)
+		if (ai.getProto() == Schematics.tech().bus_arc)
 		{
 			String arcName = ai.getName();
 			int openPos = arcName.indexOf('[');
@@ -1737,9 +1737,9 @@ public class Sue extends Input
 		for(int i=0; i<2; i++)
 		{
 			NodeInst ni = ai.getPortInst(i).getNodeInst();
-			if (ni.getProto() != Schematics.tech.wirePinNode && ni.getProto() != Schematics.tech.busPinNode &&
-				ni.getProto() != Schematics.tech.offpageNode) continue;
-			if (ni.getProto() == Schematics.tech.busPinNode || ni.getProto() == Schematics.tech.offpageNode)
+			if (ni.getProto() != Schematics.tech().wirePinNode && ni.getProto() != Schematics.tech().busPinNode &&
+				ni.getProto() != Schematics.tech().offpageNode) continue;
+			if (ni.getProto() == Schematics.tech().busPinNode || ni.getProto() == Schematics.tech().offpageNode)
 			{
 				// see if there is an arrayed port here
 				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )

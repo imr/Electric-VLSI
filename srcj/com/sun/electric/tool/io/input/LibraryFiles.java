@@ -589,7 +589,7 @@ public abstract class LibraryFiles extends Input
 		}
 		if (tech == null) tech = Technology.findTechnology(name);
 		if (tech == null && name.equals("logic"))
-			tech = Schematics.tech;
+			tech = Schematics.tech();
 		if (tech == null && (name.equals("epic8c") || name.equals("epic7c")))
 			tech = Technology.findTechnology("epic7s");
 		return tech;

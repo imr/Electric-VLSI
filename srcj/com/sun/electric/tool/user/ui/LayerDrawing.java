@@ -470,7 +470,7 @@ class LayerDrawing
                 }
             }
             if (curTech == null)
-                curTech = Generic.tech;
+                curTech = Generic.tech();
             
             // get the technology's color map
             Color [] colorMap = curTech.getColorMap();
@@ -1842,7 +1842,7 @@ class LayerDrawing
         if (layer != null)
             layer = layer.getNonPseudoLayer();
         if ((layer == null || layer.getTechnology() == null) && layer != instanceLayer && layer != gridLayer)
-            layer = Artwork.tech.defaultLayer;
+            layer = Artwork.tech().defaultLayer;
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
             raster = new TransparentRaster(sz.height, numIntsPerRow);

@@ -388,7 +388,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             subCell.getTechnology();
 		}
 
-        if (d.protoId == Generic.tech.cellCenterNode && parent.alreadyCellCenter()) {
+        if (d.protoId == Generic.tech().cellCenterNode && parent.alreadyCellCenter()) {
             System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
             return null;
         }
@@ -408,7 +408,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ni);
-		if (d.protoId == Generic.tech.cellCenterNode)
+		if (d.protoId == Generic.tech().cellCenterNode)
     		parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
 		return ni;
 	}
@@ -469,7 +469,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public void modifyInstance(double dX, double dY, double dXSize, double dYSize, Orientation dOrient)
 	{
-        if (protoType == Generic.tech.cellCenterNode) {
+        if (protoType == Generic.tech().cellCenterNode) {
             parent.adjustReferencePoint(dX, dY);
             return;
         }
@@ -520,7 +520,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             double dY = dYs != null ? dYs[i] : 0;
             double dXSize = dXSizes != null ? dXSizes[i] : 0;
             double dYSize = dYSizes != null ? dYSizes[i] : 0;
-            if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+            if (ni.getProto() == Generic.tech().cellCenterNode) continue;
             ni.modifyInstance(dX, dY, dXSize, dYSize, Orientation.IDENT);
         }
 
@@ -528,7 +528,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         for(int i=0; i<nis.length; i++) {
             NodeInst ni = nis[i];
             if (ni == null) continue;
-            if (ni.getProto() != Generic.tech.cellCenterNode) continue;
+            if (ni.getProto() != Generic.tech().cellCenterNode) continue;
             double dX = dXs != null ? dXs[i] : 0;
             double dY = dYs != null ? dYs[i] : 0;
             ni.getParent().adjustReferencePoint(dX, dY);
@@ -1177,7 +1177,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		returnValues[0] = returnValues[1] = 0.0;
 
 		if (!(protoType instanceof PrimitiveNode)) return returnValues;
-		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return returnValues;
+		if (protoType != Artwork.tech().circleNode && protoType != Artwork.tech().thickCircleNode) return returnValues;
 
 		Variable var = getVar(Artwork.ART_DEGREES);
 		if (var != null)
@@ -1207,7 +1207,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void setArcDegrees(double start, double curvature)
 	{
 		if (!(protoType instanceof PrimitiveNode)) return;
-		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return;
+		if (protoType != Artwork.tech().circleNode && protoType != Artwork.tech().thickCircleNode) return;
 		if (start == 0 && curvature == 0)
 		{
 			if (getVar(Artwork.ART_DEGREES) == null) return;
@@ -1921,11 +1921,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean traceWraps()
 	{
-		if (protoType == Artwork.tech.splineNode ||
-			protoType == Artwork.tech.openedPolygonNode ||
-			protoType == Artwork.tech.openedDottedPolygonNode ||
-			protoType == Artwork.tech.openedDashedPolygonNode ||
-			protoType == Artwork.tech.openedThickerPolygonNode)
+		if (protoType == Artwork.tech().splineNode ||
+			protoType == Artwork.tech().openedPolygonNode ||
+			protoType == Artwork.tech().openedDottedPolygonNode ||
+			protoType == Artwork.tech().openedDashedPolygonNode ||
+			protoType == Artwork.tech().openedThickerPolygonNode)
 				return false;
 		if (isFET()) return false;
 		return true;
@@ -2652,7 +2652,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean isInvisiblePinWithText()
 	{
-		if (getProto() != Generic.tech.invisiblePinNode) return false;
+		if (getProto() != Generic.tech().invisiblePinNode) return false;
 		if (hasExports()) return true;
 //		if (getNumExports() != 0) return true;
 		if (numDisplayableVariables(false) != 0) return true;
@@ -2676,7 +2676,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //		if (this.getNumConnections() != 0) return null;
 
 		// stop now if this isn't invisible
-		if (protoType != Generic.tech.invisiblePinNode)
+		if (protoType != Generic.tech().invisiblePinNode)
 		{
 			Technology tech = protoType.getTechnology();
 			Poly [] polyList = tech.getShapeOfNode(this);
@@ -2939,9 +2939,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public void setPrimitiveNodeSize(Object width, Object length)
     {
         Technology tech = protoType.getTechnology();
-        if (tech != Schematics.tech) return;
+        if (tech != Schematics.tech()) return;
         checkChanging();
-        Schematics.tech.setPrimitiveNodeSize(this, width, length);
+        Schematics.tech().setPrimitiveNodeSize(this, width, length);
     }
 
 	/**

@@ -69,7 +69,7 @@ public class SpecialProperties
 	public static int doubleClickOnNode(EditWindow wnd, NodeInst ni)
 	{
 		// if double-clicked on a schematic resistor, show special dialog
-		if (ni.getProto() == Schematics.tech.resistorNode)
+		if (ni.getProto() == Schematics.tech().resistorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Resistance", "Ohms", Schematics.SCHEM_RESISTANCE);
 			if (npd.wantMore()) return -1;
@@ -77,7 +77,7 @@ public class SpecialProperties
 		}
 
 		// if double-clicked on a schematic capacitor, show special dialog
-		if (ni.getProto() == Schematics.tech.capacitorNode)
+		if (ni.getProto() == Schematics.tech().capacitorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Capacitance", "Farads", Schematics.SCHEM_CAPACITANCE);
 			if (npd.wantMore()) return -1;
@@ -85,7 +85,7 @@ public class SpecialProperties
 		}
 
 		// if double-clicked on a schematic inductor, show special dialog
-		if (ni.getProto() == Schematics.tech.inductorNode)
+		if (ni.getProto() == Schematics.tech().inductorNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Inductance", "Henrys", Schematics.SCHEM_INDUCTANCE);
 			if (npd.wantMore()) return -1;
@@ -93,7 +93,7 @@ public class SpecialProperties
 		}
 
 		// if double-clicked on a schematic diode, show special dialog
-		if (ni.getProto() == Schematics.tech.diodeNode)
+		if (ni.getProto() == Schematics.tech().diodeNode)
 		{
 			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Diode area", null, Schematics.SCHEM_DIODE);
 			if (npd.wantMore()) return -1;
@@ -101,8 +101,8 @@ public class SpecialProperties
 		}
 
 		// if double-clicked on a schematic transistor, show special dialog
-		if (ni.getProto() == Schematics.tech.transistorNode ||
-			ni.getProto() == Schematics.tech.transistor4Node)
+		if (ni.getProto() == Schematics.tech().transistorNode ||
+			ni.getProto() == Schematics.tech().transistor4Node)
 		{
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun == PrimitiveNode.Function.TRA4NPN || fun == PrimitiveNode.Function.TRA4PNP ||
@@ -121,7 +121,7 @@ public class SpecialProperties
 		}
 
 		// if double-clicked on a schematic global, show special dialog
-		if (ni.getProto() == Schematics.tech.globalNode)
+		if (ni.getProto() == Schematics.tech().globalNode)
 		{
 			GlobalPropertiesDialog gpd = new GlobalPropertiesDialog(wnd, ni);
 			if (gpd.wantMore()) return -1;

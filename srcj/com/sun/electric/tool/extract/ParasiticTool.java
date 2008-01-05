@@ -445,7 +445,7 @@ public class ParasiticTool extends Tool {
                     NodeInst ni = (NodeInst)nGeom;
                     NodeProto np = ni.getProto();
 
-                    if (np == Generic.tech.cellCenterNode) continue;
+                    if (np == Generic.tech().cellCenterNode) continue;
 
                     if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
 

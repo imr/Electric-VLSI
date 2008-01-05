@@ -583,7 +583,7 @@ public class VectorCache {
                 NodeInst ni = nodes.next();
                 boolean hideOnLowLevel = false;
                 if (!ni.isCellInstance())
-                    hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech.cellCenterNode;
+                    hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech().cellCenterNode;
                 if (!hideOnLowLevel)
                     drawNode(ni, trans, this);
             }
@@ -690,7 +690,7 @@ public class VectorCache {
             for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
                 NodeInst ni = nodes.next();
                 if (ni.isCellInstance()) continue;
-                boolean hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech.cellCenterNode;
+                boolean hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech().cellCenterNode;
                 if (hideOnLowLevel)
                     drawNode(ni, trans, this);
             }
@@ -823,7 +823,7 @@ public class VectorCache {
 	}
 	
 	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
-    private static final PrimitivePort busPinPort = Schematics.tech.busPinNode.getPort(0);
+    private static final PrimitivePort busPinPort = Schematics.tech().busPinNode.getPort(0);
 
 	/**
 	 * Method to tell whether a Cell is parameterized.
@@ -1109,9 +1109,9 @@ public class VectorCache {
 			// primitive: save it
 			PrimitiveNode prim = (PrimitiveNode)np;
 			int textType = VectorText.TEXTTYPENODE;
-			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
+			if (prim == Generic.tech().invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
 			Technology tech = prim.getTechnology();
-            boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech.cellCenterNode;
+            boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech().cellCenterNode;
 			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
 			drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, vc, hideOnLowLevel, textType, pureLayer);
 			drawPolys(ni.getDisplayableVariables(dummyWnd), localTrans, vc, hideOnLowLevel, textType, pureLayer);

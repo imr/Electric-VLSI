@@ -453,8 +453,8 @@ public class LibToTech
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
 		if (fileName != null)
             t.writeXml(fileName);
-        Technology tech = new Technology(t);
-        tech.setup();
+        Technology tech = new Technology(lib.getGeneric(), t);
+        tech.setup(lib.getDatabase());
 
         // switch to this technology
 		System.out.println("Technology " + tech.getTechName() + " built.");
@@ -819,7 +819,7 @@ public class LibToTech
 
 					// determine the style of this arc layer
 					Poly.Type style = Poly.Type.CLOSED;
-					if (ns.node.getProto() == Artwork.tech.filledBoxNode)
+					if (ns.node.getProto() == Artwork.tech().filledBoxNode)
 						style = Poly.Type.FILLED;
 					allArcs[i].arcDetails[layerIndex].style = style;
 
@@ -908,7 +908,7 @@ public class LibToTech
 			int portCount = 0;
 			for(Sample ns : firstEx.samples)
 			{
-				if (ns.layer == Generic.tech.portNode) portCount++;
+				if (ns.layer == Generic.tech().portNode) portCount++;
 			}
 			if (portCount == 0)
 			{
@@ -921,7 +921,7 @@ public class LibToTech
 			Map<NodeInfo.PortDetails,Sample> portSamples = new HashMap<NodeInfo.PortDetails,Sample>();
 			for(Sample ns : firstEx.samples)
 			{
-				if (ns.layer != Generic.tech.portNode) continue;
+				if (ns.layer != Generic.tech().portNode) continue;
 
 				// port connections
 				NodeInfo.PortDetails nipd = new NodeInfo.PortDetails();
@@ -1241,8 +1241,8 @@ public class LibToTech
 				int layerCount = 0;
 				for(Sample ns : firstEx.samples)
 				{
-					if (ns.values != null && ns.layer != Generic.tech.portNode &&
-						ns.layer != Generic.tech.cellCenterNode && ns.layer != null)
+					if (ns.values != null && ns.layer != Generic.tech().portNode &&
+						ns.layer != Generic.tech().cellCenterNode && ns.layer != null)
 							layerCount++;
 				}
 				nIn.specialValues[0] = layerCount+1;
@@ -1413,7 +1413,7 @@ public class LibToTech
 		int count = 0;
 		for(Sample ns : firstEx.samples)
 		{
-			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
+			if (ns.layer != null && ns.layer != Generic.tech().portNode) count++;
 		}
 
 		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
@@ -1423,13 +1423,13 @@ public class LibToTech
 		for(Sample ns : firstEx.samples)
 		{
 			// ignore grab point specification
-			if (ns.layer == Generic.tech.cellCenterNode) continue;
+			if (ns.layer == Generic.tech().cellCenterNode) continue;
 			AffineTransform trans = ns.node.rotateOut();
 			Rectangle2D nodeBounds = getBoundingBox(ns.node);
 
 			// determine the layer
 			LayerInfo giLayer = null;
-			if (ns.layer != null && ns.layer != Generic.tech.portNode)
+			if (ns.layer != null && ns.layer != Generic.tech().portNode)
 			{
 				String desiredLayer = ns.layer.getName().substring(6);
 				for(int i=0; i<lis.length; i++)
@@ -1470,7 +1470,7 @@ public class LibToTech
 				if (total > 1)
 				{
 					// make sure the layer is real geometry, not highlight or a port
-					if (ns.layer == null || ns.layer == Generic.tech.portNode)
+					if (ns.layer == null || ns.layer == Generic.tech().portNode)
 					{
 						error.markError(ns.node, np, "Only contact layers may be iterated in examples");
 						return null;
@@ -1493,12 +1493,12 @@ public class LibToTech
 			Point2D [] pointList = null;
 			int [] pointFactor = null;
 			Point2D [] points = null;
-			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
-				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
+			if (ns.node.getProto() == Artwork.tech().filledPolygonNode ||
+				ns.node.getProto() == Artwork.tech().closedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedDottedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedDashedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedThickerPolygonNode)
 			{
 				points = ns.node.getTrace();
 			}
@@ -1519,7 +1519,7 @@ public class LibToTech
 			} else
 			{
 				double [] angles = null;
-				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
+				if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode)
 				{
 					angles = ns.node.getArcDegrees();
 					if (angles[0] == 0 && angles[1] == 0) angles = null;
@@ -1542,8 +1542,8 @@ public class LibToTech
 						nodeBounds.getCenterY() + dist * Math.sin(angles[0]));
 					trans.transform(pointList[1], pointList[1]);
 					trueCount = 3;
-				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
-					ns.node.getProto() == Artwork.tech.filledCircleNode)
+				} else if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode ||
+					ns.node.getProto() == Artwork.tech().filledCircleNode)
 				{
 					// handle circular sample
 					pointList = new Point2D[2+minFactor];
@@ -1601,12 +1601,12 @@ public class LibToTech
 				AffineTransform oTrans = ni.rotateOut();
 				Rectangle2D oNodeBounds = getBoundingBox(ni);
 				Point2D [] oPoints = null;
-				if (ni.getProto() == Artwork.tech.filledPolygonNode ||
-					ni.getProto() == Artwork.tech.closedPolygonNode ||
-					ni.getProto() == Artwork.tech.openedPolygonNode ||
-					ni.getProto() == Artwork.tech.openedDottedPolygonNode ||
-					ni.getProto() == Artwork.tech.openedDashedPolygonNode ||
-					ni.getProto() == Artwork.tech.openedThickerPolygonNode)
+				if (ni.getProto() == Artwork.tech().filledPolygonNode ||
+					ni.getProto() == Artwork.tech().closedPolygonNode ||
+					ni.getProto() == Artwork.tech().openedPolygonNode ||
+					ni.getProto() == Artwork.tech().openedDottedPolygonNode ||
+					ni.getProto() == Artwork.tech().openedDashedPolygonNode ||
+					ni.getProto() == Artwork.tech().openedThickerPolygonNode)
 				{
 					oPoints = ni.getTrace();
 				}
@@ -1642,7 +1642,7 @@ public class LibToTech
 				} else
 				{
 					double [] angles = null;
-					if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
+					if (ni.getProto() == Artwork.tech().circleNode || ni.getProto() == Artwork.tech().thickCircleNode)
 					{
 						angles = ni.getArcDegrees();
 						if (angles[0] == 0 && angles[1] == 0) angles = null;
@@ -1654,8 +1654,8 @@ public class LibToTech
 						pointCoords[1] = new Point2D.Double(oNodeBounds.getCenterX() + dist * Math.cos(angles[0]),
 							oNodeBounds.getCenterY() + dist * Math.sin(angles[0]));
 						oTrans.transform(pointCoords[1], pointCoords[1]);
-					} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode ||
-						ni.getProto() == Artwork.tech.filledCircleNode)
+					} else if (ni.getProto() == Artwork.tech().circleNode || ni.getProto() == Artwork.tech().thickCircleNode ||
+						ni.getProto() == Artwork.tech().filledCircleNode)
 					{
 						pointCoords[0] = new Point2D.Double(oNodeBounds.getCenterX(), oNodeBounds.getCenterY());
 						pointCoords[1] = new Point2D.Double(oNodeBounds.getMaxX(), oNodeBounds.getCenterY());
@@ -1695,7 +1695,7 @@ public class LibToTech
 				}
 
 				// make sure port information is on the primary example
-				if (ns.layer != Generic.tech.portNode) continue;
+				if (ns.layer != Generic.tech().portNode) continue;
 
 				// check port angle
 				Variable var = ns.node.getVar(Info.PORTANGLE_KEY);
@@ -1747,7 +1747,7 @@ public class LibToTech
 			ns.values = newRule;
 
 			// stop now if a highlight or port object
-			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+			if (ns.layer == null || ns.layer == Generic.tech().portNode) continue;
 
 			nodeLayers[count] = new NodeInfo.LayerDetails();
 			nodeLayers[count].layer = giLayer;
@@ -1780,7 +1780,7 @@ public class LibToTech
 		int count = 0;
 		for(Sample ns : firstEx.samples)
 		{
-			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
+			if (ns.layer != null && ns.layer != Generic.tech().portNode) count++;
 		}
 
 		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
@@ -1794,12 +1794,12 @@ public class LibToTech
 			Point2D [] pointList = null;
 			int [] pointFactor = null;
 			Point2D [] points = null;
-			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
-				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
-				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
+			if (ns.node.getProto() == Artwork.tech().filledPolygonNode ||
+				ns.node.getProto() == Artwork.tech().closedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedDottedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedDashedPolygonNode ||
+				ns.node.getProto() == Artwork.tech().openedThickerPolygonNode)
 			{
 				points = ns.node.getTrace();
 			}
@@ -1819,7 +1819,7 @@ public class LibToTech
 			{
 				// see if it is an arc of a circle
 				double [] angles = null;
-				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
+				if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode)
 				{
 					angles = ns.node.getArcDegrees();
 					if (angles[0] == 0 && angles[1] == 0) angles = null;
@@ -1839,8 +1839,8 @@ public class LibToTech
 					pointFactor[0] = FROMCENTX|FROMCENTY;
 					pointFactor[1] = RATIOCENTX|RATIOCENTY;
 					pointFactor[2] = RATIOCENTX|RATIOCENTY;
-				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
-					ns.node.getProto() == Artwork.tech.filledCircleNode)
+				} else if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode ||
+					ns.node.getProto() == Artwork.tech().filledCircleNode)
 				{
 					// handle circular sample
 					pointList = new Point2D[2];
@@ -1871,7 +1871,7 @@ public class LibToTech
 			ns.values = newRule;
 
 			// stop now if a highlight or port object
-			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+			if (ns.layer == null || ns.layer == Generic.tech().portNode) continue;
 
 			// determine the layer
 			LayerInfo layer = null;
@@ -2190,7 +2190,7 @@ public class LibToTech
 				if (ns.assoc != null) continue;
 
 				// cannot have center in other examples
-				if (ns.layer == Generic.tech.cellCenterNode)
+				if (ns.layer == Generic.tech().cellCenterNode)
 				{
 					error.markError(ns.node, np, "Grab point should only be in main example");
 					return true;
@@ -2221,7 +2221,7 @@ public class LibToTech
 				}
 
 				// if it is a port, associate by port name
-				if (ns.layer == Generic.tech.portNode)
+				if (ns.layer == Generic.tech().portNode)
 				{
 					String name = Info.getPortName(ns.node);
 					if (name == null)
@@ -2234,7 +2234,7 @@ public class LibToTech
 					boolean found = false;
 					for(Sample nsList : firstEx.samples)
 					{
-						if (nsList.layer == Generic.tech.portNode)
+						if (nsList.layer == Generic.tech().portNode)
 						{
 							String otherName = Info.getPortName(nsList.node);
 							if (otherName == null)
@@ -2335,7 +2335,7 @@ public class LibToTech
 			{
 				if (nsList.assoc == null)
 				{
-					if (nsList.layer == Generic.tech.cellCenterNode) continue;
+					if (nsList.layer == Generic.tech().cellCenterNode) continue;
 					error.markError(nsList.node, np, "Layer " + Info.getSampleName(nsList.layer) + " found in main example, but not others");
 					return true;
 				}
@@ -2353,13 +2353,13 @@ public class LibToTech
 		public int compare(Sample s1, Sample s2)
 		{
 			int i1 = -1;
-			if (s1.layer != null && s1.layer != Generic.tech.portNode)
+			if (s1.layer != null && s1.layer != Generic.tech().portNode)
 			{
 				String s1Name = s1.layer.getName().substring(6);
 				for(int i = 0; i < lList.length; i++) if (lList[i].name.equals(s1Name)) { i1 = i;   break; }
 			}
 			int i2 = -1;
-			if (s2.layer != null && s2.layer != Generic.tech.portNode)
+			if (s2.layer != null && s2.layer != Generic.tech().portNode)
 			{
 				String s2Name = s2.layer.getName().substring(6);
 				for(int i = 0; i < lList.length; i++) if (lList[i].name.equals(s2Name)) { i2 = i;   break; }
@@ -2401,27 +2401,27 @@ public class LibToTech
 	{
 		// layer style
 		Poly.Type sty = null;
-		if (ni.getProto() == Artwork.tech.filledBoxNode)             sty = Poly.Type.FILLED; else
-		if (ni.getProto() == Artwork.tech.boxNode)                   sty = Poly.Type.CLOSED; else
-		if (ni.getProto() == Artwork.tech.crossedBoxNode)            sty = Poly.Type.CROSSED; else
-		if (ni.getProto() == Artwork.tech.filledPolygonNode)         sty = Poly.Type.FILLED; else
-		if (ni.getProto() == Artwork.tech.closedPolygonNode)         sty = Poly.Type.CLOSED; else
-		if (ni.getProto() == Artwork.tech.openedPolygonNode)         sty = Poly.Type.OPENED; else
-		if (ni.getProto() == Artwork.tech.openedDottedPolygonNode)   sty = Poly.Type.OPENEDT1; else
-		if (ni.getProto() == Artwork.tech.openedDashedPolygonNode)   sty = Poly.Type.OPENEDT2; else
-		if (ni.getProto() == Artwork.tech.openedThickerPolygonNode)  sty = Poly.Type.OPENEDT3; else
-		if (ni.getProto() == Artwork.tech.filledCircleNode)          sty = Poly.Type.DISC; else
-		if (ni.getProto() == Artwork.tech.circleNode)
+		if (ni.getProto() == Artwork.tech().filledBoxNode)             sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech().boxNode)                   sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech().crossedBoxNode)            sty = Poly.Type.CROSSED; else
+		if (ni.getProto() == Artwork.tech().filledPolygonNode)         sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech().closedPolygonNode)         sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech().openedPolygonNode)         sty = Poly.Type.OPENED; else
+		if (ni.getProto() == Artwork.tech().openedDottedPolygonNode)   sty = Poly.Type.OPENEDT1; else
+		if (ni.getProto() == Artwork.tech().openedDashedPolygonNode)   sty = Poly.Type.OPENEDT2; else
+		if (ni.getProto() == Artwork.tech().openedThickerPolygonNode)  sty = Poly.Type.OPENEDT3; else
+		if (ni.getProto() == Artwork.tech().filledCircleNode)          sty = Poly.Type.DISC; else
+		if (ni.getProto() == Artwork.tech().circleNode)
 		{
 			sty = Poly.Type.CIRCLE;
 			double [] angles = ni.getArcDegrees();
 			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.CIRCLEARC;
-		} else if (ni.getProto() == Artwork.tech.thickCircleNode)
+		} else if (ni.getProto() == Artwork.tech().thickCircleNode)
 		{
 			sty = Poly.Type.THICKCIRCLE;
 			double [] angles = ni.getArcDegrees();
 			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.THICKCIRCLEARC;
-		} else if (ni.getProto() == Generic.tech.invisiblePinNode)
+		} else if (ni.getProto() == Generic.tech().invisiblePinNode)
 		{
 			Variable var = ni.getVar(Artwork.ART_MESSAGE);
 			if (var != null)
@@ -2455,7 +2455,7 @@ public class LibToTech
 	private Rectangle2D getBoundingBox(NodeInst ni)
 	{
 		Rectangle2D bounds = ni.getBounds();
-		if (ni.getProto() == Generic.tech.portNode)
+		if (ni.getProto() == Generic.tech().portNode)
 		{
 			double portShrink = 2;
 			bounds.setRect(bounds.getMinX() + portShrink, bounds.getMinY() + portShrink,

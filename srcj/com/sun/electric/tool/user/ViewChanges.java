@@ -387,7 +387,7 @@ public class ViewChanges
 				Export newPp = newPortMap.get(pp);
 				Export newOPp = newPortMap.get(oPp);
 				if (newPp == null || newOPp == null) continue;
-				ArcProto univ = Generic.tech.universal_arc;
+				ArcProto univ = Generic.tech().universal_arc;
 				ArcInst newAI = ArcInst.makeInstance(univ, newPp.getOriginalPort(), newOPp.getOriginalPort());
 				if (newAI == null)
 				{
@@ -404,7 +404,7 @@ public class ViewChanges
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np != Generic.tech.essentialBoundsNode) continue;
+			if (np != Generic.tech().essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
 				ni.getXSize(), ni.getYSize(), skeletonCell, ni.getOrient(), null, 0);
 			if (newNi == null)
@@ -413,12 +413,12 @@ public class ViewChanges
 				return true;
 			}
 			newNi.setHardSelect();
-			if (np == Generic.tech.cellCenterNode) newNi.setVisInside();
+			if (np == Generic.tech().cellCenterNode) newNi.setVisInside();
 		}
 
 		// place an outline around the skeleton
 		Rectangle2D bounds = curCell.getBounds();
-		NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+		NodeInst boundNi = NodeInst.makeInstance(Generic.tech().invisiblePinNode,
 			new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell);
 		if (boundNi == null)
 		{
@@ -792,7 +792,7 @@ public class ViewChanges
 			NodeInst bbNi = null;
 			if (drawBody)
 			{
-				bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+				bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 				if (bbNi == null) return null;
 				EPoint [] boxOutline = new EPoint[5];
 				boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
@@ -855,7 +855,7 @@ public class ViewChanges
 			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
 			if (!drawBody && !drawLeads && placeCellCenter && total <= 1)
 			{
-				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+				NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 			}
 
 			return iconCell;
@@ -928,22 +928,22 @@ public class ViewChanges
 		int exportTech, boolean drawLeads, int exportStyle, int exportLocation, int textRotation, boolean alwaysDrawn)
 	{
 		// presume "universal" exports (Generic technology)
-		NodeProto pinType = Generic.tech.universalPinNode;
+		NodeProto pinType = Generic.tech().universalPinNode;
 		double pinSizeX = 0, pinSizeY = 0;
 		if (exportTech != 0)
 		{
 			// instead, use "schematic" exports (Schematic Bus Pins)
-			pinType = Schematics.tech.busPinNode;
+			pinType = Schematics.tech().busPinNode;
 			pinSizeX = pinType.getDefWidth();
 			pinSizeY = pinType.getDefHeight();
 		}
 
 		// determine the type of wires used for leads
-		ArcProto wireType = Schematics.tech.wire_arc;
-		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc) && pp.getNameKey().isBus())
+		ArcProto wireType = Schematics.tech().wire_arc;
+		if (pp.getBasePort().connectsTo(Schematics.tech().bus_arc) && pp.getNameKey().isBus())
 		{
-			wireType = Schematics.tech.bus_arc;
-			pinType = Schematics.tech.busPinNode;
+			wireType = Schematics.tech().bus_arc;
+			pinType = Schematics.tech().busPinNode;
 			pinSizeX = pinType.getDefWidth();
 			pinSizeY = pinType.getDefHeight();
 		}
@@ -1015,8 +1015,8 @@ public class ViewChanges
 		if (drawLeads)
 		{
 			pinType = wireType.findPinProto();
-			if (pinType == Schematics.tech.busPinNode)
-				pinType = Generic.tech.invisiblePinNode;
+			if (pinType == Schematics.tech().busPinNode)
+				pinType = Generic.tech().invisiblePinNode;
 			double wid = pinType.getDefWidth();
 			double hei = pinType.getDefHeight();
 			NodeInst ni = NodeInst.newInstance(pinType, new Point2D.Double(xBBPos, yBBPos), wid, hei, np);
@@ -1027,7 +1027,7 @@ public class ViewChanges
 				ArcInst ai = ArcInst.makeInstance(wireType,
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
 						new Point2D.Double(xPos, yPos), null);
-				if (ai != null && wireType == Schematics.tech.bus_arc)
+				if (ai != null && wireType == Schematics.tech().bus_arc)
 				{
 					ai.setHeadExtended(false);
 					ai.setTailExtended(false);
@@ -1159,7 +1159,7 @@ public class ViewChanges
 			if (type == PrimitiveNode.Function.PIN)
 			{
 				// compute new x, y coordinates
-				NodeProto prim = Schematics.tech.wirePinNode;
+				NodeProto prim = Schematics.tech().wirePinNode;
 				schemNI = makeSchematicNode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), 0, 0, newCell);
 			} else if (type == null)
 			{
@@ -1174,7 +1174,7 @@ public class ViewChanges
 			{
 				int rotate = mosNI.getAngle();
 				rotate = (rotate + 2700) % 3600;
-				NodeProto prim = Schematics.tech.transistorNode;
+				NodeProto prim = Schematics.tech().transistorNode;
 				int bits = Schematics.getPrimitiveFunctionBits(mosNI.getFunction());
 				schemNI = makeSchematicNode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), rotate, bits, newCell);
 
@@ -1249,7 +1249,7 @@ public class ViewChanges
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
-			ArcInst schemAI = ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
+			ArcInst schemAI = ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
 			if (schemAI == null) continue;
 			schemAI.setFixedAngle(false);
 			schemAI.setRigid(false);
@@ -1483,7 +1483,7 @@ public class ViewChanges
                 this.newLib = newLib;
                 convertedCells = new HashMap<Cell,Cell>();
                 TechType type = null;
-                if (oldTech == Schematics.tech)
+                if (oldTech == Schematics.tech())
                 {
 	                if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
 	                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
@@ -1547,7 +1547,7 @@ public class ViewChanges
                     layCell = convertedCells.get(subCell);
                 if (layCell == null)
                 {
-                	if (oldTech == Schematics.tech)
+                	if (oldTech == Schematics.tech())
                 	{
 	                    // see if it already exists
 	                    for (Iterator<Cell> it = subCell.getCellGroup().getCells(); it.hasNext(); )
@@ -1605,7 +1605,7 @@ public class ViewChanges
                     }
                     if (np != null)
                     {
-                        if (oldTech != Schematics.tech)
+                        if (oldTech != Schematics.tech())
                         {
                             // layout Conversion
                             NodeInst newNi = placeLayoutNode(no, np, newCell, info.getContext());
@@ -1647,13 +1647,13 @@ public class ViewChanges
                     }
                 }
 
-                if (oldTech == Schematics.tech)
+                if (oldTech == Schematics.tech())
                 {
                     // place all new nodes
                     placer.place(this, convertedNodes);
 
                     // create rats nest of connections
-                    ArcProto ratArc = Generic.tech.unrouted_arc;
+                    ArcProto ratArc = Generic.tech().unrouted_arc;
                     for (Iterator<Network> it = info.getNetlist().getNetworks(); it.hasNext(); )
                     {
                         Network network = it.next();
@@ -1826,7 +1826,7 @@ public class ViewChanges
                     // determine new arc width
                     boolean fixAng = ai.isFixedAngle();
                     double newWid = 0;
-                    if (newAp == Generic.tech.universal_arc) fixAng = false; else
+                    if (newAp == Generic.tech().universal_arc) fixAng = false; else
                     {
                         double defwid = ai.getProto().getDefaultLambdaBaseWidth();
                         double curwid = ai.getLambdaBaseWidth();
@@ -1871,7 +1871,7 @@ public class ViewChanges
                         continue;
                     }
                     newAi.copyPropertiesFrom(ai);
-                    if (newAp == Generic.tech.universal_arc)
+                    if (newAp == Generic.tech().universal_arc)
                     {
                         ai.setFixedAngle(false);
                         ai.setRigid(false);
@@ -1953,13 +1953,13 @@ public class ViewChanges
                         for(int j=0; j<oldConnections.length; j++)
                         {
                             ArcProto oap = oldConnections[j];
-                            if (oap.getTechnology() == Generic.tech) continue;
+                            if (oap.getTechnology() == Generic.tech()) continue;
 
                             boolean foundNew = false;
                             for(int k=0; k<newConnections.length; k++)
                             {
                                 ArcProto ap = newConnections[k];
-                                if (ap.getTechnology() == Generic.tech) continue;
+                                if (ap.getTechnology() == Generic.tech()) continue;
                                 if (ap.getFunction() == oap.getFunction()) { foundNew = true;   break; }
                             }
                             if (!foundNew) { oldMatches = false;   break; }
@@ -2228,10 +2228,10 @@ public class ViewChanges
             private ArcProto figureNewArcProto(ArcProto oldAp, Technology newTech, PortProto headPp, PortProto tailPp)
             {
             	// generic arcs stay the same
-            	if (oldAp.getTechnology() == Generic.tech) return oldAp;
+            	if (oldAp.getTechnology() == Generic.tech()) return oldAp;
 
             	// schematic wires become universal arcs
-                if (oldAp != Schematics.tech.wire_arc)
+                if (oldAp != Schematics.tech().wire_arc)
                 {
                     // determine the proper association of this node
                     ArcProto.Function type = oldAp.getFunction();
@@ -2248,10 +2248,10 @@ public class ViewChanges
                 ArcProto [] tailArcs = tailPp.getBasePort().getConnections();
                 for(int i=0; i < headArcs.length; i++)
                 {
-                    if (headArcs[i].getTechnology() == Generic.tech) continue;
+                    if (headArcs[i].getTechnology() == Generic.tech()) continue;
                     for(int j=0; j < tailArcs.length; j++)
                     {
-                        if (tailArcs[j].getTechnology() == Generic.tech) continue;
+                        if (tailArcs[j].getTechnology() == Generic.tech()) continue;
                         if (headArcs[i] != tailArcs[j]) continue;
                         possibleArcs.add(headArcs[i]);
                         break;
@@ -2263,7 +2263,7 @@ public class ViewChanges
                     if (possibleArcs.contains(ap)) return ap;
                 }
                 System.out.println("No equivalent arc for " + oldAp);
-                return Generic.tech.universal_arc;
+                return Generic.tech().universal_arc;
             }
 
             /**

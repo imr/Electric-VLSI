@@ -150,7 +150,7 @@ public abstract class Geometry extends Output
 
 		private void checkLayoutCell()
 		{
-			NodeProto universalPin = Generic.tech.universalPinNode;
+			NodeProto universalPin = Generic.tech().universalPinNode;
             int numUniversalPins = 0;
 			for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
 				NodeInst ni = cell.getNode(i);
@@ -160,9 +160,9 @@ public abstract class Geometry extends Output
             if (numUniversalPins > 0)
 				System.out.println("Geometry: Layout " + cell + " has " + numUniversalPins +	" " + universalPin.describe(true) + " nodes");
 
-			ArcProto universalArc = Generic.tech.universal_arc;
+			ArcProto universalArc = Generic.tech().universal_arc;
 			int numUniversalArcs = 0;
-			ArcProto unroutedArc = Generic.tech.unrouted_arc;
+			ArcProto unroutedArc = Generic.tech().unrouted_arc;
 			int numUnroutedArcs = 0;
 			for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++)
 			{
@@ -289,7 +289,7 @@ public abstract class Geometry extends Output
 			{
     			NodeInst ni = (NodeInst)no;
     			// don't copy Cell-Centers
-    			if (ni.getProto() == Generic.tech.cellCenterNode) return false;
+    			if (ni.getProto() == Generic.tech().cellCenterNode) return false;
                 AffineTransform trans = ni.rotateOut();
 				addNodeInst(ni, trans);
                 return false;

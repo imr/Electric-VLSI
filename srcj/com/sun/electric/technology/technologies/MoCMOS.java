@@ -130,8 +130,8 @@ public class MoCMOS extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-    public MoCMOS(Xml.Technology t) {
-        super(t);
+    public MoCMOS(Generic generic, Xml.Technology t) {
+        super(generic, t);
 		setNoNegatedArcs();
 		setStaticTechnology();
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
@@ -243,14 +243,14 @@ public class MoCMOS extends Technology
     /**
      * Constructs MOCMOS technology without TSMC180 foundry.
      */
-	public MoCMOS()
+	public MoCMOS(Generic generic)
     {
-		this("mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200, true); // in nanometers: really 0.2 micron
+		this(generic, "mocmos", "MOSIS CMOS", "MOSIS CMOS", Foundry.Type.MOSIS, 200, true); // in nanometers: really 0.2 micron
         initFoundryMOSIS();
     }
 
-    private MoCMOS(String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveMocmosExtensions) {
-        super(techName, defaultFoundryType, 6);
+    private MoCMOS(Generic generic, String techName, String techShortName, String techDesc, Foundry.Type defaultFoundryType, double factoryScale, boolean haveMocmosExtensions) {
+        super(generic, techName, defaultFoundryType, 6);
         setFactoryScale(factoryScale, true);
         setTechShortName(techShortName);
         setTechDesc(techDesc);

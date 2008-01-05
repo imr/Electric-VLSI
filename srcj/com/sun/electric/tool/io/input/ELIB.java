@@ -494,7 +494,7 @@ public class ELIB extends LibraryFiles
 			if (tech == null)
 			{
 				// cannot figure it out: just pick the generic technology
-				tech = Generic.tech;
+				tech = Generic.tech();
 				techError[techIndex] = name;
 			} else techError[techIndex] = null;
 			techList[techIndex] = tech;
@@ -1033,7 +1033,7 @@ public class ELIB extends LibraryFiles
 		for(int i=startNode; i<endNode; i++)
 		{
             NodeProto np = nodeInstList.protoType[i];
-			if (np == Generic.tech.cellCenterNode)
+			if (np == Generic.tech().cellCenterNode)
 			{
                 realizeNode(nodeInstList, i, xoff, yoff, lambda, cell, np);
 				xoff = (nodeInstList.lowX[i] + nodeInstList.highX[i]) / 2;
@@ -1048,7 +1048,7 @@ public class ELIB extends LibraryFiles
 		for(int i=startNode; i<endNode; i++)
 		{
             NodeProto np = nodeInstList.protoType[i];
-			if (np == Generic.tech.cellCenterNode) continue;
+			if (np == Generic.tech().cellCenterNode) continue;
 			if (np instanceof Cell)
 				np = scaleCell(i, lambda, cell, recursiveSetupFlag);
 			realizeNode(nodeInstList, i, xoff, yoff, lambda, cell, np);
@@ -1501,7 +1501,7 @@ public class ELIB extends LibraryFiles
                 AffineTransform trans = node.rotateIn();
                 expected = trans.transform(expected, expected);
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
-                PrimitiveNode pn = Generic.tech.universalPinNode;
+                PrimitiveNode pn = Generic.tech().universalPinNode;
                 NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, Orientation.IDENT, "", 0);
                 Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, false);
                 if (ex != null) {
@@ -1906,15 +1906,15 @@ public class ELIB extends LibraryFiles
 
             // create an artwork "Crossed box" to define the cell size
             Technology tech = Technology.getMocmosTechnology();
-            if (c.isIcon()) tech = Artwork.tech; else
-                if (c.isSchematic()) tech = Schematics.tech;
+            if (c.isIcon()) tech = Artwork.tech(); else
+                if (c.isSchematic()) tech = Schematics.tech();
             double lambda = getScale(tech);
             int cX = (lowX + highX) / 2;
             int cY = (lowY + highY) / 2;
             double width = (highX - lowX) / lambda;
             double height = (highY - lowY) / lambda;
             Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, c);
+            NodeInst.newInstance(Generic.tech().drcNode, center, width, height, c);
             //PrimitiveNode cellCenter = Generic.tech.cellCenterNode;
             //NodeInst.newInstance(cellCenter, new Point2D.Double(0,0), cellCenter.getDefWidth(),
             //        cellCenter.getDefHeight(), 0, c, null);
@@ -2393,7 +2393,7 @@ public class ELIB extends LibraryFiles
 					System.out.println("Variable of type Technology has negative index");
 					return null;
 				}
-				return idManager.newTechId(getTechList(i).getTechName());
+				return getTechList(i).getId();
 			case ELIBConstants.VPORTARCINST:
 				readBigInteger();
 				System.out.println("Cannot read variable of type PortArcInst");

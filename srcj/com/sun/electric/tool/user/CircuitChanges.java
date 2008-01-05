@@ -920,10 +920,10 @@ public class CircuitChanges
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() == Generic.tech.cellCenterNode ||
-				ni.getProto() == Generic.tech.invisiblePinNode ||
-				ni.getProto() == Generic.tech.universalPinNode ||
-				ni.getProto() == Generic.tech.essentialBoundsNode) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode ||
+				ni.getProto() == Generic.tech().invisiblePinNode ||
+				ni.getProto() == Generic.tech().universalPinNode ||
+				ni.getProto() == Generic.tech().essentialBoundsNode) continue;
 			SizeOffset so = ni.getSizeOffset();
 			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 			double sY = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
@@ -979,8 +979,8 @@ public class CircuitChanges
 				{
 					ArcInst ai = aIt.next();
 					ArcProto ap = ai.getProto();
-					if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
-						ap.getTechnology() == Schematics.tech) continue;
+					if (ap.getTechnology() == Generic.tech() || ap.getTechnology() == Artwork.tech() ||
+						ap.getTechnology() == Schematics.tech()) continue;
 					Variable var = ai.getVar(ImmutableArcInst.ARC_RADIUS);
 					if (var != null) cellsSeen.add(cell);
 					if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
@@ -1001,8 +1001,8 @@ public class CircuitChanges
 		{
 			ArcInst ai = aIt.next();
 			ArcProto ap = ai.getProto();
-			if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
-				ap.getTechnology() == Schematics.tech) continue;
+			if (ap.getTechnology() == Generic.tech() || ap.getTechnology() == Artwork.tech() ||
+				ap.getTechnology() == Schematics.tech()) continue;
 			boolean nonMan = false;
 			Variable var = ai.getVar(ImmutableArcInst.ARC_RADIUS);
 			if (var != null) nonMan = true;
@@ -1251,7 +1251,7 @@ public class CircuitChanges
         	if (eObj instanceof NodeInst)
         	{
         		NodeInst ni = (NodeInst)eObj;
-        		if (ni.getProto() == Generic.tech.cellCenterNode) cellCenterHighlight = h; else
+        		if (ni.getProto() == Generic.tech().cellCenterNode) cellCenterHighlight = h; else
         			nonCellCenterCount++;
         	} else nonCellCenterCount++;
         }

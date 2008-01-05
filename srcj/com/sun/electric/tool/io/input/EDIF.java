@@ -348,7 +348,7 @@ public class EDIF extends Input
 		// general inits
 		inputScale = IOTool.getEDIFInputScale();
 		curLibrary = lib;
-		curTechnology = Schematics.tech;
+		curTechnology = Schematics.tech();
 		cellTable = new HashMap<String,NameEntry>();
 		portsListHead = null;
 		propertiesListHead = null;
@@ -386,11 +386,11 @@ public class EDIF extends Input
 
 		keyStackDepth = 0;
 
-		defaultPort = Schematics.tech.wirePinNode.findPortProto("wire");
-		defaultIconPort = Schematics.tech.wirePinNode.getPort(0);
-		defaultBusPort = Schematics.tech.busPinNode.findPortProto("bus");
-		defaultInput = Schematics.tech.offpageNode.findPortProto("y");
-		defaultOutput = Schematics.tech.offpageNode.findPortProto("a");
+		defaultPort = Schematics.tech().wirePinNode.findPortProto("wire");
+		defaultIconPort = Schematics.tech().wirePinNode.getPort(0);
+		defaultBusPort = Schematics.tech().busPinNode.findPortProto("bus");
+		defaultInput = Schematics.tech().offpageNode.findPortProto("y");
+		defaultOutput = Schematics.tech().offpageNode.findPortProto("a");
 
         equivs = new EDIFEquiv();
         netPortRefs = new ArrayList<PortInst>();
@@ -483,7 +483,7 @@ public class EDIF extends Input
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					if (ni.getProto() == Schematics.tech.wirePinNode)
+					if (ni.getProto() == Schematics.tech().wirePinNode)
 					{
 						if (!ni.hasConnections() && !ni.hasExports())
 							deletePins.add(ni);
@@ -748,7 +748,7 @@ public class EDIF extends Input
 		nameEntryList.add(nt);
 		nt.original = layer;
 		nt.replace = nt.original;
-		curFigureGroup = nt.node = Artwork.tech.boxNode;
+		curFigureGroup = nt.node = Artwork.tech().boxNode;
 		textHeight = nt.textHeight = 0;
 		textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 		textVisible = nt.visible = true;
@@ -928,8 +928,8 @@ public class EDIF extends Input
 		double sY = r*2;
 		Orientation or = Orientation.fromC(rot, trans);
 		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
-			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, or, null, 0);
+		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech().boxNode ?
+			curFigureGroup : Artwork.tech().circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, or, null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create arc");
@@ -1128,7 +1128,7 @@ public class EDIF extends Input
 			{
 				// only accept valid wires
 				ArcInst oAi = (ArcInst)geom;
-				if (oAi.getProto().getTechnology() == Schematics.tech)
+				if (oAi.getProto().getTechnology() == Schematics.tech())
 					ai = oAi;
 			}
 		}
@@ -1193,7 +1193,7 @@ public class EDIF extends Input
 
 	private void checkBusNames(ArcInst ai, String base, HashSet<ArcInst> seenArcs)
 	{
-		if (ai.getProto() != Schematics.tech.bus_arc)
+		if (ai.getProto() != Schematics.tech().bus_arc)
 		{
 			// verify the name
 			String aName = ai.getName();
@@ -1246,10 +1246,10 @@ public class EDIF extends Input
 		}
 
 		NodeProto np = curFigureGroup;
-		if (curFigureGroup == null || curFigureGroup == Artwork.tech.boxNode)
+		if (curFigureGroup == null || curFigureGroup == Artwork.tech().boxNode)
 		{
-			if (curKeyword == KPOLYGON) np = Artwork.tech.closedPolygonNode; else
-				np = Artwork.tech.openedPolygonNode;
+			if (curKeyword == KPOLYGON) np = Artwork.tech().closedPolygonNode; else
+				np = Artwork.tech().openedPolygonNode;
 		}
 		double sX = hX - lX;
 		double sY = hY - lY;
@@ -1525,7 +1525,7 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			curFigureGroup = Artwork.tech.openedDottedPolygonNode;
+			curFigureGroup = Artwork.tech().openedDottedPolygonNode;
 		}
 
 		protected void pop()
@@ -1657,7 +1657,7 @@ public class EDIF extends Input
 				double cX = (hX + lX) / 2;
 				double cY = (hY + lY) / 2;
 				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech().circleNode, new Point2D.Double(cX, cY),
 					sX, sY, curCell, curOrientation, null, 0);
 				if (ni == null)
 				{
@@ -1794,7 +1794,7 @@ public class EDIF extends Input
 				double xPos = p0.getX();
 				double yPos = p0.getY();
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
+				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech().boxNode,
 					new Point2D.Double(xPos, yPos), 0, 0, curCell);
 				if (ni == null)
 				{
@@ -1912,7 +1912,7 @@ public class EDIF extends Input
 			nt.original = layer;
 
 			nt.replace = nt.original;
-			curFigureGroup = nt.node = Artwork.tech.boxNode;
+			curFigureGroup = nt.node = Artwork.tech().boxNode;
 			textHeight = nt.textHeight = 0;
 			textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 			textVisible = nt.visible = true;
@@ -2492,12 +2492,12 @@ public class EDIF extends Input
 				return;
 			}
 			List<PortInst> fList = new ArrayList<PortInst>();
-			NodeProto np = Schematics.tech.wirePinNode;
-			if (curGeometryType == GBUS || isArray) np = Schematics.tech.busPinNode;
+			NodeProto np = Schematics.tech().wirePinNode;
+			if (curGeometryType == GBUS || isArray) np = Schematics.tech().busPinNode;
 			if (curGeometryType == GNET)
 			{
 				if (netName.length() > 0 && netName.endsWith("]"))
-					np = Schematics.tech.busPinNode;
+					np = Schematics.tech().busPinNode;
 			}
 			for(int i=0; i<curPoints.size()-1; i++)
 			{
@@ -2516,7 +2516,7 @@ public class EDIF extends Input
 					if (fList.size() == 0)
 					{
 						// look for the first pin
-						fList = findEDIFPort(curCell, fX, fY, Schematics.tech.wire_arc, true);
+						fList = findEDIFPort(curCell, fX, fY, Schematics.tech().wire_arc, true);
                         if (fList.size() == 0) {
                             // check for NodeEquivalences with translated ports
                             for (PortInst pi : netPortRefs) {
@@ -2528,7 +2528,7 @@ public class EDIF extends Input
                                     curPoint = equivs.translatePortConnection(curPoint, ne.externalLib, ne.externalCell,
                                             ne.externalView, port, orientation);
                                     if ((curPoint.getX() != fX) || (curPoint.getY() != fY)) {
-                                        fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
+                                        fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc, true);
                                         if (fList.size() != 0) {
                                             // found exact match, move port
                                             fX = curPoint.getX();
@@ -2547,7 +2547,7 @@ public class EDIF extends Input
 					}
 
 					// now the second ...
-					List<PortInst> tList = findEDIFPort(curCell, tX, tY, Schematics.tech.wire_arc, true);
+					List<PortInst> tList = findEDIFPort(curCell, tX, tY, Schematics.tech().wire_arc, true);
                     if (tList.size() == 0) {
                         // check for NodeEquivalences with translated ports
                         for (PortInst pi : netPortRefs) {
@@ -2559,7 +2559,7 @@ public class EDIF extends Input
                                 curPoint = equivs.translatePortConnection(curPoint, ne.externalLib, ne.externalCell,
                                         ne.externalView, port, orientation);
                                 if (curPoint.getX() != tX || curPoint.getY() != tY) {
-                                    tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
+                                    tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc, true);
                                     if (tList.size() != 0) {
                                         // found exact match, move port
                                         tX = curPoint.getX();
@@ -2619,21 +2619,21 @@ public class EDIF extends Input
 							}
 
 							// if bus to bus
-							ArcProto ap = Schematics.tech.wire_arc;
+							ArcProto ap = Schematics.tech().wire_arc;
 							if ((fPi.getPortProto() == defaultBusPort || fbus) &&
 								(tPi.getPortProto() == defaultBusPort || tbus))
 							{
-								ap = Schematics.tech.bus_arc;
+								ap = Schematics.tech().bus_arc;
 							} else
 							{
 								if (curGeometryType == GNET)
 								{
 									if (netName.length() > 0 && netName.endsWith("]"))
-										ap = Schematics.tech.bus_arc;
+										ap = Schematics.tech().bus_arc;
 								} else if (curGeometryType == GBUS)
 								{
 									if (bundleName.length() > 0 && bundleName.endsWith("]"))
-										ap = Schematics.tech.bus_arc;
+										ap = Schematics.tech().bus_arc;
 								}
 							}
 
@@ -2755,10 +2755,10 @@ public class EDIF extends Input
 				fPp = defaultOutput;
 
 			// now create the off-page reference
-			double psX = Schematics.tech.offpageNode.getDefWidth();
-			double psY = Schematics.tech.offpageNode.getDefHeight();
+			double psX = Schematics.tech().offpageNode.getDefWidth();
+			double psY = Schematics.tech().offpageNode.getDefHeight();
 			if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-			NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
+			NodeInst ni = NodeInst.makeInstance(Schematics.tech().offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
 			if (ni == null)
 			{
 				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
@@ -2795,7 +2795,7 @@ public class EDIF extends Input
 		{
 			// set the current geometry type
 			freePointList();
-			cellRefProto = Schematics.tech.busPinNode;
+			cellRefProto = Schematics.tech().busPinNode;
 			curGeometryType = GPIN;
 			curOrientation = OR0;
 			isArray = false;
@@ -2832,7 +2832,7 @@ public class EDIF extends Input
 			if (portReference.length() > 0)
 			{
 				// For internal pins of an instance, determine the base port location and other pin assignments
-				ArcProto ap = Generic.tech.unrouted_arc;
+				ArcProto ap = Generic.tech().unrouted_arc;
 				NodeInst ni = null;
 				PortProto pp = null;
 				if (instanceReference.length() > 0)
@@ -2889,8 +2889,8 @@ public class EDIF extends Input
 								nodeName + "' in " + curCell);
 							return;
 						}
-						if (!isArray) ap = Schematics.tech.wire_arc; else
-							ap = Schematics.tech.bus_arc;
+						if (!isArray) ap = Schematics.tech().wire_arc; else
+							ap = Schematics.tech().bus_arc;
 					}
 
 					// locate the port for this portref
@@ -2955,12 +2955,12 @@ public class EDIF extends Input
 									}
 
 							// need to create a destination for the wire
-							ArcProto lAp = Schematics.tech.bus_arc;
+							ArcProto lAp = Schematics.tech().bus_arc;
 							PortProto lPp = defaultBusPort;
 							NodeInst lNi = null;
 							if (isArray)
 							{
-								lNi = placePin(Schematics.tech.busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
+								lNi = placePin(Schematics.tech().busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
@@ -2968,14 +2968,14 @@ public class EDIF extends Input
 								}
 							} else
 							{
-								lNi = placePin(Schematics.tech.wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
+								lNi = placePin(Schematics.tech().wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
 									return;
 								}
 								lPp = defaultPort;
-								lAp = Schematics.tech.wire_arc;
+								lAp = Schematics.tech().wire_arc;
 							}
 							PortInst head = lNi.findPortInstFromProto(lPp);
 							PortInst tail = ni.findPortInstFromProto(pp);
@@ -3038,8 +3038,8 @@ public class EDIF extends Input
 					// need to create a destination for the wire
 					if (isArray)
 					{
-						ni = placePin(Schematics.tech.busPinNode, lX, lY,
-							Schematics.tech.busPinNode.getDefWidth(), Schematics.tech.busPinNode.getDefHeight(), Orientation.IDENT, np);
+						ni = placePin(Schematics.tech().busPinNode, lX, lY,
+							Schematics.tech().busPinNode.getDefWidth(), Schematics.tech().busPinNode.getDefHeight(), Orientation.IDENT, np);
 						if (ni == null)
 						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
@@ -3048,8 +3048,8 @@ public class EDIF extends Input
 						pp = defaultBusPort;
 					} else
 					{
-						ni = placePin(Schematics.tech.wirePinNode, lX, lY,
-							Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), Orientation.IDENT, np);
+						ni = placePin(Schematics.tech().wirePinNode, lX, lY,
+							Schematics.tech().wirePinNode.getDefWidth(), Schematics.tech().wirePinNode.getDefHeight(), Orientation.IDENT, np);
 						if (ni == null)
 						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
@@ -3057,8 +3057,8 @@ public class EDIF extends Input
 						}
 						pp = defaultPort;
 					}
-					if (!isArray) ap = Schematics.tech.wire_arc; else
-						ap = Schematics.tech.bus_arc;
+					if (!isArray) ap = Schematics.tech().wire_arc; else
+						ap = Schematics.tech().bus_arc;
 				}
 
 				// now connect if we have from node and port
@@ -3265,13 +3265,13 @@ public class EDIF extends Input
 				double yPos = (lY+hY)/2;
 				double xPos = (lX+hX)/2;
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
+				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech().boxNode,
 					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation, null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
 					errorCount++;
-				} else if (curFigureGroup == Artwork.tech.openedDottedPolygonNode)
+				} else if (curFigureGroup == Artwork.tech().openedDottedPolygonNode)
 				{
 					EPoint [] pts = new EPoint[5];
 					pts[0] = new EPoint(p0.getX(), p0.getY());
@@ -3479,7 +3479,7 @@ public class EDIF extends Input
 						double xPos = p0.getX();
 						double yPos = p0.getY();
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
+						ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
 						key = Artwork.ART_MESSAGE.getName(); // "EDIF_annotate";
 					}
 					if (ni != null || ai != null)
@@ -3582,7 +3582,7 @@ public class EDIF extends Input
 					NameEntry nt = new NameEntry();
 					nt.original = "layer_" + gdsLayer;
 					nt.replace = layer.getName();
-					curFigureGroup = nt.node = Artwork.tech.boxNode;
+					curFigureGroup = nt.node = Artwork.tech().boxNode;
 					textHeight = nt.textHeight = 0;
 					textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 					textVisible = nt.visible = true;
@@ -3594,7 +3594,7 @@ public class EDIF extends Input
 			{
 				String nodeName = nt.replace + "-node";
 				NodeProto np = curTechnology.findNodeProto(nodeName);
-				if (np == null) np = Artwork.tech.boxNode;
+				if (np == null) np = Artwork.tech().boxNode;
 				nt.node = np;
 			}
 		}
@@ -3836,7 +3836,7 @@ public class EDIF extends Input
 				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();
-					if (!seenArcs.contains(ai) && ai.getProto() == Schematics.tech.bus_arc)
+					if (!seenArcs.contains(ai) && ai.getProto() == Schematics.tech().bus_arc)
 					{
 						// get name of arc
 						String baseName = ai.getName();

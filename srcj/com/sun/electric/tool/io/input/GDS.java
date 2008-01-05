@@ -654,7 +654,7 @@ public class GDS extends Input
 
 	private void initialize()
 	{
-		layerNodeProto = Generic.tech.drcNode;
+		layerNodeProto = Generic.tech().drcNode;
 
 		theVertices = new Point2D[MAXPOINTS];
 		for(int i=0; i<MAXPOINTS; i++) theVertices[i] = new Point2D.Double();
@@ -1543,15 +1543,15 @@ public class GDS extends Input
             	message += "', using Generic:DRC";
             errorLogger.logWarning(message, theCell.cell, 0);
             System.out.println(message);
-			layerNames.put(layerInt, Generic.tech.drcLay);
+			layerNames.put(layerInt, Generic.tech().drcLay);
 			layerUsed = false;
 			layerNodeProto = null;
 		} else
 		{
 			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
-			if (layer == Generic.tech.drcLay && IOTool.isGDSInIgnoresUnknownLayers())
+			if (layer == Generic.tech().drcLay && IOTool.isGDSInIgnoresUnknownLayers())
 				layerUsed = false;
-            pinNodeProto = Generic.tech.universalPinNode;
+            pinNodeProto = Generic.tech().universalPinNode;
 			if (pinLayers.contains(layerInt)) {
                 layerIsPin = true;
                 for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); ) {
@@ -1569,7 +1569,7 @@ public class GDS extends Input
                 	" in cell '" + theCell.cell.getName() + "', ignoring it";
 				System.out.println(message);
                 errorLogger.logError(message, theCell.cell, 0);
-				layerNames.put(layerInt, Generic.tech.drcLay);
+				layerNames.put(layerInt, Generic.tech().drcLay);
 				layerUsed = false;
 			}
 		}

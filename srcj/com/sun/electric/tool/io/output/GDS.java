@@ -200,7 +200,7 @@ public class GDS extends Geometry
 		{
             // No technology associated, case when art elements are added in layout
             // r.getTechnology() == Generic.tech for layer Glyph
-            if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech) continue;
+            if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
 			if (!selectLayer(layer))
 //			if (!selectLayer(foundry, layer))
             {

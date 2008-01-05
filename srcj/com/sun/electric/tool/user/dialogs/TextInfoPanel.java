@@ -260,7 +260,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (owner instanceof NodeInst)
             {
                 ni = (NodeInst)owner;
-                if (ni.getProto() != Generic.tech.invisiblePinNode)
+                if (ni.getProto() != Generic.tech().invisiblePinNode)
                 {
                     ni = null;                  // ni is null unless owner is invisible pin
                 }
@@ -662,7 +662,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                     ni.resize(boxedWidth-ni.getXSize(), boxedHeight-ni.getYSize());
 
                     // make invisible pin zero size if no longer boxed
-                    if (ni.getProto() == Generic.tech.invisiblePinNode)
+                    if (ni.getProto() == Generic.tech().invisiblePinNode)
                     {
                         if (ni.getXSize() != 0 || ni.getYSize() != 0)
                         {
@@ -683,7 +683,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 			    if (owner instanceof NodeInst)
 			    {
 			        ni = (NodeInst)owner;
-			        if (ni.getProto() != Generic.tech.invisiblePinNode)
+			        if (ni.getProto() != Generic.tech().invisiblePinNode)
 			        {
 			            ni = null;                  // ni is null unless owner is invisible pin
 			        }
@@ -1068,7 +1068,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             xOffset.setEnabled(false); yOffset.setEnabled(false);
             if (owner instanceof NodeInst) {
                 NodeInst ni = (NodeInst)owner;
-                if (ni.getProto() == Generic.tech.invisiblePinNode) {
+                if (ni.getProto() == Generic.tech().invisiblePinNode) {
                     // enable offsets for generic invisible pin
                     xOffset.setEnabled(true); yOffset.setEnabled(true);
                 }

@@ -1223,7 +1223,7 @@ class PixelDrawing
 		} else
 		{
 			// primitive: see if it can be drawn
-			if (topLevel || (!ni.isVisInside() && np != Generic.tech.cellCenterNode))
+			if (topLevel || (!ni.isVisInside() && np != Generic.tech().cellCenterNode))
 			{
 				// see if the node is completely clipped from the screen
 				Point2D ctr = ni.getTrueCenter();
@@ -1256,7 +1256,7 @@ class PixelDrawing
 
 				EditWindow0 nodeWnd = dummyWnd;
 				if (!forceVisible && (!canDrawText || !User.isTextVisibilityOnNode())) nodeWnd = null;
-				if (prim == Generic.tech.invisiblePinNode)
+				if (prim == Generic.tech().invisiblePinNode)
 				{
 					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
 				}

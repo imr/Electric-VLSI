@@ -489,7 +489,7 @@ public class LETool extends Tool {
 
             // get sizer and netlister
             Technology layoutTech = cell.getTechnology();
-            if (layoutTech == Schematics.tech)
+            if (layoutTech == Schematics.tech())
                 layoutTech = Schematics.getDefaultSchematicTechnology();
             if (newAlg)
                 netlister = new LENetlister2(this, layoutTech);

@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -68,10 +69,17 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.net.URL;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 
 /**
@@ -729,12 +737,12 @@ public class Technology implements Comparable<Technology>
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
 	/** preferences for all technologies */					private static Pref.Group prefs = null;
-	/** static list of all Technologies in Electric */		private static TreeMap<String,Technology> technologies = new TreeMap<String,Technology>();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
 
-	/** name of this technology */							private final String techName;
+    /** Generic technology for this Technology */           final Generic generic; 
+	/** name of this technology */							private final TechId techId;
 	/** short, readable name of this technology */			private String techShortName;
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
@@ -793,17 +801,29 @@ public class Technology implements Comparable<Technology>
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(String techName) {
-        this(techName, Foundry.Type.NONE, 0);
+	protected Technology(Generic generic, String techName) {
+        this(generic, techName, Foundry.Type.NONE, 0);
     }
 
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(String techName, Foundry.Type defaultFoundry, int defaultNumMetals)
+	protected Technology(Generic generic, String techName, Foundry.Type defaultFoundry, int defaultNumMetals) {
+        this(generic.getId().idManager, generic,techName, defaultFoundry, defaultNumMetals);
+    }
+	/**
+	 * Constructs a <CODE>Technology</CODE>.
+	 * This should not be called directly, but instead is invoked through each subclass's factory.
+	 */
+	protected Technology(IdManager idManager, Generic generic, String techName, Foundry.Type defaultFoundry, int defaultNumMetals)
 	{
-		this.techName = techName;
+        if (this instanceof Generic) {
+            assert generic == null;
+            generic = (Generic)this;
+        }
+        this.generic = generic;
+		this.techId = idManager.newTechId(techName);
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
@@ -825,19 +845,14 @@ public class Technology implements Comparable<Technology>
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
-
-		// add the technology to the global list
-		assert findTechnology(techName) == null;
-		technologies.put(techName, this);
-        EDatabase.serverDatabase().addTech(this);
 	}
 
 //    protected Technology(URL urlXml, boolean full) {
 //        this(Xml.parseTechnology(urlXml), full);
 //    }
 //
-    public Technology(Xml.Technology t) {
-        this(t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
+    public Technology(Generic generic, Xml.Technology t) {
+        this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
@@ -1167,18 +1182,19 @@ public class Technology implements Comparable<Technology>
 		Pref.delayPrefFlushing();
 
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Generic.tech.setup();
-		Artwork.tech.setup();
-		FPGA.tech.setup();
-		Schematics.tech.setup();
+        EDatabase database = EDatabase.serverDatabase();
+		sysGeneric = new Generic(database.getIdManager()); sysGeneric.setup(database);
+		sysArtwork = new Artwork(sysGeneric); sysArtwork.setup(database);
+		sysFPGA = new FPGA(sysGeneric); sysFPGA.setup(database);
+		sysSchematics = new Schematics(sysGeneric); sysSchematics.setup(database);
 
 //		MoCMOS.tech.setup();
 
 		// finished batching preferences
 		Pref.resumePrefFlushing();
 
-		// setup the generic technology to handle all connections
-		Generic.tech.makeUnivList();
+//		// setup the generic technology to handle all connections
+//		Generic.tech.makeUnivList();
 
         lazyUrls.put("bicmos",       Technology.class.getResource("technologies/bicmos.xml"));
         lazyUrls.put("bipolar",      Technology.class.getResource("technologies/bipolar.xml"));
@@ -1219,12 +1235,11 @@ public class Technology implements Comparable<Technology>
 
         if (!LAZY_TECHNOLOGIES) {
             // initialize technologies that may not be present
-            for(String techClassName: lazyClasses.values()) {
-                setupTechnology(techClassName);
-            }
+            for(String techClassName: lazyClasses.values())
+                setupTechnology(database, techClassName);
             for(URL techUrl: lazyUrls.values()) {
                 if (techUrl != null)
-                    setupTechnology(techUrl);
+                    setupTechnology(database, techUrl);
             }
         }
 
@@ -1236,6 +1251,11 @@ public class Technology implements Comparable<Technology>
 
 	}
 
+    protected static Generic sysGeneric;
+    protected static Artwork sysArtwork;
+    protected static FPGA sysFPGA;
+    protected static Schematics sysSchematics;
+    
 	private static Pref softTechnologyList;
 
 	/**
@@ -1273,18 +1293,14 @@ public class Technology implements Comparable<Technology>
 		softTechnologyList.setString(sb.toString());
 	}
 
-	private static void setupTechnology(String techClassName) {
+	private static void setupTechnology(EDatabase database, String techClassName) {
         Pref.delayPrefFlushing();
         try {
             Class<?> techClass = Class.forName(techClassName);
-            Constructor[] constructors = techClass.getConstructors();
-            Technology tech = null;
-            if (constructors.length != 0)
-                tech = (Technology)techClass.getConstructor().newInstance();
-            else
-                tech = (Technology)techClass.getField("tech").get(null);
-            tech.setup();
-            Generic.tech.makeUnivList();
+            Technology tech = (Technology)techClass.getConstructor(Generic.class)
+                    .newInstance(database.getGeneric());
+            tech.setup(database);
+//            Generic.tech.makeUnivList();
         } catch (ClassNotFoundException e) {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find extra technologies");
@@ -1297,7 +1313,7 @@ public class Technology implements Comparable<Technology>
         }
     }
 
-    private static void setupTechnology(URL urlXml) {
+    private static void setupTechnology(EDatabase database, URL urlXml) {
         Pref.delayPrefFlushing();
         try {
             Xml.Technology t = Xml.parseTechnology(urlXml);
@@ -1309,9 +1325,10 @@ public class Technology implements Comparable<Technology>
             Class<?> techClass = Technology.class;
             if (t.className != null)
                 techClass = Class.forName(t.className);
-            Technology tech = (Technology)techClass.getConstructor(Xml.Technology.class).newInstance(t);
-            tech.setup();
-            Generic.tech.makeUnivList();
+            Technology tech = (Technology)techClass.getConstructor(Generic.class, Xml.Technology.class)
+                    .newInstance(database.getGeneric(), t);
+            tech.setup(database);
+//            Generic.tech.makeUnivList();
         } catch (ClassNotFoundException e) {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find extra technologies");
@@ -1374,9 +1391,11 @@ public class Technology implements Comparable<Technology>
 	 * Calls the technology's specific "init()" method (if any).
 	 * Also sets up mappings from pseudo-layers to real layers.
 	 */
-	public void setup()
+	public void setup(EDatabase database)
 	{
-		// initialize all design rules in the technology (overwrites arc widths)
+        database.addTech(this);
+     
+        // initialize all design rules in the technology (overwrites arc widths)
 		setState();
 
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
@@ -1402,7 +1421,7 @@ public class Technology implements Comparable<Technology>
 	 * It gets overridden by individual technologies.
      */
 	public void setState() {
-        EDatabase.serverDatabase().checkChanging();
+        EDatabase.theDatabase.checkChanging();
     }
 
     protected void setNotUsed(int numPolys) {
@@ -1437,7 +1456,7 @@ public class Technology implements Comparable<Technology>
 	public void setCurrent()
 	{
 		curTech = this;
-		if (this != Generic.tech && this != Schematics.tech && this != Artwork.tech)
+		if (isLayout())
 			curLayoutTech = this;
 	}
 
@@ -1459,8 +1478,9 @@ public class Technology implements Comparable<Technology>
 	public static Technology findTechnology(String name)
 	{
 		if (name == null) return null;
-		Technology tech = technologies.get(name);
-		if (tech != null) return tech;
+//        TechId techId = EDatabase.theDatabase.getIdManager().newTechId(name);
+//		Technology tech = findTechnology(techId);
+//		if (tech != null) return tech;
 
 		for (Iterator<Technology> it = getTechnologies(); it.hasNext(); )
 		{
@@ -1478,7 +1498,7 @@ public class Technology implements Comparable<Technology>
 	 * Technology matches.
 	 */
     public static Technology findTechnology(TechId techId) {
-        return technologies.get(techId.techName);
+        return EDatabase.theDatabase.getTech(techId);
     }
 
 	/**
@@ -1487,7 +1507,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public static Iterator<Technology> getTechnologies()
 	{
-		return technologies.values().iterator();
+		return EDatabase.theDatabase.getTechnologies().iterator();
 	}
 
 	/**
@@ -2115,7 +2135,7 @@ public class Technology implements Comparable<Technology>
             if (a.isBodyArrowed()) {
                 b.pushPoint(a.headLocation);
                 b.pushPoint(a.tailLocation);
-                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay);
             }
             if (a.isTailArrowed()) {
                 int angleOfArrow = 3300;		// -30 degrees
@@ -2125,7 +2145,7 @@ public class Technology implements Comparable<Technology>
                 b.pushPoint(a.tailLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
                 b.pushPoint(a.tailLocation);
                 b.pushPoint(a.tailLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
-                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay);
             }
             if (a.isHeadArrowed()) {
                 angle = (angle + 1800) % 3600;
@@ -2136,7 +2156,7 @@ public class Technology implements Comparable<Technology>
                 b.pushPoint(a.headLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
                 b.pushPoint(a.headLocation);
                 b.pushPoint(a.headLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
-                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+                b.pushPoly(Poly.Type.VECTORS, Generic.tech().glyphLay);
             }
         }
     }
@@ -2347,7 +2367,7 @@ public class Technology implements Comparable<Technology>
      */
 	public PortInst getTransistorAltGatePort(NodeInst ni)
 	{
-		if (ni.getProto().getTechnology() == Schematics.tech) return ni.getPortInst(0);
+		if (ni.getProto().getTechnology() == Schematics.tech()) return ni.getPortInst(0);
 		return ni.getPortInst(2);
 	}
 
@@ -2386,7 +2406,7 @@ public class Technology implements Comparable<Technology>
      */
 	public PortInst getTransistorDrainPort(NodeInst ni)
 	{
-		if (ni.getProto().getTechnology() == Schematics.tech) return ni.getPortInst(2);
+		if (ni.getProto().getTechnology() == Schematics.tech()) return ni.getPortInst(2);
 		return ni.getPortInst(3);
 	}
     /**
@@ -2408,7 +2428,7 @@ public class Technology implements Comparable<Technology>
 	public PortInst getTransistorBiasPort(NodeInst ni)
 	{
 		if (ni.getNumPortInsts() < 4) return null;
-		if (ni.getProto().getTechnology() != Schematics.tech) return null;
+		if (ni.getProto().getTechnology() != Schematics.tech()) return null;
 		return ni.getPortInst(3);
 	}
 
@@ -2753,7 +2773,7 @@ public class Technology implements Comparable<Technology>
 				points[1] = new Point2D.Double(x, y);
 				polys[fillPoly] = new Poly(points);
 				polys[fillPoly].setStyle(Poly.Type.CIRCLE);
-				polys[fillPoly].setLayer(Schematics.tech.node_lay);
+				polys[fillPoly].setLayer(Schematics.tech().node_lay);
 				fillPoly++;
 			}
 		}
@@ -3439,6 +3459,16 @@ public class Technology implements Comparable<Technology>
 		return null;
 	}
 
+    /**
+     * Tells if all ArcProtos can connect to the PrimitivePort
+     * @param pp PrimitivePort to test
+     * @return true if all ArcProtos can connect to the PrimitivePort
+     */
+    protected boolean isUniversalConnectivityPort(PrimitivePort pp) {
+        return false;
+    }
+
+
 	/*********************** PARASITIC SETTINGS ***************************/
 
     private Setting makeParasiticSetting(String what, double factory) {
@@ -3826,11 +3856,18 @@ public class Technology implements Comparable<Technology>
 	public boolean isStaticTechnology() { return (userBits & STATICTECHNOLOGY) != 0; }
 
 	/**
+	 * Returns the TechId of this technology.
+	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
+	 * @return the TechId of this technology.
+	 */
+	public TechId getId() { return techId; }
+
+	/**
 	 * Returns the name of this technology.
 	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
 	 * @return the name of this technology.
 	 */
-	public String getTechName() { return techName; }
+	public String getTechName() { return techId.techName; }
 
 	/**
 	 * Sets the name of this technology.
@@ -4376,7 +4413,7 @@ public class Technology implements Comparable<Technology>
 				{
 					Cell subCell = (Cell)np;
 					if (subCell.isIcon())
-						nodeTech = Schematics.tech;
+						nodeTech = Schematics.tech();
 				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
@@ -4391,7 +4428,7 @@ public class Technology implements Comparable<Technology>
 				{
 					Cell subCell = (Cell)np;
 					if (subCell.isIcon())
-						nodeTech = Schematics.tech;
+						nodeTech = Schematics.tech();
 				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
@@ -4425,7 +4462,7 @@ public class Technology implements Comparable<Technology>
 			Technology tech = it.next();
 
 			// always ignore the generic technology
-			if (tech == Generic.tech) continue;
+			if (tech instanceof Generic) continue;
 
 			// find the most popular of ALL technologies
 			if (useCount[tech.getIndex()] > best)
@@ -4447,23 +4484,23 @@ public class Technology implements Comparable<Technology>
 		if (cell.isIcon() || cell.getView().isTextView())
 		{
 			// in icons, if there is any artwork, use it
-			if (useCount[Artwork.tech.getIndex()] > 0) return(Artwork.tech);
+			if (useCount[Artwork.tech().getIndex()] > 0) return(Artwork.tech());
 
 			// in icons, if there is nothing, presume artwork
-			if (bestTech == null) return(Artwork.tech);
+			if (bestTech == null) return(Artwork.tech());
 
 			// use artwork as a default
-			retTech = Artwork.tech;
+			retTech = Artwork.tech();
 		} else if (cell.isSchematic())
 		{
 			// in schematic, if there are any schematic components, use it
-			if (useCount[Schematics.tech.getIndex()] > 0) return(Schematics.tech);
+			if (useCount[Schematics.tech().getIndex()] > 0) return(Schematics.tech());
 
 			// in schematic, if there is nothing, presume schematic
-			if (bestTech == null) return(Schematics.tech);
+			if (bestTech == null) return(Schematics.tech());
 
 			// use schematic as a default
-			retTech = Schematics.tech;
+			retTech = Schematics.tech();
 		} else
 		{
 			// use the current layout technology as the default
@@ -4526,7 +4563,7 @@ public class Technology implements Comparable<Technology>
      * @return true if this Technology is layout technology.
      */
     public boolean isLayout() {
-        return this != Schematics.tech && this != Artwork.tech && this != Generic.tech;
+        return !(this instanceof Schematics || this instanceof Artwork && this instanceof Generic);
     }
 
     /**
@@ -4983,6 +5020,8 @@ public class Technology implements Comparable<Technology>
                                               ProjSettingsNode xmlNode, String xmlName,
                                               boolean factory)
 		{
+            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+            if (setting != null) return setting;
             return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
 		}
 
@@ -4990,6 +5029,8 @@ public class Technology implements Comparable<Technology>
                                           ProjSettingsNode xmlNode, String xmlName,
                                           int factory)
 		{
+            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+            if (setting != null) return setting;
             return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, Integer.valueOf(factory));
 		}
 
@@ -4997,6 +5038,8 @@ public class Technology implements Comparable<Technology>
                                              ProjSettingsNode xmlNode, String xmlName,
                                              String factory)
 		{
+            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+            if (setting != null) return setting;
             return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, factory);
 		}
 	}

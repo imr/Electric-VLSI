@@ -770,8 +770,8 @@ public class User extends Listener
 				if (colors != null)
 				{
 					Color [] map = Technology.getColorMap(colors, colors.length);
-					Artwork.tech.setColorMap(map);
-					Artwork.tech.setNumTransparentLayers(colors.length);
+					Artwork.tech().setColorMap(map);
+					Artwork.tech().setNumTransparentLayers(colors.length);
 					break;
 				}
 			}

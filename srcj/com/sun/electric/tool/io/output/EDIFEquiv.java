@@ -87,7 +87,7 @@ public class EDIFEquiv {
             PrimitiveNode pn = (PrimitiveNode)np;
             func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
             // if this is an off page node and one of it's ports is exported, find out type
-            if (np == Schematics.tech.offpageNode) {
+            if (np == Schematics.tech().offpageNode) {
                 for (Iterator<PortProto> it = ni.getParent().getPorts(); it.hasNext(); ) {
                     Export e = (Export)it.next();
                     if (e.getOriginalPort().getNodeInst() == ni) {

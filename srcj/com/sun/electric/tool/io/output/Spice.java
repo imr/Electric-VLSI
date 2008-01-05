@@ -842,7 +842,7 @@ public class Spice extends Topology
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+				if (ni.getProto() != Generic.tech().invisiblePinNode) continue;
 				Variable cardVar = ni.getVar(SPICE_DECLARATION_KEY);
 				if (cardVar == null) continue;
 				if (firstDecl)
@@ -1597,7 +1597,7 @@ public class Spice extends Topology
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+				if (ni.getProto() != Generic.tech().invisiblePinNode) continue;
 				Variable cardVar = ni.getVar(SPICE_CARD_KEY);
 				if (cardVar == null) continue;
 				if (firstDecl)
@@ -3306,7 +3306,7 @@ public class Spice extends Topology
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+				if (ni.getProto() != Generic.tech().invisiblePinNode) continue;
                 Variable cardVar = ni.getVar(SPICE_CODE_FLAT_KEY);
                 if (cardVar != null) {
                     if (printWriter == null) {

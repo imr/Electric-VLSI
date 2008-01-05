@@ -277,8 +277,8 @@ if (--limitLoops <= 0) change = false;
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() == Generic.tech.cellCenterNode ||
-					ni.getProto() == Generic.tech.essentialBoundsNode) continue;
+				if (ni.getProto() == Generic.tech().cellCenterNode ||
+					ni.getProto() == Generic.tech().essentialBoundsNode) continue;
 
 				// clear "thisObject" before calling createobject
 				List<GeomObj> thisObjectList = new ArrayList<GeomObj>();

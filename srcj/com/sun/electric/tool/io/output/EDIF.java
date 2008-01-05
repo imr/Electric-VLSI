@@ -1022,7 +1022,7 @@ public class EDIF extends Topology
 					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst oAi = aIt.next();
-						if (oAi.getProto() != Schematics.tech.bus_arc) continue;
+						if (oAi.getProto() != Schematics.tech().bus_arc) continue;
 						String arcBusName = netList.getBusName(oAi).toString();
 						if (arcBusName.equals(realBusName))
 						{
@@ -1088,7 +1088,7 @@ public class EDIF extends Topology
 					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst ai = aIt.next();
-						if (ai.getProto() != Schematics.tech.bus_arc) continue;
+						if (ai.getProto() != Schematics.tech().bus_arc) continue;
 						String arcBusName = netList.getBusName(ai).toString();
 						if (arcBusName.equals(busName)) writeSymbolArcInst(ai, GenMath.MATID);
 					}
@@ -1676,7 +1676,7 @@ public class EDIF extends Topology
 
 			// don't draw invisible pins
 			int low = 0;
-			if (np == Generic.tech.invisiblePinNode) low = 1;
+			if (np == Generic.tech().invisiblePinNode) low = 1;
 
 			for (int j = low; j < high; j++)
 			{

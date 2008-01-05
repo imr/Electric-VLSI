@@ -931,7 +931,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public boolean isGlobalPartition()
 	{
-		return originalPort.getNodeInst().getProto() == Schematics.tech.globalPartitionNode;
+		return originalPort.getNodeInst().getProto() == Schematics.tech().globalPartitionNode;
 	}
 
 

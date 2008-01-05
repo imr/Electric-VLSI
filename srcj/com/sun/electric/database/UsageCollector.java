@@ -109,7 +109,7 @@ class UsageCollector {
         BitSet techUsages = new BitSet();
         techUsages.set(d.techId.techIndex);
         for (Technology tech: techUsed)
-            techUsages.set(idManager.newTechId(tech.getTechName()).techIndex);
+            techUsages.set(tech.getId().techIndex);
         return bitSetWith(oldTechUsages, techUsages); 
     }
     

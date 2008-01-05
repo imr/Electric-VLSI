@@ -86,15 +86,15 @@ import java.util.List;
  */
 public class FPGA extends Technology
 {
-	/** the FPGA Technology object. */	public static final FPGA tech = new FPGA();
+	/** the FPGA Technology object. */	public static FPGA tech() { return sysFPGA; }
 
-	private Layer wireLayer, componentLayer, pipLayer, repeaterLayer;
-	private ArcProto wireArc;
-	private PrimitiveNode wirePinNode, pipNode, repeaterNode;
+	private final Layer wireLayer, componentLayer, pipLayer, repeaterLayer;
+	private final ArcProto wireArc;
+	private final PrimitiveNode wirePinNode, pipNode, repeaterNode;
 
-	private FPGA()
+	public FPGA(Generic generic)
 	{
-		super("fpga", Foundry.Type.NONE, 1);
+		super(generic, "fpga", Foundry.Type.NONE, 1);
 		setTechShortName("FPGA");
 		setTechDesc("FPGA Building-Blocks");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
@@ -311,12 +311,12 @@ public class FPGA extends Technology
 	/** key of Variable holding active repeaters. */		private static final Variable.Key ACTIVEREPEATERS_KEY = Variable.newKey("FPGA_activerepeaters");
 //	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = Variable.newKey("FPGA_nodepipcache");
 //	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = Variable.newKey("FPGA_arcactivecache");
-	/** name of current repeater for activity examining */	private static String         repeaterName;
-	/** nonzero if current repeater is found to be active */private static boolean        repeaterActive;
-	/** what is being displayed */							private static int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
-	/** whether the technology has been read */				private static boolean        defined = false;
+	/** name of current repeater for activity examining */	private String         repeaterName;
+	/** nonzero if current repeater is found to be active */private boolean        repeaterActive;
+	/** what is being displayed */							private int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
+	/** whether the technology has been read */				private boolean        defined = false;
 
-	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
+	private static final Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
 //	private static Poly[] NULLPOLYS = new Poly[0];
 
 	/**
@@ -357,10 +357,10 @@ public class FPGA extends Technology
 		if (ni.isCellInstance()) return null;
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np == tech.wirePinNode)
+		if (np == wirePinNode)
 		{
 			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
-		} else if (np == tech.repeaterNode)
+		} else if (np == repeaterNode)
 		{
 			if ((internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
 			{
@@ -455,7 +455,7 @@ public class FPGA extends Technology
 			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
 			polys[0] = new Poly(pointList);
 			polys[0].setStyle(fn.getLayers()[0].getStyle());
-			polys[0].setLayer(tech.componentLayer);
+			polys[0].setLayer(componentLayer);
 			int fillPos = 1;
 
 			// add in the pips
@@ -466,7 +466,7 @@ public class FPGA extends Technology
 				double y = yCenter + fn.pipList[i].posY;
 				polys[fillPos] = new Poly(Poly.makePoints(x-1, x+1, y-1, y+1));
 				polys[fillPos].setStyle(Poly.Type.FILLED);
-				polys[fillPos].setLayer(tech.pipLayer);
+				polys[fillPos].setLayer(pipLayer);
 				fillPos++;
 			}
 
@@ -485,7 +485,7 @@ public class FPGA extends Technology
 					line[1] = new Point2D.Double(tX, tY);
 					polys[fillPos] = new Poly(line);
 					polys[fillPos].setStyle(Poly.Type.OPENED);
-					polys[fillPos].setLayer(tech.wireLayer);
+					polys[fillPos].setLayer(wireLayer);
 					fillPos++;
 				}
 			}
@@ -495,7 +495,7 @@ public class FPGA extends Technology
 			{
 				polys[fillPos] = new Poly(pointList);
 				polys[fillPos].setStyle(Poly.Type.TEXTBOX);
-				polys[fillPos].setLayer(tech.componentLayer);
+				polys[fillPos].setLayer(componentLayer);
 				polys[fillPos].setString(fn.getName());
 				TextDescriptor td = TextDescriptor.EMPTY.withRelSize(3);
 				polys[fillPos].setTextDescriptor(td);
@@ -872,7 +872,7 @@ public class FPGA extends Technology
 	 * Prompts for a file and reads it.
 	 * @param placeAndWire true to build the primitives and structures; false to simply build the primitives.
 	 */
-	public static void readArchitectureFile(boolean placeAndWire)
+	public void readArchitectureFile(boolean placeAndWire)
 	{
 		if (defined)
 		{
@@ -885,14 +885,14 @@ public class FPGA extends Technology
 		if (fileName == null) return;
 
 		// turn the tree into primitives
-		new BuildTechnology(fileName, placeAndWire);
+		new BuildTechnology(this, fileName, placeAndWire);
 	}
 
 	/**
 	 * Method to set the wire display level.
 	 * @param level 0 to show no wires; 1 to show active wires; 2 to show all wires.
 	 */
-	public static void setWireDisplay(int level)
+	public void setWireDisplay(int level)
 	{
 		switch (level)
 		{
@@ -914,7 +914,7 @@ public class FPGA extends Technology
 	 * Method to set the text display level.
 	 * @param show true to see text, false to hide text.
 	 */
-	public static void setTextDisplay(boolean show)
+	public void setTextDisplay(boolean show)
 	{
 		if (show) internalDisplay |= TEXTDISPLAY; else
 			internalDisplay &= ~TEXTDISPLAY;
@@ -925,7 +925,7 @@ public class FPGA extends Technology
 	/**
 	 * Method to program the currently selected PIPs.
 	 */
-	public static void programPips()
+	public void programPips()
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
@@ -977,13 +977,15 @@ public class FPGA extends Technology
 	 */
 	private static class BuildTechnology extends Job
 	{
+        private FPGA tech;
 		private String fileName;
 		private boolean placeAndWire;
 		private Cell topCell;
 
-		private BuildTechnology(String fileName, boolean placeAndWire)
+		private BuildTechnology(FPGA tech, String fileName, boolean placeAndWire)
 		{
 			super("Build FPGA Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.tech = tech;
 			this.fileName = fileName;
 			this.placeAndWire = placeAndWire;
 			startJob();
@@ -992,20 +994,20 @@ public class FPGA extends Technology
 		public boolean doIt() throws JobException
 		{
 			// read the file
-			LispTree lt = readFile(fileName);
+			LispTree lt = tech.readFile(fileName);
 			if (lt == null)
 				throw new JobException("Error reading file");
 
-			int total = makePrimitives(lt);
+			int total = tech.makePrimitives(lt);
 			System.out.println("Created " + total + " primitives");
 
-			// setup the generic technology to handle all connections
-			Generic.tech.makeUnivList();
+//			// setup the generic technology to handle all connections
+//			Generic.tech.makeUnivList();
 
 			// place and wire the primitives
 			if (placeAndWire)
 			{
-				topCell = placePrimitives(lt);
+				topCell = tech.placePrimitives(lt);
 				fieldVariableChanged("topCell");
 			}
 			return true;
@@ -1026,7 +1028,7 @@ public class FPGA extends Technology
 	 * Method to read the FPGA file in "f" and create a LISPTREE structure which is returned.
 	 * Returns zero on error.
 	 */
-	private static LispTree readFile(String fileName)
+	private LispTree readFile(String fileName)
 	{
 		// make the tree top
 		LispTree treeTop = new LispTree();
@@ -1116,7 +1118,7 @@ public class FPGA extends Technology
 	 * Method to add the next keyword "keyword" to the lisp tree in the globals.
 	 * Returns true on error.
 	 */
-	private static boolean pushKeyword(String keyword, LineNumberReader lnr)
+	private boolean pushKeyword(String keyword, LineNumberReader lnr)
 	{
 		if (keyword.startsWith("("))
 		{
@@ -1171,7 +1173,7 @@ public class FPGA extends Technology
 	 * Method to parse the entire tree and create primitives.
 	 * Returns the number of primitives made.
 	 */
-	private static int makePrimitives(LispTree lt)
+	private int makePrimitives(LispTree lt)
 	{
 		// look through top level for the "primdef"s
 		int total = 0;
@@ -1192,7 +1194,7 @@ public class FPGA extends Technology
 	 * Method to create a primitive from a subtree "lt".
 	 * Tree has "(primdef...)" structure.
 	 */
-	private static boolean makePrimitive(LispTree lt)
+	private boolean makePrimitive(LispTree lt)
 	{
 		// find all of the pieces of this primitive
 		LispTree ltAttribute = null, ltNets = null, ltPorts = null, ltComponents = null;
@@ -1286,10 +1288,10 @@ public class FPGA extends Technology
 		// make the primitive
 		double sizeX = TextUtils.atof(primSizeX);
 		double sizeY = TextUtils.atof(primSizeY);
-		FPGANode primNP = new FPGANode(primName, tech, sizeX, sizeY, null,
+		FPGANode primNP = new FPGANode(primName, this, sizeX, sizeY, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(tech.componentLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {
+				new Technology.NodeLayer(componentLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
 				})
@@ -1388,7 +1390,7 @@ public class FPGA extends Technology
 		for(int i=0; i<primNP.numPorts(); i++)
 		{
 			FPGAPort fp = primNP.portList[i];
-			fp.pp = PrimitivePort.newInstance(tech, primNP, new ArcProto [] {tech.wireArc}, fp.name, 0,180, fp.con,
+			fp.pp = PrimitivePort.newInstance(this, primNP, new ArcProto [] {wireArc}, fp.name, 0,180, fp.con,
 				fp.characteristic,EdgeH.fromCenter(fp.posX), EdgeV.fromCenter(fp.posY), EdgeH.fromCenter(fp.posX),
 				EdgeV.fromCenter(fp.posY));
 			ports[i] = fp.pp;
@@ -1668,7 +1670,7 @@ public class FPGA extends Technology
 	/**
 	 * Method to scan the entire tree for block definitions and create them.
 	 */
-	private static Cell placePrimitives(LispTree lt)
+	private Cell placePrimitives(LispTree lt)
 	{
 		// look through top level for the "blockdef"s
 		Cell topLevel = null;
@@ -1692,7 +1694,7 @@ public class FPGA extends Technology
 	 * Tree has "(blockdef...)" or "(architecture...)" structure.
 	 * Returns nonzero on error.
 	 */
-	private static Cell makeCell(LispTree lt)
+	private Cell makeCell(LispTree lt)
 	{
 		// find all of the pieces of this block
 		LispTree ltAttribute = null, ltNets = null, ltPorts = null, ltComponents = null;
@@ -1790,10 +1792,10 @@ public class FPGA extends Technology
 		// force size by placing pins in the corners
 		if (gotSize)
 		{
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, sizeY-0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, sizeY-0.5), 1, 1, cell);
+			NodeInst.makeInstance(wirePinNode, new Point2D.Double(0.5, 0.5), 1, 1, cell);
+			NodeInst.makeInstance(wirePinNode, new Point2D.Double(sizeX-0.5, 0.5), 1, 1, cell);
+			NodeInst.makeInstance(wirePinNode, new Point2D.Double(0.5, sizeY-0.5), 1, 1, cell);
+			NodeInst.makeInstance(wirePinNode, new Point2D.Double(sizeX-0.5, sizeY-0.5), 1, 1, cell);
 		}
 
 		// add any unrecognized attributes
@@ -1868,7 +1870,7 @@ public class FPGA extends Technology
 	 * Method to place an instance in cell "cell" from the LISPTREE in "lt".
 	 * Tree has "(instance...)" structure.  Returns true on error.
 	 */
-	private static boolean makeBlockInstance(Cell cell, LispTree lt)
+	private boolean makeBlockInstance(Cell cell, LispTree lt)
 	{
 		// scan for information in this block instance object
 		LispTree ltType = null, ltName = null, ltPosition = null, ltRotation = null, ltAttribute = null;
@@ -1939,7 +1941,7 @@ public class FPGA extends Technology
 			System.out.println("Need one atom in 'type' of block instance (line " + ltType.lineNumber + ")");
 			return true;
 		}
-		NodeProto np = tech.findNodeProto(ltType.getLeaf(0));
+		NodeProto np = findNodeProto(ltType.getLeaf(0));
 		if (np == null) np = cell.getLibrary().findNodeProto(ltType.getLeaf(0));
 		if (np == null)
 		{
@@ -2017,7 +2019,7 @@ public class FPGA extends Technology
 	 * Method to add a port to block "cell" from the tree in "lt".
 	 * Tree has "(port...)" structure.  Returns true on error.
 	 */
-	private static boolean makeBlockPort(Cell cell, LispTree lt)
+	private boolean makeBlockPort(Cell cell, LispTree lt)
 	{
 		LispTree ltName = null, ltPosition = null;
 		for(int j=0; j<lt.size(); j++)
@@ -2063,7 +2065,7 @@ public class FPGA extends Technology
 		// create the structure
 		double posX = TextUtils.atof(ltPosition.getLeaf(0));
 		double posY = TextUtils.atof(ltPosition.getLeaf(1));
-		NodeInst ni = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(posX, posY), 0, 0, cell);
+		NodeInst ni = NodeInst.makeInstance(wirePinNode, new Point2D.Double(posX, posY), 0, 0, cell);
 		if (ni == null)
 		{
 			System.out.println("Error creating pin for port '" + ltName.getLeaf(0) + "' (line " + lt.lineNumber + ")");
@@ -2083,7 +2085,7 @@ public class FPGA extends Technology
 	 * Method to place a repeater in cell "cell" from the LISPTREE in "lt".
 	 * Tree has "(repeater...)" structure.  Returns true on error.
 	 */
-	private static boolean makeBlockRepeater(Cell cell, LispTree lt)
+	private boolean makeBlockRepeater(Cell cell, LispTree lt)
 	{
 		LispTree ltName = null, ltPortA = null, ltPortB = null;
 		for(int j=0; j<lt.size(); j++)
@@ -2147,7 +2149,7 @@ public class FPGA extends Technology
 		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
 		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
         Orientation orient = Orientation.fromAngle(angle);
-		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, orient, name, 0);
+		NodeInst ni = NodeInst.makeInstance(repeaterNode, ctr, 10,3, cell, orient, name, 0);
 //		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
 		if (ni == null)
 		{
@@ -2161,7 +2163,7 @@ public class FPGA extends Technology
 	 * Method to extract block net information from the LISPTREE in "lt".
 	 * Tree has "(net...)" structure.  Returns true on error.
 	 */
-	private static boolean makeBlockNet(Cell cell, LispTree lt)
+	private boolean makeBlockNet(Cell cell, LispTree lt)
 	{
 		// find the net name
 		for(int j=0; j<lt.size(); j++)
@@ -2266,7 +2268,7 @@ public class FPGA extends Technology
 							RTBounds geom = it.next();
 							if (!(geom instanceof NodeInst)) continue;
 							NodeInst ni = (NodeInst)geom;
-							if (ni.getProto() != tech.wirePinNode) continue;
+							if (ni.getProto() != wirePinNode) continue;
 							if (ni.getTrueCenterX() == x && ni.getTrueCenterY() == y)
 							{
 								niFound = ni;
@@ -2275,7 +2277,7 @@ public class FPGA extends Technology
 						}
 						if (niFound == null)
 						{
-							niFound = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(x, y), 0, 0, cell);
+							niFound = NodeInst.makeInstance(wirePinNode, new Point2D.Double(x, y), 0, 0, cell);
 							if (niFound == null)
 							{
 								System.out.println("Cannot create pin for block net segment (line " + scanLT.lineNumber + ")");
@@ -2320,7 +2322,7 @@ public class FPGA extends Technology
 				// now create the arc
 				PortInst pi0 = nis[0].findPortInstFromProto(pps[0]);
 				PortInst pi1 = nis[1].findPortInstFromProto(pps[1]);
-				ArcInst ai = ArcInst.makeInstanceBase(tech.wireArc, 0, pi0, pi1);
+				ArcInst ai = ArcInst.makeInstanceBase(wireArc, 0, pi0, pi1);
 //				ArcInst ai = ArcInst.makeInstanceFull(tech.wireArc, 0, pi0, pi1);
 				if (ai == null)
 				{

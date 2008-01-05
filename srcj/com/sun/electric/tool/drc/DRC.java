@@ -550,8 +550,8 @@ public class DRC extends Listener
     {
         if (cell == null) return;
         boolean isLayout = true; // hierarchical check of layout by default
-		if (cell.isSchematic() || cell.getTechnology() == Schematics.tech ||
-			cell.isIcon() || cell.getTechnology() == Artwork.tech)
+		if (cell.isSchematic() || cell.getTechnology() == Schematics.tech() ||
+			cell.isIcon() || cell.getTechnology() == Artwork.tech())
 			// hierarchical check of schematics
 			isLayout = false;
 
@@ -1146,9 +1146,9 @@ public class DRC extends Listener
             NodeProto np = ni.getProto();
             if (!cell.isIcon()) {
                 if (ni.isIconOfParent() ||
-                        np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
+                        np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech().simProbeNode ||
 //                        np == Artwork.tech.pinNode ||
-                        np == Generic.tech.invisiblePinNode) {
+                        np == Generic.tech().invisiblePinNode) {
                     if (ni.hasConnections()) {
                         String msg = "Network: " + cell + " has connections on " + ni;
                         System.out.println(msg);
@@ -1177,7 +1177,7 @@ public class DRC extends Listener
                     Cell subCell = (Cell)np;
                     isSchematicNode = subCell.isIcon() || subCell.isSchematic();
                 } else {
-                    isSchematicNode = np == Generic.tech.universalPinNode ||np.getTechnology() == Schematics.tech;
+                    isSchematicNode = np == Generic.tech().universalPinNode ||np.getTechnology() == Schematics.tech();
                 }
                 if (isSchematicNode) {
                     if (strangeNodes == null)

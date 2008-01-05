@@ -29,20 +29,21 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
-
-
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 
 /**
  * This is the Temporal Specification Facility (from Lansky) Technology.
  */
 public class GEM extends Technology
 {
-	/** the Temporal Specification Facility (from Lansky) Technology object. */	public static final GEM tech = new GEM();
-
 	/** Variable key for GEM element name. */		public static final Variable.Key ELEMENT_NAME = Variable.newKey("GEM_element");
 	/** Variable key for GEM event 1. */			public static final Variable.Key EVENT_1 = Variable.newKey("GEM_event1");
 	/** Variable key for GEM event 2. */			public static final Variable.Key EVENT_2 = Variable.newKey("GEM_event2");
@@ -54,9 +55,9 @@ public class GEM extends Technology
 	private PrimitiveNode e_node;
 
 	// -------------------- private and protected methods ------------------------
-	private GEM()
+	public GEM(Generic generic)
 	{
-		super("gem");
+		super(generic, "gem");
 		setTechDesc("Temporal Specification Facility (from Lansky)");
 		setFactoryScale(1000, false);   // in nanometers: really 1 microns
 		setNoNegatedArcs();

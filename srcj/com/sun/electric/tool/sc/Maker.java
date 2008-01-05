@@ -1192,7 +1192,7 @@ public class Maker
 
 		// override given arc and choose one that will connect
 		if (pi.getPortProto() instanceof PrimitivePort)
-			arc = ((PrimitivePort)pi.getPortProto()).getConnections()[0];
+			arc = ((PrimitivePort)pi.getPortProto()).getConnection();
 
 		// make sure that this contact connects to the desired arc
 		if (!viaProto.getPort(0).connectsTo(arc)) return null;
@@ -1215,7 +1215,7 @@ public class Maker
 	private String setupForMaker()
 	{
 		Technology tech = Technology.getCurrent();
-		if (tech == Schematics.tech)
+		if (tech == Schematics.tech())
 			tech = User.getSchematicTechnology();
 		String layer1 = SilComp.getHorizRoutingArc();
 		String layer2 = SilComp.getVertRoutingArc();

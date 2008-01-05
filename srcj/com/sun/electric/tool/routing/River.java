@@ -1121,7 +1121,7 @@ public class River
 		for(int i=0; i<possibleArcs.length; i++)
 		{
 			ArcProto ap = possibleArcs[i];
-			if (ap.getTechnology() == Generic.tech) continue;
+			if (ap.getTechnology() == Generic.tech()) continue;
 			GenMath.MutableInteger mi = arcProtoUsage.get(ap);
 			if (mi == null)
 			{
@@ -1253,7 +1253,7 @@ public class River
 		if (arcsSeen.contains(ai)) return false;
 
 		// only want "unrouted" arc in generic technology
-		if (ai.getProto() != Generic.tech.unrouted_arc) return false;
+		if (ai.getProto() != Generic.tech().unrouted_arc) return false;
 
 		return true;
 	}
@@ -1264,8 +1264,8 @@ public class River
 	private boolean isUnroutedPin(NodeInst ni)
 	{
 		// only want the unrouted pin
-		if (ni.getProto() != Generic.tech.unroutedPinNode &&
-			ni.getProto() != Generic.tech.universalPinNode) return false;
+		if (ni.getProto() != Generic.tech().unroutedPinNode &&
+			ni.getProto() != Generic.tech().universalPinNode) return false;
 
 		// found one
 		return true;

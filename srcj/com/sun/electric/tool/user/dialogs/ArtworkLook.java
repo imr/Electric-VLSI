@@ -114,12 +114,12 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)geom;
 				if (!ni.isCellInstance() &&
-					ni.getProto().getTechnology() == Artwork.tech)
+					ni.getProto().getTechnology() == Artwork.tech())
 						artworkObjects.add(ni);
 			} else if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;
-				if (ai.getProto().getTechnology() == Artwork.tech) artworkObjects.add(ai);
+				if (ai.getProto().getTechnology() == Artwork.tech()) artworkObjects.add(ai);
 			}
 		}
 		return artworkObjects;

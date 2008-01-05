@@ -900,12 +900,12 @@ public class PadGenerator
 												PortInst pi = ni.findPortInstFromProto(e);
 												PolyBase portPoly = pi.getPoly();
 												Rectangle2D portRect = portPoly.getBounds2D();
-												PrimitiveNode busPinProto = Schematics.tech.busPinNode;
+												PrimitiveNode busPinProto = Schematics.tech().busPinNode;
 												NodeInst busPin = NodeInst.makeInstance(busPinProto,
 													new EPoint(portRect.getCenterX(), portRect.getCenterY()),
 													busPinProto.getDefWidth(), busPinProto.getDefHeight(), framecell);
 												pi1 = busPin.getOnlyPortInst();
-												ArcProto busArcProto = Schematics.tech.bus_arc;
+												ArcProto busArcProto = Schematics.tech().bus_arc;
 												ArcInst.makeInstance(busArcProto, pi, pi1);
 //												ArcInst.makeInstanceFull(busArcProto, busArcProto.getDefaultLambdaFullWidth(), pi, pi1);
 												trueBusEnd.put(e, pi1);
@@ -925,7 +925,7 @@ public class PadGenerator
 							}
 							PortInst pi2 = pad.ni.findPortInst(pa.portname);
 							//PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
-							ArcProto ap = Generic.tech.unrouted_arc;
+							ArcProto ap = Generic.tech().unrouted_arc;
 							ArcInst ai = ArcInst.newInstanceBase(ap, ap.getDefaultLambdaBaseWidth(), pi1, pi2);
 //							ArcInst ai = ArcInst.newInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
 							if (nameArc)
@@ -965,7 +965,7 @@ public class PadGenerator
 			NodeInst bbNi = null;
 			if (User.isIconGenDrawBody()) {
 				//bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
-				bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
+				bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 				if (bbNi == null) return framecell;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
@@ -1064,7 +1064,7 @@ public class PadGenerator
 					!User.isIconGenDrawLeads() &&
 					User.isPlaceCellCenter() &&
 					total <= 1) {
-				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
+				NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 			}
 
 			// place an icon in the schematic

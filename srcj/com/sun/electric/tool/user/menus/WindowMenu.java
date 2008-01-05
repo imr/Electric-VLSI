@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import com.sun.electric.database.text.Pref;
@@ -705,7 +706,7 @@ public class WindowMenu {
 		User.resetFactoryColor(User.ColorPrefType.WAVE_STIMULI);
 
         // change the colors in the "Generic" technology
-        Generic.setBackgroudColor(Color.BLACK);
+        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
         WindowFrame.redrawNewColors();
@@ -727,7 +728,7 @@ public class WindowMenu {
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
-        Generic.setBackgroudColor(Color.WHITE);
+        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.WHITE);
 
         // redraw
         WindowFrame.redrawNewColors();
@@ -749,7 +750,7 @@ public class WindowMenu {
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
-        Generic.setBackgroudColor(Color.BLACK);
+        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
         WindowFrame.redrawNewColors();

@@ -28,7 +28,15 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
 
@@ -38,12 +46,10 @@ import java.awt.Color;
  */
 public class RCMOS extends Technology
 {
-	/** the Round CMOS Technology object. */	public static final RCMOS tech = new RCMOS();
-
 	// -------------------- private and protected methods ------------------------
-	private RCMOS()
+	public RCMOS(Generic generic)
 	{
-		super("rcmos", Foundry.Type.NONE, 2);
+		super(generic, "rcmos", Foundry.Type.NONE, 2);
 		setTechShortName("Round CMOS");
 		setTechDesc("Complementary MOS (round, from MOSIS, P-Well, double metal)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

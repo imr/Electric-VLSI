@@ -29,12 +29,18 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
@@ -1205,7 +1211,7 @@ public abstract class ElectricObject implements Serializable
             database.checkExamine();
 	}
 
-	/**
+ 	/**
 	 * Returns database to which this ElectricObject belongs.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
      * Method returns null for non-database objects.
@@ -1213,6 +1219,27 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public abstract EDatabase getDatabase();
 
+   /** Returns TechPool of this database */
+    public TechPool getTechPool() { return getDatabase().getTechPool(); }
+    
+    /**
+     * Get Technology by TechId
+     * TechId must belong to same IdManager as TechPool
+     * @param techId TechId to find
+     * @return Technology b giben TechId or null
+     * @throws IllegalArgumentException of TechId is not from this IdManager
+     */
+    public Technology getTech(TechId techId) { return getTechPool().getTech(techId); }
+    
+    /** Returns Artwork technology in this database */
+    public Artwork getArtwork() { return getTechPool().getArtwork(); }
+    
+    /** Returns Generic technology in this database */
+    public Generic getGeneric() { return getTechPool().getGeneric(); }
+    
+    /** Returns Schematics technology in this database */
+    public Schematics getSchematics() { return getTechPool().getSchematics(); }
+    
 	/**
 	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.

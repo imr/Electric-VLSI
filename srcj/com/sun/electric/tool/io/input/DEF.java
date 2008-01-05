@@ -914,7 +914,7 @@ public class DEF extends LEFDEF
 			if (lastPi != null && IOTool.isDEFLogicalPlacement())
 			{
 				//do connection
-				ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, pi, lastPi);
+				ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, pi, lastPi);
 				if (ai == null)
 				{
 					reportError("Could not create unrouted arc");
@@ -947,7 +947,7 @@ public class DEF extends LEFDEF
 				if (normalPi != null)
 				{
 					// create a logical net between these two points
-					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, specPi, normalPi);
+					ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, specPi, normalPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1025,7 +1025,7 @@ public class DEF extends LEFDEF
 				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
 				{
 					// connect logical network and physical network so that DRC passes
-					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, lastLogPi);
+					ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1186,7 +1186,7 @@ public class DEF extends LEFDEF
 					{
 						if (lastLogPi != null)
 						{
-							ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, pi, lastLogPi);
+							ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, pi, lastLogPi);
 							if (ai == null)
 							{
 								reportError("Could not create unrouted arc");
@@ -1210,7 +1210,7 @@ public class DEF extends LEFDEF
 				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
 				{
 					// connect logical network and physical network so that DRC passes
-					ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, lastPi, lastLogPi);
+					ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -1582,12 +1582,12 @@ public class DEF extends LEFDEF
 					}
 					if (key.startsWith("VIA"))
 					{
-						if (li.pin == null) li.pin = Generic.tech.universalPinNode;
+						if (li.pin == null) li.pin = Generic.tech().universalPinNode;
 						vd.via = li.pin;
 					}
 					if (key.startsWith("METAL"))
 					{
-						if (li.arc == null) li.arc = Generic.tech.universal_arc;
+						if (li.arc == null) li.arc = Generic.tech().universal_arc;
 						if (vd.lay1 == null) vd.lay1 = li.arc; else
 							vd.lay2 = li.arc;
 					}

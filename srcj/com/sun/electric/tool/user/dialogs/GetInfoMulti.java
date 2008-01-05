@@ -586,11 +586,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			for(NodeInst ni : nodeList)
 			{
 				if (ni.isCellInstance()) continue;
-				if (ni.getProto().getTechnology() == Artwork.tech) hasArtwork = true;
+				if (ni.getProto().getTechnology() == Artwork.tech()) hasArtwork = true;
 			}
 			for(ArcInst ai : arcList)
 			{
-				if (ai.getProto().getTechnology() == Artwork.tech) hasArtwork = true;
+				if (ai.getProto().getTechnology() == Artwork.tech()) hasArtwork = true;
 			}
 			if (hasArtwork)
 			{

@@ -299,7 +299,7 @@ public class Manipulate
 			System.out.println("Must be editing a node or arc to place geometry");
 			return true;
 		}
-		if (np == Generic.tech.portNode && !cell.getName().startsWith("node-"))
+		if (np == Generic.tech().portNode && !cell.getName().startsWith("node-"))
 		{
 			System.out.println("Can only place ports in node descriptions");
 			return true;
@@ -375,7 +375,7 @@ public class Manipulate
 			newCell = Cell.makeInstance(lib, name);
 			if (newCell == null) return false;
 			newCell.setInTechnologyLibrary();
-			newCell.setTechnology(Artwork.tech);
+			newCell.setTechnology(Artwork.tech());
 
 			// specialty initialization
 			switch (type)
@@ -414,7 +414,7 @@ public class Manipulate
 	{
 		// postprocessing on the nodes
 		String portName = null;
-		if (newNi.getProto() == Generic.tech.portNode)
+		if (newNi.getProto() == Generic.tech().portNode)
 		{
 			// a port layer
 			portName = JOptionPane.showInputDialog("Port name:", "");
@@ -463,7 +463,7 @@ public class Manipulate
 			newNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 
 			// postprocessing on the nodes
-			if (newNi.getProto() == Generic.tech.portNode)
+			if (newNi.getProto() == Generic.tech().portNode)
 			{
 				// a port layer
 				newNi.newDisplayVar(Info.PORTNAME_KEY, portName);
@@ -855,10 +855,10 @@ public class Manipulate
 		{
 			if (!doPorts)
 			{
-				if (ns.layer != Generic.tech.portNode) total++;
+				if (ns.layer != Generic.tech().portNode) total++;
 			} else
 			{
-				if (ns.layer == Generic.tech.portNode) total++;
+				if (ns.layer == Generic.tech().portNode) total++;
 			}
 		}
 		if (total == 0)
@@ -914,10 +914,10 @@ public class Manipulate
 		{
 			if (!doPorts)
 			{
-				if (ns.layer != Generic.tech.portNode) whichSam[k++] = ns;
+				if (ns.layer != Generic.tech().portNode) whichSam[k++] = ns;
 			} else
 			{
-				if (ns.layer == Generic.tech.portNode) whichSam[k++] = ns;
+				if (ns.layer == Generic.tech().portNode) whichSam[k++] = ns;
 			}
 		}
 
@@ -960,10 +960,10 @@ public class Manipulate
 			if (ns.layer == null)
 			{
 				msg = "HIGHLIGHT";
-			} else if (ns.layer == Generic.tech.cellCenterNode)
+			} else if (ns.layer == Generic.tech().cellCenterNode)
 			{
 				msg = "GRAB";
-			} else if (ns.layer == Generic.tech.portNode)
+			} else if (ns.layer == Generic.tech().portNode)
 			{
 				msg = Info.getPortName(ns.node);
 				if (msg == null) msg = "?";
@@ -1001,10 +1001,10 @@ public class Manipulate
 		{
 			// describe currently highlighted arc
 			ArcInst ai = (ArcInst)geom;
-			if (ai.getProto() != Generic.tech.universal_arc)
+			if (ai.getProto() != Generic.tech().universal_arc)
 				return "This is an unimportant " + ai.getProto();
-			if (ai.getHeadPortInst().getNodeInst().getProto() != Generic.tech.portNode ||
-				ai.getTailPortInst().getNodeInst().getProto() != Generic.tech.portNode)
+			if (ai.getHeadPortInst().getNodeInst().getProto() != Generic.tech().portNode ||
+				ai.getTailPortInst().getNodeInst().getProto() != Generic.tech().portNode)
 					return "This arc makes an unimportant connection";
 			String pt1 = Info.getPortName(ai.getHeadPortInst().getNodeInst());
 			String pt2 = Info.getPortName(ai.getTailPortInst().getNodeInst());
@@ -1606,8 +1606,8 @@ public class Manipulate
 	 */
 	private static int getLayerColor(NodeInst ni)
 	{
-		if (ni.getProto() == Artwork.tech.boxNode) return 0;
-		if (ni.getProto() != Artwork.tech.filledBoxNode) return 0;
+		if (ni.getProto() == Artwork.tech().boxNode) return 0;
+		if (ni.getProto() != Artwork.tech().filledBoxNode) return 0;
 		Variable var = ni.getVar(Artwork.ART_PATTERN);
 		if (var == null) return 0xFFFF;
 		return ((Short[])var.getObject())[0].intValue();
@@ -1631,11 +1631,11 @@ public class Manipulate
 
 		public boolean doIt() throws JobException
 		{
-			if (ni.getProto() == Artwork.tech.boxNode)
+			if (ni.getProto() == Artwork.tech().boxNode)
 			{
 				if (color == 0) return true;
-				ni.replace(Artwork.tech.filledBoxNode, false, false);
-			} else if (ni.getProto() == Artwork.tech.filledBoxNode)
+				ni.replace(Artwork.tech().filledBoxNode, false, false);
+			} else if (ni.getProto() == Artwork.tech().filledBoxNode)
 			{
 				Short [] col = new Short[16];
 				for(int i=0; i<16; i++) col[i] = new Short((short)color);
@@ -2149,7 +2149,7 @@ public class Manipulate
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
+				if (ni.getProto() != Artwork.tech().filledBoxNode) continue;
 				int opt = getOptionOnNode(ni);
 				if (opt == Info.LAYERPATTERN) continue;
 				patchNi = ni;
@@ -2219,7 +2219,7 @@ public class Manipulate
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() == Artwork.tech.boxNode || ni.getProto() == Artwork.tech.filledBoxNode)
+			if (ni.getProto() == Artwork.tech().boxNode || ni.getProto() == Artwork.tech().filledBoxNode)
 			{
 				Variable var = ni.getVar(Info.OPTION_KEY);
 				if (var == null) continue;
@@ -2247,7 +2247,7 @@ public class Manipulate
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() != Artwork.tech.boxNode && ni.getProto() != Artwork.tech.filledBoxNode) continue;
+			if (ni.getProto() != Artwork.tech().boxNode && ni.getProto() != Artwork.tech().filledBoxNode) continue;
 			Variable var = ni.getVar(Info.OPTION_KEY);
 			if (var == null) continue;
 			if (((Integer)var.getObject()).intValue() != Info.LAYERPATTERN) continue;
@@ -2270,10 +2270,10 @@ public class Manipulate
 	public static int getOptionOnNode(NodeInst ni)
 	{
 		// port objects are readily identifiable
-		if (ni.getProto() == Generic.tech.portNode) return Info.PORTOBJ;
+		if (ni.getProto() == Generic.tech().portNode) return Info.PORTOBJ;
 
 		// center objects are also readily identifiable
-		if (ni.getProto() == Generic.tech.cellCenterNode) return Info.CENTEROBJ;
+		if (ni.getProto() == Generic.tech().cellCenterNode) return Info.CENTEROBJ;
 
 		Variable var = ni.getVar(Info.OPTION_KEY);
 		if (var == null) return -1;

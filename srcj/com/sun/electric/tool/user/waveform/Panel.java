@@ -1753,7 +1753,7 @@ public class Panel extends JPanel
 				{
 					PolyBase poly = new PolyBase((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
 					poly.setStyle(Poly.Type.FILLED);
-					poly.setLayer(Artwork.tech.defaultLayer);
+					poly.setLayer(Artwork.tech().defaultLayer);
 					forPs.add(poly);
 					return false;
 				}

@@ -1528,7 +1528,7 @@ public class ToolMenu {
 
     public static void getUnroutedArcCommand()
     {
-		User.getUserTool().setCurrentArcProto(Generic.tech.unrouted_arc);
+		User.getUserTool().setCurrentArcProto(Generic.tech().unrouted_arc);
     }
 
     public static void padFrameGeneratorCommand()
@@ -1802,7 +1802,7 @@ public class ToolMenu {
 				if (result instanceof String)
 				{
 					System.out.println((String)result);
-					if (Technology.getCurrent() == Schematics.tech)
+					if (Technology.getCurrent() == Schematics.tech())
 						throw new JobException("Should switch to a layout technology first (currently in Schematics)");
 				}
 				if (!(result instanceof Cell)) return null;

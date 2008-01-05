@@ -691,7 +691,7 @@ public class Variable implements Serializable
 		{
 			NodeInst ni = (NodeInst)eobj;
 			description = trueName + " on " + ni;
-			if (ni.getProto() == Generic.tech.invisiblePinNode)
+			if (ni.getProto() == Generic.tech().invisiblePinNode)
 			{
 				String varName = getKey().getName();
 				String betterName = betterVariableName(varName);

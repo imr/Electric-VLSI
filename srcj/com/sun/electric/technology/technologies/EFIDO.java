@@ -28,7 +28,14 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
 
@@ -37,12 +44,10 @@ import java.awt.Color;
  */
 public class EFIDO extends Technology
 {
-	/** the Digital Filter Technology object. */	public static final EFIDO tech = new EFIDO();
-
 	// -------------------- private and protected methods ------------------------
-	private EFIDO()
+	public EFIDO(Generic generic)
 	{
-		super("efido");
+		super(generic, "efido");
 		setTechDesc("Digital Filters");
 		setFactoryScale(10000, false);   // in nanometers: really 10 microns
 		setNoNegatedArcs();

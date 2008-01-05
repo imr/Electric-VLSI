@@ -395,14 +395,14 @@ public class Change extends EModelessDialog implements HighlightListener
 					changeListModel.addElement(np.describe(false));
 					changeNodeProtoList.add(np);
 				}
-				if (curTech != Generic.tech)
+				if (curTech != Generic.tech())
 				{
 					changeListModel.addElement("Generic:Universal-Pin");
-					changeNodeProtoList.add(Generic.tech.universalPinNode);
+					changeNodeProtoList.add(Generic.tech().universalPinNode);
 					changeListModel.addElement("Generic:Invisible-Pin");
-					changeNodeProtoList.add(Generic.tech.invisiblePinNode);
+					changeNodeProtoList.add(Generic.tech().invisiblePinNode);
 					changeListModel.addElement("Generic:Unrouted-Pin");
-					changeNodeProtoList.add(Generic.tech.unroutedPinNode);
+					changeNodeProtoList.add(Generic.tech().unroutedPinNode);
 				}
 			}
             changeList.setSelectedIndex(0);
@@ -465,9 +465,9 @@ public class Change extends EModelessDialog implements HighlightListener
 				}
 				changeListModel.addElement(ap.describe());
 			}
-			if (curTech != Generic.tech)
+			if (curTech != Generic.tech())
 			{
-				for(Iterator<ArcProto> it = Generic.tech.getArcs(); it.hasNext(); )
+				for(Iterator<ArcProto> it = Generic.tech().getArcs(); it.hasNext(); )
 				{
 					ArcProto ap = it.next();
 					if (!changeNodesWithArcs.isSelected())
@@ -479,7 +479,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				}
 			}
 			Technology arcTech = ai.getProto().getTechnology();
-			if (arcTech != curTech && arcTech != Generic.tech)
+			if (arcTech != curTech && arcTech != Generic.tech())
 			{
 				for(Iterator<ArcProto> it = arcTech.getArcs(); it.hasNext(); )
 				{

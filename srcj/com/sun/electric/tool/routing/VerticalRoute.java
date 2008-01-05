@@ -109,10 +109,10 @@ public class VerticalRoute {
             System.out.println("Searching for way to connect "+startPort.getBasePort().getParent()+
                     " and "+endPort.getBasePort().getParent());
         }
-        if ((startPort.getBasePort().getParent() == Generic.tech.universalPinNode &&
-            endPort.getBasePort().getParent() == Generic.tech.universalPinNode) ||
-            (startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode &&
-            endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)) {
+        if ((startPort.getBasePort().getParent() == Generic.tech().universalPinNode &&
+            endPort.getBasePort().getParent() == Generic.tech().universalPinNode) ||
+            (startPort.getBasePort().getParent() == Generic.tech().invisiblePinNode &&
+            endPort.getBasePort().getParent() == Generic.tech().invisiblePinNode)) {
             startArc = endArc = User.getUserTool().getCurrentArcProto();
             startArcs = endArcs = new ArcProto [] { startArc };
         }
@@ -134,16 +134,16 @@ public class VerticalRoute {
         ArcProto [] startArcs = startPort.getBasePort().getConnections();
         ArcProto [] endArcs = endPort.getBasePort().getConnections();
         // special case for universal pins
-        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
-            startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)
+        if (startPort.getBasePort().getParent() == Generic.tech().universalPinNode ||
+            startPort.getBasePort().getParent() == Generic.tech().invisiblePinNode)
             startArcs = endArcs;
-        if (endPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
-            endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)
+        if (endPort.getBasePort().getParent() == Generic.tech().universalPinNode ||
+            endPort.getBasePort().getParent() == Generic.tech().invisiblePinNode)
             endArcs = startArcs;
-        if ((startPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
-             startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode) &&
-            (endPort.getBasePort().getParent() == Generic.tech.universalPinNode ||
-             endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode))
+        if ((startPort.getBasePort().getParent() == Generic.tech().universalPinNode ||
+             startPort.getBasePort().getParent() == Generic.tech().invisiblePinNode) &&
+            (endPort.getBasePort().getParent() == Generic.tech().universalPinNode ||
+             endPort.getBasePort().getParent() == Generic.tech().invisiblePinNode))
             startArcs = endArcs = new ArcProto[] {User.getUserTool().getCurrentArcProto()};
         VerticalRoute vr = new VerticalRoute(startPort, endPort, null, null, startArcs, endArcs);
         vr.specificationSucceeded = vr.specifyRoute();
@@ -159,7 +159,7 @@ public class VerticalRoute {
         ArcProto [] startArcs = startPort.getBasePort().getConnections();
         ArcProto [] endArcs = {endArc};
         // special case for universal pins
-        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode)
+        if (startPort.getBasePort().getParent() == Generic.tech().universalPinNode)
             startArcs = endArcs;
         VerticalRoute vr = new VerticalRoute(startPort, null, null, endArc, startArcs, endArcs);
         vr.specificationSucceeded = vr.specifyRoute();
@@ -190,9 +190,9 @@ public class VerticalRoute {
         for (int i=0; i<arcs.length; i++) {
             ArcProto arc = arcs[i];
             // get rid of arcs we won't route with
-            if (arc == Generic.tech.universal_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.universal_arc) arc = null;
-            if (arc == Generic.tech.invisible_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.invisible_arc) arc = null;
-            if (arc == Generic.tech.unrouted_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.unrouted_arc) arc = null;
+            if (arc == Generic.tech().universal_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().universal_arc) arc = null;
+            if (arc == Generic.tech().invisible_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().invisible_arc) arc = null;
+            if (arc == Generic.tech().unrouted_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().unrouted_arc) arc = null;
             if ((arc != null) && (arc.isNotUsed())) arc = null;
             copy[i] = arc;
         }
@@ -484,9 +484,9 @@ public class VerticalRoute {
 					ArcProto [] arcs = pp.getConnections();
 					for (int i=0; i<arcs.length; i++) {
 						ArcProto tryarc = arcs[i];
-						if (tryarc == Generic.tech.universal_arc) continue;
-						if (tryarc == Generic.tech.invisible_arc) continue;
-						if (tryarc == Generic.tech.unrouted_arc) continue;
+						if (tryarc == Generic.tech().universal_arc) continue;
+						if (tryarc == Generic.tech().invisible_arc) continue;
+						if (tryarc == Generic.tech().unrouted_arc) continue;
 						if (tryarc.isNotUsed()) continue;
 						if (tryarc == startArc) continue;           // already connecting through startArc
 						if (tryarc == this.startArc) continue;      // original arc connecting from

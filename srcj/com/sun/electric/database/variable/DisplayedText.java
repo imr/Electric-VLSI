@@ -80,7 +80,7 @@ public class DisplayedText implements Serializable
 		{
 			// moving export text
 			Export pp = (Export)eObj;
-			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
+			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech().invisiblePinNode) return true;
 			if (User.isMoveNodeWithExport()) return true;
 		}
 		return false;

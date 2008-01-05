@@ -3103,7 +3103,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() != Generic.tech.simProbeNode) continue;
+			if (ni.getProto() != Generic.tech().simProbeNode) continue;
 			Network net = null;
 			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 			{

@@ -389,7 +389,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		listPane.setEnabled(true);
 		locked.setEnabled(true);
 		attributesButton.setEnabled(true);
-		colorAndPattern.setEnabled(ni.getProto().getTechnology() == Artwork.tech);
+		colorAndPattern.setEnabled(ni.getProto().getTechnology() == Artwork.tech());
 
 		// grab all attributes and parameters
 		allAttributes.clear();
@@ -475,7 +475,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		// load special node information
 
         PrimitiveNode.Function fun = ni.getFunction();
-		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+		if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 		{
             if (!ni.isFET())
             {
@@ -574,7 +574,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (np == Schematics.tech.bboxNode)
+		if (np == Schematics.tech().bboxNode)
 		{
 			textFieldLabel.setText("Function:");
 			Variable var = ni.getVar(Schematics.SCHEM_FUNCTION);
@@ -588,7 +588,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popupLabel.setText("Flip-flop type:");
 			popup.addItem(fun.getName());
 		}
-		if (np == Schematics.tech.globalNode)
+		if (np == Schematics.tech().globalNode)
 		{
 			textFieldLabel.setText("Global name:");
 			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME);
@@ -617,7 +617,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
 
 		// load the degrees of a circle if appropriate
-		if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
+		if (np == Artwork.tech().circleNode || np == Artwork.tech().thickCircleNode)
 		{
 			double [] arcData = ni.getArcDegrees();
 			double start = DBMath.round(arcData[0] * 180.0 / Math.PI);
@@ -673,8 +673,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				for(int i=0; i<connList.length; i++)
 				{
 					ArcProto ap = connList[i];
-					if ((np instanceof Cell || np.getTechnology() != Generic.tech) &&
-						ap.getTechnology() == Generic.tech) continue;
+					if ((np instanceof Cell || np.getTechnology() != Generic.tech()) &&
+						ap.getTechnology() == Generic.tech()) continue;
 					if (count > 0) description += ",";
 					description += " " + ap.getName();
 					count++;
@@ -889,7 +889,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					changed = true;
 				}
 			}
-			if (np == Schematics.tech.bboxNode)
+			if (np == Schematics.tech().bboxNode)
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
@@ -898,7 +898,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					changed = true;
 				}
 			}
-			if (np == Schematics.tech.globalNode)
+			if (np == Schematics.tech().globalNode)
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
@@ -916,7 +916,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			}
 
 			// load the degrees of a circle if appropriate
-			if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
+			if (np == Artwork.tech().circleNode || np == Artwork.tech().thickCircleNode)
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
@@ -985,8 +985,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
             if (size != null)
             {
                 // see if this is a schematic transistor
-                if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node ||
-                    np == Schematics.tech.resistorNode)
+                if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node ||
+                    np == Schematics.tech().resistorNode)
                 {
                     Object width, length;
                     if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)

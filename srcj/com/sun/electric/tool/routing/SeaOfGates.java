@@ -87,7 +87,7 @@ public class SeaOfGates
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
-			if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+			if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 			Network net = netList.getNetwork(ai, 0);
 			if (nets.contains(net)) netsToRoute.add(net);
 		}
@@ -132,7 +132,7 @@ public class SeaOfGates
 			for(Iterator<ArcInst> it = ntr.net.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
-				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+				if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 				arcsToRoute.add(ai);
 				break;
 			}

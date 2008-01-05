@@ -312,24 +312,24 @@ public class EditMenu {
         // mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
                 new EMenu("_FPGA",
                     new EMenuItem("Read _Architecture And Primitives...") { public void run() {
-                        FPGA.readArchitectureFile(true); }},
+                        FPGA.tech().readArchitectureFile(true); }},
                     new EMenuItem("Read P_rimitives...") { public void run() {
-                        FPGA.readArchitectureFile(false); }},
+                        FPGA.tech().readArchitectureFile(false); }},
                     SEPARATOR,
                     new EMenuItem("Edit _Pips...") { public void run() {
-                        FPGA.programPips(); }},
+                        FPGA.tech().programPips(); }},
                     SEPARATOR,
                     new EMenuItem("Show _No Wires") { public void run() {
-                        FPGA.setWireDisplay(0); }},
+                        FPGA.tech().setWireDisplay(0); }},
                     new EMenuItem("Show A_ctive Wires") { public void run() {
-                        FPGA.setWireDisplay(1); }},
+                        FPGA.tech().setWireDisplay(1); }},
                     new EMenuItem("Show All _Wires") { public void run() {
-                        FPGA.setWireDisplay(2); }},
+                        FPGA.tech().setWireDisplay(2); }},
                     SEPARATOR,
                     new EMenuItem("_Show Text") { public void run() {
-                        FPGA.setTextDisplay(true); }},
+                        FPGA.tech().setTextDisplay(true); }},
                     new EMenuItem("_Hide Text") { public void run() {
-                        FPGA.setTextDisplay(false); }}),
+                        FPGA.tech().setTextDisplay(false); }}),
 
                 SEPARATOR,
                 new EMenuItem("Convert Technology to _Library for Editing...") { public void run() {
@@ -874,7 +874,7 @@ public class EditMenu {
             }
 
             // "select all" should not include the cell-center
-            if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
+            if (ni.getProto() == Generic.tech().cellCenterNode && !mustBeEasy && !mustBeHard) continue;
             boolean hard = ni.isHardSelect();
             if ((ni.isCellInstance()) && cellsAreHard) hard = true;
             if (mustBeEasy && hard) continue;

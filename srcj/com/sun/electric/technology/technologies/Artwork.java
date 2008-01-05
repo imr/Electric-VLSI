@@ -61,39 +61,41 @@ public class Artwork extends Technology
 	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = Variable.newKey("ART_color");
 	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = Variable.newKey("ART_pattern");
 
-	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
+	/** the Artwork Technology object. */			public static Artwork tech() { return sysArtwork; }
 
 	/** number of lines in an ellipse */			private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */					private static final int SPLINEGRAIN   =        20;
 
-	/** Defines a Pin node. */						public PrimitiveNode pinNode;
-	/** Defines a Box node. */						public PrimitiveNode boxNode;
-	/** Defines a Crossed-Box node. */				public PrimitiveNode crossedBoxNode;
-	/** Defines a Filled-Box node. */				public PrimitiveNode filledBoxNode;
-	/** Defines a Circle node. */					public PrimitiveNode circleNode;
-	/** Defines a Filled-Circle node. */			public PrimitiveNode filledCircleNode;
-	/** Defines a Spline node. */					public PrimitiveNode splineNode;
-	/** Defines a Triangle node. */					public PrimitiveNode triangleNode;
-	/** Defines a Filled-Triangle node. */			public PrimitiveNode filledTriangleNode;
-	/** Defines a Arrow node. */					public PrimitiveNode arrowNode;
-	/** Defines a Opened-Polygon node. */			public PrimitiveNode openedPolygonNode;
-	/** Defines a Opened-Dotted-Polygon node. */	public PrimitiveNode openedDottedPolygonNode;
-	/** Defines a Opened-Dashed-Polygon node. */	public PrimitiveNode openedDashedPolygonNode;
-	/** Defines a Opened-Thicker-Polygon node. */	public PrimitiveNode openedThickerPolygonNode;
-	/** Defines a Closed-Polygon node. */			public PrimitiveNode closedPolygonNode;
-	/** Defines a Filled-Polygon node. */			public PrimitiveNode filledPolygonNode;
-	/** Defines a Thick-Circle node. */				public PrimitiveNode thickCircleNode;
+    
 
-	/** Defines a Solid arc. */						public ArcProto solidArc;
-	/** Defines a Dotted arc. */					public ArcProto dottedArc;
-	/** Defines a Dashed arc. */					public ArcProto dashedArc;
-	/** Defines a Thick arc. */						public ArcProto thickerArc;
-	/** the layer */								public Layer defaultLayer;
+	/** Defines a Pin node. */						public final PrimitiveNode pinNode;
+	/** Defines a Box node. */						public final PrimitiveNode boxNode;
+	/** Defines a Crossed-Box node. */				public final PrimitiveNode crossedBoxNode;
+	/** Defines a Filled-Box node. */				public final PrimitiveNode filledBoxNode;
+	/** Defines a Circle node. */					public final PrimitiveNode circleNode;
+	/** Defines a Filled-Circle node. */			public final PrimitiveNode filledCircleNode;
+	/** Defines a Spline node. */					public final PrimitiveNode splineNode;
+	/** Defines a Triangle node. */					public final PrimitiveNode triangleNode;
+	/** Defines a Filled-Triangle node. */			public final PrimitiveNode filledTriangleNode;
+	/** Defines a Arrow node. */					public final PrimitiveNode arrowNode;
+	/** Defines a Opened-Polygon node. */			public final PrimitiveNode openedPolygonNode;
+	/** Defines a Opened-Dotted-Polygon node. */	public final PrimitiveNode openedDottedPolygonNode;
+	/** Defines a Opened-Dashed-Polygon node. */	public final PrimitiveNode openedDashedPolygonNode;
+	/** Defines a Opened-Thicker-Polygon node. */	public final PrimitiveNode openedThickerPolygonNode;
+	/** Defines a Closed-Polygon node. */			public final PrimitiveNode closedPolygonNode;
+	/** Defines a Filled-Polygon node. */			public final PrimitiveNode filledPolygonNode;
+	/** Defines a Thick-Circle node. */				public final PrimitiveNode thickCircleNode;
+
+	/** Defines a Solid arc. */						public final ArcProto solidArc;
+	/** Defines a Dotted arc. */					public final ArcProto dottedArc;
+	/** Defines a Dashed arc. */					public final ArcProto dashedArc;
+	/** Defines a Thick arc. */						public final ArcProto thickerArc;
+	/** the layer */								public final Layer defaultLayer;
 
 	// -------------------- private and protected methods ------------------------
-	private Artwork()
+	public Artwork(Generic generic)
 	{
-		super("artwork");
+		super(generic, "artwork");
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -443,10 +445,10 @@ public class Artwork extends Technology
 		oldArcNames.put("Dash-2", dashedArc);
 		oldArcNames.put("Dash-3", thickerArc);
 
-		oldNodeNames.put("Message", Generic.tech.invisiblePinNode);
-		oldNodeNames.put("Centered-Message", Generic.tech.invisiblePinNode);
-		oldNodeNames.put("Left-Message", Generic.tech.invisiblePinNode);
-		oldNodeNames.put("Right-Message", Generic.tech.invisiblePinNode);
+		oldNodeNames.put("Message", generic.invisiblePinNode);
+		oldNodeNames.put("Centered-Message", generic.invisiblePinNode);
+		oldNodeNames.put("Left-Message", generic.invisiblePinNode);
+		oldNodeNames.put("Right-Message", generic.invisiblePinNode);
 		oldNodeNames.put("Opened-FarDotted-Polygon", openedThickerPolygonNode);
 	}
 
@@ -982,8 +984,8 @@ public class Artwork extends Technology
 	 */
 	public static boolean isArtworkArc(ArcProto p)
 	{
-		return (p == Artwork.tech.solidArc || p == Artwork.tech.dottedArc
-				|| p == Artwork.tech.dashedArc || p == Artwork.tech.thickerArc);
+		return (p == Artwork.tech().solidArc || p == Artwork.tech().dottedArc
+				|| p == Artwork.tech().dashedArc || p == Artwork.tech().thickerArc);
 	}
 
 	/******************** OPTIONS ********************/

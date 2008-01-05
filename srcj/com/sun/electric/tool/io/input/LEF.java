@@ -316,13 +316,13 @@ public class LEF extends LEFDEF
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					if (ni.getProto() == Generic.tech.cellCenterNode) { ccNi = ni;   break; }
+					if (ni.getProto() == Generic.tech().cellCenterNode) { ccNi = ni;   break; }
 				}
 				if (ccNi == null)
 				{
-					double sX = Generic.tech.cellCenterNode.getDefWidth();
-					double sY = Generic.tech.cellCenterNode.getDefHeight();
-					ccNi = NodeInst.makeInstance(Generic.tech.cellCenterNode, new Point2D.Double(oX, oY), sX, sY, cell);
+					double sX = Generic.tech().cellCenterNode.getDefWidth();
+					double sY = Generic.tech().cellCenterNode.getDefHeight();
+					ccNi = NodeInst.makeInstance(Generic.tech().cellCenterNode, new Point2D.Double(oX, oY), sX, sY, cell);
 					if (ccNi == null)
 					{
 						System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create cell center node");
@@ -375,7 +375,7 @@ public class LEF extends LEFDEF
 				if (!PLACELEFGEOMETRY)
 				{
 					Point2D ctr = new Point2D.Double(wid/2, hei/2);
-					NodeInst.makeInstance(Generic.tech.invisiblePinNode, ctr, wid, hei, cell);
+					NodeInst.makeInstance(Generic.tech().invisiblePinNode, ctr, wid, hei, cell);
 				}
 				continue;
 			}

@@ -426,7 +426,7 @@ public class ChangeText extends EDialog
 		if (eObj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)eObj;
-			if (ni.getProto() == Generic.tech.invisiblePinNode)
+			if (ni.getProto() == Generic.tech().invisiblePinNode)
 			{
 				if (cp.annotationsSelected)
 				{

@@ -34,7 +34,7 @@ public class VerilogReader extends Input
     double maxWidth = 100, nodeWidth = 10;
     double primitiveHeight = 0.5, primitiveWidth = 0.5;
     Map<Cell, Point2D.Double> locationMap = new HashMap<Cell, Point2D.Double>();
-    PrimitiveNode essentialBounds = Generic.tech.findNodeProto("Essential-Bounds");
+    PrimitiveNode essentialBounds = Generic.tech().findNodeProto("Essential-Bounds");
     Cell topCell = null;
     Map<String, NodeInst> pinsMap = new HashMap<String, NodeInst>();
     private String typicalSkipStrings = "\t\\"; // strings that should be ignored by the StringTokenizer()
@@ -138,7 +138,7 @@ public class VerilogReader extends Input
                     {
                         if (Job.getDebug())
                             System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
-                        PrimitiveNode primitive = (port.isBus) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
+                        PrimitiveNode primitive = (port.isBus) ? Schematics.tech().busPinNode : Schematics.tech().wirePinNode;
                         pin = NodeInst.newInstance(primitive, getNextLocation(parent),
                                 primitiveWidth, primitiveHeight,
 //                                        primitive.getDefWidth(), primitive.getDefHeight(),
@@ -148,7 +148,7 @@ public class VerilogReader extends Input
                 }
 
 //                ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-                ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+                ArcProto node = (pin.getProto() == Schematics.tech().busPinNode) ? Schematics.tech().bus_arc : Schematics.tech().wire_arc;
                 PortInst ex = cellInst.findPortInst(port.ex.getName());
                 ArcInst ai = ArcInst.makeInstanceBase(node, 0.0,
 //                ArcInst ai = ArcInst.makeInstanceFull(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
@@ -279,7 +279,7 @@ public class VerilogReader extends Input
                     int size = values.size();
                     if (size == 0) continue;
                     assert(size == 1 || size == 2);
-                    PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                    PrimitiveNode primitive = Schematics.tech().wirePinNode;
                     String pinName = values.get(size-1);
                     int[] vals = {0, 0};
                     int count = 0;
@@ -297,7 +297,7 @@ public class VerilogReader extends Input
                         if (count == 2 && vals[0] != vals[1]) // only if it is a real bus
                         {
     //                        pinName += values.get(0);
-                            primitive = Schematics.tech.busPinNode;
+                            primitive = Schematics.tech().busPinNode;
                         }
                         else
                             System.out.println(net + " is not a bus wire");
@@ -362,7 +362,7 @@ public class VerilogReader extends Input
                     String name = p.nextToken();
                     l.add(name); // it could be "input a;" or "input [9:0] a;"
                 }
-                PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                PrimitiveNode primitive = Schematics.tech().wirePinNode;
                 int size = l.size();
                 if (size == 0) continue;
                 assert(size == 1 || size == 2);
@@ -370,7 +370,7 @@ public class VerilogReader extends Input
                 if (l.size() == 2) // "input a[];"
                 {
 //                    name += l.get(0); busPin not longer containing [x:y]
-                    primitive = Schematics.tech.busPinNode;
+                    primitive = Schematics.tech().busPinNode;
                 }
 
                 VerilogData.VerilogPort export = module.findPort(name);
@@ -564,12 +564,12 @@ public class VerilogReader extends Input
         }
         Orientation orient = Orientation.fromAngle(900);
 //        String gateName = list.get(0);
-        double width = Schematics.tech.transistorNode.getDefWidth();
-        double height = Schematics.tech.transistorNode.getDefHeight();
+        double width = Schematics.tech().transistorNode.getDefWidth();
+        double height = Schematics.tech().transistorNode.getDefHeight();
         Point2D p = getNextLocation(cell);
-        NodeInst ni = NodeInst.newInstance(Schematics.tech.transistorNode, p, width, height,
+        NodeInst ni = NodeInst.newInstance(Schematics.tech().transistorNode, p, width, height,
                                        cell, orient, null /*gateName*/, 0);
-        Schematics.tech.transistorNode.getTechnology().setPrimitiveFunction(ni, function);
+        Schematics.tech().transistorNode.getTechnology().setPrimitiveFunction(ni, function);
         transistors.add(ni);
         PortInst[] ports = new PortInst[3];
         int count = 0;
@@ -606,12 +606,12 @@ public class VerilogReader extends Input
                     break;
             }
 //            PrimitiveNode primitive = (wirePin) ? Schematics.tech.wirePinNode : Schematics.tech.busPinNode;
-            PrimitiveNode primitive = Schematics.tech.wirePinNode;
+            PrimitiveNode primitive = Schematics.tech().wirePinNode;
             ni = NodeInst.newInstance(primitive, new Point2D.Double(posX, posY),
                         primitiveWidth /*primitive.getDefWidth()*/, primitiveHeight /*primitive.getDefHeight()*/,
                         cell, Orientation.IDENT, null /*pinName*/, 0);
 
-            ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0.0,
+            ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
 //            ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), ports[pos], null, null, name);
         }
@@ -804,7 +804,7 @@ public class VerilogReader extends Input
         Collections.sort(pinNames);
         for (String pinName : pinNames)
         {
-            PrimitiveNode primitive = Schematics.tech.wirePinNode;
+            PrimitiveNode primitive = Schematics.tech().wirePinNode;
             NodeInst ni = cell.findNode(pinName);
 
             if (ni == null)
@@ -848,7 +848,7 @@ public class VerilogReader extends Input
         if (cell != null) return cell; // already created;
 
         cell = Cell.makeInstance(lib, cellName);
-        cell.setTechnology(Schematics.tech);
+        cell.setTechnology(Schematics.tech());
         // Adding essential bounds for now
         // Change Sept 08, 07 Out
 //        NodeInst.makeInstance(essentialBounds, new Point2D.Double(10,10), 1, 1, cell,
@@ -891,19 +891,19 @@ public class VerilogReader extends Input
                     portType == PortCharacteristic.GND)
             {
                 boolean power = portType == PortCharacteristic.PWR;
-                PrimitiveNode np = (power) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
+                PrimitiveNode np = (power) ? Schematics.tech().powerNode : Schematics.tech().groundNode;
                 Point2D.Double p = getNextLocation(cell);
                 double height = primitiveHeight; //np.getDefHeight();
                 NodeInst supply = NodeInst.newInstance(np, p,
                         primitiveWidth, height,
                         cell, Orientation.IDENT, name, 0);
                 // extra pin
-                NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
+                NodeInst ni = NodeInst.newInstance(Schematics.tech().wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
                         0.5, 0.5,
         //                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(),
                         cell, Orientation.IDENT, name+"@0", 0);
 
-                ArcInst.makeInstanceBase(Schematics.tech.wire_arc, 0.0,
+                ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
 
@@ -976,13 +976,13 @@ public class VerilogReader extends Input
                     // Still missing vss code?
                      if (Job.getDebug())
                             System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
-                        PrimitiveNode primitive = (port.port.isBusConnection()) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
+                        PrimitiveNode primitive = (port.port.isBusConnection()) ? Schematics.tech().busPinNode : Schematics.tech().wirePinNode;
                         pin = NodeInst.newInstance(primitive, getNextLocation(parent),
                                 primitiveWidth, primitiveHeight,
                                 parent, Orientation.IDENT, /*null*/s, 0);  // not sure why it has to be null?
                 }
 
-                ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+                ArcProto node = (pin.getProto() == Schematics.tech().busPinNode) ? Schematics.tech().bus_arc : Schematics.tech().wire_arc;
                 String exportName = port.port.name;
                 if (port.port.isBusConnection())
                 {

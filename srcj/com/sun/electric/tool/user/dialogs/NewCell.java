@@ -91,8 +91,8 @@ public class NewCell extends EDialog
 		Technology defTech = Technology.findTechnology(User.getDefaultTechnology());
 		ViewTechOption theViewOption = null;
 		View defaultView = View.LAYOUT;
-		if (curTech == Schematics.tech) defaultView = View.SCHEMATIC;
-		else if (curTech == Artwork.tech) defaultView = View.ICON;
+		if (curTech == Schematics.tech()) defaultView = View.SCHEMATIC;
+		else if (curTech == Artwork.tech()) defaultView = View.ICON;
 		for (View v : View.getOrderedViews())
 		{
 			ViewTechOption option = new ViewTechOption(v, null);
@@ -113,7 +113,7 @@ public class NewCell extends EDialog
 		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
 		{
 			Technology tech = it.next();
-			if (tech != Schematics.tech && tech != Artwork.tech)
+			if (tech != Schematics.tech() && tech != Artwork.tech())
 			{
 				ViewTechOption option = new ViewTechOption(null, tech);
 				techComboBox.addItem(option);

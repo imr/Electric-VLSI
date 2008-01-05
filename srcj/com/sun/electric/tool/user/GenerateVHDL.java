@@ -384,7 +384,7 @@ public class GenerateVHDL
 				PortProto pp = it.next();
 
 				// ignore the bias port of 4-port transistors
-				if (np == Schematics.tech.transistor4Node)
+				if (np == Schematics.tech().transistor4Node)
 				{
 					if (pp.getName().equals("b")) continue;
 				}
@@ -674,7 +674,7 @@ public class GenerateVHDL
 				}
 			} else if (k == PrimitiveNode.Function.BUFFER)
 			{
-				primName = Schematics.getVHDLNames(Schematics.tech.bufferNode);
+				primName = Schematics.getVHDLNames(Schematics.tech().bufferNode);
 				int slashPos = primName.indexOf('/');
 				special = BLOCKBUFFER;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
@@ -696,7 +696,7 @@ public class GenerateVHDL
 				}
 			} else if (k == PrimitiveNode.Function.GATEAND)
 			{
-				primName = Schematics.getVHDLNames(Schematics.tech.andNode);
+				primName = Schematics.getVHDLNames(Schematics.tech().andNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -721,7 +721,7 @@ public class GenerateVHDL
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.GATEOR)
 			{
-				primName = Schematics.getVHDLNames(Schematics.tech.orNode);
+				primName = Schematics.getVHDLNames(Schematics.tech().orNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -746,7 +746,7 @@ public class GenerateVHDL
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.GATEXOR)
 			{
-				primName = Schematics.getVHDLNames(Schematics.tech.xorNode);
+				primName = Schematics.getVHDLNames(Schematics.tech().xorNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -771,7 +771,7 @@ public class GenerateVHDL
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.MUX)
 			{
-				primName = Schematics.getVHDLNames(Schematics.tech.muxNode);
+				primName = Schematics.getVHDLNames(Schematics.tech().muxNode);
 				int inPort = 0;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{

@@ -34,7 +34,7 @@ public class SCLibraryGen {
     private Library redLibrary;
     private Library scLibrary;
     private List<StdCellSpec> scellSpecs = new ArrayList<StdCellSpec>();
-    private PrimitiveNode pin = Generic.tech.invisiblePinNode;
+    private PrimitiveNode pin = Generic.tech().invisiblePinNode;
     private Variable.Key sizeKey = Variable.findKey("ATTR_X");
 
     public static final Variable.Key STANDARDCELL = Variable.newKey("ATTR_StandardCell");

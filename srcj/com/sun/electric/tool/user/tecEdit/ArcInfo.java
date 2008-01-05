@@ -177,7 +177,7 @@ public class ArcInfo extends Info
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode) continue;
 
 			// ignore the special text nodes
 			boolean special = false;
@@ -201,7 +201,7 @@ public class ArcInfo extends Info
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+					if (ni.getProto() == Generic.tech().cellCenterNode) continue;
 
 					// ignore the special text nodes
 					boolean special = false;

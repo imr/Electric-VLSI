@@ -415,8 +415,8 @@ public class Verilog extends Topology
                 if (!ai.isNegated(e)) continue;
                 PortInst pi = ai.getPortInst(e);
                 NodeInst ni = pi.getNodeInst();
-                if (ni.getProto() == Schematics.tech.bufferNode || ni.getProto() == Schematics.tech.andNode ||
-                    ni.getProto() == Schematics.tech.orNode || ni.getProto() == Schematics.tech.xorNode)
+                if (ni.getProto() == Schematics.tech().bufferNode || ni.getProto() == Schematics.tech().andNode ||
+                    ni.getProto() == Schematics.tech().orNode || ni.getProto() == Schematics.tech().xorNode)
                 {
                     if (Simulation.getVerilogUseAssign()) continue;
                     if (pi.getPortProto().getName().equals("y")) continue;
@@ -425,7 +425,7 @@ public class Verilog extends Topology
                 // must create implicit inverter here
                 if (e == ArcInst.HEADEND) implicitHeadInverters.put(ai, new Integer(impInvCount)); else
                 	implicitTailInverters.put(ai, new Integer(impInvCount));
-                if (ai.getProto() != Schematics.tech.bus_arc) impInvCount++; else
+                if (ai.getProto() != Schematics.tech().bus_arc) impInvCount++; else
                 {
                     int wid = cni.getNetList().getBusWidth(ai);
                     impInvCount += wid;
@@ -1195,7 +1195,7 @@ public class Verilog extends Topology
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+            if (ni.getProto() != Generic.tech().invisiblePinNode) continue;
             Variable var = ni.getVar(verilogkey);
             if (var == null) continue;
             if (!var.isDisplay()) continue;

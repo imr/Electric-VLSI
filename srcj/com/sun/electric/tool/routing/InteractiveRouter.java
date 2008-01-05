@@ -509,7 +509,7 @@ public abstract class InteractiveRouter extends Router {
             endPoint.setLocation(getClosestAngledPoint(startPoint, clicked, angleIncrement));
             //endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
             // however, if this is an Artwork technology, just put end point at mouse
-            if (startArc.getTechnology() == Artwork.tech)
+            if (startArc.getTechnology() == Artwork.tech())
                 endPoint.setLocation(clicked);
             return;
         }

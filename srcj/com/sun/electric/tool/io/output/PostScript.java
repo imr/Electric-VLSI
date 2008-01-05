@@ -645,8 +645,8 @@ public class PostScript extends Output
 				if (!topLevel)
 				{
 					if (ni.isVisInside()) continue;
-					if (ni.getProto() == Generic.tech.essentialBoundsNode ||
-						ni.getProto() == Generic.tech.cellCenterNode) continue;
+					if (ni.getProto() == Generic.tech().essentialBoundsNode ||
+						ni.getProto() == Generic.tech().cellCenterNode) continue;
 				}
 				if (real)
 				{

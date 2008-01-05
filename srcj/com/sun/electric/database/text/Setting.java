@@ -313,6 +313,8 @@ public class Setting {
     public static Setting makeBooleanSetting(String name, Pref.Group group,
                                           ProjSettingsNode xmlNode, String xmlName,
                                           String location, String description, boolean factory) {
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
     
@@ -327,6 +329,8 @@ public class Setting {
     public static Setting makeIntSetting(String name, Pref.Group group,
                                       ProjSettingsNode xmlNode, String xmlName,
                                       String location, String description, int factory) {
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
     
@@ -341,6 +345,8 @@ public class Setting {
     public static Setting makeLongSetting(String name, Pref.Group group,
                                        ProjSettingsNode xmlNode, String xmlName,
                                        String location, String description, long factory) {
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Long.valueOf(factory));
     }
     
@@ -355,6 +361,8 @@ public class Setting {
     public static Setting makeDoubleSetting(String name, Pref.Group group,
                                          ProjSettingsNode xmlNode, String xmlName,
                                          String location, String description, double factory) {
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Double.valueOf(factory));
     }
 
@@ -369,6 +377,8 @@ public class Setting {
     public static Setting makeStringSetting(String name, Pref.Group group,
                                          ProjSettingsNode xmlNode, String xmlName,
                                          String location, String description, String factory) {
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, factory);
     }
     

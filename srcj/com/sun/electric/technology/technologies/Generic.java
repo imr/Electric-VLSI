@@ -25,57 +25,64 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 
-import java.util.Iterator;
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * This is the Generic technology.
  */
 public class Generic extends Technology
 {
-	/** the Generic Technology object. */	public static final Generic tech = new Generic();
-	/** the Universal Layer. */				private Layer universalLay;
-	/** the Glyph Layer. */					public Layer glyphLay;
-	/** the DRC exclusion Layer. */			public Layer drcLay;
-	/** the AFG exclusion Layer. */			public Layer afgLay;
-	/** the Universal Pin node, which connects to every type of arc. */
-		public PrimitiveNode universalPinNode;
-	/** the Invisible Pin node, which connects to every type of arc and produces no layout. */
-		public PrimitiveNode invisiblePinNode;
-	/** the Unrouted Pin node, for making bends in unrouted arc paths. */
-		public PrimitiveNode unroutedPinNode;
-	/** the Cell-Center node, used for defining the origin of the cell's coordinate space. */
-		public PrimitiveNode cellCenterNode;
-	/** the Port-definition node, used in technology editing to define node ports. */
-		public PrimitiveNode portNode;
-	/** the DRC exclusion node, all design-rule errors covered by this node are ignored. */
-		public PrimitiveNode drcNode;
-	/** the AFG exclusion node, tells auto-fill generator to ignore the area. */
-		public PrimitiveNode afgNode;
-	/** the Essential-bounds node, used (in pairs) to define the important area of a cell. */
-		public PrimitiveNode essentialBoundsNode;
-	/** the Simulation-Probe node, used for highlighting the state of a network. */
-		public PrimitiveNode simProbeNode;
-	/** the Universal arc, connects to any node. */
-		public ArcProto universal_arc;
-	/** the Invisible arc, connects to any node and produces no layout. */
-		public ArcProto invisible_arc;
-	/** the Unrouted arc, connects to any node and specifies desired routing topology. */
-		public ArcProto unrouted_arc;
+	/** the Generic Technology object. */	public static Generic tech() { return sysGeneric; }
 
-	private PrimitivePort univPinPort, invisPinPort, simProbePort;
+	/** the Universal Layer. */				private final Layer universalLay;
+	/** the Glyph Layer. */					public final Layer glyphLay;
+	/** the DRC exclusion Layer. */			public final Layer drcLay;
+	/** the AFG exclusion Layer. */			public final Layer afgLay;
+	/** the Universal Pin node, which connects to every type of arc. */
+		public final PrimitiveNode universalPinNode;
+	/** the Invisible Pin node, which connects to every type of arc and produces no layout. */
+		public final PrimitiveNode invisiblePinNode;
+	/** the Unrouted Pin node, for making bends in unrouted arc paths. */
+		public final PrimitiveNode unroutedPinNode;
+	/** the Cell-Center node, used for defining the origin of the cell's coordinate space. */
+		public final PrimitiveNode cellCenterNode;
+	/** the Port-definition node, used in technology editing to define node ports. */
+		public final PrimitiveNode portNode;
+	/** the DRC exclusion node, all design-rule errors covered by this node are ignored. */
+		public final PrimitiveNode drcNode;
+	/** the AFG exclusion node, tells auto-fill generator to ignore the area. */
+		public final PrimitiveNode afgNode;
+	/** the Essential-bounds node, used (in pairs) to define the important area of a cell. */
+		public final PrimitiveNode essentialBoundsNode;
+	/** the Simulation-Probe node, used for highlighting the state of a network. */
+		public final PrimitiveNode simProbeNode;
+	/** the Universal arc, connects to any node. */
+		public final ArcProto universal_arc;
+	/** the Invisible arc, connects to any node and produces no layout. */
+		public final ArcProto invisible_arc;
+	/** the Unrouted arc, connects to any node and specifies desired routing topology. */
+		public final ArcProto unrouted_arc;
+
+	private final PrimitivePort univPinPort, invisPinPort, simProbePort;
 
 	// -------------------- private and protected methods ------------------------
-	private Generic()
+	public Generic(IdManager idManager)
 	{
-		super("generic");
+		super(idManager, null, "generic", Foundry.Type.NONE, 0);
 		setTechShortName("Generic");
 		setTechDesc("Useful primitives");
 		setNonStandard();
@@ -300,10 +307,10 @@ public class Generic extends Technology
 		oldNodeNames.put("Cell-Center", cellCenterNode);
 	}
 
-    public static void setBackgroudColor(Color c)
+    public void setBackgroudColor(Color c)
     {
-		tech.universalLay.getGraphics().setColor(c);
-		tech.glyphLay.getGraphics().setColor(c);
+		tech().universalLay.getGraphics().setColor(c);
+		tech().glyphLay.getGraphics().setColor(c);
     }
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
@@ -334,41 +341,51 @@ public class Generic extends Technology
 		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 	
-	/**
-	 * Method to update the connecitivity list for universal and invisible pins so that
-	 * they can connect to ALL arcs.  This is called at initialization and again
-	 * whenever the number of technologies changes.
-	 */
-	public void makeUnivList()
-	{
-		// count the number of arcs in all technologies
-		int tot = 0;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			tot += tech.getNumArcs();
-		}
-
-		// make an array for each arc
-		ArcProto [] upconn = new ArcProto[tot];
-
-		// fill the array
-		tot = 0;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
-			{
-				ArcProto ap = ait.next();
-				upconn[tot++] = ap;
-			}
-		}
-
-		// store the array in this technology
-		univPinPort.setConnections(upconn);
-		invisPinPort.setConnections(upconn);
-		simProbePort.setConnections(upconn);
-	}
+//	/**
+//	 * Method to update the connecitivity list for universal and invisible pins so that
+//	 * they can connect to ALL arcs.  This is called at initialization and again
+//	 * whenever the number of technologies changes.
+//	 */
+//	public void makeUnivList()
+//	{
+//		// count the number of arcs in all technologies
+//		int tot = 0;
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			tot += tech.getNumArcs();
+//		}
+//
+//		// make an array for each arc
+//		ArcProto [] upconn = new ArcProto[tot];
+//
+//		// fill the array
+//		tot = 0;
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
+//			{
+//				ArcProto ap = ait.next();
+//				upconn[tot++] = ap;
+//			}
+//		}
+//
+//		// store the array in this technology
+//		univPinPort.setConnections(upconn);
+//		invisPinPort.setConnections(upconn);
+//		simProbePort.setConnections(upconn);
+//	}
+    
+    /**
+     * Tells if all ArcProtos can connect to the PrimitivePort
+     * @param pp PrimitivePort to test
+     * @return true if all ArcProtos can connect to the PrimitivePort
+     */
+    @Override
+    protected boolean isUniversalConnectivityPort(PrimitivePort pp) {
+        return pp == univPinPort || pp == invisPinPort || pp == simProbePort;
+    }
 
 //	/**
 //	 * Method to convert old primitive names to their proper NodeProtos.
@@ -390,7 +407,10 @@ public class Generic extends Technology
 	 */
 	public static boolean isSpecialGenericNode(NodeInst ni)
 	{
-		NodeProto np = ni.getProto();
+        if (ni.isCellInstance()) return false;
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        if (!(np.getTechnology() instanceof Generic)) return false;
+        Generic tech = (Generic)np.getTechnology();
 		return (np == tech.cellCenterNode || np == tech.drcNode ||
 		        np == tech.essentialBoundsNode || np == tech.afgNode);
 	}

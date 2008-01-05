@@ -636,7 +636,7 @@ public class SeaOfGatesEngine
 		{
 			PortInst pi = netEnds.get(i).getPortInst();
 			if (!pi.getNodeInst().isCellInstance() &&
-				((PrimitiveNode)pi.getNodeInst().getProto()).getTechnology() == Generic.tech)
+				((PrimitiveNode)pi.getNodeInst().getProto()).getTechnology() == Generic.tech())
 					continue;
 			if (portEndList.contains(pi)) continue;
 			portEndList.add(pi);

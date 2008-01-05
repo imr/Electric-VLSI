@@ -148,7 +148,7 @@ public class LayerTab extends JPanel
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = it.next();
-            if (tech == Generic.tech && !Job.getDebug()) continue;
+            if (tech == Generic.tech() && !Job.getDebug()) continue;
 			technology.addItem(tech.getTechName());
         }
         setSelectedTechnology(cur);
@@ -166,8 +166,8 @@ public class LayerTab extends JPanel
 				visibility.put(layer, new Boolean(layer.isVisible()));
 			}
 		}
-        visibility.put(Generic.tech.drcLay, new Boolean(Generic.tech.drcLay.isVisible()));
-        visibility.put(Generic.tech.afgLay, new Boolean(Generic.tech.afgLay.isVisible()));
+        visibility.put(Generic.tech().drcLay, new Boolean(Generic.tech().drcLay.isVisible()));
+        visibility.put(Generic.tech().afgLay, new Boolean(Generic.tech().afgLay.isVisible()));
 	}
 
     /**
@@ -241,10 +241,10 @@ public class LayerTab extends JPanel
         // Adding special layers in case of layout technologies
         if (tech.isLayout())
         {
-            layersInList.add(Generic.tech.drcLay);
-            layerListModel.addElement(lineName(Generic.tech.drcLay));
-            layersInList.add(Generic.tech.afgLay);
-            layerListModel.addElement(lineName(Generic.tech.afgLay));
+            layersInList.add(Generic.tech().drcLay);
+            layerListModel.addElement(lineName(Generic.tech().drcLay));
+            layersInList.add(Generic.tech().afgLay);
+            layerListModel.addElement(lineName(Generic.tech().afgLay));
         }
 
         layerList.setSelectedIndex(0);
@@ -400,7 +400,7 @@ public class LayerTab extends JPanel
 		Layer layer = tech.findLayer(name);
 		if (layer == null)
 		{
-            layer = Generic.tech.findLayer(name);
+            layer = Generic.tech().findLayer(name);
             if (layer == null)
 			    System.out.println("Can't find "+name);
 		}

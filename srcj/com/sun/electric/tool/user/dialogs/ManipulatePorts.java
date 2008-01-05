@@ -141,9 +141,9 @@ public class ManipulatePorts extends EDialog
 				StringBuffer buf = new StringBuffer();
 				for(int i=0; i<conns.length; i++)
 				{
-					if (conns[i].getTechnology() == Generic.tech)
+					if (conns[i].getTechnology() == Generic.tech())
 					{
-						if (ni.getProto().getTechnology() != Generic.tech) continue;
+						if (ni.getProto().getTechnology() != Generic.tech()) continue;
 					}
 					if (buf.length() > 0) buf.append(", ");
 					buf.append(conns[i].getName());

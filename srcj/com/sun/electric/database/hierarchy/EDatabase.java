@@ -37,13 +37,19 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +72,7 @@ public class EDatabase {
     public static EDatabase clientDatabase() { return theDatabase; }
     
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
-    /** list of linked technologies indexed by techId. */       private final ArrayList<Technology> linkedTechs = new ArrayList<Technology>();
+    /** list of linked technologies indexed by techId. */       private TechPool techPool;
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** static list of all linked cells indexed by CellId. */	final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
@@ -83,6 +89,7 @@ public class EDatabase {
     /** Creates a new instance of EDatabase */
     public EDatabase(IdManager idManager) {
         this.idManager = idManager;
+        techPool = idManager.getInitialTechPool();
         setSnapshot(getInitialSnapshot(), true);
         networkManager = new NetworkManager(this);
     }
@@ -94,13 +101,34 @@ public class EDatabase {
     public NetworkManager getNetworkManager() { return networkManager; }
     
     public void addTech(Technology tech) {
-        int techIndex = idManager.newTechId(tech.getTechName()).techIndex;
-        while (techIndex >= linkedTechs.size()) linkedTechs.add(null);
-        Technology oldTech = linkedTechs.set(techIndex, tech);
-        assert oldTech == null;
+        assert getTech(tech.getId()) == null;
+        techPool = techPool.withTech(tech);
+    }
+
+    /** Returns TechPool of this database */
+    public TechPool getTechPool() { return techPool; }
+    
+    public Collection<Technology> getTechnologies() {
+        return techPool.values();
     }
     
-    public Technology getTech(TechId techId) { return getTech(techId.techIndex); }
+    /**
+     * Get Technology by TechId
+     * TechId must belong to same IdManager as TechPool
+     * @param techId TechId to find
+     * @return Technology b giben TechId or null
+     * @throws IllegalArgumentException of TechId is not from this IdManager
+     */
+    public Technology getTech(TechId techId) { return techPool.getTech(techId); }
+    
+    /** Return Artwork technology in this database */
+    public Artwork getArtwork() { return techPool.getArtwork(); }
+    
+    /** Return Generic technology in this database */
+    public Generic getGeneric() { return techPool.getGeneric(); }
+    
+    /** Return Schematic technology in this database */
+    public Schematics getSchematics() { return techPool.getSchematics(); }
     
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
     
@@ -135,7 +163,7 @@ public class EDatabase {
             linkedCells.remove(linkedCells.size() - 1);
     }
     
-    Technology getTech(int techIndex) { return techIndex < linkedTechs.size() ? linkedTechs.get(techIndex) : null; }
+//    Technology getTech(int techIndex) { return techIndex < linkedTechs.size() ? linkedTechs.get(techIndex) : null; }
     
     Library getLib(int libIndex) { return libIndex < linkedLibs.size() ? linkedLibs.get(libIndex) : null; }
     
@@ -377,14 +405,7 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
         
-        Technology[] technologies = new Technology[linkedTechs.size()];
-        boolean techChanged = technologies.length != snapshot.technologies.size();
-        for (int techIndex = 0; techIndex < technologies.length; techIndex++) {
-            technologies[techIndex] = getTech(techIndex);
-            techChanged = techChanged || technologies[techIndex] != snapshot.technologies.get(techIndex);
-        }
-        if (!techChanged) technologies = null;
-        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups, technologies), true);
+        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups, techPool), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;

@@ -475,9 +475,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert protoType == this.protoType;
         Technology tech = protoType.getTechnology();
         Variable[] vars = getVars();
-        if (tech == Artwork.tech && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
+        if (tech == Artwork.tech() && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
             return false;
-        if (tech == FPGA.tech)
+        if (tech instanceof FPGA)
             return false;
         if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK|TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0)
             return false;
@@ -519,15 +519,15 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     
     public void explainEasyShape() {
         Technology tech = protoType.getTechnology();
-        if (tech == Artwork.tech && searchVar(Artwork.ART_COLOR) >= 0) {
+        if (tech == Artwork.tech() && searchVar(Artwork.ART_COLOR) >= 0) {
             System.out.println("ART_COLOR");
             return;
         }
-        if (tech == Artwork.tech && searchVar(Artwork.ART_PATTERN) >= 0) {
+        if (tech == Artwork.tech() && searchVar(Artwork.ART_PATTERN) >= 0) {
             System.out.println("ART_PATTERN");
             return;
         }
-        if (tech == FPGA.tech) {
+        if (tech instanceof FPGA) {
             System.out.println("FPGA");
             return;
         }

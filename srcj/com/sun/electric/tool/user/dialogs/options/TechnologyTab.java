@@ -95,12 +95,12 @@ public class TechnologyTab extends PreferencePanel
 		});
 		schemPrimModel.clear();
 		schemPrimMap = new HashMap<PrimitiveNode,String>();
-		for(Iterator<PrimitiveNode> it = Schematics.tech.getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
-			if (np != Schematics.tech.andNode && np != Schematics.tech.orNode &&
-				np != Schematics.tech.xorNode && np != Schematics.tech.muxNode &&
-				np != Schematics.tech.bufferNode) continue;
+			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
+				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
+				np != Schematics.tech().bufferNode) continue;
 			String str = Schematics.getVHDLNames(np);
 			schemPrimMap.put(np, str);
 			schemPrimModel.addElement(makeLine(np, str));
@@ -143,7 +143,7 @@ public class TechnologyTab extends PreferencePanel
 		String str = (String)schemPrimList.getSelectedValue();
 		int spacePos = str.indexOf(' ');
 		if (spacePos >= 0) str = str.substring(0, spacePos);
-		PrimitiveNode np = Schematics.tech.findNodeProto(str);
+		PrimitiveNode np = Schematics.tech().findNodeProto(str);
 		return np;
 	}
 
@@ -219,7 +219,7 @@ public class TechnologyTab extends PreferencePanel
 			int spacePos = str.indexOf(' ');
 			if (spacePos < 0) continue;
 			String primName = str.substring(0, spacePos);
-			PrimitiveNode np = Schematics.tech.findNodeProto(primName);
+			PrimitiveNode np = Schematics.tech().findNodeProto(primName);
 			if (np == null) continue;
 			String newVHDLname = str.substring(spacePos+3, str.length()-1);
 			String oldVHDLname = Schematics.getVHDLNames(np);

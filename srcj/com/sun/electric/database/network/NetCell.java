@@ -98,8 +98,8 @@ class NetCell
 	/** Netlist for true ShortResistors.ALL option. */              NetlistShorted netlistA;
     
 
-	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
-	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
+	/** */															private static PortProto busPinPort = Schematics.tech().busPinNode.getPort(0);
+	/** */															private static ArcProto busArc = Schematics.tech().bus_arc;
 	NetCell(Cell cell)
 	{
         this.networkManager = cell.getDatabase().getNetworkManager();
@@ -382,9 +382,9 @@ class NetCell
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
             if (ni.isIconOfParent() ||
-                    np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
-                    np == Artwork.tech.pinNode ||
-                    np == Generic.tech.invisiblePinNode) {
+                    np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech().simProbeNode ||
+                    np == Artwork.tech().pinNode ||
+                    np == Generic.tech().invisiblePinNode) {
                 continue;
             }
             int numPortInsts = np.getNumPorts();

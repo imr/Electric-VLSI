@@ -4747,7 +4747,7 @@ public class Quick
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np == Generic.tech.drcNode)
+			if (np == Generic.tech().drcNode)
 			{
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings

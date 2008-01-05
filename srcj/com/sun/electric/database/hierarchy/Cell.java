@@ -428,7 +428,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// add cell-center if requested
 		if (User.isPlaceCellCenter())
 		{
-			NodeProto cellCenterProto = Generic.tech.cellCenterNode;
+			NodeProto cellCenterProto = Generic.tech().cellCenterNode;
 			NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
 				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), cell);
             if (cellCenter != null)
@@ -1094,7 +1094,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             nodes.add(ni);
             updateMaxSuffix(ni);
             NodeProto np = ni.getProto();
-            if (np == Generic.tech.essentialBoundsNode)
+            if (np == Generic.tech().essentialBoundsNode)
                 essenBounds.add(ni);
 //            ni.check();
         }
@@ -1351,10 +1351,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeProto np = ni.getProto();
 
             // special case: do not include "cell center" primitives from Generic
-            if (np == Generic.tech.cellCenterNode) continue;
+            if (np == Generic.tech().cellCenterNode) continue;
 
             // special case for invisible pins: do not include if inheritable or interior-only
-            if (np == Generic.tech.invisiblePinNode) {
+            if (np == Generic.tech().invisiblePinNode) {
                 boolean found = false;
                 for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
                     Variable var = it.next();
@@ -1439,7 +1439,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
         {
             NodeInst ni = it.next();
-            if (ni.getProto() == Generic.tech.cellCenterNode) return true;
+            if (ni.getProto() == Generic.tech().cellCenterNode) return true;
         }
         return false;
     }
@@ -1464,7 +1464,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+			if (ni.getProto() == Generic.tech().cellCenterNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
 			ni.move(-cX, -cY);
@@ -2106,7 +2106,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
 
 		// make additional checks to keep circuit up-to-date
-		if (ni.getProto() == Generic.tech.essentialBoundsNode)
+		if (ni.getProto() == Generic.tech().essentialBoundsNode)
 			essenBounds.add(ni);
         setDirty();
 
@@ -4325,7 +4325,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void setTechnology(Technology tech) {
         TechId techId = null;
         if (tech != null) {
-            techId = database.getIdManager().newTechId(tech.getTechName());
+            techId = tech.getId();
             if (database.getTech(techId) != tech)
                 throw new IllegalArgumentException("tech");
         }
