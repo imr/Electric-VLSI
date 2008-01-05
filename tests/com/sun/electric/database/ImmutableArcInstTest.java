@@ -93,8 +93,8 @@ public class ImmutableArcInstTest {
         ap = tech.findArcProto("P-Active");
         apExtend = DBMath.lambdaToGrid(0);
 //        apExtend = DBMath.lambdaToGrid(1.5);
-        idManager = new IdManager();
-        techId = idManager.newTechId(tech.getTechName());
+        idManager = EDatabase.theDatabase.getIdManager();
+        techId = tech.getId();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
         n0 = ImmutableNodeInst.newInstance(0, pn, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
@@ -732,16 +732,16 @@ public class ImmutableArcInstTest {
         assertSame(var.getObject(), a2.getVar(0).getObject());
         assertFalse(a2.getVar(0).getTextDescriptor().isParam());
         
-        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, Artwork.tech.solidArc, nameA0, null,
-                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
-                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, Artwork.tech().solidArc, nameA0, null,
+                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
+                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
-        assertTrue(a3.isEasyShape(Artwork.tech.solidArc));
+        assertTrue(a3.isEasyShape(Artwork.tech().solidArc));
         
         ImmutableArcInst a4 = a3.withVariable(var);
         a4.check();
-        assertFalse(a4.isEasyShape(Artwork.tech.solidArc));
+        assertFalse(a4.isEasyShape(Artwork.tech().solidArc));
     }
 
     /**
@@ -750,18 +750,18 @@ public class ImmutableArcInstTest {
     @Test public void testWithoutVariable() {
         System.out.println("withoutVariable");
         Variable var = Variable.newInstance(Artwork.ART_COLOR, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, Artwork.tech.solidArc, nameA0, null,
-                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
-                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, Artwork.tech().solidArc, nameA0, null,
+                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
+                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS).withVariable(var);
         a1.check();
-        assertFalse(a1.isEasyShape(Artwork.tech.solidArc));
+        assertFalse(a1.isEasyShape(Artwork.tech().solidArc));
         
         assertSame(a1, a1.withoutVariable(Artwork.ART_PATTERN));
         
         ImmutableArcInst a2 = a1.withoutVariable(Artwork.ART_COLOR);
         assertEquals(0, a2.getNumVariables());
-        assertTrue(a2.isEasyShape(Artwork.tech.solidArc));
+        assertTrue(a2.isEasyShape(Artwork.tech().solidArc));
     }
 
     /**

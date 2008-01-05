@@ -33,7 +33,9 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.io.ByteArrayInputStream;
@@ -41,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -58,6 +61,7 @@ public class SnapshotTest {
     private static byte[] emptyDiffEmpty;
     private IdManager idManager;
     private Snapshot initialSnapshot;
+    private TechId genericTechId;
     private TechId schematicTechId; 
     
     @Before public void setUp() throws Exception {
@@ -66,6 +70,7 @@ public class SnapshotTest {
         
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
+        genericTechId = idManager.newTechId("generic");
         schematicTechId = idManager.newTechId("schematic");
         
         // Init emptyDiffEmpty
@@ -112,13 +117,15 @@ public class SnapshotTest {
         ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
-        Technology[] technologiesArray = { Schematics.tech };
+        TechPool techPool = idManager.getInitialTechPool();
+        Generic generic = new Generic(idManager);
+        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         Snapshot instance = initialSnapshot;
         
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray, technologiesArray);
+        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray, techPool);
         assertEquals(1, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
 //        assertEquals(expCellBounds, result.cellBounds);
@@ -147,11 +154,13 @@ public class SnapshotTest {
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
         CellBackup cellBackupA = new CellBackup(cellA);
         CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
-        ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) }; 
-        Technology[] technologiesArray = { Schematics.tech };
+        ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) };
+        TechPool techPool = idManager.getInitialTechPool();
+        Generic generic = new Generic(idManager);
+        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         LibId libIdA = idManager.newLibId("A");
         
-        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray, technologiesArray );
+        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray, techPool);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
         
