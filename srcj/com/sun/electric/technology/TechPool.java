@@ -287,7 +287,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             int i = 0;
             for (Technology tech: sortedTechs) {
                 TechId techId = tech.getId();
-                entries[i++] = new AbstractMap.SimpleImmutableEntry<TechId, Technology>(techId, tech);
+                entries[i++] = new com.sun.electric.database.text.SimpleImmutableEntry<TechId, Technology>(techId, tech);
             }
         }
 
