@@ -28,6 +28,7 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -40,8 +41,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A customized Map from TechId to Technolgy.
@@ -68,6 +69,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         this.idManager = idManager;
         techs = new Technology[0];
         entrySet = new EntrySet();
+        assert size() == 0;
         univList = new ArcProto[0];
     }
 
@@ -105,6 +107,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             }
         }
         entrySet = new EntrySet();
+        assert size() == technologies.size();
 
         // prepare connectivity list for universal and invisible pins
         int univListCount = 0;
@@ -272,23 +275,25 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     }
 
     private class EntrySet extends AbstractSet<Entry<TechId, Technology>> {
-
-        private final ArrayList<AbstractMap.SimpleImmutableEntry<TechId, Technology>> entries =
-                new ArrayList<AbstractMap.SimpleImmutableEntry<TechId, Technology>>();
+        private final Entry<TechId,Technology>[] entries;
 
         EntrySet() {
+            TreeSet<Technology> sortedTechs = new TreeSet<Technology>();
             for (Technology tech : techs) {
-                if (tech == null) {
-                    continue;
-                }
+                if (tech != null)
+                    sortedTechs.add(tech);
+            }
+            entries = new Entry[sortedTechs.size()];
+            int i = 0;
+            for (Technology tech: sortedTechs) {
                 TechId techId = tech.getId();
-                entries.add(new AbstractMap.SimpleImmutableEntry<TechId, Technology>(techId, tech));
+                entries[i++] = new AbstractMap.SimpleImmutableEntry<TechId, Technology>(techId, tech);
             }
         }
 
         @Override
         public int size() {
-            return entries.size();
+            return entries.length;
         }
 
         @Override
@@ -299,29 +304,8 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
 
         @Override
-        public Iterator<Map.Entry<TechId, Technology>> iterator() {
-            return new Iterator<Entry<TechId, Technology>>() {
-
-                private int cursor = 0;
-
-                @Override
-                public boolean hasNext() {
-                    return cursor < entries.size();
-                }
-
-                @Override
-                public Entry<TechId, Technology> next() {
-                    if (cursor >= entries.size()) {
-                        throw new NoSuchElementException();
-                    }
-                    return entries.get(cursor++);
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
+        public Iterator<Entry<TechId, Technology>> iterator() {
+            return ArrayIterator.iterator(entries);
         }
     }
 }
