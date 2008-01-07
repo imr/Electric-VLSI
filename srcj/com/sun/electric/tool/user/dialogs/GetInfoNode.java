@@ -29,6 +29,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -63,8 +65,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -99,105 +99,105 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	private boolean bigger;
 	private boolean scalableTrans;
 	private boolean swapXY;
-    private AttributesTable attributesTable;
-    private EditWindow wnd;
+	private AttributesTable attributesTable;
+	private EditWindow wnd;
 
-    private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
+	private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
 	/**
 	 * Method to show the Node Properties dialog.
 	 */
 	public static void showDialog()
 	{
-        if (Client.getOperatingSystem() == Client.OS.UNIX) {
-            // JKG 07Apr2006:
-            // On Linux, if a dialog is built, closed using setVisible(false),
-            // and then requested again using setVisible(true), it does
-            // not appear on top. I've tried using toFront(), requestFocus(),
-            // but none of that works.  Instead, I brute force it and
-            // rebuild the dialog from scratch each time.
-            if (theDialog != null) theDialog.dispose();
-            theDialog = null;
-        }
+		if (Client.getOperatingSystem() == Client.OS.UNIX) {
+			// JKG 07Apr2006:
+			// On Linux, if a dialog is built, closed using setVisible(false),
+			// and then requested again using setVisible(true), it does
+			// not appear on top. I've tried using toFront(), requestFocus(),
+			// but none of that works.  Instead, I brute force it and
+			// rebuild the dialog from scratch each time.
+			if (theDialog != null) theDialog.dispose();
+			theDialog = null;
+		}
 		if (theDialog == null)
 		{
-            JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theDialog = new GetInfoNode(jf);
 		}
-        theDialog.loadInfo();
+		theDialog.loadInfo();
 
-        if (!theDialog.isVisible())
+		if (!theDialog.isVisible())
 		{
-        	theDialog.pack();
-        	theDialog.ensureMinimumSize();
-            theDialog.setVisible(true);
+			theDialog.pack();
+			theDialog.ensureMinimumSize();
+			theDialog.setVisible(true);
 		}
 		theDialog.toFront();
 	}
 
-    /**
-     * Reloads the dialog when Highlights change
-     */
-    public void highlightChanged(Highlighter which)
+	/**
+	 * Reloads the dialog when Highlights change
+	 */
+	public void highlightChanged(Highlighter which)
 	{
-        if (!isVisible()) return;
+		if (!isVisible()) return;
 		loadInfo();
 	}
 
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
-        if (!isVisible()) return;
-        loadInfo();        
-    }
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+		if (!isVisible()) return;
+		loadInfo();
+	}
 
-    /**
-     * Respond to database changes
-     * @param e database change event
-     */
-    public void databaseChanged(DatabaseChangeEvent e) {
-        if (!isVisible()) return;
+	/**
+	 * Respond to database changes
+	 * @param e database change event
+	 */
+	public void databaseChanged(DatabaseChangeEvent e) {
+		if (!isVisible()) return;
 
-        // update dialog if we care about the changes
+		// update dialog if we care about the changes
 		if (e.objectChanged(shownNode) || shownPort instanceof Export && e.objectChanged((Export)shownPort))
 		{
-            loadInfo();
+			loadInfo();
 		}
-    }
+	}
 
 	/** Creates new form Node Properties */
 	private GetInfoNode(Frame parent)
 	{
 		super(parent, false);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
-        UserInterfaceMain.addDatabaseChangeListener(this);
-        Highlighter.addHighlightListener(this);
+		UserInterfaceMain.addDatabaseChangeListener(this);
+		Highlighter.addHighlightListener(this);
 
-        // make type a selectable but not editable field
-        type.setEditable(false);
-        type.setBorder(null);
-        type.setForeground(UIManager.getColor("Label.foreground"));
-        type.setFont(UIManager.getFont("Label.font"));
+		// make type a selectable but not editable field
+		type.setEditable(false);
+		type.setBorder(null);
+		type.setForeground(UIManager.getColor("Label.foreground"));
+		type.setFont(UIManager.getFont("Label.font"));
 
-        bigger = prefs.getBoolean("GetInfoNode-bigger", false);
-        int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
+		bigger = prefs.getBoolean("GetInfoNode-bigger", false);
+		int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
 
 		// start small
 		if (bigger == false) {
-		    getContentPane().remove(moreStuffTop);
-		    getContentPane().remove(listPane);
-		    getContentPane().remove(moreStuffBottom);
-            more.setText("More");
-            pack();
-        } else {
-            more.setText("Less");
-        }
+			getContentPane().remove(moreStuffTop);
+			getContentPane().remove(listPane);
+			getContentPane().remove(moreStuffBottom);
+			more.setText("More");
+			pack();
+		} else {
+			more.setText("Less");
+		}
 
 		// make the list
 		listModel = new DefaultListModel();
@@ -207,12 +207,14 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		allAttributes = new ArrayList<AttributesTable.AttValPair>();
 		portObjects = new ArrayList<ArcInst>();
 
-        attributesTable = new AttributesTable(null, true, false, false);
+		attributesTable = new AttributesTable(null, true, false, false);
 
-        if (buttonSelected == 0)
-		    ports.setSelected(true);
-        if (buttonSelected == 1)
-		    attributes.setSelected(true);
+		switch (buttonSelected)
+		{
+			case 0: ports.setSelected(true);	   break;
+			case 1: attributes.setSelected(true);  break;
+			case 2: busMembers.setSelected(true);  break;
+		}
 
 		loadInfo();
 		finishInitialization();
@@ -222,9 +224,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 	protected void loadInfo()
 	{
-        // update current window
-        EditWindow curWnd = EditWindow.getCurrent();
-        if (curWnd != null) wnd = curWnd;
+		// update current window
+		EditWindow curWnd = EditWindow.getCurrent();
+	    if (curWnd != null) wnd = curWnd;
 
 		// must have a single node selected
 		NodeInst ni = null;
@@ -289,6 +291,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				attributes.setEnabled(false);
                 attributesTable.setElectricObject(null);
                 attributesTable.setEnabled(false);
+				busMembers.setEnabled(false);
 				listPane.setEnabled(false);
 				listModel.clear();
 				locked.setEnabled(false);
@@ -386,6 +389,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		ports.setEnabled(true);
 		attributes.setEnabled(true);
         attributesTable.setEnabled(true);
+        busMembers.setEnabled(true);
 		listPane.setEnabled(true);
 		locked.setEnabled(true);
 		attributesButton.setEnabled(true);
@@ -412,6 +416,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         attributesTable.setEnabled(allAttributes.size() != 0);
         attributesTable.setElectricObject(ni);
 		if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
+
+
+		Netlist nl = shownNode.getParent().acquireUserNetlist();
+		int busWidth = 1;
+		if (shownPort != null && shownPort instanceof Export) busWidth = nl.getBusWidth((Export)shownPort);
+		if (busWidth <= 1)
+		{
+			if (busMembers.isSelected()) ports.setSelected(true);
+	        busMembers.setEnabled(false);
+		}
 		showProperList();
 
 		// special lines default to empty
@@ -473,7 +487,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		locked.setSelected(initialLocked);
 
 		// load special node information
-
         PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 		{
@@ -721,6 +734,20 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			list.setListData(portMessages.toArray());
             list.setSelectedIndex(selectedLine);
             list.ensureIndexIsVisible(selectedLine);
+		}
+		if (busMembers.isSelected())
+		{
+			Netlist nl = shownNode.getParent().acquireUserNetlist();
+			int busWidth = nl.getBusWidth((Export)shownPort);
+			List<String> busMessages = new ArrayList<String>();
+			for(int i=0; i<busWidth; i++)
+			{
+				Network net = nl.getNetwork(shownNode, shownPort, i);
+				String netDescr = "?";
+				if (net != null) netDescr = net.describe(false);
+				busMessages.add(i + ": " + netDescr);
+			}
+			list.setListData(busMessages.toArray());
 		}
 		if (attributes.isSelected())
 		{
@@ -1091,8 +1118,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         expansion = new javax.swing.ButtonGroup();
@@ -1127,6 +1153,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         popup = new javax.swing.JComboBox();
         ports = new javax.swing.JRadioButton();
         attributes = new javax.swing.JRadioButton();
+        busMembers = new javax.swing.JRadioButton();
         moreStuffBottom = new javax.swing.JPanel();
         locked = new javax.swing.JCheckBox();
         see = new javax.swing.JButton();
@@ -1139,10 +1166,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         setTitle("Node Properties");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -1165,10 +1190,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         getContentPane().add(name, gridBagConstraints);
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelActionPerformed(evt);
             }
         });
@@ -1180,10 +1203,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ok.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 okActionPerformed(evt);
             }
         });
@@ -1296,10 +1317,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         getContentPane().add(mirrorX, gridBagConstraints);
 
         more.setText("More");
-        more.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        more.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moreActionPerformed(evt);
             }
         });
@@ -1311,10 +1330,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         getContentPane().add(more, gridBagConstraints);
 
         apply.setText("Apply");
-        apply.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        apply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 applyActionPerformed(evt);
             }
         });
@@ -1401,10 +1418,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         selection.add(ports);
         ports.setText("Ports:");
-        ports.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 portsActionPerformed(evt);
             }
         });
@@ -1417,10 +1432,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         selection.add(attributes);
         attributes.setText("Attributes:");
-        attributes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        attributes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributesActionPerformed(evt);
             }
         });
@@ -1430,6 +1443,24 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(attributes, gridBagConstraints);
+
+        selection.add(busMembers);
+        busMembers.setText("Bus Members on Port:");
+        busMembers.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        busMembers.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        busMembers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                busMembersActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
+        moreStuffTop.add(busMembers, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1450,10 +1481,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         moreStuffBottom.add(locked, gridBagConstraints);
 
         see.setText("See");
-        see.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        see.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 seeActionPerformed(evt);
             }
         });
@@ -1465,10 +1494,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         moreStuffBottom.add(see, gridBagConstraints);
 
         attributesButton.setText("Attributes");
-        attributesButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        attributesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributesButtonActionPerformed(evt);
             }
         });
@@ -1480,10 +1507,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         moreStuffBottom.add(attributesButton, gridBagConstraints);
 
         colorAndPattern.setText("Color and Pattern...");
-        colorAndPattern.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        colorAndPattern.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 colorAndPatternActionPerformed(evt);
             }
         });
@@ -1525,6 +1550,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void busMembersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_busMembersActionPerformed
+		showProperList();
+    }//GEN-LAST:event_busMembersActionPerformed
 
 	private void colorAndPatternActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_colorAndPatternActionPerformed
 	{//GEN-HEADEREND:event_colorAndPatternActionPerformed
@@ -1663,6 +1692,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         prefs.putBoolean("GetInfoNode-bigger", bigger);
         if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
         if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
+        if (busMembers.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
         super.closeDialog();
 	}//GEN-LAST:event_closeDialog
 
@@ -1670,6 +1700,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
     private javax.swing.JButton apply;
     private javax.swing.JRadioButton attributes;
     private javax.swing.JButton attributesButton;
+    private javax.swing.JRadioButton busMembers;
     private javax.swing.JButton cancel;
     private javax.swing.JButton colorAndPattern;
     private javax.swing.JCheckBox easyToSelect;
@@ -1707,5 +1738,4 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
     private javax.swing.JTextField ySize;
     private javax.swing.JLabel ysizeLabel;
     // End of variables declaration//GEN-END:variables
-
 }

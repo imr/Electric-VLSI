@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP/MAN: (1/7/08, SMR) Improved "Arc Properties" and "Node Properties" dialogs
+     so that the current bus arc/port's members can be listed (Bug #1529).
+
 IMP: (1/7/08, SMR) Array command remembers all settings in preferences (Bug #1527).
 
 BUG: (1/6/08, DN) Compilation error in TechPool on Java 1.5.
