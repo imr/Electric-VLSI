@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -57,7 +58,6 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-
 /**
  * Class to handle the "Array" dialog.
  */
@@ -68,13 +68,24 @@ public class Array extends EDialog
 	/** Space by characteristic distance. */	private static final int SPACING_ESSENTIALBND = 3;
 	/** Space by measured distance. */			private static final int SPACING_MEASURED = 4;
 
-	private static int lastXRepeat = 1, lastYRepeat = 1;
-	private static double lastXDistance = 0, lastYDistance = 0;
-	private static boolean lastXFlip = false, lastYFlip = false;
-	private static boolean lastXStagger = false, lastYStagger = false;
-	private static boolean lastXCenter = false, lastYCenter = false;
-	private static boolean lastLinearDiagonal = false, lastAddNames = false, lastDRCGood = false, lastTranspose = false;
-	private static int lastSpacingType = SPACING_EDGE;
+	private static Pref.Group prefs = Pref.groupForPackage(Array.class);
+	private static Pref
+		prefLinearDiagonal = Pref.makeBooleanPref("Array_LinearDiagonal", prefs, false),
+		prefAddNames = Pref.makeBooleanPref("Array_AddNames", prefs, false),
+		prefDRCGood = Pref.makeBooleanPref("Array_DRCGood", prefs, false),
+		prefTranspose = Pref.makeBooleanPref("Array_Transpose", prefs, false),
+		prefXFlip = Pref.makeBooleanPref("Array_XFlip", prefs, false),
+		prefYFlip = Pref.makeBooleanPref("Array_YFlip", prefs, false),
+		prefXStagger = Pref.makeBooleanPref("Array_XStagger", prefs, false),
+		prefYStagger = Pref.makeBooleanPref("Array_YStagger", prefs, false),
+		prefXCenter = Pref.makeBooleanPref("Array_XCenter", prefs, false),
+		prefYCenter = Pref.makeBooleanPref("Array_YCenter", prefs, false),
+		prefSpacingType = Pref.makeIntPref("Array_SpacingType", prefs, SPACING_EDGE),
+		prefXRepeat = Pref.makeIntPref("Array_XRepeat", prefs, 1),
+		prefYRepeat = Pref.makeIntPref("Array_YRepeat", prefs, 1),
+		prefXDistance = Pref.makeDoublePref("Array_XDistance", prefs, 0),
+		prefYDistance = Pref.makeDoublePref("Array_YDistance", prefs, 0);
+
 	/** amount when spacing by edge overlap */				private double spacingOverX, spacingOverY;
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
 	/** amount when spacing by characteristic distance */	private double essentialBndX, essentialBndY;
@@ -88,15 +99,15 @@ public class Array extends EDialog
 	public static void showArrayDialog()
 	{
 		// first make sure something is selected
-	    EditWindow wnd = EditWindow.needCurrent();
-	    if (wnd == null) return;
-	    Highlighter highlighter = wnd.getHighlighter();
-	    if (highlighter == null)
-	    {
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
+		if (highlighter == null)
+		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"Cannot array: nothing is highlighted in this window.");
 			return;
-	    }
+		}
 		List highs = highlighter.getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{
@@ -113,21 +124,21 @@ public class Array extends EDialog
 	{
 		super(parent, true);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
 		// load the repeat factors
-		xRepeat.setText(Integer.toString(lastXRepeat));
-		flipAlternateColumns.setSelected(lastXFlip);
-		staggerAlternateColumns.setSelected(lastXStagger);
-		centerXAboutOriginal.setSelected(lastXCenter);
-		yRepeat.setText(Integer.toString(lastYRepeat));
-		flipAlternateRows.setSelected(lastYFlip);
-		staggerAlternateRows.setSelected(lastYStagger);
-		centerYAboutOriginal.setSelected(lastYCenter);
+		xRepeat.setText(Integer.toString(prefXRepeat.getInt()));
+		flipAlternateColumns.setSelected(prefXFlip.getBoolean());
+		staggerAlternateColumns.setSelected(prefXStagger.getBoolean());
+		centerXAboutOriginal.setSelected(prefXCenter.getBoolean());
+		yRepeat.setText(Integer.toString(prefYRepeat.getInt()));
+		flipAlternateRows.setSelected(prefYFlip.getBoolean());
+		staggerAlternateRows.setSelected(prefYStagger.getBoolean());
+		centerYAboutOriginal.setSelected(prefYCenter.getBoolean());
 
 		// see if a single cell instance is selected (in which case DRC validity can be done)
 		onlyDRCCorrect.setEnabled(false);
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 1)
 		{
@@ -137,55 +148,55 @@ public class Array extends EDialog
 				onlyDRCCorrect.setEnabled(true);
 			}
 		}
-		linearDiagonalArray.setSelected(lastLinearDiagonal);
-		generateArrayIndices.setSelected(lastAddNames);
-		onlyDRCCorrect.setSelected(lastDRCGood);
-		transposePlacement.setSelected(lastTranspose);
+		linearDiagonalArray.setSelected(prefLinearDiagonal.getBoolean());
+		generateArrayIndices.setSelected(prefAddNames.getBoolean());
+		onlyDRCCorrect.setSelected(prefDRCGood.getBoolean());
+		transposePlacement.setSelected(prefTranspose.getBoolean());
 
 		// see if a cell was selected which has a characteristic distance
 		essentialBndX = essentialBndY = 0;
-		boolean haveChar = false;
+		boolean haveEB = false;
 		for(Geometric eObj : highs)
 		{
 			if (!(eObj instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)eObj;
 			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
-//			Dimension2D spacing = subCell.getCharacteristicSpacing();
-            Rectangle2D spacing = subCell.findEssentialBounds();
-            if (spacing == null) continue;
+			Rectangle2D spacing = subCell.findEssentialBounds();
+			if (spacing == null) continue;
 			double thisDistX = spacing.getWidth();
 			double thisDistY = spacing.getHeight();
 			if (ni.isMirroredAboutXAxis() ^ ni.isMirroredAboutYAxis())
 			{
 				double swap = thisDistX;   thisDistX = thisDistY;   thisDistY = swap;
 			}
-			if (haveChar)
+			if (haveEB)
 			{
 				if (essentialBndX != thisDistX || essentialBndY != thisDistY)
 				{
-					haveChar = false;
+					haveEB = false;
 					break;
 				}
 			}
 			essentialBndX = thisDistX;
 			essentialBndY = thisDistY;
-			haveChar = true;
+			haveEB = true;
 		}
-		spaceByEssentialBnd.setEnabled(haveChar);
-		if (haveChar)
+		spaceByEssentialBnd.setEnabled(haveEB);
+		if (haveEB)
 		{
-			if (lastSpacingType == SPACING_ESSENTIALBND)
+			if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
 			{
-				lastXDistance = essentialBndX;
-				lastYDistance = essentialBndY;
+				prefXDistance.setDouble(essentialBndX);
+				prefYDistance.setDouble(essentialBndY);
 			}
 		} else
 		{
-			if (lastSpacingType == SPACING_ESSENTIALBND)
+			if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
 			{
-				lastSpacingType = SPACING_EDGE;
-				lastXDistance = lastYDistance = 0;
+				prefSpacingType.setInt(SPACING_EDGE);
+				prefXDistance.setDouble(0);
+				prefYDistance.setDouble(0);
 			}
 		}
 
@@ -196,32 +207,33 @@ public class Array extends EDialog
 			spaceByMeasuredDistance.setEnabled(true);
 			spacingMeasuredX = dim.getWidth();
 			spacingMeasuredY = dim.getHeight();
-			if (lastSpacingType == SPACING_MEASURED)
+			if (prefSpacingType.getInt() == SPACING_MEASURED)
 			{
-				lastXDistance = spacingMeasuredX;
-				lastYDistance = spacingMeasuredY;
+				prefXDistance.setDouble(spacingMeasuredX);
+				prefYDistance.setDouble(spacingMeasuredY);
 			}
 		} else
 		{
 			spaceByMeasuredDistance.setEnabled(false);
-			if (lastSpacingType == SPACING_MEASURED)
+			if (prefSpacingType.getInt() == SPACING_MEASURED)
 			{
-				lastSpacingType = SPACING_EDGE;
-				lastXDistance = lastYDistance = 0;
+				prefSpacingType.setInt(SPACING_EDGE);
+				prefXDistance.setDouble(0);
+				prefYDistance.setDouble(0);
 			}
 		}
 
 		// load the spacing distances
-		xSpacing.setText(TextUtils.formatDouble(lastXDistance));
-		ySpacing.setText(TextUtils.formatDouble(lastYDistance));
-		switch (lastSpacingType)
+		xSpacing.setText(TextUtils.formatDouble(prefXDistance.getDouble()));
+		ySpacing.setText(TextUtils.formatDouble(prefYDistance.getDouble()));
+		switch (prefSpacingType.getInt())
 		{
-			case SPACING_EDGE:           spaceByEdgeOverlap.setSelected(true);             break;
-			case SPACING_CENTER:         spaceByCenterlineDistance.setSelected(true);      break;
-			case SPACING_ESSENTIALBND: spaceByEssentialBnd.setSelected(true);   break;
-			case SPACING_MEASURED:       spaceByMeasuredDistance.setSelected(true);        break;
+			case SPACING_EDGE:         spaceByEdgeOverlap.setSelected(true);          break;
+			case SPACING_CENTER:       spaceByCenterlineDistance.setSelected(true);   break;
+			case SPACING_ESSENTIALBND: spaceByEssentialBnd.setSelected(true);         break;
+			case SPACING_MEASURED:     spaceByMeasuredDistance.setSelected(true);     break;
 		}
-		if (lastSpacingType == SPACING_EDGE)
+		if (prefSpacingType.getInt() == SPACING_EDGE)
 		{
 			xOverlapLabel.setText("X edge overlap:");
 			yOverlapLabel.setText("Y edge overlap:");
@@ -292,16 +304,16 @@ public class Array extends EDialog
 	{
 		double x = TextUtils.atof(xSpacing.getText());
 		double y = TextUtils.atof(ySpacing.getText());
-		switch (lastSpacingType)
+		switch (prefSpacingType.getInt())
 		{
 			case SPACING_EDGE:   spacingOverX = x;         spacingOverY = y;         break;
 			case SPACING_CENTER: spacingCenterlineX = x;   spacingCenterlineY = y;   break;
 		}
-		if (spaceByEdgeOverlap.isSelected()) lastSpacingType = SPACING_EDGE; else
-		if (spaceByCenterlineDistance.isSelected()) lastSpacingType = SPACING_CENTER; else
-		if (spaceByEssentialBnd.isSelected()) lastSpacingType = SPACING_ESSENTIALBND; else
-		if (spaceByMeasuredDistance.isSelected()) lastSpacingType = SPACING_MEASURED;
-		if (lastSpacingType == SPACING_EDGE)
+		if (spaceByEdgeOverlap.isSelected()) prefSpacingType.setInt(SPACING_EDGE); else
+		if (spaceByCenterlineDistance.isSelected()) prefSpacingType.setInt(SPACING_CENTER); else
+		if (spaceByEssentialBnd.isSelected()) prefSpacingType.setInt(SPACING_ESSENTIALBND); else
+		if (spaceByMeasuredDistance.isSelected()) prefSpacingType.setInt(SPACING_MEASURED);
+		if (prefSpacingType.getInt() == SPACING_EDGE)
 		{
 			xOverlapLabel.setText("X edge overlap:");
 			yOverlapLabel.setText("Y edge overlap:");
@@ -310,12 +322,12 @@ public class Array extends EDialog
 			xOverlapLabel.setText("X centerline distance:");
 			yOverlapLabel.setText("Y centerline distance:");
 		}
-		switch (lastSpacingType)
+		switch (prefSpacingType.getInt())
 		{
-			case SPACING_EDGE:            x = spacingOverX;             y = spacingOverY;             break;
-			case SPACING_CENTER:          x = spacingCenterlineX;       y = spacingCenterlineY;       break;
-			case SPACING_ESSENTIALBND:  x = essentialBndX;   y = essentialBndY;   break;
-			case SPACING_MEASURED:        x = spacingMeasuredX;         y = spacingMeasuredY;         break;
+			case SPACING_EDGE:          x = spacingOverX;         y = spacingOverY;         break;
+			case SPACING_CENTER:        x = spacingCenterlineX;   y = spacingCenterlineY;   break;
+			case SPACING_ESSENTIALBND:  x = essentialBndX;        y = essentialBndY;        break;
+			case SPACING_MEASURED:      x = spacingMeasuredX;     y = spacingMeasuredY;     break;
 		}
 		xSpacing.setText(TextUtils.formatDouble(x));
 		ySpacing.setText(TextUtils.formatDouble(y));
@@ -324,34 +336,34 @@ public class Array extends EDialog
 	private void rememberFields()
 	{
 		// gather all "last" values
-		lastXRepeat = (int)TextUtils.getValueOfExpression(xRepeat.getText());
-		lastXFlip = flipAlternateColumns.isSelected();
-		lastXStagger = staggerAlternateColumns.isSelected();
-		lastXCenter = centerXAboutOriginal.isSelected();
-		lastYRepeat = (int)TextUtils.getValueOfExpression(yRepeat.getText());
-		lastYFlip = flipAlternateRows.isSelected();
-		lastYStagger = staggerAlternateRows.isSelected();
-		lastYCenter = centerYAboutOriginal.isSelected();
-		lastXDistance = TextUtils.getValueOfExpression(xSpacing.getText());
-		lastYDistance = TextUtils.getValueOfExpression(ySpacing.getText());
-		lastLinearDiagonal = linearDiagonalArray.isSelected();
-		lastAddNames = generateArrayIndices.isSelected();
-		lastDRCGood = onlyDRCCorrect.isSelected();
-		lastTranspose = transposePlacement.isSelected();
+		prefXRepeat.setInt((int)TextUtils.getValueOfExpression(xRepeat.getText()));
+		prefXFlip.setBoolean(flipAlternateColumns.isSelected());
+		prefXStagger.setBoolean(staggerAlternateColumns.isSelected());
+		prefXCenter.setBoolean(centerXAboutOriginal.isSelected());
+		prefYRepeat.setInt((int)TextUtils.getValueOfExpression(yRepeat.getText()));
+		prefYFlip.setBoolean(flipAlternateRows.isSelected());
+		prefYStagger.setBoolean(staggerAlternateRows.isSelected());
+		prefYCenter.setBoolean(centerYAboutOriginal.isSelected());
+		prefXDistance.setDouble(TextUtils.getValueOfExpression(xSpacing.getText()));
+		prefYDistance.setDouble(TextUtils.getValueOfExpression(ySpacing.getText()));
+		prefLinearDiagonal.setBoolean(linearDiagonalArray.isSelected());
+		prefAddNames.setBoolean(generateArrayIndices.isSelected());
+		prefDRCGood.setBoolean(onlyDRCCorrect.isSelected());
+		prefTranspose.setBoolean(transposePlacement.isSelected());
 	}
 
 	private void makeArray()
 	{
 		// check for nonsense
-		int xRepeat = Math.abs(lastXRepeat);
-		int yRepeat = Math.abs(lastYRepeat);
+		int xRepeat = Math.abs(prefXRepeat.getInt());
+		int yRepeat = Math.abs(prefYRepeat.getInt());
 		if (xRepeat <= 1 && yRepeat <= 1)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"One dimension of the array must be greater than 1");
 			return;
 		}
-		if (lastLinearDiagonal && xRepeat != 1 && yRepeat != 1)
+		if (prefLinearDiagonal.getBoolean() && xRepeat != 1 && yRepeat != 1)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"Diagonal arrays need one dimension to be 1");
@@ -385,12 +397,12 @@ public class Array extends EDialog
 		Collections.sort(exportList);
 
 		// determine the distance between arrayed entries
-		double xOverlap = lastXDistance;
-		double yOverlap = lastYDistance;
-		if (lastSpacingType == SPACING_EDGE)
+		double xOverlap = prefXDistance.getDouble();
+		double yOverlap = prefYDistance.getDouble();
+		if (prefSpacingType.getInt() == SPACING_EDGE)
 		{
-			xOverlap = bounds.getWidth() - lastXDistance;
-			yOverlap = bounds.getHeight() - lastYDistance;
+			xOverlap = bounds.getWidth() - prefXDistance.getDouble();
+			yOverlap = bounds.getHeight() - prefYDistance.getDouble();
 		}
 		double cX = bounds.getCenterX();
 		double cY = bounds.getCenterY();
@@ -443,7 +455,7 @@ public class Array extends EDialog
 			Geometric [] geomsToCheck = null;
 			boolean [] validity = null;
 			int checkNodeCount = 0;
-			if (lastDRCGood)
+			if (prefDRCGood.getBoolean())
 			{
 				geomsToCheck = new NodeInst[xRepeat * yRepeat];
 				validity = new boolean[xRepeat * yRepeat];
@@ -458,17 +470,17 @@ public class Array extends EDialog
 			{
 				int x = index % xRepeat;
 				int y = index / xRepeat;
-				if (lastTranspose)
+				if (prefTranspose.getBoolean())
 				{
 					y = index % yRepeat;
 					x = index / yRepeat;
 				}
 				int xIndex = x;
 				int yIndex = y;
-				if (lastXCenter) xIndex = x - (xRepeat-1)/2;
-				if (lastYCenter) yIndex = y - (yRepeat-1)/2;
-				if (lastXRepeat < 0) xIndex = -xIndex;
-				if (lastYRepeat < 0) yIndex = -yIndex;
+				if (prefXCenter.getBoolean()) xIndex = x - (xRepeat-1)/2;
+				if (prefYCenter.getBoolean()) yIndex = y - (yRepeat-1)/2;
+				if (prefXRepeat.getInt() < 0) xIndex = -xIndex;
+				if (prefYRepeat.getInt() < 0) yIndex = -yIndex;
 				if (xIndex == 0 && yIndex == 0)
 				{
 					originalX = x;
@@ -482,25 +494,25 @@ public class Array extends EDialog
 				for(NodeInst ni : nodeList)
 				{
 					double xPos = cX + xOverlap * xIndex;
-					if (lastLinearDiagonal && xRepeat == 1) xPos = cX + xOverlap * yIndex;
+					if (prefLinearDiagonal.getBoolean() && xRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
-					if (lastLinearDiagonal && yRepeat == 1) yPos = cY + yOverlap * xIndex;
+					if (prefLinearDiagonal.getBoolean() && yRepeat == 1) yPos = cY + yOverlap * xIndex;
 					double xOff = ni.getAnchorCenterX() - cX;
 					double yOff = ni.getAnchorCenterY() - cY;
-					if ((xIndex&1) != 0 && lastXStagger) yPos += yOverlap/2;
-					if ((yIndex&1) != 0 && lastYStagger) xPos += xOverlap/2;
-                    boolean flipX = false, flipY = false;
-					if ((xIndex&1) != 0 && lastXFlip)
+					if ((xIndex&1) != 0 && prefXStagger.getBoolean()) yPos += yOverlap/2;
+					if ((yIndex&1) != 0 && prefYStagger.getBoolean()) xPos += xOverlap/2;
+					boolean flipX = false, flipY = false;
+					if ((xIndex&1) != 0 && prefXFlip.getBoolean())
 					{
 						flipX = true;
 						xOff = -xOff;
 					}
-					if ((yIndex&1) != 0 && lastYFlip)
+					if ((yIndex&1) != 0 && prefYFlip.getBoolean())
 					{
 						flipY = true;
 						yOff = -yOff;
 					}
-                    Orientation orient = Orientation.fromJava(0, flipX, flipY).concatenate(ni.getOrient());
+					Orientation orient = Orientation.fromJava(0, flipX, flipY).concatenate(ni.getOrient());
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 						new Point2D.Double(xPos, yPos), ni.getXSize(), ni.getYSize(), cell, orient, null, 0);
@@ -511,7 +523,7 @@ public class Array extends EDialog
 					if (ni.isHardSelect()) newNi.setHardSelect(); else newNi.clearHardSelect();
 					newNi.setTechSpecific(ni.getTechSpecific());
 					newNi.copyVarsFrom(ni);
-					if (lastAddNames)
+					if (prefAddNames.getBoolean())
 					{
 						setNewName(newNi, x, y);
 					} else
@@ -525,7 +537,7 @@ public class Array extends EDialog
 					}
 
 					nodeMap.put(ni, newNi);
-					if (lastDRCGood && firstNode)
+					if (prefDRCGood.getBoolean() && firstNode)
 					{
 						geomsToCheck[checkNodeCount++] = newNi;
 						firstNode = false;
@@ -545,12 +557,12 @@ public class Array extends EDialog
 					double xOff1 = ai.getTailLocation().getX() - cX1;
 					double yOff1 = ai.getTailLocation().getY() - cY1;
 
-					if ((xIndex&1) != 0 && lastXFlip)
+					if ((xIndex&1) != 0 && prefXFlip.getBoolean())
 					{
 						xOff0 = -xOff0;
 						xOff1 = -xOff1;
 					}
-					if ((yIndex&1) != 0 && lastYFlip)
+					if ((yIndex&1) != 0 && prefYFlip.getBoolean())
 					{
 						yOff0 = -yOff0;
 						yOff1 = -yOff1;
@@ -567,12 +579,11 @@ public class Array extends EDialog
 					PortInst pi0 = ni0.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTailPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pi0,
-//					ArcInst newAi = ArcInst.makeInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), pi0,
-					    pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
+						pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);
 
-					if (lastAddNames)
+					if (prefAddNames.getBoolean())
 					{
 						setNewName(newAi, x, y);
 					} else
@@ -605,7 +616,7 @@ public class Array extends EDialog
 			}
 
 			// rename the replicated objects
-			if (lastAddNames)
+			if (prefAddNames.getBoolean())
 			{
 				for(NodeInst ni : nodeList)
 				{
@@ -618,7 +629,7 @@ public class Array extends EDialog
 			}
 
 			// if only arraying where DRC valid, check them now and delete what is not valid
-			if (lastDRCGood)
+			if (prefDRCGood.getBoolean())
 			{
 				Quick.checkDesignRules(null, cell, geomsToCheck, validity, null);
 				for(int i=1; i<checkNodeCount; i++)
@@ -645,16 +656,16 @@ public class Array extends EDialog
 					objName = geomName.toString();
 			}
 			String totalName = objName + x + "-" + y;
-			if (Math.abs(lastXRepeat) <= 1 || Math.abs(lastYRepeat) <= 1)
+			if (Math.abs(prefXRepeat.getInt()) <= 1 || Math.abs(prefYRepeat.getInt()) <= 1)
 				totalName = objName + (x+y);
-            if (geom instanceof NodeInst) {
+			if (geom instanceof NodeInst) {
 				NodeInst ni = (NodeInst)geom;
-                ni.setName(totalName);
-                if (ni.isCellInstance())
-                    ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
-            } else {
-                ((ArcInst)geom).setName(totalName);
-            }
+				ni.setName(totalName);
+				if (ni.isCellInstance())
+					ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
+			} else {
+				((ArcInst)geom).setName(totalName);
+			}
 		}
 	}
 
@@ -991,5 +1002,4 @@ public class Array extends EDialog
     private javax.swing.JTextField yRepeat;
     private javax.swing.JTextField ySpacing;
     // End of variables declaration//GEN-END:variables
-	
 }

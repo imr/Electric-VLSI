@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (1/7/08, SMR) Array command remembers all settings in preferences (Bug #1527).
+
 BUG: (1/6/08, DN) Compilation error in TechPool on Java 1.5.
 FIX: Copy AbstarctMap.SimpleImmutableEntry class from Java 1.6 into database.text directory.
 
