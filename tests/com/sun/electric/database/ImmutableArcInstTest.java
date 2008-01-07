@@ -164,38 +164,6 @@ public class ImmutableArcInstTest {
 
 
     /**
-     * Test of getLambdaFullWidth method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testGetLambdaFullWidth() {
-        System.out.println("getLambdaFullWidth");
-        assertEquals(15.0, a0.getLambdaFullWidth());
-    }
-
-    /**
-     * Test of getGridFullWidth method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testGetGridFullWidth() {
-        System.out.println("getGridFullWidth");
-        assertEquals(15*(long)DBMath.GRID, a0.getGridFullWidth());
-    }
-
-    /**
-     * Test of getLambdaBaseWidth method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testGetLambdaBaseWidth() {
-        System.out.println("getLambdaBaseWidth");
-        assertEquals(3.0, a0.getLambdaBaseWidth());
-    }
-
-    /**
-     * Test of getGridBaseWidth method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testGetGridBaseWidth() {
-        System.out.println("getGridBaseWidth");
-        assertEquals(3*(long)DBMath.GRID, a0.getGridBaseWidth());
-    }
-
-    /**
      * Test of getLambdaLength method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testGetLambdaLength() {
@@ -804,7 +772,7 @@ public class ImmutableArcInstTest {
             assertEquals(a0.headNodeId, a1.headNodeId);
             assertSame(a0.headPortId, a1.headPortId);
             assertEquals(a0.headLocation, a1.headLocation);
-            assertEquals(a0.getGridFullWidth(), a1.getGridFullWidth());
+            assertEquals(a0.getGridExtendOverMin(), a1.getGridExtendOverMin());
             assertEquals(a0.getAngle(), a1.getAngle());
             assertEquals(a0.flags, a1.flags);
         } catch (IOException e) {

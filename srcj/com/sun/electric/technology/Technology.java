@@ -2183,7 +2183,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
                 if (layerOverride != null) layer = layerOverride;
-                b.makeGridPoly(a, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
+                b.makeGridPoly(a, 2*(a.getGridExtendOverMin() + ap.getLayerGridExtend(i)), primLayer.getStyle(), layer);
             }
         }
 

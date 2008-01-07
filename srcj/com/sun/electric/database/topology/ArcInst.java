@@ -485,7 +485,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst oldD = d;
         
         // change the arc
-        lowLevelModify(d.withGridExtendOverMin(gridBaseWidth/2 - d.protoType.getGridBaseExtend()));
+        lowLevelModify(d.withGridExtendOverMin(gridBaseWidth/2 - getProto().getGridBaseExtend()));
         
         // track the change
         Constraints.getCurrent().modifyArcInst(this, oldD);
@@ -620,19 +620,19 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to return the full width of this ArcInst in grid units.
 	 * @return the full width of this ArcInst in grid units.
 	 */
-	public long getGridFullWidth() { return d.getGridFullWidth(); }
+	public long getGridFullWidth() { return 2*(d.getGridExtendOverMin() + getProto().getMaxLayerGridExtend()); }
 
 	/**
 	 * Method to return the base width of this ArcInst in lambda units.
 	 * @return the base width of this ArcInst in lambda units.
 	 */
-	public double getLambdaBaseWidth() { return d.getLambdaBaseWidth(); }
+	public double getLambdaBaseWidth() { return DBMath.gridToLambda(getGridBaseWidth()); }
 
 	/**
 	 * Method to return the base width of this ArcInst in grid units.
 	 * @return the base width of this ArcInst in grid units.
 	 */
-	public long getGridBaseWidth() { return d.getGridBaseWidth(); }
+	public long getGridBaseWidth() { return 2*(d.getGridExtendOverMin() + getProto().getGridBaseExtend()); }
 
 	/**
 	 * Method to return the length of this ArcInst in lambda units.
@@ -1018,7 +1018,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         lowLevelModify(d.withName(key));
         if (doSmart)
         {
-    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), d.getLambdaFullWidth(), d.nameDescriptor);
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), getLambdaBaseWidth(), d.nameDescriptor);
+//    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), d.getLambdaFullWidth(), d.nameDescriptor);
         	if (smartDescriptor != null) setTextDescriptor(ARC_NAME, smartDescriptor);
         }
 

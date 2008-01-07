@@ -262,30 +262,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public boolean isUsernamed() { return !name.isTempname();	}
 
     /**
-     * Returns full width of this ImmutableArcInst in lambda units.
-     * @return full width of this ImmutableArcInst in lambda units.
-     */
-    public double getLambdaFullWidth() { return DBMath.gridToLambda(getGridFullWidth()); }
-    
-    /**
-     * Returns full width of this ImmutableArcInst in grid units.
-     * @return full width of this ImmutableArcInst in grid units.
-     */
-    public long getGridFullWidth() { return 2*(gridExtendOverMin + protoType.getGridFullExtend()); }
-    
-    /**
-     * Returns base width of this ImmutableArcInst in lambda units.
-     * @return base width of this ImmutableArcInst in lambda units.
-     */
-    public double getLambdaBaseWidth() { return DBMath.gridToLambda(getGridBaseWidth()); }
-    
-    /**
-     * Returns base width of this ImmutableArcInst in grid units.
-     * @return base width of this ImmutableArcInst in grid units.
-     */
-    public long getGridBaseWidth() { return 2*(gridExtendOverMin + protoType.getGridBaseExtend()); }
-    
-    /**
      * Returns extend of this ImmutableArcInst over minimal-width arc of this type in lambda units.
      * @return extend of this ImmutableArcInst over minimal-width arc of this type in lambda units.
      */

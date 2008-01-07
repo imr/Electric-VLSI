@@ -387,7 +387,8 @@ public abstract class AbstractShapeBuilder {
                 maxNodeId = Math.max(maxNodeId, cellRevision.nodes.get(nodeIndex).nodeId);
             int[] angles = new int[maxNodeId+1];
             for (ImmutableArcInst a: cellRevision.arcs) {
-                if (a.getGridFullWidth() == 0) continue;
+                ArcProto ap = a.protoType;
+                if (a.getGridExtendOverMin() + ap.getMaxLayerGridExtend() == 0) continue;
                 if (a.tailNodeId == a.headNodeId && a.tailPortId == a.headPortId) {
                     // Fake register for full shrinkage
                     registerArcEnd(angles, a.tailNodeId, 0, false, false);
