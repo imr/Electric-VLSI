@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: CellIdTest.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -33,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- *
+ * Unit tests of CellId
  */
 public class CellIdTest {
     

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EPointTest.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
@@ -24,14 +25,13 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
-import java.io.Serializable;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- *
+ * Unit test of EPoint
  */
 public class EPointTest {
     

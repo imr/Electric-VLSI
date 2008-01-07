@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: OrientationTest.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -24,19 +25,12 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
-import java.util.HashMap;
-import com.sun.electric.tool.io.FileType;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
- *
- * @author dn146861
+ * Unit test of Orientation
  */
 public class OrientationTest {
     

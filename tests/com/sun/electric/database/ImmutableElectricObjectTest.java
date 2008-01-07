@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableElectrciObjectTest.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -41,7 +42,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
- *
+ * Unit test of ImmutableElectricObject
  */
 public class ImmutableElectricObjectTest {
     

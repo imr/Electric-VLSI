@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableArcInstTest.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
@@ -60,7 +61,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- *
+ * Unit test of ImmutableArcInst
  */
 public class ImmutableArcInstTest {
     
