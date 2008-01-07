@@ -25,20 +25,73 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdManager;
 
+import java.io.Externalizable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidObjectException;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.ObjectOutput;
 
 /**
- * EObjectInputStream resolves Electric objects in sepcified database from Key objects.
+ * EObjectInputStream resolves Electric objects in specified database from Key objects.
  */
 public class EObjectInputStream extends ObjectInputStream {
     
-    public abstract static class Key implements Serializable {
-        protected abstract Object readResolveInDatabase(EDatabase database) throws InvalidObjectException;
+    public abstract static class Key<T> implements Externalizable {
+        private T obj;
+        
+        public Key(T obj) {
+            this.obj = obj;
+        }
+	
+        public void writeExternal(ObjectOutput out) throws IOException {
+            writeExternal((EObjectOutputStream)out, obj);
+        }
+
+        public Key() {
+        }
+        
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            obj = readExternal((EObjectInputStream)in);
+        }
+
+        /**
+         * The class implements the writeExternal method to save an object
+         * by calling the methods of DataOutput for its primitive values or
+         * calling the writeObject method of ObjectOutput for objects, strings,
+         * and arrays. This method can get context by methods
+         * of EObjectOutputStream like getDatabase and getIdManager.
+         *
+         * @serialData Overriding methods should use this tag to describe
+         *             the data layout of this Externalizable object.
+         *             List the sequence of element types and, if possible,
+         *             relate the element to a public/protected field and/or
+         *             method of this Externalizable class.
+         *
+         * @param out the EObjectOutputStream stream to write the object to
+         * @param obj object to save
+         * @exception IOException Includes any I/O exceptions that may occur
+         */
+        public abstract void writeExternal(EObjectOutputStream out, T obj) throws IOException;
+        
+        /**
+         * The oclass implements the readExternal method to restore an
+         * object by calling the methods of DataInput for primitive
+         * types and readObject for objects, strings and arrays.  The
+         * readExternal method must read the values in the same sequence
+         * and with the same types as were written by writeExternal.
+         * This method can get context by methods
+         * of EObjectOutputStream like getDatabase and getIdManager.
+         *
+         * @param in the stream to read data from in order to restore the object
+         * @return restored object
+         * @exception IOException if I/O errors occur
+         * @exception ClassNotFoundException If the class for an object being
+         *              restored cannot be found.
+         */
+        public abstract T readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException;
     }
     
     private final EDatabase database;
@@ -52,7 +105,15 @@ public class EObjectInputStream extends ObjectInputStream {
     
     protected Object resolveObject(Object obj) throws IOException {
         if (obj instanceof Key)
-            return ((Key)obj).readResolveInDatabase(database);
+            return ((Key)obj).obj;
         return obj;
+    }
+    
+    public EDatabase getDatabase() {
+        return database;
+    }
+
+    public IdManager getIdManager() {
+        return database.getIdManager();
     }
 }

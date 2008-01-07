@@ -24,6 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
@@ -32,7 +33,6 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -51,8 +51,9 @@ import com.sun.electric.tool.user.User;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.NotSerializableException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -134,22 +135,26 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	}
 
     private Object writeReplace() { return new ArcInstKey(this); }
-
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ArcInst"); }
     
-    private static class ArcInstKey extends EObjectInputStream.Key {
-        Cell cell;
-        int arcId;
+    private static class ArcInstKey extends EObjectInputStream.Key<ArcInst> {
+        public ArcInstKey() {}
+        private ArcInstKey(ArcInst ai) { super(ai); }
         
-        private ArcInstKey(ArcInst ai) {
-            assert ai.isLinked();
-            cell = ai.getParent();
-            arcId = ai.getD().arcId;
+        @Override
+        public void writeExternal(EObjectOutputStream out, ArcInst ai) throws IOException {
+            if (ai.getDatabase() != out.getDatabase() || !ai.isLinked())
+                throw new NotSerializableException(ai + " not linked");
+            out.writeObject(ai.getParent());
+            out.writeInt(ai.getD().arcId);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+        @Override
+        public ArcInst readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            Cell cell = (Cell)in.readObject();
+            int arcId = in.readInt();
             ArcInst ai = cell.getArcById(arcId);
-            if (ai == null) throw new InvalidObjectException("ArcInst");
+            if (ai == null)
+                throw new InvalidObjectException("ArcInst from " + cell);
             return ai;
         }
     }

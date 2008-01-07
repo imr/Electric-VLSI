@@ -26,6 +26,7 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
@@ -33,8 +34,8 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Name;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 
 
@@ -72,19 +73,25 @@ public final class ExportId implements PortProtoId, Serializable {
     }
     
     private Object writeReplace() { return new ExportIdKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ExportId"); }
     
-    private static class ExportIdKey extends EObjectInputStream.Key {
-        private final int cellIndex;
-        private final int chronIndex;
+    private static class ExportIdKey extends EObjectInputStream.Key<ExportId> {
+        public ExportIdKey() {}
+        private ExportIdKey(ExportId exportId) { super(exportId); }
         
-        private ExportIdKey(ExportId exportId) {
-            cellIndex = exportId.parentId.cellIndex;
-            chronIndex = exportId.chronIndex;
+        @Override
+        public void writeExternal(EObjectOutputStream out, ExportId exportId) throws IOException {
+            CellId cellId = exportId.parentId;
+            if (cellId.idManager != out.getIdManager())
+                throw new NotSerializableException(exportId + " from other IdManager");
+            out.writeInt(cellId.cellIndex);
+            out.writeInt(exportId.chronIndex);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            return database.getIdManager().getCellId(cellIndex).getPortId(chronIndex);
+        @Override
+        public ExportId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int cellIndex = in.readInt();
+            int chronIndex = in.readInt();
+            return in.getIdManager().getCellId(cellIndex).getPortId(chronIndex);
         }
     }
     

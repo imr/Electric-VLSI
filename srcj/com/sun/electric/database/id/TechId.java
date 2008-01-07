@@ -25,11 +25,12 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.Technology;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,20 +70,25 @@ public final class TechId implements Serializable {
     }
     
     private Object writeReplace() { return new TechIdKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("TechId"); }
     
-    private static class TechIdKey extends EObjectInputStream.Key {
-        private final int techIndex;
+    private static class TechIdKey extends EObjectInputStream.Key<TechId> {
+        public TechIdKey() {}
+        private TechIdKey(TechId techId) { super(techId); }
         
-        private TechIdKey(TechId techId) {
-            techIndex = techId.techIndex;
+        @Override
+        public void writeExternal(EObjectOutputStream out, TechId techId) throws IOException {
+            if (techId.idManager != out.getIdManager())
+                throw new NotSerializableException(techId + " from other IdManager");
+            out.writeInt(techId.techIndex);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            return database.getIdManager().getTechId(techIndex);
+        @Override
+        public TechId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int techIndex = in.readInt();
+            return in.getIdManager().getTechId(techIndex);
         }
     }
-         
+    
     /**
      * Returns a number ArcProtoIds in this TechId.
      * This number may grow in time.

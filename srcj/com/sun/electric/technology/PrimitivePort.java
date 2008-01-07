@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -34,14 +36,17 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 
 /**
  * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
  * It contains a list of ArcProto types that it
  * accepts connections from.
  */
-public class PrimitivePort implements PortProtoId, PortProto, Comparable<PrimitivePort>
+public class PrimitivePort implements PortProtoId, PortProto, Comparable<PrimitivePort>, Serializable
 {
 	// ---------------------------- private data --------------------------
 	private Name name; // The name of this PrimitivePort.
@@ -87,6 +92,29 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 //        tech.addPortProto(this);
 	}
 
+    protected Object writeReplace() { return new PrimitivePortKey(this); }
+    
+    private static class PrimitivePortKey extends EObjectInputStream.Key<PrimitivePort> {
+        public PrimitivePortKey() {}
+        private PrimitivePortKey(PrimitivePort pp) { super(pp); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, PrimitivePort pp) throws IOException {
+            out.writeObject(pp.getParent());
+            out.writeInt(pp.getPortIndex());
+        }
+        
+        @Override
+        public PrimitivePort readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            PrimitiveNode pn = (PrimitiveNode)in.readObject();
+            int portIndex = in.readInt();
+            PrimitivePort pp = pn.getPort(portIndex);
+            if (pp == null)
+                throw new InvalidObjectException("primitive port not linked");
+            return pp;
+        }
+    }
+    
 	/**
 	 * Method to set an index of this PrimtivePort in PrimitiveNode ports.
 	 * This is a zero-based index of ports on the PrimitiveNode.

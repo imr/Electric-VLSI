@@ -29,16 +29,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
 import java.awt.Component;
@@ -65,6 +62,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
     }
     
     public EDatabase getDatabase() { return database; }
+    public IdManager getIdManager() { return database.getIdManager(); }
     
     /** 
      * This method will allow trusted subclasses of ObjectOutputStream to
@@ -108,14 +106,11 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof ElectricObject && ((ElectricObject)obj).getDatabase() != database)
             throw new NotSerializableException("other database");
         if (obj instanceof View) return new EView((View)obj);
-        if (obj instanceof PrimitiveNode) return new EPrimitiveNode((PrimitiveNode)obj);
-        if (obj instanceof PrimitivePort) return new EPrimitivePort((PrimitivePort)obj);
-        if (obj instanceof ArcProto) return new EArcProto((ArcProto)obj);
         if (obj instanceof Tool) return new ETool((Tool)obj);
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
         if (obj instanceof TextDescriptor) return new ETextDescriptor((TextDescriptor)obj);
-        if (obj instanceof Network) return new ENetwork((Network)obj);
-        if (obj instanceof Nodable) return new ENodable((Nodable)obj);
+        if (obj instanceof Network) return new ENetwork((Network)obj, database);
+        if (obj instanceof Nodable) return new ENodable((Nodable)obj, database);
 
         if (obj instanceof Component) {
             throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
@@ -135,58 +130,6 @@ public class EObjectOutputStream extends ObjectOutputStream {
             View view = View.findView(abbreviation);
             if (view == null) throw new InvalidObjectException("View");
             return view;
-        }
-    }
-    
-    private static class EPrimitiveNode implements Serializable {
-        String techName, primName;
-        
-        private EPrimitiveNode(PrimitiveNode pn) {
-            techName = pn.getTechnology().getTechName();
-            primName = pn.getName();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Technology tech = Technology.findTechnology(techName);
-            PrimitiveNode pn = tech.findNodeProto(primName);
-            if (pn == null) throw new InvalidObjectException("PrimitiveNode");
-            return pn;
-        }
-    }
-    
-    private static class EPrimitivePort implements Serializable {
-        String techName, primName;
-        int portIndex;
-        
-        private EPrimitivePort(PrimitivePort pp) {
-            PrimitiveNode pn = pp.getParent();
-            techName = pn.getTechnology().getTechName();
-            primName = pn.getName();
-            portIndex = pp.getPortIndex();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Technology tech = Technology.findTechnology(techName);
-            PrimitiveNode pn = tech.findNodeProto(primName);
-            PrimitivePort pp = pn.getPort(portIndex);
-            if (pp == null) throw new InvalidObjectException("PrimitivePort");
-            return pp;
-        }
-    }
-    
-    private static class EArcProto implements Serializable {
-        String techName, arcName;
-        
-        private EArcProto(ArcProto ap) {
-            techName = ap.getTechnology().getTechName();
-            arcName = ap.getName();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Technology tech = Technology.findTechnology(techName);
-            ArcProto ap = tech.findArcProto(arcName);
-            if (ap == null) throw new InvalidObjectException("ArcProto");
-            return ap;
         }
     }
     
@@ -253,10 +196,14 @@ public class EObjectOutputStream extends ObjectOutputStream {
         int netIndex;
         Netlist.ShortResistors shortResistors;
         
-        private ENetwork(Network net) {
+        private ENetwork(Network net, EDatabase database) throws NotSerializableException {
             cell = net.getParent();
+            if (cell.getDatabase() != database || !cell.isLinked())
+                throw new NotSerializableException(cell + " not linked");
             netIndex = net.getNetIndex();
             shortResistors = net.getNetlist().getShortResistors();
+            if (cell.getNetlist(shortResistors).getNetwork(netIndex) != net)
+               throw new NotSerializableException(net + " not linked");
         }
         
         private Object readResolve() throws ObjectStreamException {
@@ -272,8 +219,10 @@ public class EObjectOutputStream extends ObjectOutputStream {
         Cell cell;
         String nodableName;
         
-        private ENodable(Nodable no) {
+        private ENodable(Nodable no, EDatabase database) throws NotSerializableException {
             cell = no.getParent();
+            if (cell.getDatabase() != database || !cell.isLinked())
+                throw new NotSerializableException(cell + " not linked");
             nodableName = no.getName();
         }
         

@@ -24,13 +24,14 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
@@ -120,17 +121,22 @@ public final class CellId implements NodeProtoId, Serializable {
     }
     
     private Object writeReplace() { return new CellIdKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("CellId"); }
     
-    private static class CellIdKey extends EObjectInputStream.Key {
-        private final int cellIndex;
+    private static class CellIdKey extends EObjectInputStream.Key<CellId> {
+        public CellIdKey() {}
+        private CellIdKey(CellId cellId) { super(cellId); }
         
-        private CellIdKey(CellId cellId) {
-            cellIndex = cellId.cellIndex;
+        @Override
+        public void writeExternal(EObjectOutputStream out, CellId cellId) throws IOException {
+            if (cellId.idManager != out.getIdManager())
+                throw new NotSerializableException(cellId + " from other IdManager");
+            out.writeInt(cellId.cellIndex);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            return database.getIdManager().getCellId(cellIndex);
+        @Override
+        public CellId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int cellIndex = in.readInt();
+            return in.getIdManager().getCellId(cellIndex);
         }
     }
     

@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibraryBackup;
@@ -40,9 +41,9 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.io.ObjectStreamException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -169,21 +170,25 @@ public class Library extends ElectricObject implements Comparable<Library>
     /**
      * Method for serialization.
      */
-    private Object writeReplace() throws ObjectStreamException { return new LibraryKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Library"); }
+    private Object writeReplace() { return new LibraryKey(this); }
     
-    private static class LibraryKey extends EObjectInputStream.Key {
-        LibId libId;
+    private static class LibraryKey extends EObjectInputStream.Key<Library> {
+        public LibraryKey() {}
+        private LibraryKey(Library lib) { super(lib); }
         
-        private LibraryKey(Library lib) throws NotSerializableException {
-            if (!lib.isLinked())
-                throw new NotSerializableException(lib.toString());
-            libId = lib.getId();
+        @Override
+        public void writeExternal(EObjectOutputStream out, Library lib) throws IOException {
+            if (lib.getDatabase() != out.getDatabase() || !lib.isLinked())
+                throw new NotSerializableException(lib + " not linked");
+            out.writeObject(lib.getId());
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Library lib = database.getLib(libId);
-            if (lib == null) throw new InvalidObjectException("Library");
+        @Override
+        public Library readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            LibId libId = (LibId)in.readObject();
+            Library lib = libId.inDatabase(in.getDatabase());
+            if (lib == null)
+                throw new InvalidObjectException(libId + " not linked");
             return lib;
         }
     }

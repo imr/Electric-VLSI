@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -38,6 +39,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.Netlist;
@@ -77,6 +79,7 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
@@ -390,25 +393,30 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             tech = database.getTech(d.techId);
 	}
 
-    private Object writeReplace() throws ObjectStreamException { return new CellKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Cell"); }
-
-    private static class CellKey extends EObjectInputStream.Key {
-        CellId cellId;
-
-        private CellKey(Cell cell) throws NotSerializableException {
-            if (!cell.isLinked())
-                throw new NotSerializableException(cell.toString());
-            cellId = cell.getId();
+    private Object writeReplace() { return new CellKey(this); }
+    
+    private static class CellKey extends EObjectInputStream.Key<Cell> {
+        public CellKey() {}
+        private CellKey(Cell cell) { super(cell); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, Cell cell) throws IOException {
+            CellId cellId = cell.getId();
+            if (cell.getDatabase() != out.getDatabase() || !cell.isLinked())
+                throw new NotSerializableException(cell + " not linked");
+            out.writeObject(cellId);
         }
-
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Cell cell = database.getCell(cellId);
-            if (cell == null) throw new InvalidObjectException("Cell");
+        
+        @Override
+        public Cell readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            CellId cellId = (CellId)in.readObject();
+            Cell cell = cellId.inDatabase(in.getDatabase());
+            if (cell == null)
+                throw new InvalidObjectException(cellId + " not linked");
             return cell;
         }
     }
-
+         
 	/****************************** CREATE, DELETE ******************************/
 
 	/**

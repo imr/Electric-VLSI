@@ -163,10 +163,21 @@
            </classpath>
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
-           <arg value="com.sun.electric.database.IdManagerTest"/>
+           <arg value="com.sun.electric.database.ImmutableArcInstTest"/>
+           <arg value="com.sun.electric.database.ImmutableCellTest"/>
+           <arg value="com.sun.electric.database.ImmutableElectricObjectTest"/>
+           <arg value="com.sun.electric.database.ImmutableNodeInstTest"/>
+           <arg value="com.sun.electric.database.SerializationTest"/>
            <arg value="com.sun.electric.database.SnapshotTest"/>
-           <arg value="com.sun.electric.database.geomerty.GenMathTest"/>
+           <arg value="com.sun.electric.database.geometry.EPointTest"/>
+           <arg value="com.sun.electric.database.geometry.ERectangleTest"/>
+           <arg value="com.sun.electric.database.geometry.GenMathTest"/>
            <arg value="com.sun.electric.database.geometry.OrientationTest"/>
+           <arg value="com.sun.electric.database.id.CellIdTest"/>
+           <arg value="com.sun.electric.database.id.IdManagerTest"/>
+           <arg value="com.sun.electric.database.id.IdReaderWriterTest"/>
+           <arg value="com.sun.electric.database.id.TechIdTest"/>
+           <arg value="com.sun.electric.database.variable.TextDescriptorTest"/>
         </java>
     </target>
 

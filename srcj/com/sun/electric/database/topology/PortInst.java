@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,6 +63,12 @@ public class PortInst extends ElectricObject
         this.nodeInst = nodeInst;
     }
 
+    private Object writeReplace() throws NotSerializableException {
+        if (!isLinked())
+            throw new NotSerializableException(this + " not linked");
+        return this;
+    }
+    
     private Object readResolve() throws ObjectStreamException {
         if (nodeInst.getProto() != portProto.getParent()) throw new InvalidObjectException("PortInst");
         PortInst pi = nodeInst.findPortInstFromProto(portProto);

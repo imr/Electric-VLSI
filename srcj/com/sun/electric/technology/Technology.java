@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -35,6 +36,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -68,9 +70,9 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.io.ObjectStreamException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
@@ -119,7 +121,7 @@ import javax.swing.SwingUtilities;
  * </UL>
  * @author Steven M. Rubin
  */
-public class Technology implements Comparable<Technology>
+public class Technology implements Comparable<Technology>, Serializable
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
     public static final Technology[] NULL_ARRAY = {};
@@ -761,6 +763,7 @@ public class Technology implements Comparable<Technology>
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
+    /** array of arcs by arcId.chronIndex */                private ArcProto[] arcsByChronIndex = {};
     /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>();
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
@@ -851,25 +854,33 @@ public class Technology implements Comparable<Technology>
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
 	}
 
-    private Object writeReplace() throws ObjectStreamException { return new TechKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Cell"); }
-
-    private static class TechKey extends EObjectInputStream.Key {
-        TechId techId;
-
-        private TechKey(Technology tech) throws NotSerializableException {
-//            if (cell.isLinked())
-//                throw new NotSerializableException(cell.toString());
-            techId = tech.getId();
+    protected Object writeReplace() { return new TechnologyKey(this); }
+    
+    private static class TechnologyKey extends EObjectInputStream.Key<Technology> {
+        public TechnologyKey() {}
+        private TechnologyKey(Technology tech) { super(tech); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, Technology tech) throws IOException {
+            TechId techId = tech.getId();
+            if (techId.idManager != out.getIdManager())
+                throw new NotSerializableException(tech + " from other IdManager");
+            if (out.getDatabase().getTechPool().getTech(techId) != tech)
+                throw new NotSerializableException(tech + " not linked");
+            out.writeInt(techId.techIndex);
         }
-
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Technology tech = database.getTech(techId);
-            if (tech == null) throw new InvalidObjectException("Tech");
+        
+        @Override
+        public Technology readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int techIndex = in.readInt();
+            TechId techId = in.getIdManager().getTechId(techIndex);
+            Technology tech = in.getDatabase().getTech(techId);
+            if (tech == null)
+                throw new InvalidObjectException(techId + " not linked");
             return tech;
         }
     }
-
+    
     public Technology(Generic generic, Xml.Technology t) {
         this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
@@ -2004,6 +2015,28 @@ public class Technology implements Comparable<Technology>
 	}
 
 	/**
+	 * Returns the ArcProto in this technology with a particular Id
+	 * @param arcProtoId the Id of the ArcProto.
+	 * @return the ArcProto in this technology with that Id.
+	 */
+	public ArcProto getArcProto(ArcProtoId arcProtoId)
+	{
+        assert arcProtoId.techId == techId;
+        int chronIndex = arcProtoId.chronIndex;
+        return chronIndex < arcsByChronIndex.length ? arcsByChronIndex[chronIndex] : null;
+	}
+
+	/**
+	 * Returns the ArcProto in this technology with a particular chron index
+	 * @param chron index the Id of the ArcProto.
+	 * @return the ArcProto in this technology with that Id.
+	 */
+	ArcProto getArcProto(int chronIndex)
+	{
+        return chronIndex < arcsByChronIndex.length ? arcsByChronIndex[chronIndex] : null;
+	}
+
+	/**
 	 * Returns an Iterator on the ArcProto objects in this technology.
 	 * @return an Iterator on the ArcProto objects in this technology.
 	 */
@@ -2037,6 +2070,13 @@ public class Technology implements Comparable<Technology>
 		assert findArcProto(ap.getName()) == null;
 		assert ap.primArcIndex == arcs.size();
 		arcs.put(ap.getName(), ap);
+        ArcProtoId arcProtoId = ap.getId();
+        if (arcProtoId.chronIndex >= arcsByChronIndex.length) {
+            ArcProto[] newArcsByChronIndex = new ArcProto[arcProtoId.chronIndex + 1];
+            System.arraycopy(arcsByChronIndex, 0, newArcsByChronIndex, 0, arcsByChronIndex.length);
+            arcsByChronIndex = newArcsByChronIndex;
+        }
+        arcsByChronIndex[arcProtoId.chronIndex] = ap;
 	}
 
 	/**

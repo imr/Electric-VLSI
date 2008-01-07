@@ -23,16 +23,23 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,7 +57,7 @@ import java.util.NoSuchElementException;
  * <P>
  * The basic ArcProto has a name, default width, function, Layers that describes it graphically and more.
  */
-public class ArcProto implements Comparable<ArcProto>
+public class ArcProto implements Comparable<ArcProto>, Serializable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of an ArcProto.
@@ -287,6 +294,29 @@ public class ArcProto implements Comparable<ArcProto>
         getArcProtoExtendPref(DBMath.gridToLambda(gridExtendOverMin));
 	}
 
+    protected Object writeReplace() { return new ArcProtoKey(this); }
+    
+    private static class ArcProtoKey extends EObjectInputStream.Key<ArcProto> {
+        public ArcProtoKey() {}
+        private ArcProtoKey(ArcProto ap) { super(ap); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, ArcProto ap) throws IOException {
+            out.writeObject(ap.getTechnology());
+            out.writeInt(ap.getId().chronIndex);
+        }
+        
+        @Override
+        public ArcProto readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            Technology tech = (Technology)in.readObject();
+            int chronIndex = in.readInt();
+            ArcProto ap = tech.getArcProto(chronIndex);
+            if (ap == null)
+                throw new InvalidObjectException("arc proto not found");
+            return ap;
+        }
+    }
+    
 	// ------------------------ public methods -------------------------------
 
 	/**

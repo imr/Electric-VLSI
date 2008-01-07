@@ -25,6 +25,7 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -70,9 +71,9 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -159,23 +160,27 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
     }
     
-    private Object writeReplace() throws ObjectStreamException { return new NodeInstKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("NodeInst"); }
+    private Object writeReplace() { return new NodeInstKey(this); }
     
-    private static class NodeInstKey extends EObjectInputStream.Key {
-        Cell cell;
-        int nodeId;
+    private static class NodeInstKey extends EObjectInputStream.Key<NodeInst> {
+        public NodeInstKey() {}
+        private NodeInstKey(NodeInst ni) { super(ni); }
         
-        private NodeInstKey(NodeInst ni) throws NotSerializableException {
-            if (!ni.isLinked())
-                throw new NotSerializableException(ni.toString());
-            cell = ni.getParent();
-            nodeId = ni.getD().nodeId;
+        @Override
+        public void writeExternal(EObjectOutputStream out, NodeInst ni) throws IOException {
+            if (ni.getDatabase() != out.getDatabase() || !ni.isLinked())
+                throw new NotSerializableException(ni + " not linked");
+            out.writeObject(ni.getParent());
+            out.writeInt(ni.getD().nodeId);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+        @Override
+        public NodeInst readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            Cell cell = (Cell)in.readObject();
+            int nodeId = in.readInt();
             NodeInst ni = cell.getNodeById(nodeId);
-            if (ni == null) throw new InvalidObjectException("NodeInst");
+            if (ni == null)
+                throw new InvalidObjectException("NodeInst from " + cell);
             return ni;
         }
     }

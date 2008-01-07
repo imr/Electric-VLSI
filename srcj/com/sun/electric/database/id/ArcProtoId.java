@@ -25,19 +25,21 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.Serializable;
 
 /**
  * The ArcProtoId immutable class identifies arc proto independently of threads.
  * It differs from ArcProto objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method.
  */
-public class ArcProtoId {
+public class ArcProtoId implements Serializable {
     /** TechId of this ArcProtoId. */
     public final TechId techId;
     /** ArcProto name */
@@ -61,22 +63,28 @@ public class ArcProtoId {
      }
     
     private Object writeReplace() { return new ArcProtoIdKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ArcProtoId"); }
     
-    private static class ArcProtoIdKey extends EObjectInputStream.Key {
-        private final int techIndex;
-        private final int chronIndex;
-       
-        private ArcProtoIdKey(ArcProtoId arcProtoId) {
-            techIndex = arcProtoId.techId.techIndex;
-            chronIndex = arcProtoId.chronIndex;
+    private static class ArcProtoIdKey extends EObjectInputStream.Key<ArcProtoId> {
+        public ArcProtoIdKey() {}
+        private ArcProtoIdKey(ArcProtoId arcProtoId) { super(arcProtoId); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, ArcProtoId arcProtoId) throws IOException {
+            TechId techId = arcProtoId.techId;
+            if (techId.idManager != out.getIdManager())
+                throw new NotSerializableException(arcProtoId + " from other IdManager");
+            out.writeInt(techId.techIndex);
+            out.writeInt(arcProtoId.chronIndex);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            return database.getIdManager().getTechId(techIndex).getArcProtoId(chronIndex);
+        @Override
+        public ArcProtoId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int techIndex = in.readInt();
+            int chronIndex = in.readInt();
+            return in.getIdManager().getTechId(techIndex).getArcProtoId(chronIndex);
         }
     }
-         
+    
     /**
      * Method to return the ArcProto representing ArcProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.

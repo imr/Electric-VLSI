@@ -24,11 +24,13 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -54,6 +56,7 @@ import com.sun.electric.tool.user.dialogs.BusParameters;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
@@ -99,21 +102,26 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
     
-    private Object writeReplace() throws ObjectStreamException { return new ExportKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Export"); }
+    private Object writeReplace() { return new ExportKey(this); }
     
-    private static class ExportKey extends EObjectInputStream.Key {
-        ExportId exportId;
+    private static class ExportKey extends EObjectInputStream.Key<Export> {
+        public ExportKey() {}
+        private ExportKey(Export export) { super(export); }
         
-        private ExportKey(Export export) throws NotSerializableException {
-            if (!export.isLinked())
-                throw new NotSerializableException(export.toString());
-            exportId = export.getId();
+        @Override
+        public void writeExternal(EObjectOutputStream out, Export export) throws IOException {
+            ExportId exportId = export.getId();
+            if (export.getDatabase() != out.getDatabase() || !export.isLinked())
+                throw new NotSerializableException(export + " not linked");
+            out.writeObject(exportId);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Export export = exportId.inDatabase(database);
-            if (export == null) throw new InvalidObjectException("Export");
+        @Override
+        public Export readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            ExportId exportId = (ExportId)in.readObject();
+            Export export = exportId.inDatabase(in.getDatabase());
+            if (export == null)
+                throw new InvalidObjectException(exportId + " not linked");
             return export;
         }
     }

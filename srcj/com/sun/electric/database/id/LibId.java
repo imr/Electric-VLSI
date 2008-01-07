@@ -25,12 +25,13 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.CellName;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectStreamException;
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,17 +68,22 @@ public final class LibId implements Serializable {
     }
     
     private Object writeReplace() { return new LibIdKey(this); }
-    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("LibId"); }
     
-    private static class LibIdKey extends EObjectInputStream.Key {
-        private final int libIndex;
+    private static class LibIdKey extends EObjectInputStream.Key<LibId> {
+        public LibIdKey() {}
+        private LibIdKey(LibId libId) { super(libId); }
         
-        private LibIdKey(LibId libId) {
-            libIndex = libId.libIndex;
+        @Override
+        public void writeExternal(EObjectOutputStream out, LibId libId) throws IOException {
+            if (libId.idManager != out.getIdManager())
+                throw new NotSerializableException(libId + " from other IdManager");
+            out.writeInt(libId.libIndex);
         }
         
-        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            return database.getIdManager().getLibId(libIndex);
+        @Override
+        public LibId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            int libIndex = in.readInt();
+            return in.getIdManager().getLibId(libIndex);
         }
     }
          

@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
@@ -39,7 +41,10 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
+import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,7 +57,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<PrimitiveNode>
+public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<PrimitiveNode>, Serializable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -567,6 +572,29 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		tech.addNodeProto(this);
 	}
 
+    protected Object writeReplace() { return new PrimitiveNodeKey(this); }
+    
+    private static class PrimitiveNodeKey extends EObjectInputStream.Key<PrimitiveNode> {
+        public PrimitiveNodeKey() {}
+        private PrimitiveNodeKey(PrimitiveNode pn) { super(pn); }
+        
+        @Override
+        public void writeExternal(EObjectOutputStream out, PrimitiveNode pn) throws IOException {
+            out.writeObject(pn.getTechnology());
+            out.writeUTF(pn.getName());
+        }
+        
+        @Override
+        public PrimitiveNode readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            Technology tech = (Technology)in.readObject();
+            String primName = in.readUTF();
+            PrimitiveNode np = tech.findNodeProto(primName);
+            if (np == null)
+                throw new InvalidObjectException("primitive node not linked");
+            return np;
+        }
+    }
+    
 	// ------------------------- public methods -------------------------------
 
 	/**
