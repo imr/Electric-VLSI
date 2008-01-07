@@ -2,10 +2,10 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ImmutableArcInst.java
+ * File: TechPool.java
  * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,13 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -274,6 +276,45 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         return univList;
     }
 
+	/**
+	 * Checks invariants in this TechPool.
+     * @exception AssertionError if invariants are not valid
+	 */
+    public void check() {
+        int size = 0;
+        int arcCount = 0;
+        for (int techIndex = 0; techIndex < techs.length; techIndex++) {
+            Technology tech = techs[techIndex];
+            if (tech == null) continue;
+            size++;
+            TechId techId = tech.getId();
+            assert techId.idManager == idManager;
+            assert techId.techIndex == techIndex;
+            assert idManager.getTechId(techIndex) == techId;
+            assert get(techId) == tech;
+            assert containsKey(techId);
+            assert containsValue(tech);
+            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                ArcProto ap = it.next();
+                assert univList[arcCount++] == ap;
+            }
+        }
+        assert size == size();
+        assert size == 0 || techs[size - 1] != null;
+        assert arcCount == univList.length;
+        TechId prevTechId = null;
+        for (Entry<TechId,Technology> e: entrySet()) {
+            assert entrySet.contains(e);
+            TechId techId = e.getKey();
+            Technology tech = e.getValue();
+            assert techId == tech.getId();
+            assert techs[techId.techIndex] == tech;
+            if (prevTechId != null)
+                assert TextUtils.STRING_NUMBER_ORDER.compare(prevTechId.techName, techId.techName) < 0;
+            prevTechId = techId;
+        }
+    }
+    
     private class EntrySet extends AbstractSet<Entry<TechId, Technology>> {
         private final Entry<TechId,Technology>[] entries;
 

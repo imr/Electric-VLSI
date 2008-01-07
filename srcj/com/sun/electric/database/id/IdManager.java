@@ -26,8 +26,8 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.CellName;
-
 import com.sun.electric.technology.TechPool;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

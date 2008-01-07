@@ -26,6 +26,7 @@ package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
@@ -36,6 +37,7 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -127,8 +129,14 @@ public class CellBackup {
 	 * Checks invariant of this CellBackup.
 	 * @throws AssertionError if invariant is broken.
 	 */
-    public void check() {
+    public void check(TechPool techPool) {
         cellRevision.check();
+        IdManager idManager = cellRevision.d.cellId.idManager;
+        assert techPool.idManager == idManager;
+        for (int techIndex = 0; techIndex < cellRevision.techUsages.length(); techIndex++) {
+            if (cellRevision.techUsages.get(techIndex))
+                assert techPool.getTech(idManager.getTechId(techIndex)) != null;
+        }
         
         if (m != null)
             m.check();

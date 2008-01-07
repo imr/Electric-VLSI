@@ -26,9 +26,11 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
+
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -228,8 +230,8 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Pref map for arc end extension. */						private static HashMap<ArcProto,Pref> defaultExtendedPrefs = new HashMap<ArcProto,Pref>();
 //	/** Pref map for arc negation. */							private static HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
-	/** The name of this ArcProto. */							protected final String protoName;
-	/** The technology in which this ArcProto resides. */		protected final Technology tech;
+	/** The name of this ArcProto. */							private final ArcProtoId protoId;
+	/** The technology in which this ArcProto resides. */		final Technology tech;
 	/** The full extend of this ArcProto in grid units. */      private int gridFullExtend;
 	/** The base extend of this ArcProto in lambda units. */    private double lambdaBaseExtend;
 	/** The base extend of this ArcProto in grid units. */      private int gridBaseExtend;
@@ -238,7 +240,6 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						final Function function;
 	/** Layers in this arc */                                   final Technology.ArcLayer [] layers;
-	/** Full name */                                            final String fullName;
 	/** Index of this ArcProto. */                              final int primArcIndex;
 //	/** A temporary integer for this ArcProto. */				private int tempInt;
 
@@ -273,8 +274,7 @@ public class ArcProto implements Comparable<ArcProto>
         assert -Integer.MAX_VALUE/8 < gridExtendOverMin && gridExtendOverMin < Integer.MAX_VALUE/8;
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
-		this.protoName = protoName;
-		this.fullName = tech.getTechName() + ":" + protoName;
+        protoId = tech.getId().newArcProtoId(protoName);
 		this.tech = tech;
 		this.userBits = 0;
 		this.function = function;
@@ -290,17 +290,23 @@ public class ArcProto implements Comparable<ArcProto>
 	// ------------------------ public methods -------------------------------
 
 	/**
+	 * Method to return the Id of this ArcProto.
+	 * @return the Id of this ArcProto.
+	 */
+	public ArcProtoId getId() { return protoId; }
+
+	/**
 	 * Method to return the name of this ArcProto.
 	 * @return the name of this ArcProto.
 	 */
-	public String getName() { return protoName; }
+	public String getName() { return protoId.name; }
 
 	/**
 	 * Method to return the full name of this ArcProto.
 	 * Full name has format "techName:primName"
 	 * @return the full name of this ArcProto.
 	 */
-	public String getFullName() { return fullName; }
+	public String getFullName() { return protoId.fullName; }
 
 	/**
 	 * Method to return the Technology of this ArcProto.
@@ -313,7 +319,7 @@ public class ArcProto implements Comparable<ArcProto>
 		Pref pref = defaultExtendPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
 			defaultExtendPrefs.put(this, pref);
 		}
 		return pref;
@@ -329,7 +335,7 @@ public class ArcProto implements Comparable<ArcProto>
     public boolean setDefaultLambdaBaseWidth(double lambdaWidth) {
         long gridExtendOverMin = DBMath.lambdaToGrid(0.5*lambdaWidth) - gridBaseExtend;
         if (gridExtendOverMin <= -Integer.MAX_VALUE/8 || gridExtendOverMin >= Integer.MAX_VALUE/8) {
-            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default base width " + lambdaWidth);
+            System.out.println("ArcProto " + tech.getTechName() + ":" + getName() + " has invalid default base width " + lambdaWidth);
             return false;
         }
         return getArcProtoExtendPref(0).setDouble(DBMath.gridToLambda(gridExtendOverMin));
@@ -483,7 +489,7 @@ public class ArcProto implements Comparable<ArcProto>
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeBooleanPref("Default" + what + "For" + protoName + "IN" + tech.getTechName(), User.getUserTool().prefs, factory);
+			pref = Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -773,7 +779,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public void setFactoryAngleIncrement(int angle)
 	{
-		Pref pref = Pref.makeIntPref("DefaultAngleFor" + protoName + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
+		Pref pref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
 		defaultAnglePrefs.put(this, pref);
 	}
 
@@ -814,7 +820,7 @@ public class ArcProto implements Comparable<ArcProto>
 		Pref pref = arcPinPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeStringPref("PinFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");
+			pref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");
 			arcPinPrefs.put(this, pref);
 		}
 		return pref;
@@ -1187,7 +1193,7 @@ public class ArcProto implements Comparable<ArcProto>
         Technology tech = getTechnology();
         if (Technology.getCurrent() != tech)
             description += tech.getTechName() + ":";
-        description += protoName;
+        description += getName();
         return description;
 	}
 
@@ -1245,6 +1251,7 @@ public class ArcProto implements Comparable<ArcProto>
      * @exception AssertionError if invariants are not valid
      */
     void check() {
+        assert protoId.techId == tech.getId();
         for (Technology.ArcLayer primLayer: layers) {
             long gridExtend = getLayerGridExtend(primLayer.getLayer());
             assert minLayerGridExtend <= gridExtend && gridExtend <= maxLayerGridExtend;

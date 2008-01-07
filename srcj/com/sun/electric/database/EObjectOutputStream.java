@@ -64,6 +64,8 @@ public class EObjectOutputStream extends ObjectOutputStream {
         this.database = database;
     }
     
+    public EDatabase getDatabase() { return database; }
+    
     /** 
      * This method will allow trusted subclasses of ObjectOutputStream to
      * substitute one object for another during serialization. Replacing
@@ -106,7 +108,6 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof ElectricObject && ((ElectricObject)obj).getDatabase() != database)
             throw new NotSerializableException("other database");
         if (obj instanceof View) return new EView((View)obj);
-        if (obj instanceof Technology) return new ETechnology((Technology)obj);
         if (obj instanceof PrimitiveNode) return new EPrimitiveNode((PrimitiveNode)obj);
         if (obj instanceof PrimitivePort) return new EPrimitivePort((PrimitivePort)obj);
         if (obj instanceof ArcProto) return new EArcProto((ArcProto)obj);
@@ -134,20 +135,6 @@ public class EObjectOutputStream extends ObjectOutputStream {
             View view = View.findView(abbreviation);
             if (view == null) throw new InvalidObjectException("View");
             return view;
-        }
-    }
-    
-    private static class ETechnology implements Serializable {
-        String techName;
-        
-        private ETechnology(Technology tech) {
-            techName = tech.getTechName();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Technology tech = Technology.findTechnology(techName);
-            if (tech == null) throw new InvalidObjectException("Technology");
-            return tech;
         }
     }
     

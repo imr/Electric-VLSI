@@ -668,6 +668,7 @@ public class EDatabase {
 	 */
     private void check() {
         if (snapshotFresh) {
+            assert techPool == snapshot.techPool;
             assert linkedLibs.size() == snapshot.libBackups.size();
             assert linkedCells.size() == snapshot.cellBackups.size();
         }

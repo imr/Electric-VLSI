@@ -748,12 +748,13 @@ public class Snapshot {
 	 */
     public void check() {
 //        long startTime = System.currentTimeMillis();
+        techPool.check();
         for (LibraryBackup libBackup: libBackups) {
             if (libBackup == null) continue;
             libBackup.check();
         }
         for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup != null) cellBackup.check();
+            if (cellBackup != null) cellBackup.check(techPool);
         }
         if (libBackups.size() > 0)
             assert libBackups.get(libBackups.size() - 1) != null;

@@ -88,7 +88,7 @@ public final class TechId implements Serializable {
      * This number may grow in time.
      * @return a number of ArcProtoIds.
      */
-    public synchronized int numArcProtoIds() {
+    synchronized int numArcProtoIds() {
         return arcProtoIds.size();
     }
     
@@ -98,7 +98,7 @@ public final class TechId implements Serializable {
      * @return ArcProtoId with specified chronological index.
      * @throws ArrayIndexOutOfBoundsException if no such ArcProtoId.
      */
-    public synchronized ArcProtoId getArcProtoId(int chronIndex) {
+    synchronized ArcProtoId getArcProtoId(int chronIndex) {
         return arcProtoIds.get(chronIndex);
     }
     
@@ -114,7 +114,7 @@ public final class TechId implements Serializable {
     
     private ArcProtoId newArcProtoIdInternal(String arcProtoName) {
         int chronIndex = arcProtoIds.size();
-        ArcProtoId arcProtoId = new ArcProtoId(this, techName, techIndex);
+        ArcProtoId arcProtoId = new ArcProtoId(this, arcProtoName, arcProtoIds.size());
         arcProtoIds.add(arcProtoId);
         arcProtoIdsByName.put(arcProtoName, arcProtoId);
         assert arcProtoIds.size() == arcProtoIdsByName.size();
@@ -166,7 +166,7 @@ public final class TechId implements Serializable {
 		for (int i = 0; i < str.length(); i++)
 		{
 			char ch = str.charAt(i);
-			if (Character.isWhitespace(ch) || ch == ':' || ch == '|' || ch == '^' || ch == '"')
+			if (Character.isWhitespace(ch) || ch == ':' || ch == '|' || ch == '^' || ch == '\\' || ch == '"')
 				return false;
 		}
 		return true;

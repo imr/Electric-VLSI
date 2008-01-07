@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -67,6 +68,9 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.io.ObjectStreamException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
@@ -847,10 +851,25 @@ public class Technology implements Comparable<Technology>
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
 	}
 
-//    protected Technology(URL urlXml, boolean full) {
-//        this(Xml.parseTechnology(urlXml), full);
-//    }
-//
+    private Object writeReplace() throws ObjectStreamException { return new TechKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Cell"); }
+
+    private static class TechKey extends EObjectInputStream.Key {
+        TechId techId;
+
+        private TechKey(Technology tech) throws NotSerializableException {
+//            if (cell.isLinked())
+//                throw new NotSerializableException(cell.toString());
+            techId = tech.getId();
+        }
+
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            Technology tech = database.getTech(techId);
+            if (tech == null) throw new InvalidObjectException("Tech");
+            return tech;
+        }
+    }
+
     public Technology(Generic generic, Xml.Technology t) {
         this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;

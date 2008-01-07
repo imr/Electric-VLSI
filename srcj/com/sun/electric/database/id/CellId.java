@@ -497,7 +497,7 @@ public final class CellId implements NodeProtoId, Serializable {
             // This also guarantees that all elements of usagesIn are distinct.
             assert u.parentId == this;
             assert u.indexInParent == k;
-            assert u.parentId.getIdManager() == getIdManager();
+            assert u.protoId.getIdManager() == getIdManager();
             u.protoId.checkLinked();
             
             // Check the CellUsage invariants.
