@@ -543,6 +543,18 @@ public class FPGA extends Technology
 //		return polys;
     }
     
+    /**
+     * Tells if arc can be drawn by simplified algorithm
+     * FPGA arcs are not easy
+     * @param a arc to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return false
+     */
+    @Override
+    public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
+        return false;
+    }
+    
 	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
 
 	private boolean arcEndActive(ArcInst ai, int j, VarContext curContext)

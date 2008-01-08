@@ -125,6 +125,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     private static final int HARD_SELECT_MASK   = 0x400;
     private static final int DATABASE_FLAGS     = 0x7ff;
     
+    private static final int MANHATTAN_MASK     = 0x800;
+    
 	/**
 	 * Flag to set an ImmutableArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
@@ -439,6 +441,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @return true if this ImmutableArcInst is either horizontal or vertical.
      */
     public boolean isManhattan() {
+        return (flags & MANHATTAN_MASK) != 0;
+    }
+    
+    private static int updateManhattan(int flags, EPoint headLocation, EPoint tailLocation, int angle) {
+        return isManhattan(headLocation, tailLocation, angle) ? flags | MANHATTAN_MASK : flags & ~MANHATTAN_MASK;
+    }
+    
+    private static boolean isManhattan(EPoint headLocation, EPoint tailLocation, int angle) {
         if (headLocation.getGridX() == tailLocation.getGridX()) {
             return headLocation.getGridY() != tailLocation.getGridY() ||
                     (angle == 0 || angle == 900 || angle == 1800 || angle == 2700);
@@ -447,132 +457,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         }
     }
     
-    public boolean isEasyShape(ArcProto protoType) {
-        assert protoType == this.protoType;
-        Technology tech = protoType.getTechnology();
-        Variable[] vars = getVars();
-        if (tech == Artwork.tech() && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
-            return false;
-        if (tech instanceof FPGA)
-            return false;
-        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK|TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0)
-            return false;
-        if (protoType.isCurvable() && searchVar(vars, ARC_RADIUS) >= 0)
-            return false;
-        if (!(tailLocation.isSmall() && headLocation.isSmall()))
-            return false;
-        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
-        if (minLayerExtend <= 0) {
-            if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) return false;
-            return true;
-        }
-        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
-            if (protoType.getLayerStyle(i) != Poly.Type.FILLED)
-                return false;
-        }
-        int tx = (int)tailLocation.getGridX();
-        int ty = (int)tailLocation.getGridY();
-        int hx = (int)headLocation.getGridX();
-        int hy = (int)headLocation.getGridY();
-        switch (angle) {
-            case 0:
-                if (ty != hy) return false;
-                break;
-            case 900:
-                if (tx != hx) return false;
-                break;
-            case 1800:
-                if (ty != hy) return false;
-                break;
-            case 2700:
-                if (tx != hx) return false;
-                break;
-            default:
-                return false;
-        }
-        return true;
-    }
-    
-    public void explainEasyShape() {
-        Technology tech = protoType.getTechnology();
-        if (tech == Artwork.tech() && searchVar(Artwork.ART_COLOR) >= 0) {
-            System.out.println("ART_COLOR");
-            return;
-        }
-        if (tech == Artwork.tech() && searchVar(Artwork.ART_PATTERN) >= 0) {
-            System.out.println("ART_PATTERN");
-            return;
-        }
-        if (tech instanceof FPGA) {
-            System.out.println("FPGA");
-            return;
-        }
-        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK)) != 0) {
-            System.out.println("ARROWED");
-            return;
-        }
-        if ((flags & (TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0) {
-            System.out.println("NEGATED");
-            return;
-        }
-        if (protoType.isCurvable() && searchVar(ARC_RADIUS) >= 0) {
-            System.out.println("CURVABLE");
-            return;
-        }
-        if (!(tailLocation.isSmall() && headLocation.isSmall())) {
-            System.out.println("LARGE " + tailLocation + " " + headLocation);
-            return;
-        }
-        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
-        if (minLayerExtend <= 0) {
-            if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) {
-                System.out.println(protoType + " many zero-width layers");
-                return;
-            }
-            assert false;
-        }
-        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
-            if (protoType.getLayerStyle(i) != Poly.Type.FILLED) {
-                System.out.println("Wide should be filled");
-                return;
-            }
-        }
-        int tx = (int)tailLocation.getGridX();
-        int ty = (int)tailLocation.getGridY();
-        int hx = (int)headLocation.getGridX();
-        int hy = (int)headLocation.getGridY();
-        switch (angle) {
-            case 0:
-                if (ty != hy) {
-                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
-                    return;
-                }
-                break;
-            case 900:
-                if (tx != hx) {
-                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
-                    return;
-                }
-                break;
-            case 1800:
-                if (ty != hy) {
-                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
-                    return;
-                }
-                break;
-            case 2700:
-                if (tx != hx) {
-                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
-                    return;
-                }
-                break;
-            default:
-                System.out.println("NON-MANHATTAN");
-                return;
-        }
-        assert false;
-    }
-        
     /**
      * Returns new ImmutableArcInst object.
      * @param arcId id of this ArcInst in parent.
@@ -621,6 +505,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             flags &= ~HEAD_NEGATED_MASK;
         if (protoType.getTechnology().isNoNegatedArcs())
             flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
+        flags = updateManhattan(flags, headLocation, tailLocation, angle);
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
@@ -671,10 +556,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
         short angle = updateAngle(this.angle, tailLocation, headLocation);
+        int flags = updateManhattan(this.flags, headLocation, tailLocation, angle);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.gridExtendOverMin, angle, this.flags, getVars());
+                this.gridExtendOverMin, angle, flags, getVars());
 	}
 
 	/**
@@ -704,10 +590,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (angle < 0) angle += 3600;
 		if (this.angle == angle) return this;
         short shortAngle = (short)angle;
+        int flags = updateManhattan(this.flags, this.headLocation, this.tailLocation, shortAngle);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridExtendOverMin, shortAngle, this.flags, getVars());
+                this.gridExtendOverMin, shortAngle, flags, getVars());
 	}
 
 	/**
@@ -723,7 +610,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             flags &= ~HEAD_NEGATED_MASK;
         if (protoType.getTechnology().isNoNegatedArcs())
             flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
-        if (this.flags == flags) return this;
+        if ((this.flags & DATABASE_FLAGS) == flags) return this;
+        flags |= this.flags & MANHATTAN_MASK;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
@@ -1007,7 +895,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headPortId != null;
         assert headLocation != null;
         assert -MAX_EXTEND < gridExtendOverMin && gridExtendOverMin < MAX_EXTEND;
-        assert (flags & ~DATABASE_FLAGS) == 0;
+        assert (flags & ~(DATABASE_FLAGS|MANHATTAN_MASK)) == 0;
+        assert isManhattan() == isManhattan(headLocation, tailLocation, angle);
         if (isTailNegated())
             assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
         if (isHeadNegated())

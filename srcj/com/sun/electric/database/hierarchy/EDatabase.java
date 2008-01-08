@@ -405,7 +405,7 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
         
-        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups, techPool), true);
+        setSnapshot(snapshot.withTechPool(techPool).with(changingTool, cellBackups, cellBounds, libBackups), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;

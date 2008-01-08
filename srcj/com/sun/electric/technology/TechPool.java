@@ -155,7 +155,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
      * @param techId TechId to find
-     * @return Technology b giben TechId or null
+     * @return Technology by given TechId or null
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) {
@@ -164,6 +164,19 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         int techIndex = techId.techIndex;
         return techIndex < techs.length ? techs[techIndex] : null;
+    }
+
+    /**
+     * Get ArcProto by ArcProtoId
+     * ArcProtoId must belong to same IdManager as TechPool
+     * @param arcProtoId ArfProtoId to find
+     * @return ArcProto by given ArcProtoId or null
+     * @throws IllegalArgumentException of TechId is not from this IdManager
+     */
+    public ArcProto getArcProto(ArcProtoId arcProtoId) {
+        Technology tech = getTech(arcProtoId.techId);
+        if (tech == null) return null;
+        return tech.getArcProto(arcProtoId.chronIndex);
     }
 
     /** Returns Artwork technology in this database */

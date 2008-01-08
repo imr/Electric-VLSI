@@ -996,7 +996,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private CellBackup doBackup() {
         if (backup == null) {
             getTechnology();
-            backup = new CellBackup(getD().withoutVariables());
+            backup = new CellBackup(getD().withoutVariables(), database.getTechPool());
             assert !cellBackupFresh && !cellContentsFresh;
         }
         ImmutableNodeInst[] nodes = null;

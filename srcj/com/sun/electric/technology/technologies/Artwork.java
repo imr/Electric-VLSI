@@ -642,6 +642,26 @@ public class Artwork extends Technology
 		getShapeOfArc(b, a, getProperLayer(a));
 	}
 
+    /**
+     * Tells if arc can be drawn by simplified algorithm
+     * Arcs with user-specified color or pattern are not easy
+     * @param a arc to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    @Override
+    public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
+        if (a.getVar(Artwork.ART_COLOR) != null) {
+            if (explain) System.out.println("ART_COLOR");
+            return false;
+        }
+        if (a.getVar(Artwork.ART_PATTERN) != null) {
+            if (explain) System.out.println("ART_PATTERN");
+            return false;
+        }
+        return super.isEasyShape(a, explain);
+    }
+    
 	/**
 	 * Method to return an array of Point2D that describe an ellipse.
 	 * @param center the center coordinate of the ellipse.

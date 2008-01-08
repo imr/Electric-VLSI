@@ -37,7 +37,6 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,6 +45,7 @@ import java.util.BitSet;
 
 /**
  * This class represents Cell data (with all arcs/nodes/exports) as it is saved to disk.
+ * This representation should be technology-independent
  */
 public class CellRevision {
     public static final CellRevision[] NULL_ARRAY = {};

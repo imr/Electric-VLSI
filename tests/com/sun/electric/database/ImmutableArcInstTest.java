@@ -46,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Tool;
@@ -67,6 +68,9 @@ public class ImmutableArcInstTest {
     
     private static final long SHAPE_SCALE = 1L << 20;
     
+    private EDatabase database;
+    private TechPool techPool;
+    private Artwork artwork;
     private Technology tech;
     private TechId techId;
     private PrimitiveNode pn;
@@ -81,20 +85,23 @@ public class ImmutableArcInstTest {
     private ImmutableArcInst a0;
     
     @Before public void setUp() throws Exception {
-        EDatabase.theDatabase.lock(true);
-        EDatabase.theDatabase.lowLevelBeginChanging(null);
+        database = EDatabase.theDatabase;
+        database.lock(true);
+        database.lowLevelBeginChanging(null);
         if (Technology.findTechnology("mocmos") == null) {
             Tool.initAllTools();
             Technology.initAllTechnologies();
         }
         
+        techPool = database.getTechPool();
+        artwork = techPool.getArtwork();
         tech = Technology.getMocmosTechnology();
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pp = pn.getPort(0);
         ap = tech.findArcProto("P-Active");
         apExtend = DBMath.lambdaToGrid(0);
 //        apExtend = DBMath.lambdaToGrid(1.5);
-        idManager = EDatabase.theDatabase.getIdManager();
+        idManager = database.getIdManager();
         techId = tech.getId();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
@@ -105,8 +112,8 @@ public class ImmutableArcInstTest {
     }
 
     @After public void tearDown() {
-        EDatabase.theDatabase.lowLevelEndChanging();
-        EDatabase.theDatabase.unlock();
+        database.lowLevelEndChanging();
+        database.unlock();
     }
 
     public static junit.framework.Test suite() {
@@ -344,12 +351,16 @@ public class ImmutableArcInstTest {
         assertFalse(a0.isHeadNegated());
     }
 
+    private boolean isEasyShape(ImmutableArcInst a) {
+        return techPool.getTech(a.protoType.getId().techId).isEasyShape(a, false);
+    }
+    
     /**
      * Test of isEasyShape method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testIsEasyShape() {
         System.out.println("isEasyShape");
-        assertTrue(a0.isEasyShape(ap));
+        assertTrue(isEasyShape(a0));
     }
 
     /**
@@ -589,11 +600,11 @@ public class ImmutableArcInstTest {
         assertSame(n1.anchor, a1.tailLocation);
         assertSame(n0.anchor, a1.headLocation);
         assertEquals(1800, a1.getAngle());
-        assertTrue(a1.isEasyShape(ap));
+        assertTrue(isEasyShape(a1));
         
         ImmutableArcInst a2 = a0.withLocations(n0.anchor, EPoint.fromGrid(1500*1000*1000, n1.anchor.getGridY()));
         a2.check();
-        assertFalse(a2.isEasyShape(ap));
+        assertFalse(isEasyShape(a2));
     }
 
     /**
@@ -614,12 +625,12 @@ public class ImmutableArcInstTest {
         long largeExtendOverMin = 130*1000*1000;
         ImmutableArcInst a1 = a0.withGridExtendOverMin(largeExtendOverMin);
         assertEquals(largeExtendOverMin, a1.getGridExtendOverMin());
-        assertTrue(a1.isEasyShape(ap));
+        assertTrue(isEasyShape(a1));
         
         long smallExtendOverMin = -1;
         ImmutableArcInst a2 = a0.withGridExtendOverMin(smallExtendOverMin);
         assertEquals(smallExtendOverMin, a2.getGridExtendOverMin());
-        assertTrue(a2.isEasyShape(ap));
+        assertTrue(isEasyShape(a2));
     }
 
    /**
@@ -648,12 +659,12 @@ public class ImmutableArcInstTest {
         ImmutableArcInst a1 = a0.withLocations(a0.tailLocation, a0.tailLocation).withAngle(900);
         a1.check();
         assertEquals(900, a1.getAngle());
-        assertTrue(a1.isEasyShape(ap));
+        assertTrue(isEasyShape(a1));
         
         ImmutableArcInst a2 = a1.withAngle(-1);
         a2.check();
         assertEquals(3599, a2.getAngle());
-        assertFalse(a2.isEasyShape(ap));
+        assertFalse(isEasyShape(a2));
     }
 
     /**
@@ -678,7 +689,7 @@ public class ImmutableArcInstTest {
         a1.check();
         assertTrue(a1.is(ImmutableArcInst.BODY_ARROWED));
         assertTrue(a1.isBodyArrowed());
-        assertFalse(a1.isEasyShape(ap));
+        assertFalse(isEasyShape(a1));
     }
 
     /**
@@ -691,7 +702,7 @@ public class ImmutableArcInstTest {
         a1.check();
         assertEquals(1, a1.getNumVariables());
         assertSame(var, a1.getVar(0));
-        assertTrue(a1.isEasyShape(ap));
+        assertTrue(isEasyShape(a1));
     
         Variable var1 = var.withParam(true);
         ImmutableArcInst a2 = a0.withVariable(var1);
@@ -701,16 +712,16 @@ public class ImmutableArcInstTest {
         assertSame(var.getObject(), a2.getVar(0).getObject());
         assertFalse(a2.getVar(0).getTextDescriptor().isParam());
         
-        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, Artwork.tech().solidArc, nameA0, null,
-                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
-                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
+        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, artwork.solidArc, nameA0, null,
+                0, artwork.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, artwork.pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
-        assertTrue(a3.isEasyShape(Artwork.tech().solidArc));
+        assertTrue(isEasyShape(a3));
         
         ImmutableArcInst a4 = a3.withVariable(var);
         a4.check();
-        assertFalse(a4.isEasyShape(Artwork.tech().solidArc));
+        assertFalse(isEasyShape(a4));
     }
 
     /**
@@ -719,18 +730,18 @@ public class ImmutableArcInstTest {
     @Test public void testWithoutVariable() {
         System.out.println("withoutVariable");
         Variable var = Variable.newInstance(Artwork.ART_COLOR, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, Artwork.tech().solidArc, nameA0, null,
-                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
-                0, Artwork.tech().pinNode.getPortId(0), EPoint.ORIGIN,
+        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, artwork.solidArc, nameA0, null,
+                0, artwork.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, artwork.pinNode.getPortId(0), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS).withVariable(var);
         a1.check();
-        assertFalse(a1.isEasyShape(Artwork.tech().solidArc));
+        assertFalse(isEasyShape(a1));
         
         assertSame(a1, a1.withoutVariable(Artwork.ART_PATTERN));
         
         ImmutableArcInst a2 = a1.withoutVariable(Artwork.ART_COLOR);
         assertEquals(0, a2.getNumVariables());
-        assertTrue(a2.isEasyShape(Artwork.tech().solidArc));
+        assertTrue(isEasyShape(a2));
     }
 
     /**
@@ -807,7 +818,7 @@ public class ImmutableArcInstTest {
         System.out.println("makeGridPoly");
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(techId);
         ImmutableNodeInst[] nodes = { n0, n1 };
-        CellBackup cellBackup0 = new CellBackup(c).with(c, 0, false, nodes, null, null);
+        CellBackup cellBackup0 = new CellBackup(c, techPool).with(c, 0, false, nodes, null, null);
         MyBuilder b = new MyBuilder();
         for (int angle = 0; angle < 3600; angle++) {
             EPoint p1 = EPoint.fromLambda(n0.anchor.getLambdaX() + 10*GenMath.cos(angle), n0.anchor.getLambdaY() + 10*GenMath.sin(angle));

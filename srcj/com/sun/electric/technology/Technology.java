@@ -2220,6 +2220,52 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
+    /**
+     * Tells if arc can be drawn by simplified algorithm
+     * Overidden ins subclasses
+     * @param a arc to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
+        if (a.isBodyArrowed() || a.isTailArrowed() || a.isHeadArrowed()) {
+            if (explain) System.out.println("ARROWED");
+            return false;
+        }
+        if (a.isTailNegated() || a.isHeadNegated()) {
+            if (explain) System.out.println("NEGATED");
+            return false;
+        }
+        ArcProto protoType = getArcProto(a.protoType.getId());
+        if (protoType.isCurvable() && a.getVar(ImmutableArcInst.ARC_RADIUS) != null) {
+            if (explain) System.out.println("CURVABLE");
+            return false;
+        }
+        if (!(a.tailLocation.isSmall() && a.headLocation.isSmall())) {
+            if (explain) System.out.println("LARGE " + a.tailLocation + " " + a.headLocation);
+            return false;
+        }
+        int minLayerExtend = (int)a.getGridExtendOverMin() + protoType.getMinLayerGridExtend(); 
+        if (minLayerExtend <= 0) {
+            if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) {
+                if (explain) System.out.println(protoType + " many zero-width layers");
+                return false;
+            }
+            return true;
+        }
+        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
+            if (protoType.getLayerStyle(i) != Poly.Type.FILLED) {
+                if (explain) System.out.println("Wide should be filled");
+                return false;
+            }
+        }
+        if (!a.isManhattan()) {
+            if (explain) System.out.println("NON-MANHATTAN");
+            return false;
+        }
+        return true;
+    }
+    
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
 	 * @param name the unknown arc name, read from an old Library.

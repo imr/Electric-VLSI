@@ -102,27 +102,42 @@ public class Snapshot {
     }
     
     /**
+     * Creates a new instance of Snapshot which differs from this Snapshot by TechPool.
+     * New TechPool must be extension of old TechPool
+     * @param techPool new Technology pool
+     * @return new snapshot which differs froms this Snapshot by TechPool
+     * @throws IllegalArgumentException if new TechPool isn't extension of old TechPool.
+     */
+    public Snapshot withTechPool(TechPool techPool) {
+        if (this.techPool == techPool) return this;
+        CellBackup[] cellBackupArray = cellBackups.toArray(new CellBackup[cellBackups.size()]);
+        for (int cellIndex = 0; cellIndex < cellBackupArray.length; cellIndex++) {
+            CellBackup cellBackup = cellBackups.get(cellIndex);
+            if (cellBackup == null) continue;
+            cellBackupArray[cellIndex] = cellBackup.withTechPool(techPool);
+        }
+        return new Snapshot(idManager, idManager.newSnapshotId(), this.tool,
+                new ImmutableArrayList(cellBackupArray), this.cellGroups, this.libBackups,
+                techPool, this.cellBounds);
+    }
+   
+    /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param tool tool which initiated database changes/
      * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
      * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
-     * @param technologiesArray array indexed by TechId.techIndex of Technologied
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray, TechPool techPool) {
+    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
-        if (techPool == null)
-            techPool = this.techPool;
-        if (techPool.idManager != idManager)
-            throw new IllegalArgumentException();
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
-        if (!namesChanged && this.cellBackups == cellBackups && this.techPool == techPool) {
+        if (!namesChanged && this.cellBackups == cellBackups) {
             if (cellBoundsArray != null) {
                 for (int cellIndex = 0; cellIndex < cellBoundsArray.length; cellIndex++) {
                     ERectangle r = cellBoundsArray[cellIndex];
@@ -207,7 +222,7 @@ public class Snapshot {
         
         if (cellBoundsArray == null)
             cellBoundsArray = this.cellBounds;
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, techPool, cellBoundsArray);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, this.techPool, cellBoundsArray);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -378,7 +393,7 @@ public class Snapshot {
             libBackupsArray = null;
         
         if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
-        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray, null);
+        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray);
     }
     
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
@@ -563,9 +578,16 @@ public class Snapshot {
         assert cellBoundsDefined();
         writer.writeDiffs();
         writer.writeInt(snapshotId);
+        
         writer.writeBoolean(tool != null);
         if (tool != null)
             writer.writeTool(tool);
+        
+        boolean technologiesChanged = techPool != oldSnapshot.techPool;
+        writer.writeBoolean(technologiesChanged);
+        if (technologiesChanged)
+            techPool.write(writer);
+        
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.writeBoolean(libsChanged);
         if (libsChanged) {
@@ -632,11 +654,6 @@ public class Snapshot {
             for (int i = 0; i < cellGroups.length; i++)
                 writer.writeInt(cellGroups[i]);
         }
-        
-        boolean technologiesChanged = techPool != oldSnapshot.techPool;
-        writer.writeBoolean(technologiesChanged);
-        if (technologiesChanged)
-            techPool.write(writer);
     }
     
     public static Snapshot readSnapshot(IdReader reader, Snapshot oldSnapshot) throws IOException {
@@ -646,6 +663,12 @@ public class Snapshot {
         int snapshotId = reader.readInt();
         boolean hasTool = reader.readBoolean();
         Tool tool = hasTool ? reader.readTool() : null;
+        
+        TechPool techPool = oldSnapshot.techPool;
+        boolean technologiesChanged = reader.readBoolean();
+        if (technologiesChanged)
+            techPool = TechPool.read(reader);
+        
         ImmutableArrayList<LibraryBackup> libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.readBoolean();
         if (libsChanged) {
@@ -680,11 +703,18 @@ public class Snapshot {
             for (int cellIndex = 0, numCells = Math.min(oldSnapshot.cellBounds.length, cellLen); cellIndex < numCells; cellIndex++)
                 cellBoundsArray[cellIndex] = oldSnapshot.cellBounds[cellIndex];
         }
+        if (technologiesChanged) {
+            for (int cellIndex = 0; cellIndex < cellLen; cellIndex++) {
+                CellBackup cellBackup = cellBackupsArray[cellIndex];
+                if (cellBackup == null) continue;
+                cellBackupsArray[cellIndex] = cellBackup.withTechPool(techPool);
+            }
+        }
         for (;;) {
             int cellIndex = reader.readInt();
             if (cellIndex == Integer.MAX_VALUE) break;
             if (cellIndex >= 0) {
-                CellBackup newBackup = CellBackup.read(reader);
+                CellBackup newBackup = CellBackup.read(reader, techPool);
                 cellBackupsArray[cellIndex] = newBackup;
             } else {
                 cellIndex = ~cellIndex;
@@ -713,11 +743,6 @@ public class Snapshot {
             cellGroups = new int[cellGroupsLength];
             for (int i = 0; i < cellGroups.length; i++)
                 cellGroups[i] = reader.readInt();
-        }
-        TechPool techPool = oldSnapshot.techPool;
-        boolean technologiesChanged = reader.readBoolean();
-        if (technologiesChanged) {
-            techPool = TechPool.read(reader);
         }
         for (int i = 0; i < cellBackups.size(); i++) {
             assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
@@ -782,6 +807,7 @@ public class Snapshot {
                 int subCellIndex = u.protoId.cellIndex;
                 cui.checkUsage(cellBackups.get(subCellIndex).cellRevision);
             }
+            assert cellBackup.techPool == techPool;
         }
         assert techPool.idManager == idManager;
         for (int techIndex = 0; techIndex < checkUsedTechs.length(); techIndex++) {

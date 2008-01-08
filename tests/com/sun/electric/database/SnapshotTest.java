@@ -105,27 +105,28 @@ public class SnapshotTest {
         System.out.println("with");
         
         LibId libId = idManager.newLibId("libId0");
+        TechPool techPool = idManager.getInitialTechPool();
+        Generic generic = new Generic(idManager);
+        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         ImmutableLibrary l = ImmutableLibrary.newInstance(libId, null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
         CellName cellName = CellName.parseName("cell;1{sch}");
         CellId cellId = libId.newCellId(cellName);
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(schematicTechId);
-        CellBackup cellBackup = new CellBackup(c);
+        CellBackup cellBackup = new CellBackup(c, techPool);
         
         CellBackup[] cellBackupsArray = { cellBackup };
         ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
-        TechPool techPool = idManager.getInitialTechPool();
-        Generic generic = new Generic(idManager);
-        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
-        Snapshot instance = initialSnapshot;
+        Snapshot instance = initialSnapshot.withTechPool(techPool);
+        assertEquals(1, instance.snapshotId);
         
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray, techPool);
-        assertEquals(1, result.snapshotId);
+        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        assertEquals(2, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
 //        assertEquals(expCellBounds, result.cellBounds);
         assertEquals(expLibBackups, result.libBackups);
@@ -142,6 +143,9 @@ public class SnapshotTest {
         System.out.println("withReanmedIds");
         
         LibId libIdX = idManager.newLibId("X");
+        TechPool techPool = idManager.getInitialTechPool();
+        Generic generic = new Generic(idManager);
+        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         ImmutableLibrary libX = ImmutableLibrary.newInstance(libIdX, null, null);
         LibraryBackup libBackupX = new LibraryBackup(libX, false, new LibId[0]);
         LibId libIdY = idManager.newLibId("Y");
@@ -151,15 +155,12 @@ public class SnapshotTest {
         CellName cellNameA = CellName.parseName("A;1{sch}");
         CellId cellId0 = libIdX.newCellId(cellNameA);
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
-        CellBackup cellBackupA = new CellBackup(cellA);
+        CellBackup cellBackupA = new CellBackup(cellA, techPool);
         CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
         ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) };
-        TechPool techPool = idManager.getInitialTechPool();
-        Generic generic = new Generic(idManager);
-        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         LibId libIdA = idManager.newLibId("A");
         
-        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray, techPool);
+        Snapshot oldSnapshot = initialSnapshot.withTechPool(techPool).with(null, cellBackupArray, cellBoundsArray, libBackupArray);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
         

@@ -35,9 +35,11 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.AbstractShapeBuilder;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,7 +48,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 /**
- *
+ * CellBackup is a pair of CellRevision and TechPool.
+ * It caches data that can be calculated when Technology is already
+ * known, but subcells are unknown.
  */
 public class CellBackup {
     public static final CellBackup[] NULL_ARRAY = {};
@@ -55,6 +59,7 @@ public class CellBackup {
     static int cellBackupsCreated = 0;
     static int cellBackupsMemoized = 0;
     /** Cell data. */                                               public final CellRevision cellRevision;           
+    /** Technologies mapping */                                     public final TechPool techPool;
     /** "Modified" flag of the Cell. */                             public final boolean modified;
 
     /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
@@ -62,8 +67,9 @@ public class CellBackup {
     /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
     
     /** Creates a new instance of CellBackup */
-    private CellBackup(CellRevision cellRevision, boolean modified) {
+    private CellBackup(CellRevision cellRevision, TechPool techPool, boolean modified) {
         this.cellRevision = cellRevision;
+        this.techPool = techPool;
         this.modified = modified;
         cellBackupsCreated++;
 //        if (Job.getDebug())
@@ -71,8 +77,12 @@ public class CellBackup {
     }
     
     /** Creates a new instance of CellBackup */
-    public CellBackup(ImmutableCell d) {
-        this(new CellRevision(d), false);
+    public CellBackup(ImmutableCell d, TechPool techPool) {
+        this(new CellRevision(d), techPool, false);
+        if (d.cellId.idManager != techPool.idManager)
+            throw new IllegalArgumentException();
+        if (techPool.getTech(d.techId) == null)
+            throw new IllegalArgumentException();
     }
     
     /**
@@ -92,7 +102,23 @@ public class CellBackup {
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         CellRevision newRevision = cellRevision.with(d, revisionDate, nodesArray, arcsArray, exportsArray);
         if (newRevision == cellRevision) return this;
-        return new CellBackup(newRevision, modified);
+        return new CellBackup(newRevision, this.techPool, modified);
+    }
+    
+	/**
+	 * Returns CellBackup which differs from this CellBackup by TechPool.
+	 * @param techPool technology map.
+     * @return CellBackup with new TechPool.
+	 */
+    public CellBackup withTechPool(TechPool techPool) {
+        if (this.techPool == techPool) return this;
+        if (techPool.idManager != this.techPool.idManager)
+            throw new IllegalArgumentException();
+        for (Technology tech: this.techPool.values()) {
+            if (techPool.get(tech.getId()) != tech)
+                throw new IllegalArgumentException();
+        }
+        return new CellBackup(this.cellRevision, techPool, this.modified);
     }
     
 	/**
@@ -103,7 +129,7 @@ public class CellBackup {
     CellBackup withRenamedIds(IdMapper idMapper, CellName newGroupName) {
         CellRevision newRevision = cellRevision.withRenamedIds(idMapper, newGroupName);
         if (newRevision == cellRevision) return this;
-        return new CellBackup(newRevision, true);
+        return new CellBackup(newRevision, this.techPool, true);
     }
     
     /**
@@ -119,10 +145,10 @@ public class CellBackup {
      * Reads CellBackup from SnapshotReader.
      * @param reader where to read.
      */
-    static CellBackup read(IdReader reader) throws IOException {
+    static CellBackup read(IdReader reader, TechPool techPool) throws IOException {
         CellRevision newRevision = CellRevision.read(reader);
         boolean modified = reader.readBoolean();
-        return new CellBackup(newRevision, modified);
+        return new CellBackup(newRevision, techPool, modified);
     }
 
     /**
@@ -278,13 +304,14 @@ public class CellBackup {
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
             for (ImmutableArcInst a: arcs) {
+                ArcProto ap = techPool.getArcProto(a.protoType.getId());
                 // wipe status
-                if (a.protoType.isWipable()) {
+                if (ap.isWipable()) {
                     wiped.set(a.tailNodeId);
                     wiped.set(a.headNodeId);
                 }
                 // hard arcs
-                if (!a.isEasyShape(a.protoType))
+                if (!ap.getTechnology().isEasyShape(a, false))
                     hardArcs.set(a.arcId);
             }
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {

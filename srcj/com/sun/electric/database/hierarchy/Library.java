@@ -930,7 +930,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         if (extension.length() > 0) newLibFile += "." + extension;
         URL libFile = TextUtils.makeURLToFile(newLibFile);
         libBackups[newLibId.libIndex] = new LibraryBackup(libBackup.d.withLibFile(libFile), true, libBackup.referencedLibs);
-        newSnapshot = newSnapshot.with(null, null, null, libBackups, null);
+        newSnapshot = newSnapshot.with(null, null, null, libBackups);
         checkChanging();
         boolean isCurrent = getCurrent() == this;
         database.lowLevelSetCanUndoing(true);
