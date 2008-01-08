@@ -33,7 +33,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
@@ -51,7 +50,6 @@ public class IdReader {
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
-    private final ArrayList<ArcProto> arcProtos = new ArrayList<ArcProto>();
     private final ArrayList<PrimitiveNode> primNodes = new ArrayList<PrimitiveNode>();
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
@@ -256,19 +254,14 @@ public class IdReader {
         return Technology.findTechnology(techId);
     }
     
-    /**
-     * Reads ArcProto.
-     * @return ArcProto.
+     /**
+     * Reads ArcProtoId.
+     * @return ArcProtoId.
      */
-    public ArcProto readArcProto() throws IOException {
-        int i = in.readInt();
-        if (i == arcProtos.size()) {
-            Technology tech = readTechnology();
-            String arcName = in.readUTF();
-            ArcProto ap = tech.findArcProto(arcName);
-            arcProtos.add(ap);
-        }
-        return arcProtos.get(i);
+    public ArcProtoId readArcProtoId() throws IOException {
+        TechId techId = readTechId();
+        int chronIndex = readInt();
+        return techId.getArcProtoId(chronIndex);
     }
 
     /**

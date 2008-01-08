@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
@@ -1803,7 +1804,7 @@ public class ReadableDump extends LibraryFiles
 					case ELIBConstants.VCHAR:       value = new Byte[arrayLen];        break;
 					case ELIBConstants.VSTRING:     value = new String[arrayLen];      break;
 					case ELIBConstants.VNODEPROTO:  value = new NodeProtoId[arrayLen]; break;
-					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
+					case ELIBConstants.VARCPROTO:   value = new ArcProtoId[arrayLen];  break;
 					case ELIBConstants.VPORTPROTO:  value = new ExportId[arrayLen];    break;
 					case ELIBConstants.VTECHNOLOGY: value = new TechId[arrayLen];      break;
 					case ELIBConstants.VLIBRARY:    value = new LibId[arrayLen];       break;
@@ -1910,7 +1911,12 @@ public class ReadableDump extends LibraryFiles
                 if (!(pp instanceof Export)) return null;
 				return ((Export)pp).getId();
 			case ELIBConstants.VARCPROTO:
-				return ArcProto.findArcProto(name);
+                int colon = name.indexOf(':');
+                if (colon < 0) {
+					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find arc " + name);
+					return null;
+                }
+                return idManager.newTechId(name.substring(0, colon)).newArcProtoId(name.substring(colon + 1));
 			case ELIBConstants.VTECHNOLOGY:
 				return idManager.newTechId(name);
 			case ELIBConstants.VTOOL:

@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
@@ -2267,7 +2268,7 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
 					case ELIBConstants.VSTRING:     newAddrArray = new String[cou];      break;
 					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProtoId[cou]; break;
-					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
+					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProtoId[cou];  break;
 					case ELIBConstants.VPORTPROTO:  newAddrArray = new ExportId[cou];    break;
 					case ELIBConstants.VTECHNOLOGY: newAddrArray = new TechId[cou];      break;
 					case ELIBConstants.VLIBRARY:    newAddrArray = new LibId[cou];       break;
@@ -2371,7 +2372,12 @@ public class ELIB extends LibraryFiles
                 return (np instanceof Cell ? ((Cell)np).getId() : (PrimitiveNode)np);
 			case ELIBConstants.VARCPROTO:
 				i = readBigInteger();
-				return convertArcProto(i);
+				if (i == -1)
+				{
+					System.out.println("Variable of type ArcProto has negative index");
+					return null;
+				}
+				return convertArcProto(i).getId();
 			case ELIBConstants.VPORTPROTO:
 				i = readBigInteger();
 				PortProto pp = convertPortProto(i);

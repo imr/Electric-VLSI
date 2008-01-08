@@ -443,8 +443,7 @@ public class CellRevision {
             checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
             
-            Technology tech = a.protoType.getTechnology();
-            checkTechUsages.set(tech.getId().techIndex);
+            checkTechUsages.set(a.protoId.techId.techIndex);
         }
         
         if (exportIndex.length > 0)

@@ -31,12 +31,12 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -265,9 +265,9 @@ public class ReadableDump extends ELIB {
             infstr.append(np.getTechnology().getTechName() + ":" + np.getName());
             return;
         }
-        if (obj instanceof ArcProto) {
-            ArcProto ap = (ArcProto)obj;
-            infstr.append(ap.getTechnology().getTechName() + ":" + ap.getName());
+        if (obj instanceof ArcProtoId) {
+            ArcProtoId arcProtoId = (ArcProtoId)obj;
+            infstr.append(arcProtoId.fullName);
             return;
         }
         if (obj instanceof LibId) {

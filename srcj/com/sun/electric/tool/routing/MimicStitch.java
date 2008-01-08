@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -262,7 +263,7 @@ public class MimicStitch
 		NodeInst mimicNiHead = cell.getNodeById(mimicAi.headNodeId);
 		NodeInst mimicNiTail = cell.getNodeById(mimicAi.tailNodeId);
         if (mimicNiHead == null || mimicNiTail == null) return; // arc end killed
-		ArcProto typ = mimicAi.protoType;
+		ArcProtoId typ = mimicAi.protoId;
 		Point2D pt0 = mimicAi.headLocation;
 		Point2D pt1 = mimicAi.tailLocation;
 		double dist = pt0.distance(pt1);
@@ -276,7 +277,7 @@ public class MimicStitch
 			ArcInst ai = it.next();
 
 			// arc must be of the same type
-			if (ai.getProto() != typ) continue;
+			if (ai.getProto().getId() != typ) continue;
 
 			// must be the same length and angle
 			Point2D end0 = ai.getHeadLocation();

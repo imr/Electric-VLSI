@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
@@ -52,7 +51,6 @@ public class IdWriter {
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
-    private HashMap<ArcProto,Integer> arcProtos = new HashMap<ArcProto,Integer>();
     private HashMap<PrimitiveNode,Integer> primNodes = new HashMap<PrimitiveNode,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
     
@@ -296,20 +294,12 @@ public class IdWriter {
     }
     
     /**
-     * Writes ArcProto.
-     * @param ap ArcProto to write.
+     * Writes ArcProtoId.
+     * @param arcProtoId ArcProtoId to write.
      */
-    public void writeArcProto(ArcProto ap) throws IOException {
-        Integer i = arcProtos.get(ap);
-        if (i != null) {
-            out.writeInt(i.intValue());
-        } else {
-            i = new Integer(arcProtos.size());
-            arcProtos.put(ap, i);
-            out.writeInt(i.intValue());
-            writeTechnology(ap.getTechnology());
-            out.writeUTF(ap.getName());
-        }
+    public void writeArcProtoId(ArcProtoId arcProtoId) throws IOException {
+        writeTechId(arcProtoId.techId);
+        writeInt(arcProtoId.chronIndex);
     }
 
     /**

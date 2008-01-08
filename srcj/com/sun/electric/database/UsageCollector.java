@@ -29,6 +29,7 @@ import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -49,7 +50,7 @@ class UsageCollector {
 
     private ImmutableCell d;
     private HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
-    private HashSet<Technology> techUsed = new HashSet<Technology> (16, 0.5f);
+    private HashSet<TechId> techUsed = new HashSet<TechId> (16, 0.5f);
     
     /**
      * Collect usages in lists of nodes/arcs/exports together with Cell's variables. 
@@ -64,7 +65,7 @@ class UsageCollector {
             if (n.protoId instanceof CellId)
                 add((CellId)n.protoId, true);
             else
-                techUsed.add(((PrimitiveNode)n.protoId).getTechnology());
+                techUsed.add(((PrimitiveNode)n.protoId).getTechnology().getId());
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
                 if (pi == ImmutablePortInst.EMPTY) continue;
@@ -74,7 +75,7 @@ class UsageCollector {
         }
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ImmutableArcInst a = arcs.get(arcIndex);
-            techUsed.add(a.protoType.getTechnology());
+            techUsed.add(a.protoId.techId);
             add(a.tailPortId);
             add(a.headPortId);
         }
@@ -108,8 +109,8 @@ class UsageCollector {
         IdManager idManager = d.cellId.idManager;
         BitSet techUsages = new BitSet();
         techUsages.set(d.techId.techIndex);
-        for (Technology tech: techUsed)
-            techUsages.set(tech.getId().techIndex);
+        for (TechId techId: techUsed)
+            techUsages.set(techId.techIndex);
         return bitSetWith(oldTechUsages, techUsages); 
     }
     

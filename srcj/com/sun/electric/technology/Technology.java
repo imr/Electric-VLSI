@@ -639,7 +639,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
     public class SizeCorrector {
-        public final HashMap<ArcProto,Integer> arcExtends = new HashMap<ArcProto,Integer>();
+        public final HashMap<ArcProtoId,Integer> arcExtends = new HashMap<ArcProtoId,Integer>();
         public final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
 
         private SizeCorrector(Version version, boolean isJelib) {
@@ -660,7 +660,7 @@ public class Technology implements Comparable<Technology>, Serializable
                             break;
                         }
                     }
-                    arcExtends.put(ap, Integer.valueOf((int)DBMath.lambdaToGrid(correction)));
+                    arcExtends.put(ap.getId(), Integer.valueOf((int)DBMath.lambdaToGrid(correction)));
                 }
                 for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
                     PrimitiveNode pn = nodes.get(xpn.name);
@@ -683,7 +683,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 boolean oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
                 boolean newestRevision = isJelib && version.compareTo(Version.parseVersion("8.05o")) >= 0;
                 for (ArcProto ap: arcs.values()) {
-                    arcExtends.put(ap, Integer.valueOf(newestRevision ? 0 : oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
+                    arcExtends.put(ap.getId(), Integer.valueOf(newestRevision ? 0 : oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
                 }
                 for (PrimitiveNode pn: nodes.values()) {
                     EPoint correction = EPoint.ORIGIN;
@@ -699,11 +699,11 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 
         public long getExtendFromDisk(ArcProto ap, double width) {
-            return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap).longValue();
+            return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap.getId()).longValue();
         }
 
         public long getWidthToDisk(ImmutableArcInst a) {
-            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoType).intValue());
+            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoId).intValue());
         }
 
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
@@ -727,11 +727,11 @@ public class Technology implements Comparable<Technology>, Serializable
 
     protected void setArcCorrection(SizeCorrector sc, String arcName, double lambdaBaseWidth) {
         ArcProto ap = findArcProto(arcName);
-        Integer correction = sc.arcExtends.get(ap);
+        Integer correction = sc.arcExtends.get(ap.getId());
         int gridBaseExtend = (int)DBMath.lambdaToGrid(0.5*lambdaBaseWidth);
         if (gridBaseExtend != ap.getGridBaseExtend()) {
             correction = Integer.valueOf(correction.intValue() + gridBaseExtend - ap.getGridBaseExtend());
-            sc.arcExtends.put(ap, correction);
+            sc.arcExtends.put(ap.getId(), correction);
         }
     }
 
@@ -2150,7 +2150,8 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, Layer layerOverride) {
         // get information about the arc
-        ArcProto ap = a.protoType;
+        assert a.protoId.techId == techId;
+        ArcProto ap = getArcProto(a.protoId);
         assert ap.getTechnology() == this;
         int numArcLayers = ap.getNumArcLayers();
 
@@ -2236,7 +2237,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (explain) System.out.println("NEGATED");
             return false;
         }
-        ArcProto protoType = getArcProto(a.protoType.getId());
+        ArcProto protoType = getArcProto(a.protoId);
         if (protoType.isCurvable() && a.getVar(ImmutableArcInst.ARC_RADIUS) != null) {
             if (explain) System.out.println("CURVABLE");
             return false;

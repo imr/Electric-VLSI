@@ -102,6 +102,12 @@ public class CellBackup {
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         CellRevision newRevision = cellRevision.with(d, revisionDate, nodesArray, arcsArray, exportsArray);
         if (newRevision == cellRevision) return this;
+        if (arcsArray != null) {
+            for (ImmutableArcInst a: arcsArray) {
+                if (a != null && !a.check(techPool))
+                    throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
+            }
+        }
         return new CellBackup(newRevision, this.techPool, modified);
     }
     
@@ -155,13 +161,16 @@ public class CellBackup {
 	 * Checks invariant of this CellBackup.
 	 * @throws AssertionError if invariant is broken.
 	 */
-    public void check(TechPool techPool) {
+    public void check() {
         cellRevision.check();
         IdManager idManager = cellRevision.d.cellId.idManager;
         assert techPool.idManager == idManager;
         for (int techIndex = 0; techIndex < cellRevision.techUsages.length(); techIndex++) {
             if (cellRevision.techUsages.get(techIndex))
                 assert techPool.getTech(idManager.getTechId(techIndex)) != null;
+        }
+        for (ImmutableArcInst a: cellRevision.arcs) {
+            if (a != null) a.check(techPool);
         }
         
         if (m != null)
@@ -206,11 +215,9 @@ public class CellBackup {
         if (arcs.isEmpty()) return null;
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
         int[] intCoords = new int[4];
-        CellBackup.Memoization m = getMemoization();
-        AbstractShapeBuilder.Shrinkage shrinkage = getShrinkage();
-        BoundsBuilder boundsBuilder = new BoundsBuilder(m, shrinkage);
+        BoundsBuilder boundsBuilder = new BoundsBuilder(this);
         for (ImmutableArcInst a: arcs) {
-            if (a.genBoundsEasy(m, shrinkage, intCoords)) {
+            if (boundsBuilder.genBoundsEasy(a, intCoords)) {
                 int x1 = intCoords[0];
                 if (x1 < intMinX) intMinX = x1;
                 int y1 = intCoords[1];
@@ -304,7 +311,7 @@ public class CellBackup {
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
             for (ImmutableArcInst a: arcs) {
-                ArcProto ap = techPool.getArcProto(a.protoType.getId());
+                ArcProto ap = techPool.getArcProto(a.protoId);
                 // wipe status
                 if (ap.isWipable()) {
                     wiped.set(a.tailNodeId);

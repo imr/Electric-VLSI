@@ -779,7 +779,7 @@ public class Snapshot {
             libBackup.check();
         }
         for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup != null) cellBackup.check(techPool);
+            if (cellBackup != null) cellBackup.check();
         }
         if (libBackups.size() > 0)
             assert libBackups.get(libBackups.size() - 1) != null;

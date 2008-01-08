@@ -27,7 +27,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
@@ -36,13 +36,10 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.FPGA;
 
+import com.sun.electric.technology.TechPool;
 import java.io.IOException;
 
 /**
@@ -204,7 +201,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public final static ImmutableArrayList<ImmutableArcInst> EMPTY_LIST = new ImmutableArrayList<ImmutableArcInst>(NULL_ARRAY);
     
     /** id of this ArcInst in parent. */                            public final int arcId;
-	/** Arc prototype. */                                           public final ArcProto protoType;
+	/** Arc prototype. */                                           public final ArcProtoId protoId;
 	/** name of this ImmutableArcInst. */							public final Name name;
 	/** The text descriptor of name of ImmutableArcInst. */         public final TextDescriptor nameDescriptor;
     
@@ -223,7 +220,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
      *
      * @param arcId id of this ArcInst in parent.
-     * @param protoType arc prototype.
+     * @param protoId Id pf arc prototype.
      * @param name name of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
@@ -237,13 +234,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param flags flag bits of this ImmutableArcInst.
      * @param vars array of Variables of this ImmutableArcInst
      */
-    ImmutableArcInst(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
+    ImmutableArcInst(int arcId, ArcProtoId protoId, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             int gridExtendOverMin, short angle, int flags, Variable[] vars) {
         super(vars, flags);
         this.arcId = arcId;
-        this.protoType = protoType;
+        this.protoId = protoId;
         this.name = name;
         this.nameDescriptor = nameDescriptor;
         this.tailNodeId = tailNodeId;
@@ -460,7 +457,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     /**
      * Returns new ImmutableArcInst object.
      * @param arcId id of this ArcInst in parent.
-     * @param protoType arc prototype.
+     * @param protoId Id of arc prototype.
      * @param name name of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
@@ -476,12 +473,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
      * @throws IllegalArgumentException if arcId, tailNodeId, headNodeId or name is not valid, or width is bad.
      */
-    public static ImmutableArcInst newInstance(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
+    public static ImmutableArcInst newInstance(int arcId, ArcProtoId protoId, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             long gridExtendOverMin, int angle, int flags) {
         if (arcId < 0) throw new IllegalArgumentException("arcId");
-        if (protoType == null) throw new NullPointerException("protoType");
+        if (protoId == null) throw new NullPointerException("protoId");
         if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
@@ -499,14 +496,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (angle < 0) angle += 3600;
         short shortAngle = updateAngle((short)angle, tailLocation, headLocation);
         flags &= DATABASE_FLAGS;
-        if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
+        if (!(tailPortId instanceof PrimitivePort))
             flags &= ~TAIL_NEGATED_MASK;
-        if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
+        if (!(headPortId instanceof PrimitivePort))
             flags &= ~HEAD_NEGATED_MASK;
-        if (protoType.getTechnology().isNoNegatedArcs())
-            flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
         flags = updateManhattan(flags, headLocation, tailLocation, angle);
-        return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
+        return new ImmutableArcInst(arcId, protoId, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
                 intGridExtendOverMin, shortAngle, flags, Variable.NULL_ARRAY);
@@ -523,7 +518,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (this.name.toString().equals(name.toString())) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
-		return new ImmutableArcInst(this.arcId, this.protoType, name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, getVars());
@@ -538,7 +533,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, getVars());
@@ -557,7 +552,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (headLocation == null) throw new NullPointerException("headLocation");
         short angle = updateAngle(this.angle, tailLocation, headLocation);
         int flags = updateManhattan(this.flags, headLocation, tailLocation, angle);
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
                 this.gridExtendOverMin, angle, flags, getVars());
@@ -572,7 +567,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public ImmutableArcInst withGridExtendOverMin(long gridExtendOverMin) {
         if (this.gridExtendOverMin == gridExtendOverMin) return this;
         if (gridExtendOverMin <= -MAX_EXTEND || gridExtendOverMin >= MAX_EXTEND) throw new IllegalArgumentException("gridWidth");
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 (int)gridExtendOverMin, this.angle, this.flags, getVars());
@@ -591,7 +586,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (this.angle == angle) return this;
         short shortAngle = (short)angle;
         int flags = updateManhattan(this.flags, this.headLocation, this.tailLocation, shortAngle);
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, shortAngle, flags, getVars());
@@ -604,15 +599,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public ImmutableArcInst withFlags(int flags) {
         flags &= DATABASE_FLAGS;
-        if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
+        if (!(tailPortId instanceof PrimitivePort))
             flags &= ~TAIL_NEGATED_MASK;
-        if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
+        if (!(headPortId instanceof PrimitivePort))
             flags &= ~HEAD_NEGATED_MASK;
-        if (protoType.getTechnology().isNoNegatedArcs())
-            flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
         if ((this.flags & DATABASE_FLAGS) == flags) return this;
         flags |= this.flags & MANHATTAN_MASK;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, flags, getVars());
@@ -639,7 +632,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
@@ -655,7 +648,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
@@ -675,7 +668,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headPortId instanceof ExportId)
             headPortId = idMapper.get((ExportId)headPortId);
         if (getVars() == vars && this.tailPortId == tailPortId && this.headPortId == headPortId) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, tailPortId, this.tailLocation,
                 this.headNodeId, headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
@@ -692,7 +685,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
     void write(IdWriter writer) throws IOException {
         writer.writeArcId(arcId);
-        writer.writeArcProto(protoType);
+        writer.writeArcProtoId(protoId);
         writer.writeNameKey(name);
         writer.writeTextDescriptor(nameDescriptor);
         writer.writeNodeId(tailNodeId);
@@ -713,7 +706,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
     static ImmutableArcInst read(IdReader reader) throws IOException {
         int arcId = reader.readNodeId();
-        ArcProto protoType = reader.readArcProto();
+        ArcProtoId protoId = reader.readArcProtoId();
         Name name = reader.readNameKey();
         TextDescriptor nameDescriptor = reader.readTextDescriptor();
         int tailNodeId = reader.readNodeId();
@@ -727,7 +720,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
+        return new ImmutableArcInst(arcId, protoId, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridExtendOverMin,
                 updateAngle(angle, tailLocation, headLocation), flags, vars);
     }
@@ -748,62 +741,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (this == o) return true;
         if (!(o instanceof ImmutableArcInst)) return false;
         ImmutableArcInst that = (ImmutableArcInst)o;
-        return this.arcId == that.arcId && this.protoType == that.protoType &&
+        return this.arcId == that.arcId && this.protoId == that.protoId &&
                 this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
                 this.tailNodeId == that.tailNodeId && this.tailPortId == that.tailPortId && this.tailLocation == that.tailLocation &&
                 this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation == that.headLocation &&
                 this.gridExtendOverMin == that.gridExtendOverMin && this.angle == that.angle && this.flags == that.flags;
-    }
-    
-    /**
-     * Generate bounds of this ImmutableArcInst in easy case.
-     * @param shrinkage data to determine shrinkage.
-     * @param intCoords integer coords to fill.
-     * @return true if bounds were generated.
-     */
-    public boolean genBoundsEasy(CellBackup.Memoization m, AbstractShapeBuilder.Shrinkage shrinkage, int[] intCoords) {
-        if (m.isHardArc(arcId)) return false;
-        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
-        if (minLayerExtend == 0) {
-            assert protoType.getNumArcLayers() == 1;
-            int x1 = (int)tailLocation.getGridX();
-            int y1 = (int)tailLocation.getGridY();
-            int x2 = (int)headLocation.getGridX();
-            int y2 = (int)headLocation.getGridY();
-            if (x1 <= x2) {
-                intCoords[0] = x1;
-                intCoords[2] = x2;
-            } else {
-                intCoords[0] = x2;
-                intCoords[2] = x1;
-            }
-            if (y1 <= y2) {
-                intCoords[1] = y1;
-                intCoords[3] = y2;
-            } else {
-                intCoords[1] = y2;
-                intCoords[3] = y1;
-            }
-        } else {
-            boolean tailExtended = false;
-            if (isTailExtended()) {
-                short shrinkT = shrinkage.get(tailNodeId);
-                if (shrinkT == AbstractShapeBuilder.Shrinkage.EXTEND_90)
-                    tailExtended = true;
-                else if (shrinkT != AbstractShapeBuilder.Shrinkage.EXTEND_0)
-                    return false;
-            }
-            boolean headExtended = false;
-            if (isHeadExtended()) {
-                short shrinkH = shrinkage.get(headNodeId);
-                if (shrinkH == AbstractShapeBuilder.Shrinkage.EXTEND_90)
-                    headExtended = true;
-                else if (shrinkH != AbstractShapeBuilder.Shrinkage.EXTEND_0)
-                    return false;
-            }
-            makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getMaxLayerGridExtend());
-        }
-        return true;
     }
     
 	/**
@@ -874,6 +816,20 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         return null;
 	}
     
+    public boolean check(TechPool techPool) {
+        ArcProto protoType = techPool.getArcProto(protoId);
+        if (protoType == null) return false;
+        if (isTailNegated()) {
+            if (!((PrimitivePort)tailPortId).isNegatable()) return false;
+            if (protoType.getTechnology().isNoNegatedArcs()) return false;
+        }
+        if (isHeadNegated()) {
+            if (!((PrimitivePort)headPortId).isNegatable()) return false;
+            if (protoType.getTechnology().isNoNegatedArcs()) return false;
+        }
+        return true;
+    }
+    
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.
@@ -881,7 +837,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public void check() {
         check(false);
         assert arcId >= 0;
-		assert protoType != null;
+		assert protoId != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
         if (name.isTempname())
@@ -898,9 +854,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert (flags & ~(DATABASE_FLAGS|MANHATTAN_MASK)) == 0;
         assert isManhattan() == isManhattan(headLocation, tailLocation, angle);
         if (isTailNegated())
-            assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
+            assert tailPortId instanceof PrimitivePort;
         if (isHeadNegated())
-            assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
+            assert headPortId instanceof PrimitivePort;
         assert 0 <= angle && angle < 3600;
         if (!tailLocation.equals(headLocation))
             assert angle == GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());

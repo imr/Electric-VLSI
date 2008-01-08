@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 
@@ -157,7 +157,7 @@ public class ELIBConstants
 		if (obj instanceof Tool) return ELIBConstants.VTOOL;
 		if (obj instanceof TechId) return ELIBConstants.VTECHNOLOGY;
 		if (obj instanceof PrimitiveNode) return ELIBConstants.VNODEPROTO;
-		if (obj instanceof ArcProto) return ELIBConstants.VARCPROTO;
+		if (obj instanceof ArcProtoId) return ELIBConstants.VARCPROTO;
         if (obj instanceof LibId) return ELIBConstants.VLIBRARY;
         if (obj instanceof CellId) return ELIBConstants.VNODEPROTO;
         if (obj instanceof ExportId) return ELIBConstants.VPORTPROTO;
@@ -173,7 +173,7 @@ public class ELIBConstants
 		if (obj instanceof Tool[]) return ELIBConstants.VTOOL;
 		if (obj instanceof TechId[]) return ELIBConstants.VTECHNOLOGY;
 		if (obj instanceof PrimitiveNode[]) return ELIBConstants.VNODEPROTO;
-		if (obj instanceof ArcProto[]) return ELIBConstants.VARCPROTO;
+		if (obj instanceof ArcProtoId[]) return ELIBConstants.VARCPROTO;
         if (obj instanceof LibId[]) return ELIBConstants.VLIBRARY;
         if (obj instanceof CellId[]) return ELIBConstants.VNODEPROTO;
         if (obj instanceof ExportId[]) return ELIBConstants.VPORTPROTO;

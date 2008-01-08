@@ -39,6 +39,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.ExportId;
@@ -56,6 +57,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
@@ -81,7 +83,8 @@ public class JELIB extends Output {
     private boolean oldRevision;
     private Version version;
     /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-    private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
+    private TechPool techPool;
+    private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
 //    Snapshot snapshot;
 //    private Map<LibId,URL> libFiles;
     
@@ -110,7 +113,7 @@ public class JELIB extends Output {
     private void writeTheLibrary(Snapshot snapshot, LibId libId)
     {
         // gather all referenced objects
-//        this.snapshot = snapshot;
+        techPool = snapshot.techPool;
         LibraryBackup libBackup = snapshot.getLib(libId);
         HashSet<LibId> usedLibs = new HashSet<LibId>();
         HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
@@ -366,7 +369,7 @@ public class JELIB extends Output {
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
-                EPoint size = getSizeCorrector(((PrimitiveNode)np).getTechnology()).getSizeToDisk(n);
+                EPoint size = getSizeCorrector(((PrimitiveNode)np).getTechnology().getId()).getSizeToDisk(n);
                 double lambdaWidth = size.getLambdaX();
                 double lambdaHeight = size.getLambdaY();
                 printWriter.print("|");
@@ -409,15 +412,15 @@ public class JELIB extends Output {
         
         // write the arcs in this cell
         for (ImmutableArcInst a: cellRevision.arcs) {
-            ArcProto ap = a.protoType;
-            if (cellRevision.d.techId.techName.equals(ap.getTechnology().getTechName()))
-                printWriter.print("A" + convertString(ap.getName()));
+            ArcProtoId apId = a.protoId;
+            if (cellRevision.d.techId == apId.techId)
+                printWriter.print("A" + convertString(apId.name));
             else
-                printWriter.print("A" + convertString(ap.getFullName()));
+                printWriter.print("A" + convertString(apId.fullName));
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(null, a.nameDescriptor));
-            long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
+            long arcWidth = getSizeCorrector(a.protoId.techId).getWidthToDisk(a);
             printWriter.print("|");
             if (arcWidth != 0)
                 printWriter.print(TextUtils.formatDouble(DBMath.gridToLambda(arcWidth), 0));
@@ -736,7 +739,7 @@ public class JELIB extends Output {
             case 'L': infstr.append(convertString(((LibId)obj).libName, inArray)); return;
             case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
             case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
-            case 'R': infstr.append(convertString(((ArcProto)obj).getFullName(), inArray)); return;
+            case 'R': infstr.append(convertString(((ArcProtoId)obj).fullName, inArray)); return;
             case 'S': infstr.append(convertString((String)obj, inArray)); return;
             case 'T': infstr.append(convertString(((TechId)obj).techName, inArray)); return;
             case 'V': {
@@ -757,11 +760,11 @@ public class JELIB extends Output {
         return convertString(exportId.externalId);
     }
     
-    private Technology.SizeCorrector getSizeCorrector(Technology tech) {
-        Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
+    private Technology.SizeCorrector getSizeCorrector(TechId techId) {
+        Technology.SizeCorrector corrector = sizeCorrectors.get(techId);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(version, projectSettings, true, false);
-            sizeCorrectors.put(tech, corrector);
+            corrector = techPool.getTech(techId).getSizeCorrector(version, projectSettings, true, false);
+            sizeCorrectors.put(techId, corrector);
         }
         return corrector;
     }
@@ -784,7 +787,7 @@ public class JELIB extends Output {
         if (obj instanceof LibId         || obj instanceof LibId [])         return 'L';
         if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
         if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
-        if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return 'R';
+        if (obj instanceof ArcProtoId    || obj instanceof ArcProtoId [])    return 'R';
         if (obj instanceof TechId        || obj instanceof TechId [])        return 'T';
         if (obj instanceof EPoint        || obj instanceof EPoint [])        return 'V';
         if (obj instanceof Byte          || obj instanceof Byte [])          return 'Y';

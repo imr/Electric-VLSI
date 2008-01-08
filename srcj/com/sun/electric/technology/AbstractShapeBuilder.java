@@ -32,7 +32,9 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
+
 import java.awt.geom.Point2D;
 
 /**
@@ -49,6 +51,7 @@ public abstract class AbstractShapeBuilder {
     public int[] intCoords = new int[4];
     private CellBackup.Memoization m;
     private Shrinkage shrinkage;
+    private TechPool techPool;
     
     /** Creates a new instance of AbstractShapeBuilder */
     public AbstractShapeBuilder() {
@@ -62,22 +65,31 @@ public abstract class AbstractShapeBuilder {
     public void setReasonable(boolean b) { reasonable = b; }
     public void setElectrical(boolean b) { electrical = b; }
     
+    public void setup(Cell cell) {
+        setup(cell.backupUnsafe());
+    }
+    
+    public void setup(CellBackup cellBackup) {
+        this.m = cellBackup.getMemoization();
+        this.shrinkage = cellBackup.getShrinkage();
+        this.techPool = cellBackup.techPool;
+    }
+    
     public CellBackup.Memoization getMemoization() {
         return m;
     }
     public Shrinkage getShrinkage() {
         return shrinkage;
     }
-    public void setShrinkage(CellBackup.Memoization m, Shrinkage shrinkage) {
-        this.m = m;
-        this.shrinkage = shrinkage;
+    public TechPool getTechPool() {
+        return techPool;
     }
     
     public void genShapeOfArc(ImmutableArcInst a) {
         if (genShapeEasy(a))
             return;
         pointCount = 0;
-        a.protoType.tech.getShapeOfArc(this, a);
+        techPool.getTech(a.protoId.techId).getShapeOfArc(this, a);
     }
     
 	/**
@@ -89,7 +101,7 @@ public abstract class AbstractShapeBuilder {
 	 */
     public void makeGridPoly(ImmutableArcInst a, long gridWidth, Poly.Type style, Layer layer) {
 //        long[] result;
-        if (a.protoType.isCurvable()) {
+        if (techPool.getArcProto(a.protoId).isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = a.getRadius();
             if (radiusDouble != null && curvedArcGridOutline(a, gridWidth, DBMath.lambdaToGrid(radiusDouble))) {
@@ -276,7 +288,7 @@ public abstract class AbstractShapeBuilder {
      */
     public boolean genShapeEasy(ImmutableArcInst a) {
         if (m.isHardArc(a.arcId)) return false;
-        ArcProto protoType = a.protoType;
+        ArcProto protoType = techPool.getArcProto(a.protoId);
         int gridExtendOverMin = (int)a.getGridExtendOverMin();
         int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
         if (minLayerExtend == 0) {
@@ -382,12 +394,13 @@ public abstract class AbstractShapeBuilder {
         
         public Shrinkage(CellBackup cellBackup) {
             CellRevision cellRevision = cellBackup.cellRevision;
+            TechPool techPool = cellBackup.techPool;
             int maxNodeId = -1;
             for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++)
                 maxNodeId = Math.max(maxNodeId, cellRevision.nodes.get(nodeIndex).nodeId);
             int[] angles = new int[maxNodeId+1];
             for (ImmutableArcInst a: cellRevision.arcs) {
-                ArcProto ap = a.protoType;
+                ArcProto ap = techPool.getArcProto(a.protoId);
                 if (a.getGridExtendOverMin() + ap.getMaxLayerGridExtend() == 0) continue;
                 if (a.tailNodeId == a.headNodeId && a.tailPortId == a.headPortId) {
                     // Fake register for full shrinkage

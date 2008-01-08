@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
@@ -1568,7 +1569,7 @@ public class JELIB extends LibraryFiles
 						case 'L': objArray = new LibId[limit];          break;
 						case 'O': objArray = new Tool[limit];           break;
 						case 'P': objArray = new PrimitiveNode[limit];  break;
-						case 'R': objArray = new ArcProto[limit];       break;
+						case 'R': objArray = new ArcProtoId[limit];     break;
 						case 'S': objArray = new String[limit];         break;
 						case 'T': objArray = new TechId[limit];         break;
 						case 'V': objArray = new EPoint[limit];         break;
@@ -1927,7 +1928,7 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown PrimitiveNode: " + piece, -1);
 				return np;
-			case 'R':		// ArcProto
+			case 'R':		// ArcProtoId
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
@@ -1936,21 +1937,11 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				techName = piece.substring(0, colonPos);
-				tech = findTechnology(techName);
-				if (tech == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown technology: " + techName, -1);
-					break;
-				}
+                TechId techId = idManager.newTechId(techName);
 				String arcName = piece.substring(colonPos+1);
 				commaPos = arcName.indexOf(',');
 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
-				ArcProto ap = tech.findArcProto(arcName);
-				if (ap == null)
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown ArcProto: " + piece, -1);
-				return ap;
+				return techId.newArcProtoId(arcName);
 			case 'S':		// String
 				if (revision >= 1) return piece;
 				if (piece.charAt(0) != '"')
@@ -1979,7 +1970,7 @@ public class JELIB extends LibraryFiles
 					sb.append(piece.charAt(objectPos));
 				}
 				return sb.toString();
-			case 'T':		// Technology
+			case 'T':		// TechId
 				techName = piece;
 				commaPos = techName.indexOf(',');
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);

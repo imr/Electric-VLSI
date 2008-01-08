@@ -41,6 +41,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
@@ -60,6 +61,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -85,6 +87,7 @@ public class ELIB extends Output
 {
     /** Snapshot being saved. */                                Snapshot snapshot;
     /** IdManager of Snapshot being saved. */                   IdManager idManager;
+    /** TechPool of Snapshot being saved. */                    TechPool techPool;
     /** Library being saved. */                                 LibId theLibId;
 	/** Map of referenced objects for library files */          HashMap<Object,Integer> objInfo;
     /** List of referenced Technologies */                      final ArrayList<Technology> technologies = new ArrayList<Technology>();
@@ -96,7 +99,7 @@ public class ELIB extends Output
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
     /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-    /** size correctors for technologies */                     private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
+    /** size correctors for technologies */                     private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
     /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
     /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
     ArrayList<CellRevision> localCells = new ArrayList<CellRevision>();
@@ -130,6 +133,7 @@ public class ELIB extends Output
 	{
         this.snapshot = snapshot;
         idManager = snapshot.idManager;
+        techPool = snapshot.techPool;
         this.theLibId = theLibId;
         
         // Gather objects referenced from Cells
@@ -148,7 +152,7 @@ public class ELIB extends Output
                     gatherCell((CellId)np);
                 } else {
                     gatherObj(np);
-                    gatherTech(((PrimitiveNode)np).getTechnology());
+                    gatherTech(((PrimitiveNode)np).getTechnology().getId());
                 }
                 if (n.hasPortInstVariables()) {
                     for (Iterator<PortProtoId> it = n.getPortsWithVariables(); it.hasNext(); ) {
@@ -162,9 +166,9 @@ public class ELIB extends Output
             }
             
             for (ImmutableArcInst a: cellRevision.arcs) {
-                ArcProto ap = a.protoType;
-                gatherObj(ap);
-                gatherTech(ap.getTechnology());
+                ArcProtoId apId = a.protoId;
+                gatherObj(apId);
+                gatherTech(apId.techId);
                 //gatherObj(ai.getHead().getPortInst().getPortProto());
                 //gatherObj(ai.getTail().getPortInst().getPortProto());
                 gatherVariables(null, a);
@@ -316,9 +320,9 @@ public class ELIB extends Output
             primNodeCounts[techCount] = primNodeProtoIndex - primNodeStart;
             int primArcStart = arcProtoIndex;
             for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); ) {
-                ArcProto ap = ait.next();
-                if (!objInfo.containsKey(ap)) continue;
-                putObjIndex(ap, -2 - arcProtoIndex++);
+                ArcProtoId apId = ait.next().getId();
+                if (!objInfo.containsKey(apId)) continue;
+                putObjIndex(apId, -2 - arcProtoIndex++);
             }
             primArcCounts[techCount] = arcProtoIndex - primArcStart;
         }
@@ -460,9 +464,9 @@ public class ELIB extends Output
 			writeBigInteger(primArcCounts[techCount]);
 			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
 			{
-				ArcProto ap = ait.next();
-				if (!objInfo.containsKey(ap)) continue;
-				writeString(ap.getName());
+				ArcProtoId apId = ait.next().getId();
+				if (!objInfo.containsKey(apId)) continue;
+				writeString(apId.name);
 			}
 		}
 
@@ -575,16 +579,16 @@ public class ELIB extends Output
 				} else if (v instanceof PrimitiveNode)
 				{
 					gatherObj(v);
-					gatherTech(((PrimitiveNode)v).getTechnology());
+					gatherTech(((PrimitiveNode)v).getTechnology().getId());
 				} else if (v instanceof PrimitivePort)
 				{
 					PrimitiveNode pn = ((PrimitivePort)v).getParent();
 					gatherObj(pn);
-					gatherTech(pn.getTechnology());
+					gatherTech(pn.getTechnology().getId());
 				} else if (v instanceof ArcProto)
 				{
 					gatherObj(v);
-					gatherTech(((ArcProto)v).getTechnology());
+					gatherTech(((ArcProto)v).getId().techId);
 				} else if (v instanceof CellId)
 				{
                     CellId cellId = (CellId)v;
@@ -624,9 +628,9 @@ public class ELIB extends Output
 	 * Gather TechId of Technology into objInfo map.
 	 * @param tech Technology to examine.
 	 */
-	private void gatherTech(Technology tech)
+	private void gatherTech(TechId techId)
 	{
-        gatherObj(tech.getId());
+        gatherObj(techId);
 	}
 
 	/**
@@ -830,7 +834,7 @@ public class ELIB extends Output
                 PrimitiveNode pn = (PrimitiveNode)protoId;
                 trueCenterX = n.anchor.getGridX();
                 trueCenterY = n.anchor.getGridY();
-                EPoint size = getSizeCorrector(pn.getTechnology()).getSizeToDisk(n);
+                EPoint size = getSizeCorrector(pn.getTechnology().getId()).getSizeToDisk(n);
                 xSize = size.getGridX();
                 ySize = size.getGridY();
                 writeTxt("type: " + ((PrimitiveNode)protoId).getFullName());
@@ -934,12 +938,12 @@ public class ELIB extends Output
             
             writeTxt("**arc: " + arcIndex); // TXT only
             // write the arcproto pointer
-            writeObj(a.protoType); // ELIB only
-            writeTxt("type: " + a.protoType.getFullName()); // TXT only
+            writeObj(a.protoId); // ELIB only
+            writeTxt("type: " + a.protoId.fullName); // TXT only
             
             // write basic arcinst information
             int userBits = a.getElibBits();
-            long arcWidth = getSizeCorrector(a.protoType.getTechnology()).getWidthToDisk(a);
+            long arcWidth = getSizeCorrector(a.protoId.techId).getWidthToDisk(a);
             writeGridCoord(cellRevision, "width: ", arcWidth);
             writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellRevision.d.techId)*2/DBMath.GRID));
 //            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
@@ -1354,11 +1358,11 @@ public class ELIB extends Output
         return tech.isScaleRelevant() || tech == Generic.tech() ? tech.getScale() : irrelevantScale;
     }
     
-    private Technology.SizeCorrector getSizeCorrector(Technology tech) {
-        Technology.SizeCorrector corrector = sizeCorrectors.get(tech);
+    private Technology.SizeCorrector getSizeCorrector(TechId techId) {
+        Technology.SizeCorrector corrector = sizeCorrectors.get(techId);
         if (corrector == null) {
-            corrector = tech.getSizeCorrector(Version.getVersion(), projectSettings, false, false);
-            sizeCorrectors.put(tech, corrector);
+            corrector = techPool.getTech(techId).getSizeCorrector(Version.getVersion(), projectSettings, false, false);
+            sizeCorrectors.put(techId, corrector);
         }
         return corrector;
     }

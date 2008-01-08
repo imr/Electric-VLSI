@@ -393,6 +393,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
+        if (!(tailProto.getId() instanceof PrimitivePort && ((PrimitivePort)tailProto.getId()).isNegatable()))
+            flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
+        if (!(headProto.getId() instanceof PrimitivePort && ((PrimitivePort)headProto.getId()).isNegatable()))
+            flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
+        if (protoType.getTechnology().isNoNegatedArcs()) {
+            flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
+            flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
+        }
        
         CellId parentId = parent.getId();
         // search for spare arcId
@@ -400,7 +408,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         do {
             arcId = parentId.newArcId();
         } while (parent.getArcById(arcId) != null);
-        ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
+        ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType.getId(), nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 gridExtendOverMin, angle, flags);
@@ -691,7 +699,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
     
     void computeBounds(BoundsBuilder b, int[] intCoords) {
-        if (d.genBoundsEasy(b.getMemoization(), b.getShrinkage(), intCoords)) {
+        if (b.genBoundsEasy(d, intCoords)) {
             double x = intCoords[0];
             double y = intCoords[1];
             double w = intCoords[2] - x;
@@ -732,7 +740,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         polyBuilder.setOnlyTheseLayers(null);
-        polyBuilder.setShrinkage(parent.getMemoization(), parent.getShrinkage());
+        polyBuilder.setup(parent);
         return polyBuilder.makePoly(getD(), gridWidth, style);
     }
 	
@@ -757,7 +765,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, long gridRadius) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         polyBuilder.setOnlyTheseLayers(null);
-        polyBuilder.setShrinkage(parent.getMemoization(), parent.getShrinkage());
+        polyBuilder.setup(parent);
         Variable radius = Variable.newInstance(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridRadius)), TextDescriptor.getArcTextDescriptor());
         return polyBuilder.makePoly(getD().withVariable(radius), gridWidth, style);
     }
@@ -1433,6 +1441,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param n true to set the tail of this arc to be negated.
 	 */
 	public void setTailNegated(boolean n) {
+        if (!(d.tailPortId instanceof PrimitivePort && ((PrimitivePort)d.tailPortId).isNegatable()))
+            n = false;
+        if (getProto().getTechnology().isNoNegatedArcs())
+            n = false;
         setFlag(ImmutableArcInst.TAIL_NEGATED, n);
 	}
 
@@ -1443,6 +1455,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param n true to set the head of this arc to be negated.
 	 */
 	public void setHeadNegated(boolean n) {
+        if (!(d.headPortId instanceof PrimitivePort && ((PrimitivePort)d.headPortId).isNegatable()))
+            n = false;
+        if (getProto().getTechnology().isNoNegatedArcs())
+            n = false;
         setFlag(ImmutableArcInst.HEAD_NEGATED,  n);
 	}
 
@@ -1595,7 +1611,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to return the prototype of this ArcInst.
 	 * @return the prototype of this ArcInst.
 	 */
-	public ArcProto getProto() { return d.protoType; }
+	public ArcProto getProto() { return getTechPool().getArcProto(d.protoId); }
 
     /**
      * Copies all properties (variables, constraints, and textdescriptor)
@@ -1619,7 +1635,16 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         if (fromAi == null) return;
         ImmutableArcInst oldD = d;
-        lowLevelModify(d.withFlags(fromAi.d.flags).withAngle(fromAi.getAngle()));
+        int flags = fromAi.d.flags;
+        if (!(d.tailPortId instanceof PrimitivePort && ((PrimitivePort)d.tailPortId).isNegatable()))
+            flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
+        if (!(d.headPortId instanceof PrimitivePort && ((PrimitivePort)d.headPortId).isNegatable()))
+            flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
+        if (getProto().getTechnology().isNoNegatedArcs()) {
+            flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
+            flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
+        }
+        lowLevelModify(d.withFlags(flags).withAngle(fromAi.getAngle()));
 		if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 

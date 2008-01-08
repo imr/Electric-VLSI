@@ -29,6 +29,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -39,13 +41,71 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
     private boolean hasIntBounds, hasDoubleBounds;
     
-    public BoundsBuilder(CellBackup.Memoization m, Shrinkage shrinkage) {
-        setShrinkage(m, shrinkage);
+    public BoundsBuilder(Cell cell) {
+        setup(cell);
+        clear();
+    }
+    
+    public BoundsBuilder(CellBackup cellBackup) {
+        setup(cellBackup);
         clear();
     }
     
     public void clear() {
         hasIntBounds = hasDoubleBounds = false;
+    }
+    
+    /**
+     * Generate bounds of this ImmutableArcInst in easy case.
+     * @param shrinkage data to determine shrinkage.
+     * @param intCoords integer coords to fill.
+     * @return true if bounds were generated.
+     */
+    public boolean genBoundsEasy(ImmutableArcInst a, int[] intCoords) {
+        if (getMemoization().isHardArc(a.arcId)) return false;
+        int gridExtendOverMin = (int)a.getGridExtendOverMin();
+        ArcProto protoType = getTechPool().getArcProto(a.protoId);
+        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
+        if (minLayerExtend == 0) {
+            assert protoType.getNumArcLayers() == 1;
+            int x1 = (int)a.tailLocation.getGridX();
+            int y1 = (int)a.tailLocation.getGridY();
+            int x2 = (int)a.headLocation.getGridX();
+            int y2 = (int)a.headLocation.getGridY();
+            if (x1 <= x2) {
+                intCoords[0] = x1;
+                intCoords[2] = x2;
+            } else {
+                intCoords[0] = x2;
+                intCoords[2] = x1;
+            }
+            if (y1 <= y2) {
+                intCoords[1] = y1;
+                intCoords[3] = y2;
+            } else {
+                intCoords[1] = y2;
+                intCoords[3] = y1;
+            }
+        } else {
+            boolean tailExtended = false;
+            if (a.isTailExtended()) {
+                short shrinkT = getShrinkage().get(a.tailNodeId);
+                if (shrinkT == AbstractShapeBuilder.Shrinkage.EXTEND_90)
+                    tailExtended = true;
+                else if (shrinkT != AbstractShapeBuilder.Shrinkage.EXTEND_0)
+                    return false;
+            }
+            boolean headExtended = false;
+            if (a.isHeadExtended()) {
+                short shrinkH = getShrinkage().get(a.headNodeId);
+                if (shrinkH == AbstractShapeBuilder.Shrinkage.EXTEND_90)
+                    headExtended = true;
+                else if (shrinkH != AbstractShapeBuilder.Shrinkage.EXTEND_0)
+                    return false;
+            }
+            a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getMaxLayerGridExtend());
+        }
+        return true;
     }
     
     public ERectangle makeBounds() {

@@ -477,8 +477,7 @@ public class Poly extends PolyBase {
          */
         public Iterator<Poly> getShape(ArcInst ai) {
             isChanging = true;
-            Cell parent = ai.getParent();
-            setShrinkage(parent.getMemoization(), parent.getShrinkage());
+            setup(ai.getParent());
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (inLambda) {
@@ -496,8 +495,7 @@ public class Poly extends PolyBase {
          */
     	public Poly [] getShapeArray(ArcInst ai) {
             isChanging = true;
-            Cell parent = ai.getParent();
-            setShrinkage(parent.getMemoization(), parent.getShrinkage());
+            setup(ai.getParent());
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (lastPolys.isEmpty()) {

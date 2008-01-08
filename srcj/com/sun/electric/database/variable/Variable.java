@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
@@ -38,7 +39,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
@@ -272,7 +272,7 @@ public class Variable implements Serializable
         validClasses.put(Tool.class, new Byte(TOOL));
         validClasses.put(TechId.class, new Byte(TECHNOLOGY));
         validClasses.put(PrimitiveNode.class, new Byte(PRIM_NODE));
-        validClasses.put(ArcProto.class, new Byte(ARC_PROTO));
+        validClasses.put(ArcProtoId.class, new Byte(ARC_PROTO));
         validClasses.put(LibId.class, new Byte(LIBRARY));
         validClasses.put(CellId.class, new Byte(CELL));
         validClasses.put(ExportId.class, new Byte(EXPORT));
@@ -458,7 +458,7 @@ public class Variable implements Serializable
                 writer.writeNodeProtoId((PrimitiveNode)obj);
                 break;
             case ARC_PROTO:
-                writer.writeArcProto((ArcProto)obj);
+                writer.writeArcProtoId((ArcProtoId)obj);
                 break;
         }
     }
@@ -492,7 +492,7 @@ public class Variable implements Serializable
                 case TOOL: array = new Tool[length]; break;
                 case TECHNOLOGY: array = new TechId[length]; break;
                 case PRIM_NODE: array = new PrimitiveNode[length]; break;
-                case ARC_PROTO: array = new ArcProto[length]; break;
+                case ARC_PROTO: array = new ArcProtoId[length]; break;
                 default: throw new IOException("type");
                 
             }
@@ -541,7 +541,7 @@ public class Variable implements Serializable
             case PRIM_NODE:
                 return reader.readNodeProtoId();
             case ARC_PROTO:
-                return reader.readArcProto();
+                return reader.readArcProtoId();
             default:
                 throw new IllegalArgumentException();
         }

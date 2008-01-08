@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (1/8/08, DN) ImmutableArcInst is technology independent.
+
 IMP/MAN: (1/7/08, SMR) Improved "Arc Properties" and "Node Properties" dialogs
      so that the current bus arc/port's members can be listed (Bug #1529).
 
