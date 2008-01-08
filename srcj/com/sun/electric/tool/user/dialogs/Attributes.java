@@ -66,7 +66,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-
 /**
  * Class to handle the "Attributes" dialog.
  */
@@ -131,7 +130,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
      */
     public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
         if (!isVisible()) return;
-        loadAttributesInfo(false);        
+        loadAttributesInfo(false);
     }
 
     /**
@@ -295,11 +294,11 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 	        selectedExport = null;
 	        selectedPort = null;
 	        selectedVarKey = null;
-	
+
 	        currentButton = currentCell;
-	
+
 	        // update current window
-	        EditWindow curWnd = EditWindow.getCurrent();	
+	        EditWindow curWnd = EditWindow.getCurrent();
 	        selectedCell = WindowFrame.needCurCell();   selectedObject = selectedCell;
 	        if (curWnd == null) selectedCell = null;
 	        if (selectedCell != null)
@@ -582,6 +581,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         private Object newValue;
         private ElectricObject owner;
         private Variable newVar;
+        private TextDescriptor td;
         private transient Attributes dialog;
 
         private CreateAttribute(String newName, Object newValue, ElectricObject owner, Attributes dialog) {
@@ -590,25 +590,12 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             this.newValue = newValue;
             this.owner = owner;
             this.dialog = dialog;
-            startJob();
-        }
 
-        public boolean doIt() throws JobException
-        {
-            Variable.Key newKey = Variable.newKey(newName);
-
-            // check if var of this name already exists on object
-            if (owner.getVar(newKey) != null)
-				throw new JobException("Can't create new attribute "+newName+", already exists");
-
-            // if created on a cell, set the parameter and inherits properties
-            TextDescriptor td = null;
+            // determine textdescriptor for the variable
+            td = null;
             if (owner instanceof Cell)
             {
-            	// find nonconflicting location of this cell attribute
-            	Point2D offset = ((Cell)owner).newVarOffset();
-            	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true).
-            		withOff(offset.getX(), offset.getY());
+            	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true);
             } else if (owner instanceof NodeInst)
             {
             	td = TextDescriptor.getNodeTextDescriptor();
@@ -621,10 +608,32 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             } else if (owner instanceof PortInst)
             {
             	td = TextDescriptor.getPortInstTextDescriptor();
-            } else return false;
- 
+            } else return;
+
+            // add in specified factors
+            td = dialog.attrPanel.withPanelValues(td);
+            td = dialog.textPanel.withPanelValues(td);
+
+            if (owner instanceof Cell)
+            {
+            	// find nonconflicting location of this cell attribute
+            	Point2D offset = ((Cell)owner).newVarOffset();
+            	td = td.withOff(offset.getX(), offset.getY());
+            }
+
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            Variable.Key newKey = Variable.newKey(newName);
+
+            // check if var of this name already exists on object
+            if (owner.getVar(newKey) != null)
+				throw new JobException("Can't create new attribute "+newName+", already exists");
+
             // create the attribute
-            newVar = owner.newVar(newKey, newValue, td.withDispPart(TextDescriptor.DispPos.NAMEVALUE));
+            newVar = owner.newVar(newKey, newValue, td);
 			fieldVariableChanged("newVar");
             return true;
         }
@@ -1145,5 +1154,4 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
     private javax.swing.JTextField value;
     private javax.swing.ButtonGroup which;
     // End of variables declaration//GEN-END:variables
-
 }

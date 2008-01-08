@@ -46,12 +46,11 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.Iterator;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 
 /**
  * A Panel to display and edit Text Display options for a Variable.
@@ -445,6 +444,64 @@ public class TextInfoPanel extends javax.swing.JPanel
 		if (loading) return;
 		applyChanges(false);
 	}
+
+    /**
+     * Method to modify a TextDescriptor to match the settings in this panel.
+     * @param td the input TextDescriptor.
+     * @return the TextDescriptor with code/units/display in this panel.
+     */
+    public TextDescriptor withPanelValues(TextDescriptor td)
+    {
+        // handle changes to the size
+        if (pointsButton.isSelected())
+        {
+            String s = pointsSize.getText().trim();
+            if (s.length() > 0)
+            	td = td.withAbsSize(TextUtils.atoi(s));
+        } else
+        {
+            String s = unitsSize.getText().trim();
+            if (s.length() > 0)
+            	td = td.withRelSize(TextUtils.atof(s));
+        }
+
+        // handle changes to the offset
+        double xd = TextUtils.atof(xOffset.getText());
+        double yd = TextUtils.atof(yOffset.getText());
+        td = td.withOff(xd, yd);
+
+        // handle changes to the rotation
+        int index = rotation.getSelectedIndex();
+        TextDescriptor.Rotation r = TextDescriptor.Rotation.getRotationAt(index);
+        td = td.withRotation(r);
+
+        // handle changes to the anchor point
+        TextDescriptor.Position p = (TextDescriptor.Position)textAnchor.getSelectedItem();
+        td = td.withPos(p);
+
+        // handle changes to the font
+        int f = font.getSelectedIndex();
+        td = td.withFace(f);
+
+        // handle changes to checkboxes
+        boolean it = italic.isSelected();
+        td = td.withItalic(it);
+        boolean bo = bold.isSelected();
+        td = td.withBold(bo);
+        boolean ul = underline.isSelected();
+        td = td.withUnderline(ul);
+        boolean invis = invisibleOutsideCell.isSelected();
+        td = td.withInterior(invis);
+
+		// handle changes to the color
+        int colorIndex = textColorComboBox.getSelectedIndex();
+        if (colorIndex > 0)
+        {
+    		int [] colorIndices = EGraphics.getColorIndices();
+        	td = td.withColorIndex(colorIndices[colorIndex-1]);
+        }
+		return td;
+    }
 
 	/**
      * Apply any changes the user made to the Text options.
@@ -1147,5 +1204,4 @@ public class TextInfoPanel extends javax.swing.JPanel
     private javax.swing.JTextField xOffset;
     private javax.swing.JTextField yOffset;
     // End of variables declaration//GEN-END:variables
-
 }

@@ -199,6 +199,35 @@ public class TextAttributesPanel extends JPanel
     }
 
     /**
+     * Method to modify a TextDescriptor to match the settings in this panel.
+     * @param td the input TextDescriptor.
+     * @return the TextDescriptor with code/units/display in this panel.
+     */
+    public TextDescriptor withPanelValues(TextDescriptor td)
+    {
+        // change the code type
+        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
+        td = td.withCode(newCode);
+
+        // change the units
+        TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
+        td = td.withUnit(newUnit);
+
+        // change the show style
+        Object newDispObj = show.getSelectedItem();
+        if (newDispObj == displaynone)
+        {
+            td = td.withDisplay(false);
+        } else
+        {
+            td = td.withDisplay(true);
+        	TextDescriptor.DispPos newDisp = (TextDescriptor.DispPos)newDispObj;
+            td = td.withDispPart(newDisp);
+        }
+		return td;
+    }
+
+    /**
      * Apply any changes the user has made through the Panel.
      * @return true if any changes committed to database, false otherwise
      */
@@ -299,7 +328,7 @@ public class TextAttributesPanel extends JPanel
 			return true;
        }
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -409,8 +438,7 @@ public class TextAttributesPanel extends JPanel
         add(jPanel2, gridBagConstraints);
 
     }// </editor-fold>//GEN-END:initComponents
-    
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel attrInfo1;
     private javax.swing.JLabel attrInfo2;
@@ -424,5 +452,4 @@ public class TextAttributesPanel extends JPanel
     private javax.swing.JComboBox show;
     private javax.swing.JComboBox units;
     // End of variables declaration//GEN-END:variables
-    
 }

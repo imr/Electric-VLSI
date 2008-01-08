@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/8/08, SMR) Creating a new attribute doesn't include settings in dialog (Bug #1528).
+FIX: In Attributes.CreateAttribute constructor, build initial TextDescriptor.
+
 IMP: (1/8/08, DN) ImmutableArcInst is technology independent.
 
 IMP/MAN: (1/7/08, SMR) Improved "Arc Properties" and "Node Properties" dialogs
