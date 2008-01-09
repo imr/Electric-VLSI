@@ -260,6 +260,9 @@ public class MOSSIM extends Topology
 	/** Method to report that aggregate names (busses) ARE used. */
 	protected boolean isAggregateNamesSupported() { return false; }
 
+	/** Abstract method to decide whether aggregate names (busses) can have gaps in their ranges. */
+	protected boolean isAggregateNameGapsSupported() { return false; }
+
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return true; }
 

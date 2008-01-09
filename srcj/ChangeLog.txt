@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (1/9/08, SMR) Verilog netlister now uses backslash notation for busses
+     with gaps (Bug #1523).
+
 BUG: (1/8/08, SMR) Creating a new attribute doesn't include settings in dialog (Bug #1528).
 FIX: In Attributes.CreateAttribute constructor, build initial TextDescriptor.
 

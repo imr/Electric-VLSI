@@ -2581,6 +2581,9 @@ public class Spice extends Topology
 	/** Method to report that aggregate names (busses) are not used. */
 	protected boolean isAggregateNamesSupported() { return false; }
 
+	/** Abstract method to decide whether aggregate names (busses) can have gaps in their ranges. */
+	protected boolean isAggregateNameGapsSupported() { return false; }
+
     /** Method to report that not to choose best export name among exports connected to signal. */
     protected boolean isChooseBestExportName() { return false; }
 

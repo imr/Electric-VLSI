@@ -220,17 +220,17 @@ public class Verilog extends Topology
         setContinuationString("      ");
 
         // write header information
-        printWriter.print("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */\n");
+        printWriter.println("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */");
         emitCopyright("/* ", " */");
         if (User.isIncludeDateAndVersionInOutput())
         {
-            printWriter.print("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */\n");
-            printWriter.print("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */\n");
-            printWriter.print("/* Written on " + TextUtils.formatDate(new Date()) +
-                " by Electric VLSI Design System, version " + Version.getVersion() + " */\n");
+            printWriter.println("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */");
+            printWriter.println("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */");
+            printWriter.println("/* Written on " + TextUtils.formatDate(new Date()) +
+                " by Electric VLSI Design System, version " + Version.getVersion() + " */");
         } else
         {
-            printWriter.print("/* Written by Electric VLSI Design System */\n");
+            printWriter.println("/* Written by Electric VLSI Design System */");
         }
 
         // gather all global signal names
@@ -249,19 +249,19 @@ public class Verilog extends Topology
 
 		if (globalsToWrite.size() > 0)
 		{
-			printWriter.print("\nmodule glbl();\n");
+			printWriter.println("\nmodule glbl();");
 			for(int i=0; i<globalsToWrite.size(); i++)
 			{
 				Global global = (Global)globalsToWrite.get(i);
 				if (Simulation.getVerilogUseTrireg())
 				{
-					printWriter.print("    trireg " + global.getName() + ";\n");
+					printWriter.println("    trireg " + global.getName() + ";");
 				} else
 				{
-					printWriter.print("    wire " + global.getName() + ";\n");
+					printWriter.println("    wire " + global.getName() + ";");
 				}
 			}
-			printWriter.print("endmodule\n");
+			printWriter.println("endmodule");
 		}
 */
         if (Simulation.getVerilogStopAtStandardCells()) {
@@ -300,7 +300,7 @@ public class Verilog extends Topology
 
             if (!modelOverrides.contains(cell))
             {
-                printWriter.print("`include \"" + fileName + "\"\n");
+                printWriter.println("`include \"" + fileName + "\"");
                 modelOverrides.add(cell);
             }
             return true;
@@ -312,7 +312,7 @@ public class Verilog extends Topology
             String fileName = behaveFileVar.getObject().toString();
             if (fileName.length() > 0)
             {
-                printWriter.print("`include \"" + fileName + "\"\n");
+                printWriter.println("`include \"" + fileName + "\"");
                 return true;
             }
         }
@@ -381,19 +381,19 @@ public class Verilog extends Topology
 
             if (globalsToWrite.size() > 0)
             {
-                printWriter.print("\nmodule glbl();\n");
+                printWriter.println("\nmodule glbl();");
                 for(int i=0; i<globalsToWrite.size(); i++)
                 {
                     Global global = globalsToWrite.get(i);
                     if (Simulation.getVerilogUseTrireg())
                     {
-                        printWriter.print("    trireg " + global.getName() + ";\n");
+                        printWriter.println("    trireg " + global.getName() + ";");
                     } else
                     {
-                        printWriter.print("    wire " + global.getName() + ";\n");
+                        printWriter.println("    wire " + global.getName() + ";");
                     }
                 }
-                printWriter.print("endmodule\n");
+                printWriter.println("endmodule");
             }
         }
 
@@ -437,7 +437,7 @@ public class Verilog extends Topology
         Netlist netList = cni.getNetList();
 
         // write the module header
-        printWriter.print("\n");
+        printWriter.println();
         StringBuffer sb = new StringBuffer();
         sb.append("module " + cni.getParameterizedName() + "(");
         boolean first = true;
@@ -487,33 +487,49 @@ public class Verilog extends Topology
             else if (pp.getCharacteristic() == PortCharacteristic.BIDIR)
                 portType = "inout";
 
-            printWriter.print("  " + portType);
+            sb = new StringBuffer();
+            sb.append("  " + portType);
             if (cas.getLowIndex() > cas.getHighIndex())
             {
-                printWriter.print(" " + cas.getName() + ";");
+            	sb.append(" " + cas.getName() + ";");
             } else
             {
-                int low = cas.getLowIndex(), high = cas.getHighIndex();
-                if (cas.isDescending())
-                {
-                    low = cas.getHighIndex();   high = cas.getLowIndex();
-                }
-                printWriter.print(" [" + low + ":" + high + "] " + cas.getName() + ";");
+            	int [] indices = cas.getIndices();
+            	if (indices != null)
+            	{
+            		for(int i=0; i<indices.length; i++)
+            		{
+            			int ind = i;
+            			if (cas.isDescending()) ind = indices.length - i - 1;
+            			if (i != 0) sb.append(",");
+            			sb.append(" \\" + cas.getName() + "[" + indices[ind] + "] ");
+            		}
+            		sb.append(";");
+            	} else
+            	{
+	                int low = cas.getLowIndex(), high = cas.getHighIndex();
+	                if (cas.isDescending())
+	                {
+	                    low = cas.getHighIndex();   high = cas.getLowIndex();
+	                }
+	                sb.append(" [" + low + ":" + high + "] " + cas.getName() + ";");
+            	}
             }
             if (cas.getFlags() != 0)
             {
-                if (cas.getFlags() == 1) printWriter.print("  wire"); else
-                    printWriter.print("  trireg");
-                printWriter.print(" " + cas.getName() + ";");
+                if (cas.getFlags() == 1) sb.append("  wire"); else
+                	sb.append("  trireg");
+                sb.append(" " + cas.getName() + ";");
             }
-            printWriter.print("\n");
+            sb.append("\n");
+            writeWidthLimited(sb.toString());
             first = false;
         }
-        if (!first) printWriter.print("\n");
+        if (!first) printWriter.println();
 
         // describe power and ground nets
-        if (cni.getPowerNet() != null) printWriter.print("  supply1 vdd;\n");
-        if (cni.getGroundNet() != null) printWriter.print("  supply0 gnd;\n");
+        if (cni.getPowerNet() != null) printWriter.println("  supply1 vdd;");
+        if (cni.getGroundNet() != null) printWriter.println("  supply0 gnd;");
 
         // determine whether to use "wire" or "trireg" for networks
         String wireType = "wire";
@@ -561,16 +577,28 @@ public class Verilog extends Topology
             if (cas.getLowIndex() > cas.getHighIndex()) continue;
             if (cas.isGlobal()) continue;
 
-            if (cas.isDescending())
-            {
-                printWriter.print("  " + wireType + " [" + cas.getHighIndex() + ":" + cas.getLowIndex() + "] " + cas.getName() + ";\n");
-            } else
-            {
-                printWriter.print("  " + wireType + " [" + cas.getLowIndex() + ":" + cas.getHighIndex() + "] " + cas.getName() + ";\n");
-            }
+        	int [] indices = cas.getIndices();
+        	if (indices != null)
+        	{
+        		for(int i=0; i<indices.length; i++)
+        		{
+        			int ind = i;
+        			if (cas.isDescending()) ind = indices.length - i - 1;
+        			printWriter.println("  " + wireType + " \\" + cas.getName() + "[" + indices[ind] + "] ;");
+        		}
+        	} else
+        	{
+	            if (cas.isDescending())
+	            {
+	                printWriter.println("  " + wireType + " [" + cas.getHighIndex() + ":" + cas.getLowIndex() + "] " + cas.getName() + ";");
+	            } else
+	            {
+	                printWriter.println("  " + wireType + " [" + cas.getLowIndex() + ":" + cas.getHighIndex() + "] " + cas.getName() + ";");
+	            }
+        	}
             localWires++;
         }
-        if (localWires != 0) printWriter.print("\n");
+        if (localWires != 0) printWriter.println();
 
         // add "wire" declarations for implicit inverters
         if (impInvCount > 0)
@@ -588,7 +616,7 @@ public class Verilog extends Topology
         first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
         first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
         if (!first)
-            printWriter.print("  /* automatically generated Verilog */\n");
+            printWriter.println("  /* automatically generated Verilog */");
 
         // look at every node in this cell
         for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
@@ -807,8 +835,7 @@ public class Verilog extends Topology
 
                         if (first) first = false; else
                             infstr.append(", ");
-                        int low = cas.getLowIndex(), high = cas.getHighIndex();
-                        if (low > high)
+                        if (cas.getLowIndex() > cas.getHighIndex())
                         {
                             // single signal
                             infstr.append("." + cas.getName() + "(");
@@ -818,15 +845,15 @@ public class Verilog extends Topology
                             infstr.append(")");
                         } else
                         {
-                            int total = high - low + 1;
+                            int total = cas.getNumSignals();
                             CellSignal [] outerSignalList = new CellSignal[total];
-                            for(int j=low; j<=high; j++)
+                            for(int j=0; j<total; j++)
                             {
-                                CellSignal cInnerSig = cas.getSignal(j-low);
+                                CellSignal cInnerSig = cas.getSignal(j);
                                 Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
-                                outerSignalList[j-low] = cni.getCellSignal(net);
+                                outerSignalList[j] = cni.getCellSignal(net);
                             }
-                            writeBus(outerSignalList, low, high, cas.isDescending(),
+                            writeBus(outerSignalList, total, cas.isDescending(),
                                 cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
                         }
                     }
@@ -864,8 +891,8 @@ public class Verilog extends Topology
                                 if (invIndex != null)
                                 {
                                     String invSigName = IMPLICITINVERTERSIGNAME + invIndex.intValue();
-                                    printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
-                                        invIndex.intValue() + " (" + invSigName + ", " + sigName + ");\n");
+                                    printWriter.println("  inv " + IMPLICITINVERTERNODENAME +
+                                        invIndex.intValue() + " (" + invSigName + ", " + sigName + ");");
                                     sigName = invSigName;
                                 }
                             }
@@ -937,7 +964,7 @@ public class Verilog extends Topology
             infstr.append("\n");
             writeWidthLimited(infstr.toString());
         }
-        printWriter.print("endmodule   /* " + cni.getParameterizedName() + " */\n");
+        printWriter.println("endmodule   /* " + cni.getParameterizedName() + " */");
     }
 
     private String chooseNodeName(NodeInst ni, String positive, String negative)
@@ -1011,8 +1038,7 @@ public class Verilog extends Topology
 
             if (cas != null) {
                 // this code is copied from instantiated
-                int low = cas.getLowIndex(), high = cas.getHighIndex();
-                if (low > high)
+                if (cas.getLowIndex() > cas.getHighIndex())
                 {
                     // single signal
                     Network net = netList.getNetwork(no, pp, cas.getExportIndex());
@@ -1020,15 +1046,15 @@ public class Verilog extends Topology
                     infstr.append(cs.getName());
                 } else
                 {
-                    int total = high - low + 1;
+                    int total = cas.getNumSignals();
                     CellSignal [] outerSignalList = new CellSignal[total];
-                    for(int j=low; j<=high; j++)
+                    for(int j=0; j<total; j++)
                     {
-                        CellSignal cInnerSig = cas.getSignal(j-low);
+                        CellSignal cInnerSig = cas.getSignal(j);
                         Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
-                        outerSignalList[j-low] = cni.getCellSignal(net);
+                        outerSignalList[j] = cni.getCellSignal(net);
                     }
-                    writeBus(outerSignalList, low, high, cas.isDescending(),
+                    writeBus(outerSignalList, total, cas.isDescending(),
                         null, cni.getPowerNet(), cni.getGroundNet(), infstr);
                 }
             } else if (netcs != null) {
@@ -1062,7 +1088,7 @@ public class Verilog extends Topology
      * (low bit is on if the bus descends).  Any unconnected networks can be numbered starting at
      * "*unconnectednet".  The power and grounds nets are "pwrnet" and "gndnet".
      */
-    private void writeBus(CellSignal [] outerSignalList, int lowIndex, int highIndex, boolean descending,
+    private void writeBus(CellSignal [] outerSignalList, int total, boolean descending,
                           String name, Network pwrNet, Network gndNet, StringBuffer infstr)
     {
         // array signal: see if it gets split out
@@ -1070,9 +1096,9 @@ public class Verilog extends Topology
 
         // bus cannot have pwr/gnd, must be connected
         int numExported = 0, numInternal = 0;
-        for(int j=lowIndex; j<=highIndex; j++)
+        for(int j=0; j<total; j++)
         {
-            CellSignal cs = outerSignalList[j-lowIndex];
+            CellSignal cs = outerSignalList[j];
             if (cs.isPower() || cs.isGround()) { breakBus = true;   break; }
             if (cs.isExported()) numExported++; else
                 numInternal++;
@@ -1084,25 +1110,25 @@ public class Verilog extends Topology
         if (!breakBus)
         {
             // see if all of the nets on this bus are distinct
-            int j = lowIndex+1;
-            for( ; j<=highIndex; j++)
+            int j = 1;
+            for( ; j<total; j++)
             {
-                CellSignal cs = outerSignalList[j-lowIndex];
-                int k = lowIndex;
+                CellSignal cs = outerSignalList[j];
+                int k = 0;
                 for( ; k<j; k++)
                 {
-                    CellSignal oCs = outerSignalList[k-lowIndex];
+                    CellSignal oCs = outerSignalList[k];
                     if (cs == oCs) break;
                 }
                 if (k < j) break;
             }
-            if (j <= highIndex) breakBus = true; else
+            if (j < total) breakBus = true; else
             {
                 // bus entries must have the same root name and go in order
                 String lastnetname = null;
-                for(j=lowIndex; j<=highIndex; j++)
+                for(j=0; j<total; j++)
                 {
-                    CellSignal wl = outerSignalList[j-lowIndex];
+                    CellSignal wl = outerSignalList[j];
                     String thisnetname = wl.getName();
                     if (wl.isDescending())
                     {
@@ -1114,7 +1140,7 @@ public class Verilog extends Topology
 
                     int openSquare = thisnetname.indexOf('[');
                     if (openSquare < 0) break;
-                    if (j > lowIndex)
+                    if (j > 0)
                     {
                         int li = 0;
                         for( ; li < lastnetname.length(); li++)
@@ -1129,7 +1155,7 @@ public class Verilog extends Topology
                     }
                     lastnetname = thisnetname;
                 }
-                if (j <= highIndex) breakBus = true;
+                if (j < total) breakBus = true;
             }
         }
 
@@ -1137,19 +1163,19 @@ public class Verilog extends Topology
         if (breakBus)
         {
             infstr.append("{");
-            int start = lowIndex, end = highIndex;
+            int start = 0, end = total-1;
             int order = 1;
             if (descending)
             {
-                start = highIndex;
-                end = lowIndex;
+                start = total-1;
+                end = 0;
                 order = -1;
             }
             for(int j=start; ; j += order)
             {
                 if (j != start)
                     infstr.append(", ");
-                CellSignal cs = outerSignalList[j-lowIndex];
+                CellSignal cs = outerSignalList[j];
                 infstr.append(cs.getName());
                 if (j == end) break;
             }
@@ -1159,7 +1185,7 @@ public class Verilog extends Topology
             CellSignal lastCs = outerSignalList[0];
             String lastNetName = lastCs.getName();
             int openSquare = lastNetName.indexOf('[');
-            CellSignal cs = outerSignalList[highIndex-lowIndex];
+            CellSignal cs = outerSignalList[total-1];
             String netName = cs.getName();
             int i = 0;
             for( ; i<netName.length(); i++)
@@ -1204,20 +1230,20 @@ public class Verilog extends Topology
             if (first)
             {
                 first = false;
-                printWriter.print("  /* user-specified Verilog " + descript + " */\n");
+                printWriter.println("  /* user-specified Verilog " + descript + " */");
             }
             if (obj instanceof String)
             {
-                printWriter.print("  " + (String)obj + "\n");
+                printWriter.println("  " + (String)obj);
             } else
             {
                 String [] stringArray = (String [])obj;
                 int len = stringArray.length;
                 for(int i=0; i<len; i++)
-                    printWriter.print("  " + stringArray[i] + "\n");
+                    printWriter.println("  " + stringArray[i]);
             }
         }
-        if (!first) printWriter.print("\n");
+        if (!first) printWriter.println();
         return first;
     }
 
@@ -1242,7 +1268,7 @@ public class Verilog extends Topology
     {
         if (sim_verDeclarationLine.length() + signame.length() + 3 > MAXDECLARATIONWIDTH)
         {
-            printWriter.print(sim_verDeclarationLine.toString() + ";\n");
+            printWriter.println(sim_verDeclarationLine.toString() + ";");
             sim_verDeclarationLine.delete(sim_verdeclarationprefix, sim_verDeclarationLine.length());
         }
         if (sim_verDeclarationLine.length() != sim_verdeclarationprefix)
@@ -1256,7 +1282,7 @@ public class Verilog extends Topology
      */
     private void termDeclaration()
     {
-        printWriter.print(sim_verDeclarationLine.toString() + ";\n");
+        printWriter.println(sim_verDeclarationLine.toString() + ";");
     }
 
     /**
@@ -1309,6 +1335,9 @@ public class Verilog extends Topology
 
     /** Method to report that aggregate names (busses) ARE used. */
     protected boolean isAggregateNamesSupported() { return true; }
+
+	/** Abstract method to decide whether aggregate names (busses) can have gaps in their ranges. */
+	protected boolean isAggregateNameGapsSupported() { return true; }
 
     /** Method to report whether input and output names are separated. */
     protected boolean isSeparateInputAndOutput() { return true; }
