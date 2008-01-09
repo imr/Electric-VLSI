@@ -1830,7 +1830,8 @@ public class SeaOfGatesEngine
 					{
 						// changed layers: compute via rectangles
 						List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
-						int whichContact = sv.getContactNo();
+//						int whichContact = sv.getContactNo();
+						int whichContact = lastSv.getContactNo();
 						MetalVia mv = nps.get(whichContact);
 						PrimitiveNode np = mv.via;
 						Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
@@ -1941,7 +1942,8 @@ public class SeaOfGatesEngine
 				{
 					// changed layers: analyze the contact for notches
 					List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
-					int whichContact = sv.getContactNo();
+//					int whichContact = sv.getContactNo();
+					int whichContact = lastSv.getContactNo();
 					MetalVia mv = nps.get(whichContact);
 					PrimitiveNode np = mv.via;
 					Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
