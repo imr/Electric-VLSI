@@ -48,7 +48,7 @@ import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-public class HashCodePartitioningNew {
+public class HashCodePartitioning {
 	NccGlobals globals;
 	
 	/* The NetObjects contained by newly born EquivRecords
@@ -372,7 +372,7 @@ public class HashCodePartitioningNew {
 	}
 
 	// contructor does all the work
-	private HashCodePartitioningNew(NccGlobals globals){
+	private HashCodePartitioning(NccGlobals globals){
 		this.globals = globals;
 		globals.status2("----- starting HashCodePartitioningNew");
 		doWork();
@@ -381,7 +381,7 @@ public class HashCodePartitioningNew {
 	
 	// ------------------------ public methods --------------------------------
 	public static boolean doYourJob(NccGlobals globals) {
-		HashCodePartitioningNew p = new HashCodePartitioningNew(globals);
+		HashCodePartitioning p = new HashCodePartitioning(globals);
 		return p.allPartsWiresMatch();
 	}
 }

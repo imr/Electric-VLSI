@@ -44,7 +44,7 @@ import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
 import com.sun.electric.tool.ncc.processing.ForceMatch;
-import com.sun.electric.tool.ncc.processing.HashCodePartitioningNew;
+import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.processing.LocalPartitioning;
@@ -196,7 +196,7 @@ public class NccEngine {
 //					        NccUtils.hourMinSec(d2, d3));
 
 
-			boolean topoOK = HashCodePartitioningNew.doYourJob(globals);
+			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 			if (!localRes.matches()) {
 				globals.getNccGuiInfo().setPartRecReports(localRes.getPartRecReports());
 				globals.getNccGuiInfo().setWireRecReports(localRes.getWireRecReports());
