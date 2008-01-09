@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.dialogs.ManipulateExports;
 import com.sun.electric.tool.user.dialogs.ManipulatePorts;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.menus.EMenu;
@@ -40,7 +41,7 @@ public class ExportMenu {
     static EMenu makeMenu() {
         /****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available:  B   F   JK     Q       Y 
+		// mnemonic keys available:  B   F   JK     Q         
         return new EMenu("E_xport",
 
             new EMenuItem("_Create Export...", 'E') { public void run() {
@@ -48,7 +49,7 @@ public class ExportMenu {
 
             SEPARATOR,
 
-            new EMenuItem("Re-Export E_verything") { public void run() {
+            new EMenuItem("Re-Export Ever_ything") { public void run() {
                 ExportChanges.reExportAll(); }},
             new EMenuItem("Re-Export Sele_cted") { public void run() {
                 ExportChanges.reExportSelected(false); }},
@@ -78,7 +79,7 @@ public class ExportMenu {
                 ExportChanges.deleteExportsOnSelected(); }},
             new EMenuItem("De_lete Exports in Highlighted Area") { public void run() {
                 ExportChanges.deleteExportsInArea(); }},
-            new EMenuItem("_Move Export") { public void run() {
+            new EMenuItem("Mo_ve Export") { public void run() {
                 ExportChanges.moveExport(); }},
             new EMenuItem("_Rename Export...") { public void run() {
                 ExportChanges.renameExport(); }},
@@ -91,6 +92,8 @@ public class ExportMenu {
                 ExportChanges.describeExports(false); }},
             new EMenuItem("_Show Exports") { public void run() {
                 ExportChanges.showExports(); }},
+            new EMenuItem("_Manipulate Exports...") { public void run() {
+                ManipulateExports.showDialog(); }},
 
             SEPARATOR,
 

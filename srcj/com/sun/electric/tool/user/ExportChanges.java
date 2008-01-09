@@ -722,7 +722,7 @@ public final class ExportChanges
 				GenMath.transformRect(boundsInside, goIn);
 				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, includeWiredPorts, false);
 			}
-			
+
 			for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = pIt.next();
@@ -896,7 +896,7 @@ public final class ExportChanges
 	}
 
 	/****************************** EXPORT DELETION ******************************/
-	
+
 	/**
 	 * Method to delete the currently selected exports.
 	 */
@@ -1000,7 +1000,7 @@ public final class ExportChanges
 	{
 		// disallow port action if lock is on
 		if (CircuitChangeJobs.cantEdit(cell, null, true, false, false) != 0) return;
-		
+
 		HashSet<Export> exportsConfirmed = new HashSet<Export>();
 		for(Export e : exportsToDelete)
 		{
@@ -1016,7 +1016,7 @@ public final class ExportChanges
 		}
 		new DeleteExports(cell, exportsConfirmed);
 	}
-	
+
 	private static class DeleteExports extends Job
 	{
 		private Cell cell;
@@ -1034,7 +1034,7 @@ public final class ExportChanges
 		{
 			cell.killExports(exportsToDelete);
 			System.out.println(exportsToDelete.size() + " exports deleted");
-			
+
 //			// disallow port action if lock is on
 //			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 //
@@ -1091,7 +1091,6 @@ public final class ExportChanges
 			{
 				System.out.println("Moving exports: select one export to move, and one node-port as its destination");
 				return;
-			
 			}
 		}
 		if (source == null || dest == null)
@@ -1143,7 +1142,7 @@ public final class ExportChanges
 	}
 
 	/**
-	 * Class to rename a cell in a new thread.
+	 * Class to rename an export in a new thread.
 	 */
 	private static class RenameExport extends Job
 	{
@@ -1162,6 +1161,63 @@ public final class ExportChanges
 		{
 			pp.rename(newName);
 			return true;
+		}
+	}
+
+	/**
+	 * Class to rename a list of Exports with numeric suffixes in a new thread.
+	 */
+	public static class RenumberNumericExports extends Job
+	{
+		private List<Export> exports;
+
+		public RenumberNumericExports(List<Export> exports)
+		{
+			super("Rename Numeric Exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.exports = exports;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Collections.sort(exports, new ExportsByNumber());
+			String lastPureName = "";
+			int lastIndex = 0;
+			for(Export e : exports)
+			{
+				String name = e.getName();
+				int numberPos = name.length();
+				while (numberPos > 0 && Character.isDigit(name.charAt(numberPos-1))) numberPos--;
+
+				int nameEnd = numberPos;
+				if (nameEnd > 0 && name.charAt(nameEnd-1) == '_') nameEnd--;
+				String pureName = name.substring(0, nameEnd);
+				if (!pureName.equals(lastPureName))
+					lastIndex = 0;
+
+				lastIndex++;
+				lastPureName = pureName;
+				String newName = pureName + "_" + lastIndex;
+				if (!newName.equals(name))
+					e.rename(newName);
+			}
+			return true;
+		}
+	}
+
+	/**
+	 * Comparator class for sorting Export by their name with number considered.
+	 */
+	public static class ExportsByNumber implements Comparator<Export>
+	{
+		/**
+		 * Method to sort Exports by their name.
+		 */
+		public int compare(Export e1, Export e2)
+		{
+			String s1 = e1.getName();
+			String s2 = e2.getName();
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
 		}
 	}
 
@@ -1594,7 +1650,7 @@ public final class ExportChanges
 				if (ni.getXSize() != 0 || ni.getYSize() != 0) continue;
 				Cell oldType = (Cell)ni.getProto();
 				if (oldType.getLibrary() == oLib) continue;
-				
+
 				String nameToFind = oldType.getName();
 				if (oldType.getView() != View.UNKNOWN) nameToFind += oldType.getView().getAbbreviationExtension();
 				Cell newType = oLib.findNodeProto(nameToFind);

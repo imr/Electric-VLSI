@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP/MAN: (1/9/08, SMR) Added new command: "Export / Manipulate Exports..."
+     which displays exports in cell in a dialog.  One of the buttons in this
+     dialog is "Renumber Selected Numeric Export Names" which takes a set
+     of numeric exports (i.e. exports with numeric suffixes, such as "gnd_1",
+     "gnd_3", etc.) and renumbers the suffixes so that they have no gaps.
+     (Bug #1526).
+
 IMP: (1/9/08, SMR) Verilog netlister now uses backslash notation for busses
      with gaps (Bug #1523).
 
