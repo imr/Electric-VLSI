@@ -723,7 +723,7 @@ public class Verilog extends Topology
                             ArcInst ai = con.getArc();
                             Network net = netList.getNetwork(ai, 0);
                             CellSignal cs = cni.getCellSignal(net);
-                            String sigName = cs.getName();
+                            String sigName = getSignalName(cs);
 
                             // see if this end is negated
                             boolean isNegated = false;
@@ -841,7 +841,7 @@ public class Verilog extends Topology
                             infstr.append("." + cas.getName() + "(");
                             Network net = netList.getNetwork(no, pp, cas.getExportIndex());
                             CellSignal cs = cni.getCellSignal(net);
-                            infstr.append(cs.getName());
+                           	infstr.append(getSignalName(cs));
                             infstr.append(")");
                         } else
                         {
@@ -881,7 +881,7 @@ public class Verilog extends Topology
                             Network net = netList.getNetwork(ai, 0);
                             CellSignal cs = cni.getCellSignal(net);
                             if (cs == null) continue;
-                            String sigName = cs.getName();
+                            String sigName = getSignalName(cs);
                             if (i != 0 && con.isNegated())
                             {
                                 // this input is negated: write the implicit inverter
@@ -926,7 +926,7 @@ public class Verilog extends Topology
                                 infstr.append(", ");
 
                             CellSignal cs = cni.getCellSignal(net);
-                            String sigName = cs.getName();
+                            String sigName = getSignalName(cs);
                             infstr.append(sigName);
                         }
                     }
@@ -949,7 +949,7 @@ public class Verilog extends Topology
                             PortInst pi = ni.findPortInst(portname);
                             Network net = netList.getNetwork(no, pi.getProtoEquivalent(), 0);
                             CellSignal cs = cni.getCellSignal(net);
-                            String sigName = cs.getName();
+                            String sigName = getSignalName(cs);
 
                             if (first) first = false; else
                                 infstr.append(", ");
@@ -965,6 +965,15 @@ public class Verilog extends Topology
             writeWidthLimited(infstr.toString());
         }
         printWriter.println("endmodule   /* " + cni.getParameterizedName() + " */");
+    }
+
+    private String getSignalName(CellSignal cs)
+    {
+    	CellAggregateSignal cas = cs.getAggregateSignal();
+    	if (cas == null) return cs.getName();
+    	if (cas.getIndices() == null) return cs.getName();
+    	return " \\" + cs.getName() + " ";
+    	
     }
 
     private String chooseNodeName(NodeInst ni, String positive, String negative)
@@ -1043,7 +1052,7 @@ public class Verilog extends Topology
                     // single signal
                     Network net = netList.getNetwork(no, pp, cas.getExportIndex());
                     CellSignal cs = cni.getCellSignal(net);
-                    infstr.append(cs.getName());
+                    infstr.append(getSignalName(cs));
                 } else
                 {
                     int total = cas.getNumSignals();
@@ -1058,7 +1067,7 @@ public class Verilog extends Topology
                         null, cni.getPowerNet(), cni.getGroundNet(), infstr);
                 }
             } else if (netcs != null) {
-                infstr.append(netcs.getName());
+                infstr.append(getSignalName(netcs));
             } else if (paramName.equalsIgnoreCase("node_name"))
             {
                 infstr.append(getSafeNetName(no.getName(), true));
@@ -1099,6 +1108,8 @@ public class Verilog extends Topology
         for(int j=0; j<total; j++)
         {
             CellSignal cs = outerSignalList[j];
+            CellAggregateSignal cas = cs.getAggregateSignal();
+            if (cas != null && cas.getIndices() != null) { breakBus = true;   break; }
             if (cs.isPower() || cs.isGround()) { breakBus = true;   break; }
             if (cs.isExported()) numExported++; else
                 numInternal++;
@@ -1129,7 +1140,7 @@ public class Verilog extends Topology
                 for(j=0; j<total; j++)
                 {
                     CellSignal wl = outerSignalList[j];
-                    String thisnetname = wl.getName();
+                    String thisnetname = getSignalName(wl);
                     if (wl.isDescending())
                     {
                         if (!descending) break;
@@ -1176,17 +1187,17 @@ public class Verilog extends Topology
                 if (j != start)
                     infstr.append(", ");
                 CellSignal cs = outerSignalList[j];
-                infstr.append(cs.getName());
+                infstr.append(getSignalName(cs));
                 if (j == end) break;
             }
             infstr.append("}");
         } else
         {
             CellSignal lastCs = outerSignalList[0];
-            String lastNetName = lastCs.getName();
+            String lastNetName = getSignalName(lastCs);
             int openSquare = lastNetName.indexOf('[');
             CellSignal cs = outerSignalList[total-1];
-            String netName = cs.getName();
+            String netName = getSignalName(cs);
             int i = 0;
             for( ; i<netName.length(); i++)
             {

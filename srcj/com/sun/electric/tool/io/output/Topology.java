@@ -750,6 +750,7 @@ public abstract class Topology extends Output
 						String endName = csEnd.name;
 						String ept = unIndexedName(endName);
 						if (ept.equals(endName)) break;
+						if (!ept.equals(cas.name)) break;
 						int index = TextUtils.atoi(endName.substring(ept.length()+1));
 
 						// make sure export indices go in order
@@ -768,7 +769,11 @@ public abstract class Topology extends Output
 					{
 						CellSignal csEnd = cni.cellSignalsSorted.get(j);
 						if (hasGaps)
-							cas.indices[j-start] = TextUtils.atoi(csEnd.name.substring(cas.name.length()+1));
+						{
+							String endName = csEnd.name;
+							String ept = unIndexedName(endName);
+							cas.indices[j-start] = TextUtils.atoi(endName.substring(ept.length()+1));
+						}
 						cas.signals[j-start] = csEnd;
 					}
 				}
