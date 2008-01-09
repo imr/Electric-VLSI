@@ -37,6 +37,7 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -1568,7 +1569,7 @@ public class JELIB extends LibraryFiles
 						case 'I': objArray = new Integer[limit];        break;
 						case 'L': objArray = new LibId[limit];          break;
 						case 'O': objArray = new Tool[limit];           break;
-						case 'P': objArray = new PrimitiveNode[limit];  break;
+						case 'P': objArray = new PrimitiveNodeId[limit];break;
 						case 'R': objArray = new ArcProtoId[limit];     break;
 						case 'S': objArray = new String[limit];         break;
 						case 'T': objArray = new TechId[limit];         break;
@@ -1904,7 +1905,7 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Tool: " + piece, -1);
 				return tool;
-			case 'P':		// PrimitiveNode
+			case 'P':		// PrimitiveNodeId
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
@@ -1924,10 +1925,12 @@ public class JELIB extends LibraryFiles
 				commaPos = nodeName.indexOf(',');
 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
 				PrimitiveNode np = findPrimitiveNode(tech, nodeName);
-				if (np == null)
+				if (np == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown PrimitiveNode: " + piece, -1);
-				return np;
+                    return null;
+                }
+				return np.getId();
 			case 'R':		// ArcProtoId
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)

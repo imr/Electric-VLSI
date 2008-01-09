@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 
 import java.awt.geom.Point2D;
 
@@ -415,7 +416,7 @@ public abstract class AbstractShapeBuilder {
             for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
-                if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink())
+                if (np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId)np).isArcsShrink())
                     shrink[n.nodeId] = computeShrink(angles[nodeIndex]);
             }
             this.shrink = shrink;

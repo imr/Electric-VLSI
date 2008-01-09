@@ -50,7 +50,7 @@ public class IdReader {
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
-    private final ArrayList<PrimitiveNode> primNodes = new ArrayList<PrimitiveNode>();
+    private final ArrayList<PrimitiveNodeId> primNodes = new ArrayList<PrimitiveNodeId>();
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
     /** Creates a new instance of SnapshotWriter */
@@ -246,15 +246,6 @@ public class IdReader {
     }
     
     /**
-     * Reads Technology.
-     * @return Technology.
-     */
-    private Technology readTechnology() throws IOException {
-        TechId techId = readTechId();
-        return Technology.findTechnology(techId);
-    }
-    
-     /**
      * Reads ArcProtoId.
      * @return ArcProtoId.
      */
@@ -283,10 +274,11 @@ public class IdReader {
             return idManager.getCellId(i);
         i = ~i;
         if (i == primNodes.size()) {
-            Technology tech = readTechnology();
+            TechId techId = readTechId();
+            Technology tech = Technology.findTechnology(techId);
             String primName = in.readUTF();
             PrimitiveNode pn = tech.findNodeProto(primName);
-            primNodes.add(pn);
+            primNodes.add(pn.getId());
         }
         return primNodes.get(i);
     }

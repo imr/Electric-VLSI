@@ -29,8 +29,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
@@ -57,7 +57,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<PrimitiveNode>, Serializable
+public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Comparable<PrimitiveNode>, Serializable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -540,6 +540,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, double defWidth, double defHeight,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
+        super(tech.getId(), protoName, tech.getNumNodes());
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("PrimitiveNode name " + protoName + " is not safe to write in the JELIB");
@@ -685,7 +686,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
      * @return NodeProtoId of this NodeProto.
      */
-    public PrimitiveNode getId() { return this; }
+    public PrimitiveNodeId getId() { return this; }
     
 	/**
 	 * Method to return the name of this PrimitiveNode in the Technology.
@@ -1655,7 +1656,10 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * Method to set the index of this node in its Technology.
      * @param index the index to use for this node in its Technology.
      */
-    public void setPrimNodeIndexInTech(int index) { techPrimNodeIndex = index; }
+    public void setPrimNodeIndexInTech(int index) {
+        techPrimNodeIndex = index;
+        assert techPrimNodeIndex == chronIndex;
+    }
 
     /**
      * Compares PrimtiveNodes by their Technologies and definition order.

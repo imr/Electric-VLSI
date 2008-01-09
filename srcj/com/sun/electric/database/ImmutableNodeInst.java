@@ -34,6 +34,7 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
@@ -42,9 +43,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.AffineTransform;
@@ -722,12 +721,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             assert ports[ports.length - 1].getNumVariables() > 0;
 	}
 
-    static boolean isCellCenter(NodeProtoId protoId) {
-        if (!(protoId instanceof PrimitiveNode)) return false;
-        Technology tech = ((PrimitiveNode)protoId).getTechnology();
-        if (!(tech instanceof Generic)) return false;
-        return protoId == ((Generic)tech).cellCenterNode;
-        
+    public static boolean isCellCenter(NodeProtoId protoId) {
+        if (!(protoId instanceof PrimitiveNodeId)) return false;
+        return ((PrimitiveNodeId)protoId).fullName.equals("generic:Facet-Center");
     }
     
     /**
@@ -769,7 +765,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             return;
 		}
 
-		PrimitiveNode pn = (PrimitiveNode)protoId;
+		PrimitiveNode pn = real.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
 
 		// special case for arcs of circles
 		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)

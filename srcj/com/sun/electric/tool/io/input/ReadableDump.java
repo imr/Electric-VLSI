@@ -38,6 +38,7 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1823,7 +1824,7 @@ public class ReadableDump extends LibraryFiles
                     for (int j = 0; j < newAddrArray.length; j++) {
                         if (newAddrArray[j] == null) continue;
                         if (newAddrArray[j] instanceof CellId) numCells++;
-                        if (newAddrArray[j] instanceof PrimitiveNode) numPrims++;
+                        if (newAddrArray[j] instanceof PrimitiveNodeId) numPrims++;
                     }
                     if (numCells >= numPrims) {
                         CellId[] cellArray = new CellId[newAddrArray.length];
@@ -1831,9 +1832,9 @@ public class ReadableDump extends LibraryFiles
                             if (newAddrArray[j] instanceof CellId) cellArray[j] = (CellId)newAddrArray[j];
                         value = cellArray;
                     } else {
-                        PrimitiveNode[] primArray = new PrimitiveNode[newAddrArray.length];
+                        PrimitiveNodeId[] primArray = new PrimitiveNodeId[newAddrArray.length];
                         for (int j = 0; j < primArray.length; j++)
-                            if (newAddrArray[j] instanceof PrimitiveNode) primArray[j] = (PrimitiveNode)newAddrArray[j];
+                            if (newAddrArray[j] instanceof PrimitiveNodeId) primArray[j] = (PrimitiveNodeId)newAddrArray[j];
                         value = primArray;
                     }
                 }
@@ -1904,7 +1905,7 @@ public class ReadableDump extends LibraryFiles
 					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
 					return null;
 				}
-				return np;
+				return np.getId();
 			case ELIBConstants.VPORTPROTO:
 				int ppIndex = TextUtils.atoi(name);
 				PortProto pp = exportList[curCellNumber].exportList[ppIndex];

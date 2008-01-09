@@ -34,6 +34,7 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -271,7 +272,7 @@ public class Variable implements Serializable
         validClasses.put(EPoint.class, new Byte(EPOINT));
         validClasses.put(Tool.class, new Byte(TOOL));
         validClasses.put(TechId.class, new Byte(TECHNOLOGY));
-        validClasses.put(PrimitiveNode.class, new Byte(PRIM_NODE));
+        validClasses.put(PrimitiveNodeId.class, new Byte(PRIM_NODE));
         validClasses.put(ArcProtoId.class, new Byte(ARC_PROTO));
         validClasses.put(LibId.class, new Byte(LIBRARY));
         validClasses.put(CellId.class, new Byte(CELL));
@@ -455,7 +456,7 @@ public class Variable implements Serializable
                 writer.writeTechId((TechId)obj);
                 break;
             case PRIM_NODE:
-                writer.writeNodeProtoId((PrimitiveNode)obj);
+                writer.writeNodeProtoId((PrimitiveNodeId)obj);
                 break;
             case ARC_PROTO:
                 writer.writeArcProtoId((ArcProtoId)obj);
@@ -491,7 +492,7 @@ public class Variable implements Serializable
                 case EPOINT: array = new EPoint[length]; break; 
                 case TOOL: array = new Tool[length]; break;
                 case TECHNOLOGY: array = new TechId[length]; break;
-                case PRIM_NODE: array = new PrimitiveNode[length]; break;
+                case PRIM_NODE: array = new PrimitiveNodeId[length]; break;
                 case ARC_PROTO: array = new ArcProtoId[length]; break;
                 default: throw new IOException("type");
                 

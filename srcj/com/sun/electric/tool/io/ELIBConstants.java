@@ -27,8 +27,8 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 
 import java.util.Date;
@@ -156,7 +156,7 @@ public class ELIBConstants
         if (obj instanceof Boolean) return ELIBConstants.VCHAR;
 		if (obj instanceof Tool) return ELIBConstants.VTOOL;
 		if (obj instanceof TechId) return ELIBConstants.VTECHNOLOGY;
-		if (obj instanceof PrimitiveNode) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof PrimitiveNodeId) return ELIBConstants.VNODEPROTO;
 		if (obj instanceof ArcProtoId) return ELIBConstants.VARCPROTO;
         if (obj instanceof LibId) return ELIBConstants.VLIBRARY;
         if (obj instanceof CellId) return ELIBConstants.VNODEPROTO;
@@ -172,7 +172,7 @@ public class ELIBConstants
         if (obj instanceof Boolean[]) return ELIBConstants.VCHAR;
 		if (obj instanceof Tool[]) return ELIBConstants.VTOOL;
 		if (obj instanceof TechId[]) return ELIBConstants.VTECHNOLOGY;
-		if (obj instanceof PrimitiveNode[]) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof PrimitiveNodeId[]) return ELIBConstants.VNODEPROTO;
 		if (obj instanceof ArcProtoId[]) return ELIBConstants.VARCPROTO;
         if (obj instanceof LibId[]) return ELIBConstants.VLIBRARY;
         if (obj instanceof CellId[]) return ELIBConstants.VNODEPROTO;

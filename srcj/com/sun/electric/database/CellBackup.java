@@ -31,13 +31,13 @@ import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.BoundsBuilder;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
@@ -324,7 +324,7 @@ public class CellBackup {
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
-                if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe()))
+                if (!(np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId)np).isArcsWipe()))
                     wiped.clear(n.nodeId);
             }
 //            long stopTime = System.currentTimeMillis();

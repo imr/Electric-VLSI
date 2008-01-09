@@ -31,12 +31,11 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -418,8 +417,8 @@ public class CellRevision {
                     checkPortInst(n, subCellId.getPortId(j));
                 }
             } else {
-                Technology tech = ((PrimitiveNode)n.protoId).getTechnology();
-                checkTechUsages.set(tech.getId().techIndex);
+                TechId techId = ((PrimitiveNodeId)n.protoId).techId;
+                checkTechUsages.set(techId.techIndex);
             }
         }
         for (int i = 0; i < checkCellUsages.length; i++)

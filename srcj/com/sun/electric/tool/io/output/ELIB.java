@@ -48,6 +48,7 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
@@ -152,7 +153,7 @@ public class ELIB extends Output
                     gatherCell((CellId)np);
                 } else {
                     gatherObj(np);
-                    gatherTech(((PrimitiveNode)np).getTechnology().getId());
+                    gatherTech(((PrimitiveNodeId)np).techId);
                 }
                 if (n.hasPortInstVariables()) {
                     for (Iterator<PortProtoId> it = n.getPortsWithVariables(); it.hasNext(); ) {
@@ -310,8 +311,8 @@ public class ELIB extends Output
             int primNodeStart = primNodeProtoIndex;
             for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); ) {
                 PrimitiveNode np = nit.next();
-                if (!objInfo.containsKey(np)) continue;
-                putObjIndex(np, -2 - primNodeProtoIndex++);
+                if (!objInfo.containsKey(np.getId())) continue;
+                putObjIndex(np.getId(), -2 - primNodeProtoIndex++);
                 for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); ) {
                     PrimitivePort pp = (PrimitivePort)pit.next();
                     putObjIndex(pp, -2 - primPortProtoIndex++);
@@ -448,7 +449,7 @@ public class ELIB extends Output
 			for(Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = nit.next();
-				if (!objInfo.containsKey(np)) continue;
+				if (!objInfo.containsKey(np.getId())) continue;
 
 				// write the primitive node prototype name
 				writeString(np.getName());
@@ -576,14 +577,14 @@ public class ELIB extends Output
 				if (v instanceof TechId || v instanceof Tool)
 				{
 					gatherObj(v);
-				} else if (v instanceof PrimitiveNode)
+				} else if (v instanceof PrimitiveNodeId)
 				{
 					gatherObj(v);
-					gatherTech(((PrimitiveNode)v).getTechnology().getId());
+					gatherTech(((PrimitiveNodeId)v).techId);
 				} else if (v instanceof PrimitivePort)
 				{
 					PrimitiveNode pn = ((PrimitivePort)v).getParent();
-					gatherObj(pn);
+					gatherObj(pn.getId());
 					gatherTech(pn.getTechnology().getId());
 				} else if (v instanceof ArcProto)
 				{
@@ -831,13 +832,13 @@ public class ELIB extends Output
 //                lowY = (int)Math.round((trueCenterY - ySize/2) * tech.getScale()*2);
 //                highY = (int)Math.round((trueCenterY + ySize/2) * tech.getScale()*2);
             } else {
-                PrimitiveNode pn = (PrimitiveNode)protoId;
+                PrimitiveNodeId pn = (PrimitiveNodeId)protoId;
                 trueCenterX = n.anchor.getGridX();
                 trueCenterY = n.anchor.getGridY();
-                EPoint size = getSizeCorrector(pn.getTechnology().getId()).getSizeToDisk(n);
+                EPoint size = getSizeCorrector(pn.techId).getSizeToDisk(n);
                 xSize = size.getGridX();
                 ySize = size.getGridY();
-                writeTxt("type: " + ((PrimitiveNode)protoId).getFullName());
+                writeTxt("type: " + pn.fullName);
 //                lowX = (int)Math.round((n.anchor.getLambdaX() - n.size.getLambdaX()/2) * tech.getScale()*2);
 //                highX = (int)Math.round((n.anchor.getLambdaX() + n.size.getLambdaX()/2) * tech.getScale()*2);
 //                lowY = (int)Math.round((n.anchor.getLambdaY() - n.size.getLambdaY()/2) * tech.getScale()*2);

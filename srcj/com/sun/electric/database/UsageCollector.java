@@ -29,11 +29,10 @@ import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -65,7 +64,7 @@ class UsageCollector {
             if (n.protoId instanceof CellId)
                 add((CellId)n.protoId, true);
             else
-                techUsed.add(((PrimitiveNode)n.protoId).getTechnology().getId());
+                techUsed.add(((PrimitiveNodeId)n.protoId).techId);
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
                 if (pi == ImmutablePortInst.EMPTY) continue;

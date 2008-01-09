@@ -36,10 +36,10 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import java.io.IOException;
@@ -260,9 +260,9 @@ public class ReadableDump extends ELIB {
             infstr.append(techId.techName);
             return;
         }
-        if (obj instanceof PrimitiveNode) {
-            PrimitiveNode np = (PrimitiveNode)obj;
-            infstr.append(np.getTechnology().getTechName() + ":" + np.getName());
+        if (obj instanceof PrimitiveNodeId) {
+            PrimitiveNodeId np = (PrimitiveNodeId)obj;
+            infstr.append(np.fullName);
             return;
         }
         if (obj instanceof ArcProtoId) {

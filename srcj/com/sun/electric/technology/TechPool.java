@@ -28,6 +28,7 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
@@ -156,7 +157,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * TechId must belong to same IdManager as TechPool
      * @param techId TechId to find
      * @return Technology by given TechId or null
-     * @throws IllegalArgumentException of TechId is not from this IdManager
+     * @throws IllegalArgumentException if TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) {
         if (techId.idManager != idManager) {
@@ -169,14 +170,25 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     /**
      * Get ArcProto by ArcProtoId
      * ArcProtoId must belong to same IdManager as TechPool
-     * @param arcProtoId ArfProtoId to find
+     * @param arcProtoId ArcProtoId to find
      * @return ArcProto by given ArcProtoId or null
-     * @throws IllegalArgumentException of TechId is not from this IdManager
+     * @throws IllegalArgumentException if TechId is not from this IdManager
      */
     public ArcProto getArcProto(ArcProtoId arcProtoId) {
         Technology tech = getTech(arcProtoId.techId);
         if (tech == null) return null;
         return tech.getArcProto(arcProtoId.chronIndex);
+    }
+
+    /**
+     * Get PrimitiveNode by PrimitiveNodeId
+     * PrimitiveNodeId must belong to same IdManager as TechPool
+     * @param primitiveNodeId PrimitiveNodeId to find
+     * @return PrimitiveNode by given PrimitiveNodeId or null
+     * @throws IllegalArgumentException if TechId is not from this IdManager
+     */
+    public PrimitiveNode getPrimitiveNode(PrimitiveNodeId primitiveNodeId) {
+        return (PrimitiveNode)primitiveNodeId;
     }
 
     /** Returns Artwork technology in this database */

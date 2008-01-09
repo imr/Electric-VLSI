@@ -38,6 +38,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -640,7 +641,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
     public class SizeCorrector {
         public final HashMap<ArcProtoId,Integer> arcExtends = new HashMap<ArcProtoId,Integer>();
-        public final HashMap<PrimitiveNode,EPoint> nodeExtends = new HashMap<PrimitiveNode,EPoint>();
+        public final HashMap<PrimitiveNodeId,EPoint> nodeExtends = new HashMap<PrimitiveNodeId,EPoint>();
 
         private SizeCorrector(Version version, boolean isJelib) {
             if (xmlTech != null) {
@@ -672,12 +673,12 @@ public class Technology implements Comparable<Technology>, Serializable
                         }
                     }
                     correction = EPoint.fromGrid(correction.getGridX() + pn.sizeCorrector.getGridX(), correction.getGridY() + pn.sizeCorrector.getGridY());
-                    nodeExtends.put(pn, correction);
+                    nodeExtends.put(pn.getId(), correction);
                 }
                 for (Xml.Layer l: xmlTech.layers) {
                     if (l.pureLayerNode == null) continue;
                     PrimitiveNode pn = nodes.get(l.pureLayerNode.name);
-                    nodeExtends.put(pn, EPoint.ORIGIN);
+                    nodeExtends.put(pn.getId(), EPoint.ORIGIN);
                 }
             } else {
                 boolean oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
@@ -693,7 +694,7 @@ public class Technology implements Comparable<Technology>, Serializable
                         SizeOffset so = pn.getProtoSizeOffset();
                         correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()), -0.5*(so.getLowYOffset() + so.getHighYOffset()));
                     }
-                    nodeExtends.put(pn, correction);
+                    nodeExtends.put(pn.getId(), correction);
                 }
             }
         }
@@ -707,7 +708,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {
-            EPoint correction = nodeExtends.get(pn);
+            EPoint correction = nodeExtends.get(pn.getId());
             return EPoint.fromLambda(width - 2*correction.getLambdaX(), height - 2*correction.getLambdaY());
         }
 
@@ -2759,7 +2760,7 @@ public class Technology implements Comparable<Technology>, Serializable
 //			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni.getD(), primLayers);
+			std = new SerpentineTrans(ni.getD(), np, primLayers);
 			if (std.layersTotal > 0)
 			{
 				numExtraLayers = std.layersTotal;
@@ -2918,7 +2919,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 		if (!pnp.isMulticut()) return false;
 
-		return (isMultiCutInTechnology(new MultiCutData(ni.getD())));
+		return (isMultiCutInTechnology(new MultiCutData(ni.getD(), ni.getTechPool())));
 	}
 
 	/**
@@ -3019,9 +3020,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * Constructor to initialize for multiple cuts.
 		 * @param niD the NodeInst with multiple cuts.
 		 */
-		public MultiCutData(ImmutableNodeInst niD)
+		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
 		{
-            this(niD.size, ((PrimitiveNode)niD.protoId).findMulticut());
+            this(niD.size, techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
 		}
 
 		/**
@@ -3130,7 +3131,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * Constructor throws initialize for a serpentine transistor.
 		 * @param niD the NodeInst with a serpentine transistor.
 		 */
-		public SerpentineTrans(ImmutableNodeInst niD, Technology.NodeLayer [] pLayers)
+		public SerpentineTrans(ImmutableNodeInst niD, PrimitiveNode protoType, Technology.NodeLayer [] pLayers)
 		{
 			theNode = niD;
 
@@ -3142,7 +3143,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 			if (points != null)
 			{
-				theProto = (PrimitiveNode)niD.protoId;
+				theProto = protoType;
 				specialValues = theProto.getSpecialValues();
 				primLayers = pLayers;
 				int count = primLayers.length;
@@ -3295,8 +3296,8 @@ public class Technology implements Comparable<Technology>, Serializable
 				int portIndex = primLayer.getPortNum();
 				if (portIndex >= 0)
 				{
-					PrimitiveNode np = (PrimitiveNode)theNode.protoId;
-					PortProto port = np.getPort(portIndex);
+					assert theProto.getId() == theNode.protoId;
+					PortProto port = theProto.getPort(portIndex);
 					retPoly.setPort(port);
 				}
 			}
@@ -3497,7 +3498,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
 			// serpentine transistors use a more complex port determination
-			SerpentineTrans std = new SerpentineTrans(ni.getD(), np.getLayers());
+			SerpentineTrans std = new SerpentineTrans(ni.getD(), np, np.getLayers());
 			if (std.hasValidData())
 				return std.fillTransPort(pp);
 		}

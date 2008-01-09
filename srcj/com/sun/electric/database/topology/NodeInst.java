@@ -393,7 +393,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             subCell.getTechnology();
 		}
 
-        if (d.protoId == Generic.tech().cellCenterNode && parent.alreadyCellCenter()) {
+        if (ImmutableNodeInst.isCellCenter(d.protoId) && parent.alreadyCellCenter()) {
             System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
             return null;
         }
@@ -413,7 +413,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ni);
-		if (d.protoId == Generic.tech().cellCenterNode)
+		if (ImmutableNodeInst.isCellCenter(d.protoId))
     		parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
 		return ni;
 	}

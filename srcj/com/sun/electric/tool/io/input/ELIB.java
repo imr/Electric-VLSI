@@ -40,6 +40,7 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -2303,7 +2304,7 @@ public class ELIB extends LibraryFiles
                     for (int j = 0; j < newAddrArray.length; j++) {
                         if (newAddrArray[j] == null) continue;
                         if (newAddrArray[j] instanceof CellId) numCells++;
-                        if (newAddrArray[j] instanceof PrimitiveNode) numPrims++;
+                        if (newAddrArray[j] instanceof PrimitiveNodeId) numPrims++;
                     }
                     if (numCells >= numPrims) {
                         CellId[] cellArray = new CellId[newAddrArray.length];
@@ -2311,9 +2312,9 @@ public class ELIB extends LibraryFiles
                             if (newAddrArray[j] instanceof CellId) cellArray[j] = (CellId)newAddrArray[j];
                         newAddr = cellArray;
                     } else {
-                        PrimitiveNode[] primArray = new PrimitiveNode[newAddrArray.length];
+                        PrimitiveNodeId[] primArray = new PrimitiveNodeId[newAddrArray.length];
                         for (int j = 0; j < primArray.length; j++)
-                            if (newAddrArray[j] instanceof PrimitiveNode) primArray[j] = (PrimitiveNode)newAddrArray[j];
+                            if (newAddrArray[j] instanceof PrimitiveNodeId) primArray[j] = (PrimitiveNodeId)newAddrArray[j];
                         newAddr = primArray;
                     }
                 }
@@ -2369,7 +2370,8 @@ public class ELIB extends LibraryFiles
 			case ELIBConstants.VNODEPROTO:
 				i = readBigInteger();
 				NodeProto np = convertNodeProto(i);
-                return (np instanceof Cell ? ((Cell)np).getId() : (PrimitiveNode)np);
+                if (np == null) return np;
+                return (np instanceof Cell ? ((Cell)np).getId() : ((PrimitiveNode)np).getId());
 			case ELIBConstants.VARCPROTO:
 				i = readBigInteger();
 				if (i == -1)

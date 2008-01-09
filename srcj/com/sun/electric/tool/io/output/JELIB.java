@@ -46,6 +46,7 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -54,7 +55,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechPool;
@@ -345,11 +345,11 @@ public class JELIB extends Output {
                 String subCellName = subCellId.libId == libId ? subCellId.cellName.toString() : subCellId.toString();
                 printWriter.print("I" + convertString(subCellName));
             } else {
-                PrimitiveNode prim = (PrimitiveNode)np;
-                if (d.techId.techName.equals(prim.getTechnology().getTechName()))
-                    printWriter.print("N" + convertString(prim.getName()));
+                PrimitiveNodeId primId = (PrimitiveNodeId)np;
+                if (d.techId == primId.techId)
+                    printWriter.print("N" + convertString(primId.name));
                 else
-                    printWriter.print("N" + convertString(prim.getFullName()));
+                    printWriter.print("N" + convertString(primId.fullName));
             }
             String diskNodeName;
             if (n.name != prevNodeName) {
@@ -369,7 +369,7 @@ public class JELIB extends Output {
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
-                EPoint size = getSizeCorrector(((PrimitiveNode)np).getTechnology().getId()).getSizeToDisk(n);
+                EPoint size = getSizeCorrector(((PrimitiveNodeId)np).techId).getSizeToDisk(n);
                 double lambdaWidth = size.getLambdaX();
                 double lambdaHeight = size.getLambdaY();
                 printWriter.print("|");
@@ -649,7 +649,7 @@ public class JELIB extends Output {
                     for (ExportId exportId: exportsWithVariables)
                         printVars(exportId.externalId, nid.getPortInst(exportId));
                 } else {
-                    PrimitiveNode pn = (PrimitiveNode)nid.protoId;
+                    PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)nid.protoId);
                     for (int portIndex = 0; portIndex < pn.getNumPorts(); portIndex++) {
                         PrimitivePort pp = pn.getPort(portIndex);
                         ImmutablePortInst pid = nid.getPortInst(pp);
@@ -738,7 +738,7 @@ public class JELIB extends Output {
             case 'I': infstr.append(((Integer)obj).intValue()); return;
             case 'L': infstr.append(convertString(((LibId)obj).libName, inArray)); return;
             case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
-            case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
+            case 'P': infstr.append(convertString(((PrimitiveNodeId)obj).fullName, inArray)); return;
             case 'R': infstr.append(convertString(((ArcProtoId)obj).fullName, inArray)); return;
             case 'S': infstr.append(convertString((String)obj, inArray)); return;
             case 'T': infstr.append(convertString(((TechId)obj).techName, inArray)); return;
@@ -774,23 +774,23 @@ public class JELIB extends Output {
      * "type".
      */
     private char getVarType(Object obj) {
-        if (obj instanceof String        || obj instanceof String [])        return 'S';
+        if (obj instanceof String          || obj instanceof String [])          return 'S';
         
-        if (obj instanceof Boolean       || obj instanceof Boolean [])       return 'B';
-        if (obj instanceof CellId        || obj instanceof CellId [])        return 'C';
-        if (obj instanceof Double        || obj instanceof Double [])        return 'D';
-        if (obj instanceof ExportId      || obj instanceof ExportId [])      return 'E';
-        if (obj instanceof Float         || obj instanceof Float [])         return 'F';
-        if (obj instanceof Long          || obj instanceof Long [])          return 'G';
-        if (obj instanceof Short         || obj instanceof Short [])         return 'H';
-        if (obj instanceof Integer       || obj instanceof Integer [])       return 'I';
-        if (obj instanceof LibId         || obj instanceof LibId [])         return 'L';
-        if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
-        if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
-        if (obj instanceof ArcProtoId    || obj instanceof ArcProtoId [])    return 'R';
-        if (obj instanceof TechId        || obj instanceof TechId [])        return 'T';
-        if (obj instanceof EPoint        || obj instanceof EPoint [])        return 'V';
-        if (obj instanceof Byte          || obj instanceof Byte [])          return 'Y';
+        if (obj instanceof Boolean         || obj instanceof Boolean [])         return 'B';
+        if (obj instanceof CellId          || obj instanceof CellId [])          return 'C';
+        if (obj instanceof Double          || obj instanceof Double [])          return 'D';
+        if (obj instanceof ExportId        || obj instanceof ExportId [])        return 'E';
+        if (obj instanceof Float           || obj instanceof Float [])           return 'F';
+        if (obj instanceof Long            || obj instanceof Long [])            return 'G';
+        if (obj instanceof Short           || obj instanceof Short [])           return 'H';
+        if (obj instanceof Integer         || obj instanceof Integer [])         return 'I';
+        if (obj instanceof LibId           || obj instanceof LibId [])           return 'L';
+        if (obj instanceof Tool            || obj instanceof Tool [])            return 'O';
+        if (obj instanceof PrimitiveNodeId || obj instanceof PrimitiveNodeId []) return 'P';
+        if (obj instanceof ArcProtoId      || obj instanceof ArcProtoId [])      return 'R';
+        if (obj instanceof TechId          || obj instanceof TechId [])          return 'T';
+        if (obj instanceof EPoint          || obj instanceof EPoint [])          return 'V';
+        if (obj instanceof Byte            || obj instanceof Byte [])            return 'Y';
         assert false : obj;
         return 'X';
     }

@@ -51,7 +51,7 @@ public class IdWriter {
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
-    private HashMap<PrimitiveNode,Integer> primNodes = new HashMap<PrimitiveNode,Integer>();
+    private HashMap<PrimitiveNodeId,Integer> primNodes = new HashMap<PrimitiveNodeId,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
     
     private static class TechCounts {
@@ -286,14 +286,6 @@ public class IdWriter {
     }
     
     /**
-     * Writes Technology.
-     * @param tech Technology to write.
-     */
-    private void writeTechnology(Technology tech) throws IOException {
-        writeTechId(tech.getId());
-    }
-    
-    /**
      * Writes ArcProtoId.
      * @param arcProtoId ArcProtoId to write.
      */
@@ -321,7 +313,7 @@ public class IdWriter {
             out.writeInt(cellId.cellIndex);
             return;
         }
-        PrimitiveNode pn = (PrimitiveNode)nodeProtoId;
+        PrimitiveNodeId pn = (PrimitiveNodeId)nodeProtoId;
         Integer i = primNodes.get(pn);
         if (i != null) {
             out.writeInt(i.intValue());
@@ -329,8 +321,8 @@ public class IdWriter {
             i = new Integer(~primNodes.size());
             primNodes.put(pn, i);
             out.writeInt(i.intValue());
-            writeTechnology(pn.getTechnology());
-            out.writeUTF(pn.getName());
+            writeTechId(pn.techId);
+            out.writeUTF(pn.name);
         }
     }
     

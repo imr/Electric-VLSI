@@ -234,7 +234,7 @@ public class IRSIM extends Output
                 // RC value will be via resistance divided by number of cuts of this contact
                 // Searching for via layer
                 PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-                Technology.MultiCutData mcd = new Technology.MultiCutData(ni.getD());
+                Technology.MultiCutData mcd = new Technology.MultiCutData(ni.getD(), ni.getTechPool());
                 int cuts = mcd.numCuts();
                 Technology.NodeLayer[] layers = pn.getLayers();
                 Layer thisLayer = null;

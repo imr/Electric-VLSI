@@ -29,6 +29,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -213,7 +214,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	 * Method to return the parent NodeProtoId of this PrimitivePort.
 	 * @return the parent NodeProtoId of this PrimitivePort.
 	 */
-	public PrimitiveNode getParentId() { return parent; }
+	public PrimitiveNodeId getParentId() { return parent.getId(); }
 
 	/**
 	 * Method to return the parent NodeProto of this PrimitivePort.
