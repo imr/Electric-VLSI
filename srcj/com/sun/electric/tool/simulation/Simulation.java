@@ -1730,7 +1730,7 @@ public class Simulation extends Tool
 //    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
 //    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
 
-    private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, true);
+    private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, false);
     public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }
     public static void setSpiceIgnoreParasiticResistors(boolean b) { cachedSpiceIgnoreParasiticResistors.setBoolean(b); }
 
