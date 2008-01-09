@@ -1195,9 +1195,10 @@ public final class ExportChanges
 				if (!pureName.equals(lastPureName))
 					lastIndex = 0;
 
-				lastIndex++;
 				lastPureName = pureName;
-				String newName = pureName + "_" + lastIndex;
+				String newName = pureName;
+				if (lastIndex > 0) newName += "_" + lastIndex;
+				lastIndex++;
 				if (!newName.equals(name))
 					e.rename(newName);
 			}
