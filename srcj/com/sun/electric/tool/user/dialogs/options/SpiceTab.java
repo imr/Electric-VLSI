@@ -23,9 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
@@ -33,21 +30,11 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.HashMap;
-import java.util.Iterator;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "Spice" tab of the Preferences dialog.
@@ -99,7 +86,12 @@ public class SpiceTab extends PreferencePanel
         spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
 		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(Simulation.getSpiceOutputFormat()));
 
-        // Epic memory size
+		spiceResistorShorting.addItem("None");
+		spiceResistorShorting.addItem("Normal only");
+		spiceResistorShorting.addItem("Normal and Poly");
+		spiceResistorShorting.setSelectedIndex(Simulation.getSpiceShortResistors());
+
+		// Epic memory size
         epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
 
 		spiceUseParasitics.setSelected(Simulation.isSpiceUseParasitics());
@@ -108,6 +100,7 @@ public class SpiceTab extends PreferencePanel
 		spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
 		spiceWriteTransSizesInLambda.setSelected(Simulation.isSpiceWriteTransSizeInLambda());
         spiceWriteSubcktTopCell.setSelected(Simulation.isSpiceWriteSubcktTopCell());
+        spiceWriteEndStatement.setSelected(Simulation.isSpiceWriteFinalDotEnd());
 
         // spice Run options
         useDir.setText(Simulation.getSpiceRunDir());
@@ -205,6 +198,9 @@ public class SpiceTab extends PreferencePanel
 		Simulation.SpiceEngine engine = (Simulation.SpiceEngine)spiceEnginePopup.getSelectedItem();
 		if (Simulation.getSpiceEngine() != engine) Simulation.setSpiceEngine(engine);
 
+		int sr = spiceResistorShorting.getSelectedIndex();
+		if (sr != Simulation.getSpiceShortResistors()) Simulation.setSpiceShortResistors(sr);
+
 		String stringNow = (String)spiceLevelPopup.getSelectedItem();
 		if (!Simulation.getSpiceLevel().equals(stringNow)) Simulation.setSpiceLevel(stringNow);
 
@@ -232,6 +228,9 @@ public class SpiceTab extends PreferencePanel
 
         booleanNow = spiceWriteSubcktTopCell.isSelected();
         if (Simulation.isSpiceWriteSubcktTopCell() != booleanNow) Simulation.setSpiceWriteSubcktTopCell(booleanNow);
+
+        booleanNow = spiceWriteEndStatement.isSelected();
+        if (Simulation.isSpiceWriteFinalDotEnd() != booleanNow) Simulation.setSpiceWriteFinalDotEnd(booleanNow);
 
 		booleanNow = spiceUseParasitics.isSelected();
 		if (Simulation.isSpiceUseParasitics() != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
@@ -294,20 +293,11 @@ public class SpiceTab extends PreferencePanel
         spiceRunProgramArgs.setEnabled(enabled);
         spiceRunHelp.setEnabled(enabled);
         spiceRunProbe.setEnabled(enabled);
-        if (enabled) {
-            spiceRunProgram.setBackground(Color.white);
-            if (!useDirCheckBox.isSelected()) {
-                // if no use dir specified, disable text box
-                useDir.setEnabled(false);
-                useDir.setBackground(spice2.getBackground());
-            } else {
-                useDir.setEnabled(true);
-                useDir.setBackground(Color.white);
-            }
-        } else {
-            spiceRunProgram.setBackground(spice2.getBackground());
-            useDir.setBackground(spice2.getBackground());
-            useDir.setEnabled(false);
+        useDir.setEnabled(enabled);
+        if (enabled)
+        {
+            // if no use dir specified, disable text box
+            if (!useDirCheckBox.isSelected()) useDir.setEnabled(false);
         }
     }
 
@@ -323,24 +313,22 @@ public class SpiceTab extends PreferencePanel
         spiceHeader = new javax.swing.ButtonGroup();
         spiceTrailer = new javax.swing.ButtonGroup();
         spice = new javax.swing.JPanel();
-        spice1 = new javax.swing.JPanel();
+        upperLeft = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        spiceRunPopup = new javax.swing.JComboBox();
         spiceEnginePopup = new javax.swing.JComboBox();
         spiceLevelPopup = new javax.swing.JComboBox();
         spiceOutputFormatPopup = new javax.swing.JComboBox();
-        spiceUseParasitics = new javax.swing.JCheckBox();
-        spiceUseNodeNames = new javax.swing.JCheckBox();
-        spiceForceGlobalPwrGnd = new javax.swing.JCheckBox();
-        spiceUseCellParameters = new javax.swing.JCheckBox();
-        spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
-        spiceWriteSubcktTopCell = new javax.swing.JCheckBox();
+        jLabel13 = new javax.swing.JLabel();
+        spicePrimitivesetPopup = new javax.swing.JComboBox();
         epicFrame = new javax.swing.JPanel();
         epicLabel = new javax.swing.JLabel();
         epicText = new javax.swing.JTextField();
-        spice2 = new javax.swing.JPanel();
+        spiceResistorShorting = new javax.swing.JComboBox();
+        jLabel4 = new javax.swing.JLabel();
+        middle = new javax.swing.JPanel();
+        spiceRunPopup = new javax.swing.JComboBox();
         spiceRunProgram = new javax.swing.JTextField();
         jLabel17 = new javax.swing.JLabel();
         useDirCheckBox = new javax.swing.JCheckBox();
@@ -350,11 +338,8 @@ public class SpiceTab extends PreferencePanel
         jLabel3 = new javax.swing.JLabel();
         spiceRunProgramArgs = new javax.swing.JTextField();
         spiceRunProbe = new javax.swing.JCheckBox();
-        spice3 = new javax.swing.JPanel();
-        jLabel13 = new javax.swing.JLabel();
-        spicePrimitivesetPopup = new javax.swing.JComboBox();
-        jSeparator1 = new javax.swing.JSeparator();
-        spice5 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        bottom = new javax.swing.JPanel();
         spiceHeaderCardExtension = new javax.swing.JTextField();
         spiceNoHeaderCards = new javax.swing.JRadioButton();
         spiceHeaderCardsWithExtension = new javax.swing.JRadioButton();
@@ -368,6 +353,14 @@ public class SpiceTab extends PreferencePanel
         spiceTrailerCardFile = new javax.swing.JTextField();
         spiceBrowseTrailerFile = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JSeparator();
+        upperRight = new javax.swing.JPanel();
+        spiceUseNodeNames = new javax.swing.JCheckBox();
+        spiceWriteEndStatement = new javax.swing.JCheckBox();
+        spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
+        spiceUseCellParameters = new javax.swing.JCheckBox();
+        spiceWriteSubcktTopCell = new javax.swing.JCheckBox();
+        spiceForceGlobalPwrGnd = new javax.swing.JCheckBox();
+        spiceUseParasitics = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -382,56 +375,47 @@ public class SpiceTab extends PreferencePanel
         spice.setLayout(new java.awt.GridBagLayout());
 
         spice.setToolTipText("Options for Spice deck generation");
-        spice1.setLayout(new java.awt.GridBagLayout());
+        upperLeft.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Spice Engine:");
+        jLabel1.setText("Spice engine:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.5;
-        spice1.add(jLabel1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        upperLeft.add(jLabel1, gridBagConstraints);
 
-        jLabel9.setText("Spice Level:");
+        jLabel9.setText("Spice level:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(jLabel9, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        upperLeft.add(jLabel9, gridBagConstraints);
 
         jLabel10.setText("Output format:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(jLabel10, gridBagConstraints);
-
-        spiceRunPopup.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                spiceRunPopupActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        spice1.add(spiceRunPopup, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        upperLeft.add(jLabel10, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        spice1.add(spiceEnginePopup, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        upperLeft.add(spiceEnginePopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        spice1.add(spiceLevelPopup, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        upperLeft.add(spiceLevelPopup, gridBagConstraints);
 
         spiceOutputFormatPopup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -443,55 +427,30 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        spice1.add(spiceOutputFormatPopup, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        upperLeft.add(spiceOutputFormatPopup, gridBagConstraints);
 
-        spiceUseParasitics.setText("Use Parasitics");
+        jLabel13.setText("Spice primitive set:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceUseParasitics, gridBagConstraints);
-
-        spiceUseNodeNames.setText("Use Node Names");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceUseNodeNames, gridBagConstraints);
-
-        spiceForceGlobalPwrGnd.setText("Force Global VDD/GND");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceForceGlobalPwrGnd, gridBagConstraints);
-
-        spiceUseCellParameters.setText("Use Cell Parameters");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceUseCellParameters, gridBagConstraints);
-
-        spiceWriteTransSizesInLambda.setText("Write Trans Sizes in Units");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceWriteTransSizesInLambda, gridBagConstraints);
-
-        spiceWriteSubcktTopCell.setText("Write Subckt For Top Cell");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 3, 0);
-        spice1.add(spiceWriteSubcktTopCell, gridBagConstraints);
+        gridBagConstraints.weighty = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        upperLeft.add(jLabel13, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        upperLeft.add(spicePrimitivesetPopup, gridBagConstraints);
 
         epicFrame.setLayout(new java.awt.GridBagLayout());
 
         epicLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        epicLabel.setText("Epic Reader Memory Size: ");
+        epicLabel.setText("Epic reader memory size: ");
         epicLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -505,47 +464,77 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         epicFrame.add(epicText, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
-        spice1.add(epicFrame, gridBagConstraints);
+        upperLeft.add(epicFrame, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        upperLeft.add(spiceResistorShorting, gridBagConstraints);
+
+        jLabel4.setText("Resistor shorting:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        upperLeft.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        spice.add(spice1, gridBagConstraints);
+        spice.add(upperLeft, gridBagConstraints);
 
-        spice2.setLayout(new java.awt.GridBagLayout());
+        middle.setLayout(new java.awt.GridBagLayout());
 
-        spice2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        middle.setBorder(javax.swing.BorderFactory.createTitledBorder("Spice Execution"));
+        spiceRunPopup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                spiceRunPopupActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        middle.add(spiceRunPopup, gridBagConstraints);
+
         spiceRunProgram.setColumns(8);
         spiceRunProgram.setMinimumSize(new java.awt.Dimension(100, 20));
         spiceRunProgram.setPreferredSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.2;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
-        spice2.add(spiceRunProgram, gridBagConstraints);
+        middle.add(spiceRunProgram, gridBagConstraints);
 
-        jLabel17.setText("Run Program:");
+        jLabel17.setText("Run program:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice2.add(jLabel17, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
+        middle.add(jLabel17, gridBagConstraints);
 
-        useDirCheckBox.setText("Use Dir:");
+        useDirCheckBox.setText("Use dir:");
         useDirCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 useDirCheckBoxActionPerformed(evt);
@@ -553,26 +542,30 @@ public class SpiceTab extends PreferencePanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        spice2.add(useDirCheckBox, gridBagConstraints);
+        middle.add(useDirCheckBox, gridBagConstraints);
 
         useDir.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice2.add(useDir, gridBagConstraints);
+        middle.add(useDir, gridBagConstraints);
 
         overwriteOutputFile.setText("Overwrite existing output file (no prompts)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        spice2.add(overwriteOutputFile, gridBagConstraints);
+        middle.add(overwriteOutputFile, gridBagConstraints);
 
         spiceRunHelp.setText("help");
         spiceRunHelp.addActionListener(new java.awt.event.ActionListener() {
@@ -583,194 +576,233 @@ public class SpiceTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
-        spice2.add(spiceRunHelp, gridBagConstraints);
+        middle.add(spiceRunHelp, gridBagConstraints);
 
-        jLabel3.setText("with args:");
+        jLabel3.setText("With args:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
-        spice2.add(jLabel3, gridBagConstraints);
+        middle.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
-        spice2.add(spiceRunProgramArgs, gridBagConstraints);
+        middle.add(spiceRunProgramArgs, gridBagConstraints);
 
         spiceRunProbe.setText("Run probe");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        spice2.add(spiceRunProbe, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        spice.add(spice2, gridBagConstraints);
-
-        spice3.setLayout(new java.awt.GridBagLayout());
-
-        jLabel13.setText("Spice primitive set:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weighty = 0.5;
-        spice3.add(jLabel13, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice3.add(spicePrimitivesetPopup, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        spice.add(spice3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        middle.add(spiceRunProbe, gridBagConstraints);
+
+        jLabel2.setText("After writing deck:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        middle.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        spice.add(jSeparator1, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        spice.add(middle, gridBagConstraints);
 
-        spice5.setLayout(new java.awt.GridBagLayout());
+        bottom.setLayout(new java.awt.GridBagLayout());
 
+        bottom.setBorder(javax.swing.BorderFactory.createTitledBorder("Model Cards"));
         spiceHeaderCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        spice5.add(spiceHeaderCardExtension, gridBagConstraints);
+        bottom.add(spiceHeaderCardExtension, gridBagConstraints);
 
         spiceHeader.add(spiceNoHeaderCards);
-        spiceNoHeaderCards.setText("No Header Cards");
+        spiceNoHeaderCards.setText("No Header cards");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceNoHeaderCards, gridBagConstraints);
+        bottom.add(spiceNoHeaderCards, gridBagConstraints);
 
         spiceHeader.add(spiceHeaderCardsWithExtension);
-        spiceHeaderCardsWithExtension.setText("Use Header Cards with extension:");
+        spiceHeaderCardsWithExtension.setText("Use Header cards from files with extension:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceHeaderCardsWithExtension, gridBagConstraints);
+        bottom.add(spiceHeaderCardsWithExtension, gridBagConstraints);
 
         spiceHeader.add(spiceHeaderCardsFromFile);
-        spiceHeaderCardsFromFile.setText("Use Header Cards from File:");
+        spiceHeaderCardsFromFile.setText("Use Header cards from file:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceHeaderCardsFromFile, gridBagConstraints);
+        bottom.add(spiceHeaderCardsFromFile, gridBagConstraints);
 
         spiceTrailer.add(spiceNoTrailerCards);
-        spiceNoTrailerCards.setText("No Trailer Cards");
+        spiceNoTrailerCards.setText("No Trailer cards");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceNoTrailerCards, gridBagConstraints);
+        bottom.add(spiceNoTrailerCards, gridBagConstraints);
 
         spiceTrailer.add(spiceTrailerCardsWithExtension);
-        spiceTrailerCardsWithExtension.setText("Use Trailer Cards with extension:");
+        spiceTrailerCardsWithExtension.setText("Use Trailer cards from files with extension:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceTrailerCardsWithExtension, gridBagConstraints);
+        bottom.add(spiceTrailerCardsWithExtension, gridBagConstraints);
 
         spiceTrailer.add(spiceTrailerCardsFromFile);
-        spiceTrailerCardsFromFile.setText("Use Trailer Cards from File:");
+        spiceTrailerCardsFromFile.setText("Use Trailer cards from File:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(spiceTrailerCardsFromFile, gridBagConstraints);
+        bottom.add(spiceTrailerCardsFromFile, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(spiceHeaderCardFile, gridBagConstraints);
+        bottom.add(spiceHeaderCardFile, gridBagConstraints);
 
         spiceBrowseHeaderFile.setText("Browse");
         spiceBrowseHeaderFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseHeaderFile.setPreferredSize(new java.awt.Dimension(78, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice5.add(spiceBrowseHeaderFile, gridBagConstraints);
+        bottom.add(spiceBrowseHeaderFile, gridBagConstraints);
 
         spiceTrailerCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        spice5.add(spiceTrailerCardExtension, gridBagConstraints);
+        bottom.add(spiceTrailerCardExtension, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(spiceTrailerCardFile, gridBagConstraints);
+        bottom.add(spiceTrailerCardFile, gridBagConstraints);
 
         spiceBrowseTrailerFile.setText("Browse");
         spiceBrowseTrailerFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseTrailerFile.setPreferredSize(new java.awt.Dimension(78, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice5.add(spiceBrowseTrailerFile, gridBagConstraints);
+        bottom.add(spiceBrowseTrailerFile, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        spice5.add(jSeparator4, gridBagConstraints);
+        bottom.add(jSeparator4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        spice.add(spice5, gridBagConstraints);
+        spice.add(bottom, gridBagConstraints);
+
+        upperRight.setLayout(new java.awt.GridBagLayout());
+
+        spiceUseNodeNames.setText("Use node names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceUseNodeNames, gridBagConstraints);
+
+        spiceWriteEndStatement.setText("Write .end statement");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceWriteEndStatement, gridBagConstraints);
+
+        spiceWriteTransSizesInLambda.setText("Write trans sizes in units");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceWriteTransSizesInLambda, gridBagConstraints);
+
+        spiceUseCellParameters.setText("Use cell parameters");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceUseCellParameters, gridBagConstraints);
+
+        spiceWriteSubcktTopCell.setText("Write .subckt for top cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceWriteSubcktTopCell, gridBagConstraints);
+
+        spiceForceGlobalPwrGnd.setText("Force global VDD/GND");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceForceGlobalPwrGnd, gridBagConstraints);
+
+        spiceUseParasitics.setText("Use parasitics");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        upperRight.add(spiceUseParasitics, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        spice.add(upperRight, gridBagConstraints);
 
         getContentPane().add(spice, new java.awt.GridBagConstraints());
 
@@ -778,13 +810,13 @@ public class SpiceTab extends PreferencePanel
     }// </editor-fold>//GEN-END:initComponents
 
     private void spiceOutputFormatPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceOutputFormatPopupActionPerformed
-        epicFrame.setVisible(spiceOutputFormatPopup.getSelectedItem() == SpiceOutFormat.Epic);
+    	boolean vis = spiceOutputFormatPopup.getSelectedItem() == SpiceOutFormat.Epic;
+        epicLabel.setEnabled(vis);
+        epicText.setEnabled(vis);
     }//GEN-LAST:event_spiceOutputFormatPopupActionPerformed
 
     private void spiceRunPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunPopupActionPerformed
-        if (spiceRunPopup.getSelectedIndex() == 0) {
-            setSpiceRunOptionsEnabled(false);
-        } else
+        if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false); else
             setSpiceRunOptionsEnabled(true);
     }//GEN-LAST:event_spiceRunPopupActionPerformed
 
@@ -803,13 +835,7 @@ public class SpiceTab extends PreferencePanel
 
     private void useDirCheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_useDirCheckBoxActionPerformed
         // enable use dir field
-        boolean b = useDirCheckBox.isSelected();
-        useDir.setEnabled(b);
-        if (b) {
-            useDir.setBackground(Color.white);
-        } else {
-            useDir.setBackground(spice2.getBackground());
-        }
+        useDir.setEnabled(useDirCheckBox.isSelected());
     }//GEN-LAST:event_useDirCheckBoxActionPerformed
 
 	/** Closes the dialog */
@@ -820,6 +846,7 @@ public class SpiceTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel bottom;
     private javax.swing.JPanel epicFrame;
     private javax.swing.JLabel epicLabel;
     private javax.swing.JTextField epicText;
@@ -827,16 +854,14 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JPanel middle;
     private javax.swing.JCheckBox overwriteOutputFile;
     private javax.swing.JPanel spice;
-    private javax.swing.JPanel spice1;
-    private javax.swing.JPanel spice2;
-    private javax.swing.JPanel spice3;
-    private javax.swing.JPanel spice5;
     private javax.swing.JButton spiceBrowseHeaderFile;
     private javax.swing.JButton spiceBrowseTrailerFile;
     private javax.swing.JComboBox spiceEnginePopup;
@@ -851,6 +876,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceNoTrailerCards;
     private javax.swing.JComboBox spiceOutputFormatPopup;
     private javax.swing.JComboBox spicePrimitivesetPopup;
+    private javax.swing.JComboBox spiceResistorShorting;
     private javax.swing.JButton spiceRunHelp;
     private javax.swing.JComboBox spiceRunPopup;
     private javax.swing.JCheckBox spiceRunProbe;
@@ -864,8 +890,11 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JCheckBox spiceUseCellParameters;
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
+    private javax.swing.JCheckBox spiceWriteEndStatement;
     private javax.swing.JCheckBox spiceWriteSubcktTopCell;
     private javax.swing.JCheckBox spiceWriteTransSizesInLambda;
+    private javax.swing.JPanel upperLeft;
+    private javax.swing.JPanel upperRight;
     private javax.swing.JTextField useDir;
     private javax.swing.JCheckBox useDirCheckBox;
     // End of variables declaration//GEN-END:variables

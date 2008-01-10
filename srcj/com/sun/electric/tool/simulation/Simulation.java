@@ -66,7 +66,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -379,7 +378,7 @@ public class Simulation extends Tool
 			}
 			catch (Exception e) {
 				System.out.println("Unable to get FleetSimMenu");
-		        e.printStackTrace(System.out);				
+		        e.printStackTrace(System.out);
 			}
 		}
 
@@ -990,7 +989,7 @@ public class Simulation extends Tool
     protected void initProjectSettings() {
         initVerilogProjectSettings();
     }
-    
+
 	/****************************** FAST HENRY OPTIONS ******************************/
 
 	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", tool.prefs, false);
@@ -1153,12 +1152,12 @@ public class Simulation extends Tool
 
     private Setting cacheVerilogUseAssign;
 	private Setting cacheVerilogUseTrireg;
-    
+
     private void initVerilogProjectSettings() {
         makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
         makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
     }
-    
+
     private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
     public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
     public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
@@ -1461,6 +1460,25 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
+	private static Pref cacheSpiceShortResistors = Pref.makeIntPref("SpiceShortResistors", tool.prefs, 0);
+	/**
+	 * Method to tell how SPICE should short resistors.
+	 * These values can be: <BR>
+	 * 0 for no resistor shorting.<BR>
+	 * 1 for parasitic resistor shorting (normal resistors shorted, poly resistors not shorted).<BR>
+	 * 2 for all resistor shorting.<BR>
+	 * @return how SPICE should short resistors.
+	 */
+	public static int getSpiceShortResistors() { return cacheSpiceShortResistors.getInt(); }
+	/**
+	 * Method to set how SPICE should short resistors.
+	 * @param engine how SPICE should short resistors: <BR>
+	 * 0 for no resistor shorting.<BR>
+	 * 1 for parasitic resistor shorting (normal resistors shorted, poly resistors not shorted).<BR>
+	 * 2 for all resistor shorting.<BR>
+	 */
+	public static void setSpiceShortResistors(int sr) { cacheSpiceShortResistors.setInt(sr); }
+
     public static final String spiceRunChoiceDontRun = "Don't Run";
     public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ignore Output";
     public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
@@ -1725,10 +1743,6 @@ public class Simulation extends Tool
     private static Pref cacheSpiceWriteFinalDotEnd = Pref.makeBooleanPref("SpiceWriteFinalDotEnd", tool.prefs, true);
     public static boolean isSpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBoolean(); }
     public static void setSpiceWriteFinalDotEnd(boolean b) { cacheSpiceWriteFinalDotEnd.setBoolean(b); }
-
-//    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, true);
-//    public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
-//    public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
 
     private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, false);
     public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }

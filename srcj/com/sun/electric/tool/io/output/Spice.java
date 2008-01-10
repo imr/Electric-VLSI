@@ -629,7 +629,7 @@ public class Spice extends Topology
                         }
                     }
                     // merge wells
-                    
+
                 } else {
                     //System.out.println("--Processing subcell "+ni.getName());
                     // short together pins if shorted by subcell
@@ -2764,18 +2764,26 @@ public class Spice extends Topology
     /** Tell the Hierarchy enumerator how to short resistors */
     @Override
     protected Netlist.ShortResistors getShortResistors() {
-        if (useCDL && Simulation.getCDLIgnoreResistors())
+    	// TODO use the value of Simulation.getSpiceShortResistors()
+//    	switch (Simulation.getSpiceShortResistors())
+//    	{
+//    		case 0: return Netlist.ShortResistors.NO;
+//    		case 1: return Netlist.ShortResistors.PARASITIC;
+//    		case 2: return Netlist.ShortResistors.ALL;
+//    	}
+
+    	if (useCDL && Simulation.getCDLIgnoreResistors())
             return Netlist.ShortResistors.PARASITIC;
         // this option is used for writing spice netlists for LVS and RCX
         if (Simulation.isSpiceIgnoreParasiticResistors())
             return Netlist.ShortResistors.PARASITIC;
         return Netlist.ShortResistors.NO;
     }
-    
+
     private Netlist.ShortResistors getShortResistorsFlat() {
         return Netlist.ShortResistors.ALL;
     }
-    
+
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
