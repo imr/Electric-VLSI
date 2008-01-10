@@ -315,7 +315,7 @@ public class ELIB extends Output
                 putObjIndex(np.getId(), -2 - primNodeProtoIndex++);
                 for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); ) {
                     PrimitivePort pp = (PrimitivePort)pit.next();
-                    putObjIndex(pp, -2 - primPortProtoIndex++);
+                    putObjIndex(pp.getId(), -2 - primPortProtoIndex++);
                 }
             }
             primNodeCounts[techCount] = primNodeProtoIndex - primNodeStart;

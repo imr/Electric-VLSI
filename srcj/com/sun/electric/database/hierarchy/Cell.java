@@ -39,7 +39,6 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
-import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.Netlist;
@@ -82,7 +81,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -2836,6 +2834,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             keysToVars.put(v.getKey(), v);
         }
         return keysToVars.values().iterator();
+    }
+
+    /**
+     * Tells if this Cell has parameters.
+     * @return true if this Cell has parameters.
+     */
+    public boolean hasParameters() {
+        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
+            Variable v = it.next();
+            if (v.getTextDescriptor().isParam()) return true;
+        }
+        return false;
     }
 
 	/**

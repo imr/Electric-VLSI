@@ -32,12 +32,12 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitivePort;
 
 import com.sun.electric.technology.TechPool;
 import java.io.IOException;
@@ -496,9 +496,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (angle < 0) angle += 3600;
         short shortAngle = updateAngle((short)angle, tailLocation, headLocation);
         flags &= DATABASE_FLAGS;
-        if (!(tailPortId instanceof PrimitivePort))
+        if (!(tailPortId instanceof PrimitivePortId))
             flags &= ~TAIL_NEGATED_MASK;
-        if (!(headPortId instanceof PrimitivePort))
+        if (!(headPortId instanceof PrimitivePortId))
             flags &= ~HEAD_NEGATED_MASK;
         flags = updateManhattan(flags, headLocation, tailLocation, angle);
         return new ImmutableArcInst(arcId, protoId, name, nameDescriptor,
@@ -599,9 +599,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public ImmutableArcInst withFlags(int flags) {
         flags &= DATABASE_FLAGS;
-        if (!(tailPortId instanceof PrimitivePort))
+        if (!(tailPortId instanceof PrimitivePortId))
             flags &= ~TAIL_NEGATED_MASK;
-        if (!(headPortId instanceof PrimitivePort))
+        if (!(headPortId instanceof PrimitivePortId))
             flags &= ~HEAD_NEGATED_MASK;
         if ((this.flags & DATABASE_FLAGS) == flags) return this;
         flags |= this.flags & MANHATTAN_MASK;
@@ -820,11 +820,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         ArcProto protoType = techPool.getArcProto(protoId);
         if (protoType == null) return false;
         if (isTailNegated()) {
-            if (!((PrimitivePort)tailPortId).isNegatable()) return false;
+            if (!techPool.getPrimitivePort((PrimitivePortId)tailPortId).isNegatable()) return false;
             if (protoType.getTechnology().isNoNegatedArcs()) return false;
         }
         if (isHeadNegated()) {
-            if (!((PrimitivePort)headPortId).isNegatable()) return false;
+            if (!techPool.getPrimitivePort((PrimitivePortId)headPortId).isNegatable()) return false;
             if (protoType.getTechnology().isNoNegatedArcs()) return false;
         }
         return true;
@@ -854,9 +854,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert (flags & ~(DATABASE_FLAGS|MANHATTAN_MASK)) == 0;
         assert isManhattan() == isManhattan(headLocation, tailLocation, angle);
         if (isTailNegated())
-            assert tailPortId instanceof PrimitivePort;
+            assert tailPortId instanceof PrimitivePortId;
         if (isHeadNegated())
-            assert headPortId instanceof PrimitivePort;
+            assert headPortId instanceof PrimitivePortId;
         assert 0 <= angle && angle < 3600;
         if (!tailLocation.equals(headLocation))
             assert angle == GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());

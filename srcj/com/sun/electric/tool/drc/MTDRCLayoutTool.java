@@ -2211,7 +2211,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 		cp.cellParameterized = false;
 		cp.treeParameterized = false;
 		cp.netlist = netlist;
-        if (cell.getParameters().hasNext()) {
+        if (cell.hasParameters()) {
             cp.cellParameterized = true;
             cp.treeParameterized = true;
         }

@@ -28,7 +28,6 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Technology;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -92,8 +91,7 @@ public class ArcProtoId implements Serializable {
      * This method is not properly synchronized.
      */
     public ArcProto inDatabase(EDatabase database) {
-        Technology tech = techId.inDatabase(database);
-        return tech != null ? tech.findArcProto(name) : null;
+        return database.getTechPool().getArcProto(this);
     }
     
 	/**

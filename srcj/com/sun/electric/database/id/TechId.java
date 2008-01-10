@@ -53,8 +53,17 @@ public final class TechId implements Serializable {
     public final int techIndex;
     /** List of ArcProtoIds created so far. */
     final ArrayList<ArcProtoId> arcProtoIds = new ArrayList<ArcProtoId>();
-    /** HashMap of ArcProtoIds by their tech name. */
+    /** HashMap of ArcProtoIds by their name. */
     private final HashMap<String,ArcProtoId> arcProtoIdsByName = new HashMap<String,ArcProtoId>();
+    /** List of PrimitiveNodeIds created so far. */
+    final ArrayList<PrimitiveNodeId> primitiveNodeIds = new ArrayList<PrimitiveNodeId>();
+    /** HashMap of PrimitiveNodeIds by their name. */
+    private final HashMap<String,PrimitiveNodeId> primitiveNodeIdsByName = new HashMap<String,PrimitiveNodeId>();
+    /**
+     * Variable which is incremented every time when ArcProtoId, PrimitiveNodeId or PrimitiveNodeId is
+     * created below this TechId
+     */ 
+    volatile int modCount;
     
     /**
      * TechId constructor.
@@ -124,7 +133,47 @@ public final class TechId implements Serializable {
         arcProtoIds.add(arcProtoId);
         arcProtoIdsByName.put(arcProtoName, arcProtoId);
         assert arcProtoIds.size() == arcProtoIdsByName.size();
+        modCount++;
         return arcProtoId;
+    }
+    
+    /**
+     * Returns a number PrimitiveNodeIds in this TechId.
+     * This number may grow in time.
+     * @return a number of PrimitiveNodeIds.
+     */
+    synchronized int numPrimitiveNodeIds() {
+        return primitiveNodeIds.size();
+    }
+    
+    /**
+     * Returns PrimitiveNodeId in this TechId with specified chronological index.
+     * @param chronIndex chronological index of PrimitiveNodeId.
+     * @return PrimitiveNodeId with specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such PrimitiveNodeId.
+     */
+    synchronized PrimitiveNodeId getPrimitiveNodeId(int chronIndex) {
+        return primitiveNodeIds.get(chronIndex);
+    }
+    
+    /**
+     * Returns PrimitiveNodeId with specified primitiveNodeName.
+     * @param primitiveNodeName primitive node name.
+     * @return PrimitiveNodeId with specified primitiveNodeName.
+     */
+    public synchronized PrimitiveNodeId newPrimitiveNodeId(String primitiveNodeName) {
+        PrimitiveNodeId primitiveNodeId = primitiveNodeIdsByName.get(primitiveNodeName);
+        return primitiveNodeId != null ? primitiveNodeId : newPrimitiveNodeIdInternal(primitiveNodeName);
+    }
+    
+    private PrimitiveNodeId newPrimitiveNodeIdInternal(String primitiveNodeName) {
+        int chronIndex = primitiveNodeIds.size();
+        PrimitiveNodeId primitiveNodeId = new PrimitiveNodeId(this, primitiveNodeName, primitiveNodeIds.size());
+        primitiveNodeIds.add(primitiveNodeId);
+        primitiveNodeIdsByName.put(primitiveNodeName, primitiveNodeId);
+        assert primitiveNodeIds.size() == primitiveNodeIdsByName.size();
+        modCount++;
+        return primitiveNodeId;
     }
     
     /**
@@ -158,6 +207,18 @@ public final class TechId implements Serializable {
             ArcProtoId arcProtoId = arcProtoIds.get(chronIndex);
             arcProtoId.check();
             assert arcProtoIdsByName.get(arcProtoId.name) == arcProtoId;
+        }
+        
+        for (Map.Entry<String,PrimitiveNodeId> e: primitiveNodeIdsByName.entrySet()) {
+            PrimitiveNodeId primitiveNodeId = e.getValue();
+            assert primitiveNodeId.techId == this;
+            assert primitiveNodeId.name == e.getKey();
+            primitiveNodeId.check();
+        }
+        for (int chronIndex = 0; chronIndex < primitiveNodeIds.size(); chronIndex++) {
+            PrimitiveNodeId primitiveNodeId = primitiveNodeIds.get(chronIndex);
+            primitiveNodeId.check();
+            assert primitiveNodeIdsByName.get(primitiveNodeId.name) == primitiveNodeId;
         }
     }
     

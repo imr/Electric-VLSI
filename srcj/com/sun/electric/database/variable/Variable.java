@@ -40,7 +40,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -514,9 +513,9 @@ public class Variable implements Serializable
             case LIBRARY:
                 return reader.readLibId();
             case CELL:
-                return reader.readNodeProtoId();
+                return (CellId)reader.readNodeProtoId();
             case EXPORT:
-                return reader.readPortProtoId();
+                return (ExportId)reader.readPortProtoId();
             case STRING:
                 return reader.readString();
             case DOUBLE:
@@ -540,7 +539,7 @@ public class Variable implements Serializable
             case TECHNOLOGY:
                 return reader.readTechId();
             case PRIM_NODE:
-                return reader.readNodeProtoId();
+                return (PrimitiveNodeId)reader.readNodeProtoId();
             case ARC_PROTO:
                 return reader.readArcProtoId();
             default:

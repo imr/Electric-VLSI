@@ -41,6 +41,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -823,7 +824,7 @@ public class VectorCache {
 	}
 	
 	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
-    private static final PrimitivePort busPinPort = Schematics.tech().busPinNode.getPort(0);
+    private static final PrimitivePortId busPinPortId = Schematics.tech().busPinNode.getPort(0).getId();
 
 	/**
 	 * Method to tell whether a Cell is parameterized.
@@ -858,7 +859,7 @@ public class VectorCache {
         
         // bus pin appearance depends on parent Cell
         for (ImmutableExport e: cellRevision.exports) {
-            if (e.originalPortId == busPinPort)
+            if (e.originalPortId == busPinPortId)
                 return true;
         }
         return false;

@@ -310,7 +310,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         public ArcProto readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Technology tech = (Technology)in.readObject();
             int chronIndex = in.readInt();
-            ArcProto ap = tech.getArcProto(chronIndex);
+            ArcProto ap = tech.getArcProtoByChronIndex(chronIndex);
             if (ap == null)
                 throw new InvalidObjectException("arc proto not found");
             return ap;

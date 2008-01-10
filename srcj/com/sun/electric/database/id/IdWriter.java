@@ -30,8 +30,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
 import java.io.DataOutputStream;
@@ -51,11 +49,12 @@ public class IdWriter {
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
-    private HashMap<PrimitiveNodeId,Integer> primNodes = new HashMap<PrimitiveNodeId,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
     
     private static class TechCounts {
+        int modCount;
         int arcCount;
+        int[] portCounts = {};
     }
    
     /** Creates a new instance of SnapshotWriter */
@@ -107,17 +106,48 @@ public class IdWriter {
         
         for (int techIndex = 0; techIndex < techIdsArray.length; techIndex++) {
             TechId techId = techIdsArray[techIndex];
-            int numArcProtoIds = techId.numArcProtoIds();
             TechCounts techCount = techCounts[techIndex];
-            if (numArcProtoIds != techCount.arcCount) {
-                writeInt(techIndex);
-                int numNewArcProtoIds = numArcProtoIds - techCount.arcCount;
-                assert numNewArcProtoIds > 0;
-                writeInt(numNewArcProtoIds);
-                for (int i = 0; i < numNewArcProtoIds; i++)
-                    writeString(techId.getArcProtoId(techCount.arcCount + i).name);
-                techCount.arcCount = numArcProtoIds;
+            int modCount = techId.modCount;
+            if (modCount == techCount.modCount) continue;
+            
+            writeInt(techIndex);
+
+            int numArcProtoIds = techId.numArcProtoIds();
+            int numNewArcProtoIds = numArcProtoIds - techCount.arcCount;
+            assert numNewArcProtoIds >= 0;
+            writeInt(numNewArcProtoIds);
+            for (int i = 0; i < numNewArcProtoIds; i++)
+                writeString(techId.getArcProtoId(techCount.arcCount + i).name);
+            techCount.arcCount = numArcProtoIds;
+
+            int numPrimitiveNodeIds = techId.numPrimitiveNodeIds();
+            int numNewPrimitiveNodeIds = numPrimitiveNodeIds - techCount.portCounts.length;
+            assert numNewPrimitiveNodeIds >= 0;
+            writeInt(numNewPrimitiveNodeIds);
+            if (numNewPrimitiveNodeIds > 0) {
+                for (int i = 0; i < numNewPrimitiveNodeIds; i++)
+                    writeString(techId.getPrimitiveNodeId(techCount.portCounts.length + i).name);
+                int[] newPortCounts = new int[numPrimitiveNodeIds];
+                System.arraycopy(techCount.portCounts, 0, newPortCounts, 0, techCount.portCounts.length);
+                techCount.portCounts = newPortCounts;
             }
+
+            for (int primIndex = 0; primIndex < numPrimitiveNodeIds; primIndex++) {
+                PrimitiveNodeId primitiveNodeId = techId.getPrimitiveNodeId(primIndex);
+                int numPrimitivePortIds = primitiveNodeId.numPrimitivePortIds();
+                int numNewPrimitivePortIds = numPrimitivePortIds - techCount.portCounts[primIndex];
+                assert numNewPrimitivePortIds >= 0;
+                if (numNewPrimitivePortIds == 0) continue;
+                
+                writeInt(primIndex);
+                writeInt(numNewPrimitivePortIds);
+                for (int i = 0; i < numNewPrimitivePortIds; i++)
+                    writeString(primitiveNodeId.getPrimitivePortId(techCount.portCounts[primIndex] + i).name.toString());
+                techCount.portCounts[primIndex] = numPrimitivePortIds;
+            }
+            writeInt(-1);
+            
+            techCount.modCount = modCount;
         }
         writeInt(-1);
         
@@ -312,17 +342,10 @@ public class IdWriter {
             assert cellId.idManager == idManager;
             out.writeInt(cellId.cellIndex);
             return;
-        }
-        PrimitiveNodeId pn = (PrimitiveNodeId)nodeProtoId;
-        Integer i = primNodes.get(pn);
-        if (i != null) {
-            out.writeInt(i.intValue());
         } else {
-            i = new Integer(~primNodes.size());
-            primNodes.put(pn, i);
-            out.writeInt(i.intValue());
-            writeTechId(pn.techId);
-            out.writeUTF(pn.name);
+            PrimitiveNodeId pnId = (PrimitiveNodeId)nodeProtoId;
+            out.writeInt(~pnId.chronIndex);
+            writeTechId(pnId.techId);
         }
     }
     

@@ -30,9 +30,9 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.technology.PrimitivePort;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -85,7 +85,7 @@ class UsageCollector {
     }
     
     private void add(PortProtoId portId) {
-        if (portId instanceof PrimitivePort) return;
+        if (portId instanceof PrimitivePortId) return;
         ExportId eId = (ExportId)portId;
         add(eId.parentId, false).set(eId.chronIndex);
     }

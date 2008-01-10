@@ -193,8 +193,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		return cellsWithLeGate;
 	}
 	private boolean cellIsParameterized(Cell c) {
-		Iterator<Variable> vIt = c.getParameters();
-		return vIt.hasNext();
+        return c.hasParameters();
 	}
 	private void postProcess() {
 		singleUseCells = findSingleUseCells();

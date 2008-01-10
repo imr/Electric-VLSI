@@ -28,8 +28,8 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -47,12 +47,12 @@ import java.io.Serializable;
  * It contains a list of ArcProto types that it
  * accepts connections from.
  */
-public class PrimitivePort implements PortProtoId, PortProto, Comparable<PrimitivePort>, Serializable
+public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Serializable
 {
 	// ---------------------------- private data --------------------------
-	private Name name; // The name of this PrimitivePort.
-	private PrimitiveNode parent; // The parent PrimitiveNode of this PrimitivePort.
-	private int portIndex; // Index of this PrimitivePort in PrimitiveNode ports.
+	private PrimitivePortId portId; // The Id of this PrimitivePort.
+	private final PrimitiveNode parent; // The parent PrimitiveNode of this PrimitivePort.
+	private final int portIndex; // Index of this PrimitivePort in PrimitiveNode ports.
 	private ArcProto portArcs[]; // Immutable list of possible connection types.
 	private EdgeH left;
 	private EdgeV bottom;
@@ -74,10 +74,12 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	private PrimitivePort(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
 		int portAngle, int portRange, int portTopology, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
+		this.portId = parent.getId().newPrimitivePortId(protoName);
 		this.parent = parent;
+        this.portIndex = parent.getNumPorts();
+        parent.addPrimitivePort(this);
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("PrimitivePort name " + protoName + " is not safe to write into JELIB");
-		this.name = Name.findName(protoName);
 		setAngle(portAngle);
 		setAngleRange(portRange);
 		this.portTopology = portTopology;
@@ -102,32 +104,20 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitivePort pp) throws IOException {
             out.writeObject(pp.getParent());
-            out.writeInt(pp.getPortIndex());
+            out.writeInt(pp.getId().chronIndex);
         }
         
         @Override
         public PrimitivePort readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             PrimitiveNode pn = (PrimitiveNode)in.readObject();
-            int portIndex = in.readInt();
-            PrimitivePort pp = pn.getPort(portIndex);
+            int chronIndex = in.readInt();
+            PrimitivePort pp = pn.getPrimitivePortByChronIndex(chronIndex);
             if (pp == null)
                 throw new InvalidObjectException("primitive port not linked");
             return pp;
         }
     }
     
-	/**
-	 * Method to set an index of this PrimtivePort in PrimitiveNode ports.
-	 * This is a zero-based index of ports on the PrimitiveNode.
-	 * @param parent PrimitiveNode parent of this PrimitivePort.
-	 * @param portIndex an index of this PrimitivePort in PrimitiveNode ports.
-	 */
-	void setPortIndex(PrimitiveNode parent, int portIndex)
-	{
-		this.parent = parent;
-		this.portIndex = portIndex;
-	}
-
 	/**
 	 * Method to create a new PrimitivePort from the parameters.
 	 * @param tech the Technology in which this PrimitivePort is being created.
@@ -176,45 +166,23 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 
 	// ------------------------ public methods ------------------------
 
-    public PrimitivePort inDatabase(EDatabase database) { return this; }
-    
     /** Method to return PortProtoId of this PrimitivePort.
      * PortProtoId identifies PrimitivePort independently of threads.
      * @return PortProtoId of this PrimtivePort.
      */
-    public PrimitivePort getId() { return this; }
+    public PrimitivePortId getId() { return portId; }
     
 	/**
 	 * Method to return the name key of this PrimitivePort.
 	 * @return the Name key of this PrimitivePort.
 	 */
-	public Name getNameKey() { return name; }
-
-	/**
-	 * Method to return the name key of this PortProtoId in a specified Snapshot.
-     * @param snapshot snapshot for name search.
-	 * @return the Name key of this PortProtoId.
-	 */
-	public Name getNameKey(Snapshot snapshot) { return name; }
+	public Name getNameKey() { return portId.name; }
 
 	/**
 	 * Method to return the name of this PrimitivePort.
 	 * @return the name of this PrimitivePort.
 	 */
-	public String getName() { return name.toString(); }
-
-	/**
-	 * Method to return the name of this PortProtoId in a specified Snapshot.
-     * @param snapshot snapshot for name search.
-	 * @return the name of this PortProtoId.
-	 */
-	public String getName(Snapshot snapshot) { return name.toString(); }
-
-	/**
-	 * Method to return the parent NodeProtoId of this PrimitivePort.
-	 * @return the parent NodeProtoId of this PrimitivePort.
-	 */
-	public PrimitiveNodeId getParentId() { return parent.getId(); }
+	public String getName() { return portId.name.toString(); }
 
 	/**
 	 * Method to return the parent NodeProto of this PrimitivePort.
@@ -229,12 +197,6 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	 */
 	public int getPortIndex() { return portIndex; }
 
-    /**
-     * Method to return chronological index of this PortProtoId in parent.
-     * @return chronological index of this PortProtoId in parent.
-     */
-    public int getChronIndex() { return portIndex; }
-    
 	/**
 	 * Method to set the list of allowable connections on this PrimitivePort.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.

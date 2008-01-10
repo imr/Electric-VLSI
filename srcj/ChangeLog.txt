@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (1/10/08, DN) CellRevision and all Immutable* classes are technology independent.
+
 BUG: (1/9/08, DN) NPE while reading nanosim output file (Bug #1530).
 FIX: Initialize EpicAnalysis.signalsUnmodifieable in EpicAnalysis constructor.
 

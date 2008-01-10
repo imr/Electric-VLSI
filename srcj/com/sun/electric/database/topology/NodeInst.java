@@ -160,6 +160,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
     }
     
+    public NodeInst(ImmutableNodeInst d, NodeProto protoType) {
+        super(null);
+        assert d.protoId == protoType.getId();
+        this.d = d;
+        this.protoType = protoType;
+
+        // create all of the portInsts on this node inst
+		portInsts = new PortInst[protoType.getNumPorts()];
+		for (int i = 0; i < portInsts.length; i++)
+		{
+			PortProto pp = protoType.getPort(i);
+			portInsts[i] = PortInst.newInstance(pp, this);
+		}
+    }
+    
     private Object writeReplace() { return new NodeInstKey(this); }
     
     private static class NodeInstKey extends EObjectInputStream.Key<NodeInst> {
@@ -261,7 +276,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         EPoint size = EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
                 orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
-        return new NodeInst(d, null);
+        return new NodeInst(d, np);
 	}
 
 	/**
@@ -1373,30 +1388,30 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return defOwner.getParameter(key);
     }
 
-    /**
-     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
-     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-     * @return an Iterator over all Variables on this NodeInst.
-     */
-    public Iterator<Variable> getParameters() {
-        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
-        // get all parameters on this object
-        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = it.next();
-            if (!isParam(v.getKey())) continue;
-            keysToVars.put(v.getKey(), v);
-        }
-        // look on default var owner
-        Cell defOwner = getVarDefaultOwner();
-        if (defOwner != null) {
-            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
-                Variable v = it.next();
-                if (keysToVars.get(v.getKey()) == null)
-                    keysToVars.put(v.getKey(), v);
-            }
-        }
-        return keysToVars.values().iterator();
-    }
+//    /**
+//     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
+//     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+//     * @return an Iterator over all Variables on this NodeInst.
+//     */
+//    public Iterator<Variable> getParameters() {
+//        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
+//        // get all parameters on this object
+//        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
+//            Variable v = it.next();
+//            if (!isParam(v.getKey())) continue;
+//            keysToVars.put(v.getKey(), v);
+//        }
+//        // look on default var owner
+//        Cell defOwner = getVarDefaultOwner();
+//        if (defOwner != null) {
+//            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
+//                Variable v = it.next();
+//                if (keysToVars.get(v.getKey()) == null)
+//                    keysToVars.put(v.getKey(), v);
+//            }
+//        }
+//        return keysToVars.values().iterator();
+//    }
 
 	/**
 	 * Method to return true if the Variable on this NodeInst with given key is a parameter.

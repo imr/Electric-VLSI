@@ -1961,11 +1961,11 @@ public class MoCMOS extends Technology
                 });
             npnTransistorNode.addPrimitivePorts(new PrimitivePort []
                 {
-                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "base", 180,90, 0, PortCharacteristic.UNKNOWN,
+                    PrimitivePort.newInstance(this, npnTransistorNode, new ArcProto[] {metalArcs[0]}, "base", 180,90, 0, PortCharacteristic.UNKNOWN,
                         EdgeH.fromCenter(5.5), EdgeV.fromBottom(23.5), EdgeH.fromRight(21.5), EdgeV.fromTop(23.5)),
-                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "emitter", 90,90, 1, PortCharacteristic.UNKNOWN,
+                    PrimitivePort.newInstance(this, npnTransistorNode, new ArcProto[] {metalArcs[0]}, "emitter", 90,90, 1, PortCharacteristic.UNKNOWN,
                         EdgeH.fromLeft(21.5), EdgeV.fromBottom(23.5), EdgeH.fromCenter(-5.5), EdgeV.fromTop(23.5)),
-                    PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {metalArcs[0]}, "collector", 90,90, 2, PortCharacteristic.UNKNOWN,
+                    PrimitivePort.newInstance(this, npnTransistorNode, new ArcProto[] {metalArcs[0]}, "collector", 90,90, 2, PortCharacteristic.UNKNOWN,
                         EdgeH.fromLeft(5.5), EdgeV.fromTop(6.5), EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))
                 });
             npnTransistorNode.setFunction(PrimitiveNode.Function.TRANPN);

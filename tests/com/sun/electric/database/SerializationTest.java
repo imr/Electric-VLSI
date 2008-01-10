@@ -30,6 +30,8 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 
@@ -62,6 +64,8 @@ public class SerializationTest {
     private IdManager idManager;
     private TechId techId0;
     private ArcProtoId arcProtoId0;
+    private PrimitiveNodeId primitiveNodeId0;
+    private PrimitivePortId primitivePortId0;
     private LibId libId0;
     private CellId cellId0;
     private ExportId exportId0;
@@ -86,6 +90,8 @@ public class SerializationTest {
         idManager = new IdManager();
         techId0 = idManager.newTechId("tech0");
         arcProtoId0 = techId0.newArcProtoId("ap0");
+        primitiveNodeId0 = techId0.newPrimitiveNodeId("pn0");
+        primitivePortId0 = primitiveNodeId0.newPrimitivePortId("pp0");
         libId0 = idManager.newLibId("lib0");
         cellId0 = libId0.newCellId(CellName.parseName("cell0;1{lay}"));
         exportId0 = cellId0.newExportId("export0");
@@ -111,6 +117,8 @@ public class SerializationTest {
             ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             out.writeObject(techId0);
             out.writeObject(arcProtoId0);
+            out.writeObject(primitiveNodeId0);
+            out.writeObject(primitivePortId0);
             out.writeObject(libId0);
             out.writeObject(cellId0);
             out.writeObject(exportId0);
@@ -125,6 +133,8 @@ public class SerializationTest {
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), database);
             TechId techId = (TechId)in.readObject();
             ArcProtoId arcProtoId = (ArcProtoId)in.readObject();
+            PrimitiveNodeId primitiveNodeId = (PrimitiveNodeId)in.readObject();
+            PrimitivePortId primitivePortId = (PrimitivePortId)in.readObject();
             LibId libId = (LibId)in.readObject();
             CellId cellId = (CellId)in.readObject();
             ExportId exportId = (ExportId)in.readObject();
@@ -136,6 +146,8 @@ public class SerializationTest {
             
             assertSame(techId0, techId);
             assertSame(arcProtoId0, arcProtoId);
+            assertSame(primitiveNodeId0, primitiveNodeId);
+            assertSame(primitivePortId0, primitivePortId);
             assertSame(libId0, libId);
             assertSame(cellId0, cellId);
             assertSame(exportId0, exportId);
@@ -160,13 +172,36 @@ public class SerializationTest {
     
     @Test(expected = NotSerializableException.class) 
     public void arcProtoIdOther() throws IOException {
-        System.out.println("arrcProtoIdOther");
+        System.out.println("arcProtoIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
         IdManager otherIdManager = new IdManager();
         TechId techId = otherIdManager.newTechId("tech");
         ArcProtoId arcProtoId = techId.newArcProtoId("ap");
         out.writeObject(arcProtoId);
+    }
+    
+    @Test(expected = NotSerializableException.class) 
+    public void primitiveNodeIdOther() throws IOException {
+        System.out.println("primitiveNodeIdOther");
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
+        IdManager otherIdManager = new IdManager();
+        TechId techId = otherIdManager.newTechId("tech");
+        PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId("pn");
+        out.writeObject(primitiveNodeId);
+    }
+    
+    @Test(expected = NotSerializableException.class) 
+    public void primitivePortIdOther() throws IOException {
+        System.out.println("primitivePortIdOther");
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
+        IdManager otherIdManager = new IdManager();
+        TechId techId = otherIdManager.newTechId("tech");
+        PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId("pn");
+        PrimitivePortId primitivePortId = primitiveNodeId.newPrimitivePortId("pp");
+        out.writeObject(primitivePortId);
     }
     
     @Test(expected = NotSerializableException.class) 
@@ -220,8 +255,8 @@ public class SerializationTest {
     }
     
     @Test(expected = IndexOutOfBoundsException.class)
-    public void libIdToOther() throws IOException, ClassNotFoundException {
-        System.out.println("libIdToOther");
+    public void libIdToOtherIdManager() throws IOException, ClassNotFoundException {
+        System.out.println("libIdToOtherIdManager");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
         out.writeObject(libId0);

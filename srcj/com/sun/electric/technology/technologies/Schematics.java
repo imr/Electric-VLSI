@@ -421,12 +421,12 @@ public class Schematics extends Technology
 		PrimitivePort bufferInPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
 			PortCharacteristic.IN, EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter());
 		bufferInPort.setNegatable(true);
-		PrimitivePort bufferOutPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2,
-			PortCharacteristic.OUT, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
-		bufferOutPort.setNegatable(true);
 		PrimitivePort bufferSidePort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc}, "c", 270,0, 1,
 			PortCharacteristic.IN, EdgeH.makeCenter(), EdgeV.fromBottom(2), EdgeH.makeCenter(), EdgeV.fromBottom(2));
 		bufferSidePort.setNegatable(true);
+		PrimitivePort bufferOutPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2,
+			PortCharacteristic.OUT, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
+		bufferOutPort.setNegatable(true);
 		bufferNode.addPrimitivePorts(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
 		bufferNode.setFunction(PrimitiveNode.Function.BUFFER);
 
@@ -760,12 +760,12 @@ public class Schematics extends Technology
 			PortCharacteristic.IN, LEFTBYP8, EdgeV.makeBottomEdge(), LEFTBYP8, EdgeV.makeTopEdge());
 		muxInPort.setIsolated();
 		muxInPort.setNegatable(true);
-		PrimitivePort muxOutPort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
-			PortCharacteristic.OUT, RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter());
-		muxOutPort.setNegatable(true);
 		PrimitivePort muxSidePort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc}, "s", 270,0, 2,
 			PortCharacteristic.IN, EdgeH.makeCenter(), BOTBYP875, EdgeH.makeCenter(), BOTBYP875);
 		muxSidePort.setNegatable(true);
+		PrimitivePort muxOutPort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
+			PortCharacteristic.OUT, RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter());
+		muxOutPort.setNegatable(true);
 		muxNode.addPrimitivePorts(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
 		muxNode.setFunction(PrimitiveNode.Function.MUX);
 		muxNode.setAutoGrowth(0, 4);

@@ -47,6 +47,7 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -651,7 +652,7 @@ public class JELIB extends Output {
                 } else {
                     PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)nid.protoId);
                     for (int portIndex = 0; portIndex < pn.getNumPorts(); portIndex++) {
-                        PrimitivePort pp = pn.getPort(portIndex);
+                        PrimitivePortId pp = pn.getPort(portIndex).getId();
                         ImmutablePortInst pid = nid.getPortInst(pp);
                         if (pid.getNumVariables() == 0) continue;
                         printVars(getPortName(pp), pid);
@@ -752,8 +753,8 @@ public class JELIB extends Output {
     }
     
     private String getPortName(PortProtoId portId) {
-        if (portId instanceof PrimitivePort) {
-            PrimitivePort pp = (PrimitivePort)portId;
+        if (portId instanceof PrimitivePortId) {
+            PrimitivePort pp = techPool.getPrimitivePort((PrimitivePortId)portId);
             return pp.getParent().getNumPorts() > 1 ? pp.getName() : "";
         }
         ExportId exportId = (ExportId)portId;

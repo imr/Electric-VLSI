@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
@@ -57,7 +58,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Comparable<PrimitiveNode>, Serializable
+public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Serializable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -508,13 +509,13 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 
 	// --------------------- private data -----------------------------------
 	
-	/** The name of this PrimitiveNode. */			private String protoName;
-	/** The full name of this PrimitiveNode. */		private String fullName;
-	/** This PrimitiveNode's Technology. */			private Technology tech;
+	/** The Id of this PrimitiveNode. */			private final PrimitiveNodeId protoId;
+	/** This PrimitiveNode's Technology. */			private final Technology tech;
 	/** The function of this PrimitiveNode. */		private Function function;
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
-	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts;
+	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts = {};
+    /** array of ports by portId.chronIndex */      private PrimitivePort[] portsByChronIndex = {};
 	/** flag bits */								private int userBits;
 	/** Global index of this PrimitiveNode. */		private int globalPrimNodeIndex;
     /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
@@ -540,12 +541,10 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, double defWidth, double defHeight,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
-        super(tech.getId(), protoName, tech.getNumNodes());
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("PrimitiveNode name " + protoName + " is not safe to write in the JELIB");
-		this.protoName = protoName;
-		this.fullName = tech.getTechName() + ":" + protoName;
+		this.protoId = tech.getId().newPrimitiveNodeId(protoName);
 		this.function = Function.UNKNOWN;
 
 		// things in this class
@@ -582,17 +581,17 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitiveNode pn) throws IOException {
             out.writeObject(pn.getTechnology());
-            out.writeUTF(pn.getName());
+            out.writeInt(pn.getId().chronIndex);
         }
         
         @Override
         public PrimitiveNode readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Technology tech = (Technology)in.readObject();
-            String primName = in.readUTF();
-            PrimitiveNode np = tech.findNodeProto(primName);
-            if (np == null)
-                throw new InvalidObjectException("primitive node not linked");
-            return np;
+            int chronIndex = in.readInt();
+            PrimitiveNode pn = tech.getPrimitiveNodeByChronIndex(chronIndex);
+            if (pn == null)
+                throw new InvalidObjectException("primitive node not found");
+            return pn;
         }
     }
     
@@ -665,41 +664,25 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 		return pn;
 	}
 
-    /**
-     * Returns PrimitivePort in this PrimitiveNode with specified chronological index.
-     * @param chronIndex chronological index of PrimitivePort.
-     * @return PrimitivePort whith specified chronological index.
-     * @throws ArrayIndexOutOfBoundsException if no such PrimitivePort.
-     */
-    public PrimitivePort getPortId(int chronIndex) { return primPorts[chronIndex]; }
-    
-   /**
-     * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
-     * @param database EDatabase where to get from.
-     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
-	 * @return this.
-     */
-    public PrimitiveNode inDatabase(EDatabase database) { return this; }
-    
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
      * @return NodeProtoId of this NodeProto.
      */
-    public PrimitiveNodeId getId() { return this; }
+    public PrimitiveNodeId getId() { return protoId; }
     
 	/**
 	 * Method to return the name of this PrimitiveNode in the Technology.
 	 * @return the name of this PrimitiveNode.
 	 */
-	public String getName() { return protoName; }
+	public String getName() { return protoId.name; }
 
 	/**
 	 * Method to return the full name of this PrimitiveNode.
 	 * Full name has format "techName:primName"
 	 * @return the full name of this PrimitiveNode.
 	 */
-	public String getFullName() { return fullName; }
+	public String getFullName() { return protoId.fullName; }
 
 	/**
 	 * Method to set the function of this PrimitiveNode.
@@ -910,7 +893,7 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 		Pref pref = defaultExtendXPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendXFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendX);
+			pref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendX);
 			defaultExtendXPrefs.put(this, pref);
 		}
 		return pref;
@@ -926,7 +909,7 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 		Pref pref = defaultExtendYPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendYFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendY);
+			pref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendY);
 			defaultExtendYPrefs.put(this, pref);
 		}
 		return pref;
@@ -1069,16 +1052,29 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 	 */
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
-		assert primPorts == null : this + " addPrimitivePorts twice";
-		primPorts = ports.clone();
-//		Arrays.sort(primPorts);
-		for (int i = 0; i < primPorts.length; i++)
-		{
-			primPorts[i].setPortIndex(this, i);
-// 			if (i > 0)
-// 				assert primPorts[i - 1].compareTo(primPorts[i]) < 0;
-		}
+        assert ports.length == primPorts.length;
+        for (int i = 0; i < primPorts.length; i++) {
+            assert primPorts[i] == ports[i];
+            assert primPorts[i].getPortIndex() == i;
+        }
 	}
+    
+    void addPrimitivePort(PrimitivePort pp) {
+        assert pp.getParent() == this;
+        assert pp.getPortIndex() == primPorts.length;
+        PrimitivePort[] newPrimPorts = new PrimitivePort[primPorts.length + 1];
+        System.arraycopy(primPorts, 0, newPrimPorts, 0, primPorts.length);
+        newPrimPorts[pp.getPortIndex()] = pp;
+        primPorts = newPrimPorts;
+        
+        PrimitivePortId primitivePortId = pp.getId();
+        if (primitivePortId.chronIndex >= portsByChronIndex.length) {
+            PrimitivePort[] newPortsByChronIndex = new PrimitivePort[primitivePortId.chronIndex + 1];
+            System.arraycopy(portsByChronIndex, 0, newPortsByChronIndex, 0, portsByChronIndex.length);
+            portsByChronIndex = newPortsByChronIndex;
+        }
+        portsByChronIndex[primitivePortId.chronIndex] = pp;
+    }
 
 	/**
 	 * Method to find the PortProto that has a particular name.
@@ -1106,6 +1102,28 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 				return pp;
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the PrimitivePort in this PrimitiveNide with a particular Id
+	 * @param primitivePortId the Id of the PrimitivePort.
+	 * @return the PrimitivePort in this PrimitiveNode with that Id.
+	 */
+	public PrimitivePort getPrimitivePort(PrimitivePortId primitivePortId)
+	{
+        assert primitivePortId.parentId == protoId;
+        int chronIndex = primitivePortId.chronIndex;
+        return chronIndex < portsByChronIndex.length ? portsByChronIndex[chronIndex] : null;
+	}
+
+	/**
+	 * Returns the PrimitivePort in this technology with a particular chron index
+	 * @param chron index the Id of the PrimitivePort.
+	 * @return the PrimitivePort in this technology with that Id.
+	 */
+	PrimitivePort getPrimitivePortByChronIndex(int chronIndex)
+	{
+        return chronIndex < portsByChronIndex.length ? portsByChronIndex[chronIndex] : null;
 	}
 
 	/**
@@ -1152,10 +1170,8 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
      * @throws IllegalArgumentException if portProtoId is not from this NodeProto.
 	 */
 	public PrimitivePort getPort(PortProtoId portProtoId) {
-        if (portProtoId.getParentId() != this) throw new IllegalArgumentException();
-        PrimitivePort pp = (PrimitivePort)portProtoId;
-        assert primPorts[pp.getPortIndex()] == pp;
-        return pp;
+        if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException();
+        return primPorts[portProtoId.getChronIndex()];
     }
 
 	/**
@@ -1272,7 +1288,7 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
 		String name = "";
 		if (tech != Technology.getCurrent())
 			name += tech.getTechName() + ":";
-		name += protoName;
+		name += getName();
         return (withQuotes) ? "'"+name+"'" : name;
 	}
 
@@ -1658,7 +1674,7 @@ public class PrimitiveNode extends PrimitiveNodeId implements NodeProto, Compara
      */
     public void setPrimNodeIndexInTech(int index) {
         techPrimNodeIndex = index;
-        assert techPrimNodeIndex == chronIndex;
+        assert techPrimNodeIndex == protoId.chronIndex;
     }
 
     /**

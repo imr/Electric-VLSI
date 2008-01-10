@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;
@@ -43,6 +44,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -393,9 +395,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
-        if (!(tailProto.getId() instanceof PrimitivePort && ((PrimitivePort)tailProto.getId()).isNegatable()))
+        TechPool techPool = parent.getTechPool();
+        if (!(tailProto.getId() instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId)tailProto.getId()).isNegatable()))
             flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
-        if (!(headProto.getId() instanceof PrimitivePort && ((PrimitivePort)headProto.getId()).isNegatable()))
+        if (!(headProto.getId() instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId)headProto.getId()).isNegatable()))
             flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
         if (protoType.getTechnology().isNoNegatedArcs()) {
             flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
@@ -1441,7 +1444,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param n true to set the tail of this arc to be negated.
 	 */
 	public void setTailNegated(boolean n) {
-        if (!(d.tailPortId instanceof PrimitivePort && ((PrimitivePort)d.tailPortId).isNegatable()))
+        if (!(d.tailPortId instanceof PrimitivePortId && getTechPool().getPrimitivePort((PrimitivePortId)d.tailPortId).isNegatable()))
             n = false;
         if (getProto().getTechnology().isNoNegatedArcs())
             n = false;
@@ -1455,7 +1458,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param n true to set the head of this arc to be negated.
 	 */
 	public void setHeadNegated(boolean n) {
-        if (!(d.headPortId instanceof PrimitivePort && ((PrimitivePort)d.headPortId).isNegatable()))
+        if (!(d.headPortId instanceof PrimitivePortId && getTechPool().getPrimitivePort((PrimitivePortId)d.headPortId).isNegatable()))
             n = false;
         if (getProto().getTechnology().isNoNegatedArcs())
             n = false;
@@ -1636,9 +1639,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (fromAi == null) return;
         ImmutableArcInst oldD = d;
         int flags = fromAi.d.flags;
-        if (!(d.tailPortId instanceof PrimitivePort && ((PrimitivePort)d.tailPortId).isNegatable()))
+        if (!(d.tailPortId instanceof PrimitivePortId && getTechPool().getPrimitivePort((PrimitivePortId)d.tailPortId).isNegatable()))
             flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
-        if (!(d.headPortId instanceof PrimitivePort && ((PrimitivePort)d.headPortId).isNegatable()))
+        if (!(d.headPortId instanceof PrimitivePortId && getTechPool().getPrimitivePort((PrimitivePortId)d.headPortId).isNegatable()))
             flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
         if (getProto().getTechnology().isNoNegatedArcs()) {
             flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);

@@ -91,12 +91,12 @@ public interface Nodable
      */
     public Variable getParameter(Variable.Key key);
 
-    /**
-     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
-     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-     * @return an Iterator over all Variables on this ElectricObject.
-     */
-    public Iterator<Variable> getParameters();
+//    /**
+//     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
+//     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+//     * @return an Iterator over all Variables on this ElectricObject.
+//     */
+//    public Iterator<Variable> getParameters();
 
     /**
      * Method to create a Variable on this ElectricObject with the specified values.

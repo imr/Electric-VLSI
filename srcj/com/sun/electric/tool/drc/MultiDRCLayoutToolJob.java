@@ -2219,7 +2219,7 @@ class MultiDRCLayoutToolJob extends MultiDRCToolJob {
 		cp.cellChecked = false;
 		cp.cellParameterized = false;
 		cp.netlist = netlist;
-        if (cell.getParameters().hasNext()) {
+        if (cell.hasParameters()) {
             cp.cellParameterized = true;
         }
 //		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )

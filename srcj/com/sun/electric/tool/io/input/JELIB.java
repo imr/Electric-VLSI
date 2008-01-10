@@ -1914,23 +1914,11 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				String techName = piece.substring(0, colonPos);
-				Technology tech = findTechnology(techName);
-				if (tech == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown technology: " + techName, -1);
-					break;
-				}
+                TechId techId = idManager.newTechId(techName);
 				String nodeName = piece.substring(colonPos+1);
 				commaPos = nodeName.indexOf(',');
 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
-				PrimitiveNode np = findPrimitiveNode(tech, nodeName);
-				if (np == null) {
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown PrimitiveNode: " + piece, -1);
-                    return null;
-                }
-				return np.getId();
+				return techId.newPrimitiveNodeId(nodeName);
 			case 'R':		// ArcProtoId
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
@@ -1940,7 +1928,7 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				techName = piece.substring(0, colonPos);
-                TechId techId = idManager.newTechId(techName);
+                techId = idManager.newTechId(techName);
 				String arcName = piece.substring(colonPos+1);
 				commaPos = arcName.indexOf(',');
 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);

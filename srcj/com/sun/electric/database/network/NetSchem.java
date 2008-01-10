@@ -166,12 +166,12 @@ class NetSchem extends NetCell {
 		 */
 		public Iterator<Variable> getVariables() { return nodeInst.getVariables(); }
 
-        /**
-         * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
-         * This may also include any parameters on the defaultVarOwner object that are not on this object.
-         * @return an Iterator over all Variables on this ElectricObject.
-         */
-        public Iterator<Variable> getParameters() { return nodeInst.getParameters(); }
+//        /**
+//         * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
+//         * This may also include any parameters on the defaultVarOwner object that are not on this object.
+//         * @return an Iterator over all Variables on this ElectricObject.
+//         */
+//        public Iterator<Variable> getParameters() { return nodeInst.getParameters(); }
 
 		/**
 		 * Returns a printable version of this Nodable.

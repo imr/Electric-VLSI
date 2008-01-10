@@ -33,8 +33,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
 import java.io.DataInputStream;
@@ -50,7 +48,6 @@ public class IdReader {
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
-    private final ArrayList<PrimitiveNodeId> primNodes = new ArrayList<PrimitiveNodeId>();
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
     /** Creates a new instance of SnapshotWriter */
@@ -87,10 +84,28 @@ public class IdReader {
             int techIndex = readInt();
             if (techIndex == -1) break;
             TechId techId = idManager.getTechId(techIndex);
+            
             int numNewArcProtoIds = readInt();
             for (int i = 0; i < numNewArcProtoIds; i++) {
                 String arcProtoName = readString();
                 techId.newArcProtoId(arcProtoName);
+            }
+            
+            int numNewPrimitiveNodeIds = readInt();
+            for (int i = 0; i < numNewPrimitiveNodeIds; i++) {
+                String primitiveNodeName = readString();
+                techId.newPrimitiveNodeId(primitiveNodeName);
+            }
+            
+            for (;;) {
+                int primIndex = readInt();
+                if (primIndex == -1) break;
+                PrimitiveNodeId primitiveNodeId = techId.getPrimitiveNodeId(primIndex);
+                int numNewPrimitivePortIds = readInt();
+                for (int i = 0; i < numNewPrimitivePortIds; i++) {
+                    String primitivePortName = readString();
+                    primitiveNodeId.newPrimitivePortId(primitivePortName);
+                }
             }
         }
         for (;;) {
@@ -270,17 +285,13 @@ public class IdReader {
      */
     public NodeProtoId readNodeProtoId() throws IOException {
         int i = in.readInt();
-        if (i >= 0)
+        if (i >= 0) {
             return idManager.getCellId(i);
-        i = ~i;
-        if (i == primNodes.size()) {
+        } else {
+            int chronIndex = ~i;
             TechId techId = readTechId();
-            Technology tech = Technology.findTechnology(techId);
-            String primName = in.readUTF();
-            PrimitiveNode pn = tech.findNodeProto(primName);
-            primNodes.add(pn.getId());
+            return techId.getPrimitiveNodeId(chronIndex);
         }
-        return primNodes.get(i);
     }
     
     /**

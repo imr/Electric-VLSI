@@ -29,6 +29,7 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
@@ -177,7 +178,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     public ArcProto getArcProto(ArcProtoId arcProtoId) {
         Technology tech = getTech(arcProtoId.techId);
         if (tech == null) return null;
-        return tech.getArcProto(arcProtoId.chronIndex);
+        return tech.getArcProtoByChronIndex(arcProtoId.chronIndex);
     }
 
     /**
@@ -188,7 +189,22 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * @throws IllegalArgumentException if TechId is not from this IdManager
      */
     public PrimitiveNode getPrimitiveNode(PrimitiveNodeId primitiveNodeId) {
-        return (PrimitiveNode)primitiveNodeId;
+        Technology tech = getTech(primitiveNodeId.techId);
+        if (tech == null) return null;
+        return tech.getPrimitiveNodeByChronIndex(primitiveNodeId.chronIndex);
+    }
+
+    /**
+     * Get PrimitivePort by PrimitivePortId
+     * PrimitivePortId must belong to same IdManager as TechPool
+     * @param primitivePortId PrimitivePortId to find
+     * @return PrimitivePort by given PrimitivePortId or null
+     * @throws IllegalArgumentException if TechId is not from this IdManager
+     */
+    public PrimitivePort getPrimitivePort(PrimitivePortId primitivePortId) {
+        PrimitiveNode pn = getPrimitiveNode(primitivePortId.parentId);
+        if (pn == null) return null;
+        return pn.getPrimitivePortByChronIndex(primitivePortId.chronIndex);
     }
 
     /** Returns Artwork technology in this database */

@@ -761,6 +761,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
+    /** array of nodes by nodeId.chronIndex */              private PrimitiveNode[] nodesByChronIndex = {};
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
@@ -2032,7 +2033,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @param chron index the Id of the ArcProto.
 	 * @return the ArcProto in this technology with that Id.
 	 */
-	ArcProto getArcProto(int chronIndex)
+	ArcProto getArcProtoByChronIndex(int chronIndex)
 	{
         return chronIndex < arcsByChronIndex.length ? arcsByChronIndex[chronIndex] : null;
 	}
@@ -2317,6 +2318,28 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
 	/**
+	 * Returns the PrimitiveNode in this technology with a particular Id
+	 * @param primitiveNodeId the Id of the PrimitiveNode.
+	 * @return the PrimitiveNiode in this technology with that Id.
+	 */
+	public PrimitiveNode getPrimitiveNode(PrimitiveNodeId primitiveNodeId)
+	{
+        assert primitiveNodeId.techId == techId;
+        int chronIndex = primitiveNodeId.chronIndex;
+        return chronIndex < nodesByChronIndex.length ? nodesByChronIndex[chronIndex] : null;
+	}
+
+	/**
+	 * Returns the PrimitiveNode in this technology with a particular chron index
+	 * @param chron index the Id of the PrimitiveNode.
+	 * @return the PrimitiveNode in this technology with that Id.
+	 */
+	PrimitiveNode getPrimitiveNodeByChronIndex(int chronIndex)
+	{
+        return chronIndex < nodesByChronIndex.length ? nodesByChronIndex[chronIndex] : null;
+	}
+
+	/**
 	 * Returns an Iterator on the PrimitiveNode objects in this technology.
 	 * @return an Iterator on the PrimitiveNode objects in this technology.
 	 */
@@ -2352,6 +2375,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		assert findNodeProto(np.getName()) == null;
         np.setPrimNodeIndexInTech(nodeIndex++);
 		nodes.put(np.getName(), np);
+        PrimitiveNodeId primitiveNodeId = np.getId();
+        if (primitiveNodeId.chronIndex >= nodesByChronIndex.length) {
+            PrimitiveNode[] newNodesByChronIndex = new PrimitiveNode[primitiveNodeId.chronIndex + 1];
+            System.arraycopy(nodesByChronIndex, 0, newNodesByChronIndex, 0, nodesByChronIndex.length);
+            nodesByChronIndex = newNodesByChronIndex;
+        }
+        nodesByChronIndex[primitiveNodeId.chronIndex] = np;
 	}
 
 	/**
