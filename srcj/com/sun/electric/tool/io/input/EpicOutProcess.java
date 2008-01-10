@@ -130,7 +130,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
         contextStack.add(contextBuilder);
         int contextStackDepth = 1;
-        
+        final boolean DEBUG = false;
         for (;;) {
             byte b = stdOut.readByte();
             if (b == 'F') break;
@@ -138,6 +138,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                 case 'V':
                 case 'I':
                     String name = readString();
+                    if (DEBUG) printDebug(contextStackDepth, (char)b, name);
                     contextBuilder.strings.add(name);
                     byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
@@ -146,6 +147,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                     break;
                 case 'D':
                     String down = readString();
+                    if (DEBUG) printDebug(contextStackDepth, (char)b, down);
                     contextBuilder.strings.add(down);
                     
                     if (contextStackDepth >= contextStack.size())
@@ -153,6 +155,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                     contextBuilder = contextStack.get(contextStackDepth++);
                     break;
                 case 'U':
+                    if (DEBUG) printDebug(contextStackDepth, (char)b, null);
                     EpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
                     contextBuilder.clear();
 
@@ -173,7 +176,6 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
-        an.initSignals();
         List<AnalogSignal> signals = an.getSignals();
         assert numSignals == signals.size();
         an.waveStarts = new int[numSignals + 1];
@@ -191,6 +193,18 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.setWaveFile(new File(stdOut.readUTF()));
 
         return sd;
+    }
+    
+    private void printDebug(int level, char cmd, String arg) {
+        StringBuilder sb = new StringBuilder();
+        while (level-- > 0)
+            sb.append(' ');
+        sb.append(cmd);
+        if (arg != null) {
+            sb.append(' ');
+            sb.append(arg);
+        }
+        System.out.println(sb);
     }
     
     private String readString() throws IOException {

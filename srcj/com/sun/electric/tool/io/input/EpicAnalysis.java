@@ -88,7 +88,10 @@ public class EpicAnalysis extends AnalogAnalysis {
      * Package-private constructor.
      * @param sd Stimuli.
      */
-    EpicAnalysis(Stimuli sd) { super(sd, AnalogAnalysis.ANALYSIS_TRANS); }
+    EpicAnalysis(Stimuli sd) {
+        super(sd, AnalogAnalysis.ANALYSIS_TRANS);
+        signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
+    }
     
     /**
      * Set time resolution of this EpicAnalysis.
@@ -211,13 +214,6 @@ public class EpicAnalysis extends AnalogAnalysis {
     @Override
 	public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
 
-    /**
-     * Package-private method to init unmodifiable List of signals.
-     */
-    void initSignals() {
-        signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
-    }
-    
     /**
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.

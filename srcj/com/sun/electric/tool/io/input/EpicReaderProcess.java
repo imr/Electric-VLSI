@@ -157,6 +157,7 @@ class EpicReaderProcess {
             if (line == null) break;
             parseNumLine(line);
         }
+        writeContext("");
         inputStream.close();
         
         long stopTime = System.currentTimeMillis();

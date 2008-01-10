@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/9/08, DN) NPE while reading nanosim output file (Bug #1530).
+FIX: Initialize EpicAnalysis.signalsUnmodifieable in EpicAnalysis constructor.
+
 BUG: (1/9/08, SMR) Sea-of-Gates router creates notches (Bug #1476).
 FIX: Fixed code that compares part of route with previous parts of same route.
 
