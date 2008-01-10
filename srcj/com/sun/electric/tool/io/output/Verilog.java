@@ -764,7 +764,7 @@ public class Verilog extends Topology
             if (no.isCellInstance())
             {
                 // make sure there are contents for this cell instance
-                if (((Cell)niProto).getView() == View.ICON) continue;
+                if (((Cell)niProto).isIcon()) continue;
 
                 nodeName = parameterizedName(no, context);
                 // cells defined as "primitives" in Verilog View must have implicit port ordering

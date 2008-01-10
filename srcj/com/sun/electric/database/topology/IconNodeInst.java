@@ -31,7 +31,7 @@ import com.sun.electric.database.variable.Variable;
 /**
  * Class defines NodeInsts that are icons.
  */
-public class IconNodeInst extends NodeInst
+class IconNodeInst extends NodeInst
 {
 	/**
 	 * The constructor of IconNodeInst. Use the factory "newInstance" instead.
@@ -45,7 +45,7 @@ public class IconNodeInst extends NodeInst
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
         Variable var = super.newVar(key, value, td);
-        parent.newVar(key, value, td);
+//        parent.newVar(key, value, td);
         return var;
     }
 
@@ -58,8 +58,8 @@ public class IconNodeInst extends NodeInst
      * @return the new renamed variable
      */
     public Variable renameVar(String name, String newName) {
-        parent.renameVar(name, newName);
-        return (super.renameVar(name, newName));
+//        parent.renameVar(name, newName);
+        return super.renameVar(name, newName);
     }
 
     /**
@@ -70,7 +70,7 @@ public class IconNodeInst extends NodeInst
 	 * @return the Variable that has been updated.
 	 */
 	public Variable updateVar(Variable.Key key, Object value) {
-        parent.updateVar(key, value);
+//        parent.updateVar(key, value);
         return super.updateVar(key, value);
     }
 

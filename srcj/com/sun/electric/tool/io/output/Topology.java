@@ -1121,7 +1121,7 @@ public abstract class Topology extends Output
             } else {
                 // special case for cells with only icons
                 schcell = cell.contentsView();
-                if (cell.getView() == View.ICON && schcell == null && !cellNameMap.containsKey(cell)) {
+                if (cell.isIcon() && schcell == null && !cellNameMap.containsKey(cell)) {
                     String name = getDefaultName(cell);
                     cellNameMap.put(cell, name);
                     getConflictList(name).add(cell);

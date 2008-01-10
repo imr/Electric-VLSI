@@ -607,7 +607,7 @@ public class VectorCache {
             Collections.sort(shapes, shapeByLayer);
             
             // icon cells should not get greeked because of their contents
-            if (cell.getView() == View.ICON) maxFeatureSize = 0;
+            if (cell.isIcon()) maxFeatureSize = 0;
             
             valid = true;
             if (DEBUG) {

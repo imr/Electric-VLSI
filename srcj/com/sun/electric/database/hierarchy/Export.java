@@ -577,7 +577,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		super.copyVarsFrom(other);
 
 		// delete the Bus parameterization in icons
-		if (getParent().getView() == View.ICON)
+		if (getParent().isIcon())
 		{
 			for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 			{

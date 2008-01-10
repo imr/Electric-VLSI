@@ -328,7 +328,7 @@ public class JELIB extends Output {
         printWriter.print("|" + cellRevision.revisionDate);
         StringBuilder cellBits = new StringBuilder();
         if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
-        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.cellName.getView() == View.ICON) cellBits.append("E");
+        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.cellName.isIcon()) cellBits.append("E");
         if ((d.flags & Cell.NPILOCKED) != 0) cellBits.append("I");
         if ((d.flags & Cell.NPLOCKED) != 0) cellBits.append("L");
         if ((d.flags & Cell.TECEDITCELL) != 0) cellBits.append("T");

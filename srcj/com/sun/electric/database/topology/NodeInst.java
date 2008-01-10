@@ -146,7 +146,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param d persistent data of this NodeInst.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 */
-    public NodeInst(ImmutableNodeInst d, Cell parent) {
+    private NodeInst(ImmutableNodeInst d, Cell parent) {
         super(parent);
         this.protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
@@ -419,7 +419,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return null;
 		}
         
-		NodeInst ni = new NodeInst(d, parent);
+		NodeInst ni = lowLevelNewInstance(parent, d);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 
@@ -432,6 +432,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     		parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
 		return ni;
 	}
+    
+    public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d) {
+        if (d.protoId instanceof CellId && ((CellId)d.protoId).cellName.isIcon())
+            return new IconNodeInst(d, parent);
+        else
+            return new NodeInst(d, parent);
+    }
     
 	/**
 	 * Method to delete this NodeInst.
@@ -3177,6 +3184,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         assert isLinked();
         super.check();
         
+        assert getClass() == (isCellInstance() && ((Cell)getProto()).isIcon() ? IconNodeInst.class : NodeInst.class);
 		assert portInsts.length == protoType.getNumPorts();
         for (int i = 0; i < portInsts.length; i++) {
             PortInst pi = portInsts[i];

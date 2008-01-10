@@ -1283,7 +1283,7 @@ public class CellChangeJobs
 				Cell otherCell = it.next();
 				if (otherCell == cell) continue;
 				// Only when copy an schematic, we should copy the icon if entireGroup == false
-				if (!entireGroup && !(thisView == View.SCHEMATIC && otherCell.getView() == View.ICON)) continue;
+				if (!entireGroup && !(thisView == View.SCHEMATIC && otherCell.isIcon())) continue;
 				Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
 					newName + otherCell.getView().getAbbreviationExtension(), false);
 				if (copyCell == null)

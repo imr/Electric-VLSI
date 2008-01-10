@@ -72,6 +72,12 @@ public class CellName implements Comparable<CellName>
 	public View getView() { return view; }
 
 	/**
+	 * Method to determine whether this CellName is a name of an icon Cell.
+	 * @return true if this CellName is a name of an icon Cell.
+	 */
+	public boolean isIcon() { return view == View.ICON; }
+
+	/**
 	 * Method to return the version part of a parsed Cell name.
 	 * @return the version part of a parsed Cell name.
 	 */

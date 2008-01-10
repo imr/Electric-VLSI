@@ -1088,7 +1088,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 }
 //                ni.lowLevelClearConnections();
             } else {
-                ni = new NodeInst(d, this);
+                ni = NodeInst.lowLevelNewInstance(this, d);
                 chronNodes.set(d.nodeId, ni);
                 if (ni.isCellInstance()) {
                     Cell subCell = (Cell)ni.getProto();
@@ -3575,7 +3575,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to determine whether this Cell is an icon Cell.
 	 * @return true if this Cell is an icon  Cell.
 	 */
-	public boolean isIcon() { return getView() == View.ICON; }
+	public boolean isIcon() { return getCellName().isIcon(); }
 
 	/**
 	 * Method to determine whether this Cell is an icon of another Cell.
@@ -3584,7 +3584,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public boolean isIconOf(Cell cell)
 	{
-		return getView() == View.ICON && cellGroup == cell.cellGroup && cell.isSchematic();
+		return isIcon() && cellGroup == cell.cellGroup && cell.isSchematic();
 	}
 
 	/**

@@ -354,7 +354,7 @@ class VectorDrawing
                 assert subVC_ == subVC;
 
 				// expanded cells may be replaced with greeked versions (not icons)
-				if (subCell.getView() != View.ICON)
+				if (!subCell.isIcon())
 				{
 					// may also be "tiny" if all features in the cell are tiny
 					// may also be "tiny" if the cell is smaller than the greeked image

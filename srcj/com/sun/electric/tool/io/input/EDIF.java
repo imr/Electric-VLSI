@@ -3536,7 +3536,7 @@ public class EDIF extends Input
 			{
 				Cell cell = it.next();
 				if (cell.getName().equalsIgnoreCase(cellName) &&
-					cell.getView() == View.ICON) { proto = cell;   break; }
+					cell.isIcon()) { proto = cell;   break; }
 			}
 			if (proto == null)
 			{

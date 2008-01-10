@@ -542,7 +542,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 Cell cell = it.next();
                 // only access to icons of those cells
-                if (cell.getView() != View.ICON) continue;
+                if (!cell.isIcon()) continue;
                 JMenuItem menuItem = new JMenuItem(cell.getName());
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                 cellMenu.add(menuItem);

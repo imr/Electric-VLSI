@@ -1543,7 +1543,7 @@ public class EDIF extends Topology
 	private void writeSymbol(Cell cell)
 	{
         if (cell == null) return;
-        if (cell.getView() != View.ICON)
+        if (!cell.isIcon())
             cell = cell.iconView();
         if (cell == null) return;
 		blockOpen("symbol");

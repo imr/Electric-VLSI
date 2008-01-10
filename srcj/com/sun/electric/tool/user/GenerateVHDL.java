@@ -889,7 +889,7 @@ public class GenerateVHDL
 		}
 
 		// if this is an icon, use the contents
-		if (np instanceof Cell && ((Cell)np).getView() == View.ICON)
+		if (np instanceof Cell && ((Cell)np).isIcon())
 		{
 			Cell cnp = ((Cell)np).contentsView();
 			if (cnp != null) np = cnp;
