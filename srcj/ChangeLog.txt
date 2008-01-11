@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+IMP: (1/11/08, DN) Algorithm to detect Spice parameters in DebugMenuDima.detectSpiceParams .
+
+BUG: (1/11/08, DN) Assertion during deserialization.
+FIX: In NodeInst make readResulve package-private, In EObjectOutputStream treat Nodables correctly.
+
 BUG: (1/10/08, DN) Assertion creating IconNodeInst.
 FIX: Change visibility of NodeInst constructors.
 

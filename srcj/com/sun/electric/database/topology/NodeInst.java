@@ -175,7 +175,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
     }
     
-    private Object writeReplace() { return new NodeInstKey(this); }
+    protected Object writeReplace() { return new NodeInstKey(this); }
     
     private static class NodeInstKey extends EObjectInputStream.Key<NodeInst> {
         public NodeInstKey() {}

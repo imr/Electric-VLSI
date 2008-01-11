@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -110,7 +111,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof Variable.Key) return new EVariableKey((Variable.Key)obj);
         if (obj instanceof TextDescriptor) return new ETextDescriptor((TextDescriptor)obj);
         if (obj instanceof Network) return new ENetwork((Network)obj, database);
-        if (obj instanceof Nodable) return new ENodable((Nodable)obj, database);
+        if (obj instanceof Nodable && !(obj instanceof NodeInst)) return new ENodable((Nodable)obj, database);
 
         if (obj instanceof Component) {
             throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
