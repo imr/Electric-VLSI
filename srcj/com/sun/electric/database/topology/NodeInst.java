@@ -146,7 +146,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param d persistent data of this NodeInst.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 */
-    private NodeInst(ImmutableNodeInst d, Cell parent) {
+    NodeInst(ImmutableNodeInst d, Cell parent) {
         super(parent);
         this.protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
@@ -160,7 +160,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
     }
     
-    public NodeInst(ImmutableNodeInst d, NodeProto protoType) {
+    private NodeInst(NodeProto protoType, ImmutableNodeInst d) {
         super(null);
         assert d.protoId == protoType.getId();
         this.d = d;
@@ -276,7 +276,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         EPoint size = EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
                 orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
-        return new NodeInst(d, np);
+        return new NodeInst(np, d);
 	}
 
 	/**

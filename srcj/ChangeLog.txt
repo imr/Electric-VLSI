@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/10/08, DN) Assertion creating IconNodeInst.
+FIX: Change visibility of NodeInst constructors.
+
 IMP/MAN: (1/10/08, SMR) Spice Preferences now has option for writing .end statement
      and has choice of resistor shorting (Bug #1447).
 
