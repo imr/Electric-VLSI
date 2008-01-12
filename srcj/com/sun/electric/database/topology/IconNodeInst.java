@@ -25,8 +25,10 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Class defines NodeInsts that are icons.
@@ -42,52 +44,101 @@ class IconNodeInst extends NodeInst
         super(d, parent);
     }
     
-    public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
-    {
-        Variable var = super.newVar(key, value, td);
-//        parent.newVar(key, value, td);
-        return var;
-    }
-
-    /**
-     * Rename a Variable. Note that this creates a new variable of
-     * the new name and copies all values from the old variable, and
-     * then deletes the old variable.
-     * @param name the name of the var to rename
-     * @param newName the new name of the variable
-     * @return the new renamed variable
-     */
-    public Variable renameVar(String name, String newName) {
-//        parent.renameVar(name, newName);
-        return super.renameVar(name, newName);
-    }
-
-    /**
-	 * Method to update a Variable on this ElectricObject with the specified values.
-	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
-	 * @param key the key of the Variable.
-	 * @param value the object to store in the Variable.
-	 * @return the Variable that has been updated.
+ 	/**
+	 * Method to add a Variable on this ElectricObject.
+	 * It may add a repaired copy of this Variable in some cases.
+	 * @param var Variable to add.
 	 */
-	public Variable updateVar(Variable.Key key, Object value) {
-//        parent.updateVar(key, value);
-        return super.updateVar(key, value);
+    @Override
+	public void addVar(Variable var) {
+        Cell icon = (Cell)getProto();
+        if (VIRTUAL_PARAMETERS && icon.hasParameters()) {
+            Variable param = icon.getParameter(var.getKey());
+            if (param != null)
+                var = param.withObject(var.getObject());
+        }
+        super.addVar(var);
     }
 
-    /**
-	 * Overwriting NodeInst.setTextDescriptor for handling icons.
-	 * @param varName name of variable or special name.
-	 * @param td new value TextDescriptor
+	/**
+	 * Method to return the Variable on this ElectricObject with a given key and type.
+	 * @param key the key of the Variable. Returns null if key is null.
+	 * @param type the required type of the Variable. Ignored if null.
+	 * @return the Variable with that key and type, or null if there is no such Variable
+	 * or default Variable value.
 	 */
-//	public void setTextDescriptor(String varName, TextDescriptor td)
-//    {
-//        // td is cloned inside setTextDescriptor
-//        parent.setTextDescriptor(varName, td);
-//        super.setTextDescriptor(varName, td);
-//    }
+    @Override
+	public Variable getVar(Variable.Key key, Class type)
+	{
+		checkExamine();
+		if (key == null) return null;
+		Variable var;
+		synchronized(this) {
+			var = getD().getVar(key);
+		}
+        Cell icon = (Cell)getProto();
+        if (VIRTUAL_PARAMETERS && icon.hasParameters()) {
+            Variable iconParam = icon.getParameter(key);
+            if (iconParam != null) {
+                var = var != null ? iconParam.withObject(var.getObject()) : iconParam;
+            }
+        }
+		if (var != null) {
+			if (type == null) return var;				   // null type means any type
+			if (type.isInstance(var.getObject())) return var;
+		}
+		return null;
+	}
 
-//    public void setVar(Variable.Key key, Object value, int index)
-//    {
-//        System.out.println("Overwrite setVar");
-//    }
+	/**
+	 * Method to return an Iterator over all Variables on this ElectricObject.
+	 * @return an Iterator over all Variables on this ElectricObject.
+	 */
+    @Override
+	public synchronized Iterator<Variable> getVariables() {
+        Cell icon = (Cell)getProto();
+        Iterator<Variable> instVariables = super.getVariables();
+        if (!VIRTUAL_PARAMETERS || !icon.hasParameters())
+            return instVariables;
+        Iterator<Variable> iconParameters = icon.getParameters();
+        Variable instVariable = instVariables.hasNext() ? instVariables.next() : null;
+        ArrayList<Variable> vars = new ArrayList<Variable>();
+        for (Iterator<Variable> iconIt = icon.getParameters(); iconIt.hasNext(); ) {
+            Variable param = iconIt.next();
+            Variable.Key paramKey = param.getKey();
+            while (instVariable != null && instVariable.getKey().compareTo(paramKey) < 0) {
+                vars.add(instVariable);
+                instVariable = instVariables.hasNext() ? instVariables.next() : null;
+            }
+            if (instVariable != null && instVariable.getKey() == paramKey) {
+                param = param.withObject(instVariable.getObject());
+                instVariable = instVariables.hasNext() ? instVariables.next() : null;
+            }
+            vars.add(param);
+        }
+        if (instVariable != null) {
+            vars.add(instVariable);
+            while (instVariables.hasNext())
+                vars.add(instVariables.next());
+        }
+        return vars.iterator();
+    }
+
+	/**
+	 * Method to return the number of Variables on this ElectricObject.
+	 * @return the number of Variables on this ElectricObject.
+	 */
+    @Override
+	public synchronized int getNumVariables() {
+        Cell icon = (Cell)getProto();
+        int numVariables = super.getNumVariables();
+        if (VIRTUAL_PARAMETERS && icon.hasParameters()) {
+            for (Iterator<Variable> it = icon.getParameters(); it.hasNext(); ) {
+                Variable var = it.next();
+                if (super.getVar(var.getKey()) == null)
+                    numVariables++;
+            }
+        }
+        return numVariables;
+    }
 }

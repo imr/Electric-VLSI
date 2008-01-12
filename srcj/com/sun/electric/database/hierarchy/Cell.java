@@ -4157,6 +4157,39 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 errorLogger.logWarning(nccMsg, this, 1);
         }
         
+        if (NodeInst.VIRTUAL_PARAMETERS && isIcon() && !hasParameters()) {
+            Cell schCell = getEquivalent();
+            if (schCell != null && schCell.hasParameters()) {
+                NodeInst exampleInst = null;
+                for (Iterator<NodeInst> it = schCell.getNodes(); it.hasNext(); ) {
+                    NodeInst ni = it.next();
+                    if (ni.getProto() == this) {
+                        exampleInst = ni;
+                        break;
+                    }
+                }
+                // cleanup NCC cell annotations which were inheritable
+                String iconMsg = "Copy parameters from schematic " + schCell.describe(false) + " to icon " + describe(false);
+                if (repair) {
+                    for (Iterator<Variable> it = schCell.getParameters(); it.hasNext();) {
+                        Variable param = it.next();
+                        Variable instVar = exampleInst != null ? exampleInst.getVar(param.getKey()) : null;
+                        if (instVar != null) {
+                            instVar = instVar.withObject(param.getObject()).withParam(true);
+                        } else {
+                            instVar = param;
+                        }
+                        addVar(instVar);
+                        iconMsg += " " + param.getKey();
+                    }
+                }
+                System.out.println(iconMsg);
+                if (errorLogger != null) {
+                    errorLogger.logWarning(iconMsg, this, 1);
+                }
+            }
+        }
+        
 		return errorCount;
 	}
     

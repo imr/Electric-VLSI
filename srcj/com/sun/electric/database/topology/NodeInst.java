@@ -81,7 +81,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
@@ -96,6 +95,8 @@ import java.util.TreeMap;
  */
 public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 {
+    /** true if instance parameters are virtual */              public static final boolean VIRTUAL_PARAMETERS = false;
+    
 	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
