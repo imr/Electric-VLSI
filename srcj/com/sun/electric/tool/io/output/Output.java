@@ -657,46 +657,47 @@ public class Output
 			}
 
 			// find place to break the line
-			int left = maxWidth - lineCharCount;
-			String exact = str.substring(0, left);
+			String exact = str.substring(0, maxWidth - lineCharCount);
 			int splitPos = exact.lastIndexOf(' ');
 			if (splitPos < 0)
 			{
-				splitPos = exact.lastIndexOf(',');
+				int commaPos = exact.lastIndexOf(',');
+				if (commaPos > splitPos) splitPos = commaPos;
+				int openPos = exact.lastIndexOf('(');
+				if (openPos > splitPos) splitPos = openPos;
+				int closePos = exact.lastIndexOf(')');
+				if (closePos > splitPos) splitPos = closePos;
+				int semiPos = exact.lastIndexOf(';');
+				if (semiPos > splitPos) splitPos = semiPos;
+
 				if (splitPos < 0)
 				{
-					splitPos = exact.lastIndexOf('(');
-					if (splitPos < 0)
+					splitPos = exact.length()-1;
+					if (!strictWidthLimit)
 					{
-						splitPos = exact.lastIndexOf(')');
+						splitPos = str.length()-1;
+						int spacePos = str.indexOf(' ');
+						if (spacePos >= 0 && spacePos < splitPos) splitPos = spacePos;
+						commaPos = str.indexOf(',');
+						if (commaPos >= 0 && commaPos < splitPos) splitPos = commaPos;
+						openPos = str.indexOf('(');
+						if (openPos >= 0 && openPos < splitPos) splitPos = openPos;
+						closePos = str.indexOf(')');
+						if (closePos >= 0 && closePos < splitPos) splitPos = closePos;
+						semiPos = str.indexOf(';');
+						if (semiPos >= 0 && semiPos < splitPos) splitPos = semiPos;
 					}
 				}
 			}
-			if (splitPos > 0) exact = exact.substring(0, splitPos+1); else
-			{
-				if (!strictWidthLimit)
-				{
-					// allow a wider line
-					splitPos = str.indexOf(' ', left);
-					if (splitPos < 0)
-					{
-						splitPos = str.indexOf(',', left);
-						if (splitPos < 0)
-						{
-							splitPos = str.indexOf('(', left);
-							if (splitPos < 0)
-							{
-								splitPos = str.indexOf(')', left);
-							}
-						}
-					}
-					if (splitPos > 0) exact = str.substring(0, splitPos+1);
-				}
-			}
+			while (splitPos+1 < str.length() && str.charAt(splitPos+1) == '\n') splitPos++;
+			exact = str.substring(0, splitPos+1);
 
 			writeChunk(exact);
-			writeChunk("\n");
-			if (continuationString.length() > 0) writeChunk(continuationString);
+			if (!exact.endsWith("\n"))
+			{
+				writeChunk("\n");
+				if (continuationString.length() > 0) writeChunk(continuationString);
+			}
 			str = str.substring(exact.length());
 		}
 	}

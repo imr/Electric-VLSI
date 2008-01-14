@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07a: *******************************
 
+BUG: (1/14/08, SMR) Wide symbols may get split in Verilog output.
+     Fix: In Output.writeWidthLimited(), handle wide symbols properly.
+
 IMP: (1/11/08, DN) Parameters on icon instances are virtual.
      They inherit from icon cell everything except value.
      This feature is disabled now by NodeInst.VIRTUAL_PARAMETERS = false .
