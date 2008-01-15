@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07b: *******************************
+
 ************************* Version 8.07a: *******************************
 
 BUG: (1/14/08, SMR) Wide symbols may get split in Verilog output.
@@ -92,7 +94,7 @@ BUG: (12/13/07, SMR) Spice still writes too many "'" wrappers (Bug #1452).
 FIX: In Spice:replacePortsAndVars() to add quotes only if not already in them.
 
 BUG: (12/17/07, SMR) EDIF input is inconsistent with cell names that start
-     with an ampersand (Bug #1455).
+     with an ampersand (Bug #1455 in the old Bugzilla, #1467 in the new one).
 FIX: In EDIF input, all cell names, port names, and net names that start
      with & and a number have the ampersand removed.
 
