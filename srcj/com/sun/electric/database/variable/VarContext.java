@@ -469,6 +469,10 @@ public class VarContext implements Serializable
                 if (n.doubleValue() < 0.001)
                     return TextUtils.formatDoublePostFix(n.doubleValue());
             }
+            if (obj instanceof EvalSpice.SimpleEq) {
+                // couldn't parse, just return original
+                return var.getObject();
+            }
             return obj;
         }
         value = ifNotNumberTryToConvertToNumber(value);

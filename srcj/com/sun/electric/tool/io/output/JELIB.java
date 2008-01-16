@@ -94,7 +94,8 @@ public class JELIB extends Output {
     
     /**
      * Method to write a Library in Electric Library (.jelib) format.
-     * @param libId the Library to be written.
+     * @param snapshot snapshot of the Library
+     * @param libId Id of the Library to be written.
      * @param libFiles new locations of lib files
      * @param oldRevision true to write library in format prior to "8.04l".
      * @return true on error.
@@ -109,7 +110,8 @@ public class JELIB extends Output {
     
     /**
      * Method to write the .jelib file.
-     * @param lib the Library to write.
+     * @param snapshot snapshot of the Library
+     * @param libId Id of the Library to be written.
      */
     private void writeTheLibrary(Snapshot snapshot, LibId libId)
     {
@@ -576,13 +578,14 @@ public class JELIB extends Output {
         if (var != null && td.isCode()) {
             Object value = var.getObject();
             if (value instanceof String || value instanceof String[]) {
-                TextDescriptor.Code codeType = td.getCode();
-                if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
-                    if (codeType == TextDescriptor.Code.SPICE) ret.append("OL"); else
-                        if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
+                switch (td.getCode()) {
+                    case JAVA:  ret.append("OJ"); break;
+                    case SPICE: ret.append("OL"); break;
+                    case TCL:   ret.append("OT"); break;
+                }
             }
         }
-        
+
         // write parameter
         if (var != null && td.isParam()) ret.append("P");
         

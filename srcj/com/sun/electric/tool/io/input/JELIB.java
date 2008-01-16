@@ -1604,9 +1604,9 @@ public class JELIB extends LibraryFiles
 
 	/**
 	 * Method to load a TextDescriptor from a String description of it.
-	 * @param var the Variable that this TextDescriptor resides on.
-	 * It may be null if the TextDescriptor is on a NodeInst or Export.
 	 * @param varBits the String that describes the TextDescriptor.
+     * @param onVar true if this TextDescriptor resides on a Variable
+	 * It may be false if the TextDescriptor is on a NodeInst or Export.
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
 	 * @return loaded TextDescriptor
