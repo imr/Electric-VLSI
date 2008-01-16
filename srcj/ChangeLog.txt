@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+BUG: (1/16/08, DN) Highlighter.getOneElectricObject doesn't find IconNodeInsts.
+FIX: Use type.isInstance(eobj) instead of type == eobj.getClass().
+
 ************************* Version 8.07a: *******************************
 
 BUG: (1/14/08, SMR) Wide symbols may get split in Verilog output.

@@ -971,7 +971,7 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 			if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 		}
-		if (type != eobj.getClass())
+		if (!type.isInstance(eobj))
 		{
 
             System.out.println("Wrong type of object is selected");
