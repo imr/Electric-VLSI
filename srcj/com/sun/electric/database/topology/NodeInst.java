@@ -2264,6 +2264,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				}
 			}
 		}
+
+		// one final pass allows many-to-one associations when ports are in the same location
+		for(int i1 = 0; i1 < total1; i1++)
+		{
+			for(int i2 = 0; i2 < total2; i2++)
+			{
+				// stop if the ports have different location
+				if (portInfo2[i2].pos.getX() != portInfo1[i1].pos.getX() ||
+					portInfo2[i2].pos.getY() != portInfo1[i1].pos.getY()) continue;
+
+				// store the correct association
+				portInfo1[i1].assn = portInfo2[i2].portInst;
+			}
+		}
 		return portInfo1;
 	}
 

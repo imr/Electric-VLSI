@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+IMP: (1/16/08, SMR) "Change" is now more forgiving when two ports share
+     the same location.
+
 BUG: (1/16/08, DN) Highlighter.getOneElectricObject doesn't find IconNodeInsts.
 FIX: Use type.isInstance(eobj) instead of type == eobj.getClass().
 
