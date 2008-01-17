@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+IMP: (1/17/08, SMR) Sea of gates router now handles multiple processors.
+
 BUG: (1/16/08. GVG) NPE in export PNG (Bug #1531)
 FIX: Now the code detects when the print service is not available for whatever reason.
 

@@ -415,7 +415,7 @@ public class Routing extends Listener
 	 * False to only include items from the generic technology or pins with no exports.
 	 * @return a List of Connection (PortInst/Point2D pairs) that should be wired together.
 	 */
-	public static List<Connection> findNetEnds(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
+	public static List<Connection> findNetEnds(Network net, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete,
 		Netlist netList, boolean mustBeUnrouted)
 	{
 		// initialize
