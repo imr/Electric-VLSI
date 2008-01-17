@@ -5110,7 +5110,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     "Electric cannot handle this situation and errors may result.\n" +
                     "It is recommended that you restart Electric to avoid this instability.\n" +
                     "In the future, when the 'Project Settings Reconciliation' dialog appears,\n" +
-                    "Click 'Use All Current Settengs' or select the CURRENT VALUE of this parameter.",
+                    "Click 'Use All Current Settings' or select the CURRENT VALUE of this parameter.",
                     "Technology Parameter Changed");
             }
             tech.setState();
