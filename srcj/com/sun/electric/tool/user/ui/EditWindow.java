@@ -128,6 +128,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.print.attribute.standard.ColorSupported;
+import javax.print.PrintService;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -3805,7 +3806,18 @@ public class EditWindow extends JPanel
 
 			// prepare for printing
 			PrinterJob pj = ep.getPrintJob();
-			ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
+            if (pj == null)
+            {
+                System.out.println("Can't get PrintJob in getPrintImage()");
+                return null;
+            }
+            PrintService ps = pj.getPrintService();
+            if (ps == null)
+            {
+                System.out.println("Can't get PrintService in getPrintImage()");
+                return null;
+            }
+            ColorSupported cs = ps.getAttribute(ColorSupported.class);
 			int printMode = 1;
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);

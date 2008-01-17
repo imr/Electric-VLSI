@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+BUG: (1/16/08. GVG) NPE in export PNG (Bug #1531)
+FIX: Now the code detects when the print service is not available for whatever reason.
+
 IMP: (1/16/08, SMR) EDIF input handles busses properly, places offpages well.
 
 IMP: (1/16/08, SMR) "Change" is now more forgiving when two ports share
