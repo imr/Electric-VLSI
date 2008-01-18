@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+IMP: (1/17/08, GVG) Removing old MT DRC code under MultiDRC classes. They have been
+replaced by MTDRC*. Added PolyBase.isPointInsideCutAlgorithm to replace
+PolyBase.isInsideGenericPolygonOriginal because it is faster. PolyBase.bitRectangle added.
+
 IMP: (1/17/08, SMR) Sea of gates router now handles multiple processors.
 
 BUG: (1/16/08. GVG) NPE in export PNG (Bug #1531)

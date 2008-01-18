@@ -184,12 +184,10 @@ public class MTDRCAreaTool extends MTDRCTool
 //            if (job != null && job.checkAbort()) return false;
             Cell cell = info.getCell();
             Set<String> set = cellLayersCon.getLayersSet(cell);
-//            assert(set != null);
 
             // The cell doesn't contain the layer
             if (set != null && !set.contains(theLayer.getName()))
             {
-//                System.out.println("Cell " + cell.getName() + " doesn't have layer " + theLayer.getName());
                 return false;
             }
 

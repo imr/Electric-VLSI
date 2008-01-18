@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.Job;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -56,6 +57,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	/** the layer (used for graphics) */					private Layer layer;
 	/** the bounds of the points */							protected Rectangle2D bounds;
 	/** the PortProto (if from a node or TEXT) */			private PortProto pp;
+    /** the bit saying if the polygon is perfect rectangle */  private char bitRectangle = 2;  /** 2 not calculated, 0 not a rectangle, 1 a rectangle */
 
     /** represents X axis */                                public static final int X = 0;
     /** represents Y axis */                                public static final int Y = 1;
@@ -250,7 +252,13 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 */
 	public Rectangle2D getBox()
 	{
-		if (points.length == 4)
+        if (bitRectangle == 1)
+            return getBounds2D();
+        else if (bitRectangle == 0)
+            return null;
+
+        bitRectangle = 0;
+        if (points.length == 4)
 		{
 			// only closed polygons and text can be boxes
 			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED && style != Poly.Type.TEXTBOX && style != Poly.Type.CROSSED) return null;
@@ -262,16 +270,18 @@ public class PolyBase implements Shape, PolyNodeMerge
 			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return null;
 		} else return null;
 
-		// make sure the polygon is rectangular and orthogonal
+        // make sure the polygon is rectangular and orthogonal
 		if (points[0].getX() == points[1].getX() && points[2].getX() == points[3].getX() &&
 			points[0].getY() == points[3].getY() && points[1].getY() == points[2].getY())
 		{
-			return getBounds2D();
+            bitRectangle = 1;
+            return getBounds2D();
 		}
 		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
 			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
 		{
-			return getBounds2D();
+            bitRectangle = 1;
+            return getBounds2D();
 		}
 		return null;
 	}
@@ -333,10 +343,82 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
-    public boolean isPointInsideArea(Point2D pt)
+//    public boolean isPointInsideArea(Point2D pt)
+//    {
+//        Area area = new Area(this);
+//        return area.contains(pt.getX(), pt.getY());
+//    }
+
+    /**
+     * Method to determine if a point is inside a polygon. The method is based on counting
+     * how many time an imaginary line cuts the polygon in one direction.
+     * @param pt
+     * @return
+     */
+    private boolean isPointInsideCutAlgorithm(Point2D pt)
     {
-        Area area = new Area(this);
-        return area.contains(pt.getX(), pt.getY());
+        // general polygon containment by counting reference line intersections
+        Point2D lastPoint = points[points.length-1];
+        //if (pt.equals(lastPoint)) return true;
+        if (DBMath.areEquals(pt, lastPoint))
+        {
+            return true;
+        }
+        Rectangle2D box = getBounds2D();
+
+        // The point is outside the bounding box of the polygon
+        if (!DBMath.pointInsideRect(pt, box))
+            return false;
+
+        int count = 0;
+
+        for (Point2D thisPoint : points)
+        {
+            if (DBMath.areEquals(pt, thisPoint))
+            {
+                return true;
+            }
+
+            // Checking if point is along polygon edge
+            if (DBMath.isOnLine(thisPoint, lastPoint, pt))
+            {
+                return true;
+            }
+
+            double ptY = pt.getY();
+            // not counting if the horizontal line passes through the point
+            boolean skip = DBMath.areEquals(ptY, thisPoint.getY()) &&
+                DBMath.areEquals(ptY, lastPoint.getY());
+
+            if (!skip)
+            {
+                boolean thisPointGreaterY = DBMath.isGreaterThan(thisPoint.getY(), ptY);
+                boolean lastPointGreaterY = DBMath.isGreaterThan(lastPoint.getY(), ptY);
+
+                // doesn't intersect the horizontal line
+                // pt[y] < s[Y] && pt[y] < e[Y] || pt[Y] > s[Y] && pt[Y] > e[Y]
+                skip = (thisPointGreaterY && lastPointGreaterY) ||
+                    (DBMath.isGreaterThan(ptY, thisPoint.getY()) &&
+                        DBMath.isGreaterThan(ptY, lastPoint.getY()));
+
+                if (!skip)
+                {
+                    // only counting half of the domain
+                    // at least one must be greater than pt[Y] and pt[X]
+                    // both X must be greater because it already checked if point is on the line.
+                    double ptX = pt.getX();
+                    boolean thisPointGreaterX = DBMath.isGreaterThan(thisPoint.getX(), ptX);
+                    boolean lastPointGreaterX = DBMath.isGreaterThan(lastPoint.getX(), ptX);
+                    if ((thisPointGreaterY || lastPointGreaterY) &&
+                        (thisPointGreaterX && lastPointGreaterX))
+                        count++;
+                }
+            }
+
+            lastPoint = thisPoint;
+        }
+        boolean inside = (count != 0 && count%2 != 0);
+        return (inside);
     }
 
     /**
@@ -410,7 +492,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return false;
 			}
 
-            boolean method = isInsideGenericPolygonOriginal(pt);
+//            boolean method = isInsideGenericPolygonOriginal(pt);
+            boolean method = isPointInsideCutAlgorithm(pt);
+//            assert(method == newMe);
 //            boolean method = isPointInsideArea(pt);  // very slow. 3 times slower in 1 example
 
             return method;
@@ -1745,6 +1829,7 @@ public class PolyBase implements Shape, PolyNodeMerge
                 sons.add(t);
                 if (a < b)
                 {
+                    assert(false);
                     System.out.println("Should this happen");
                     PolyBase c = t.poly;
                     t.poly = poly;
@@ -1760,8 +1845,12 @@ public class PolyBase implements Shape, PolyNodeMerge
                     {
                         return (b.add(t));
                     }
-                    else if (t.poly.contains(pn.getPoints()[0]))
+                    // test very expensive.
+                    else if (Job.getDebug() && t.poly.contains(pn.getPoints()[0]))
+                    {
+                        assert(false);
                         System.out.println(" Bad happen");
+                    }
                 }
                 sons.add(t);
             }
