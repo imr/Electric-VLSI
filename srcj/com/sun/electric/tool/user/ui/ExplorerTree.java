@@ -1459,22 +1459,45 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			currentMouseEvent = e;
 		}
 
-		private void doContextMenu()
+        private void addGetInfoMenu(JPopupMenu origMenu)
+        {
+            JPopupMenu menu = origMenu;
+
+            if (menu == null)
+            {
+                menu = new JPopupMenu("Get Info");
+            }
+            JMenuItem menuItemGetInfo = new JMenuItem("Get Info");
+            // Get info menu
+            if (origMenu != null)
+                menu.addSeparator();
+            menu.add(menuItemGetInfo);
+            menuItemGetInfo.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showGetInfoGeneral(); } });
+
+            if (origMenu == null)
+                menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+        }
+
+        private void doContextMenu()
 		{
 			// see what is selected
 			Object selectedObject = null;
             boolean allSame = true;
-			for(int i=0; i<numCurrentlySelectedObjects(); i++)
+            int numSelectedElems = numCurrentlySelectedObjects();
+            for(int i=0; i<numSelectedElems; i++)
 			{
                 Object obj = getCurrentlySelectedObject(i);
                 if (obj == null) continue;
-				if (selectedObject == null) selectedObject = obj; else
+				if (selectedObject == null)
+                {
+                    selectedObject = obj;
+                } else
 				{
 					Class clz = selectedObject.getClass();
 					if (!clz.isInstance(obj))
 					{
                         allSame = false;
-					}
+                    }
 				}
 			}
 
@@ -1850,7 +1873,8 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			if (selectedObject instanceof String)
 			{
 				String msg = (String)selectedObject;
-				if (msg.toLowerCase().endsWith("sweeps"))
+
+                if (numSelectedElems == 1 && msg.toLowerCase().endsWith("sweeps"))
 				{
 					JPopupMenu menu = new JPopupMenu("All Sweeps");
 
@@ -1866,10 +1890,13 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { removeSweepHighlighting(); } });
 
-					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                    // Get info menu
+                    addGetInfoMenu(menu);
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
-                if (msg.equalsIgnoreCase("errors"))
+                if (numSelectedElems == 1 && msg.equalsIgnoreCase("errors"))
 				{
 					JPopupMenu menu = new JPopupMenu("Errors");
 
@@ -1881,10 +1908,13 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.importLogger(); } });
 
+                    // Get info menu
+                    addGetInfoMenu(menu);
+
                     menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                     return;
                 }
-				if (msg.equalsIgnoreCase("libraries"))
+				if (numSelectedElems == 1 && msg.equalsIgnoreCase("libraries"))
 				{
 					JPopupMenu menu = new JPopupMenu("Libraries");
 
@@ -1936,10 +1966,13 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
                     menu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { searchAction(); } });
 
+                    // Get info menu
+                    addGetInfoMenu(menu);
+
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
-				if (msg.equalsIgnoreCase("TECHNOLOGY LAYERS"))
+				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY LAYERS"))
 				{
 					JPopupMenu menu = new JPopupMenu("Technology Layers");
 
@@ -1951,10 +1984,13 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(1); } });
 
-					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                    // Get info menu
+					addGetInfoMenu(menu);
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
-				if (msg.equalsIgnoreCase("TECHNOLOGY ARCS"))
+				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY ARCS"))
 				{
 					JPopupMenu menu = new JPopupMenu("Technology Arcs");
 
@@ -1966,10 +2002,13 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(2); } });
 
-					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                    // Get info menu
+					addGetInfoMenu(menu);
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
-				if (msg.equalsIgnoreCase("TECHNOLOGY NODES"))
+				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY NODES"))
 				{
 					JPopupMenu menu = new JPopupMenu("Technology Nodes");
 
@@ -1981,10 +2020,16 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(3); } });
 
-					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                    // Get info menu
+                    addGetInfoMenu(menu);
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
-			}
+
+                addGetInfoMenu(null);
+                return;
+            }
             if (selectedObject instanceof ErrorLoggerTree.ErrorLoggerTreeNode)
             {
                 ErrorLoggerTree.ErrorLoggerTreeNode logger = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
@@ -1992,7 +2037,12 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
                 if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
             }
-		}
+            if (selectedObject instanceof ErrorLogger.MessageLog)
+            {
+                addGetInfoMenu(null);
+                return;
+            }
+        }
 
 		private void openAction()
 		{
@@ -2229,7 +2279,33 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			updateUI();
 		}
 
-		private void newCellVersionAction()
+        private void showGetInfoGeneral()
+        {
+            int numSelectedElems = numCurrentlySelectedObjects();
+
+            if (numSelectedElems > 1)
+               System.out.println(numSelectedElems + " nodes selected");
+
+            for(int i=0; i<numSelectedElems; i++)
+			{
+                TreePath treePath = currentSelectedPaths[i];
+                Object obj = treePath.getLastPathComponent();
+                if (obj instanceof DefaultMutableTreeNode)
+                {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
+                    int num = node.getChildCount();
+                    String nodeName = node.getUserObject().toString();
+                    if (num > 0)
+                        System.out.println(num + " child nodes in '" + nodeName + "'");
+                    if (numSelectedElems == 1 && num == 0)
+                        System.out.println(numSelectedElems + " node selected");
+                }
+                else
+                    System.out.println("Case not implemented yet");
+			}
+        }
+
+        private void newCellVersionAction()
 		{
 			Cell cell = (Cell)getCurrentlySelectedObject(0);
 			CircuitChanges.newVersionOfCell(cell);

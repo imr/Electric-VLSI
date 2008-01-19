@@ -258,9 +258,12 @@ public class DRC extends Listener
                 errorLogger.setGroupName(sortKey, cell.getName());
                 break;
             case DRC_LOG_PER_RULE:
-                sortKey = rule.hashCode();
+                String theRuleName = rule;
+                if (theRuleName == null)
+                    theRuleName = errorType.name();
+                sortKey = theRuleName.hashCode();
                 if (errorLogger.getGroupName(sortKey) == null) // only if nothing was found
-                    errorLogger.setGroupName(sortKey, rule);
+                    errorLogger.setGroupName(sortKey, theRuleName);
                 break;
         }
 

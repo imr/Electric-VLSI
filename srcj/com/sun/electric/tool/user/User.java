@@ -831,12 +831,23 @@ public class User extends Listener
     private Setting cacheDefaultTechnology;
     private Setting cacheSchematicTechnology;
 	private Setting cacheIncludeDateAndVersionInOutput;
+    private Setting cachePWellProcess;
+
+    /**
+     * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
+     * The default is "true".
+     * @return true if the process is PWell
+     */
+    public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
+    public static boolean isPWellProcessLayoutTechnology() {return false;} //getPWellProcessLayoutTechnologySetting().getBoolean();}
+    public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(on);}
     
     @Override
     protected void initProjectSettings() {
         makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
         makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
         makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
+        makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
     }
     
 	/****************************** ICON GENERATION PREFERENCES ******************************/

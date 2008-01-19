@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.utils.MOSRules;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.io.PrintWriter;
@@ -3018,11 +3019,9 @@ public class MoCMOS extends Technology
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
         XMLRules rules = new XMLRules(this);
+        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
 
         assert(foundry != null);
-
-        // Resize primitives according to the foundry
-//        resizeNodes(foundry.equals(Foundry.Type.TSMC.name());
 
 		// load the DRC tables from the explanation table
         int numMetals = getNumMetals();
@@ -3032,7 +3031,10 @@ public class MoCMOS extends Technology
 		{
 			for(DRCTemplate rule : theRules)
 			{
-				// see if the rule applies
+                // skip pwell rules in pwell process
+                if (rule.isRuleIgnoredInPWellProcess(pWellProcess))
+                    continue;
+                // see if the rule applies
 				if (pass == 0)
 				{
 					if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ) continue;

@@ -386,20 +386,22 @@ public class PolyBase implements Shape, PolyNodeMerge
             }
 
             double ptY = pt.getY();
+            double lastY = lastPoint.getY();
+            double thisY = thisPoint.getY();
+
             // not counting if the horizontal line passes through the point
-            boolean skip = DBMath.areEquals(ptY, thisPoint.getY()) &&
-                DBMath.areEquals(ptY, lastPoint.getY());
+            boolean skip = DBMath.areEquals(ptY, thisY) && DBMath.areEquals(ptY, lastY);
 
             if (!skip)
             {
-                boolean thisPointGreaterY = DBMath.isGreaterThan(thisPoint.getY(), ptY);
-                boolean lastPointGreaterY = DBMath.isGreaterThan(lastPoint.getY(), ptY);
+                boolean thisPointGreaterY = DBMath.isGreaterThan(thisY, ptY);
+                boolean lastPointGreaterY = DBMath.isGreaterThan(lastY, ptY);
 
                 // doesn't intersect the horizontal line
                 // pt[y] < s[Y] && pt[y] < e[Y] || pt[Y] > s[Y] && pt[Y] > e[Y]
                 skip = (thisPointGreaterY && lastPointGreaterY) ||
-                    (DBMath.isGreaterThan(ptY, thisPoint.getY()) &&
-                        DBMath.isGreaterThan(ptY, lastPoint.getY()));
+                    (DBMath.isGreaterThan(ptY, thisY) &&
+                        DBMath.isGreaterThan(ptY, lastY));
 
                 if (!skip)
                 {
@@ -407,10 +409,15 @@ public class PolyBase implements Shape, PolyNodeMerge
                     // at least one must be greater than pt[Y] and pt[X]
                     // both X must be greater because it already checked if point is on the line.
                     double ptX = pt.getX();
-                    boolean thisPointGreaterX = DBMath.isGreaterThan(thisPoint.getX(), ptX);
-                    boolean lastPointGreaterX = DBMath.isGreaterThan(lastPoint.getX(), ptX);
-                    if ((thisPointGreaterY || lastPointGreaterY) &&
-                        (thisPointGreaterX && lastPointGreaterX))
+                    // not a vertical line. Horizontal lines won't make it to this point
+                    if (!DBMath.areEquals(thisY, lastY))
+                    {
+                        ptX = thisPoint.getX() + (ptY - thisY) * (lastPoint.getX() - thisPoint.getX()) / (lastY - thisY);
+                    }
+                    // point must be at the right side of the point. Not checking if they are identical because
+                    // that was tested above.
+                    boolean pointGreaterX = DBMath.isGreaterThan(ptX, pt.getX());
+                    if ((thisPointGreaterY || lastPointGreaterY) && pointGreaterX)
                         count++;
                 }
             }
@@ -492,8 +499,12 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return false;
 			}
 
-//            boolean method = isInsideGenericPolygonOriginal(pt);
-            boolean method = isPointInsideCutAlgorithm(pt);
+            boolean method = isInsideGenericPolygonOriginal(pt);
+//            boolean method1 = isPointInsideCutAlgorithm(pt);
+//            if (method1 != method)
+//            {
+//                 isPointInsideCutAlgorithm(pt);
+//            }
 //            assert(method == newMe);
 //            boolean method = isPointInsideArea(pt);  // very slow. 3 times slower in 1 example
 

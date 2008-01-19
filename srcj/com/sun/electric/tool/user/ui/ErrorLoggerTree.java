@@ -345,7 +345,7 @@ public class ErrorLoggerTree {
         }
         return -1;
     }
-        
+
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */
@@ -353,10 +353,11 @@ public class ErrorLoggerTree {
         JPopupMenu p = new JPopupMenu();
         JMenuItem m;
         m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
-        m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
 	    m = new JMenuItem("Export"); m.addActionListener(log); p.add(m);
         m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
+        p.addSeparator();
+        m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
         return p;
     }
 

@@ -124,6 +124,28 @@ public class DRCTemplate implements Serializable
 	public int multiCuts;         /* -1=dont care, 0=no cuts, 1=with cuts multi cut rule */
     public String condition;
 
+    /**
+     * Method to detect if a given rule could be ignored if the process is a PWell process
+     * @param pWellProcess
+     * @return
+     */
+    public boolean isRuleIgnoredInPWellProcess(boolean pWellProcess)
+    {
+        if (!pWellProcess) return false; // never ignore
+
+        if (ruleType == DRCRuleType.SPACING ||
+            ruleType == DRCRuleType.SPACINGE ||
+            ruleType == DRCRuleType.CONSPA ||
+            ruleType == DRCRuleType.UCONSPA)
+            return name1.toLowerCase().equals("p-well") && name2.toLowerCase().equals("p-well");
+        else if (ruleType == DRCRuleType.MINAREA ||
+            ruleType == DRCRuleType.MINENCLOSEDAREA ||
+            ruleType == DRCRuleType.MINWID ||
+            ruleType == DRCRuleType.MINWIDCOND)
+           return name1.toLowerCase().equals("p-well");
+        return false;
+    }
+
     private void copyValues(double[] vals)
     {
         int len = vals.length;
@@ -261,7 +283,6 @@ public class DRCTemplate implements Serializable
 
     public static void exportDRCDecks(String fileName, Technology tech)
     {
-
         try
         {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));

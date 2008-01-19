@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
+IMP/MAN: (1/18/08) Part of the code to implement Bug #1439 (PWell process).
+Changes are not active yet until the regressions are updated. New setting in Technology
+dialog in ProjectSettings.
+
+IMP/MAN: (1/18/08) GetInfo menu added to ExplorerNodes (Bug# 1536).
+
+BUG: (1/18/08, GVG) Wrong pulldown menu if two root nodes in Explorer are selected (Bug #1535).
+FIX: Detect if number of selected nodes is bigger than 1. If yes, skip that particular menu.
+
+BUG: (1/18/08, GVG) NPE while sorting DRC errors per rule (Bug #1534)
+FIX: If rule name is null them take DRC type for the grouping.
+
 IMP: (1/17/08, GVG) Removing old MT DRC code under MultiDRC classes. They have been
 replaced by MTDRC*. Added PolyBase.isPointInsideCutAlgorithm to replace
 PolyBase.isInsideGenericPolygonOriginal because it is faster. PolyBase.bitRectangle added.
