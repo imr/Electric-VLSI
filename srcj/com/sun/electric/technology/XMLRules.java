@@ -873,10 +873,13 @@ public class XMLRules implements DRCRules, Serializable
 	}
 
 
-    public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule)
+    public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule, boolean pWellProcess)
     {
         int numMetals = tech.getNumMetals();
         DRCTemplate.DRCMode m = numMetals >= 2 ? DRCTemplate.DRCMode.valueOf("M"+numMetals) : DRCTemplate.DRCMode.ALL;
+
+        if (theRule.isRuleIgnoredInPWellProcess(pWellProcess))  // Skip this rule in pwell process
+            return;
 
         // load the DRC tables from the explanation table
         int when = theRule.when;

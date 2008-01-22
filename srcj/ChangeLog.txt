@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07b: *******************************
 
-IMP/MAN: (1/18/08) Part of the code to implement Bug #1439 (PWell process).
+IMP/MAN: (1/22/08, GVG) Final implementation of PWell process flag in Technology dialog
+in ProjectSettings (Bug #1439). By default, the processes are pwell.
+
+IMP/MAN: (1/18/08, GVG) Part of the code to implement Bug #1439 (PWell process).
 Changes are not active yet until the regressions are updated. New setting in Technology
 dialog in ProjectSettings.
 

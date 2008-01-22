@@ -3031,9 +3031,6 @@ public class MoCMOS extends Technology
 		{
 			for(DRCTemplate rule : theRules)
 			{
-                // skip pwell rules in pwell process
-                if (rule.isRuleIgnoredInPWellProcess(pWellProcess))
-                    continue;
                 // see if the rule applies
 				if (pass == 0)
 				{
@@ -3119,7 +3116,7 @@ public class MoCMOS extends Technology
                     rule.ruleName +=  ", " +  extraString;
                 }
 
-                rules.loadDRCRules(this, foundry, rule);
+                rules.loadDRCRules(this, foundry, rule, pWellProcess);
 			}
 		}
 

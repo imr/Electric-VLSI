@@ -4434,16 +4434,12 @@ public class Technology implements Comparable<Technology>, Serializable
             for(DRCTemplate rule : rulesList)
             {
                 if (rule.ruleType != DRCTemplate.DRCRuleType.NODSIZ)
-                {
-                    if (rule.isRuleIgnoredInPWellProcess(pWellProcess))
-                        continue; // skip this rule
-                    rules.loadDRCRules(this, foundry, rule);
-                }
+                    rules.loadDRCRules(this, foundry, rule, pWellProcess);
             }
             for(DRCTemplate rule : rulesList)
             {
                 if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)
-                    rules.loadDRCRules(this, foundry, rule);
+                    rules.loadDRCRules(this, foundry, rule, pWellProcess);
             }
         }
         

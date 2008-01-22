@@ -839,7 +839,7 @@ public class User extends Listener
      * @return true if the process is PWell
      */
     public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
-    public static boolean isPWellProcessLayoutTechnology() {return false;} //getPWellProcessLayoutTechnologySetting().getBoolean();}
+    public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
     public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(on);}
     
     @Override
