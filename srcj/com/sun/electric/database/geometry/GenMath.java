@@ -322,7 +322,7 @@ public class GenMath
     /**
 	 * Class to define a Boolean object that can be modified.
 	 */
-	public static class MutableBoolean
+	public static class MutableBoolean implements Serializable
 	{
 	    private boolean value;
 	    

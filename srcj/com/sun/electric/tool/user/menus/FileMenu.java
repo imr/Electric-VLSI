@@ -29,6 +29,7 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -211,7 +212,7 @@ public class FileMenu {
                     exportCommand(FileType.DXF, false); }},
                 SEPARATOR,
                 new EMenuItem("ELI_B (Version 6)...") {	public void run() {
-                    saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
+                    saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false, null); }},
                 new EMenuItem("_JELIB (Version 8.03)...") { public void run() {	// really since 8.04k
                     saveOldJelib(); }},
                 new EMenuItem("P_references...") { public void run() { 
@@ -367,7 +368,7 @@ public class FileMenu {
 			if (deleteLib != null)
 			{
 				// library already exists, prompt for save
-				if (FileMenu.preventLoss(deleteLib, 2)) return;
+				if (preventLoss(deleteLib, 2, null)) return;
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
@@ -708,7 +709,7 @@ public class FileMenu {
 			if (deleteLib != null)
 			{
 				// library already exists, prompt for save
-				if (FileMenu.preventLoss(deleteLib, 2)) return;
+				if (preventLoss(deleteLib, 2, null)) return;
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
             if (type == FileType.ELIB || type == FileType.READABLEDUMP)
@@ -744,7 +745,7 @@ public class FileMenu {
 		    System.out.println("refer to it.");
 		    return;
 	    }
-	    if (preventLoss(lib, 1)) return;
+	    if (preventLoss(lib, 1, null)) return;
 
         WindowFrame.removeLibraryReferences(lib);
         new CloseLibrary(lib, clearClipboard);
@@ -798,7 +799,7 @@ public class FileMenu {
      * @return true if library saved, false otherwise.
      */
     public static boolean saveLibraryCommand(Library lib) {
-		return lib != null && saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false);
+		return lib != null && saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false, null);
 	}
 
     /**
@@ -809,9 +810,11 @@ public class FileMenu {
      * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @param forceToType
      * @param saveAs true if this is a "save as" and should always prompt for a file name.
+     * @param aborted set to true if the save fails.
      * @return true if library saved, false otherwise.
      */
-    public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType, boolean saveAs)
+    public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType,
+    	boolean saveAs, MutableBoolean aborted)
     {
         // scan for Dummy Cells, warn user that they still exist
         List<String> dummyCells = new ArrayList<String>();
@@ -879,7 +882,7 @@ public class FileMenu {
         }
 
         // save the library
-        new SaveLibrary(lib, fileName, type, compatibleWith6);
+        new SaveLibrary(lib, fileName, type, compatibleWith6, aborted);
         return true;
     }
 
@@ -907,14 +910,16 @@ public class FileMenu {
         private FileType type;
         private boolean compatibleWith6;
         private IdMapper idMapper;
+        private MutableBoolean aborted;
 
-        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6)
+        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, MutableBoolean aborted)
         {
             super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER); // CHANGE because of possible renaming
             this.lib = lib;
             this.newName = newName;
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
+            this.aborted = aborted;
             startJob();
         }
 
@@ -941,11 +946,20 @@ public class FileMenu {
                     e.getMessage() + "Please check your disk libraries");
             }
             if (!success)
-            	throw new JobException("Error saving files.  Please check your disk libraries");
+            {
+            	if (aborted != null)
+            	{
+            		aborted.setValue(true);
+            		fieldVariableChanged("aborted");
+            		return true;
+            	}
+           		throw new JobException("Error saving files.  Please check your disk libraries");
+            }
             return success;
         }
 
         public void terminateOK() {
+        	if (aborted.booleanValue()) return;
             User.fixStaleCellReferences(idMapper);
         }
     }
@@ -956,7 +970,7 @@ public class FileMenu {
      */
     public static void saveAsLibraryCommand(Library lib)
     {
-        saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, true);
+        saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, true, null);
         WindowFrame.wantToRedoTitleNames();
     }
 
@@ -985,7 +999,7 @@ public class FileMenu {
 		{
 			Library lib = it.next();
 			type = libsToSave.get(lib);
-            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType, false))
+            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType, false, null))
 			{
 				if (justSkip) continue;
 				if (it.hasNext())
@@ -1330,10 +1344,12 @@ public class FileMenu {
      */
     public static boolean quitCommand()
     {
-        if (preventLoss(null, 0)) return false;
+        MutableBoolean mb = new MutableBoolean(false);
+        if (preventLoss(null, 0, mb)) return false;
+        if (mb.booleanValue()) return true;
 
 	    try {
-            new QuitJob();
+	    	new QuitJob();
 	    } catch (java.lang.NoClassDefFoundError e)
 	    {
 		    // Ignoring this one
@@ -1388,10 +1404,9 @@ public class FileMenu {
      */
     public static class QuitJob extends Job
     {
-        public QuitJob()
+    	public QuitJob()
         {
             super("Quitting", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            startJob();
         }
 
         public boolean doIt() throws JobException
@@ -1433,10 +1448,11 @@ public class FileMenu {
      * 0: quit;
      * 1: close a library;
      * 2: replace a library.
+     * @param aborted set to true if the save fails.
      * @return true if the operation should be aborted;
      * false to continue with the quit/close/replace.
      */
-    public static boolean preventLoss(Library desiredLib, int action)
+    public static boolean preventLoss(Library desiredLib, int action, MutableBoolean aborted)
     {
 		boolean checkedInvariants = false;
         boolean saveCancelled = false;
@@ -1466,7 +1482,7 @@ public class FileMenu {
             if (ret == 0)
             {
                 // save the library
-                if (!saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false))
+                if (!saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false, aborted))
                     saveCancelled = true;
                 continue;
             }

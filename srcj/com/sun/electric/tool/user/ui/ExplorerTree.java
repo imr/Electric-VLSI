@@ -2104,7 +2104,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
         private void saveLibraryAction()
 		{
 			Library lib = (Library)getCurrentlySelectedObject(0);
-			FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false);
+			FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false, null);
 		}
 
 		private void closeLibraryAction()
