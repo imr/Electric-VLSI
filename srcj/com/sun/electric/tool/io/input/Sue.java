@@ -224,9 +224,9 @@ public class Sue extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
 		// determine the cell name
 		String cellName = lib.getName();
@@ -277,7 +277,7 @@ public class Sue extends Input
 			System.out.println("ERROR reading Sue libraries");
 		}
 
-		return false;
+		return lib;
 	}
 
 	/**

@@ -87,13 +87,8 @@ public class Input
 			return null;
 		}
 
-		// get the name of the imported library
-		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-
-		// create a new library
-		Library lib = Library.newInstance(libName, fileURL);
 		newLibraryCreated = true;
-		return importLibraryCommon(fileURL, type, lib);
+		return importLibraryCommon(fileURL, type, null);
 	}
 
 	public static Library importToCurrentLibrary(URL fileURL, FileType type)
@@ -116,7 +111,12 @@ public class Input
 
 	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib)
 	{
-//		lib.setChanged();
+		if (lib == null && type != FileType.EDIF)
+		{
+			// create a new library (but not for EDIF...it makes its own)
+			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+			lib = Library.newInstance(libName, fileURL);
+		}
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
@@ -127,7 +127,6 @@ public class Input
             LibDirs.readLibDirs(f.getParent());
         }
 
-//		boolean formerQuiet = changesQuiet(true);
 		try {
 
 			// initialize progress
@@ -179,7 +178,7 @@ public class Input
 				}
 
 				// import the library
-				in.importALibrary(lib);
+				lib = in.importALibrary(lib);
 				in.closeInput();
 			}
 		} finally {
@@ -187,11 +186,10 @@ public class Input
 			stopProgressDialog();
 			errorLogger.termLogging(true);
 		}
-//		changesQuiet(formerQuiet);
 
 		if (lib == null)
 		{
-			System.out.println("Error importing " + lib);
+			System.out.println("Error importing " + fileURL.getFile());
 		} else
 		{
 			long endTime = System.currentTimeMillis();
@@ -205,9 +203,9 @@ public class Input
 	 * Method to import a library from disk.
 	 * This method must be overridden by the various import modules.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib) { return true; }
+	protected Library importALibrary(Library lib) { return lib; }
 
 	protected boolean openBinaryInput(URL fileURL)
 	{

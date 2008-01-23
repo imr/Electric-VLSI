@@ -630,9 +630,9 @@ public class GDS extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
 		// initialize
 		CellBuilder.init();
@@ -649,7 +649,7 @@ public class GDS extends Input
 		// now build all instances recursively
 		CellBuilder.buildInstances();
 		CellBuilder.term();
-		return false;
+		return lib;
 	}
 
 	private void initialize()

@@ -393,28 +393,28 @@ public class CIF extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
         setProgressNote("Reading CIF file");
 
         // initialize all lists and the searching routines
 		cifCellMap = new HashMap<Integer,BackCIFCell>();
 
-		if (initFind()) return true;
+		if (initFind()) return null;
 
 		// parse the cif and create a listing
-		if (interpret()) return true;
+		if (interpret()) return null;
 
 		// instantiate the cif as nodes
         setProgressNote("Storing CIF in database...");
-		if (listToNodes(lib)) return true;
+		if (listToNodes(lib)) return null;
 
 		// clean up
 		doneInterpreter();
 
-		return false;
+		return lib;
 	}
 
 	private boolean listToNodes(Library lib)

@@ -621,15 +621,15 @@ public class VerilogReader extends Input
     /**
 	 * Method to import a Verilog file from disk.
 	 * @param lib the library to ready
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
     {
         initKeywordParsing();
         boolean fullOyster = true;
         VerilogData verilogData = parseVerilogInternal(lib.getName(), fullOyster);
         buildCells(verilogData, lib, fullOyster);
-        return verilogData == null;
+        return lib;
     }
 
     public VerilogData parseVerilog(String[] lines, String verilogName)

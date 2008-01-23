@@ -292,9 +292,9 @@ public class EDIF extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
 		// setup keyword prerequisites
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
@@ -403,7 +403,7 @@ public class EDIF extends Input
 		} catch (IOException e)
 		{
 			System.out.println("line " + lineReader.getLineNumber() + ": " + e.getMessage());
-			return true;
+			return null;
 		}
 
 		if (errorCount != 0 || warningCount != 0)
@@ -411,7 +411,7 @@ public class EDIF extends Input
 
 		if (Job.getUserInterface().getCurrentCell(curLibrary) == null && curLibrary.getCells().hasNext())
 			Job.getUserInterface().setCurrentCell(curLibrary, curLibrary.getCells().next());
-		return false;
+		return curLibrary;
 	}
 
 	/**
@@ -1328,10 +1328,16 @@ public class EDIF extends Input
 		return busName;
 	}
 
-	private Cell createCell(String name, String view)
+	private Cell createCell(String libName, String name, String view)
 	{
+		Library lib = curLibrary;
+		if (libName != null)
+		{
+			Library namedLib = Library.findLibrary(libName);
+			if (namedLib != null) lib = namedLib;
+		}
 		Cell proto = null;
-		for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = it.next();
 			if (cell.getName().equalsIgnoreCase(name) &&
@@ -1341,7 +1347,7 @@ public class EDIF extends Input
 		{
 			String cName = name;
 			if (view.length() > 0) cName += "{" + view + "}";
-			proto = Cell.makeInstance(curLibrary, cName);
+			proto = Cell.makeInstance(lib, cName);
 			if (proto != null)
 			{
 				if (view.equals("ic")) proto.setWantExpanded();
@@ -1575,6 +1581,7 @@ public class EDIF extends Input
 			throws IOException
 		{
 			cellRef = fixLeadingAmpersand(getToken((char)0));
+			libraryRef = null;
 		}
 
 		protected void pop()
@@ -1629,9 +1636,9 @@ public class EDIF extends Input
 			}
 
 			// create cell if not already there
-			Cell proto = createCell(aName, view);
+			Cell proto = createCell(libraryRef, aName, view);
 			if (proto == null)
-				System.out.println("Error, cannot create cell "+aName+" in library "+curLibrary);
+				System.out.println("Error, cannot create cell "+aName+" in library "+libraryRef);
 
 			// set the parent
 			cellRefProto = proto;
@@ -1987,7 +1994,7 @@ public class EDIF extends Input
 							curCellPage = ++pageNumber;
 							if (curCellPage == 1)
 							{
-								curCell = createCell(cellName, "sch");
+								curCell = createCell(null, cellName, "sch");
 								if (curCell == null) throw new IOException("Error creating cell");
 								curCell.setMultiPage(true);
 								curCell.newVar(User.FRAME_SIZE, "d");
@@ -2158,7 +2165,7 @@ public class EDIF extends Input
 			throws IOException
 		{
 			// create schematic page 1 to represent all I/O for this schematic; locate this in the list of cells
-			curCell = createCell(cellName, activeView == VGRAPHIC ? "ic" : "sch");
+			curCell = createCell(null, cellName, activeView == VGRAPHIC ? "ic" : "sch");
 			if (curCell == null) throw new IOException("Error creating cell");
 			curCellPage = 0;
 		}
@@ -2221,8 +2228,13 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// ignore the name of the library
-			getToken((char)0);
+			// get the name of the library
+			String libName = getToken((char)0);
+			curLibrary = Library.findLibrary(libName);
+			if (curLibrary == null)
+			{
+				curLibrary = Library.newInstance(libName, null);
+			}
 		}
 	}
 
@@ -2465,7 +2477,7 @@ public class EDIF extends Input
 			if (proto == null)
 			{
 				// allocate the cell
-				proto = createCell(cellName, "sch");
+				proto = createCell(null, cellName, "sch");
 				if (proto == null) throw new IOException("Error creating cell");
 				proto.setMultiPage(true);
 				proto.newVar(User.FRAME_SIZE, "d");
@@ -3202,7 +3214,7 @@ public class EDIF extends Input
 					if (np == null)
 					{
 						// allocate the cell
-						np = createCell(cellName, "sch");
+						np = createCell(null, cellName, "sch");
 						if (np == null) throw new IOException("Error creating cell");
 						np.newVar(propertyReference, propertyValue);
 					}
@@ -3583,7 +3595,7 @@ public class EDIF extends Input
 			if (proto == null)
 			{
 				// allocate the cell
-				proto = createCell(cellName, "ic");
+				proto = createCell(null, cellName, "ic");
 				if (proto == null) throw new IOException("Error creating cell");
 			} else
 			{
@@ -3998,7 +4010,7 @@ public class EDIF extends Input
 				if (proto == null)
 				{
 					// allocate the cell
-					proto = createCell(cellName, view);
+					proto = createCell(null, cellName, view);
 					if (proto == null) throw new IOException("Error creating cell");
 				} else
 				{

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/23/08, SMR) EDIF import obeys library names in the EDIF file (Bug #1532).
+
 ************************* Version 8.07b: *******************************
 
 IMP: (1/23/08, SMR) Added "DebugMenuDinesh" and "DebugMenuFrankie" to provide

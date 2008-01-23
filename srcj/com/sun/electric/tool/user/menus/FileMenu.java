@@ -131,7 +131,7 @@ public class FileMenu {
                 new EMenuItem("GDS _Map File...") {	public void run() {
                     GDSMap.importMapFile(); }},
                 new EMenuItem("_EDIF (Electronic Design Interchange Format)...") { public void run() {
-                    importLibraryCommand(FileType.EDIF); }},
+                	importLibraryCommand(FileType.EDIF); }},
                 new EMenuItem("_LEF (Library Exchange Format)...") { public void run() {
                     importLibraryCommand(FileType.LEF); }},
                 new EMenuItem("_DEF (Design Exchange Format)...") {	public void run() {

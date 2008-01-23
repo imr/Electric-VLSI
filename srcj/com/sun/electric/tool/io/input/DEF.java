@@ -95,9 +95,9 @@ public class DEF extends LEFDEF
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
 		initKeywordParsing();
 		scaleUnits = 1000;
@@ -111,7 +111,7 @@ public class DEF extends LEFDEF
 		{
 			System.out.println("ERROR reading DEF libraries");
 		}
-		return false;
+		return lib;
 	}
 
 	private boolean ignoreToSemicolon(String command)

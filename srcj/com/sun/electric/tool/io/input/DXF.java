@@ -104,18 +104,15 @@ public class DXF extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-	 * @return true on error.
+	 * @return the created library (null on error).
 	 */
-	protected boolean importALibrary(Library lib)
+	protected Library importALibrary(Library lib)
 	{
-		boolean ret = false;
 		try
 		{
-			ret = readLibrary(lib);
-		} catch (IOException e)
-		{
-		}
-		return ret;
+			if (readLibrary(lib)) return null;
+		} catch (IOException e) {}
+		return lib;
 	}
 
 	/**
