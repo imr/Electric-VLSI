@@ -4,10 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+
 IMP: (1/23/08, SMR) Added "DebugMenuDinesh" and "DebugMenuFrankie" to provide
      sandboxes for them.
-
-************************* Version 8.07b: *******************************
 
 IMP/MAN: (1/22/08, GVG) Final implementation of PWell process flag in Technology dialog
 in ProjectSettings (Bug #1439). By default, the processes are pwell.
