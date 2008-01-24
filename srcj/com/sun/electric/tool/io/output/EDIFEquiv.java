@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -230,7 +232,10 @@ public class EDIFEquiv {
         Orientation orient = Orientation.fromJava(angle, mirroredAboutYAxis, mirroredAboutXAxis);
         orient = orient.concatenate(Orientation.fromAngle(equiv.rotation*10));
         AffineTransform af2 = orient.pureRotate();
-        return pe.translateExtToElec(connPoint, af2);
+        Point2D ret = pe.translateExtToElec(connPoint, af2);
+        if (equiv.xOffset != 0 || equiv.yOffset != 0)
+        	ret = new Point2D.Double(ret.getX()+equiv.xOffset, ret.getY()+equiv.yOffset);
+        return ret;
     }
 
     // hash map key
@@ -404,60 +409,71 @@ public class EDIFEquiv {
         }
         if (keyP || keyE) {
             // primitive node
+        	np = null;
             Technology tech = Technology.findTechnology(parts[1]);
-            if (tech == null) {
-                System.out.println("Could not find Technology "+parts[1]+" on line "+lineno);
+            if (tech == null)
+            {
+                System.out.println("Could not find Technology " + parts[1] + " on line " + lineno);
                 return false;
             }
             np = tech.findNodeProto(parts[2]);
-            if (np == null) {
-                System.out.println("Could not find PrimitiveNode "+parts[2]+" in technology "+parts[1]+" on line "+lineno);
+            if (np == null)
+            {
+                System.out.println("Could not find " + parts[2] + " in technology " +
+                	parts[1] + " on line " + lineno);
                 return false;
             }
-            for (PrimitiveNode.Function function : PrimitiveNode.Function.getFunctions()) {
+            for (PrimitiveNode.Function function : PrimitiveNode.Function.getFunctions())
+            {
                 if (parts[3].equals(function.getName()) || parts[3].equals(function.getShortName()) ||
-                        parts[3].equals(function.getConstantName())) {
+                	parts[3].equals(function.getConstantName()))
+                {
                     func = function;
                     break;
                 }
             }
-            if (func == null) {
-                System.out.println("Could not find Function "+parts[3]+" on line "+lineno);
+            if (func == null)
+            {
+                System.out.println("Could not find Function " + parts[3] + " on line " + lineno);
                 return false;
             }
             try {
                 rot = Integer.parseInt(parts[4]);
             } catch (NumberFormatException e) {
-                System.out.println("Rotation "+parts[4]+" is not an integer on line "+lineno);
+                System.out.println("Rotation " + parts[4] + " is not an integer on line " + lineno);
             }
             if (keyE) {
                 // get port type
                 portType = PortCharacteristic.findCharacteristic(parts[5]);
                 if (portType == null) {
-                    System.out.println("Unable to find Export type "+parts[5]+" on line "+lineno);
+                    System.out.println("Unable to find Export type " + parts[5] + " on line " + lineno);
                     return false;
                 }
             }
-        } else if (keyC) {
+        } else if (keyC)
+        {
             // cell
             Library lib = Library.findLibrary(parts[1]);
-            if (lib == null) {
-                System.out.println("Could not find Library "+parts[1]+" on line "+lineno);
+            if (lib == null)
+            {
+                System.out.println("Could not find Library " + parts[1] + " on line " + lineno);
                 return false;
             }
             np = lib.findNodeProto(parts[2]+"{"+parts[3]+"}");
-            if (np == null) {
-                System.out.println("Could not find Cell "+parts[2]+", view "+parts[3]+" in library "+parts[1]+" on line "+lineno);
+            if (np == null)
+            {
+                System.out.println("Could not find Cell " + parts[2] + ", view " + parts[3] + " in library " + parts[1] +
+                	" on line " + lineno);
                 return false;
             }
             func = PrimitiveNode.Function.UNKNOWN;
             try {
                 rot = Integer.parseInt(parts[4]);
             } catch (NumberFormatException e) {
-                System.out.println("Rotation "+parts[4]+" is not an integer on line "+lineno);
+                System.out.println("Rotation " + parts[4] + " is not an integer on line " + lineno);
             }
         } else {
-            System.out.println("Unrecognized key "+parts[0]+", expected 'P', 'C', or 'E' on line "+lineno);
+            System.out.println("Unrecognized key " + parts[0] + ", expected 'P', 'C', or 'E' on line " + lineno);
             return false;
         }
 
@@ -578,6 +594,7 @@ public class EDIFEquiv {
         public final String externalView;
         public final List<PortEquivalence> portEquivs;
         public final int rotation;         // in degrees, rotate the electric prim by this value to match the cadence prim
+        public final double xOffset, yOffset;
 
         private NodeEquivalence(NodeProto np, PrimitiveNode.Function func, PortCharacteristic exportedType,
                 String externalLib, String externalCell, String externalView, int rotation, List<PortEquivalence> portEquivs) {
@@ -589,6 +606,50 @@ public class EDIFEquiv {
             this.externalView = externalView;
             this.rotation = rotation;
             this.portEquivs = portEquivs;
+
+            // figure out offset
+			double bestXOff = 0, bestYOff = 0;
+			if (rotation == 0)
+			{
+				Map<Double,MutableInteger> xMap = new HashMap<Double,MutableInteger>();
+				Map<Double,MutableInteger> yMap = new HashMap<Double,MutableInteger>();
+				for(EDIFEquiv.PortEquivalence pe : portEquivs)
+				{
+					Double diffX = new Double(pe.getElecPort().loc.getX() - pe.getExtPort().loc.getX());
+					MutableInteger xCount = xMap.get(diffX);
+					if (xCount == null) xMap.put(diffX, xCount = new MutableInteger(0));
+					xCount.increment();
+
+					Double diffY = new Double(pe.getElecPort().loc.getY() - pe.getExtPort().loc.getY());
+					MutableInteger yCount = yMap.get(diffY);
+					if (yCount == null) yMap.put(diffY, yCount = new MutableInteger(0));
+					yCount.increment();
+				}
+
+				int bestXInc = 0;
+				for(Double diffX : xMap.keySet())
+				{
+					MutableInteger xCount = xMap.get(diffX);
+					if (xCount.intValue() > bestXInc)
+					{
+						bestXInc = xCount.intValue();
+						bestXOff = diffX.doubleValue();
+					}
+				}
+
+				int bestYInc = 0;
+				for(Double diffY : yMap.keySet())
+				{
+					MutableInteger yCount = yMap.get(diffY);
+					if (yCount.intValue() > bestYInc)
+					{
+						bestYInc = yCount.intValue();
+						bestYOff = diffY.doubleValue();
+					}
+				}
+			}
+			xOffset = bestXOff;
+			yOffset = bestYOff;
         }
         /**
          * Get the PortEquivalence object for the Electric port name.

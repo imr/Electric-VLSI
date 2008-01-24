@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -198,6 +199,7 @@ public class EDIF extends Input
 	/** the cellRef type */						private NodeProto cellRefProto;
 	/** the cellRef tech bits if primitive */	private int cellRefProtoTechBits;
 	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
+	/** the cellRef offset when mapped */		private double cellRefOffsetX, cellRefOffsetY;
 	/** the current port proto */				private PortProto curPort;
 
 	// general geometry information ...
@@ -1590,6 +1592,7 @@ public class EDIF extends Input
 			String aName = cellRef;
 			cellRefProtoTechBits = 0;
 			cellRefProtoRotation = 0;
+			cellRefOffsetX = cellRefOffsetY = 0;
 			String view = "lay";
 			if (activeView != VMASKLAYOUT)
 			{
@@ -1610,6 +1613,10 @@ public class EDIF extends Input
 				cellRefProto = ne.np;
 				cellRefProtoTechBits = 0;
 				cellRefProtoRotation = ne.rotation;
+
+				// determine the offset
+				cellRefOffsetX = ne.xOffset;
+				cellRefOffsetY = ne.yOffset;
 				if (cellRefProto instanceof PrimitiveNode) {
 					Technology tech = cellRefProto.getTechnology();
 					if (tech instanceof Schematics) {
@@ -2014,8 +2021,8 @@ public class EDIF extends Input
 						double cY = ((sheetYPos - (SHEETHEIGHT / 2)) * INCH);
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
-						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell,
-							orient, null, cellRefProtoTechBits);
+						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX+cellRefOffsetX, cY+cellRefOffsetY),
+							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -2560,6 +2567,7 @@ public class EDIF extends Input
 											// found exact match, move port
 											fX = curPoint.getX();
 											fY = curPoint.getY();
+											break;
 										}
 									}
 								}
@@ -2596,6 +2604,7 @@ public class EDIF extends Input
 										// found exact match, move port
 										tX = curPoint.getX();
 										tY = curPoint.getY();
+										break;
 									}
 								}
 							}
@@ -2665,7 +2674,9 @@ public class EDIF extends Input
 								}
 							}
 							Point2D fromPoint = new Point2D.Double(fX, fY);
+							if (!fPi.getPoly().contains(fromPoint)) fromPoint = fPi.getPoly().getCenter();
 							Point2D toPoint = new Point2D.Double(tX, tY);
+							if (!tPi.getPoly().contains(toPoint)) toPoint = tPi.getPoly().getCenter();
 
 							// check for wire connecting to a bus port: insert a Join
 							if (ap == Schematics.tech().wire_arc)
@@ -2673,7 +2684,8 @@ public class EDIF extends Input
 								if (isBusName(fPi.getPortProto().getName()))
 								{
 									PrimitiveNode joinNode = Schematics.tech().wireConNode;
-									Point2D ctrPoint = new Point2D.Double(fX + (tX-fX)/3, fY + (tY-fY)/3);
+									Point2D ctrPoint = new Point2D.Double(fromPoint.getX() + (toPoint.getX()-fromPoint.getX())/3,
+										fromPoint.getY() + (toPoint.getY()-fromPoint.getY())/3);
 									NodeInst ni = NodeInst.makeInstance(joinNode, ctrPoint,
 										joinNode.getDefWidth(), joinNode.getDefHeight(), curCell);
 									PortInst newFrom = ni.getOnlyPortInst();
@@ -2684,7 +2696,8 @@ public class EDIF extends Input
 								if (isBusName(tPi.getPortProto().getName()))
 								{
 									PrimitiveNode joinNode = Schematics.tech().wireConNode;
-									Point2D ctrPoint = new Point2D.Double(tX + (fX-tX)/3, tY + (fY-tY)/3);
+									Point2D ctrPoint = new Point2D.Double(toPoint.getX() + (fromPoint.getX()-toPoint.getX())/3,
+										toPoint.getY() + (fromPoint.getY()-toPoint.getY())/3);
 									NodeInst ni = NodeInst.makeInstance(joinNode, ctrPoint,
 										joinNode.getDefWidth(), joinNode.getDefHeight(), curCell);
 									PortInst newFrom = ni.getOnlyPortInst();
@@ -3704,7 +3717,7 @@ public class EDIF extends Input
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
-						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
+						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX+cellRefOffsetX, yPos+cellRefOffsetY),
 							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
