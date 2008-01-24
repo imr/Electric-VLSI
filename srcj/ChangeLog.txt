@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (1/24/08, DN) STAOpptionDialogs calls setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+    This value is invalid for JDialog and Java 1.6 detects it.
+FIX: Do not change the default close operation.
+
+BUG: (1/24/08, DN) New: quit when unable to save (Bug #1537)
+FIX: Create FileMenu.RenameAndSaveLibraryTask objects in GUI and pass it to doIt
+     methods of QuitJob, ReadLibrary, ImportLibrary, CloseLibrary jobs. 
+
 BUG: (1/23/08, GVG) Quit command does not longer work (Bug #1543)
 FIX: Missing QuitJob.startJob().
 

@@ -235,7 +235,6 @@ public class Output
 //		Pref.installMeaningVariables();
 
 		// make sure that this library save is announced
-        Constraints.getCurrent().writeLibrary(lib);
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = it.next();
@@ -397,6 +396,7 @@ public class Output
             CVSLibrary.updateState(lib);
         }
 */
+        Constraints.getCurrent().writeLibrary(lib);
 		return false;
 	}
     

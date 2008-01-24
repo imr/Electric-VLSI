@@ -358,7 +358,7 @@ public class ManualViewer extends EModelessDialog
             return;
         }
 		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, null, cellName);
+		new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
 	}
 
 	/**

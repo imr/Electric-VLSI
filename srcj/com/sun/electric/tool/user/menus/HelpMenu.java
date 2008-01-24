@@ -95,7 +95,7 @@ public class HelpMenu {
 	{
 		if (Library.findLibrary(libName) != null) return;
 		URL url = LibFile.getLibFile(libName + ".jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, null, null);
+		new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
     
 }
