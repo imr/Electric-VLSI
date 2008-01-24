@@ -325,12 +325,23 @@ public class SCLibraryGen {
         private static final Integer doesNotContainStandardCell = new Integer(2);
 
         private Map<Cell,Integer> standardCellMap = new HashMap<Cell,Integer>();
+        private Map<String,Cell> standardCellsByName = new HashMap<String,Cell>();
+        private boolean nameConflict = false;
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
             if (standardCellMap.containsKey(cell)) return false; // cached already
             if (SCLibraryGen.isStandardCell(cell)) {
                 standardCellMap.put(cell, standardCell);
+                // check for name conflict
+                Cell otherCell = standardCellsByName.get(cell.getName());
+                if (otherCell != null && otherCell != cell) {
+                    System.out.println("Error: multiple standard cells with same name not allowed: "+
+                            cell.libDescribe()+" and "+ otherCell.libDescribe());
+                    nameConflict = true;
+                } else {
+                    standardCellsByName.put(cell.getName(), cell);
+                }
                 return false;
             }
             return true;
@@ -398,6 +409,13 @@ public class SCLibraryGen {
         public Set<Cell> getDoesNotContainStandardCellsInHier() {
             return getCells(doesNotContainStandardCell);
         }
+
+        /**
+         * Returns true if there was a name conflict, where two standard
+         * cells from different libraries have the same name.
+         * @return true if name conflict exists
+         */
+        public boolean getNameConflict() { return nameConflict; }
 
         /**
          * Get cells of the given type. The type is one of

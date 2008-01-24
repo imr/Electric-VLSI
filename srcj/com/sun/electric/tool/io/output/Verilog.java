@@ -270,6 +270,9 @@ public class Verilog extends Topology
             for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
                 System.out.println("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
             }
+            if (standardCells.getNameConflict()) {
+                System.out.println("Name conflicts found, please see above messages");
+            }
         }
     }
 
