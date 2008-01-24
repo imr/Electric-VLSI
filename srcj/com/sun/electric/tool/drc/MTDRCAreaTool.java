@@ -80,6 +80,7 @@ public class MTDRCAreaTool extends MTDRCTool
                 + " (took " + TextUtils.getElapsedTime(endTime - startTime) + " in thread " + Thread.currentThread().getName() + ")");
         long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
+        errorLogger.termLogging(true);
         return new MTDRCResult(errorCount, warnCount);
     }
 
@@ -181,7 +182,9 @@ public class MTDRCAreaTool extends MTDRCTool
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
-//            if (job != null && job.checkAbort()) return false;
+            // Checking if the job was aborted by the user
+            if (checkAbort()) return false;
+
             Cell cell = info.getCell();
             Set<String> set = cellLayersCon.getLayersSet(cell);
 
@@ -255,8 +258,9 @@ public class MTDRCAreaTool extends MTDRCTool
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
+            // Checking if the job was aborted
+            if (checkAbort()) return false;
 
-//            if (job != null && job.checkAbort()) return false;
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);

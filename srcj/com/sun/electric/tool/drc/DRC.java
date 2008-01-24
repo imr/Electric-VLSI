@@ -1397,8 +1397,8 @@ public class DRC extends Listener
      * Update Functions
      ***********************************/
 
-    public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
-                                    HashMap<Geometric, List<Variable>> newVariables)
+    static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
+                             HashMap<Geometric, List<Variable>> newVariables)
     {
         boolean good = (goodDRCDate != null && goodDRCDate.size() > 0);
         boolean clean = (cleanDRCDate != null && cleanDRCDate.size() > 0);
