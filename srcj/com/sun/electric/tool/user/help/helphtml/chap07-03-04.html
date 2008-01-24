@@ -40,6 +40,8 @@ Where:
 <LI><CODE>ElFunc</CODE> is the Electric function (e.g. "CONPOWER").</LI>
 <LI><CODE>ElRot</CODE> is the Electric rotation (e.g. "90").</LI>
 <LI><CODE>ElPortOff</CODE> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
+The offsets are the values required to move the port to the origin,
+so if a port is at (2, -5), the offset should be (-2, 5).
 Each port on the primitive must be listed, and an offset given.
 To ignore a port, use "NA" instead of "port(x,y)".
 You can also specify an ignored port as "NA(x,y)" if you want to affect how an attached wire's endpoint 
@@ -51,12 +53,30 @@ If the port's name is "NA", use "\NA(x,y)" to specify the name as NA, and not be
 <LI><CODE>EdPrim</CODE> is the EDIF primitive name (e.g. "pmos2v").</LI>
 <LI><CODE>EdFunc</CODE> is the EDIF function (e.g. "symbol").</LI>
 <LI><CODE>EdPortOff</CODE> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
-Each port on the primitive must be listed, and an offset given.</LI>
+Each port on the primitive must be listed, and an offset given.
+The offsets are the values required to move the port to the origin,
+so if a port is at (2, -5), the offset should be (-2, 5).</LI>
 </UL>
 For example:
 <BR>
 &nbsp;&nbsp;<CODE><FONT SIZE="-1">P schematic Ground CONGROUND 0 { gnd(0,2) } basic gnd symbol { gnd!(0,0) }</FONT>
 </CODE>
+</LI>
+
+
+<LI><B>Cells</B>
+A line starting with "C" controls how cells are converted to EDIF.
+The line has this format:
+<BR>
+<CODE><FONT SIZE="-1">&nbsp;C ElLib ElCell ElView ElRot ElPortOff EdTech EdPrim EdFunc EdPortOff</FONT></CODE>
+<BR>
+Where:
+<UL>
+<LI><CODE>ElLib</CODE> is the Electric library name (e.g. "MyCells").</LI>
+<LI><CODE>ElCell</CODE> is the cell name in that library (e.g. "Inverter").</LI>
+<LI><CODE>ElView</CODE> is the view name of the cell (e.g. "ic" for Icon).</LI>
+</UL>
+All other fields are the same as in the "Primitive" line.
 </LI>
 
 <LI><B>Exports</B>
@@ -72,11 +92,15 @@ Where:
 <LI><CODE>ElFunc</CODE> is the Electric function (e.g. "CONNECT").</LI>
 <LI><CODE>ElRot</CODE> is the Electric rotation (e.g. "90").</LI>
 <LI><CODE>ElPortOff</CODE> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
+The offsets are the values required to move the export to the origin,
+so if an export is at (2, -5), the offset should be (-2, 5).
 Each port on the primitive must be listed, and an offset given.</LI>
 <LI><CODE>EdTech</CODE> is the EDIF technology name (e.g. "tsmc18").</LI>
 <LI><CODE>EdPrim</CODE> is the EDIF primitive name (e.g. "pmos2v").</LI>
 <LI><CODE>EdFunc</CODE> is the EDIF function (e.g. "symbol").</LI>
 <LI><CODE>EdPortOff</CODE> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
+The offsets are the values required to move the export to the origin,
+so if an export is at (2, -5), the offset should be (-2, 5).
 Each port on the primitive must be listed, and an offset given.</LI>
 </UL>
 For example:
