@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (1/24/08, GVG) ErrorLoggers are not added into Explorer (Bug #1541)
+FIX: Missing termLogging added.
+
+BUG: (1/24/08, GVG) Can't abort MTDRCArea jobs (Bug #1542)
+FIX: Added missing abort function.
+
 BUG: (1/24/08, DN) STAOpptionDialogs calls setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     This value is invalid for JDialog and Java 1.6 detects it.
 FIX: Do not change the default close operation.
