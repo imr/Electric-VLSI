@@ -1407,6 +1407,7 @@ public class FileMenu {
     	public QuitJob()
         {
             super("Quitting", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
         }
 
         public boolean doIt() throws JobException
