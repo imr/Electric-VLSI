@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
 /**
  * Class to do sea-of-gates routing.
@@ -99,6 +100,7 @@ import java.util.TreeSet;
 public class SeaOfGatesEngine
 {
 	/** True to run with multiple parallel processors. */						private static final boolean PARALLEL = false;
+	/** True to run with multiple parallel processors on two dijkstra steps. */	private static final boolean PARALLELDIJ = false;
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
 	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = false;
@@ -132,6 +134,8 @@ public class SeaOfGatesEngine
 	/** true if this is the first failure of a route (for debugging) */			private boolean firstFailure;
 	/** for logging errors */													private ErrorLogger errorLogger;
 
+	private DijkstraInThread d1, d2;
+
 	/**
 	 * Class to hold a "batch" of routes, all on the same network.
 	 */
@@ -151,7 +155,6 @@ public class SeaOfGatesEngine
 	{
 		String routeName;
 		PortInst from, to;
-		ArcProto fromAp, toAp;
 		double fromX, fromY;
 		int fromZ;
 		double toX, toY;
@@ -160,25 +163,25 @@ public class SeaOfGatesEngine
 		double minWidth;
 		int batchNumber;
 		int routeInBatch;
+		long timeTaken;
 		List<SearchVertex> vertices;
 		Rectangle2D routeBounds;
+		boolean abort;
 		/** destination coordinate for the current Dijkstra path. */		private double destX, destY;
 		/** destination layer for the current Dijkstra path. */				private int destZ;
 		/** intermediate seach vertices during Dijkstra search. */			private Map<Integer,Set<Integer>> [] searchVertexPlanes;
 		/** intermediate gridless seach vertices during Dijkstra search. */	private Map<Double,Set<Double>> [] searchVertexPlanesDBL;
 
-		NeededRoute(String routeName, PortInst from, ArcProto fromAp, double fromX, double fromY, int fromZ,
-			PortInst to, ArcProto toAp, double toX, double toY, int toZ,
+		NeededRoute(String routeName, PortInst from, double fromX, double fromY, int fromZ,
+			PortInst to, double toX, double toY, int toZ,
 			int netID, double minWidth, int batchNumber, int routeInBatch)
 		{
 			this.routeName = routeName;
 			this.from = from;
-			this.fromAp = fromAp;
 			this.fromX = fromX;
 			this.fromY = fromY;
 			this.fromZ = fromZ;
 			this.to = to;
-			this.toAp = toAp;
 			this.toX = toX;
 			this.toY = toY;
 			this.toZ = toZ;
@@ -479,8 +482,7 @@ public class SeaOfGatesEngine
 					continue;
 				}
 
-				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromArc, fromX, fromY, fromZ,
-					toPi, toArc, toX, toY, toZ,
+				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY, toZ,
 					netID, minWidth, b, batchNumber++);
 				routeBatches[b].segsInBatch++;
 				allRoutes.add(nr);
@@ -490,12 +492,25 @@ public class SeaOfGatesEngine
 		// now do the actual routing
 		firstFailure = true;
 		totalWireLength = 0;
-		if (PARALLEL)
+		int numberOfThreads = Runtime.getRuntime().availableProcessors();
+		if (PARALLELDIJ) numberOfThreads /= 2;
+		if (!PARALLEL) numberOfThreads = 1;
+		if (PARALLELDIJ)
 		{
-			doRoutingParallel(allRoutes, routeBatches, job);
+			d1 = new DijkstraInThread("Route a->b");
+			d2 = new DijkstraInThread("Route b->a");
+		}
+		if (numberOfThreads > 1)
+		{
+			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, job);
 		} else
 		{
 			doRouting(allRoutes, routeBatches, job);
+		}
+		if (PARALLELDIJ)
+		{
+			d1.startRoute(null, null, null);
+			d2.startRoute(null, null, null);
 		}
 
 		// finally analyze the results and remove unrouted arcs
@@ -586,7 +601,7 @@ public class SeaOfGatesEngine
 			if (routeBatches[nr.batchNumber].segsInBatch > 1)
 				routeName += " (" + nr.routeInBatch + " of " + routeBatches[nr.batchNumber].segsInBatch + ")";
 			Job.getUserInterface().setProgressNote("Network " + routeName);
-			if (nr.routeInBatch == 1) System.out.println("Routing network " + nr.routeName + "...");
+			System.out.println("Routing network " + routeName + "...");
 	
 			// route the segment
 			findPath(nr);
@@ -597,19 +612,23 @@ public class SeaOfGatesEngine
 		}
 	}
 
-	private void doRoutingParallel(List<NeededRoute> allRoutes, RouteBatches [] routeBatches, Job job)
+	private void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches [] routeBatches, Job job)
 	{
-		int totalRoutes = allRoutes.size();
-		int routesDone = 0;
-		int numberOfThreads = Runtime.getRuntime().availableProcessors();
+		// create threads and other threading data structures
 		RouteInThread[] threads = new RouteInThread[numberOfThreads];
+		for(int i=0; i<numberOfThreads; i++) threads[i] = new RouteInThread("Route #" + (i+1));
 		NeededRoute [] routesToDo = new NeededRoute[numberOfThreads];
 		int [] routeIndices = new int[numberOfThreads];
+		Semaphore outSem = new Semaphore(0);
+
+		// create list of routes and blocked areas
 		List<NeededRoute> myList = new ArrayList<NeededRoute>();
 		for(NeededRoute nr : allRoutes) myList.add(nr);
 		List<Rectangle2D> blocked = new ArrayList<Rectangle2D>();
 
-		// now create the threads
+		// now run the threads
+		int totalRoutes = allRoutes.size();
+		int routesDone = 0;
 		while (myList.size() > 0)
 		{
 			int threadAssign = 0;
@@ -628,7 +647,7 @@ public class SeaOfGatesEngine
 				blocked.add(nr.routeBounds);
 				routesToDo[threadAssign] = nr;
 				routeIndices[threadAssign] = i;
-				threads[threadAssign] = new RouteInThread(nr);
+				threads[threadAssign].startRoute(nr, outSem);
 				threadAssign++;
 				if (threadAssign >= numberOfThreads) break;
 			}
@@ -646,17 +665,7 @@ public class SeaOfGatesEngine
 			Job.getUserInterface().setProgressNote(routes);
 
 			// now wait for routing threads to finish
-			for(int i=0; i<threadAssign; i++)
-			{
-				try
-				{
-					threads[i].join();
-				}
-				catch (InterruptedException e)
-				{
-					System.out.println("Thread "+i+" exception: "+e.getMessage());
-				}
-			}
+			outSem.acquireUninterruptibly(threadAssign);
 
 			// all done, now handle the results
 			for(int i=0; i<threadAssign; i++)
@@ -669,21 +678,39 @@ public class SeaOfGatesEngine
 			routesDone += threadAssign;
 			Job.getUserInterface().setProgressValue(routesDone*100/totalRoutes);
 		}
+
+		// terminate the threads
+		for(int i=0; i<numberOfThreads; i++) threads[i].startRoute(null, null);
 	}
 
 	private class RouteInThread extends Thread
 	{
+		private Semaphore inSem = new Semaphore(0);
 		private NeededRoute nr;
+		private Semaphore whenDone;
 
-		public RouteInThread(NeededRoute nr)
+		public RouteInThread(String name)
+		{
+			super(name);
+			start();
+		}
+
+		public void startRoute(NeededRoute nr, Semaphore whenDone)
 		{
 			this.nr = nr;
-			start();
+			this.whenDone = whenDone;
+			inSem.release();
 		}
 
 		public void run()
 		{
-			findPath(nr);
+			for (;;)
+			{
+				inSem.acquireUninterruptibly();
+				if (nr == null) return;
+				findPath(nr);
+				whenDone.release();
+			}
 		}
 	}
 
@@ -1330,6 +1357,46 @@ public class SeaOfGatesEngine
 		return ai;
 	}
 
+	private class DijkstraInThread extends Thread
+	{
+		private Semaphore inSem = new Semaphore(0);
+		private NeededRoute nr;
+		private NeededRoute otherNr;
+		private Semaphore whenDone;
+
+		public DijkstraInThread(String name)
+		{
+			super(name);
+			start();
+		}
+
+		public void startRoute(NeededRoute nr, NeededRoute otherNr, Semaphore whenDone)
+		{
+			this.nr = nr;
+			this.otherNr = otherNr;
+			this.whenDone = whenDone;
+			inSem.release();
+		}
+
+		public List<SearchVertex> getResults()
+		{
+			List<SearchVertex> result = nr.vertices;
+			nr = null;
+			return result;
+		}
+
+		public void run()
+		{
+			for (;;)
+			{
+				inSem.acquireUninterruptibly();
+				if (nr == null) return;
+				nr.vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, otherNr);
+				whenDone.release();
+			}
+		}
+	}
+
 	/**
 	 * Method to find a path between two ports.
 	 * @param nr the NeededRoute object with all necessary information.
@@ -1337,23 +1404,38 @@ public class SeaOfGatesEngine
 	 */
 	private void findPath(NeededRoute nr)
 	{
-//// this is for debugging only
+		List<SearchVertex> vertices, verticesRev;
+		Map<Integer,Set<Integer>> [] saveD1Planes = null;
+		if (PARALLELDIJ)
+		{
+			Semaphore outSem = new Semaphore(0);
+			NeededRoute revNr = new NeededRoute(nr.routeName, nr.to, nr.toX, nr.toY, nr.toZ,
+				nr.from, nr.fromX, nr.fromY, nr.fromZ,
+				nr.netID, nr.minWidth, nr.batchNumber, nr.routeInBatch);
+			d1.startRoute(nr, revNr, outSem);
+			d2.startRoute(revNr, nr, outSem);
+			outSem.acquireUninterruptibly(2);
+			vertices = d1.getResults();
+			verticesRev = d2.getResults();
+		} else
+		{
+// this is for debugging only
 //if (fromX < toX)
 //{
 //	double s = fromX;   fromX = toX;   toX = s;
 //	s = fromY;   fromY = toY;   toY = s;
 //	int is = fromZ;   fromZ = toZ;   toZ = is;
 //}
-		// do the Dijkstra one way
-		List<SearchVertex> vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr);
-		Map<Integer,Set<Integer>> [] saveD1Planes = null;
-		if (DEBUGFAILURE && firstFailure) saveD1Planes = nr.searchVertexPlanes;
+			// do the Dijkstra one way
+			vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, nr);
+			if (DEBUGFAILURE && firstFailure) saveD1Planes = nr.searchVertexPlanes;
 
-		// do the Dijkstra the other way
+			// do the Dijkstra the other way
 //List<SearchVertex> verticesRev = new ArrayList<SearchVertex>();
-		List<SearchVertex> verticesRev = doDijkstra(nr.toX, nr.toY, nr.toZ, nr.fromX, nr.fromY, nr.fromZ, nr);
-		nr.searchVertexPlanes = null;
-		nr.searchVertexPlanesDBL = null;
+			verticesRev = doDijkstra(nr.toX, nr.toY, nr.toZ, nr.fromX, nr.fromY, nr.fromZ, nr, nr);
+		}
+
+		// see which result is better
 		double verLength = getVertexLength(vertices);
 		double verLengthRev = getVertexLength(verticesRev);
 		if (verLength == Double.MAX_VALUE && verLengthRev == Double.MAX_VALUE)
@@ -1392,7 +1474,6 @@ public class SeaOfGatesEngine
 			// reverse path is better
 			vertices = verticesRev;
 			PortInst pi = nr.to;   nr.to = nr.from;   nr.from = pi;
-			ArcProto ap = nr.toAp;   nr.toAp = nr.fromAp;   nr.fromAp = ap;
 			double s = nr.toX;   nr.toX = nr.fromX;   nr.fromX = s;
 			s = nr.toY;   nr.toY = nr.fromY;   nr.fromY = s;
 			int a = nr.toZ;   nr.toZ = nr.fromZ;   nr.fromZ = a;
@@ -1408,14 +1489,17 @@ public class SeaOfGatesEngine
 	 * @param toX the X coordinate of the end of the search.
 	 * @param toY the Y coordinate of the end of the search.
 	 * @param toZ the Z coordinate (metal layer) of the end of the search.
-	 * @param netID the network ID of geometry on this route path.
-	 * @param minWidth the minimum arc width for this network.
+	 * @param nr routing information for this Dijkstra search.
+	 * @param otherNr routing information for the Dijkstra search running in the opposite direction (may run in parallel).
 	 * @return a list of SearchVertex objects that define the path.
 	 * Returns null if the search is too complex.
-	 * Returns an empty list if no path can be found
+	 * Returns an empty list if no path can be found or if aborted.
 	 */
-	private List<SearchVertex> doDijkstra(double fromX, double fromY, int fromZ, double toX, double toY, int toZ, NeededRoute nr)
+	private List<SearchVertex> doDijkstra(double fromX, double fromY, int fromZ, double toX, double toY, int toZ,
+		NeededRoute nr, NeededRoute otherNr)
 	{
+		long startTime = System.currentTimeMillis();
+		nr.abort = false;
 		Rectangle2D bounds = cell.getBounds();
 		double lowX = downToGrain(bounds.getMinX());
 		double highX = upToGrain(bounds.getMaxX());
@@ -1455,6 +1539,14 @@ public class SeaOfGatesEngine
 		SearchVertex thread = null;
 		while (active.size() > 0)
 		{
+			if (nr.abort)
+			{
+				nr.searchVertexPlanes = null;
+				nr.searchVertexPlanesDBL = null;
+				nr.timeTaken = System.currentTimeMillis() - startTime;
+				return null;
+			}
+
 			// get the lowest cost point
 			SearchVertex svCurrent = active.first();
 			active.remove(svCurrent);
@@ -1766,7 +1858,13 @@ public class SeaOfGatesEngine
 
 				// stop if the search is too complex
 				numSearchVertices++;
-				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit()) return null;
+				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
+				{
+					nr.searchVertexPlanes = null;
+					nr.searchVertexPlanesDBL = null;
+					nr.timeTaken = System.currentTimeMillis() - startTime;
+					return null;
+				}
 
 				// compute the cost
 				svNext.cost = svCurrent.cost;
@@ -1849,6 +1947,10 @@ public class SeaOfGatesEngine
 //			dumpPlane(2);
 //		}
 		List<SearchVertex> realVertices = getOptimizedList(thread);
+		nr.searchVertexPlanes = null;
+		nr.searchVertexPlanesDBL = null;
+		nr.timeTaken = System.currentTimeMillis() - startTime;
+		otherNr.abort = true;
 		return realVertices;
 	}
 
@@ -2104,7 +2206,6 @@ public class SeaOfGatesEngine
 				{
 					// changed layers: compute via rectangles
 					List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
-//					int whichContact = sv.getContactNo();
 					int whichContact = lastSv.getContactNo();
 					MetalVia mv = nps.get(whichContact);
 					PrimitiveNode np = mv.via;
@@ -2203,7 +2304,6 @@ public class SeaOfGatesEngine
 				{
 					// changed layers: analyze the contact for notches
 					List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
-//					int whichContact = sv.getContactNo();
 					int whichContact = lastSv.getContactNo();
 					MetalVia mv = nps.get(whichContact);
 					PrimitiveNode np = mv.via;
