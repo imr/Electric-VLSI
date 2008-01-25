@@ -40,6 +40,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import java.util.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Area;
 
 /**
  * User: gg151869
@@ -87,6 +88,48 @@ public class MTDRCAreaTool extends MTDRCTool
     /**************************************************************************************************************
 	 *  LayerAreaEnumerator class
 	 **************************************************************************************************************/
+
+    public static class GeometryHandlerLayerBucket
+    {
+        GeometryHandler local;
+        boolean merged = false;
+
+        GeometryHandlerLayerBucket(GeometryHandler.GHMode mode)
+        {
+            local = GeometryHandler.createGeometryHandler(mode, 1);
+        }
+
+        void addElementLocal(Poly poly, Layer layer)
+        {
+            local.add(layer, poly);
+        }
+
+        void mergeGeometry(Cell cell, Map<Cell, GeometryHandlerLayerBucket> cellsMap)
+        {
+            if (!merged)
+            {
+                merged = true;
+                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
+                {
+                    NodeInst ni = it.next();
+                    if (!ni.isCellInstance()) continue; // only cell instances
+                    AffineTransform trans = ni.transformOut();
+                    Cell protoCell = (Cell) ni.getProto();
+                    GeometryHandlerLayerBucket bucket = cellsMap.get(protoCell);
+                    if (bucket != null) // it is null when the layer was not found in the subcell
+                        local.addAll(bucket.local, trans);
+                }
+                local.postProcess(true);
+            } else
+            {
+                assert (false); // It should not happen
+            }
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  LayerAreaEnumerator class
+	 **************************************************************************************************************/
     /**
      * Class that uses local GeometryHandler to calculate the area per cell
      */
@@ -123,7 +166,6 @@ public class MTDRCAreaTool extends MTDRCTool
                 for (Technology.NodeLayer nLayer : node.getLayers())
                 {
                     if (thisLayerFunction.contains(nLayer.getLayer().getFunction(), theLayer.getFunctionExtras()))
-//                    if (nLayer.getLayer() == theLayer)
                     {
                         nodesList.add(node);
                         break; // found
@@ -140,42 +182,6 @@ public class MTDRCAreaTool extends MTDRCTool
                         arcsList.add(ap);
                         break; // found
                     }
-                }
-            }
-        }
-
-        private class GeometryHandlerLayerBucket {
-            GeometryHandler local;
-            boolean merged = false;
-            GeometryHandlerLayerBucket()
-            {
-                local = GeometryHandler.createGeometryHandler(mode, 1);
-            }
-            void mergeGeometry(Cell cell)
-            {
-                if (!merged)
-                {
-                    merged = true;
-                    for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
-                    {
-                        NodeInst ni = it.next();
-                        if (!ni.isCellInstance()) continue; // only cell instances
-                        AffineTransform trans = ni.transformOut();
-                        Cell protoCell = (Cell)ni.getProto();
-                        GeometryHandlerLayerBucket bucket = cellsMap.get(protoCell);
-                        if (bucket != null) // it is null when the layer was not found in the subcell
-                        local.addAll(bucket.local, trans);
-//                        if (protoCell.getId().numUsagesOf() <= 1) // used only here
-//                        {
-//                            System.out.println("Here");
-//                            cellsMap.put(protoCell, null);
-//                        }
-                    }
-                    local.postProcess(true);
-                }
-                else
-                {
-                    assert(false); // It should not happen
                 }
             }
         }
@@ -197,7 +203,7 @@ public class MTDRCAreaTool extends MTDRCTool
             GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
             if (bucket == null)
             {
-                bucket = new GeometryHandlerLayerBucket();
+                bucket = new GeometryHandlerLayerBucket(mode);
                 cellsMap.put(cell, bucket);
             }
             else
@@ -227,16 +233,11 @@ public class MTDRCAreaTool extends MTDRCTool
                 for(int i=0; i<tot; i++)
                 {
                     Poly poly = arcInstPolyList[i];
-                    addElementLocal(poly, theLayer, bucket);
+                    bucket.addElementLocal(poly, theLayer);
                 }
             }
 
             return true;
-        }
-
-        private void addElementLocal(Poly poly, Layer layer, GeometryHandlerLayerBucket bucket)
-        {
-            bucket.local.add(layer, poly);
         }
 
         public void exitCell(HierarchyEnumerator.CellInfo info)
@@ -245,7 +246,7 @@ public class MTDRCAreaTool extends MTDRCTool
             boolean isTopCell = cell == topCell;
             GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
 
-            bucket.mergeGeometry(cell);
+            bucket.mergeGeometry(cell, cellsMap);
 
             if (isTopCell)
             {
@@ -264,12 +265,12 @@ public class MTDRCAreaTool extends MTDRCTool
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
-			NodeProto np = ni.getProto();
-            GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 
             // Cells
             if (ni.isCellInstance()) return (true);
 
+			NodeProto np = ni.getProto();
+            GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 			AffineTransform trans = ni.rotateOut();
             PrimitiveNode pNp = (PrimitiveNode)np;
             boolean notFound = !nodesList.contains(pNp);
@@ -287,22 +288,67 @@ public class MTDRCAreaTool extends MTDRCTool
 
                 poly.roundPoints(); // Trying to avoid mismatches while joining areas.
                 poly.transform(trans);
-                addElementLocal(poly, theLayer, bucket);
+                bucket.addElementLocal(poly, theLayer);
             }
 
             return true;
         }
 
+        private int checkMinAreaLayerWithLoops(GeometryHandler merge, Cell cell, Layer layer)
+        {
+            // Layer doesn't have min area
+            if (minAreaRule == null && enclosedAreaRule == null && spacingRule == null) return 0;
+            PolySweepMerge m = (PolySweepMerge)merge; // easier to implement for now.
+            List<Area> areas = m.getAreas(layer);
+            GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
+
+            // It could be multi-threaded per area
+            for (Area area : areas)
+            {
+                List<PolyBase> list = PolyBase.getLoopsFromArea(area, layer);
+
+                for (PolyBase p : list)
+                {
+                    double a = p.getArea();
+                    boolean minPass = (minAreaRule == null) ? true : a >= minAreaRule.getValue(0);
+
+                    if (minPass) // passes minArea
+                        minPass = (enclosedAreaRule == null) ? true : a >= enclosedAreaRule.getValue(0);
+                    if (minPass) // passes enclosure
+                    {
+                        if (spacingRule != null)
+                        {
+                            Rectangle2D bnd = p.getBounds2D();
+                            minPass = bnd.getWidth() >= spacingRule.getValue(0);
+                            if (minPass)
+                               minPass = bnd.getHeight() >= spacingRule.getValue(1);
+                        }
+                    }
+                    // Must run the real checking
+                    if (!minPass)
+                    {
+                        List<PolyBase.PolyBaseTree> roots = PolyBase.getTreesFromLoops(list);
+
+                        assert (roots.size() == 1);
+
+                        for (PolyBase.PolyBaseTree obj : roots)
+                        {
+                            traversePolyTree(layer, obj, 0, cell, errorFound);
+                        }
+                    }
+                }
+            }
+
+            return errorFound.intValue();
+        }
+
         private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer)
         {
-            // Layer doesn't have min areae
+            // Layer doesn't have min area
             if (minAreaRule == null && enclosedAreaRule == null && spacingRule == null) return 0;
 
             Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
             GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
-
-            if (trees.isEmpty())
-                System.out.println("Nothing for layer " + layer.getName() + " found.");
 
             for (PolyBase.PolyBaseTree obj : trees)
             {

@@ -499,13 +499,13 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return false;
 			}
 
-            boolean method = isInsideGenericPolygonOriginal(pt);
-//            boolean method1 = isPointInsideCutAlgorithm(pt);
+//            boolean method = isInsideGenericPolygonOriginal(pt);
+            boolean method = isPointInsideCutAlgorithm(pt);
 //            if (method1 != method)
 //            {
 //                 isPointInsideCutAlgorithm(pt);
+//                System.exit(1);
 //            }
-//            assert(method == newMe);
 //            boolean method = isPointInsideArea(pt);  // very slow. 3 times slower in 1 example
 
             return method;
@@ -1683,13 +1683,13 @@ public class PolyBase implements Shape, PolyNodeMerge
      * sorted by area.
      * @return the List of loops.
      */
-    public List<PolyBase> getSortedLoops()
-    {
-        Collection<PolyBase> set = getPointsInArea(new Area(this), layer, true, false, null);
-        List<PolyBase> list = new ArrayList<PolyBase>(set);
-        Collections.sort(list, AREA_COMPARATOR);
-        return (list);
-    }
+//    public List<PolyBase> getSortedLoops()
+//    {
+//        Collection<PolyBase> set = getPointsInArea(new Area(this), layer, true, false, null);
+//        List<PolyBase> list = new ArrayList<PolyBase>(set);
+//        Collections.sort(list, AREA_COMPARATOR);
+//        return (list);
+//    }
 
     /**
      * Class to compare PolyBase objects
@@ -1722,22 +1722,22 @@ public class PolyBase implements Shape, PolyNodeMerge
      * @param includeLastPoint true to include the last point.
      * @return List of PolyBase elements.
      */
-	public static List<PolyBase> getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List<PolyBase> polyList)
+	public static List<PolyBase> getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint)
 	{
 		if (area == null) return null;
 		boolean isSingular = area.isSingular();
 
         // Complex algorithm to detect loops
         if (!isSingular)
-            return (getPointsFromComplex(area, layer, polyList));
+            return (getPointsFromComplex(area, layer));
 
-        if (polyList == null) polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
 		List<Point2D> pointList = new ArrayList<Point2D>();
 		Point2D lastMoveTo = null;
 		List<PolyBase> toDelete = new ArrayList<PolyBase>();
+        List<PolyBase> polyList = new ArrayList<PolyBase>();
 
-		// Gilda: best practice note: System.arraycopy
+        // Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);
@@ -1872,40 +1872,15 @@ public class PolyBase implements Shape, PolyNodeMerge
     // This assumes the algorithm starts with external loop
     public static List<PolyBaseTree> getPolyTrees(Area area, Layer layer)
 	{
-		if (area == null) return null;
+        List<PolyBase> list = getLoopsFromArea(area, layer);
+        List<PolyBaseTree> roots = getTreesFromLoops(list);
+        return roots;
+	}
 
-		double [] coords = new double[6];
-		List<Point2D> pointList = new ArrayList<Point2D>();
+    // Get trees from loops
+    public static List<PolyBaseTree> getTreesFromLoops(List<PolyBase> list)
+    {
         List<PolyBaseTree> roots = new ArrayList<PolyBaseTree>();
-        List<PolyBase> list = new ArrayList<PolyBase>();
-
-        // Gilda: best practice note: System.arraycopy
-		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
-		{
-			int type = pIt.currentSegment(coords);
-			if (type == PathIterator.SEG_CLOSE)
-			{
-				Point2D [] points = new Point2D[pointList.size()];
-				int i = 0;
-				for(Point2D p : pointList)
-					points[i++] = p;
-				PolyBase poly = new PolyBase(points);
-				poly.setLayer(layer);
-				poly.setStyle(Poly.Type.FILLED);
-
-                list.add(poly);
-
-				pointList.clear();
-			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
-			{
-				Point2D pt = new Point2D.Double(coords[0], coords[1]);
-				pointList.add(pt);
-			}
-			pIt.next();
-		}
-
-        Collections.sort(list, AREA_COMPARATOR);
-
         // areas are sorted from min to max
         // Build the hierarchy with loops
         for (int i = list.size()-1; i > -1; i--)
@@ -1926,17 +1901,15 @@ public class PolyBase implements Shape, PolyNodeMerge
                 roots.add(t);
         }
         return roots;
-	}
+    }
 
-    // This assumes the algorithm starts with external loop
-    public static List<PolyBase> getPointsFromComplex(Area area, Layer layer, List<PolyBase> polyList)
-	{
+    // Get Loops
+    public static List<PolyBase> getLoopsFromArea(Area area, Layer layer)
+    {
 		if (area == null) return null;
 
-        if (polyList == null) polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
 		List<Point2D> pointList = new ArrayList<Point2D>();
-        List<PolyBaseTree> roots = new ArrayList<PolyBaseTree>();
         List<PolyBase> list = new ArrayList<PolyBase>();
 
         // Gilda: best practice note: System.arraycopy
@@ -1965,35 +1938,25 @@ public class PolyBase implements Shape, PolyNodeMerge
 		}
 
         Collections.sort(list, AREA_COMPARATOR);
+        return list;
+    }
 
-        // areas are sorted from min to max
-        // Build the hierarchy with loops
-        for (int i = list.size()-1; i > -1; i--)
-        {
-            PolyBaseTree t = new PolyBaseTree(list.get(i));
+    // This assumes the algorithm starts with external loop
+    public static List<PolyBase> getPointsFromComplex(Area area, Layer layer)
+	{
+        List<PolyBase> list = getLoopsFromArea(area, layer);
+        List<PolyBaseTree> roots = getTreesFromLoops(list);
 
-            // Check all possible roots
-            boolean added = false;
-            for (PolyBaseTree r : roots)
-            {
-                if (r.add(t))
-                {
-                    added = true;
-                    break;
-                }
-            }
-            if (!added)
-                roots.add(t);
-        }
+        list.clear();
         // get loops from all tree roots. Even loops start a new poly
         for (PolyBaseTree r : roots)
         {
             int count = 0;
             Stack<PolyBase> s = new Stack<PolyBase>();
             r.getLoops(count, s);
-            polyList.addAll(s);
+            list.addAll(s);
         }
-        return polyList;
+        return list;
 	}
 
     private class PolyPathIterator implements PathIterator

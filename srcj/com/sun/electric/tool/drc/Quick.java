@@ -46,8 +46,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 
-import java.awt.Shape;
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
@@ -2744,7 +2742,7 @@ public class Quick
 
 
     private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
-                                  DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
+                                         DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
     {
         List<PolyBase.PolyBaseTree> sons = obj.getSons();
         for (PolyBase.PolyBaseTree son : sons)
@@ -2785,7 +2783,7 @@ public class Quick
             if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
             count.increment();
             reportError(errorType, null, cell, minVal, area, ruleName,
-                            poly, null, layer, null, null, null);
+                        poly, null, layer, null, null, null);
         }
         if (checkNotch)
         {
@@ -2806,8 +2804,7 @@ public class Quick
         }
     }
 
-    private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer, boolean addError,
-                                          HashMap<Layer, Layer> minAreaLayerMapDone, HashMap<Layer, Layer> enclosedAreaLayerMapDone)
+    private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer)
 	{
 		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
 		DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
@@ -2818,18 +2815,12 @@ public class Quick
 
         Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
 
-        boolean minAreaDone = true;
-        boolean enclosedAreaDone = true;
         GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
 
         for (PolyBase.PolyBaseTree obj : trees)
 		{
             traversePolyTree(layer, obj, 0, minAreaRule, encloseAreaRule, spacingRule, cell, errorFound);
         }
-        if (minAreaDone && minAreaLayerMapDone != null)
-            minAreaLayerMapDone.put(layer, layer);
-        if (enclosedAreaDone && enclosedAreaLayerMapDone != null)
-            enclosedAreaLayerMapDone.put(layer, layer);
 		return errorFound.intValue();
 	}
 
@@ -4872,7 +4863,7 @@ public class Quick
                 this.merge.postProcess(true);
                 for (Layer layer : merge.getKeySet())
                 {
-                    checkMinAreaLayerWithTree(merge, info.getCell(), layer, isTopCell, null, null);
+                    checkMinAreaLayerWithTree(merge, info.getCell(), layer);
                 }
             }
         }
@@ -4954,7 +4945,7 @@ public class Quick
      */
     private class QuickAreaEnumeratorLocal extends HierarchyEnumerator.Visitor
     {
-        private Map<Cell,GeometryHandlerBucket> cellsMap;
+        private Map<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket> cellsMap;
         private Layer polyLayer;
         private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
         private GeometryHandler.GHMode mode;
@@ -4962,43 +4953,7 @@ public class Quick
         QuickAreaEnumeratorLocal(GeometryHandler.GHMode mode)
         {
             this.mode = mode;
-            cellsMap = new HashMap<Cell,GeometryHandlerBucket>();
-        }
-
-        private class GeometryHandlerBucket
-        {
-            GeometryHandler local;
-            boolean merged = false;
-            GeometryHandlerBucket()
-            {
-                local = GeometryHandler.createGeometryHandler(mode, topCell.getTechnology().getNumLayers());
-            }
-            void mergeGeometry(Cell cell)
-            {
-                if (!merged)
-                {
-                    merged = true;
-                    for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
-                    {
-                        NodeInst ni = it.next();
-                        if (!ni.isCellInstance()) continue; // only cell instances
-                        AffineTransform trans = ni.transformOut();
-                        Cell protoCell = (Cell)ni.getProto();
-                        GeometryHandlerBucket bucket = cellsMap.get(protoCell);
-                        local.addAll(bucket.local, trans);
-//                        if (protoCell.getId().numUsagesOf() <= 1) // used only here
-//                        {
-//                            System.out.println("Here");
-//                            cellsMap.put(protoCell, null);
-//                        }
-                    }
-                    local.postProcess(true);
-                }
-                else
-                {
-                    assert(false); // It should not happen
-                }
-            }
+            cellsMap = new HashMap<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket>();
         }
 
         /**
@@ -5018,10 +4973,10 @@ public class Quick
         {
             if (job != null && job.checkAbort()) return false;
             Cell cell = info.getCell();
-            GeometryHandlerBucket bucket = cellsMap.get(cell);
+            MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
             if (bucket == null)
             {
-                bucket = new GeometryHandlerBucket();
+                bucket = new MTDRCAreaTool.GeometryHandlerLayerBucket(mode);
                 cellsMap.put(cell, bucket);
             }
             else
@@ -5059,44 +5014,38 @@ public class Quick
                             polyLayer = layer;
                         layer = polyLayer;
                     }
-                    addElementLocal(poly, layer, bucket);
+                    bucket.addElementLocal(poly, layer);
                 }
             }
 
             return true;
         }
 
-        private void addElementLocal(Poly poly, Layer layer, GeometryHandlerBucket bucket)
-        {
-            bucket.local.add(layer, poly);
-        }
-
         public void exitCell(HierarchyEnumerator.CellInfo info)
         {
             Cell cell = info.getCell();
             boolean isTopCell = cell == topCell;
-            GeometryHandlerBucket bucket = cellsMap.get(cell);
+            MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
 
-            bucket.mergeGeometry(cell);
+            bucket.mergeGeometry(cell, cellsMap);
 
             if (isTopCell)
             {
                 for (Layer layer : bucket.local.getKeySet())
                 {
-                    checkMinAreaLayerWithTree(bucket.local, info.getCell(), layer, isTopCell, null, null);
+                    checkMinAreaLayerWithTree(bucket.local, info.getCell(), layer);
                 }
             }
         }
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
-
             if (job != null && job.checkAbort()) return false;
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
 			NodeProto np = ni.getProto();
-            GeometryHandlerBucket bucket = cellsMap.get(info.getCell());
+            MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 
             // Cells
             if (ni.isCellInstance()) return (true);
@@ -5151,7 +5100,7 @@ public class Quick
 
                 poly.roundPoints(); // Trying to avoid mismatches while joining areas.
                 poly.transform(trans);
-                addElementLocal(poly, layer, bucket);
+                bucket.addElementLocal(poly, layer);
 
 //                poly.transform(root);   // if transform is identity, it does nothing
 //                addElement(poly, layer);
