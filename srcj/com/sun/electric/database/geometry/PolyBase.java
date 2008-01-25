@@ -1540,7 +1540,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 			Rectangle2D bounds = getBox();
 			if (bounds != null)
 			{
-				double area = bounds.getWidth() * bounds.getHeight();
+				double area = GenMath.getArea(bounds);
 
 				/* now determine the sign of the area */
 //				double sign = 0;

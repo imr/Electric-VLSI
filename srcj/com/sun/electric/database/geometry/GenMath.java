@@ -464,7 +464,17 @@ public class GenMath
         return ang;
     }
 
-	/**
+    /**
+     * Method to compute the area of a given rectangle.
+     * @param rect the rectangle
+     * @return the area of the rectangle
+     */
+    public static double getArea(Rectangle2D rect)
+    {
+        return rect.getWidth() * rect.getHeight();
+    }
+
+    /**
 	 * Method to compute the area of a polygon defined by an array of points.
      * Returns always positive numbers
 	 * @param points the array of points.
