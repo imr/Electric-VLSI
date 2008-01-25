@@ -327,9 +327,6 @@ public class XMLRules implements DRCRules, Serializable
         {
             if (rule.ruleType == type)
             {
-                // discard rules that are not valid for this particular tech mode (ST or TSMC)
-//                if (rule.when != DRCTemplate.DRCMode.ALL.mode() && (rule.when&techMode) != techMode)
-//                    continue;
                 // Needs multiCut values
                 if (rule.multiCuts != -1 && rule.multiCuts != multiCut)
 	                continue; // Cuts don't match
@@ -340,8 +337,12 @@ public class XMLRules implements DRCRules, Serializable
                 if (layerNamesInOrder != null && (!rule.name1.equals(layerNamesInOrder.get(0)) || !rule.name2.equals(layerNamesInOrder.get(1))))
                     continue;
                 // First found is valid
-                if (!searchFor) return (rule);
-                if (rule.maxWidth < wideS && rule.minLength <= length &&
+//                if (!searchFor) return (rule);
+                if (!searchFor && (maxR == null || maxR.getValue(0) > rule.getValue(0) || maxR.getValue(1) > rule.getValue(1)))
+                {
+                    maxR = rule;
+                }
+                else if (rule.maxWidth < wideS && rule.minLength <= length &&
                         (maxR == null || (maxR.maxWidth < rule.maxWidth && maxR.minLength < rule.minLength)))
                 {
                     maxR = rule;

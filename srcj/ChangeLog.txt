@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (1/24/08, GVG) Picking wrong DRC spacing rule when notches are checked together with minArea (Bug #1540)
+FIX: Search among all possible candidates if wideS < 0. Mostly valid only for notch checking in
+new MTDRC code.
+
 BUG/MAN: (1/24/08, SMR) EDIF mapping now handles cells (Bug #1471).
 
 BUG: (1/24/08, GVG) ErrorLoggers are not added into Explorer (Bug #1541)
