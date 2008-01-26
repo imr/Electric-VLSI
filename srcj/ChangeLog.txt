@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (/125/08, GVG) PolyBase.isInside() checks if point is inside bounding box to speed up
+the process. checkMinAreaLayerWithLoops in mTDRCArea checking.
+
 BUG: (1/24/08, GVG) Picking wrong DRC spacing rule when notches are checked together with minArea (Bug #1540)
 FIX: Search among all possible candidates if wideS < 0. Mostly valid only for notch checking in
 new MTDRC code.

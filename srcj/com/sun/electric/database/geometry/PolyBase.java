@@ -485,11 +485,15 @@ public class PolyBase implements Shape, PolyNodeMerge
 	{
 		if (style == Poly.Type.FILLED || style == Poly.Type.CLOSED || style == Poly.Type.CROSSED || style.isText())
 		{
-			// check rectangular case for containment
+            // If point is not in 2D bounding box -> is outside anyway
+            Rectangle2D bounds2D = this.getBounds2D();
+            if (!DBMath.pointInRect(pt, bounds2D))
+                return false;
+
+            // check rectangular case for containment
 			Rectangle2D bounds = getBox();
 			if (bounds != null)
 			{
-                //if (DBMath.pointInRect(pt, bounds)) return true;
                 if (DBMath.pointInRect(pt, bounds)) return true;
                 // special case: single point, take care of double precision error
                 if (bounds.getWidth() == 0 && bounds.getHeight() == 0) {
@@ -501,13 +505,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 
 //            boolean method = isInsideGenericPolygonOriginal(pt);
             boolean method = isPointInsideCutAlgorithm(pt);
-//            if (method1 != method)
-//            {
-//                 isPointInsideCutAlgorithm(pt);
-//                System.exit(1);
-//            }
 //            boolean method = isPointInsideArea(pt);  // very slow. 3 times slower in 1 example
-
             return method;
         }
 
@@ -1912,16 +1910,16 @@ public class PolyBase implements Shape, PolyNodeMerge
 		List<Point2D> pointList = new ArrayList<Point2D>();
         List<PolyBase> list = new ArrayList<PolyBase>();
 
-        // Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);
 			if (type == PathIterator.SEG_CLOSE)
 			{
 				Point2D [] points = new Point2D[pointList.size()];
-				int i = 0;
-				for(Point2D p : pointList)
-					points[i++] = p;
+                System.arraycopy(pointList.toArray(), 0, points, 0, pointList.size());
+//                int i = 0;
+//				for(Point2D p : pointList)
+//					points[i++] = p;
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);

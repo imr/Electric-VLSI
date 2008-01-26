@@ -142,7 +142,7 @@ public class MTDRCAreaTool extends MTDRCTool
         private Collection<PrimitiveNode> nodesList; // NodeProto that contains this layer
         private Collection<ArcProto> arcsList; // ArcProto that contains this layer
         private CellLayersContainer cellLayersCon;
-        private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule;
+        private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule, minAreaEnclosedRule;
         private ErrorLogger errorLogger;
 
         LayerAreaEnumerator(Layer layer, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spaceR,
@@ -161,6 +161,14 @@ public class MTDRCAreaTool extends MTDRCTool
             cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
             nodesList = new ArrayList<PrimitiveNode>();
             this.cellLayersCon = cellLayersC;
+
+            // Store the min value betwen min area and min enclosure to speed up the process
+            minAreaEnclosedRule = minAreaRule;
+            if (enclosedAreaRule != null &&
+                (minAreaRule == null || enclosedAreaRule.getValue(0) < minAreaRule.getValue(0)))
+                minAreaEnclosedRule = enclosedAreaRule;
+
+            // determine list of PrimitiveNodes that have this particular layer
             for (PrimitiveNode node : topCell.getTechnology().getNodesCollection())
             {
                 for (Technology.NodeLayer nLayer : node.getLayers())
@@ -252,7 +260,8 @@ public class MTDRCAreaTool extends MTDRCTool
             {
                 for (Layer layer : bucket.local.getKeySet())
                 {
-                    checkMinAreaLayerWithTree(bucket.local, topCell, layer);
+//                    int oldV = checkMinAreaLayerWithTree(bucket.local, topCell, layer);
+                    int newV = checkMinAreaLayerWithLoops(bucket.local, topCell, layer);
                 }
             }
         }
@@ -306,35 +315,32 @@ public class MTDRCAreaTool extends MTDRCTool
             for (Area area : areas)
             {
                 List<PolyBase> list = PolyBase.getLoopsFromArea(area, layer);
+                boolean minPass = true;
 
                 for (PolyBase p : list)
                 {
                     double a = p.getArea();
-                    boolean minPass = (minAreaRule == null) ? true : a >= minAreaRule.getValue(0);
+                    minPass = (minAreaEnclosedRule == null) ? true : a >= minAreaEnclosedRule.getValue(0);
 
-                    if (minPass) // passes minArea
-                        minPass = (enclosedAreaRule == null) ? true : a >= enclosedAreaRule.getValue(0);
-                    if (minPass) // passes enclosure
+                    if (!minPass) break; // go for full checking
+                    if (spacingRule != null)
                     {
-                        if (spacingRule != null)
-                        {
-                            Rectangle2D bnd = p.getBounds2D();
-                            minPass = bnd.getWidth() >= spacingRule.getValue(0);
-                            if (minPass)
-                               minPass = bnd.getHeight() >= spacingRule.getValue(1);
-                        }
+                        Rectangle2D bnd = p.getBounds2D();
+                        minPass = bnd.getWidth() >= spacingRule.getValue(0);
+                        if (minPass)
+                           minPass = bnd.getHeight() >= spacingRule.getValue(1);
                     }
-                    // Must run the real checking
-                    if (!minPass)
+                    if (!minPass) break;  // go for full checking
+                }
+
+                // Must run the real checking
+                if (!minPass)
+                {
+                    List<PolyBase.PolyBaseTree> roots = PolyBase.getTreesFromLoops(list);
+
+                    for (PolyBase.PolyBaseTree obj : roots)
                     {
-                        List<PolyBase.PolyBaseTree> roots = PolyBase.getTreesFromLoops(list);
-
-                        assert (roots.size() == 1);
-
-                        for (PolyBase.PolyBaseTree obj : roots)
-                        {
-                            traversePolyTree(layer, obj, 0, cell, errorFound);
-                        }
+                        traversePolyTree(layer, obj, 0, cell, errorFound);
                     }
                 }
             }
