@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
@@ -111,10 +112,10 @@ public class ParasiticTab extends ProjSettingsPanel {
 		if (tech == null) return;
 
 		changing = true;
-		minResistance.setText(TextUtils.formatDouble(getDouble(tech.getMinResistanceSetting())));
-		minCapacitance.setText(TextUtils.formatDouble(getDouble(tech.getMinCapacitanceSetting())));
-		gateLengthSubtraction.setText(TextUtils.formatDouble(getDouble(tech.getGateLengthSubtractionSetting())));
-        maxSeriesResistance.setText(TextUtils.formatDouble(getDouble(tech.getMaxSeriesResistanceSetting())));
+		minResistance.setText(formatDouble(getDouble(tech.getMinResistanceSetting())));
+		minCapacitance.setText(formatDouble(getDouble(tech.getMinCapacitanceSetting())));
+		gateLengthSubtraction.setText(formatDouble(getDouble(tech.getGateLengthSubtractionSetting())));
+        maxSeriesResistance.setText(formatDouble(getDouble(tech.getMaxSeriesResistanceSetting())));
 		includeGate.setSelected(getBoolean(tech.getGateIncludedSetting()));
 		includeGround.setSelected(getBoolean(tech.getGroundNetIncludedSetting()));
 
@@ -140,12 +141,19 @@ public class ParasiticTab extends ProjSettingsPanel {
 		Layer layer = tech.findLayer(layerName);
 		if (layer != null)
 		{
-			resistance.setText(TextUtils.formatDouble(getDouble(layer.getResistanceSetting())));
-			capacitance.setText(TextUtils.formatDouble(getDouble(layer.getCapacitanceSetting())));
-			edgeCapacitance.setText(TextUtils.formatDouble(getDouble(layer.getEdgeCapacitanceSetting())));
+			resistance.setText(formatDouble(getDouble(layer.getResistanceSetting())));
+			capacitance.setText(formatDouble(getDouble(layer.getCapacitanceSetting())));
+			edgeCapacitance.setText(formatDouble(getDouble(layer.getEdgeCapacitanceSetting())));
 		}
 		changing = false;
 	}
+    
+    private String formatDouble(double value) {
+        if (Job.getDebug())
+            return Double.toString(value);
+        else
+            return TextUtils.formatDouble(value);
+    }
 
 	/**
 	 * Class to handle special changes to per-layer parasitics.
