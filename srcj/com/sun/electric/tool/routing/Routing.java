@@ -1477,6 +1477,38 @@ public class Routing extends Listener
 	 */
 	public static void setSeaOfGatesComplexityLimit(int c) { cacheSOGComplexityLimit.setInt(c); }
 
+	private static Pref cacheSOGUseParallelFromToRoutes = Pref.makeBooleanPref("SeaOfGatesUseParallelFromToRoutes", Routing.getRoutingTool().prefs, false);
+	/**
+	 * Method to tell whether the "sea-of-gates" router does from/to analysis in parallel.
+	 * Normally, a path is found by looking both from one end to the other, and then from the other end back to the first.
+	 * The best result of these two searches is used as the route.
+	 * When true, both paths are run in parallel on separate processors (default is false).
+	 * @return true if the "sea-of-gates" router does from/to analysis in parallel.
+	 */
+	public static boolean isSeaOfGatesUseParallelFromToRoutes() { return cacheSOGUseParallelFromToRoutes.getBoolean(); }
+	/**
+	 * Method to set whether the "sea-of-gates" router does from/to analysis in parallel.
+	 * Normally, a path is found by looking both from one end to the other, and then from the other end back to the first.
+	 * The best result of these two searches is used as the route.
+	 * When true, both paths are run in parallel on separate processors (default is false).
+	 * @param p true if the "sea-of-gates" router does from/to analysis in parallel.
+	 */
+	public static void setSeaOfGatesUseParallelFromToRoutes(boolean p) { cacheSOGUseParallelFromToRoutes.setBoolean(p); }
+
+	private static Pref cacheSOGUseParallelRoutes = Pref.makeBooleanPref("SeaOfGatesUseParallelRoutes", Routing.getRoutingTool().prefs, false);
+	/**
+	 * Method to tell whether the "sea-of-gates" router finds routes in parallel.
+	 * When true, multiple routes are searched using parallel threads (default is false).
+	 * @return true if the "sea-of-gates" router finds routes in parallel.
+	 */
+	public static boolean isSeaOfGatesUseParallelRoutes() { return cacheSOGUseParallelRoutes.getBoolean(); }
+	/**
+	 * Method to set whether the "sea-of-gates" router finds routes in parallel.
+	 * When true, multiple routes are searched using parallel threads (default is false).
+	 * @param p true if the "sea-of-gates" router finds routes in parallel.
+	 */
+	public static void setSeaOfGatesUseParallelRoutes(boolean p) { cacheSOGUseParallelRoutes.setBoolean(p); }
+
 	/****************************** SUN ROUTER OPTIONS ******************************/
 
 	private static Pref cacheSLRVerboseLevel = Pref.makeIntPref("SunRouterVerboseLevel", Routing.getRoutingTool().prefs, 2);

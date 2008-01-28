@@ -26,25 +26,22 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Routing" tab of the Preferences dialog.
@@ -108,6 +105,16 @@ public class RoutingTab extends PreferencePanel
 		sogRouteTechnology.setSelectedItem(Technology.getCurrent().getTechName());
 		sogMaxArcWidth.setText(TextUtils.formatDouble(Routing.getSeaOfGatesMaxWidth()));
 		sogComplexityLimit.setText(Integer.toString(Routing.getSeaOfGatesComplexityLimit()));
+		if (Job.getDebug())
+		{
+			sogParallel.setSelected(Routing.isSeaOfGatesUseParallelRoutes());
+			sogParallelDij.setSelected(Routing.isSeaOfGatesUseParallelFromToRoutes());
+		} else
+		{
+			// remove parallelization options from sea-of-gates router if not debugging
+			jPanel1.remove(sogParallel);
+			jPanel1.remove(sogParallelDij);
+		}
 
 		routTechnology.setSelectedItem(Technology.getCurrent().getTechName());
 		routOverrideArc.addActionListener(new ActionListener()
@@ -260,6 +267,13 @@ public class RoutingTab extends PreferencePanel
 		if (curSOGComplexity != Routing.getSeaOfGatesComplexityLimit())
 			Routing.setSeaOfGatesComplexityLimit(curSOGComplexity);
 
+		boolean curSOGParallel = sogParallel.isSelected();
+		if (curSOGParallel != Routing.isSeaOfGatesUseParallelRoutes())
+			Routing.setSeaOfGatesUseParallelRoutes(curSOGParallel);
+		curSOGParallel = sogParallelDij.isSelected();
+		if (curSOGParallel != Routing.isSeaOfGatesUseParallelFromToRoutes())
+			Routing.setSeaOfGatesUseParallelFromToRoutes(curSOGParallel);
+
 		ArcProto ap = null;
 		if (routOverrideArc.isSelected())
 		{
@@ -354,6 +368,8 @@ public class RoutingTab extends PreferencePanel
         sogMaxArcWidth = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         sogComplexityLimit = new javax.swing.JTextField();
+        sogParallel = new javax.swing.JCheckBox();
+        sogParallelDij = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -607,7 +623,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(jLabel3, gridBagConstraints);
 
         sogComplexityLimit.setColumns(10);
@@ -615,8 +631,28 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(sogComplexityLimit, gridBagConstraints);
+
+        sogParallel.setText("Parallel Routing");
+        sogParallel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        sogParallel.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(sogParallel, gridBagConstraints);
+
+        sogParallelDij.setText("Parallel from/to analysis");
+        sogParallelDij.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        sogParallelDij.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel1.add(sogParallelDij, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -666,6 +702,8 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.JPanel routing;
     private javax.swing.JTextField sogComplexityLimit;
     private javax.swing.JTextField sogMaxArcWidth;
+    private javax.swing.JCheckBox sogParallel;
+    private javax.swing.JCheckBox sogParallelDij;
     private javax.swing.JScrollPane sogRouteArcOptions;
     private javax.swing.JComboBox sogRouteTechnology;
     // End of variables declaration//GEN-END:variables

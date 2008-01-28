@@ -95,12 +95,10 @@ import java.util.concurrent.Semaphore;
  *     Lower cost if running over existing layout (on the same net)
  *     Ability to connect to anything on the destination net
  *     Rip-up
- *     Global routing / multithreading
+ *     Global routing
  */
 public class SeaOfGatesEngine
 {
-	/** True to run with multiple parallel processors. */						private static final boolean PARALLEL = false;
-	/** True to run with multiple parallel processors on two dijkstra steps. */	private static final boolean PARALLELDIJ = false;
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
 	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = false;
@@ -132,6 +130,7 @@ public class SeaOfGatesEngine
 	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** the total length of wires routed */										private double totalWireLength;
 	/** true if this is the first failure of a route (for debugging) */			private boolean firstFailure;
+	/** true to run to/from and from/to routing in parallel */					private boolean parallelDij;
 	/** for logging errors */													private ErrorLogger errorLogger;
 
 	private DijkstraInThread d1, d2;
@@ -490,15 +489,36 @@ public class SeaOfGatesEngine
 		}
 
 		// now do the actual routing
+		boolean parallel = Routing.isSeaOfGatesUseParallelRoutes();
+		parallelDij = Routing.isSeaOfGatesUseParallelFromToRoutes();
+
 		firstFailure = true;
 		totalWireLength = 0;
-		int numberOfThreads = Runtime.getRuntime().availableProcessors();
-		if (PARALLELDIJ) numberOfThreads /= 2;
-		if (!PARALLEL) numberOfThreads = 1;
-		if (PARALLELDIJ)
+		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+		if (numberOfProcessors <= 1) parallelDij = false;
+		int numberOfThreads = numberOfProcessors;
+		if (parallelDij) numberOfThreads /= 2;
+		if (!parallel) numberOfThreads = 1;
+		if (numberOfThreads == 1) parallel = false;
+		if (parallelDij)
 		{
+			// create threads
 			d1 = new DijkstraInThread("Route a->b");
 			d2 = new DijkstraInThread("Route b->a");
+		}
+
+		// show what is being done
+		System.out.println("Sea-of-gates router finding " + allRoutes.size() + " paths on " + numBatches + " networks");
+		if (parallel || parallelDij)
+		{
+			String message = "NOTE: System has " + numberOfProcessors + " processors so";
+			if (parallel) message += " routing " + numberOfThreads + " paths in parallel";
+			if (parallelDij)
+			{
+				if (parallel) message += " and";
+				message += " routing both directions of each path in parallel";
+			}
+			System.out.println(message);
 		}
 		if (numberOfThreads > 1)
 		{
@@ -507,8 +527,9 @@ public class SeaOfGatesEngine
 		{
 			doRouting(allRoutes, routeBatches, job);
 		}
-		if (PARALLELDIJ)
+		if (parallelDij)
 		{
+			// terminate threads
 			d1.startRoute(null, null, null);
 			d2.startRoute(null, null, null);
 		}
@@ -1406,7 +1427,7 @@ public class SeaOfGatesEngine
 	{
 		List<SearchVertex> vertices, verticesRev;
 		Map<Integer,Set<Integer>> [] saveD1Planes = null;
-		if (PARALLELDIJ)
+		if (parallelDij)
 		{
 			Semaphore outSem = new Semaphore(0);
 			NeededRoute revNr = new NeededRoute(nr.routeName, nr.to, nr.toX, nr.toY, nr.toZ,
