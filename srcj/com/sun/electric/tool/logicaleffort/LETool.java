@@ -559,13 +559,12 @@ public class LETool extends Tool {
          * @return true on abort, false otherwise
          */
         protected boolean checkAbort(String msg) {
-            if (getScheduledToAbort()) {
+            boolean aborted = super.checkAbort();
+            if (aborted) {
                 if (msg != null) System.out.println("LETool aborted: "+msg);
                 else System.out.println("LETool aborted: no changes made");
-                setAborted();                   // Job has been aborted
-                return true;
             }
-            return false;
+            return aborted;
         }
 
         // add more info to default getInfo

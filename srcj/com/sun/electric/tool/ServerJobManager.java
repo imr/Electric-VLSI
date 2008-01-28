@@ -411,7 +411,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 }
                 if (Job.threadMode == Job.Mode.BATCH && startedJobs.isEmpty()) {
                     ActivityLogger.finished();
-                    System.exit(0);
+                    System.exit(1);
                 }
                 Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
                 databaseChangesMutex.awaitUninterruptibly();

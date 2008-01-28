@@ -88,7 +88,7 @@ public abstract class Job implements Serializable {
     /*private*/ static Mode threadMode;
     private static int recommendedNumThreads;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 16; // Jun 25
+    static final int PROTOCOL_VERSION = 17; // Jan 28
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
@@ -368,17 +368,19 @@ public abstract class Job implements Serializable {
      * abort when/where applicable
      */
     public synchronized void abort() {
-        if (ejob.jobType != Job.Type.EXAMINE) return;
+//        if (ejob.jobType != Job.Type.EXAMINE) return;
         if (aborted) { 
             System.out.println("Job already aborted: "+getStatus());
             return;
         }
         scheduledToAbort = true;
+        if (ejob.jobType != Job.Type.EXAMINE && ejob.serverJob != null)
+            ejob.serverJob.scheduledToAbort = true;
 //        Job.getUserInterface().wantToRedoJobTree();
     }
 
 	/** Confirmation that thread is aborted */
-    protected synchronized void setAborted() { aborted = true; /*Job.getUserInterface().wantToRedoJobTree();*/ }
+    private synchronized void setAborted() { aborted = true; /*Job.getUserInterface().wantToRedoJobTree();*/ }
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /**
@@ -403,7 +405,7 @@ public abstract class Job implements Serializable {
 	 */
 	public boolean checkAbort()
 	{
-        if (ejob.jobType != Job.Type.EXAMINE) return false;
+//        if (ejob.jobType != Job.Type.EXAMINE) return false;
 		if (getAborted()) return (true);
 		boolean scheduledAbort = getScheduledToAbort();
 		if (scheduledAbort)

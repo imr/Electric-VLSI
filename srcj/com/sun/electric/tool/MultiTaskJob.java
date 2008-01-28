@@ -129,6 +129,11 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
             taskResult = runTask(taskKey);
             return true;
         }
+        
+        @Override
+        public void abort() {
+            MultiTaskJob.this.abort();
+        }
     }
     
     private class MergeJob extends Job {
@@ -153,6 +158,10 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
             return true;
         }
         
+        @Override
+        public void abort() {
+            MultiTaskJob.this.abort();
+        }
 //        /**
 //         * This method executes in the Client side after normal termination of doIt method.
 //         * This method should perform all needed termination actions.
