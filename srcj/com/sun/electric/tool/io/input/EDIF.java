@@ -3057,76 +3057,79 @@ public class EDIF extends Input
 				} else
 				{
 					// external port reference, look for a off-page reference in {sch} with this port name
-					Cell np = null;
-					for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+					if (activeView == VNETLIST)
 					{
-						Cell cell = it.next();
-						if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
+						Cell np = null;
+						for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 						{
-							np = cell;
-							break;
+							Cell cell = it.next();
+							if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
+							{
+								np = cell;
+								break;
+							}
 						}
-					}
-					if (np == null)
-					{
-						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate top level schematic");
-						return;
-					}
+						if (np == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate top level schematic");
+							return;
+						}
 
-					// now look for an instance with the correct port name
-					pp = np.findPortProto(portReference);
-					if (pp == null)
-					{
-						if (originalName.length() > 0)
-							pp = np.findPortProto(originalName);
+						// now look for an instance with the correct port name
+						pp = np.findPortProto(portReference);
 						if (pp == null)
 						{
-							String alternateName = renamedObjects.get(portReference);
-							if (alternateName != null)
-								pp = np.findPortProto(alternateName);
+							if (originalName.length() > 0)
+								pp = np.findPortProto(originalName);
+							if (pp == null)
+							{
+								String alternateName = renamedObjects.get(portReference);
+								if (alternateName != null)
+									pp = np.findPortProto(alternateName);
+							}
+							if (pp == null)
+							{
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" +
+									portReference + "' on cell " + np.describe(false));
+								return;
+							}
 						}
-						if (pp == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" +
-								portReference + "' on cell " + np.describe(false));
-							return;
-						}
-					}
-					fNi = ((Export)pp).getOriginalPort().getNodeInst();
-					fPp = ((Export)pp).getOriginalPort().getPortProto();
-					Poly portPoly = fNi.findPortInstFromProto(fPp).getPoly();
-					double lX = portPoly.getCenterX();
-					double lY = portPoly.getCenterY();
+						fNi = ((Export)pp).getOriginalPort().getNodeInst();
+						fPp = ((Export)pp).getOriginalPort().getPortProto();
+						Poly portPoly = fNi.findPortInstFromProto(fPp).getPoly();
+						double lX = portPoly.getCenterX();
+						double lY = portPoly.getCenterY();
 
-					// determine x position by original placement
-					if (pp.getCharacteristic() == PortCharacteristic.IN) lX = 1*INCH; else
-						if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = 4*INCH; else
-							if (pp.getCharacteristic() == PortCharacteristic.OUT) lX = 5*INCH;
+						// determine x position by original placement
+						if (pp.getCharacteristic() == PortCharacteristic.IN) lX = 1*INCH; else
+							if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = 4*INCH; else
+								if (pp.getCharacteristic() == PortCharacteristic.OUT) lX = 5*INCH;
 
-					// need to create a destination for the wire
-					if (isArray)
-					{
-						ni = placePin(Schematics.tech().busPinNode, lX, lY,
-							Schematics.tech().busPinNode.getDefWidth(), Schematics.tech().busPinNode.getDefHeight(), Orientation.IDENT, np);
-						if (ni == null)
+						// need to create a destination for the wire
+						if (isArray)
 						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
-							return;
-						}
-						pp = defaultBusPort;
-					} else
-					{
-						ni = placePin(Schematics.tech().wirePinNode, lX, lY,
-							Schematics.tech().wirePinNode.getDefWidth(), Schematics.tech().wirePinNode.getDefHeight(), Orientation.IDENT, np);
-						if (ni == null)
+							ni = placePin(Schematics.tech().busPinNode, lX, lY,
+								Schematics.tech().busPinNode.getDefWidth(), Schematics.tech().busPinNode.getDefHeight(), Orientation.IDENT, np);
+							if (ni == null)
+							{
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
+								return;
+							}
+							pp = defaultBusPort;
+						} else
 						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
-							return;
+							ni = placePin(Schematics.tech().wirePinNode, lX, lY,
+								Schematics.tech().wirePinNode.getDefWidth(), Schematics.tech().wirePinNode.getDefHeight(), Orientation.IDENT, np);
+							if (ni == null)
+							{
+								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
+								return;
+							}
+							pp = defaultPort;
 						}
-						pp = defaultPort;
+						if (!isArray) ap = Schematics.tech().wire_arc; else
+							ap = Schematics.tech().bus_arc;
 					}
-					if (!isArray) ap = Schematics.tech().wire_arc; else
-						ap = Schematics.tech().bus_arc;
 				}
 
 				// now connect if we have from node and port
@@ -3520,8 +3523,9 @@ public class EDIF extends Input
 			// output the data for annotate (display graphics) and string (on properties)
 			else if (keyStack[keyStackDepth-1] == KANNOTATE || keyStack[keyStackDepth-1] == KSTRING)
 			{
+				boolean thisVisible = false; // textVisible;
 				// supress this if it starts with "["
-				if (!textString.startsWith("[") && curPoints.size() != 0)
+				if (thisVisible && !textString.startsWith("[") && curPoints.size() != 0)
 				{
 					// see if a pre-existing node or arc exists to add text
 					ArcInst ai = null;
@@ -3554,14 +3558,13 @@ public class EDIF extends Input
 						Variable.Key varKey = Variable.newKey(key);
 						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
 						double relSize = convertTextSize(textHeight);
-						boolean thisVisible = false; // textVisible;
 						if (ni != null)
 						{
 							TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - ni.getAnchorCenterX();
 							yOff = p0.getY() - ni.getAnchorCenterY();
-							td = td.withDisplay(thisVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
 							ni.newVar(varKey, textString, td);
 						} else
 						{
@@ -3569,7 +3572,7 @@ public class EDIF extends Input
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
 							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
-							td = td.withDisplay(thisVisible).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
 							ai.newVar(varKey, textString, td);
 						}
 					} else

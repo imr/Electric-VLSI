@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/28/08, SMR) Improved EDIF input.
+
 BUG: (1/27/08, DN) Abort works for EXAMINE jobs only (Bug #1354).
 FIX: In Job.abort() mark both clientJob and serverJob as aborted
      (this works only in single-JVM mode).
