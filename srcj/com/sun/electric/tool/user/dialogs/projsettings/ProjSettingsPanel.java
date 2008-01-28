@@ -25,9 +25,7 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
