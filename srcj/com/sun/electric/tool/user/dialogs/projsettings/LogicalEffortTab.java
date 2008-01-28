@@ -31,7 +31,6 @@ import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -71,10 +70,10 @@ public class LogicalEffortTab extends ProjSettingsPanel
 	{
         // tech-independent settings
 		leUseLocalSettings.setSelected(getBoolean(useLocalSettingsSetting));
-        leGlobalFanOut.setText(TextUtils.formatDouble(getDouble(globalFanoutSetting)));
-        leConvergence.setText(TextUtils.formatDouble(getDouble(convergenceEpsilonSetting)));
+        leGlobalFanOut.setText(getFormattedDouble(globalFanoutSetting));
+        leConvergence.setText(getFormattedDouble(convergenceEpsilonSetting));
         leMaxIterations.setText(String.valueOf(getInt(maxIterationsSetting)));
-        leKeeperSizeRatio.setText(TextUtils.formatDouble(getDouble(keeperRatioSetting)));
+        leKeeperSizeRatio.setText(getFormattedDouble(keeperRatioSetting));
 
         // tech-dependent settings
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -132,9 +131,9 @@ public class LogicalEffortTab extends ProjSettingsPanel
 		if (tech == null) return;
 
 		changingLE = true;
-		leGateCapacitance.setText(TextUtils.formatDouble(getDouble(tech.getGateCapacitanceSetting())));
-		leDefaultWireCapRatio.setText(TextUtils.formatDouble(getDouble(tech.getWireRatioSetting())));
-		leDiffToGateCapRatio.setText(TextUtils.formatDouble(getDouble(tech.getDiffAlphaSetting())));
+		leGateCapacitance.setText(getFormattedDouble(tech.getGateCapacitanceSetting()));
+		leDefaultWireCapRatio.setText(getFormattedDouble(tech.getWireRatioSetting()));
+		leDiffToGateCapRatio.setText(getFormattedDouble(tech.getDiffAlphaSetting()));
 		changingLE = false;
 	}
 

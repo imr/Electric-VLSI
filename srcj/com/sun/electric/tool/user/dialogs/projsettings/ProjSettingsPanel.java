@@ -25,7 +25,9 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
@@ -105,6 +107,16 @@ public class ProjSettingsPanel extends EDialog
     public double getDouble(Setting setting) { return setting.getDouble(getContext()); }
     
     /**
+     * Method to get string representation of the double value on the Setting object.
+     * The object must have been created as "double".
+     * @param setting setting object.
+     * @return the string representation of the double value on the Setting object.
+     */
+    public String getFormattedDouble(Setting setting) {
+        return Double.toString(getDouble(setting));
+    }
+
+    /**
      * Method to get the string value on the Setting object.
      * The object must have been created as "string".
      * @return the string value on the Setting object.
@@ -174,5 +186,4 @@ public class ProjSettingsPanel extends EDialog
 	 * Updates any changed fields in the Frame tab.
 	 */
 	public void term() {}
-
 }

@@ -29,7 +29,6 @@ import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -137,9 +136,8 @@ public class ScaleTab extends ProjSettingsPanel
 		if (spacePos >= 0) str = str.substring(0, spacePos);
 		Technology tech = Technology.findTechnology(str);
 		if (tech == null) return;
-		double shownValue = getDouble(tech.getScaleSetting());
-		unitsScaleValue.setText(TextUtils.formatDouble(shownValue));
-		unitsAlternateScale.setText("nanometers (" + (shownValue/1000.0) + " microns)");
+		unitsScaleValue.setText(getFormattedDouble(tech.getScaleSetting()));
+		unitsAlternateScale.setText("nanometers (" + (getDouble(tech.getScaleSetting())/1000.0) + " microns)");
 	}
     
 	/** This method is called from within the constructor to
