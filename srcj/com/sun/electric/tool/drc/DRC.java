@@ -1391,6 +1391,19 @@ public class DRC extends Listener
      */
     public static void setMinAreaAlgoOption(DRCCheckMinArea mode) { cacheMinAreaAlgo.setString(mode.name()); }
 
+    private static Pref cacheMultiThread = Pref.makeBooleanPref("MinMultiThread", tool.prefs, false);
+    /**
+     * Method to tell whether DRC should run in a single thread or multi-threaded.
+     * The default is single-threaded.
+     * @return true if DRC run in a multi-threaded fashion.
+     */
+    public static boolean isMultiThreaded() { return cacheMultiThread.getBoolean(); }
+    /**
+     * Method to set whether DRC should run in a single thread or multi-threaded.
+     * @param mode True if it will run a multi-threaded version.
+     */
+    public static void setMultiThreaded(boolean mode) { cacheMultiThread.setBoolean(mode); }
+
     /****************************** END OF OPTIONS ******************************/
 
     /***********************************

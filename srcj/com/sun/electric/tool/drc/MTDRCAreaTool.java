@@ -25,6 +25,7 @@ package com.sun.electric.tool.drc;
 
 import com.sun.electric.technology.*;
 import com.sun.electric.tool.Consumer;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -57,22 +58,48 @@ public class MTDRCAreaTool extends MTDRCTool
     @Override
     boolean checkArea() {return true;}
 
+    static int checkMinArea(Layer theLayer, Cell topC, ErrorLogger errorLogger, DRCRules areaRules,
+                            CellLayersContainer cellLayersC, Job job, String msg)
+    {                    
+        DRCTemplate minAreaRule = areaRules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
+        DRCTemplate enclosedAreaRule = areaRules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        DRCTemplate spaceRule = areaRules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
+            return 0;
+
+        if (msg != null)
+        {
+            System.out.println("Min Area DRC for " + msg + " in thread " + Thread.currentThread().getName());
+        }
+        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
+            spaceRule, topC, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
+                cellLayersC, job);
+        HierarchyEnumerator.enumerateCell(topC, VarContext.globalContext, quickArea);
+        return errorLogger.getNumErrors() + errorLogger.getNumWarnings();
+    }
+
     @Override
     public MTDRCResult runTaskInternal(Layer theLayer)
     {
-        DRCTemplate minAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
-        DRCTemplate enclosedAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
-        DRCTemplate spaceRule = rules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
-        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
-            return null;
-
         ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
-        System.out.println("DRC for " + msg + " in thread " + Thread.currentThread().getName());
-        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
-            spaceRule, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
-                cellLayersCon);
-        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
+
+        int totalNumErrors = checkMinArea(theLayer, topCell, errorLogger, rules, cellLayersCon, this, msg);
+
+        if (totalNumErrors == 0)
+            return null;
+
+//        DRCTemplate minAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
+//        DRCTemplate enclosedAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+//        DRCTemplate spaceRule = rules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
+//        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
+//            return null;
+//
+//        System.out.println("DRC for " + msg + " in thread " + Thread.currentThread().getName());
+//        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
+//            spaceRule, topCell, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
+//                cellLayersCon, this);
+//        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
 
         long endTime = System.currentTimeMillis();
         int errorCount = errorLogger.getNumErrors();
@@ -133,9 +160,10 @@ public class MTDRCAreaTool extends MTDRCTool
     /**
      * Class that uses local GeometryHandler to calculate the area per cell
      */
-    private class LayerAreaEnumerator extends HierarchyEnumerator.Visitor
+    private static class LayerAreaEnumerator extends HierarchyEnumerator.Visitor
     {
         private Layer theLayer;
+        private Job job;
         private Map<Cell,GeometryHandlerLayerBucket> cellsMap;
         private Layer.Function.Set thisLayerFunction;
         private GeometryHandler.GHMode mode;
@@ -144,16 +172,18 @@ public class MTDRCAreaTool extends MTDRCTool
         private CellLayersContainer cellLayersCon;
         private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule, minAreaEnclosedRule;
         private ErrorLogger errorLogger;
+        private Cell topCell;
 
         LayerAreaEnumerator(Layer layer, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spaceR,
-                            ErrorLogger ErrorLog,
-                            GeometryHandler.GHMode m, CellLayersContainer cellLayersC)
+                            Cell topC, ErrorLogger ErrorLog,
+                            GeometryHandler.GHMode m, CellLayersContainer cellLayersC, Job j)
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
             // even though non-electrical layers are retrieved
             this.minAreaRule = minAreaR;
             this.enclosedAreaRule = enclosedAreaR;
             this.spacingRule = spaceR;
+            this.topCell = topC;
             this.errorLogger = ErrorLog;
             this.theLayer = layer;
             this.thisLayerFunction = DRC.getMultiLayersSet(theLayer);
@@ -161,6 +191,7 @@ public class MTDRCAreaTool extends MTDRCTool
             cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
             nodesList = new ArrayList<PrimitiveNode>();
             this.cellLayersCon = cellLayersC;
+            this.job = j;
 
             // Store the min value betwen min area and min enclosure to speed up the process
             minAreaEnclosedRule = minAreaRule;
@@ -197,7 +228,7 @@ public class MTDRCAreaTool extends MTDRCTool
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
             // Checking if the job was aborted by the user
-            if (checkAbort()) return false;
+            if (job.checkAbort()) return false;
 
             Cell cell = info.getCell();
             Set<String> set = cellLayersCon.getLayersSet(cell);
@@ -261,7 +292,7 @@ public class MTDRCAreaTool extends MTDRCTool
                 for (Layer layer : bucket.local.getKeySet())
                 {
 //                    int oldV = checkMinAreaLayerWithTree(bucket.local, topCell, layer);
-                    int newV = checkMinAreaLayerWithLoops(bucket.local, topCell, layer);
+                    checkMinAreaLayerWithLoops(bucket.local, topCell, layer);
                 }
             }
         }
@@ -269,7 +300,7 @@ public class MTDRCAreaTool extends MTDRCTool
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
             // Checking if the job was aborted
-            if (checkAbort()) return false;
+            if (job.checkAbort()) return false;
 
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
@@ -348,20 +379,20 @@ public class MTDRCAreaTool extends MTDRCTool
             return errorFound.intValue();
         }
 
-        private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer)
-        {
-            // Layer doesn't have min area
-            if (minAreaRule == null && enclosedAreaRule == null && spacingRule == null) return 0;
-
-            Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
-            GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
-
-            for (PolyBase.PolyBaseTree obj : trees)
-            {
-                traversePolyTree(layer, obj, 0, cell, errorFound);
-            }
-            return errorFound.intValue();
-        }
+//        private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer)
+//        {
+//            // Layer doesn't have min area
+//            if (minAreaRule == null && enclosedAreaRule == null && spacingRule == null) return 0;
+//
+//            Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
+//            GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
+//
+//            for (PolyBase.PolyBaseTree obj : trees)
+//            {
+//                traversePolyTree(layer, obj, 0, cell, errorFound);
+//            }
+//            return errorFound.intValue();
+//        }
 
         private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level,
                                       Cell cell, GenMath.MutableInteger count)

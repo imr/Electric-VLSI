@@ -453,13 +453,22 @@ public class XMLRules implements DRCRules, Serializable
     {
         HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[index];
         if (map == null) return (0.0);
+        double maxValue = 0.0; // get the largest value among the valid ones. It doesn't select the first
+        // found only
 
         for (XMLRule rule : map.values())
         {
-            if (rule.ruleType == type && rule.maxWidth <= maxW)
-                return (rule.getValue(0));
+            if (rule.ruleType != type)
+                continue;
+            if (rule.maxWidth > maxW)
+                continue;
+            double val = rule.getValue(0);
+            if (maxValue < val)
+                maxValue = val;
+//            if (rule.ruleType == type && rule.maxWidth <= maxW)
+//                return (rule.getValue(0));
         }
-        return (0.0);
+        return (maxValue);
     }
 
 	/**

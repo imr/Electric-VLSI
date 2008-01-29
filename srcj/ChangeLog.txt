@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/28/08, GVG) Merge MTDRCArea with Spacing code (Bug #1544)
+
+BUG: (1/28/08, GVG) Inconsistency found in maxSurround rule in single and MT threaded versions (Bug #1547)
+FIX: Deterministic algorithm now.
+
+IMP/MAN: (1/28/08, GVG) Ability to switch between single-threaded DRC and the multi-threaded version (Bug #1548).
+New option added in DRC preference.
+
 IMP: (1/28/08, SMR) Improved EDIF input.
 
 BUG: (1/27/08, DN) Abort works for EXAMINE jobs only (Bug #1354).

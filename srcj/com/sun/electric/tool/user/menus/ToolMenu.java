@@ -68,6 +68,7 @@ import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.CalibreDrcErrors;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.drc.MTDRCLayoutTool;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
@@ -153,8 +154,17 @@ public class ToolMenu {
 
 		// mnemonic keys available:  B  EFG IJK MNOPQR  UVWXYZ
             new EMenu("_DRC",
-		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)) { public void run() {
-                    DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(), null, GeometryHandler.GHMode.ALGO_SWEEP, false); }},
+		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0))
+                { public void run() {
+                    if (DRC.isMultiThreaded())
+                    {
+                        new MTDRCLayoutTool(Job.getUserInterface().needCurrentCell(), true, null).startJob();
+                    }
+                    else
+                    {
+                        DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(), null, GeometryHandler.GHMode.ALGO_SWEEP, false);
+                    }
+                }},
 		        new EMenuItem("Check _Selection Area Hierarchically") { public void run() {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
