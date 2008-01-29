@@ -133,8 +133,6 @@ public class SeaOfGatesEngine
 	/** true to run to/from and from/to routing in parallel */					private boolean parallelDij;
 	/** for logging errors */													private ErrorLogger errorLogger;
 
-	private DijkstraInThread d1, d2;
-
 	/**
 	 * Class to hold a "batch" of routes, all on the same network.
 	 */
@@ -500,12 +498,6 @@ public class SeaOfGatesEngine
 		if (parallelDij) numberOfThreads /= 2;
 		if (!parallel) numberOfThreads = 1;
 		if (numberOfThreads == 1) parallel = false;
-		if (parallelDij)
-		{
-			// create threads
-			d1 = new DijkstraInThread("Route a->b");
-			d2 = new DijkstraInThread("Route b->a");
-		}
 
 		// show what is being done
 		System.out.println("Sea-of-gates router finding " + allRoutes.size() + " paths on " + numBatches + " networks");
@@ -526,12 +518,6 @@ public class SeaOfGatesEngine
 		} else
 		{
 			doRouting(allRoutes, routeBatches, job);
-		}
-		if (parallelDij)
-		{
-			// terminate threads
-			d1.startRoute(null, null, null);
-			d2.startRoute(null, null, null);
 		}
 
 		// finally analyze the results and remove unrouted arcs
@@ -1380,41 +1366,23 @@ public class SeaOfGatesEngine
 
 	private class DijkstraInThread extends Thread
 	{
-		private Semaphore inSem = new Semaphore(0);
 		private NeededRoute nr;
 		private NeededRoute otherNr;
 		private Semaphore whenDone;
 
-		public DijkstraInThread(String name)
+		public DijkstraInThread(String name, NeededRoute nr, NeededRoute otherNr, Semaphore whenDone)
 		{
 			super(name);
-			start();
-		}
-
-		public void startRoute(NeededRoute nr, NeededRoute otherNr, Semaphore whenDone)
-		{
 			this.nr = nr;
 			this.otherNr = otherNr;
 			this.whenDone = whenDone;
-			inSem.release();
-		}
-
-		public List<SearchVertex> getResults()
-		{
-			List<SearchVertex> result = nr.vertices;
-			nr = null;
-			return result;
+			start();
 		}
 
 		public void run()
 		{
-			for (;;)
-			{
-				inSem.acquireUninterruptibly();
-				if (nr == null) return;
-				nr.vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, otherNr);
-				whenDone.release();
-			}
+			nr.vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, otherNr);
+			whenDone.release();
 		}
 	}
 
@@ -1429,15 +1397,20 @@ public class SeaOfGatesEngine
 		Map<Integer,Set<Integer>> [] saveD1Planes = null;
 		if (parallelDij)
 		{
-			Semaphore outSem = new Semaphore(0);
+			// duplicate this route but in the opposite direction
 			NeededRoute revNr = new NeededRoute(nr.routeName, nr.to, nr.toX, nr.toY, nr.toZ,
 				nr.from, nr.fromX, nr.fromY, nr.fromZ,
 				nr.netID, nr.minWidth, nr.batchNumber, nr.routeInBatch);
-			d1.startRoute(nr, revNr, outSem);
-			d2.startRoute(revNr, nr, outSem);
+
+			// create threads and start them running
+			Semaphore outSem = new Semaphore(0);
+			new DijkstraInThread("Route a->b", nr, revNr, outSem);
+			new DijkstraInThread("Route b->a", revNr, nr, outSem);
+
+			// wait for threads to complete and get results
 			outSem.acquireUninterruptibly(2);
-			vertices = d1.getResults();
-			verticesRev = d2.getResults();
+			vertices = nr.vertices;
+			verticesRev = revNr.vertices;
 		} else
 		{
 // this is for debugging only
