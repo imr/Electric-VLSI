@@ -48,7 +48,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     protected Cell topCell;
     protected long globalStartTime;
     protected CellLayersContainer cellLayersCon = new CellLayersContainer();
-    protected final boolean printLog = false;
+    protected final boolean printLog = true;
     protected DRCRules rules;
 
     public MTDRCTool(String jobName, Cell c, Consumer<MTDRCResult> consumer)

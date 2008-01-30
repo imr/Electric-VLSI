@@ -237,9 +237,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // caching bits
             activeSpacingBits = DRC.getActiveBits(tech);
-            String extraMsg = ", extension bit ";
-            extraMsg += !ignoreExtensionRules ? "on" : "off";
-            System.out.println("Running DRC for " + name + " with " + extraMsg);
+            System.out.println("Running DRC for " + name + " with " + DRC.explainBits(activeSpacingBits));
 
             // caching memory setting
             inMemory = DRC.isDatesStoredInMemory();
@@ -505,7 +503,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // prepare to check cell
             CheckProto cp = getCheckProto(cell);
             cp.cellChecked = true;
-            boolean checkArea = (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
+            boolean checkArea = (cell == topCell && theLayer != null &&
+                !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
             // if the cell hasn't changed since the last good check, stop now
             Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeSpacingBits, !inMemory);

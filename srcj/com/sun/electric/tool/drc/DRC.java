@@ -1133,7 +1133,7 @@ public class DRC extends Listener
 
     public static String explainBits(int bits)
     {
-        boolean on = (bits & DRC_BIT_AREA) != 0;
+        boolean on = !isIgnoreAreaChecking(); // (bits & DRC_BIT_AREA) != 0;
         String msg = "area bit ";
         msg += on ? "on" : "off";
 
