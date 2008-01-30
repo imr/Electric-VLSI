@@ -220,10 +220,16 @@ public class CellLists extends EDialog
 
 		boolean goodDRC = false;
         int activeBits = DRC.getActiveBits(cell.getTechnology());
-		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits, true);
-		if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeBits, true);
+        // checking spacing drc
+        if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
-		if (maxlen < 0) line += "\t"; else line += " ";
+        // now check min area
+        goodDRC = false;
+        lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, activeBits, true);
+        if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+        if (goodDRC) line += "A"; else line += " ";
+        if (maxlen < 0) line += "\t"; else line += " ";
 
 //		if (net_ncchasmatch(cell) != 0) addstringtoinfstr(infstr, x_("N")); else
 //			addstringtoinfstr(infstr, x_(" "));

@@ -49,7 +49,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.drc.DRC;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
@@ -74,8 +73,8 @@ public class Layout extends Constraints
     static Snapshot oldSnapshot;
     static long revisionDate;
     static String userName;
-    static Set<Cell> goodDRCCells;
-    static Variable goodDRCDate, goodDRCBit;
+    static Set<Cell> goodSpacingDRCCells, goodAreaDRCCells;
+    static Variable goodSpacingDRCDate, goodSpacingDRCBit, goodAreaDRCDate;
 
     /** Shadow Cell info */
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
@@ -83,8 +82,14 @@ public class Layout extends Constraints
     private static final HashMap<ArcInst,Boolean> tempRigid = new HashMap<ArcInst,Boolean>();
     /** Saved libraries */
     static final HashSet<LibId> librariesWritten = new HashSet<LibId>();
-    
-	Layout() {}
+    /** key of Variable for last valid DRC date on a Cell. Only spacing rules */
+    public static final Variable.Key DRC_LAST_GOOD_DATE_SPACING = Variable.newKey("DRC_last_good_drc_date");
+    /** key of Variable for last valid DRC bit on a Cell. Only spacing rules */
+    public static final Variable.Key DRC_LAST_GOOD_BIT_SPACING = Variable.newKey("DRC_last_good_drc_bit");
+    /** No need of bit for area since it is only 1 mode */
+    public static final Variable.Key DRC_LAST_GOOD_DATE_AREA = Variable.newKey("DRC_last_good_drc_area_date");
+
+    Layout() {}
 
 //	/**
 //	 * Method to return the current constraint solver.
@@ -112,7 +117,8 @@ public class Layout extends Constraints
         oldSnapshot = initialSnapshot;
         tempRigid.clear();
         librariesWritten.clear();
-        goodDRCCells = null;
+        goodSpacingDRCCells = null;
+        goodAreaDRCCells = null;
         makeLayoutCells();
 	}
 
@@ -129,9 +135,16 @@ public class Layout extends Constraints
         }
         Layout.userName = userName;
         revisionDate = System.currentTimeMillis();
-        if (goodDRCCells != null) {
+        if (goodSpacingDRCCells != null)
+        {
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
-            goodDRCDate = Variable.newInstance(DRC.DRC_LAST_GOOD_DATE, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
+            goodSpacingDRCDate = Variable.newInstance(DRC_LAST_GOOD_DATE_SPACING, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
+        }
+
+        if (goodAreaDRCCells != null)
+        {
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
+            goodAreaDRCDate = Variable.newInstance(DRC_LAST_GOOD_DATE_SPACING, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
         }
         if (!doChangesQuietly) {
             // Propagate changes and mark changed cells.
@@ -171,7 +184,8 @@ public class Layout extends Constraints
         tempRigid.clear();
         librariesWritten.clear();
         EDatabase.serverDatabase().backup();
-        goodDRCCells = null;
+        goodSpacingDRCCells = null;
+        goodAreaDRCCells = null;
         oldSnapshot = null;
 	}
 
@@ -289,12 +303,20 @@ public class Layout extends Constraints
     /*
      * Method to request to set 
      */
-    public static void setGoodDRCCells(Set<Cell> goodDRCCells, int activeBits, boolean inMemory)
+    public static void setGoodDRCCells(Set<Cell> goodDRCCells, Variable.Key key, int activeBits, boolean inMemory)
     {
         assert(!inMemory); // call only if you are storing in disk
-        Layout.goodDRCCells = goodDRCCells;
-        TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
-        goodDRCBit = Variable.newInstance(DRC.DRC_LAST_GOOD_BIT, new Integer(activeBits), td);
+
+        if (key == DRC_LAST_GOOD_DATE_SPACING)
+        {
+            Layout.goodSpacingDRCCells = goodDRCCells;
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
+            goodSpacingDRCBit = Variable.newInstance(DRC_LAST_GOOD_BIT_SPACING, new Integer(activeBits), td);
+        }
+        else // min area
+        {
+            Layout.goodAreaDRCCells = goodDRCCells;
+        }
     }
     
     /**

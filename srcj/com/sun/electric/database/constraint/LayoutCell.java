@@ -132,9 +132,12 @@ class LayoutCell {
                 cell.getLibrary().setChanged();
             }
         }
-        if (Layout.goodDRCCells != null && Layout.goodDRCCells.contains(cell)) {
-            cell.addVar(Layout.goodDRCDate);
-            cell.addVar(Layout.goodDRCBit);
+        if (Layout.goodSpacingDRCCells != null && Layout.goodSpacingDRCCells.contains(cell)) {
+            cell.addVar(Layout.goodSpacingDRCDate);
+            cell.addVar(Layout.goodSpacingDRCBit);
+        }
+        if (Layout.goodAreaDRCCells != null && Layout.goodAreaDRCCells.contains(cell)) {
+            cell.addVar(Layout.goodAreaDRCDate);
         }
         cell.getBounds();
         

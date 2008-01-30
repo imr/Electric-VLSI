@@ -69,8 +69,9 @@ public class DRC extends Listener
 	/** the DRC tool. */								protected static DRC tool = new DRC();
 	/** overrides of rules for each technology. */		private static HashMap<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
 	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
-    /** to temporary store DRC dates */                 private static HashMap<Cell,StoreDRCInfo> storedDRCDate = new HashMap<Cell,StoreDRCInfo>();
-	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
+    /** to temporary store DRC dates for spacing checking */                 private static HashMap<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
+    /** to temporary store DRC dates for area checking */                 private static HashMap<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
+    /** for logging incremental errors */               private static ErrorLogger errorLoggerIncremental = null;
 
     public static Layer.Function.Set getMultiLayersSet(Layer layer)
     {
@@ -317,10 +318,7 @@ public class DRC extends Listener
     }
 
     private static boolean incrementalRunning = false;
-    /** key of Variable for last valid DRC date on a Cell. */
-    public static final Variable.Key DRC_LAST_GOOD_DATE = Variable.newKey("DRC_last_good_drc_date");
-    /** key of Variable for last valid DRC bit on a Cell. */
-    public static final Variable.Key DRC_LAST_GOOD_BIT = Variable.newKey("DRC_last_good_drc_bit");
+    /** key of Variable for last valid DRC date on a Cell. Only area rules */
     private static final int DRC_BIT_AREA = 01; /* Min area condition */
     private static final int DRC_BIT_EXTENSION = 02;   /* Coverage DRC condition */
     private static final int DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
@@ -934,7 +932,9 @@ public class DRC extends Listener
         // Need to clean cells using this foundry because the rules might have changed.
         System.out.println("Cleaning good DRC dates in cells using '" + f.getType().name() +
                 "' in '" + tech.getTechName() + "'");
-        HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
+        HashMap<Cell,Cell> cleanSpacingDRCDate = new HashMap<Cell,Cell>();
+        HashMap<Cell,Cell> cleanAreaDRCDate = new HashMap<Cell,Cell>();
+
         int bit = 0;
         switch(f.getType())
         {
@@ -959,16 +959,47 @@ public class DRC extends Listener
                 Cell cell = itC.next();
                 if (cell.getTechnology() != tech) continue;
 
-                StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, !inMemory);
+                StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, true, !inMemory);
 
-                if (data == null) continue; // no data
+                if (data != null) // there is data
+                {
+                    // It was marked as valid with previous set of rules
+                    if ((data.bits & bit) != 0)
+                        cleanSpacingDRCDate.put(cell, cell);
+                }
 
-                // It was marked as valid with previous set of rules
-                if ((data.bits & bit) != 0)
-                    cleanDRCDate.put(cell, cell);
+                // Checking area bit
+                data = getCellGoodDRCDateAndBits(cell, false, !inMemory);
+
+                if (data != null) // there is data
+                {
+                    // It was marked as valid with previous set of rules
+                    if ((data.bits & bit) != 0)
+                        cleanAreaDRCDate.put(cell, cell);
+                }
             }
         }
-        addDRCUpdate(0, null, cleanDRCDate, null);
+        addDRCUpdate(0, null, cleanSpacingDRCDate, null, cleanAreaDRCDate, null);
+    }
+
+    private static long getDateStored(Cell cell, Variable.Key key)
+    {
+        long lastDRCDateInMilliseconds = 0;
+        // disk version
+        Variable varSpacingDate = cell.getVar(key, Long.class); // new strategy
+        if (varSpacingDate == null)
+            varSpacingDate = cell.getVar(key, Integer[].class);
+        if (varSpacingDate == null) return lastDRCDateInMilliseconds;
+        Object lastDRCDateObject = varSpacingDate.getObject();
+        if (lastDRCDateObject instanceof Integer[]) {
+            Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
+            long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+            long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+            lastDRCDateInMilliseconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+        } else {
+            lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
+        }
+        return lastDRCDateInMilliseconds;
     }
 
     /**
@@ -978,8 +1009,19 @@ public class DRC extends Listener
      * @param fromDisk
      * @return temporary class containing date and bits if available. Null if nothing is found
      */
-    private static StoreDRCInfo getCellGoodDRCDateAndBits(Cell cell, boolean fromDisk)
+    private static StoreDRCInfo getCellGoodDRCDateAndBits(Cell cell, boolean spacingCheck, boolean fromDisk)
     {
+        HashMap<Cell,StoreDRCInfo> storedDRCDate = storedSpacingDRCDate;
+        Variable.Key dateKey = Layout.DRC_LAST_GOOD_DATE_SPACING;
+        Variable.Key bitKey = Layout.DRC_LAST_GOOD_BIT_SPACING;
+
+        if (!spacingCheck)
+        {
+            storedDRCDate = storedAreaDRCDate;
+            dateKey = Layout.DRC_LAST_GOOD_DATE_AREA;
+            bitKey = null;
+        }
+
         StoreDRCInfo data = storedDRCDate.get(cell);
         boolean firstTime = false;
 
@@ -997,30 +1039,21 @@ public class DRC extends Listener
         if (fromDisk || (!fromDisk && firstTime))
         {
             int thisByte = 0;
-            long lastDRCDateInMilliseconds = 0;
-            // disk version
-            Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Long.class); // new strategy
-            if (varDate == null)
-                varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
-            if (varDate == null) return null;
-            Object lastDRCDateObject = varDate.getObject();
-            if (lastDRCDateObject instanceof Integer[]) {
-                Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
-                long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
-                long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
-                lastDRCDateInMilliseconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
-            } else {
-                lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
-            }
-            Variable varBits = cell.getVar(DRC_LAST_GOOD_BIT, Integer.class);
-            if (varBits == null) // old Byte class
+            long lastDRCDateInMilliseconds = getDateStored(cell, dateKey);
+            if (lastDRCDateInMilliseconds == 0)
+                return null;
+            if (bitKey != null)
             {
-                varBits = cell.getVar(DRC_LAST_GOOD_BIT, Byte.class);
-                if (varBits != null)
-                    thisByte =((Byte)varBits.getObject()).byteValue();
+                Variable varBits = cell.getVar(bitKey, Integer.class);
+                if (varBits == null) // old Byte class
+                {
+                    varBits = cell.getVar(bitKey, Byte.class);
+                    if (varBits != null)
+                        thisByte =((Byte)varBits.getObject()).byteValue();
+                }
+                else
+                    thisByte = ((Integer)varBits.getObject()).intValue();
             }
-            else
-                thisByte = ((Integer)varBits.getObject()).intValue();
             data.bits = thisByte;
             data.date = lastDRCDateInMilliseconds;
         }
@@ -1053,9 +1086,10 @@ public class DRC extends Listener
      * @param fromDisk
      * @return the date of the last successful DRC of that Cell.
      */
-    public static Date getLastDRCDateBasedOnBits(Cell cell, int activeBits, boolean fromDisk)
+    public static Date getLastDRCDateBasedOnBits(Cell cell, boolean spacingCheck,
+                                                 int activeBits, boolean fromDisk)
     {
-        StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, fromDisk);
+        StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, spacingCheck, fromDisk);
 
         // if data is null -> nothing found
         if (data == null)
@@ -1064,14 +1098,17 @@ public class DRC extends Listener
         int thisByte = data.bits;
         if (fromDisk)
             assert(thisByte!=0);
-        boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
-        boolean extension = (thisByte & DRC_BIT_EXTENSION) == (activeBits & DRC_BIT_EXTENSION);
-        // DRC date is invalid if conditions were checked for another foundry
-        boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
-                (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY) &&
-                (thisByte & DRC_BIT_MOSIS_FOUNDRY) == (activeBits & DRC_BIT_MOSIS_FOUNDRY);
-        if (activeBits != 0 && (!area || !extension || !sameManufacturer))
-            return null;
+        if (activeBits != -1)
+        {
+//            boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
+            boolean extension = (thisByte & DRC_BIT_EXTENSION) == (activeBits & DRC_BIT_EXTENSION);
+            // DRC date is invalid if conditions were checked for another foundry
+            boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
+                    (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY) &&
+                    (thisByte & DRC_BIT_MOSIS_FOUNDRY) == (activeBits & DRC_BIT_MOSIS_FOUNDRY);
+            if (activeBits != 0 && (/*!area* || */ !extension || !sameManufacturer))
+                return null;
+        }
 
         // If in memory, date doesn't matter
         Date revisionDate = cell.getRevisionDate();
@@ -1083,10 +1120,15 @@ public class DRC extends Listener
      * Method to clean any DRC date stored previously
      * @param cell the cell to clean
      */
-    private static void cleanDRCDateAndBits(Cell cell)
+    private static void cleanDRCDateAndBits(Cell cell, Variable.Key key)
     {
-        cell.delVar(DRC_LAST_GOOD_DATE);
-        cell.delVar(DRC_LAST_GOOD_BIT);
+        if (key == Layout.DRC_LAST_GOOD_DATE_SPACING)
+        {
+            cell.delVar(Layout.DRC_LAST_GOOD_DATE_SPACING);
+            cell.delVar(Layout.DRC_LAST_GOOD_BIT_SPACING);
+        }
+        else
+            cell.delVar(Layout.DRC_LAST_GOOD_DATE_AREA);
     }
 
     public static String explainBits(int bits)
@@ -1111,7 +1153,7 @@ public class DRC extends Listener
     public static int getActiveBits(Technology tech)
     {
         int bits = 0;
-        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
+//        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
         if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_EXTENSION;
         // Adding foundry to bits set
         Foundry foundry = tech.getSelectedFoundry();
@@ -1282,32 +1324,6 @@ public class DRC extends Listener
 	 */
 	public static void setErrorType(DRCCheckMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
 
-	private static Pref cacheUseMultipleThreads = Pref.makeBooleanPref("UseMultipleThreads", tool.prefs, false);
-	/**
-	 * Method to tell whether DRC should use multiple threads.
-	 * The default is "false".
-	 * @return true if DRC should use multiple threads.
-	 */
-	public static boolean isUseMultipleThreads() { return cacheUseMultipleThreads.getBoolean(); }
-	/**
-	 * Method to set whether DRC should use multiple threads.
-	 * @param on true if DRC should use multiple threads.
-	 */
-	public static void setUseMultipleThreads(boolean on) { cacheUseMultipleThreads.setBoolean(on); }
-
-	private static Pref cacheNumberOfThreads = Pref.makeIntPref("NumberOfThreads", tool.prefs, 2);
-	/**
-	 * Method to return the number of threads to use when running DRC with multiple threads.
-	 * The default is 2.
-	 * @return the number of threads to use when running DRC with multiple threads.
-	 */
-	public static int getNumberOfThreads() { return cacheNumberOfThreads.getInt(); }
-	/**
-	 * Method to set the number of threads to use when running DRC with multiple threads.
-	 * @param th the number of threads to use when running DRC with multiple threads.
-	 */
-	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
-
 	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", tool.prefs, false);
 //    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
@@ -1410,14 +1426,19 @@ public class DRC extends Listener
      * Update Functions
      ***********************************/
 
-    static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
+    static void addDRCUpdate(int spacingBits,
+                             HashMap<Cell, Date> goodSpacingDRCDate, HashMap<Cell, Cell> cleanSpacingDRCDate,
+                             HashMap<Cell, Date> goodAreaDRCDate, HashMap<Cell, Cell> cleanAreaDRCDate,
                              HashMap<Geometric, List<Variable>> newVariables)
     {
-        boolean good = (goodDRCDate != null && goodDRCDate.size() > 0);
-        boolean clean = (cleanDRCDate != null && cleanDRCDate.size() > 0);
+        boolean goodSpace = (goodSpacingDRCDate != null && goodSpacingDRCDate.size() > 0);
+        boolean cleanSpace = (cleanSpacingDRCDate != null && cleanSpacingDRCDate.size() > 0);
+        boolean goodArea = (goodAreaDRCDate != null && goodAreaDRCDate.size() > 0);
+        boolean cleanArea = (cleanAreaDRCDate != null && cleanAreaDRCDate.size() > 0);
         boolean vars = (newVariables != null && newVariables.size() > 0);
-        if (!good && !clean && !vars) return; // nothing to do
-        new DRCUpdate(bits, goodDRCDate, cleanDRCDate, newVariables);
+        if (!goodSpace && !cleanSpace && !vars && !goodArea && !cleanArea) return; // nothing to do
+        new DRCUpdate(spacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
+            goodAreaDRCDate, cleanAreaDRCDate, newVariables);
     }
 
 	/**
@@ -1442,12 +1463,10 @@ public class DRC extends Listener
 
         public boolean doIt()
         {
-            storedDRCDate.clear();
-            if (isDatesStoredInMemory())
-            {
-                // delete any date stored
-            }
-            else // stored in disk
+            storedSpacingDRCDate.clear();
+            storedAreaDRCDate.clear();
+            // Always clean the dates as variables.
+//            if (!isDatesStoredInMemory())
             {
                 for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
                 {
@@ -1455,7 +1474,8 @@ public class DRC extends Listener
                     for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                     {
                         Cell cell = cIt.next();
-                        cleanDRCDateAndBits(cell);
+                        cleanDRCDateAndBits(cell, Layout.DRC_LAST_GOOD_DATE_SPACING);
+                        cleanDRCDateAndBits(cell, Layout.DRC_LAST_GOOD_DATE_AREA);
                     }
                 }
             }
@@ -1468,20 +1488,26 @@ public class DRC extends Listener
 	 */
 	private static class DRCUpdate extends Job
 	{
-		HashMap<Cell,Date> goodDRCDate;
-		HashMap<Cell,Cell> cleanDRCDate;
+		HashMap<Cell,Date> goodSpacingDRCDate;
+		HashMap<Cell,Cell> cleanSpacingDRCDate;
+        HashMap<Cell,Date> goodAreaDRCDate;
+		HashMap<Cell,Cell> cleanAreaDRCDate;
         HashMap<Geometric,List<Variable>> newVariables;
         int activeBits;
 
-		public DRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate, HashMap<Geometric, List<Variable>> newVariables)
+		public DRCUpdate(int bits, HashMap<Cell, Date> goodSpacingDRCD, HashMap<Cell, Cell> cleanSpacingDRCD,
+                         HashMap<Cell, Date> goodAreaDRCD, HashMap<Cell, Cell> cleanAreaDRCD,
+                         HashMap<Geometric, List<Variable>> newVars)
 		{
 			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
-            this.goodDRCDate = goodDRCDate;
-			this.cleanDRCDate = cleanDRCDate;
-            this.newVariables = newVariables;
+            this.goodSpacingDRCDate = goodSpacingDRCD;
+			this.cleanSpacingDRCDate = cleanSpacingDRCD;
+            this.goodAreaDRCDate = goodAreaDRCD;
+            this.cleanAreaDRCDate = cleanAreaDRCD;
+            this.newVariables = newVars;
             this.activeBits = bits;
             // Only works for layout with in memory dates -> no need of adding the job into the queue
-            if (isDatesStoredInMemory() && (newVariables == null || newVariables.isEmpty()))
+            if (isDatesStoredInMemory() && (newVars == null || newVars.isEmpty()))
             {
                 try {doIt();} catch (Exception e) {e.printStackTrace();}
             }
@@ -1489,11 +1515,15 @@ public class DRC extends Listener
 			    startJob();
 		}
 
-		public boolean doIt() throws JobException
-		{
+        /**
+         * Template method to set DAte and bits information for a given map.
+         * @param inMemory
+         */
+        private static void setInformation(HashMap<Cell,StoreDRCInfo> storedDRCDate,
+                                              HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate,
+                                              Variable.Key key, int bits, boolean inMemory)
+        {
             HashSet<Cell> goodDRCCells = new HashSet<Cell>();
-            boolean inMemory = isDatesStoredInMemory();
-
             if (goodDRCDate != null)
             {
                 for (Map.Entry<Cell,Date> e : goodDRCDate.entrySet())
@@ -1501,18 +1531,18 @@ public class DRC extends Listener
                     Cell cell = e.getKey();
 
                     if (!cell.isLinked())
-                        throw new JobException("Cell '" + cell + "' is invalid to update DRC date");
+                        new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
                     {
                         if (inMemory)
-                            storedDRCDate.put(cell, new StoreDRCInfo(e.getValue().getTime(), activeBits));
+                            storedDRCDate.put(cell, new StoreDRCInfo(e.getValue().getTime(), bits));
                         else
                             goodDRCCells.add(cell);
                     }
                 }
             }
             if (!goodDRCCells.isEmpty())
-                Layout.setGoodDRCCells(goodDRCCells, activeBits, inMemory);
+                Layout.setGoodDRCCells(goodDRCCells, key, bits, inMemory);
 
             if (cleanDRCDate != null)
             {
@@ -1527,10 +1557,22 @@ public class DRC extends Listener
                         data.date = -1;
                         data.bits = -1; // I can't put null because of the version
                         if (!inMemory)
-                            cleanDRCDateAndBits(cell);
+                            cleanDRCDateAndBits(cell, key);
                     }
                 }
             }
+
+        }
+
+        public boolean doIt() throws JobException
+		{
+            boolean inMemory = isDatesStoredInMemory();
+
+            setInformation(storedSpacingDRCDate, goodSpacingDRCDate, cleanSpacingDRCDate,
+                Layout.DRC_LAST_GOOD_DATE_SPACING, activeBits, inMemory);
+
+            setInformation(storedAreaDRCDate, goodAreaDRCDate, cleanAreaDRCDate,
+                Layout.DRC_LAST_GOOD_DATE_AREA, -1, inMemory);
 
             // Update variables in Schematics DRC
             if (newVariables != null)

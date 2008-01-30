@@ -119,7 +119,6 @@ public class Quick
 		/** number of instances of this cell in a particular parent */	int totalPerCell;
 		/** true if this cell has been checked */						boolean cellChecked;
 		/** true if this cell has parameters */							boolean cellParameterized;
-		/** true if this cell or subcell has parameters */				boolean treeParameterized;
 		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
 		/** netlist of this cell */										Netlist netlist;
 	}
@@ -133,7 +132,7 @@ public class Quick
     private DRC.CheckDRCJob job; // Reference to running job
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
-    private int activeBits = 0; // to cache current extra bits
+    private int activeSpacingBits = 0; // to cache current extra bits
     private boolean inMemory = DRC.isDatesStoredInMemory();
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
@@ -166,18 +165,19 @@ public class Quick
     private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
 
-	/** number of processes for doing DRC */					private int numberOfThreads;
 	/** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
     /** minimum output grid resolution */				        private double minAllowedResolution;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
 	/** time stamp for numbering networks. */					private int checkTimeStamp;
 	/** for numbering networks. */								private int checkNetNumber;
-	/** total errors found in all threads. */					private int totalMsgFound;
+	/** total errors found in all threads. */					private int totalSpacingMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodDRCDate = new HashMap<Cell,Date>();
-	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
+	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodSpacingDRCDate = new HashMap<Cell,Date>();
+	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanSpacingDRCDate = new HashMap<Cell,Cell>();
+	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodAreaDRCDate = new HashMap<Cell,Date>();
+	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanAreaDRCDate = new HashMap<Cell,Cell>();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
     /** for interactive error logging */                        private boolean interactiveLogger = false;
 	/** Top cell for DRC */                                     private Cell topCell;
@@ -228,8 +228,8 @@ public class Quick
 		errorLogger = errorLog;
 
         // caching bits
-        activeBits = DRC.getActiveBits(tech);
-        System.out.println("Running DRC with " + DRC.explainBits(activeBits));
+        activeSpacingBits = DRC.getActiveBits(tech);
+        System.out.println("Running DRC with " + DRC.explainBits(activeSpacingBits));
 
         // caching memory setting
         inMemory = DRC.isDatesStoredInMemory();
@@ -244,7 +244,6 @@ public class Quick
 		// get the current DRC options
 		errorTypeSearch = DRC.getErrorType();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
-		numberOfThreads = DRC.getNumberOfThreads();
 	    topCell = cell; /* Especially important for minArea checking */
 
 		// if checking specific instances, adjust options and processor count
@@ -252,7 +251,6 @@ public class Quick
 		if (count > 0)
 		{
 			errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
-			numberOfThreads = 1;
 		}
 
 		// cache valid layers for this technology
@@ -302,7 +300,12 @@ public class Quick
 			}
             if (onlyArea)
             {
-                checkMinAreaSlow(cell);
+                int numErrors = checkMinAreaSlow(cell);
+                if (numErrors == 0)
+                    goodAreaDRCDate.put(cell, new Date());
+                else
+                    cleanAreaDRCDate.put(cell, cell);
+                System.out.println("Missing update in dates");
                 return errorLogger;
             }
         }
@@ -314,14 +317,6 @@ public class Quick
 		// initialize cells in tree for hierarchical network numbering
 		Netlist netlist = cell.getNetlist();
 		CheckProto cp = checkEnumerateProtos(cell, netlist);
-
-		// see if any parameters are used below this cell
-		if (cp.treeParameterized && numberOfThreads > 1)
-		{
-			// parameters found: cannot use multiple processors
-			System.out.println("Parameterized layout being used: multiprocessor decomposition disabled");
-			numberOfThreads = 1;
-		}
 
 		// now recursively examine, setting information on all instances
 		cp.hierInstanceCount = 1;
@@ -402,12 +397,12 @@ public class Quick
 
 		// now do the DRC
         int logsFound = 0;
-        int totalErrors = 0;
+//        int totalErrors = 0;
 
 		if (count == 0)
 		{
 			// just do full DRC here
-			totalErrors = checkThisCell(cell, 0, bounds);
+			/*totalErrors =*/ checkThisCell(cell, 0, bounds);
 			// sort the errors by layer
 			errorLogger.sortLogs();
 		} else
@@ -438,7 +433,8 @@ public class Quick
         // This is only going to happen if job was not aborted.
 	    if ((job == null || !job.checkAbort()))
 	    {
-            DRC.addDRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
+            DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate, 
+                goodAreaDRCDate, cleanAreaDRCDate, null);
 	    }
 
         return errorLogger;
@@ -480,7 +476,8 @@ public class Quick
         if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
         {
             // Skipping this one
-            return totalMsgFound;
+            assert(totalSpacingMsgFound == 0); // get rid of this variable.
+            return totalSpacingMsgFound;
         }
 
 		// first check all subcells
@@ -526,7 +523,7 @@ public class Quick
             // This happen when a subcell was reloaded and DRC again. The cell containing
             // the subcell instance must be re-DRC to make sure changes in subCell don't affect
             // the parent one.
-			if (retval > 0 || goodDRCDate.get(np) != null)
+			if (retval > 0 || goodSpacingDRCDate.get(np) != null)
                 allSubCellsStillOK = false;
 //            if (retval > 0)
 //                allSubCellsStillOK = false;
@@ -535,10 +532,13 @@ public class Quick
 		// prepare to check cell
 		CheckProto cp = getCheckProto(cell);
 		cp.cellChecked = true;
+        boolean checkArea = (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
-		// if the cell hasn't changed since the last good check, stop now
-        Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits, !inMemory);
-		if (allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastGoodDate))
+        // if the cell hasn't changed since the last good check, stop now
+        Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeSpacingBits, !inMemory);
+        Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, -1, !inMemory);
+        if (allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastSpacingGoodDate) &&
+            (!checkArea || DRC.isCellDRCDateGood(cell, lastAreaGoodDate)))
 		{
             return 0;
 		}
@@ -548,14 +548,19 @@ public class Quick
 		System.out.println("Checking " + cell);
 
 		// now look at every node and arc here
-		totalMsgFound = 0;
+		totalSpacingMsgFound = 0;
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
+		if (checkArea)
         {
 //            totalMsgFound = checkMinArea(cell);
-            totalMsgFound = checkMinAreaSlow(cell);
+            assert(totalSpacingMsgFound == 0);
+            int totalAreaMsgFound = checkMinAreaSlow(cell);
+            if (totalAreaMsgFound == 0)
+                goodAreaDRCDate.put(cell, new Date());
+            else
+                cleanAreaDRCDate.put(cell, cell);
         }
 
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -577,7 +582,7 @@ public class Quick
 			        checkNodeInst(ni, globalIndex);
 			if (ret)
 			{
-				totalMsgFound++;
+				totalSpacingMsgFound++;
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
 			}
 		}
@@ -597,7 +602,7 @@ public class Quick
 			}
 			if (checkArcInst(cp, ai, globalIndex))
 			{
-				totalMsgFound++;
+				totalSpacingMsgFound++;
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
 			}
 		}
@@ -605,17 +610,17 @@ public class Quick
 		// If message founds, then remove any possible good date
         // !allSubCellsStillOK disconnected on April 18, 2006. totalMsgFound should
         // dictate if this cell is re-marked.
-		if (totalMsgFound > 0) //  || !allSubCellsStillOK)
+		if (totalSpacingMsgFound > 0) //  || !allSubCellsStillOK)
 		{
-			cleanDRCDate.put(cell, cell);
+			cleanSpacingDRCDate.put(cell, cell);
 		}
 		else
 		{
             // Only mark the cell when it passes with a new version of DRC or didn't have
             // the DRC bit on
             // If lastGoodDate == null, wrong bits stored or no date available.
-            if (lastGoodDate == null)
-			    goodDRCDate.put(cell, new Date());
+            if (lastSpacingGoodDate == null)
+			    goodSpacingDRCDate.put(cell, new Date());
 		}
 
 		// if there were no errors, remember that
@@ -638,7 +643,7 @@ public class Quick
                 System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
-		return totalMsgFound;
+		return totalSpacingMsgFound;
 	}
 
     /**
@@ -2243,11 +2248,9 @@ public class Quick
 		cp.totalPerCell = 0;
 		cp.cellChecked = false;
 		cp.cellParameterized = false;
-		cp.treeParameterized = false;
 		cp.netlist = netlist;
         if (cell.hasParameters()) {
             cp.cellParameterized = true;
-            cp.treeParameterized = true;
         }
 //		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
 //		{
@@ -2273,8 +2276,6 @@ public class Quick
 			checkInsts.put(ni, ci);
 
 			CheckProto subCP = checkEnumerateProtos(subCell, netlist.getNetlist(ni));
-			if (subCP.treeParameterized)
-				cp.treeParameterized = true;
 		}
 		return cp;
 	}

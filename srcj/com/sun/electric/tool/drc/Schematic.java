@@ -76,7 +76,7 @@ public class Schematic
 
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
-        DRC.addDRCUpdate(0, null, null, newVariables);
+        DRC.addDRCUpdate(0, null, null, null, null, newVariables);
 		return(errorLogger);
 	}
 
