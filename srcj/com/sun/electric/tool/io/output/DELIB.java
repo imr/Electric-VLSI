@@ -29,7 +29,6 @@ import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.LibId;
@@ -73,8 +72,6 @@ public class DELIB extends JELIB {
     }
 
     // last version to use subdirs to hold cells, instead of putting them all in delib dir.
-    private static final String lastSubdirVersion = "8.04m";
-    public static final String newHeaderVersion = "8.04n";
     public static final String SEARCH_FOR_CELL_FILES = "____SEARCH_FOR_CELL_FILES____";
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
@@ -112,17 +109,8 @@ public class DELIB extends JELIB {
         if (!b && !writeHeaderOnly) {
             // rename cell files that are no longer in the library
             deletedCellFiles.clear();
-            if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
-                for (File file : delibDir.listFiles()) {
-                    checkIfDeleted(file, oldCellFiles);
-                }
-            } else {
-                for (File subdir : delibDir.listFiles()) {
-                    if (subdir.isDirectory()) {
-                        for (File file : subdir.listFiles())
-                            checkIfDeleted(file, oldCellFiles);
-                    }
-                }
+            for (File file : delibDir.listFiles()) {
+                checkIfDeleted(file, oldCellFiles);
             }
             if (oldCellFiles != null) {
                 oldCellFiles.clear();
@@ -163,29 +151,6 @@ public class DELIB extends JELIB {
     @Override
     void writeCell(CellRevision cellRevision) {
         if (writeHeaderOnly) return;
-
-        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
-            // new way, no subdir
-        } else {
-            // old way, subdir
-            String cellDir = getCellSubDir(cellRevision.d.cellId);
-            File cellFD = new File(filePath + File.separator + cellDir);
-            if (cellFD.exists()) {
-                if (!cellFD.isDirectory()) {
-                    System.out.println("Error, file "+cellFD+" is not a directory, moving it to "+cellDir+".old");
-                    if (!cellFD.renameTo(new File(cellDir+".old"))) {
-                        System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellRevision.d.cellId.cellName);
-                        return;
-                    }
-                }
-            } else {
-                // create the directory
-                if (!cellFD.mkdir()) {
-                    System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellRevision.d.cellId.cellName);
-                    return;
-                }
-            }
-        }
 
         // create cell file in directory
         String cellFile = getCellFile(cellRevision.d.cellId);
@@ -233,28 +198,14 @@ public class DELIB extends JELIB {
 
         if (!append) state.appendFile = true;       // next time around file will be appended
 
-        if (Version.getVersion().compareTo(Version.parseVersion(newHeaderVersion)) >= 0) {
-            if (!wroteSearchForCells) {
-                printWriter.println("C"+SEARCH_FOR_CELL_FILES);
-                wroteSearchForCells = true;
-            }
-        } else {
-            // versions older than 8.04n write "C" references in header file
-            cellFile = cellFile.replace(File.separatorChar, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
-            if (!append) printWriter.println("C"+cellFile);
+        if (!wroteSearchForCells) {
+            printWriter.println("C"+SEARCH_FOR_CELL_FILES);
+            wroteSearchForCells = true;
         }
     }
 
     @Override
     void writeExternalLibraryInfo(LibId libId,  Set<LibId> usedLibs) {
-    }
-
-    void writeCellGroup(JELIB.CellGroup group) {
-        if (Version.getVersion().compareTo(Version.parseVersion(newHeaderVersion)) >= 0) {
-            // no group info in header
-        } else {
-            super.writeCellGroup(group);
-        }
     }
 
     /**
@@ -306,9 +257,7 @@ public class DELIB extends JELIB {
      * @return the Cell subdirectory name.
      */
     public static String getCellSubDir(CellId cellId) {
-        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0)
-            return "";
-        return cellId.cellName.getName();
+        return "";
     }
 
     /**
@@ -319,18 +268,10 @@ public class DELIB extends JELIB {
      * @return the file with the Cellin it.
      */
     private static String getCellFile(CellId cellId) {
-        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
-            // versions 8.04n and above write files to .delib dir
-            String cellName = cellId.cellName.getName();
-            View view = cellId.cellName.getView();
-            return cellName + "." + view.getAbbreviation();
-        }
-        String dir = getCellSubDir(cellId);
+        // versions 8.04n and above write files to .delib dir
         String cellName = cellId.cellName.getName();
-        //int version = cellId.cellName.getVersion();
         View view = cellId.cellName.getView();
-        //if (version > 1) cellName = cellName + "_" + version;
-        return dir + File.separator + cellName + "." + view.getAbbreviation();
+        return cellName + "." + view.getAbbreviation();
     }
 
     /**
@@ -342,20 +283,7 @@ public class DELIB extends JELIB {
      * @return the file with the Cell in it.
      */
     public static String getCellFile(Cell cell) {
-        CellId cellId = cell.getId();
-        Library lib = cell.getLibrary();
-        if (lib.getVersion() == null) return getCellFile(cellId);
-        if (lib.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
-            // library version is greater than 8.04m
-            return getCellFile(cellId);
-        }
-        // in version 8.04m and earlier, cell files were in subdirs
-        String dir = cellId.cellName.getName();
-        String cellName = cellId.cellName.getName();
-        //int version = cellId.cellName.getVersion();
-        View view = cellId.cellName.getView();
-        //if (version > 1) cellName = cellName + "_" + version;
-        return dir + File.separator + cellName + "." + view.getAbbreviation();
+        return getCellFile(cell.getId());
     }
 
     /**

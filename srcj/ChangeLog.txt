@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/29/08, DN) JELIB writer writes 'P' bit on TextDescriptors of instance parameters.
+
+IMP/MAN: (1/30/08, DN) JELIB writer doesn't write 'G' lines, because Cell's Groups is
+     defined by a field in 'C' line.
+
 IMP: (1/28/08, GVG) Merge MTDRCArea with Spacing code (Bug #1544)
 
 BUG: (1/28/08, GVG) Inconsistency found in maxSurround rule in single and MT threaded versions (Bug #1547)

@@ -41,6 +41,7 @@ import java.util.HashSet;
  * Date: Mar 8, 2006
  */
 public class DELIB extends JELIB {
+    public static final Version newHeaderVersion = Version.parseVersion("8.04n");
     
     private LineNumberReader headerReader;
     private HashSet<String> delibCellFiles = new HashSet<String>();
@@ -81,7 +82,7 @@ public class DELIB extends JELIB {
         String cellFile = line.substring(1, line.length());
 
         // New header file as of version 8.04n, no cell refs, searches delib dir for cell files
-        if (version.compareTo(Version.parseVersion(com.sun.electric.tool.io.output.DELIB.newHeaderVersion)) >= 0) {
+        if (version.compareTo(newHeaderVersion) >= 0) {
             if (cellFile.equals(com.sun.electric.tool.io.output.DELIB.SEARCH_FOR_CELL_FILES)) {
                 File delibDir = new File(filePath);
                 if (delibDir.exists() && delibDir.isDirectory()) {

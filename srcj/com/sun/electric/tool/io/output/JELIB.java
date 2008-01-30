@@ -86,7 +86,7 @@ public class JELIB extends Output {
     /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
     private TechPool techPool;
     private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
-//    Snapshot snapshot;
+    Snapshot snapshot;
 //    private Map<LibId,URL> libFiles;
     
     JELIB() {
@@ -116,6 +116,7 @@ public class JELIB extends Output {
     private void writeTheLibrary(Snapshot snapshot, LibId libId)
     {
         // gather all referenced objects
+        this.snapshot = snapshot;
         techPool = snapshot.techPool;
         LibraryBackup libBackup = snapshot.getLib(libId);
         HashSet<LibId> usedLibs = new HashSet<LibId>();
@@ -192,121 +193,64 @@ public class JELIB extends Output {
             }
             printWriter.print("T" + convertString(tech.getTechName()));
             printlnSettings(settings);
-            
-// 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
-// 			{
-// 				PrimitiveNode pn = nIt.next();
-// 				if (!externalObjs.contains(pn)) continue;
-            
-// 				printWriter.println("D" + convertString(pn.getName()));
-// 				for(Iterator<PrimitivePort> pIt = pn.getPorts(); pIt.hasNext(); )
-// 				{
-// 					PrimitivePort pp = pIt.next();
-// 					if (!externalObjs.contains(pp)) continue;
-// 					printWriter.println("P" + convertString(pp.getName()));
-// 				}
-// 			}
-// 			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
-// 			{
-// 				ArcProto ap = aIt.next();
-// 				if (!externalObjs.contains(ap)) continue;
-// 				printWriter.println("W" + convertString(ap.getName()));
-// 			}
         }
-//        printWriter.println();
         
-        // gather groups
-        ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
-        ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
-        for (CellRevision cellRevision: sortedCells.values()) {
-            CellName cellName = cellRevision.d.cellId.cellName;
-            
-            int groupIndex = snapshot.cellGroups[cellRevision.d.cellId.cellIndex];
-            while (groupIndex >= chronGroups.size()) chronGroups.add(null);
-            CellGroup group = chronGroups.get(groupIndex);
-            if (group == null) {
-                group = new CellGroup();
-                chronGroups.set(groupIndex, group);
-                sortedGroups.add(group);
-            }
-            group.cellNames.add(cellName);
-            if (cellName.getView() == View.SCHEMATIC && group.mainSchematics == null)
-                group.mainSchematics = cellName;
-        }
+//        // gather groups
+//        ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
+//        ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
+//        for (CellRevision cellRevision: sortedCells.values()) {
+//            CellId cellId = cellRevision.d.cellId;
+//            CellName cellName = cellId.cellName;
+//            
+//            int groupIndex = snapshot.cellGroups[cellRevision.d.cellId.cellIndex];
+//            while (groupIndex >= chronGroups.size()) chronGroups.add(null);
+//            CellGroup group = chronGroups.get(groupIndex);
+//            if (group == null) {
+//                group = new CellGroup(groupIndex);
+//                chronGroups.set(groupIndex, group);
+//                sortedGroups.add(group);
+//            }
+//            group.cellNames.add(cellName);
+//        }
         
         // write cells
         for (CellRevision cellRevision: sortedCells.values()) {
             writeCell(cellRevision);
             //printWriter.println();
         }
-        printWriter.println();
-        
-        // write groups in alphabetical order
-        printWriter.println("# Groups:");
-        for (CellGroup group: sortedGroups) {
-            writeCellGroup(group);
-        }
-        
-//		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
-//		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//		{
-//			Cell cell = cIt.next();
-//			if (!groups.contains(cell.getCellGroup()))
-//				groups.add(cell.getCellGroup());
-//			cellNames.put(cell.getId(), convertString(cell.getCellName().toString()));
-//		}
-//
-//		// write the cells of the database
-//		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//		{
-//			Cell cell = cIt.next();
-//            writeCell(cell.backup());
-//            printWriter.println();
-//		}
-//
-//		// write groups in alphabetical order
-//		printWriter.println("# Groups:");
-//		for(Cell.CellGroup group : groups)
-//		{
-//			printWriter.print("G");
-//
-//			// if there is a main schematic cell, write that first
-//			Cell main = group.getMainSchematics();
-//			if (main != null)
-//			{
-//				printWriter.print(convertString(main.getCellName().toString()));
-//			}
-//
-//			for(Iterator<Cell> cIt = group.getCells(); cIt.hasNext(); )
-//			{
-//				Cell cell = cIt.next();
-//				if (cell == main) continue;
-//
-//				printWriter.print("|");
-//				printWriter.print(cellNames.get(cell.getId()));
-//			}
-//			printWriter.println();
-//      }
+//        printWriter.println();
+//        
+//        // write groups in alphabetical order
+//        printWriter.println("# Groups:");
+//        for (CellGroup group: sortedGroups) {
+//            writeCellGroup(group);
+//        }
     }
     
-    static class CellGroup {
-        TreeSet<CellName> cellNames = new TreeSet<CellName>();
-        CellName mainSchematics;
-    }
-    
-    void writeCellGroup(CellGroup group) {
-        printWriter.print("G");
-        
-        // if there is a main schematic cell, write that first
-        if (group.mainSchematics != null)
-            printWriter.print(convertString(group.mainSchematics.toString()));
-        
-        for(CellName cellName: group.cellNames) {
-            if (cellName.equals(group.mainSchematics)) continue;
-            printWriter.print("|" + cellName);
-        }
-        printWriter.println();
-    }
+//    static class CellGroup {
+//        private final TreeSet<CellName> cellNames = new TreeSet<CellName>();
+//        private final int groupIndex;
+//        
+//        private CellGroup(int groupIndex) {
+//            this.groupIndex = groupIndex;
+//        }
+//    }
+//    
+//    void writeCellGroup(CellGroup group) {
+//        printWriter.print("G");
+//        
+//        // if there is a main schematic cell, write that first
+//        CellId mainSchematicsId = snapshot.groupMainSchematics[group.groupIndex];
+//        CellName mainSchematics = mainSchematicsId != null ? mainSchematicsId.cellName : null;
+//        if (mainSchematics != null)
+//            printWriter.print(convertString(mainSchematics.toString()));
+//        
+//        for(CellName cellName: group.cellNames) {
+//            if (cellName.equals(mainSchematics)) continue;
+//            printWriter.print("|" + cellName);
+//        }
+//        printWriter.println();
+//    }
     
     /**
      * Method to write a cell to the output file
@@ -368,7 +312,7 @@ public class JELIB extends Output {
             nodeNames.set(nodeId, diskNodeName);
             printWriter.print("|" + diskNodeName + "|");
             if (!n.name.isTempname())
-                printWriter.print(describeDescriptor(null, n.nameDescriptor));
+                printWriter.print(describeDescriptor(n.nameDescriptor));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
@@ -407,7 +351,7 @@ public class JELIB extends Output {
             if (ts != 0) nodeBits.append(ts);
             printWriter.print("|" + nodeBits.toString());
             if (np instanceof CellId) {
-                String tdString = describeDescriptor(null, n.protoDescriptor);
+                String tdString = describeDescriptor(n.protoDescriptor);
                 printWriter.print("|" + tdString);
             }
             printlnVars(n);
@@ -422,7 +366,7 @@ public class JELIB extends Output {
                 printWriter.print("A" + convertString(apId.fullName));
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
-                printWriter.print(describeDescriptor(null, a.nameDescriptor));
+                printWriter.print(describeDescriptor(a.nameDescriptor));
             long arcWidth = getSizeCorrector(a.protoId.techId).getWidthToDisk(a);
             printWriter.print("|");
             if (arcWidth != 0)
@@ -462,7 +406,7 @@ public class JELIB extends Output {
                 if (!e.name.toString().equals(e.exportId.externalId))
                     printWriter.print(convertString(e.name.toString()));
             }
-            printWriter.print("|" + describeDescriptor(null, e.nameDescriptor));
+            printWriter.print("|" + describeDescriptor(e.nameDescriptor));
             printWriter.print("|" + nodeNames.get(e.originalNodeId) + "|" + getPortName(e.originalPortId));
             printWriter.print("|" + e.characteristic.getShortName());
             if (e.alwaysDrawn) printWriter.print("/A");
@@ -494,9 +438,17 @@ public class JELIB extends Output {
     }
     
     /**
+     * Helper method to convert a TextDescriptor to a string that describes it
+     */
+    private String describeDescriptor(TextDescriptor td) {
+        return describeDescriptor(null, td, false);
+    }
+    
+    /**
      * Method to convert a variable to a string that describes its TextDescriptor
      * @param var the Variable being described (may be null).
      * @param td the TextDescriptor being described.
+     * @param true to output parameter bit
      * @return a String describing the variable/textdescriptor.
      * The string has these fields:
      *    Asize; for absolute size
@@ -517,7 +469,7 @@ public class JELIB extends Output {
      *    Xoffset; for X offset
      *    Yoffset; for Y offset
      */
-    private String describeDescriptor(Variable var, TextDescriptor td) {
+    private String describeDescriptor(Variable var, TextDescriptor td, boolean isParam) {
         StringBuffer ret = new StringBuffer();
         TextDescriptor.Display display = td.getDisplay();
         if (var == null) display = TextDescriptor.Display.SHOWN;
@@ -587,7 +539,7 @@ public class JELIB extends Output {
         }
 
         // write parameter
-        if (var != null && td.isParam()) ret.append("P");
+        if (isParam) ret.append("P");
         
         if (display != TextDescriptor.Display.NONE) {
             // write rotation
@@ -627,9 +579,17 @@ public class JELIB extends Output {
      */
     private void printlnVars(ImmutableElectricObject d) {
         // write the variables
-        printVars(null, d);
         if (d instanceof ImmutableNodeInst) {
             ImmutableNodeInst nid = (ImmutableNodeInst)d;
+            ImmutableCell ownerCell = null;
+            if (nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
+                ownerCell = snapshot.getCell((CellId)nid.protoId).cellRevision.d;
+                int groupIndex = snapshot.cellGroups[ownerCell.cellId.cellIndex];
+                CellId mainSchematics = snapshot.groupMainSchematics[groupIndex];
+                if (mainSchematics != null)
+                    ownerCell = snapshot.getCell(mainSchematics).cellRevision.d;
+            }
+            printVars(null, nid, ownerCell);
 //            for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); ) {
 //                PortProtoId portId = it.next();
 //                ImmutablePortInst pid = nid.getPortInst(portId);
@@ -651,18 +611,20 @@ public class JELIB extends Output {
                     }
                     Collections.sort(exportsWithVariables, EXPORTS_BY_EXTERNAL_ID);
                     for (ExportId exportId: exportsWithVariables)
-                        printVars(exportId.externalId, nid.getPortInst(exportId));
+                        printVars(exportId.externalId, nid.getPortInst(exportId), null);
                 } else {
                     PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)nid.protoId);
                     for (int portIndex = 0; portIndex < pn.getNumPorts(); portIndex++) {
                         PrimitivePortId pp = pn.getPort(portIndex).getId();
                         ImmutablePortInst pid = nid.getPortInst(pp);
                         if (pid.getNumVariables() == 0) continue;
-                        printVars(getPortName(pp), pid);
+                        printVars(getPortName(pp), pid, null);
 //                        printVars(pp.getName(), pid);
                     }
                 }
             }
+        } else {
+            printVars(null, d, null);
         }
         printWriter.println();
     }
@@ -676,12 +638,19 @@ public class JELIB extends Output {
     /**
      * Method to write the variables on an object.
      */
-    private void printVars(String portName, ImmutableElectricObject d) {
+    private void printVars(String portName, ImmutableElectricObject d, ImmutableCell ownerCell) {
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
             Object varObj = var.getObject();
-            String tdString = describeDescriptor(var, var.getTextDescriptor());
+            TextDescriptor td = var.getTextDescriptor();
+            boolean isParam = td.isParam();
+            if (ownerCell != null) {
+                Variable ownerParam = ownerCell.getVar(var.getKey());
+                if (ownerParam != null && ownerParam.getTextDescriptor().isParam())
+                    isParam = true;
+            }
+            String tdString = describeDescriptor(var, td, isParam);
             printWriter.print("|" + convertVariableName(diskName(portName, var)) + "(" + tdString + ")");
             String pt = makeString(varObj);
             if (pt == null) pt = "";

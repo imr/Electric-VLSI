@@ -88,7 +88,7 @@ public abstract class Job implements Serializable {
     /*private*/ static Mode threadMode;
     private static int recommendedNumThreads;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 17; // Jan 28
+    static final int PROTOCOL_VERSION = 18; // Jan 30
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();

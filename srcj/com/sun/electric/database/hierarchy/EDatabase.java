@@ -730,7 +730,10 @@ public class EDatabase {
                     gn = Integer.valueOf(groupNums.size());
                     groupNums.put(cellGroup, gn);
                 }
-                assert snapshot.cellGroups[i] == gn.intValue();
+                int groupIndex = gn.intValue();
+                assert snapshot.cellGroups[i] == groupIndex;
+                Cell mainSchematics = cellGroup.getMainSchematics();
+                assert snapshot.groupMainSchematics[groupIndex] == (mainSchematics != null ? mainSchematics.getId() : null);
             }
         }
     }

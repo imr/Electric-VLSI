@@ -64,6 +64,7 @@ public class Snapshot {
     public final Tool tool;
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
+    public final CellId[] groupMainSchematics;
     public final ImmutableArrayList<LibraryBackup> libBackups;
     public final TechPool techPool;
     private final ERectangle[] cellBounds;
@@ -71,7 +72,7 @@ public class Snapshot {
     /** Creates a new instance of Snapshot */
     private Snapshot(IdManager idManager, int snapshotId, Tool tool,
             ImmutableArrayList<CellBackup> cellBackups,
-            int[] cellGroups,
+            int[] cellGroups, CellId[] groupMainSchematics,
             ImmutableArrayList<LibraryBackup> libBackups,
             TechPool techPool,
             ERectangle[] cellBounds) {
@@ -80,6 +81,7 @@ public class Snapshot {
         this.tool = tool;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
+        this.groupMainSchematics = groupMainSchematics;
         this.libBackups = libBackups;
         this.techPool = techPool;
         this.cellBounds = new ERectangle[cellBackups.size()];
@@ -98,7 +100,9 @@ public class Snapshot {
      * Creates empty snapshot.
      */
     public Snapshot(IdManager idManager) {
-        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], LibraryBackup.EMPTY_LIST, idManager.getInitialTechPool(), ERectangle.NULL_ARRAY);
+        this(idManager, 0, null, CellBackup.EMPTY_LIST,
+                new int[0], new CellId[0],
+                LibraryBackup.EMPTY_LIST, idManager.getInitialTechPool(), ERectangle.NULL_ARRAY);
     }
     
     /**
@@ -117,8 +121,9 @@ public class Snapshot {
             cellBackupArray[cellIndex] = cellBackup.withTechPool(techPool);
         }
         return new Snapshot(idManager, idManager.newSnapshotId(), this.tool,
-                new ImmutableArrayList(cellBackupArray), this.cellGroups, this.libBackups,
-                techPool, this.cellBounds);
+                new ImmutableArrayList(cellBackupArray),
+                this.cellGroups, this.groupMainSchematics,
+                this.libBackups, techPool, this.cellBounds);
     }
    
     /**
@@ -213,16 +218,37 @@ public class Snapshot {
         
         // Check names
         int[] cellGroups = this.cellGroups;
+        CellId[] groupMainSchematics = this.groupMainSchematics;
         if (namesChanged) {
             cellGroups = new int[cellBackups.size()];
             checkNames(idManager, cellBackups, cellGroups, libBackups);
-            if (Arrays.equals(this.cellGroups, cellGroups))
+            if (Arrays.equals(this.cellGroups, cellGroups)) {
                 cellGroups = this.cellGroups;
+            } else {
+                int maxGroup = -1;
+                for (int groupIndex: cellGroups)
+                    maxGroup = Math.max(maxGroup, groupIndex);
+                groupMainSchematics = new CellId[maxGroup + 1];
+                for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+                    CellBackup cellBackup = cellBackups.get(cellIndex);
+                    if (cellBackup == null) continue;
+                    CellId cellId = cellBackup.cellRevision.d.cellId;
+                    if (cellId.cellName.getView() != View.SCHEMATIC) continue;
+                    int groupIndex = cellGroups[cellIndex];
+                    CellId mainSchematics = groupMainSchematics[groupIndex];
+                    if (mainSchematics == null || cellId.cellName.compareTo(mainSchematics.cellName) < 0)
+                        groupMainSchematics[groupIndex] = cellId;
+                }
+                if (Arrays.equals(this.groupMainSchematics, groupMainSchematics))
+                    groupMainSchematics = this.groupMainSchematics;
+            }
         }
         
         if (cellBoundsArray == null)
             cellBoundsArray = this.cellBounds;
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, this.techPool, cellBoundsArray);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups,
+                cellGroups, groupMainSchematics,
+                libBackups, this.techPool, cellBoundsArray);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -650,9 +676,13 @@ public class Snapshot {
         boolean cellGroupsChanged = cellGroups != oldSnapshot.cellGroups;
         writer.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
-            writer.writeInt(cellGroups.length);
-            for (int i = 0; i < cellGroups.length; i++)
-                writer.writeInt(cellGroups[i]);
+            assert cellGroups.length == cellBackups.size();
+            for (int cellIndex = 0; cellIndex < cellGroups.length; cellIndex++)
+                writer.writeInt(cellGroups[cellIndex]);
+            for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
+                CellId mainSchematics = groupMainSchematics[groupIndex];
+                writer.writeInt(mainSchematics != null ? mainSchematics.cellIndex : -1);
+            }
         }
     }
     
@@ -736,19 +766,33 @@ public class Snapshot {
             }
         }
         
-        int[] cellGroups = oldSnapshot.cellGroups;;
+        int[] cellGroups = oldSnapshot.cellGroups;
+        CellId[] groupMainSchematics = oldSnapshot.groupMainSchematics;
         boolean cellGroupsChanged = reader.readBoolean();
         if (cellGroupsChanged) {
-            int cellGroupsLength = reader.readInt();
-            cellGroups = new int[cellGroupsLength];
-            for (int i = 0; i < cellGroups.length; i++)
-                cellGroups[i] = reader.readInt();
+            cellGroups = new int[cellBackups.size()];
+            int maxGroup = -1;
+            for (int cellIndex = 0; cellIndex < cellGroups.length; cellIndex++) {
+                int groupIndex = reader.readInt();
+                maxGroup = Math.max(maxGroup, groupIndex);
+                cellGroups[cellIndex] = groupIndex;
+            }
+            groupMainSchematics = new CellId[maxGroup + 1];
+            for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
+                CellId mainSchematics = null;
+                int cellIndex = reader.readInt();
+                if (cellIndex >= 0)
+                    mainSchematics = reader.idManager.getCellId(cellIndex);
+                groupMainSchematics[groupIndex] = mainSchematics;
+            }
         }
         for (int i = 0; i < cellBackups.size(); i++) {
             assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, libBackups, techPool, cellBoundsArray);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups,
+                cellGroups, groupMainSchematics,
+                libBackups, techPool, cellBoundsArray);
     }
     
     /**
@@ -788,6 +832,26 @@ public class Snapshot {
         int[] cellGroups = new int[cellBackups.size()];
         checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert Arrays.equals(this.cellGroups, cellGroups);
+        int maxGroup = -1;
+        for (int groupIndex: cellGroups)
+            maxGroup = Math.max(maxGroup, groupIndex);
+        assert groupMainSchematics.length == maxGroup + 1;
+        BitSet foundMainSchematics = new BitSet();
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            CellId cellId = cellBackup.cellRevision.d.cellId;
+            if (cellId.cellName.getView() != View.SCHEMATIC) continue;
+            int groupIndex = cellGroups[cellId.cellIndex];
+            int cmp = cellId.cellName.compareTo(groupMainSchematics[groupIndex].cellName);
+            assert cmp >= 0;
+            if (cmp == 0) {
+                assert groupMainSchematics[groupIndex] == cellId;
+                foundMainSchematics.set(groupIndex);
+            }
+        }
+        for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
+            assert foundMainSchematics.get(groupIndex) == (groupMainSchematics[groupIndex] != null);
+        }
         assert cellBackups.size() == cellBounds.length;
         BitSet checkUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
