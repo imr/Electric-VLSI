@@ -89,18 +89,6 @@ public class MTDRCAreaTool extends MTDRCTool
         if (totalNumErrors == 0)
             return null;
 
-//        DRCTemplate minAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
-//        DRCTemplate enclosedAreaRule = rules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
-//        DRCTemplate spaceRule = rules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
-//        if (minAreaRule == null && enclosedAreaRule == null && spaceRule == null)
-//            return null;
-//
-//        System.out.println("DRC for " + msg + " in thread " + Thread.currentThread().getName());
-//        HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
-//            spaceRule, topCell, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
-//                cellLayersCon, this);
-//        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, quickArea);
-
         long endTime = System.currentTimeMillis();
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
@@ -109,7 +97,7 @@ public class MTDRCAreaTool extends MTDRCTool
         long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
         errorLogger.termLogging(true);
-        return new MTDRCResult(errorCount, warnCount);
+        return new MTDRCResult(errorCount, warnCount, !checkAbort(), null, null, null, null, null);
     }
 
     /**************************************************************************************************************

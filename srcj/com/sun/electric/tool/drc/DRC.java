@@ -1520,8 +1520,8 @@ public class DRC extends Listener
          * @param inMemory
          */
         private static void setInformation(HashMap<Cell,StoreDRCInfo> storedDRCDate,
-                                              HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate,
-                                              Variable.Key key, int bits, boolean inMemory)
+                                           HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate,
+                                           Variable.Key key, int bits, boolean inMemory)
         {
             HashSet<Cell> goodDRCCells = new HashSet<Cell>();
             if (goodDRCDate != null)

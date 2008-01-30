@@ -402,11 +402,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // This is only going to happen if job was not aborted.
             if (!(checkAbort()))
             {
-                DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
-                goodAreaDRCDate, cleanAreaDRCDate, null);
+//                DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
+//                goodAreaDRCDate, cleanAreaDRCDate, null);
             }
 
-            return new MTDRCResult(errorLogger.getNumErrors(), errorLogger.getNumWarnings());
+            return new MTDRCResult(errorLogger.getNumErrors(), errorLogger.getNumWarnings(),
+                !checkAbort(), goodSpacingDRCDate, cleanSpacingDRCDate,
+                goodAreaDRCDate, cleanAreaDRCDate, null);
         }
 
         /*************************** QUICK DRC CELL EXAMINATION ***************************/

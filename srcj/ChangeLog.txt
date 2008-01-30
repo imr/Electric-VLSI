@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.07c: *******************************
 
 BUG: (1/30/08, GVG) DRC dates are missing in MTDRC code (Bug #1546)
-FIX: Code added.
+FIX: Code added and working.
 
 BUG: (1/30/08, GVG) DRC dates wrong in SimpleHierarchy example (Bug #1539)
 FIX: Min area date is stored in a different cell variable so only it is independent of the spacing rules.

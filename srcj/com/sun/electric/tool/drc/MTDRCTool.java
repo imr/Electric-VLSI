@@ -27,10 +27,12 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.MultiTaskJob;
@@ -81,17 +83,77 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     public MTDRCResult mergeTaskResults(Map<Layer,MTDRCResult> taskResults)
     {
         int numTE = 0, numTW = 0;
+        Set<Cell> goodSpacingSet = new HashSet<Cell>();
+        Set<Cell> goodAreaSet = new HashSet<Cell>();
+        Set<Cell> cleanSpacingSet = new HashSet<Cell>();
+        Set<Cell> cleanAreaSet = new HashSet<Cell>();
+        boolean runFine = true;
+
         for (Map.Entry<Layer, MTDRCResult> e : taskResults.entrySet())
         {
             MTDRCResult p = e.getValue();
             numTE += p.numErrors;
             numTW += p.numWarns;
+            if (!p.runfine)
+                runFine = false;
+
+            // Collect all cells that must be clear
+            cleanSpacingSet.addAll(p.cleanSpacingDRCDate.keySet());
+            cleanAreaSet.addAll(p.cleanAreaDRCDate.keySet());
         }
+        // Now that all the cells to be clean are collected, then good cells can be stored.
+        for (Map.Entry<Layer, MTDRCResult> e : taskResults.entrySet())
+        {
+            MTDRCResult p = e.getValue();
+            for (Cell c : p.goodSpacingDRCDate.keySet())
+            {
+                if (!cleanSpacingSet.contains(c))
+                    goodSpacingSet.add(c);
+            }
+            for (Cell c : p.goodAreaDRCDate.keySet())
+            {
+                if (!cleanAreaSet.contains(c))
+                    goodAreaSet.add(c);
+            }
+        }
+        System.out.println("Finished " + ((runFine)?"without":"with") + " problems.");
+
         System.out.println("Total DRC Errors: " + numTE);
         System.out.println("Total DRC Warnings: " + numTW);
         long accuEndTime = System.currentTimeMillis() - globalStartTime;             
         System.out.println("Total Time: " + TextUtils.getElapsedTime(accuEndTime));
-        return new MTDRCResult(numTE, numTW);
+
+        if (runFine)
+        {
+            HashMap<Cell, Date> goodSpacingDRCDate = new HashMap<Cell, Date>();
+            HashMap<Cell, Cell> cleanSpacingDRCDate = new HashMap<Cell, Cell> ();
+            HashMap<Cell, Date> goodAreaDRCDate = new HashMap<Cell, Date>();
+            HashMap<Cell, Cell> cleanAreaDRCDate = new HashMap<Cell, Cell> ();
+            Date date = new Date();
+            for (Cell c : goodSpacingSet)
+            {
+                goodSpacingDRCDate.put(c, date);
+            }
+            for (Cell c : cleanSpacingSet)
+            {
+                cleanSpacingDRCDate.put(c, c);
+            }
+
+            for (Cell c : goodAreaSet)
+            {
+                goodAreaDRCDate.put(c, date);
+            }
+
+            for (Cell c : cleanAreaSet)
+            {
+                cleanAreaDRCDate.put(c, c);
+            }
+            int activeSpacingBits = DRC.getActiveBits(topCell.getTechnology());
+             DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
+                goodAreaDRCDate, cleanAreaDRCDate, null);
+        }
+
+        return new MTDRCResult(numTE, numTW, runFine, null, null, null, null, null);
     }
 
     @Override
@@ -122,11 +184,23 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     public static class MTDRCResult
     {
         private int numErrors, numWarns;
+        private boolean runfine;
+        private HashMap<Cell, Date> goodSpacingDRCDate, goodAreaDRCDate;
+        private HashMap<Cell, Cell> cleanSpacingDRCDate, cleanAreaDRCDate;
 
-        MTDRCResult(int numE, int numW)
+        MTDRCResult(int numE, int numW, boolean notAborted,
+                    HashMap<Cell, Date> goodSpacingDRCD, HashMap<Cell, Cell> cleanSpacingDRCD,
+                    HashMap<Cell, Date> goodAreaDRCD, HashMap<Cell, Cell> cleanAreaDRCD,
+                    HashMap<Geometric, List<Variable>> newVars)
         {
             this.numErrors = numE;
             this.numWarns = numW;
+            this.runfine = notAborted;
+            this.goodSpacingDRCDate = goodSpacingDRCD;
+            this.cleanSpacingDRCDate = cleanSpacingDRCD;
+            this.goodAreaDRCDate = goodAreaDRCD;
+            this.cleanAreaDRCDate = cleanAreaDRCD;
+            assert(newVars == null); // not implemented for Schematics DRC
         }
 
         public int getNumErrors()
