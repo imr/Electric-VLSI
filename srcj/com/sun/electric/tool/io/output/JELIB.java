@@ -582,7 +582,7 @@ public class JELIB extends Output {
         if (d instanceof ImmutableNodeInst) {
             ImmutableNodeInst nid = (ImmutableNodeInst)d;
             ImmutableCell ownerCell = null;
-            if (nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
+            if (false && nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
                 ownerCell = snapshot.getCell((CellId)nid.protoId).cellRevision.d;
                 int groupIndex = snapshot.cellGroups[ownerCell.cellId.cellIndex];
                 CellId mainSchematics = snapshot.groupMainSchematics[groupIndex];

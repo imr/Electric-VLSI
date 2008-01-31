@@ -16,8 +16,6 @@ FIX: Min area date is stored in a different cell variable so only it is independ
 BUG: (1/30/08, GVG) Not properly reset of DRC dates if they were stored as Variables before (Bug #1549)
 FIX: Clear all cell vars even if it is not the inMemory mode.
 
-IMP: (1/29/08, DN) JELIB writer writes 'P' bit on TextDescriptors of instance parameters.
-
 IMP/MAN: (1/30/08, DN) JELIB writer doesn't write 'G' lines, because Cell's Groups is
      defined by a field in 'C' line.
 
