@@ -24,6 +24,9 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
@@ -32,7 +35,10 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
+import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -44,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -202,11 +209,60 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * @throws IllegalArgumentException if TechId is not from this IdManager
      */
     public PrimitivePort getPrimitivePort(PrimitivePortId primitivePortId) {
-        PrimitiveNode pn = getPrimitiveNode(primitivePortId.parentId);
+        PrimitiveNode pn = getPrimitiveNode(primitivePortId.getParentId());
         if (pn == null) return null;
         return pn.getPrimitivePortByChronIndex(primitivePortId.chronIndex);
     }
 
+    public void correctSizesToDisk(List<CellRevision> cells, Version version, Map<Setting,Object> projectSettings, boolean isJelib, boolean keepExtendOverMin) {
+        HashMap<TechId,SizeCorrector> sizeCorrectors = new HashMap<TechId,SizeCorrector>();
+        for (int i = 0; i < cells.size(); i++) {
+            CellRevision cellRevision = cells.get(i);
+            
+            boolean needCorrection = false;
+            for (TechId techId: cellRevision.getTechUsages()) {
+                SizeCorrector sizeCorrector = sizeCorrectors.get(techId);
+                if (sizeCorrector == null) {
+                    if (!sizeCorrectors.containsKey(techId)) {
+                        Technology tech = getTech(techId);
+                        sizeCorrector = tech.getSizeCorrector(version, projectSettings, isJelib, keepExtendOverMin);
+                        if (sizeCorrector.isIdentity())
+                            sizeCorrector = null;
+                        sizeCorrectors.put(techId, sizeCorrector);
+                    }
+                }
+                if (sizeCorrector != null)
+                    needCorrection = true;
+            }
+            if (!needCorrection) continue;
+            
+            ImmutableNodeInst[] correctedNodes = new ImmutableNodeInst[cellRevision.nodes.size()];
+            for (int nodeIndex = 0; nodeIndex < correctedNodes.length; nodeIndex++) {
+                ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
+                if (n.protoId instanceof PrimitiveNodeId) {
+                    PrimitiveNodeId pnId = (PrimitiveNodeId)n.protoId;
+                    SizeCorrector sizeCorrector = sizeCorrectors.get(pnId.techId);
+                    if (sizeCorrector != null)
+                        n = n.withSize(sizeCorrector.getSizeToDisk(n));
+                }
+                correctedNodes[nodeIndex] = n;
+            }
+            ImmutableArcInst[] correctedArcs = new ImmutableArcInst[cellRevision.arcs.size()];
+            for (int arcIndex = 0; arcIndex < correctedArcs.length; arcIndex++) {
+                ImmutableArcInst a = cellRevision.arcs.get(arcIndex);
+                if (a == null) continue;
+                ArcProtoId apId = a.protoId;
+                SizeCorrector sizeCorrector = sizeCorrectors.get(apId.techId);
+                if (sizeCorrector != null)
+                    a = a.withGridExtendOverMin(sizeCorrector.getExtendToDisk(a));
+                correctedArcs[arcIndex] = a;
+            }
+            
+            cellRevision = cellRevision.with(cellRevision.d, cellRevision.revisionDate, correctedNodes, correctedArcs, null);
+            cells.set(i, cellRevision);
+        }
+    }
+    
     /** Returns Artwork technology in this database */
     public Artwork getArtwork() {
         return artwork;

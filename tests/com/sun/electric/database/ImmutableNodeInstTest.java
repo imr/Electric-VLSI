@@ -199,15 +199,15 @@ public class ImmutableNodeInstTest {
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), null, 0, 0, null);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize2() {
-        System.out.println("newInstanceBadSize2");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(-17, 17), 0, 0, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize3() {
-        System.out.println("newInstanceBadSize3");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, -17), 0, 0, null);
-    }
+//    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize2() {
+//        System.out.println("newInstanceBadSize2");
+//        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(-17, 17), 0, 0, null);
+//    }
+//
+//    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize3() {
+//        System.out.println("newInstanceBadSize3");
+//        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, -17), 0, 0, null);
+//    }
 
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableNodeInst.

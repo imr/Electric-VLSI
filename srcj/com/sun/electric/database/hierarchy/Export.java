@@ -179,7 +179,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);
 		}
-        ExportId exportId = parent.getD().cellId.newExportId(protoName);
+        ExportId exportId = parent.getD().cellId.newPortId(protoName);
         if (exportId.inDatabase(parent.getDatabase()) != null)
             exportId = parent.getD().cellId.randomExportId(protoName);
         PortProto originalProto = portInst.getPortProto();

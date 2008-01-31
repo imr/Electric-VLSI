@@ -212,7 +212,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
-        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
+        if (size == null) throw new NullPointerException("size");
+//        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
         if (protoId instanceof CellId)
             size = EPoint.ORIGIN;
         if (isCellCenter(protoId)) {
@@ -305,7 +306,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public ImmutableNodeInst withSize(EPoint size) {
 		if (this.size.equals(size)) return this;
-        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
+		if (size == null) throw new NullPointerException("size");
+//        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
         if (isCellCenter(protoId)) return this;
         if (protoId instanceof CellId) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
@@ -698,8 +700,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert orient != null;
         assert anchor != null;
-        assert size.getGridX() >= 0;
-        assert size.getGridY() >= 0;
+        assert size != null;
+//        assert size.getGridX() >= 0;
+//        assert size.getGridY() >= 0;
         assert (flags & ~FLAG_BITS) == 0;
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)

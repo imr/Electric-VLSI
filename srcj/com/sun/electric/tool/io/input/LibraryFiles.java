@@ -32,8 +32,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Setting;
@@ -47,6 +47,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
@@ -1190,16 +1191,16 @@ public abstract class LibraryFiles extends Input
     }
     
     static PortProto findPortProto(NodeProto np, String portId) {
-        PortProto pp = null;
-        if (np instanceof Cell) {
-            Cell cell = (Cell)np;
-            ExportId exportId = cell.getId().newExportId(portId);
-            return cell.getExportChron(exportId.chronIndex);
-        }
-        pp = np.findPortProto(portId);
-        if (pp == null) {
+        PortProtoId portProtoId = np.getId().newPortId(portId);
+        PortProto pp = np.getPort(portProtoId);
+        if (pp != null) return pp;
+        if (np.getNumPorts() == 1)
+            return np.getPort(0);
+        if (np instanceof PrimitiveNode) {
             PrimitiveNode primNode = (PrimitiveNode)np;
-            pp = primNode.getTechnology().convertOldPortName(portId, primNode);
+            pp = (PrimitivePort)primNode.findPortProto(portId);
+            if (pp == null)
+                pp = primNode.getTechnology().convertOldPortName(portId, primNode);
         }
         return pp;
     }

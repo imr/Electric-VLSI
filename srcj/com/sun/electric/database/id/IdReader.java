@@ -104,7 +104,7 @@ public class IdReader {
                 int numNewPrimitivePortIds = readInt();
                 for (int i = 0; i < numNewPrimitivePortIds; i++) {
                     String primitivePortName = readString();
-                    primitiveNodeId.newPrimitivePortId(primitivePortName);
+                    primitiveNodeId.newPortId(primitivePortName);
                 }
             }
         }
@@ -115,7 +115,7 @@ public class IdReader {
             int numNewExportIds = readInt();
             for (int i = 0; i < numNewExportIds; i++) {
                 String exportIdString = readString();
-                cellId.newExportId(exportIdString);
+                cellId.newPortId(exportIdString);
             }
         }
     }

@@ -699,12 +699,28 @@ public class Technology implements Comparable<Technology>, Serializable
             }
         }
 
+        public boolean isIdentity() {
+            for (Integer arcExtend: arcExtends.values()) {
+                if (arcExtend.intValue() != 0)
+                    return false;
+            }
+            for (EPoint nodeExtend: nodeExtends.values()) {
+                if (nodeExtend.getX() != 0 || nodeExtend.getY() != 0)
+                    return false;
+            }
+            return true;
+        }
+        
         public long getExtendFromDisk(ArcProto ap, double width) {
             return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap.getId()).longValue();
         }
 
+        public long getExtendToDisk(ImmutableArcInst a) {
+            return a.getGridExtendOverMin() + arcExtends.get(a.protoId).intValue();
+        }
+
         public long getWidthToDisk(ImmutableArcInst a) {
-            return 2*(a.getGridExtendOverMin() + arcExtends.get(a.protoId).intValue());
+            return 2*getExtendToDisk(a);
         }
 
         public EPoint getSizeFromDisk(PrimitiveNode pn, double width, double height) {

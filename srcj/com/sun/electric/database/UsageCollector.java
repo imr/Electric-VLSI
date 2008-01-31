@@ -87,7 +87,7 @@ class UsageCollector {
     private void add(PortProtoId portId) {
         if (portId instanceof PrimitivePortId) return;
         ExportId eId = (ExportId)portId;
-        add(eId.parentId, false).set(eId.chronIndex);
+        add(eId.getParentId(), false).set(eId.chronIndex);
     }
     
     private BitSet add(CellId cellId, boolean isInstance) {

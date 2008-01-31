@@ -91,10 +91,10 @@ public class SerializationTest {
         techId0 = idManager.newTechId("tech0");
         arcProtoId0 = techId0.newArcProtoId("ap0");
         primitiveNodeId0 = techId0.newPrimitiveNodeId("pn0");
-        primitivePortId0 = primitiveNodeId0.newPrimitivePortId("pp0");
+        primitivePortId0 = primitiveNodeId0.newPortId("pp0");
         libId0 = idManager.newLibId("lib0");
         cellId0 = libId0.newCellId(CellName.parseName("cell0;1{lay}"));
-        exportId0 = cellId0.newExportId("export0");
+        exportId0 = cellId0.newPortId("export0");
         database = new EDatabase(idManager);
     }
 
@@ -200,7 +200,7 @@ public class SerializationTest {
         IdManager otherIdManager = new IdManager();
         TechId techId = otherIdManager.newTechId("tech");
         PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId("pn");
-        PrimitivePortId primitivePortId = primitiveNodeId.newPrimitivePortId("pp");
+        PrimitivePortId primitivePortId = primitiveNodeId.newPortId("pp");
         out.writeObject(primitivePortId);
     }
     
@@ -233,7 +233,7 @@ public class SerializationTest {
         IdManager otherIdManager = new IdManager();
         LibId libId = otherIdManager.newLibId("lib");
         CellId cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
-        ExportId exportId = cellId.newExportId("export");
+        ExportId exportId = cellId.newPortId("export");
         out.writeObject(exportId);
     }
     

@@ -598,10 +598,10 @@ public class ELIB extends Output
 				} else if (v instanceof ExportId)
 				{
                     ExportId exportId = (ExportId)v;
-                    CellRevision cellRevision = snapshot.getCellRevision(exportId.parentId);
+                    CellRevision cellRevision = snapshot.getCellRevision(exportId.getParentId());
                     if (cellRevision != null && cellRevision.getExport(exportId) != null) {
                         gatherObj(exportId);
-                        gatherCell(exportId.parentId);
+                        gatherCell(exportId.getParentId());
                     }
 				}
 			}

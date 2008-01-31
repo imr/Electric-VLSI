@@ -142,7 +142,7 @@ public class IdWriter {
                 writeInt(primIndex);
                 writeInt(numNewPrimitivePortIds);
                 for (int i = 0; i < numNewPrimitivePortIds; i++)
-                    writeString(primitiveNodeId.getPrimitivePortId(techCount.portCounts[primIndex] + i).name.toString());
+                    writeString(primitiveNodeId.getPortId(techCount.portCounts[primIndex] + i).externalId);
                 techCount.portCounts[primIndex] = numPrimitivePortIds;
             }
             writeInt(-1);

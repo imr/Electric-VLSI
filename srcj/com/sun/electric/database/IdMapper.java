@@ -73,7 +73,7 @@ public class IdMapper implements Serializable {
             CellId cellId = cellRevision.d.cellId;
             for (ImmutableExport e: cellRevision.exports) {
                 if (e.name.toString().equals(e.exportId.externalId)) continue;
-                idMapper.exportIdMap.put(e.exportId, cellId.newExportId(e.name.toString()));
+                idMapper.exportIdMap.put(e.exportId, cellId.newPortId(e.name.toString()));
             }
         }
         return idMapper;
@@ -118,7 +118,7 @@ public class IdMapper implements Serializable {
         ExportId newExportId = exportIdMap.get(key);
         if (newExportId != null) return newExportId;
         CellId newParentId = cellIdMap.get(key.parentId);
-        return newParentId != null ? newParentId.newExportId(key.externalId) : key;
+        return newParentId != null ? newParentId.newPortId(key.externalId) : key;
     }
 
     public Collection<CellId> getNewCellIds() { return cellIdMap.values(); }

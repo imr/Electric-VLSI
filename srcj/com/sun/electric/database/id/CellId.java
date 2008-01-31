@@ -227,7 +227,7 @@ public final class CellId implements NodeProtoId, Serializable {
      * @return ExportId with specified external id.
      * @throws NullPointerException if externalId is null.
      */
-    public ExportId newExportId(String externalId) { return newExportId(externalId, true); }
+    public ExportId newPortId(String externalId) { return newExportId(externalId, true); }
     
     /**
      * Creates new random exportId, unique in this session for this parent CellId.
@@ -598,15 +598,15 @@ public final class CellId implements NodeProtoId, Serializable {
         CellId cellId = libId.newCellId(cellName);
         cellId.hashExportIds = new int[8];
         Arrays.fill(cellId.hashExportIds, -1);
-        cellId.newExportId("A");
+        cellId.newPortId("A");
         String s = "B";
-        cellId.newExportId(s);
+        cellId.newPortId(s);
         
         long startTime = System.currentTimeMillis();
         int numTries = 100*1000*1000;
         int k = 0;
         for (int i = 0; i < numTries; i++) {
-            ExportId eId = cellId.newExportId(s);
+            ExportId eId = cellId.newPortId(s);
             k += eId.chronIndex;
         }
         long stopTime = System.currentTimeMillis();

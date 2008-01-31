@@ -588,7 +588,7 @@ public class ReadableDump extends LibraryFiles
         for (int j = 0; j < numExports; j++)
             exportNames.add(el.exportName[j]);
         for (String exportName: exportNames)
-            cell.getId().newExportId(exportName);
+            cell.getId().newPortId(exportName);
         
 		for(int j=0; j<numExports; j++)
 		{
@@ -598,7 +598,7 @@ public class ReadableDump extends LibraryFiles
             boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(userBits);
             boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(userBits);
             PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(userBits);
-            ExportId exportId = cellId.newExportId(Name.findName(el.exportName[j]).toString());
+            ExportId exportId = cellId.newPortId(Name.findName(el.exportName[j]).toString());
             Export pp = Export.newInstance(cell, exportId, null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
 			el.exportList[j] = pp;
             if (pp == null) continue;

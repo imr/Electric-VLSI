@@ -1040,7 +1040,7 @@ public class JELIB extends LibraryFiles
             if (cc.revision >= 2 && pieces.size() == 1) {
                 // Unused ExportId
                 String exportName = unQuote(cc.revision, pieces.get(0));
-                cellId.newExportId(exportName);
+                cellId.newPortId(exportName);
                 continue;
             }
 			int numPieces = cc.revision >= 2 ? 6 : cc.revision == 1 ? 5 : 7;
@@ -1060,7 +1060,7 @@ public class JELIB extends LibraryFiles
             }
             if (exportUserName == null || exportName.equals(exportUserName))
                 exportName = Name.findName(exportName).toString(); // save memory using String from Name
-            ExportId exportId = cellId.newExportId(exportName);
+            ExportId exportId = cellId.newPortId(exportName);
 			// get text descriptor in field 1
 			String textDescriptorInfo = pieces.get(fieldIndex++);
 			String nodeName = cc.revision >= 1 ? pieces.get(fieldIndex++) : unQuote(cc.revision, pieces.get(fieldIndex++));
@@ -1282,15 +1282,9 @@ public class JELIB extends LibraryFiles
 		}
 
 		PortInst pi = null;
-		if (portName.length() == 0)
-		{
-			if (ni.getNumPortInsts() > 0)
-				pi = ni.getPortInst(0);
-		} else {
-            PortProto pp = findPortProto(ni.getProto(), portName);
-            if (pp != null)
-                pi = ni.findPortInstFromProto(pp);
-        }
+        PortProto pp = findPortProto(ni.getProto(), portName);
+        if (pp != null)
+            pi = ni.findPortInstFromProto(pp);
 
 		// primitives use the name match
 //		if (!ni.isCellInstance()) return pi;
@@ -1349,14 +1343,14 @@ public class JELIB extends LibraryFiles
 			return null;
 		}
 		PortInst portPI = portNI.getOnlyPortInst();
-		Export pp = Export.newInstance(subCell, portPI, name, false);
-		if (pp == null)
+		Export export = Export.newInstance(subCell, portPI, name, false);
+		if (export == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
 				", Unable to create export " + name + " on dummy " + subCell, cell, -1);
 			return null;
 		}
-		pi = ni.findPortInstFromProto(pp);
+		pi = ni.findPortInstFromProto(export);
 		Input.errorLogger.logError(fileName + ", line " + lineNumber +
 			", Creating export " + name + " on dummy " + subCell, cell, -1);
 
@@ -1882,7 +1876,7 @@ public class JELIB extends LibraryFiles
 				String exportName = piece.substring(secondColonPos+1);
 				commaPos = exportName.indexOf(',');
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
-                return cellId.newExportId(exportName);
+                return cellId.newPortId(exportName);
 			case 'F':		// Float
 				return new Float((float)TextUtils.atof(piece));
 			case 'G':		// Long

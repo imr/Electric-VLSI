@@ -51,6 +51,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 {
 	// ---------------------------- private data --------------------------
 	private PrimitivePortId portId; // The Id of this PrimitivePort.
+    private final Name name; // The Name of this PrimitivePort
 	private final PrimitiveNode parent; // The parent PrimitiveNode of this PrimitivePort.
 	private final int portIndex; // Index of this PrimitivePort in PrimitiveNode ports.
 	private ArcProto portArcs[]; // Immutable list of possible connection types.
@@ -74,7 +75,8 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	private PrimitivePort(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
 		int portAngle, int portRange, int portTopology, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
-		this.portId = parent.getId().newPrimitivePortId(protoName);
+        this.name = Name.findName(protoName);
+		this.portId = parent.getId().newPortId(name.toString());
 		this.parent = parent;
         this.portIndex = parent.getNumPorts();
         parent.addPrimitivePort(this);
@@ -172,17 +174,23 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
      */
     public PrimitivePortId getId() { return portId; }
     
+    PrimitivePortId setEmptyId() {
+        assert parent.getNumPorts() == 1;
+        portId = parent.getId().newPortId("");
+        return portId;
+    }
+    
 	/**
 	 * Method to return the name key of this PrimitivePort.
 	 * @return the Name key of this PrimitivePort.
 	 */
-	public Name getNameKey() { return portId.name; }
+	public Name getNameKey() { return name; }
 
 	/**
 	 * Method to return the name of this PrimitivePort.
 	 * @return the name of this PrimitivePort.
 	 */
-	public String getName() { return portId.name.toString(); }
+	public String getName() { return name.toString(); }
 
 	/**
 	 * Method to return the parent NodeProto of this PrimitivePort.

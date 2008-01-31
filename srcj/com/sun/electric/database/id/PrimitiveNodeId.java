@@ -106,40 +106,33 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
      * @return PrimitivePortId with specified chronological index.
      * @throws ArrayIndexOutOfBoundsException if no such PrimitivePortId.
      */
-    synchronized PrimitivePortId getPrimitivePortId(int chronIndex) {
+    public synchronized PrimitivePortId getPortId(int chronIndex) {
         return primitivePortIds.get(chronIndex);
     }
     
     /**
-     * Returns PrimitivePortId with specified primitivePortName.
-     * @param primitivePortName primitive port name.
-     * @return PrimitiveNodeId with specified primitivePortName.
+     * Returns PrimtiivePortId in this node proto with specified external id.
+     * If this external id was requested earlier, the previously created PrimitivePortId returned,
+     * otherwise the new PrimitivePortId is created.
+     * @param externalId external id of PrimitivePortId.
+     * @return PrimitivePortId with specified external id.
+     * @throws NullPointerException if externalId is null.
      */
-    public synchronized PrimitivePortId newPrimitivePortId(String primitivePortName) {
-        PrimitivePortId primitivePortId = primitivePortIdsByName.get(primitivePortName);
-        return primitivePortId != null ? primitivePortId : newPrimitivePortIdInternal(primitivePortName);
+    public synchronized PrimitivePortId newPortId(String externalId) {
+        PrimitivePortId primitivePortId = primitivePortIdsByName.get(externalId);
+        return primitivePortId != null ? primitivePortId : newPrimitivePortIdInternal(externalId);
     }
     
     private PrimitivePortId newPrimitivePortIdInternal(String primitivePortName) {
         int chronIndex = primitivePortIds.size();
         PrimitivePortId primitivePortId = new PrimitivePortId(this, primitivePortName, primitivePortIds.size());
         primitivePortIds.add(primitivePortId);
-        primitivePortIdsByName.put(primitivePortId.name.toString(), primitivePortId);
+        primitivePortIdsByName.put(primitivePortId.externalId, primitivePortId);
         assert primitivePortIds.size() == primitivePortIdsByName.size();
         synchronized (techId) {
             techId.modCount++;
         }
         return primitivePortId;
-    }
-    
-    /**
-     * Returns PortProtoId in this node proto with specified chronological index.
-     * @param chronIndex chronological index of ExportId.
-     * @return PortProtoId whith specified chronological index.
-     * @throws ArrayIndexOutOfBoundsException if no such ExportId.
-     */
-    public PrimitivePortId getPortId(int chronIndex) {
-        return primitivePortIds.get(chronIndex);
     }
     
    /**
@@ -171,13 +164,13 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         for (Map.Entry<String,PrimitivePortId> e: primitivePortIdsByName.entrySet()) {
             PrimitivePortId primitivePortId = e.getValue();
             assert primitivePortId.parentId == this;
-            assert primitivePortId.name.toString() == e.getKey();
+            assert primitivePortId.externalId == e.getKey();
             primitivePortId.check();
         }
         for (int portChronIndex = 0; portChronIndex < primitivePortIds.size(); portChronIndex++) {
             PrimitivePortId primitivePortId = primitivePortIds.get(portChronIndex);
             primitivePortId.check();
-            assert primitivePortIdsByName.get(primitivePortId.name.toString()) == primitivePortId;
+            assert primitivePortIdsByName.get(primitivePortId.externalId) == primitivePortId;
         }
     }
 }

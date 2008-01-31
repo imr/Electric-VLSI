@@ -46,6 +46,16 @@ public interface NodeProtoId
      */
     public PortProtoId getPortId(int chronIndex);
     
+    /**
+     * Returns PortProtoId in this node proto with specified external id.
+     * If this external id was requested earlier, the previously created PortProtoId returned,
+     * otherwise the new PortProtoId is created.
+     * @param externalId external id of PortProtoId.
+     * @return PortProtoId with specified external id.
+     * @throws NullPointerException if externalId is null.
+     */
+    public PortProtoId newPortId(String externalId);
+    
    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.

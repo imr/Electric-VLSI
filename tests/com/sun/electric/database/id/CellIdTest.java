@@ -60,7 +60,7 @@ public class CellIdTest {
         u0_2 = cellId0.getUsageIn(cellId2);
         u0_1 = cellId0.getUsageIn(cellId1);
         u1_2 = cellId1.getUsageIn(cellId2);
-        e1_A = cellId1.newExportId(nameA);
+        e1_A = cellId1.newPortId(nameA);
     }
 
     public static junit.framework.Test suite() {
@@ -160,22 +160,22 @@ public class CellIdTest {
     }
 
     /**
-     * Test of newExportId method, of class com.sun.electric.database.CellId.
+     * Test of newPortId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNewExportId() {
-        System.out.println("newExportId");
+    @Test public void testNewPortId() {
+        System.out.println("newPortId");
         
         String name = nameA;
         CellId instance = cellId1;
         assertEquals(1, instance.numExportIds());
         
         ExportId expResult = e1_A;
-        ExportId result = instance.newExportId(name);
+        ExportId result = instance.newPortId(name);
         assertSame(expResult, result);
         assertEquals(1, instance.numExportIds());
         
         String nameB = "B";
-        ExportId idB = instance.newExportId(nameB);
+        ExportId idB = instance.newPortId(nameB);
         assertSame(instance, idB.parentId);
         assertEquals(1, idB.chronIndex);
         assertSame( nameB, idB.externalId );
@@ -185,12 +185,12 @@ public class CellIdTest {
     }
 
     /**
-     * Test of newExportIds method, of class com.sun.electric.database.CellId.
+     * Test of newPortId method, of class com.sun.electric.database.CellId.
      */
-    @Test(expected = NullPointerException.class) public void testNewExportIdNull() {
-        System.out.println("newExportId null");
+    @Test(expected = NullPointerException.class) public void testNewPortIdNull() {
+        System.out.println("newPortId null");
         
-        cellId0.newExportId(null);
+        cellId0.newPortId(null);
     }
 
     /**

@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * This class represents Cell data (with all arcs/nodes/exports) as it is saved to disk.
@@ -336,6 +338,18 @@ public class CellRevision {
     }
 
     /**
+     * Returns Set of Technologies used in this CellRevision
+     */
+    public Set<TechId> getTechUsages() {
+        LinkedHashSet<TechId> techUsagesSet = new LinkedHashSet<TechId>();
+        for (int techIndex = 0; techIndex < techUsages.length(); techIndex++) {
+            if (techUsages.get(techIndex))
+                techUsagesSet.add(d.cellId.idManager.getTechId(techIndex));
+        }
+        return techUsagesSet;
+    }
+    
+    /**
      * Writes this CellRevision to IdWriter.
      * @param writer where to write.
      */
@@ -493,7 +507,7 @@ public class CellRevision {
     }
     
     private void checkExportId(ExportId exportId) {
-        CellUsage u = d.cellId.getUsageIn(exportId.parentId);
+        CellUsage u = d.cellId.getUsageIn(exportId.getParentId());
         assert cellUsages[u.indexInParent].usedExports.get(exportId.getChronIndex());
     }
     

@@ -75,7 +75,7 @@ public class IdReaderWriterTest {
         techId1 = idManager.newTechId("techId1");
         aId1_a = techId1.newArcProtoId("a");
         nId1_b = techId1.newPrimitiveNodeId("b");
-        pId1_b_p = nId1_b.newPrimitivePortId("p");
+        pId1_b_p = nId1_b.newPortId("p");
         libId0 = idManager.newLibId("libId0");
         libId1 = idManager.newLibId("libId1");
         CellName cellName0 = CellName.parseName("cell0;1{sch}");
@@ -96,7 +96,7 @@ public class IdReaderWriterTest {
         System.out.println("readWrite");
         try {
             String nameA = "A";
-            idManager.getCellId(1).newExportId(nameA);
+            idManager.getCellId(1).newPortId(nameA);
             
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
@@ -121,7 +121,7 @@ public class IdReaderWriterTest {
             assertEquals( techId1.techName, mirrorIdManager.getTechId(1).techName );
             assertEquals( aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName );
             assertEquals( nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName );
-            assertEquals( pId1_b_p.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPrimitivePortId(0).fullName );
+            assertEquals( pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString() );
             assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
             assertEquals( libId1.libName, mirrorIdManager.getLibId(1).libName );
             CellId cellId0 = mirrorIdManager.getCellId(0);
@@ -134,14 +134,14 @@ public class IdReaderWriterTest {
             assertEquals( 2, idManager.newTechId("techId2").techIndex );
             assertEquals( 0, techId0.newArcProtoId("a").chronIndex );
             assertEquals( 1, techId0.newArcProtoId("b").chronIndex );
-            assertEquals( 1, nId1_b.newPrimitivePortId("Q").chronIndex );
+            assertEquals( 1, nId1_b.newPortId("Q").chronIndex );
             assertEquals( 2, idManager.newLibId("libId2").libIndex );
             assertEquals( 3, idManager.newLibId("libId3").libIndex );
             assertEquals( 2, libId1.newCellId(CellName.parseName("cellId2;1")).cellIndex );
             String nameB = "B";
-            idManager.getCellId(1).newExportId(nameB);
+            idManager.getCellId(1).newPortId(nameB);
             String nameC = "C";
-            idManager.getCellId(2).newExportId(nameC);
+            idManager.getCellId(2).newPortId(nameC);
             
             // Second update of mirrorIdManager
             writer.writeDiffs();
@@ -163,8 +163,8 @@ public class IdReaderWriterTest {
             assertEquals( "techId0:b", mirrorIdManager.getTechId(0).getArcProtoId(1).fullName );
             assertEquals( aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName );
             assertEquals( nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName );
-            assertEquals( pId1_b_p.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPrimitivePortId(0).fullName );
-            assertEquals( "techId1:b:Q", mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPrimitivePortId(1).fullName );
+            assertEquals( pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString() );
+            assertEquals( "techId1:b:Q", mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(1).toString() );
             
             assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
             assertEquals( libId1.libName, mirrorIdManager.getLibId(1).libName );

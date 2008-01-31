@@ -28,7 +28,6 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -1057,6 +1056,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             assert primPorts[i] == ports[i];
             assert primPorts[i].getPortIndex() == i;
         }
+        if (primPorts.length == 1) {
+            PrimitivePort thePort = primPorts[0];
+            PrimitivePortId newPortId = thePort.setEmptyId();
+            portsByChronIndex = new PrimitivePort[newPortId.chronIndex + 1];
+            portsByChronIndex[newPortId.chronIndex] = thePort;
+        }
 	}
     
     void addPrimitivePort(PrimitivePort pp) {
@@ -1093,27 +1098,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	public PortProto findPortProto(Name name)
 	{
         if (name == null) return null;
-//		String nameString = name.canonicString();
 		for (int i = 0; i < primPorts.length; i++)
 		{
 			PrimitivePort pp = primPorts[i];
 			if (pp.getNameKey() == name)
-//			if (pp.getNameKey().canonicString() == nameString)
 				return pp;
 		}
 		return null;
-	}
-
-	/**
-	 * Returns the PrimitivePort in this PrimitiveNide with a particular Id
-	 * @param primitivePortId the Id of the PrimitivePort.
-	 * @return the PrimitivePort in this PrimitiveNode with that Id.
-	 */
-	public PrimitivePort getPrimitivePort(PrimitivePortId primitivePortId)
-	{
-        assert primitivePortId.parentId == protoId;
-        int chronIndex = primitivePortId.chronIndex;
-        return chronIndex < portsByChronIndex.length ? portsByChronIndex[chronIndex] : null;
 	}
 
 	/**
@@ -1171,7 +1162,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public PrimitivePort getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException();
-        return primPorts[portProtoId.getChronIndex()];
+        return portsByChronIndex[portProtoId.getChronIndex()];
     }
 
 	/**

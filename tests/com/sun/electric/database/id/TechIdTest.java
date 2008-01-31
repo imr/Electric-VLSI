@@ -71,7 +71,7 @@ public class TechIdTest {
         aId0_A = techId0.newArcProtoId("A");
         nId2_a = techId2.newPrimitiveNodeId("a");
         nId0_A = techId0.newPrimitiveNodeId("A");
-        p0_A_p = nId0_A.newPrimitivePortId("p");
+        p0_A_p = nId0_A.newPortId("p");
     }
 
     @After
@@ -101,9 +101,9 @@ public class TechIdTest {
         assertEquals("A", nId0_A.name);
         assertEquals("tech:A", nId0_A.fullName);
         assertEquals(1, nId0_A.numPrimitivePortIds());
-        assertSame(p0_A_p, nId0_A.getPrimitivePortId(0));
-        assertEquals("p", p0_A_p.name.toString());
-        assertEquals("tech:A:p", p0_A_p.fullName);
+        assertSame(p0_A_p, nId0_A.getPortId(0));
+        assertEquals("p", p0_A_p.externalId);
+        assertEquals("tech:A:p", p0_A_p.toString());
         
         assertSame(idManager, techId2.idManager);
         assertSame(1, techId2.techIndex);
@@ -150,17 +150,17 @@ public class TechIdTest {
         assertSame(nId0_A, nId);
         assertSame(6, techId0.modCount);
         
-        PrimitivePortId pId = nId0_A.newPrimitivePortId("q");
+        PrimitivePortId pId = nId0_A.newPortId("q");
         assertSame(7, techId0.modCount);
         assertSame(2, techId0.numPrimitiveNodeIds());
         assertSame(2, nId0_A.numPrimitivePortIds());
-        assertSame(pId, nId0_A.getPrimitivePortId(1));
+        assertSame(pId, nId0_A.getPortId(1));
         assertSame(1, pId.chronIndex);
         assertSame(nId0_A, pId.parentId);
-        assertEquals("q", pId.name.toString());
-        assertEquals("tech:A:q", pId.fullName);
+        assertEquals("q", pId.externalId);
+        assertEquals("tech:A:q", pId.toString());
         
-        pId = nId0_A.newPrimitivePortId("p");
+        pId = nId0_A.newPortId("p");
         assertSame(7, techId0.modCount);
         assertSame(p0_A_p, pId);
     }
@@ -225,7 +225,7 @@ public class TechIdTest {
     @Test(expected = IndexOutOfBoundsException.class)
     public void getPrimitivePortIdBad() {
         System.out.println("getPrimitivePortId bad");
-        nId0_A.getPrimitivePortId(1);
+        nId0_A.getPortId(1);
     }
     
     /**
@@ -234,7 +234,7 @@ public class TechIdTest {
     @Test(expected = NullPointerException.class)
     public void newPrimitivePortIdNull() {
         System.out.println("newPrimitivePortIdNull");
-        nId0_A.newPrimitivePortId(null);
+        nId0_A.newPortId(null);
     }
 
     /**
@@ -243,7 +243,7 @@ public class TechIdTest {
     @Test(expected = IllegalArgumentException.class)
     public void newPrimitivePortIdBad() {
         System.out.println("newPrimitivePortIdBad");
-        nId0_A.newPrimitivePortId("a|b");
+        nId0_A.newPortId("a|b");
     }
 
     /**

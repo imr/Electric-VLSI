@@ -1168,7 +1168,7 @@ public class ELIB extends LibraryFiles
         for (int i = startPort; i < endPort; i++)
             exportNames.add(exportNameList[i]);
         for (String exportName: exportNames)
-            cellId.newExportId(exportName);
+            cellId.newPortId(exportName);
         
 		for(int i=startPort; i<endPort; i++)
 		{
@@ -1225,7 +1225,7 @@ public class ELIB extends LibraryFiles
             boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(exportUserbits[i]);
             boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(exportUserbits[i]);
             PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(exportUserbits[i]);
-            ExportId exportId = cellId.newExportId(Name.findName(exportName).toString());
+            ExportId exportId = cellId.newPortId(Name.findName(exportName).toString());
             Export pp = Export.newInstance(cell, exportId, null, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
             exportList[i] = pp;
             if (pp == null) continue;

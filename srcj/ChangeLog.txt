@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/31/08, DN) JELIB writer can write single CellRevision.
+
 BUG: (1/30/08, GVG) DRC code was not skipping properly layers for minArea checking.
 FIX: Added extra code in QuickAreaEnumerator.skipLayer().
 

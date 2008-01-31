@@ -32,7 +32,6 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
@@ -47,7 +46,6 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
-import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -56,9 +54,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
@@ -74,8 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-
 
 /**
  * Class to write a library to disk in new Electric-Library format.
@@ -84,9 +77,6 @@ public class JELIB extends Output {
     private boolean oldRevision;
     private Version version;
     /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-    private TechPool techPool;
-    private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
-    Snapshot snapshot;
 //    private Map<LibId,URL> libFiles;
     
     JELIB() {
@@ -116,11 +106,9 @@ public class JELIB extends Output {
     private void writeTheLibrary(Snapshot snapshot, LibId libId)
     {
         // gather all referenced objects
-        this.snapshot = snapshot;
-        techPool = snapshot.techPool;
+//        this.snapshot = snapshot;
         LibraryBackup libBackup = snapshot.getLib(libId);
-        HashSet<LibId> usedLibs = new HashSet<LibId>();
-        HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
+        HashSet<CellId> usedCells = new HashSet<CellId>();
         TreeMap<CellName,CellRevision> sortedCells = new TreeMap<CellName,CellRevision>();
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
@@ -133,9 +121,12 @@ public class JELIB extends Output {
                 int instCount = instCounts[i];
                 if (instCount == 0) continue;
                 CellUsage u = cellId.getUsageIn(i);
-                usedLibs.add(u.protoId.libId);
+                usedCells.add(u.protoId);
             }
         }
+        HashSet<LibId> usedLibs = new HashSet<LibId>();
+        for (CellId cellId: usedCells)
+            usedLibs.add(cellId.libId);
         
         // write header information (library, version)
         printWriter.println("# header information:");
@@ -148,7 +139,7 @@ public class JELIB extends Output {
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
             CellRevision cellRevision = cellBackup.cellRevision;
-            if (cellRevision.d.getLibId() != libId && !usedExports.containsKey(cellRevision.d.cellId)) continue;
+            if (cellRevision.d.getLibId() != libId && !usedCells.contains(cellRevision.d.cellId)) continue;
             usedViews.add(cellRevision.d.cellId.cellName.getView());
         }
         for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
@@ -195,62 +186,15 @@ public class JELIB extends Output {
             printlnSettings(settings);
         }
         
-//        // gather groups
-//        ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
-//        ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
-//        for (CellRevision cellRevision: sortedCells.values()) {
-//            CellId cellId = cellRevision.d.cellId;
-//            CellName cellName = cellId.cellName;
-//            
-//            int groupIndex = snapshot.cellGroups[cellRevision.d.cellId.cellIndex];
-//            while (groupIndex >= chronGroups.size()) chronGroups.add(null);
-//            CellGroup group = chronGroups.get(groupIndex);
-//            if (group == null) {
-//                group = new CellGroup(groupIndex);
-//                chronGroups.set(groupIndex, group);
-//                sortedGroups.add(group);
-//            }
-//            group.cellNames.add(cellName);
-//        }
-        
         // write cells
-        for (CellRevision cellRevision: sortedCells.values()) {
+        ArrayList<CellRevision> sortedCellsList = new ArrayList<CellRevision>(sortedCells.values());
+        snapshot.techPool.correctSizesToDisk(sortedCellsList, version, projectSettings, true, false);
+        for (CellRevision cellRevision: sortedCellsList) {
             writeCell(cellRevision);
             //printWriter.println();
         }
 //        printWriter.println();
-//        
-//        // write groups in alphabetical order
-//        printWriter.println("# Groups:");
-//        for (CellGroup group: sortedGroups) {
-//            writeCellGroup(group);
-//        }
     }
-    
-//    static class CellGroup {
-//        private final TreeSet<CellName> cellNames = new TreeSet<CellName>();
-//        private final int groupIndex;
-//        
-//        private CellGroup(int groupIndex) {
-//            this.groupIndex = groupIndex;
-//        }
-//    }
-//    
-//    void writeCellGroup(CellGroup group) {
-//        printWriter.print("G");
-//        
-//        // if there is a main schematic cell, write that first
-//        CellId mainSchematicsId = snapshot.groupMainSchematics[group.groupIndex];
-//        CellName mainSchematics = mainSchematicsId != null ? mainSchematicsId.cellName : null;
-//        if (mainSchematics != null)
-//            printWriter.print(convertString(mainSchematics.toString()));
-//        
-//        for(CellName cellName: group.cellNames) {
-//            if (cellName.equals(mainSchematics)) continue;
-//            printWriter.print("|" + cellName);
-//        }
-//        printWriter.println();
-//    }
     
     /**
      * Method to write a cell to the output file
@@ -316,24 +260,14 @@ public class JELIB extends Output {
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
-                EPoint size = getSizeCorrector(((PrimitiveNodeId)np).techId).getSizeToDisk(n);
-                double lambdaWidth = size.getLambdaX();
-                double lambdaHeight = size.getLambdaY();
+                double lambdaWidth = n.size.getLambdaX();
+                double lambdaHeight = n.size.getLambdaY();
                 printWriter.print("|");
 				if (lambdaWidth != 0)
 					printWriter.print(TextUtils.formatDouble(lambdaWidth, 0));
                 printWriter.print("|");
 				if (lambdaHeight != 0)
 					printWriter.print(TextUtils.formatDouble(lambdaHeight, 0));
-//                double lambdaWidth = n.size.getLambdaX();
-//                double lambdaHeight = n.size.getLambdaY();
-//                if (NEW_REVISION && !oldRevision) {
-//                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
-//                    lambdaWidth = DBMath.round(lambdaWidth - so.getLowXOffset() - so.getHighXOffset());
-//                    lambdaHeight = DBMath.round(lambdaHeight - so.getLowYOffset() - so.getHighYOffset());
-//                }
-//                printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
-//                printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));
             }
             printWriter.print('|');
             if (n.orient.isXMirrored()) printWriter.print('X');
@@ -367,7 +301,7 @@ public class JELIB extends Output {
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(a.nameDescriptor));
-            long arcWidth = getSizeCorrector(a.protoId.techId).getWidthToDisk(a);
+            long arcWidth = a.getGridExtendOverMin()*2;
             printWriter.print("|");
             if (arcWidth != 0)
                 printWriter.print(TextUtils.formatDouble(DBMath.gridToLambda(arcWidth), 0));
@@ -470,7 +404,7 @@ public class JELIB extends Output {
      *    Yoffset; for Y offset
      */
     private String describeDescriptor(Variable var, TextDescriptor td, boolean isParam) {
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         TextDescriptor.Display display = td.getDisplay();
         if (var == null) display = TextDescriptor.Display.SHOWN;
         
@@ -582,46 +516,21 @@ public class JELIB extends Output {
         if (d instanceof ImmutableNodeInst) {
             ImmutableNodeInst nid = (ImmutableNodeInst)d;
             ImmutableCell ownerCell = null;
-            if (false && nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
-                ownerCell = snapshot.getCell((CellId)nid.protoId).cellRevision.d;
-                int groupIndex = snapshot.cellGroups[ownerCell.cellId.cellIndex];
-                CellId mainSchematics = snapshot.groupMainSchematics[groupIndex];
-                if (mainSchematics != null)
-                    ownerCell = snapshot.getCell(mainSchematics).cellRevision.d;
-            }
-            printVars(null, nid, ownerCell);
-//            for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); ) {
-//                PortProtoId portId = it.next();
-//                ImmutablePortInst pid = nid.getPortInst(portId);
-//                String portName;
-//                if (portId instanceof ExportId) {
-//                    ExportId exportId = (ExportId)portId;
-//                    portName = getExportName(snapshot.getCell(exportId.parentId).getExport(exportId));
-//                } else {
-//                    portName = ((PrimitivePort)portId).getName();
-//                }
-//                printVars(portName, pid);
+//            if (nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
+//                ownerCell = snapshot.getCell((CellId)nid.protoId).cellRevision.d;
+//                int groupIndex = snapshot.cellGroups[ownerCell.cellId.cellIndex];
+//                CellId mainSchematics = snapshot.groupMainSchematics[groupIndex];
+//                if (mainSchematics != null)
+//                    ownerCell = snapshot.getCell(mainSchematics).cellRevision.d;
 //            }
+            printVars(null, nid, ownerCell);
             if (nid.hasPortInstVariables()) {
-                if (nid.protoId instanceof CellId) {
-                    ArrayList<ExportId> exportsWithVariables = new ArrayList<ExportId>();
-                    for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); ) {
-                        ExportId exportId = (ExportId)it.next();
-                        exportsWithVariables.add(exportId);
-                    }
-                    Collections.sort(exportsWithVariables, EXPORTS_BY_EXTERNAL_ID);
-                    for (ExportId exportId: exportsWithVariables)
-                        printVars(exportId.externalId, nid.getPortInst(exportId), null);
-                } else {
-                    PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)nid.protoId);
-                    for (int portIndex = 0; portIndex < pn.getNumPorts(); portIndex++) {
-                        PrimitivePortId pp = pn.getPort(portIndex).getId();
-                        ImmutablePortInst pid = nid.getPortInst(pp);
-                        if (pid.getNumVariables() == 0) continue;
-                        printVars(getPortName(pp), pid, null);
-//                        printVars(pp.getName(), pid);
-                    }
-                }
+                ArrayList<PortProtoId> portsWithVariables = new ArrayList<PortProtoId>();
+                for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); )
+                    portsWithVariables.add(it.next());
+                Collections.sort(portsWithVariables, PORTS_BY_EXTERNAL_ID);
+                for (PortProtoId portProtoId: portsWithVariables)
+                    printVars(portProtoId.externalId, nid.getPortInst(portProtoId), null);
             }
         } else {
             printVars(null, d, null);
@@ -629,9 +538,9 @@ public class JELIB extends Output {
         printWriter.println();
     }
     
-    private static Comparator<ExportId> EXPORTS_BY_EXTERNAL_ID = new Comparator<ExportId>() {
-        public int compare(ExportId e1, ExportId e2) {
-            return TextUtils.STRING_NUMBER_ORDER.compare(e1.externalId, e2.externalId);
+    private static Comparator<PortProtoId> PORTS_BY_EXTERNAL_ID = new Comparator<PortProtoId>() {
+        public int compare(PortProtoId pp1, PortProtoId pp2) {
+            return TextUtils.STRING_NUMBER_ORDER.compare(pp1.externalId, pp2.externalId);
         }
     };
     
@@ -725,21 +634,10 @@ public class JELIB extends Output {
     }
     
     private String getPortName(PortProtoId portId) {
-        if (portId instanceof PrimitivePortId) {
-            PrimitivePort pp = techPool.getPrimitivePort((PrimitivePortId)portId);
-            return pp.getParent().getNumPorts() > 1 ? pp.getName() : "";
-        }
-        ExportId exportId = (ExportId)portId;
-        return convertString(exportId.externalId);
-    }
-    
-    private Technology.SizeCorrector getSizeCorrector(TechId techId) {
-        Technology.SizeCorrector corrector = sizeCorrectors.get(techId);
-        if (corrector == null) {
-            corrector = techPool.getTech(techId).getSizeCorrector(version, projectSettings, true, false);
-            sizeCorrectors.put(techId, corrector);
-        }
-        return corrector;
+        String externalId = portId.externalId;
+        if (externalId.length() > 0)
+            externalId = convertString(externalId);
+        return externalId;
     }
     
     /**
