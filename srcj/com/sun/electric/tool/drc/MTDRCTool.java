@@ -50,7 +50,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     protected Cell topCell;
     protected long globalStartTime;
     protected CellLayersContainer cellLayersCon = new CellLayersContainer();
-    protected final boolean printLog = true;
+    protected final boolean printLog = Job.getDebug();
     protected DRCRules rules;
 
     public MTDRCTool(String jobName, Cell c, Consumer<MTDRCResult> consumer)
@@ -145,17 +145,21 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
     abstract boolean checkArea();
 
-    boolean skipLayer(Layer theLayer)
+    static boolean skipLayerDueToFunction(Layer theLayer, boolean checkArea)
     {
-        if (theLayer == null) return false;
-        
         if (theLayer.getFunction().isDiff() && theLayer.getName().toLowerCase().equals("p-active-well"))
             return true; // dirty way to skip the MoCMOS p-active well
         else if (theLayer.getFunction().isGatePoly())
             return true; // check transistor-poly together with polysilicon-1
-        else if (checkArea() && theLayer.getFunction().isContact())  // via*, polyCut, activeCut
+        else if (checkArea && theLayer.getFunction().isContact())  // via*, polyCut, activeCut
             return true;
         return false;
+    }
+    boolean skipLayer(Layer theLayer)
+    {
+        if (theLayer == null) return false;
+
+        return skipLayerDueToFunction(theLayer, checkArea());
     }
 
     public static class MTDRCResult

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (1/30/08, GVG) DRC code was not skipping properly layers for minArea checking.
+FIX: Added extra code in QuickAreaEnumerator.skipLayer().
+
 BUG: (1/30/08, GVG) DRC dates are missing in MTDRC code (Bug #1546)
 FIX: Code added and working.
 

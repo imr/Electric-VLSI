@@ -499,7 +499,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // prepare to check cell
             CheckProto cp = getCheckProto(cell);
             cp.cellChecked = true;
-            boolean checkArea = (cell == topCell && theLayer != null &&
+            boolean skipLayer = theLayer == null || skipLayerDueToFunction(theLayer, true);
+            boolean checkArea = (cell == topCell && !skipLayer &&
                 !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
             // if the cell hasn't changed since the last good check, stop now

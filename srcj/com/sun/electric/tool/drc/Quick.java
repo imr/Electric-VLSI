@@ -4803,7 +4803,11 @@ public class Quick
             boolean noMinArea = minAreaLayerMap.get(layer) == null;
             boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null && spacingLayerMap.get(layer) == null;
 
-            return (noMinArea && noMinEnc);
+            if (noMinArea && noMinEnc)
+                return true;
+            if (MTDRCTool.skipLayerDueToFunction(layer, true))
+                return true;
+            return false;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -4812,7 +4816,7 @@ public class Quick
             AffineTransform rTrans = info.getTransformToRoot();
             Cell cell = info.getCell();
 
-            for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
             {
                 ArcInst ai = it.next();
                 Network aNet = info.getNetlist().getNetwork(ai, 0);
@@ -4967,7 +4971,12 @@ public class Quick
             boolean noMinArea = minAreaLayerMap.get(layer) == null;
             boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null && spacingLayerMap.get(layer) == null;
 
-            return (noMinArea && noMinEnc);
+            if (noMinArea && noMinEnc)
+                return true;
+            if (MTDRCTool.skipLayerDueToFunction(layer, true))
+                return true;
+
+            return false;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
