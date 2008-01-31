@@ -85,9 +85,8 @@ public class MTDRCAreaTool extends MTDRCTool
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
 
         int totalNumErrors = checkMinArea(theLayer, topCell, errorLogger, rules, cellLayersCon, this, msg);
-
-        if (totalNumErrors == 0)
-            return null;
+        HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
+        HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
         long endTime = System.currentTimeMillis();
         int errorCount = errorLogger.getNumErrors();
@@ -96,8 +95,17 @@ public class MTDRCAreaTool extends MTDRCTool
                 + " (took " + TextUtils.getElapsedTime(endTime - startTime) + " in thread " + Thread.currentThread().getName() + ")");
         long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
-        errorLogger.termLogging(true);
-        return new MTDRCResult(errorCount, warnCount, !checkAbort(), null, null, null, null, null);
+        if (totalNumErrors == 0)
+        {
+            goodAreaDRCDate.add(topCell);
+        }
+        else
+        {
+            cleanAreaDRCDate.add(topCell);
+            errorLogger.termLogging(true);
+        }
+        return new MTDRCResult(errorCount, warnCount, !checkAbort(), new HashSet<Cell>(), new HashSet<Cell>(),
+            goodAreaDRCDate, cleanAreaDRCDate, null);
     }
 
     /**************************************************************************************************************

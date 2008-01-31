@@ -137,9 +137,9 @@ public class Quick
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-	public Quick(DRC.CheckDRCJob job, GeometryHandler.GHMode mode)
+	public Quick(DRC.CheckDRCJob j, GeometryHandler.GHMode mode)
 	{
-		this.job = job;
+		this.job = j;
         this.mergeMode = mode;
 	}
 
@@ -4775,39 +4775,43 @@ public class Quick
                 poly2, geom2, layer2);
     }
 
-
     /**************************************************************************************************************
-	 *  QuickAreaEnumeratorSlow class
+	 *  QuickAreaEnumerator abstract class
 	 **************************************************************************************************************/
-    private class QuickAreaEnumeratorSlow extends HierarchyEnumerator.Visitor
+    private abstract class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-        private GeometryHandler merge;
-        private Layer polyLayer;
-        private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
-        private GeometryHandler.GHMode mode;
-
-        QuickAreaEnumeratorSlow(GeometryHandler.GHMode mode)
-        {
-            this.mode = mode;
-            // Merge is used by the brute force algorithm
-            merge = GeometryHandler.createGeometryHandler(mode, topCell.getTechnology().getNumLayers());
-        }
-
+        Layer polyLayer;
+        Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
+        
         /**
          * Method to check whether the layer must be checked or not. It might be done by this layer on that network
          * @param layer
          * @return true is the layer is should be skipped
          */
-        private boolean skipLayer(Layer layer)
+        boolean skipLayer(Layer layer)
         {
             boolean noMinArea = minAreaLayerMap.get(layer) == null;
             boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null && spacingLayerMap.get(layer) == null;
 
             if (noMinArea && noMinEnc)
                 return true;
-            if (MTDRCTool.skipLayerDueToFunction(layer, true))
+            if (layer.getFunction().isContact())  // via*, polyCut, activeCut)
                 return true;
             return false;
+        }
+    }
+    
+    /**************************************************************************************************************
+	 *  QuickAreaEnumeratorSlow class
+	 **************************************************************************************************************/
+    private class QuickAreaEnumeratorSlow extends QuickAreaEnumerator
+    {
+        private GeometryHandler merge;
+
+        QuickAreaEnumeratorSlow(GeometryHandler.GHMode mode)
+        {
+            // Merge is used by the brute force algorithm
+            merge = GeometryHandler.createGeometryHandler(mode, topCell.getTechnology().getNumLayers());
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -4948,35 +4952,15 @@ public class Quick
     /**
      * Class that uses local GeometryHandler to calculate the area per cell
      */
-    private class QuickAreaEnumeratorLocal extends HierarchyEnumerator.Visitor
+    private class QuickAreaEnumeratorLocal extends QuickAreaEnumerator
     {
         private Map<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket> cellsMap;
-        private Layer polyLayer;
-        private Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
         private GeometryHandler.GHMode mode;
 
         QuickAreaEnumeratorLocal(GeometryHandler.GHMode mode)
         {
             this.mode = mode;
             cellsMap = new HashMap<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket>();
-        }
-
-        /**
-         * Method to check whether the layer must be checked or not. It might be done by this layer on that network
-         * @param layer
-         * @return true is the layer is should be skipped
-         */
-        private boolean skipLayer(Layer layer)
-        {
-            boolean noMinArea = minAreaLayerMap.get(layer) == null;
-            boolean noMinEnc = enclosedAreaLayerMap.get(layer) == null && spacingLayerMap.get(layer) == null;
-
-            if (noMinArea && noMinEnc)
-                return true;
-            if (MTDRCTool.skipLayerDueToFunction(layer, true))
-                return true;
-
-            return false;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)

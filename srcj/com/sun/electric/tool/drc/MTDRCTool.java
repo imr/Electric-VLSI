@@ -145,21 +145,24 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
     abstract boolean checkArea();
 
-    static boolean skipLayerDueToFunction(Layer theLayer, boolean checkArea)
+    static boolean skipLayerInvalidForMinArea(Layer theLayer)
     {
-        if (theLayer.getFunction().isDiff() && theLayer.getName().toLowerCase().equals("p-active-well"))
-            return true; // dirty way to skip the MoCMOS p-active well
-        else if (theLayer.getFunction().isGatePoly())
-            return true; // check transistor-poly together with polysilicon-1
-        else if (checkArea && theLayer.getFunction().isContact())  // via*, polyCut, activeCut
-            return true;
-        return false;
+        // via*, polyCut, activeCut if theLayer is not null
+        // theLayer is null if it is checking node min sizes
+        return theLayer == null || theLayer.getFunction().isContact(); // via*, polyCut, activeCut
     }
+
     boolean skipLayer(Layer theLayer)
     {
         if (theLayer == null) return false;
 
-        return skipLayerDueToFunction(theLayer, checkArea());
+        if (theLayer.getFunction().isDiff() && theLayer.getName().toLowerCase().equals("p-active-well"))
+            return true; // dirty way to skip the MoCMOS p-active well
+        else if (theLayer.getFunction().isGatePoly())
+            return true; // check transistor-poly together with polysilicon-1
+        else if (checkArea() && skipLayerInvalidForMinArea(theLayer))  // via*, polyCut, activeCut
+            return true;
+        return false;
     }
 
     public static class MTDRCResult

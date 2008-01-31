@@ -499,7 +499,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // prepare to check cell
             CheckProto cp = getCheckProto(cell);
             cp.cellChecked = true;
-            boolean skipLayer = theLayer == null || skipLayerDueToFunction(theLayer, true);
+            boolean skipLayer = skipLayerInvalidForMinArea(theLayer);
             boolean checkArea = (cell == topCell && !skipLayer &&
                 !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 

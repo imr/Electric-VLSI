@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (1/31/08, GVG) NPE when running MTDRC only min area.
+FIX: Avoid NPE and more fixes for skipping layers in min area.
+
 IMP: (1/31/08, DN) JELIB writer can write single CellRevision.
 
 BUG: (1/30/08, GVG) DRC code was not skipping properly layers for minArea checking.
