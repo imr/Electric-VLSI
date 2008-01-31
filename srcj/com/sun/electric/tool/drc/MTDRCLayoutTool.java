@@ -178,10 +178,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
         /** total errors found in all threads. */					private int totalMsgFound;
         /** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
         /** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-        /** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodSpacingDRCDate = new HashMap<Cell,Date>();
-        /** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanSpacingDRCDate = new HashMap<Cell,Cell>();
-	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodAreaDRCDate = new HashMap<Cell,Date>();
-	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanAreaDRCDate = new HashMap<Cell,Cell>();
+        /** for tracking the time of good DRC. */					private HashSet<Cell> goodSpacingDRCDate = new HashSet<Cell>();
+        /** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
+	/** for tracking the time of good DRC. */					private HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
+	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
         /** for interactive error logging */                        private boolean interactiveLogger = false;
 
         /* for figuring out which layers are valid for DRC */
@@ -400,12 +400,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // some cells were sucessfully checked: save that information in the database
             // some cells don't have valid DRC date anymore and therefore they should be clean
             // This is only going to happen if job was not aborted.
-            if (!(checkAbort()))
-            {
-//                DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
-//                goodAreaDRCDate, cleanAreaDRCDate, null);
-            }
-
             return new MTDRCResult(errorLogger.getNumErrors(), errorLogger.getNumWarnings(),
                 !checkAbort(), goodSpacingDRCDate, cleanSpacingDRCDate,
                 goodAreaDRCDate, cleanAreaDRCDate, null);
@@ -496,7 +490,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 // This happen when a subcell was reloaded and DRC again. The cell containing
                 // the subcell instance must be re-DRC to make sure changes in subCell don't affect
                 // the parent one.
-                if (retval > 0 || goodSpacingDRCDate.get(np) != null)
+                if (retval > 0 || goodSpacingDRCDate.contains(np))
                     allSubCellsStillOK = false;
 //            if (retval > 0)
 //                allSubCellsStillOK = false;
@@ -532,9 +526,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 assert(totalMsgFound == 0);
                 int totalAreaMsgFound = MTDRCAreaTool.checkMinArea(theLayer, topCell, errorLogger, currentRules, cellLayersCon, job, null);
                 if (totalAreaMsgFound == 0)
-                    goodAreaDRCDate.put(cell, new Date());
+                    goodAreaDRCDate.add(cell);
                 else
-                    cleanAreaDRCDate.put(cell, cell);
+                    cleanAreaDRCDate.add(cell);
             }
 
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
@@ -599,14 +593,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // dictate if this cell is re-marked.
             if (totalMsgFound > 0) //  || !allSubCellsStillOK)
             {
-                cleanSpacingDRCDate.put(cell, cell);
+                cleanSpacingDRCDate.add(cell);
             } else
             {
                 // Only mark the cell when it passes with a new version of DRC or didn't have
                 // the DRC bit on
                 // If lastGoodDate == null, wrong bits stored or no date available.
                 if (lastSpacingGoodDate == null)
-                    goodSpacingDRCDate.put(cell, new Date());
+                    goodSpacingDRCDate.add(cell);
             }
 
             // if there were no errors, remember that

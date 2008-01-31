@@ -174,10 +174,10 @@ public class Quick
 	/** total errors found in all threads. */					private int totalSpacingMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodSpacingDRCDate = new HashMap<Cell,Date>();
-	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanSpacingDRCDate = new HashMap<Cell,Cell>();
-	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodAreaDRCDate = new HashMap<Cell,Date>();
-	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanAreaDRCDate = new HashMap<Cell,Cell>();
+	/** for tracking the time of good DRC. */					private HashSet<Cell> goodSpacingDRCDate = new HashSet<Cell>();
+	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
+	/** for tracking the time of good DRC. */					private HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
+	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
     /** for interactive error logging */                        private boolean interactiveLogger = false;
 	/** Top cell for DRC */                                     private Cell topCell;
@@ -302,9 +302,9 @@ public class Quick
             {
                 int numErrors = checkMinAreaSlow(cell);
                 if (numErrors == 0)
-                    goodAreaDRCDate.put(cell, new Date());
+                    goodAreaDRCDate.add(cell);
                 else
-                    cleanAreaDRCDate.put(cell, cell);
+                    cleanAreaDRCDate.add(cell);
                 System.out.println("Missing update in dates");
                 return errorLogger;
             }
@@ -523,7 +523,7 @@ public class Quick
             // This happen when a subcell was reloaded and DRC again. The cell containing
             // the subcell instance must be re-DRC to make sure changes in subCell don't affect
             // the parent one.
-			if (retval > 0 || goodSpacingDRCDate.get(np) != null)
+			if (retval > 0 || goodSpacingDRCDate.contains(np))
                 allSubCellsStillOK = false;
 //            if (retval > 0)
 //                allSubCellsStillOK = false;
@@ -558,9 +558,9 @@ public class Quick
             assert(totalSpacingMsgFound == 0);
             int totalAreaMsgFound = checkMinAreaSlow(cell);
             if (totalAreaMsgFound == 0)
-                goodAreaDRCDate.put(cell, new Date());
+                goodAreaDRCDate.add(cell);
             else
-                cleanAreaDRCDate.put(cell, cell);
+                cleanAreaDRCDate.add(cell);
         }
 
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -612,7 +612,7 @@ public class Quick
         // dictate if this cell is re-marked.
 		if (totalSpacingMsgFound > 0) //  || !allSubCellsStillOK)
 		{
-			cleanSpacingDRCDate.put(cell, cell);
+			cleanSpacingDRCDate.add(cell);
 		}
 		else
 		{
@@ -620,7 +620,7 @@ public class Quick
             // the DRC bit on
             // If lastGoodDate == null, wrong bits stored or no date available.
             if (lastSpacingGoodDate == null)
-			    goodSpacingDRCDate.put(cell, new Date());
+			    goodSpacingDRCDate.add(cell);
 		}
 
 		// if there were no errors, remember that

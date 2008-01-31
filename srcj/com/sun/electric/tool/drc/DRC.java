@@ -319,7 +319,7 @@ public class DRC extends Listener
 
     private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. Only area rules */
-    private static final int DRC_BIT_AREA = 01; /* Min area condition */
+//    private static final int DRC_BIT_AREA = 01; /* Min area condition */
     private static final int DRC_BIT_EXTENSION = 02;   /* Coverage DRC condition */
     private static final int DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
     private static final int DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
@@ -932,8 +932,8 @@ public class DRC extends Listener
         // Need to clean cells using this foundry because the rules might have changed.
         System.out.println("Cleaning good DRC dates in cells using '" + f.getType().name() +
                 "' in '" + tech.getTechName() + "'");
-        HashMap<Cell,Cell> cleanSpacingDRCDate = new HashMap<Cell,Cell>();
-        HashMap<Cell,Cell> cleanAreaDRCDate = new HashMap<Cell,Cell>();
+        HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
+        HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
         int bit = 0;
         switch(f.getType())
@@ -965,7 +965,7 @@ public class DRC extends Listener
                 {
                     // It was marked as valid with previous set of rules
                     if ((data.bits & bit) != 0)
-                        cleanSpacingDRCDate.put(cell, cell);
+                        cleanSpacingDRCDate.add(cell);
                 }
 
                 // Checking area bit
@@ -975,7 +975,7 @@ public class DRC extends Listener
                 {
                     // It was marked as valid with previous set of rules
                     if ((data.bits & bit) != 0)
-                        cleanAreaDRCDate.put(cell, cell);
+                        cleanAreaDRCDate.add(cell);
                 }
             }
         }
@@ -1427,8 +1427,8 @@ public class DRC extends Listener
      ***********************************/
 
     static void addDRCUpdate(int spacingBits,
-                             HashMap<Cell, Date> goodSpacingDRCDate, HashMap<Cell, Cell> cleanSpacingDRCDate,
-                             HashMap<Cell, Date> goodAreaDRCDate, HashMap<Cell, Cell> cleanAreaDRCDate,
+                             Set<Cell> goodSpacingDRCDate, Set<Cell> cleanSpacingDRCDate,
+                             Set<Cell> goodAreaDRCDate, Set<Cell> cleanAreaDRCDate,
                              HashMap<Geometric, List<Variable>> newVariables)
     {
         boolean goodSpace = (goodSpacingDRCDate != null && goodSpacingDRCDate.size() > 0);
@@ -1488,15 +1488,16 @@ public class DRC extends Listener
 	 */
 	private static class DRCUpdate extends Job
 	{
-		HashMap<Cell,Date> goodSpacingDRCDate;
-		HashMap<Cell,Cell> cleanSpacingDRCDate;
-        HashMap<Cell,Date> goodAreaDRCDate;
-		HashMap<Cell,Cell> cleanAreaDRCDate;
+		Set<Cell> goodSpacingDRCDate;
+		Set<Cell> cleanSpacingDRCDate;
+        Set<Cell> goodAreaDRCDate;
+		Set<Cell> cleanAreaDRCDate;
         HashMap<Geometric,List<Variable>> newVariables;
         int activeBits;
 
-		public DRCUpdate(int bits, HashMap<Cell, Date> goodSpacingDRCD, HashMap<Cell, Cell> cleanSpacingDRCD,
-                         HashMap<Cell, Date> goodAreaDRCD, HashMap<Cell, Cell> cleanAreaDRCD,
+		public DRCUpdate(int bits,
+                         Set<Cell> goodSpacingDRCD, Set<Cell> cleanSpacingDRCD,
+                         Set<Cell> goodAreaDRCD, Set<Cell> cleanAreaDRCD,
                          HashMap<Geometric, List<Variable>> newVars)
 		{
 			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
@@ -1520,22 +1521,22 @@ public class DRC extends Listener
          * @param inMemory
          */
         private static void setInformation(HashMap<Cell,StoreDRCInfo> storedDRCDate,
-                                           HashMap<Cell,Date> goodDRCDate, HashMap<Cell,Cell> cleanDRCDate,
+                                           Set<Cell> goodDRCDate, Set<Cell> cleanDRCDate,
                                            Variable.Key key, int bits, boolean inMemory)
         {
             HashSet<Cell> goodDRCCells = new HashSet<Cell>();
+            Long time = System.currentTimeMillis();
+
             if (goodDRCDate != null)
             {
-                for (Map.Entry<Cell,Date> e : goodDRCDate.entrySet())
+                for (Cell cell : goodDRCDate)
                 {
-                    Cell cell = e.getKey();
-
                     if (!cell.isLinked())
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
                     {
                         if (inMemory)
-                            storedDRCDate.put(cell, new StoreDRCInfo(e.getValue().getTime(), bits));
+                            storedDRCDate.put(cell, new StoreDRCInfo(time, bits));
                         else
                             goodDRCCells.add(cell);
                     }
@@ -1546,7 +1547,7 @@ public class DRC extends Listener
 
             if (cleanDRCDate != null)
             {
-                for (Cell cell : cleanDRCDate.keySet())
+                for (Cell cell : cleanDRCDate)
                 {
                     if (!cell.isLinked())
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");

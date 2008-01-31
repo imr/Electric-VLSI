@@ -98,19 +98,19 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
                 runFine = false;
 
             // Collect all cells that must be clear
-            cleanSpacingSet.addAll(p.cleanSpacingDRCDate.keySet());
-            cleanAreaSet.addAll(p.cleanAreaDRCDate.keySet());
+            cleanSpacingSet.addAll(p.cleanSpacingDRCDate);
+            cleanAreaSet.addAll(p.cleanAreaDRCDate);
         }
         // Now that all the cells to be clean are collected, then good cells can be stored.
         for (Map.Entry<Layer, MTDRCResult> e : taskResults.entrySet())
         {
             MTDRCResult p = e.getValue();
-            for (Cell c : p.goodSpacingDRCDate.keySet())
+            for (Cell c : p.goodSpacingDRCDate)
             {
                 if (!cleanSpacingSet.contains(c))
                     goodSpacingSet.add(c);
             }
-            for (Cell c : p.goodAreaDRCDate.keySet())
+            for (Cell c : p.goodAreaDRCDate)
             {
                 if (!cleanAreaSet.contains(c))
                     goodAreaSet.add(c);
@@ -125,32 +125,9 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
         if (runFine)
         {
-            HashMap<Cell, Date> goodSpacingDRCDate = new HashMap<Cell, Date>();
-            HashMap<Cell, Cell> cleanSpacingDRCDate = new HashMap<Cell, Cell> ();
-            HashMap<Cell, Date> goodAreaDRCDate = new HashMap<Cell, Date>();
-            HashMap<Cell, Cell> cleanAreaDRCDate = new HashMap<Cell, Cell> ();
-            Date date = new Date();
-            for (Cell c : goodSpacingSet)
-            {
-                goodSpacingDRCDate.put(c, date);
-            }
-            for (Cell c : cleanSpacingSet)
-            {
-                cleanSpacingDRCDate.put(c, c);
-            }
-
-            for (Cell c : goodAreaSet)
-            {
-                goodAreaDRCDate.put(c, date);
-            }
-
-            for (Cell c : cleanAreaSet)
-            {
-                cleanAreaDRCDate.put(c, c);
-            }
             int activeSpacingBits = DRC.getActiveBits(topCell.getTechnology());
-             DRC.addDRCUpdate(activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
-                goodAreaDRCDate, cleanAreaDRCDate, null);
+             DRC.addDRCUpdate(activeSpacingBits, goodSpacingSet, cleanSpacingSet,
+                goodAreaSet, cleanAreaSet, null);
         }
 
         return new MTDRCResult(numTE, numTW, runFine, null, null, null, null, null);
@@ -185,12 +162,12 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     {
         private int numErrors, numWarns;
         private boolean runfine;
-        private HashMap<Cell, Date> goodSpacingDRCDate, goodAreaDRCDate;
-        private HashMap<Cell, Cell> cleanSpacingDRCDate, cleanAreaDRCDate;
+        private HashSet<Cell> goodSpacingDRCDate, goodAreaDRCDate;
+        private HashSet<Cell> cleanSpacingDRCDate, cleanAreaDRCDate;
 
         MTDRCResult(int numE, int numW, boolean notAborted,
-                    HashMap<Cell, Date> goodSpacingDRCD, HashMap<Cell, Cell> cleanSpacingDRCD,
-                    HashMap<Cell, Date> goodAreaDRCD, HashMap<Cell, Cell> cleanAreaDRCD,
+                    HashSet<Cell> goodSpacingDRCD, HashSet<Cell> cleanSpacingDRCD,
+                    HashSet<Cell> goodAreaDRCD, HashSet<Cell> cleanAreaDRCD,
                     HashMap<Geometric, List<Variable>> newVars)
         {
             this.numErrors = numE;
