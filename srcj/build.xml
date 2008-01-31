@@ -177,6 +177,7 @@
            <arg value="com.sun.electric.database.id.IdManagerTest"/>
            <arg value="com.sun.electric.database.id.IdReaderWriterTest"/>
            <arg value="com.sun.electric.database.id.TechIdTest"/>
+           <arg value="com.sun.electric.database.variable.CodeExpressionTest"/>
            <arg value="com.sun.electric.database.variable.TextDescriptorTest"/>
         </java>
     </target>

@@ -704,6 +704,7 @@ abstract class AbstractTextDescriptor implements Serializable
         
         private final String name;
         private final int cFlags;
+        private static final Code[] allCodes = Code.class.getEnumConstants();
 
         private Code(String name, int cFlags) {
             this.name = name;
@@ -726,7 +727,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /**
          * Method to get an iterator over all Code types.
          */
-        public static Iterator<Code> getCodes() { return ArrayIterator.iterator(Code.class.getEnumConstants()); }
+        public static Iterator<Code> getCodes() { return ArrayIterator.iterator(allCodes); }
 
 		/**
 		 * Method to convert a bits value to a Code object.
@@ -742,6 +743,16 @@ abstract class AbstractTextDescriptor implements Serializable
                 case VTCL: return TCL;
                 default: return NONE;
             }
+        }
+        
+		/**
+		 * Method to get a Code constant by its ordinal number.
+		 * @param ordinal the ordinal number of this Code constant ( as returned by ordinal()
+		 * @return the Code associated with this ordinal number.
+		 */
+        public static Code getByOrdinal(int ordinal)
+        {
+            return allCodes[ordinal];
         }
     }
 
