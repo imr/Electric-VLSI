@@ -99,12 +99,6 @@ public class J3DMenu {
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
-        Technology tech = curCell.getTechnology();
-        if (tech != Technology.getMocmosTechnology() && tech != Technology.getTSMC180Technology() && tech != Technology.getCMOS90Technology())
-        {
-            System.out.println("3D View only available for 180nm and 90nm technologies.");
-            return;
-        }
 
         WindowContent view2D = WindowFrame.getCurrentWindowFrame(false).getContent();
 

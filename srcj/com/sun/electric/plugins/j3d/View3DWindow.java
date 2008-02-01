@@ -548,11 +548,6 @@ public class View3DWindow extends JPanel
 
 	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes da) {}
 	public void focusOnHighlighted() {}
-//	public void cellHistoryGoBack() {}
-//	public void cellHistoryGoForward() {}
-//	public boolean cellHistoryCanGoBack() { return false; }
-//	public boolean cellHistoryCanGoForward() { return false; }
-//	public void fireCellHistoryStatus() {}
 	public void replaceAllText(String replace) {}
     public Highlighter getHighlighter() { return highlighter; }
 
@@ -576,7 +571,9 @@ public class View3DWindow extends JPanel
 		Technology tech = ap.getTechnology();
 
 		List<Shape3D> list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
-		electricObjectMap.put(ai, list);
+        if (list.isEmpty())
+            System.out.println("No layer with non-zero thickness found in arc '" + ai.getName() + "'");
+        electricObjectMap.put(ai, list);
 	}
 
 	/**
@@ -733,7 +730,10 @@ public class View3DWindow extends JPanel
             }
             if (boxList != null) list.addAll(boxList);
         }
-		electricObjectMap.put(no, list);
+        if (list.isEmpty())
+            System.out.println("No layer with non-zero thickness found in node '" + no.getName() + "'");
+
+        electricObjectMap.put(no, list);
         for (int i = 0; i < list.size(); i++)
         {
             transformGroupMap.put(list.get(i), objTrans);

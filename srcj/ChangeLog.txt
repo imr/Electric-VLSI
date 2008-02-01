@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (1/31/08, GVG) 3D Viewer should not be restricted to 180/90nm techs (Bug #1550).
+Warnings will be given if the technologies don't have any non-zero 3D values.
+
 BUG: (1/31/08, GVG) NPE when running MTDRC only min area.
 FIX: Avoid NPE and more fixes for skipping layers in min area.
 
