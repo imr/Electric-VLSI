@@ -438,9 +438,13 @@ public class View3DWindow extends JPanel
         J3DUtils.createBackground(objRoot);
 
 		View3DEnumerator view3D = new View3DEnumerator();
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, view3D);
+        
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, view3D);
 //		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
+        if (electricObjectMap.isEmpty())
+            System.out.println("No 3D elements added. Check 3D values.");
+        
         if (job.checkAbort()) return null; // Job cancel
 
 		// Picking tools
@@ -573,7 +577,8 @@ public class View3DWindow extends JPanel
 		List<Shape3D> list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
         if (list.isEmpty())
             System.out.println("No layer with non-zero thickness found in arc '" + ai.getName() + "'");
-        electricObjectMap.put(ai, list);
+        else
+            electricObjectMap.put(ai, list);
 	}
 
 	/**
@@ -732,13 +737,15 @@ public class View3DWindow extends JPanel
         }
         if (list.isEmpty())
             System.out.println("No layer with non-zero thickness found in node '" + no.getName() + "'");
-
-        electricObjectMap.put(no, list);
-        for (int i = 0; i < list.size(); i++)
+        else
         {
-            transformGroupMap.put(list.get(i), objTrans);
+            electricObjectMap.put(no, list);
+            for (int i = 0; i < list.size(); i++)
+            {
+                transformGroupMap.put(list.get(i), objTrans);
+            }
         }
-	}
+    }
 
     /**
 	 * Adds given list of Polys representing a PrimitiveNode to the transformation group

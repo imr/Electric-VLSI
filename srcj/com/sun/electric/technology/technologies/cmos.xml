@@ -93,6 +93,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
         <cifLayer cif="CM"/>
         <pureLayerNode name="Metal-Node" port="metal">
             <lambda>3.0</lambda>
@@ -123,6 +124,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="9" mode="NONE" factor="0.2"/>
         <cifLayer cif="CP"/>
         <pureLayerNode name="Polysilicon-Node" port="polysilicon">
             <lambda>2.0</lambda>
@@ -153,6 +155,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
         <cifLayer cif="CD"/>
         <pureLayerNode name="Diffusion-Node" port="diffusion">
             <lambda>2.0</lambda>
@@ -182,6 +185,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="2" height="9" mode="NONE" factor="0.2"/>
         <cifLayer cif="CC"/>
         <pureLayerNode name="Cut-Node" style="CLOSED" port="cut">
             <lambda>2.0</lambda>
@@ -211,6 +215,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="2" height="9" mode="NONE" factor="0.2"/>
         <cifLayer cif="CC"/>
         <pureLayerNode name="Ohmic-Cut-Node" style="CROSSED" port="ohmic-cut">
             <lambda>2.0</lambda>
@@ -265,6 +270,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CS"/>
         <pureLayerNode name="P-Node" port="p+">
             <lambda>2.0</lambda>
@@ -294,6 +300,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="9" height="0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CW"/>
         <pureLayerNode name="Well-Node" port="well">
             <lambda>4.0</lambda>
@@ -323,6 +330,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="1" height="13" mode="NONE" factor="0.2"/>
         <cifLayer cif="CG"/>
         <pureLayerNode name="Overglass-Node" port="overglass">
             <lambda>2.0</lambda>

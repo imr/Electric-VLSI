@@ -25,6 +25,7 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -100,6 +101,11 @@ public class J3DMenu {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
 
+        if (!curCell.isLayout())
+        {
+            System.out.println("3D View only available for Layout views");
+            return;
+        }
         WindowContent view2D = WindowFrame.getCurrentWindowFrame(false).getContent();
 
         // 3D view can only be triggered by EditWindow instances

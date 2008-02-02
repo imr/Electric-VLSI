@@ -3597,7 +3597,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		return false;
 	}
 
-	/**
+    /**
+     * Method to return true if this Cell is a layout Cell.
+     * @return true if this Cell is a layout Cell
+     */
+    public boolean isLayout()
+    {
+        View w = getView();
+        return w == View.LAYOUT || w == View.LAYOUTCOMP || w == View.LAYOUTSKEL;
+    }
+
+    /**
 	 * Method to return the number of pages in this multi-page Cell.
 	 * @return the number of different pages.
 	 */

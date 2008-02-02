@@ -118,7 +118,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.7</opacity>
         <foreground>true</foreground>
-        <display3D thick="2.65" height="22.15" factor="0.0"/>
+        <display3D thick="2.65" height="22.15" mode="NONE" factor="0.0"/>
         <cifLayer cif="CMS"/>
         <pureLayerNode name="Metal-2-Node" port="metal-2">
             <lambda>4.0</lambda>
@@ -620,17 +620,7 @@
     </menuPalette>
 
     <Foundry name="NONE">
-        <LayerRule ruleName="1.1" layerName="Metal-1" type="MINWID" when="ALL" value="2.0"/>
-        <LayersRule ruleName="1.2" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayerRule ruleName="2.1" layerName="HiK" type="MINWID" when="ALL" value="4.0"/>
-        <LayerRule ruleName="3.1" layerName="Pent" type="MINWID" when="ALL" value="4.0"/>
-        <LayerRule ruleName="4.1" layerName="Via1" type="MINWID" when="ALL" value="2.0"/>
-        <LayersRule ruleName="4.2" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/> 
-        <LayersRule ruleName="5.2" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="1.0"/>
-        <LayerRule ruleName="6.1" layerName="Passivation" type="MINWID" when="ALL" value="9.0"/>
         
-
         <layerGds layer="Metal-1" gds="49"/>
         <layerGds layer="Metal-2" gds="51"/>
         <layerGds layer="HiK" gds="46"/>
@@ -641,6 +631,16 @@
         <layerGds layer="lay2" gds="2"/>
         <layerGds layer="lay3" gds="3"/>
         <layerGds layer="lay4" gds="4"/>
+
+        <LayerRule ruleName="1.1" layerName="Metal-1" type="MINWID" when="ALL" value="2.0"/>
+        <LayersRule ruleName="1.2" layerNames="{Metal-1,Metal-1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayerRule ruleName="2.1" layerName="HiK" type="MINWID" when="ALL" value="4.0"/>
+        <LayerRule ruleName="3.1" layerName="Pent" type="MINWID" when="ALL" value="4.0"/>
+        <LayerRule ruleName="4.1" layerName="Via1" type="MINWID" when="ALL" value="2.0"/>
+        <LayersRule ruleName="4.2" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/> 
+        <LayersRule ruleName="5.2" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="1.0"/>
+        <LayerRule ruleName="6.1" layerName="Passivation" type="MINWID" when="ALL" value="9.0"/>
 
     </Foundry>
 </technology>

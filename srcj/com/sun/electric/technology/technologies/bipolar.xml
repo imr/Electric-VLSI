@@ -92,6 +92,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
         <cifLayer cif="IM1"/>
         <pureLayerNode name="Metal1_Node" port="metal1">
             <lambda>2.0</lambda>
@@ -122,6 +123,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="12" mode="NONE" factor="0.2"/>
         <cifLayer cif="IM2"/>
         <pureLayerNode name="Metal2_Node" port="metal2">
             <lambda>2.0</lambda>
@@ -152,6 +154,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="INP"/>
         <pureLayerNode name="NPImplant_Node" port="N+implant">
             <lambda>2.0</lambda>
@@ -181,6 +184,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IPP"/>
         <pureLayerNode name="PPImplant_Node" port="P+implant">
             <lambda>2.0</lambda>
@@ -210,6 +214,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="9" mode="NONE" factor="0.2"/>
         <cifLayer cif="IP"/>
         <pureLayerNode name="Poly_Def_Node" port="poly-def">
             <lambda>2.0</lambda>
@@ -239,6 +244,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IF"/>
         <pureLayerNode name="Field_Implant_Node" style="CLOSED" port="field">
             <lambda>4.0</lambda>
@@ -297,6 +303,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IS"/>
         <pureLayerNode name="Sink_Implant_Node" style="CLOSED" port="sink-implant">
             <lambda>4.0</lambda>
@@ -326,6 +333,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="INM"/>
         <pureLayerNode name="N_Implant_Node" style="CLOSED" port="N-implant">
             <lambda>4.0</lambda>
@@ -384,6 +392,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
         <cifLayer cif="IC"/>
         <pureLayerNode name="Contact_Node" style="CROSSED" port="contact">
             <lambda>4.0</lambda>
@@ -413,6 +422,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
         <cifLayer cif="IV"/>
         <pureLayerNode name="Via_Node" port="via">
             <lambda>4.0</lambda>
@@ -442,6 +452,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="1" height="13" mode="NONE" factor="0.2"/>
         <cifLayer cif="ISP"/>
         <pureLayerNode name="Scratch_Protection_Node" port="scratch-protection">
             <lambda>4.0</lambda>
@@ -471,6 +482,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
+        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
         <cifLayer cif="IB"/>
         <pureLayerNode name="Buried_Node" style="CLOSED" port="buried">
             <lambda>4.0</lambda>
