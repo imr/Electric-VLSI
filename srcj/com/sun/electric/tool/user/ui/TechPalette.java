@@ -24,14 +24,10 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
@@ -50,6 +46,9 @@ import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
+import com.sun.electric.tool.user.redisplay.AbstractDrawing;
+import com.sun.electric.tool.user.redisplay.PixelDrawing;
+import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.tecEdit.Info;
 
 import java.awt.Color;
@@ -58,7 +57,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.dnd.DnDConstants;
@@ -921,14 +919,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
     private void drawShapes(Graphics2D g, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes) {
-        if (User.getDisplayAlgorithm() < 2 || User.isLegacyComposite()) {
-            offscreen.initDrawing(scale);
-            VectorDrawing vd = new VectorDrawing();
-            vd.render(offscreen, scale, EPoint.ORIGIN, shapes, true);
-            Image img = offscreen.composite(null);
-            g.drawImage(img, imgX, imgY, null);
-        } else {
-            LayerDrawing.drawTechPalette(g, imgX, imgY, entryRect, scale, shapes);
-        }
+        AbstractDrawing.drawShapes(g, imgX, imgY, scale, shapes, offscreen, entryRect);
     }
 }

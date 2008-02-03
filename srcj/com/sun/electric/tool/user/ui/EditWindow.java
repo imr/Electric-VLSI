@@ -71,6 +71,9 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.SelectObject;
+import com.sun.electric.tool.user.redisplay.AbstractDrawing;
+import com.sun.electric.tool.user.redisplay.PixelDrawing;
+import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.BasicStroke;
@@ -151,7 +154,7 @@ public class EditWindow extends JPanel
 	/** the window offset */								private double offx = 0, offy = 0;
     /** the requested window offset */                      private double offxRequested, offyRequested;
 	/** the size of the window (in pixels) */				private Dimension sz;
-	/** the display cache for this window */				private Drawing drawing;
+	/** the display cache for this window */				private AbstractDrawing drawing;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the cell that is in the window */					private Cell cell;
 	/** the page number (for multipage schematics) */		private int pageNumber;
@@ -203,40 +206,6 @@ public class EditWindow extends JPanel
     /** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
 
 	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
-
-    abstract static class Drawing {
-        final EditWindow wnd;
-        WindowFrame.DisplayAttributes da;
-
-        Drawing(EditWindow wnd) {
-            this.wnd = wnd;
-        }
-
-        abstract boolean paintComponent(Graphics2D g, Dimension sz);
-
-        abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds);
-
-        void abortRendering() {}
-        
-        void opacityChanged() {}
-    }
-
-    static class LayerColor {
-        public final Layer layer;
-        // nextRgb = inverseAlpha*prevRgb + premultipliedRgb
-        public final float premultipliedRed;
-        public final float premultipliedGreen;
-        public final float premultipliedBlue;
-        public final float inverseAlpha;
-
-        LayerColor(Layer layer, float premultipliedRed, float premultipliedGreen, float premultipliedBlue, float inverseAlpha) {
-            this.layer = layer;
-            this.premultipliedRed = premultipliedRed;
-            this.premultipliedGreen = premultipliedGreen;
-            this.premultipliedBlue = premultipliedBlue;
-            this.inverseAlpha = inverseAlpha;
-        }
-    }
 
 	// ************************************* CONSTRUCTION *************************************
 
@@ -312,14 +281,10 @@ public class EditWindow extends JPanel
 	}
 
     private void setDrawingAlgorithm() {
-        boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
-        if (isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
-            drawing = new LayerDrawing.Drawing(this);
-        else if (!isLayerDrawing && !(drawing instanceof PixelDrawing.Drawing))
-            drawing = new PixelDrawing.Drawing(this);
+        drawing = AbstractDrawing.createDrawing(this, drawing, cell);
         LayerTab layerTab = getWindowFrame().getLayersTab();
         if (layerTab != null)
-            layerTab.setDisplayAlgorithm(isLayerDrawing);
+            layerTab.setDisplayAlgorithm(drawing.hasOpacity());
     }
 
     private void installHighlighters()
@@ -1645,8 +1610,8 @@ public class EditWindow extends JPanel
      * @param showOpacity show opacity controls in LayerTab.
      * @return alpha blending order.
      */
-    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
-        ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
+    public List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
+        ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
         float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
@@ -1673,7 +1638,7 @@ public class EditWindow extends JPanel
                 green *= opacity;
                 blue *= opacity;
             }
-            layerColors.add(new LayerColor(layer, red, green, blue, inverseAlpha));
+            layerColors.add(new AbstractDrawing.LayerColor(layer, red, green, blue, inverseAlpha));
         }
         final LayerTab layerTab = getWindowFrame().getLayersTab();
         final boolean showOpacity = !User.isLegacyComposite();
@@ -1683,8 +1648,7 @@ public class EditWindow extends JPanel
     }
     
     public void testJogl() {
-        if (drawing instanceof LayerDrawing.Drawing)
-            ((LayerDrawing.Drawing)drawing).testJogl();
+        drawing.testJogl();
     }
     
     void opacityChanged() {
@@ -3454,8 +3418,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void clearSubCellCache()
 	{
-        PixelDrawing.clearSubCellCache();
-        LayerDrawing.clearSubCellCache();
+        AbstractDrawing.clearSubCellCache();
 	}
 
    /**
@@ -3544,8 +3507,7 @@ public class EditWindow extends JPanel
 
 	private static void forceRedraw(Cell cell)
 	{
-        PixelDrawing.forceRedraw(cell);
-        LayerDrawing.forceRedraw(cell);
+        AbstractDrawing.forceRedraw(cell);
 	}
 
     // ************************************* COORDINATES *************************************

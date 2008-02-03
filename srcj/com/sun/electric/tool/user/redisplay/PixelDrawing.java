@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.redisplay;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -47,6 +47,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -72,6 +74,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.SwingUtilities;
 
 /**
  * This class manages an offscreen display for an associated EditWindow.
@@ -177,7 +180,7 @@ import java.util.List;
  * </UL>
  * 
  */
-class PixelDrawing
+public class PixelDrawing
 {
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
 	/** Text larger than this is granular. */						public static final int MAXIMUMTEXTSIZE = 100;
@@ -312,7 +315,7 @@ class PixelDrawing
         public double getScale() { return scale; }
     };
 
-    static class Drawing extends EditWindow.Drawing {
+    static class Drawing extends AbstractDrawing {
         private final VectorDrawing vd = new VectorDrawing();
         private volatile PixelDrawing offscreen;
         
@@ -320,17 +323,21 @@ class PixelDrawing
             super(wnd);
         }
         
-        boolean paintComponent(Graphics2D g, Dimension sz) {
-            PixelDrawing offscreen_ = this.offscreen;
-            if (offscreen_ == null || !wnd.getSize().equals(sz))
+        @Override
+        public boolean paintComponent(Graphics2D g, Dimension sz) {
+            assert SwingUtilities.isEventDispatchThread();
+            assert sz.equals(wnd.getSize());
+            PixelDrawing offscreen = this.offscreen;
+            if (offscreen == null || !offscreen.getSize().equals(sz))
                 return false;
             
             // show the image
-            g.drawImage(offscreen_.getBufferedImage(), 0, 0, wnd);
+            g.drawImage(offscreen.getBufferedImage(), 0, 0, wnd);
             return true;
         }
         
-        void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
+        @Override
+        public void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
             PixelDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                     this.offscreen = offscreen_ = new PixelDrawing(sz);
@@ -338,7 +345,8 @@ class PixelDrawing
             offscreen_.drawImage(this, fullInstantiate, bounds);
         }
         
-        void abortRendering() {
+        @Override
+        public void abortRendering() {
             if (User.getDisplayAlgorithm() > 0)
                 vd.abortRendering();
         }
@@ -421,7 +429,7 @@ class PixelDrawing
 	 * Method for obtaining the rendered image after "drawImage" has finished.
 	 * @return an Image for this edit window.
 	 */
-	protected BufferedImage getBufferedImage() { return img; }
+	public BufferedImage getBufferedImage() { return img; }
 
 	/**
 	 * Method for obtaining the RGB array of the rendered image after "drawImage" has finished.

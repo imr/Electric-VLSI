@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.redisplay;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
@@ -43,7 +43,8 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.EditWindow.LayerColor;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -307,7 +308,7 @@ class LayerDrawing
         public double getScale() { return scale; }
     };
 
-    static class Drawing extends EditWindow.Drawing {
+    static class Drawing extends AbstractDrawing {
         private static final int SMALL_IMG_HEIGHT = 2;
         /** the offscreen opaque image of the window */ private VolatileImage vImg;
         private BufferedImage smallImg;
@@ -329,7 +330,8 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        boolean paintComponent(Graphics2D g, Dimension sz) {
+        @Override
+        public boolean paintComponent(Graphics2D g, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
             assert sz.equals(wnd.getSize());
             LayerDrawing offscreen_ = this.offscreen;
@@ -415,19 +417,22 @@ class LayerDrawing
         }
         
         @Override
-        void opacityChanged() {
+        public void opacityChanged() {
             assert SwingUtilities.isEventDispatchThread();
             needComposite = true;
         }
+        
+        @Override
+        public boolean hasOpacity() { return true; }
         
         private void layerComposite(Graphics2D g, LayerDrawing offscreen) {
             HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), offscreen.patternedDisplay, alphaBlendingOvercolor);
+            List<AbstractDrawing.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), offscreen.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
-                for (EditWindow.LayerColor lc: blendingOrder) {
+                for (AbstractDrawing.LayerColor lc: blendingOrder) {
                     int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
                     System.out.print(" " + lc.layer.getName() + ":" + alpha);
                 }
@@ -671,7 +676,8 @@ class LayerDrawing
         /**
          * This method is called from Job thread.
          */
-        void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
+        @Override
+        public void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
             LayerDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                 this.offscreen = offscreen_ = new LayerDrawing(sz);
@@ -708,7 +714,8 @@ class LayerDrawing
             return joglShowLayerMethod != null;
         }
         
-        void testJogl() {
+        @Override
+        public void testJogl() {
             if (hasJogl()) {
                 try {
                     int numBoxes = 1000000;
@@ -933,10 +940,10 @@ class LayerDrawing
         HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<EditWindow.LayerColor> blendingOrder = getBlendingOrderForTechPalette(layerBits.keySet());
+        List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrderForTechPalette(layerBits.keySet());
         if (TAKE_STATS) {
             System.out.print("BlendingOrder:");
-            for (EditWindow.LayerColor lc: blendingOrder) {
+            for (AbstractDrawing.LayerColor lc: blendingOrder) {
                 int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
                 System.out.print(" " + lc.layer.getName() + ":" + alpha);
             }
@@ -974,9 +981,9 @@ class LayerDrawing
 //        renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
     }
     
-    private static List<EditWindow.LayerColor> getBlendingOrderForTechPalette(Set<Layer> layersAvailable) {
+    private static List<AbstractDrawing.LayerColor> getBlendingOrderForTechPalette(Set<Layer> layersAvailable) {
         boolean alphaBlendingOvercolor = true;
-        ArrayList<EditWindow.LayerColor> layerColors = new ArrayList<EditWindow.LayerColor>();
+        ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
         float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
@@ -1000,7 +1007,7 @@ class LayerDrawing
                 green *= opacity;
                 blue *= opacity;
             }
-            layerColors.add(new LayerColor(layer, red, green, blue, inverseAlpha));
+            layerColors.add(new AbstractDrawing.LayerColor(layer, red, green, blue, inverseAlpha));
         }
         return layerColors;
     }

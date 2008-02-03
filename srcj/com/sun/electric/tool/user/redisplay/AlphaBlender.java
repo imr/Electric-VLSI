@@ -21,20 +21,15 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.redisplay;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Class to perform alpha blending for LayerDrawing.
@@ -59,11 +54,11 @@ class AlphaBlender {
     private int g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15, g16, g17, g18, g19, g20, g21, g22, g23, g24, g25, g26, g27, g28, g29, g30, g31;
     private int b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31;
     
-    void init(int backgroundValue, List<EditWindow.LayerColor> blendingOrder, Map<Layer,int[]> layerBits) {
+    void init(int backgroundValue, List<AbstractDrawing.LayerColor> blendingOrder, Map<Layer,int[]> layerBits) {
         background = new Color(backgroundValue);
         ArrayList<int[]> bits = new ArrayList<int[]>();
-        ArrayList<EditWindow.LayerColor> colors = new ArrayList<EditWindow.LayerColor>();
-        for (EditWindow.LayerColor layerColor: blendingOrder) {
+        ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
+        for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
             int[] b = layerBits.get(layerColor.layer);
             if (b == null) continue;
             bits.add(b);
@@ -410,7 +405,7 @@ class AlphaBlender {
         int[] inverseAlphaMap;
         int[][] bits;
         
-        AlphaBlendGroup(int[][] bits, List<EditWindow.LayerColor> cols, int offset, int len, boolean fillBackround) {
+        AlphaBlendGroup(int[][] bits, List<AbstractDrawing.LayerColor> cols, int offset, int len, boolean fillBackround) {
             groupShift = offset;
             groupMask = (1 << len) - 1;
             int mapLen = 1 << len;
@@ -438,7 +433,7 @@ class AlphaBlender {
                 }
                 for (int i = 0; i < len; i++) {
                     if ((k & (1 << i)) == 0) continue;
-                    EditWindow.LayerColor lc = cols.get(offset + i);
+                    AbstractDrawing.LayerColor lc = cols.get(offset + i);
                     double iAlpha = lc.inverseAlpha;
                     red *= iAlpha;
                     green *= iAlpha;

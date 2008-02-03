@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.redisplay;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
@@ -83,7 +83,7 @@ public class VectorCache {
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
     
-    /** database to work. */                                final EDatabase database; 
+    /** database to work. */                                public final EDatabase database; 
 	/** list of cell expansions. */							private final ArrayList<VectorCellGroup> cachedCells = new ArrayList<VectorCellGroup>();
 	/** list of polygons to include in cells */				private final HashMap<CellId,List<VectorBase>> addPolyToCell = new HashMap<CellId,List<VectorBase>>();
 	/** list of instances to include in cells */			private final HashMap<CellId,List<VectorLine>> addInstToCell = new HashMap<CellId,List<VectorLine>>();
@@ -107,7 +107,7 @@ public class VectorCache {
 	/**
 	 * Class which defines the common information for all cached displayable objects
 	 */
-    static abstract class VectorBase
+    public static abstract class VectorBase
 	{
 		Layer layer;
 		EGraphics graphics;
@@ -747,7 +747,7 @@ public class VectorCache {
 		return vc;
 	}
     
-    static VectorBase[] drawNode(NodeInst ni) {
+    public static VectorBase[] drawNode(NodeInst ni) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
         cache.drawNode(ni, GenMath.MATID, vc);
@@ -760,7 +760,7 @@ public class VectorCache {
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
     
-    static VectorBase[] drawPolys(Poly[] polys) {
+    public static VectorBase[] drawPolys(Poly[] polys) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
 		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
@@ -865,7 +865,7 @@ public class VectorCache {
         return false;
     }
     
-    Set<CellId> forceRedrawAfterChange(Set<CellId> topCells) {
+    public Set<CellId> forceRedrawAfterChange(Set<CellId> topCells) {
         BitSet visibleCells = new BitSet();
         for (CellId cellId: topCells) {
             if (database.getCell(cellId) == null) continue;
