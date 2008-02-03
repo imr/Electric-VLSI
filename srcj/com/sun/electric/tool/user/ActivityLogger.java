@@ -195,7 +195,12 @@ public class ActivityLogger {
 		{
 			msg = new String[] {msg1, msg2, msg4};
 		}
-        Job.getUserInterface().showErrorMessage(msg, "Exception Caught");
+        if (Job.getUserInterface() != null) {
+            Job.getUserInterface().showErrorMessage(msg, "Exception Caught");
+        } else {
+            for (String msgLine: msg)
+                System.out.println(msgLine);
+        }
         exceptionLogged = true;
     }
 

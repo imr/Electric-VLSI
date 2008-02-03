@@ -397,7 +397,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             }
         }
         assert size == size();
-        assert size == 0 || techs[size - 1] != null;
+        assert size == 0 || techs[techs.length - 1] != null;
         assert arcCount == univList.length;
         TechId prevTechId = null;
         for (Entry<TechId,Technology> e: entrySet()) {

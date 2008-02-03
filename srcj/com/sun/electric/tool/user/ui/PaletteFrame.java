@@ -111,7 +111,8 @@ public class PaletteFrame implements MouseListener
             if (tech == Generic.tech()) continue;
             techSelector.addItem(tech.getTechName());
         }
-        setSelectedItem(cur.getTechName());
+        if (cur != null)
+            setSelectedItem(cur.getTechName());
 	}
 
     /**

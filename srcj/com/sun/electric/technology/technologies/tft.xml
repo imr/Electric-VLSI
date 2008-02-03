@@ -152,7 +152,7 @@
         <cifLayer cif="CPG"/>
         <pureLayerNode name="HiK-Node" port="polysilicon">
             <lambda>4.0</lambda>
-            <portArc>HiK</portArc>
+            <!--portArc>HiK</portArc-->
         </pureLayerNode>
     </layer>
 
@@ -182,7 +182,7 @@
         <cifLayer cif="CSP"/>
         <pureLayerNode name="Pent-Node" port="P2">
             <lambda>2.0</lambda>
-            <portArc>Pent</portArc>
+            <!--portArc>Pent</portArc-->
         </pureLayerNode>
     </layer>
 
@@ -212,7 +212,7 @@
         <cifLayer cif="CVA"/>
         <pureLayerNode name="Via1-Node" port="active">
             <lambda>4.0</lambda>
-            <portArc>Via1</portArc>
+            <!--portArc>Via1</portArc-->
         </pureLayerNode>
     </layer>
 

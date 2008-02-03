@@ -86,6 +86,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 
@@ -1070,8 +1071,12 @@ public class Technology implements Comparable<Technology>, Serializable
 //                TechPoint p0 = makeTechPoint(p.p0, correction);
 //                TechPoint p1 = makeTechPoint(p.p1, correction);
                 ArcProto[] connections = new ArcProto[p.portArcs.size()];
-                for (int j = 0; j < connections.length; j++)
-                    connections[j] = arcs.get(p.portArcs.get(j));
+                for (int j = 0; j < connections.length; j++) {
+                    ArcProto ap = arcs.get(p.portArcs.get(j));
+                    if (ap == null)
+                        throw new NoSuchElementException(p.portArcs.get(j));
+                    connections[j] = ap;
+                }
                 if (p.lx.value > p.hx.value || p.lx.k > p.hx.k || p.ly.value > p.hy.value || p.ly.k > p.hy.k)
                     System.out.println("Strange polygon in " + getTechName() + ":" + n.name + ":" + p.name);
                 ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
@@ -1107,8 +1112,12 @@ public class Technology implements Comparable<Technology>, Serializable
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
             ArcProto[] connections = new ArcProto[l.pureLayerNode.portArcs.size()];
-            for (int j = 0; j < connections.length; j++)
-                connections[j] = arcs.get(l.pureLayerNode.portArcs.get(j));
+            for (int j = 0; j < connections.length; j++) {
+                ArcProto ap = arcs.get(l.pureLayerNode.portArcs.get(j));
+                if (ap == null)
+                    throw new NoSuchElementException(l.pureLayerNode.portArcs.get(j));
+                connections[j] = ap;
+            }
             PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
@@ -1259,7 +1268,7 @@ public class Technology implements Comparable<Technology>, Serializable
         lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
         lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
-        lazyUrls.put("tft",          Technology.class.getResource("technologies/TFT.xml"));
+        lazyUrls.put("tft",          Technology.class.getResource("technologies/tft.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
         if (true) {
             lazyClasses.put("cmos90","com.sun.electric.plugins.tsmc.CMOS90");

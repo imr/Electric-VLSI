@@ -4,6 +4,23 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (2/1/08, DN) Add "tftTest" to technology regressions.
+
+BUG: (2/1/08, DN) In "tft.xml" pure layer nodes HiK, Pent, Via1 try to connect to
+   non-existing arcs.
+FIX: Comment <portArc> for these pure layer nodes. 
+
+IMP: (2/1/08, DN) Rename TFT.xml to tft.xml so that file name matches tech name.
+
+BUG: (2/1/08, DN) Activity logger crashes when Job.getUserInterface is null yet.
+FIX: Print message to System.out in this case.
+
+BUG: (2/1/08, DN) Exception in PaletteFrame when current technology is not set yet.
+FIX: In PaletteFrame.loadTechnologies test curTech for null.
+
+BUG: (2/1/08, DN) Xml technology loader doesn't check PrimitivePort connections.
+FIX: Add checks to Technology(Generic,Xml.Technology) and PrimitivePort(...) constructors.
+
 IMP: (2/1/08, GVG) Add 3D values to layout technologies (Bug #1553).
 Better detection if no non-flat nodes are found.
 
