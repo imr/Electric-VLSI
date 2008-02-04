@@ -78,6 +78,7 @@ import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
+import com.sun.electric.tool.user.tecEditWizard.TechEditWizard;
 import com.sun.electric.tool.user.ui.CurveListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
@@ -301,7 +302,7 @@ public class EditMenu {
                 new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
                     CircuitChanges.showRedundantPureLayerNodes(); }}),
 
-        // mnemonic keys available:       GH JK   O QRS UVWXYZ
+        // mnemonic keys available:       GH JK   O QRS UV XYZ
             new EMenu("Technolo_gy Specific",
                 new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
                     CircuitChanges.toggleNegatedCommand(); }},
@@ -353,7 +354,10 @@ public class EditMenu {
                     Manipulate.describeTechnology(Technology.getCurrent()); }},
                 SEPARATOR,
                 new EMenuItem("Rena_me Current Technology...") { public void run() {
-                    CircuitChanges.renameCurrentTechnology(); }}),
+                    CircuitChanges.renameCurrentTechnology(); }},
+                SEPARATOR,
+                new EMenuItem("Technology Creation _Wizard...") { public void run() {
+                    TechEditWizard.techEditWizardCommand(); }}),
 //              new EMenuItem("D_elete Current Technology", null, { public void run() {
 //                  CircuitChanges.deleteCurrentTechnology(); }});
 

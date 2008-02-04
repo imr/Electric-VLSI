@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
-BUG: (3/1/08, DN) Vector display algorithm and wrong display of highlighted geometries (#Bug 1551)
+IMP/MAN: (2/4/08, SMR) Added "Technology Creation Wizard" (from Andrew West).
+
+BUG: (2/1/08, DN) Vector display algorithm and wrong display of highlighted geometries (#Bug 1551)
 FIX: In PixelDrawing.Drawing.paintComponent use the same rerendering condition as in LayerDrawing.
     Also moved all redisplay staff in package user.redisplay .
 
