@@ -758,6 +758,7 @@ public class Spice extends Topology
 			{
 				CellSignal cs = sIt.next();
                 if (ignoreSubcktPort(cs)) continue;
+                if (!cs.isGlobal() && cs.getExport() == null) continue;
 
                 // special case for parasitic extraction
                 if (useParasitics && !cs.isGlobal() && cs.getExport() != null) {
@@ -917,7 +918,9 @@ public class Spice extends Topology
 				for(Iterator<CellSignal> sIt = subCni.getCellSignals(); sIt.hasNext(); )
 				{
 					CellSignal subCS = sIt.next();
+	                if (ignoreSubcktPort(subCS)) continue;
 					PortProto pp = subCS.getExport();
+	                if (!subCS.isGlobal() && pp == null) continue;
 					Network net;
                     int exportIndex = subCS.getExportIndex();
 
@@ -954,14 +957,9 @@ public class Spice extends Topology
                         }
                     }
 
-					if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
-					{
-						if (pp == null) continue;
-					}
-					if (subCS.isGlobal())
-						net = netList.getNetwork(no, subCS.getGlobal());
-					else
-						net = netList.getNetwork(no, pp, exportIndex);
+                    if (subCS.isGlobal())
+						net = netList.getNetwork(no, subCS.getGlobal()); else
+							net = netList.getNetwork(no, pp, exportIndex);
 					if (net == null)
 					{
 						System.out.println("Warning: cannot find network for signal " + subCS.getName() + " in cell " +

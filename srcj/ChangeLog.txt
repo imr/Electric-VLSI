@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (2/5/08, SMR) Spice output tries to write internal nets in subcircuit headers.
+FIX: In Spice.writeCellTopology(), ignore signals with no exports or globals.
+
 BUG: (2/5/08, SMR) Spice output may crash.
 FIX: In Spice.writeCellTopology(), check for null networks.
 
