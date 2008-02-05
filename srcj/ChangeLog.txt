@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (2/4/08, DN)  JELIB reader parses cell string in parse stage instead of realize stage
+
+BUG: (2/4/08, DN) New: NPE while reading an old JELIB library (Bug #1555)
+FIX: In Cell.getPort() use getExportChron().
+
 IMP/MAN: (2/4/08, SMR) Added "Technology Creation Wizard" (from Andrew West).
 
 BUG: (2/1/08, DN) Vector display algorithm and wrong display of highlighted geometries (#Bug 1551)

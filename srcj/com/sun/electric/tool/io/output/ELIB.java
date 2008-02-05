@@ -80,6 +80,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * This class writes files in binary (.elib) format.
@@ -903,22 +904,22 @@ public class ELIB extends Output
         int myNodeId = n.nodeId;
         int firstIndex = m.searchConnectionByPort(myNodeId, 0);
         int lastIndex = firstIndex;
+        TreeSet<ElibConnection> sortedConnections = new TreeSet<ElibConnection>();
         for (; lastIndex < m.connections.length; lastIndex++) {
             int con = m.connections[lastIndex];
             ImmutableArcInst a = m.getArcs().get(con >>> 1);
             boolean end = (con & 1) != 0;
             int nodeId = end ? a.headNodeId : a.tailNodeId;
             if (nodeId != myNodeId) break;
+            PortProtoId portId = end ? a.headPortId : a.tailPortId;
+            sortedConnections.add(new ElibConnection(portId, con));
         }
         int numConnections = lastIndex - firstIndex;
+        assert sortedConnections.size() == numConnections;
         
 		writeBigInteger(numConnections);
-        for (int i = firstIndex; i < lastIndex; i++) {
-            int con = m.connections[i];
-            ImmutableArcInst a = m.getArcs().get(con >>> 1);
-            boolean end = (con & 1) != 0;
-            PortProtoId portId = end ? a.headPortId : a.tailPortId;
-            writeConnection(portId, arcBase + (con >>> 1), con & 1);
+        for (ElibConnection c: sortedConnections) {
+             writeConnection(c.portId, arcBase + (c.con >>> 1), c.con & 1);
         }
 
         // write the exports
@@ -926,8 +927,29 @@ public class ELIB extends Output
         writeBigInteger(numExports); // only ELIB
         if (numExports > 0) {
             // must write exports in proper order
-            for(Iterator<ImmutableExport> it = m.getExports(n.nodeId); it.hasNext(); )
-                writeReExport(it.next());
+            TreeMap<String,ImmutableExport> sortedExports = new TreeMap<String,ImmutableExport>();
+            for(Iterator<ImmutableExport> it = m.getExports(n.nodeId); it.hasNext(); ) {
+                ImmutableExport e = it.next();
+                sortedExports.put(e.exportId.externalId, e);
+            }
+            for(ImmutableExport e: sortedExports.values())
+                writeReExport(e);
+        }
+    }
+    
+    private static class ElibConnection implements Comparable<ElibConnection> {
+        private final PortProtoId portId;
+        private final int con;
+        
+        private ElibConnection(PortProtoId portId, int con) {
+            this.portId = portId;
+            this.con = con;
+        }
+        
+        public int compareTo(ElibConnection that) {
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(this.portId.externalId, that.portId.externalId);
+            if (cmp != 0) return cmp;
+            return this.con - that.con;
         }
     }
     

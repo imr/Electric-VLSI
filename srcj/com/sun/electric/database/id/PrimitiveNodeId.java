@@ -60,7 +60,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
      */
     PrimitiveNodeId(TechId techId, String name, int chronIndex) {
         assert techId != null;
-        if (name.length() == 0 || !TechId.jelibSafeName(name))
+        if (name.length() == 0 || !TechId.jelibSafeName(name, true))
             throw new IllegalArgumentException("PrimtiveNodeId.name");
         this.techId = techId;
         this.name = name;
@@ -158,7 +158,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
 	 */
     void check() {
         assert this == techId.getPrimitiveNodeId(chronIndex);
-        assert name.length() > 0 && TechId.jelibSafeName(name);
+        assert name.length() > 0 && TechId.jelibSafeName(name, true);
         for (PrimitivePortId primitivePortId: primitivePortIds)
             primitivePortId.check();
         for (Map.Entry<String,PrimitivePortId> e: primitivePortIdsByName.entrySet()) {

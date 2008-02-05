@@ -230,11 +230,24 @@ public final class TechId implements Serializable {
 	 */
 	public static boolean jelibSafeName(String str)
 	{
+        return jelibSafeName(str, false);
+	}
+	/**
+	 * Method checks that string is safe to write into JELIB file without
+	 * conversion.
+	 * @param str the string to check.
+     * @param allowSpace exemption for space char
+	 * @return true if string is safe to write into JELIB file.
+	 */
+	static boolean jelibSafeName(String str, boolean allowSpace)
+	{
 		for (int i = 0; i < str.length(); i++)
 		{
 			char ch = str.charAt(i);
-			if (Character.isWhitespace(ch) || ch == ':' || ch == '|' || ch == '^' || ch == '\\' || ch == '"')
+			if (ch == ':' || ch == '|' || ch == '^' || ch == '\\' || ch == '"')
 				return false;
+            if (Character.isWhitespace(ch) && !(allowSpace && ch == ' '))
+                return false;
 		}
 		return true;
 	}

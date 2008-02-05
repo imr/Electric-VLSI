@@ -37,6 +37,8 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -87,6 +89,11 @@ public class JELIB extends LibraryFiles
 		int lineNumber;
         String groupName;
 		List<String> cellStrings = new ArrayList<String>();
+        List<NodeContents> nodes = new ArrayList<NodeContents>();
+        List<ExportContents> exports = new ArrayList<ExportContents>();
+        List<ArcContents> arcs = new ArrayList<ArcContents>();
+		// map disk node names (duplicate node names written "sig"1 and "sig"2)
+		HashMap<String,NodeContents> diskName = new HashMap<String,NodeContents>();
 		String fileName;
         private HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 
@@ -108,6 +115,53 @@ public class JELIB extends LibraryFiles
     
 	}
 
+    static class NodeContents {
+        int line;
+        NodeProtoId protoId;
+        String nodeName;
+        TextDescriptor nameTextDescriptor;
+        EPoint anchor;
+        Orientation orient;
+        EPoint size;
+        TextDescriptor protoTextDescriptor;
+        int flags;
+        int techBits;
+        Variable[] vars;
+        
+        NodeInst ni;
+    }
+    
+    private static class ExportContents {
+        int line;
+        ExportId exportId;
+        String exportUserName;
+        NodeContents originalNode;
+        PortProtoId originalPort;
+        TextDescriptor nameTextDescriptor;
+        PortCharacteristic ch;
+        boolean alwaysDrawn;
+        boolean bodyOnly;
+        Variable[] vars;
+        Point2D pos;
+    }
+    
+    private static class ArcContents {
+        int line;
+        ArcProtoId arcProtoId;
+        String arcName;
+        TextDescriptor nameTextDescriptor;
+        double diskWidth;
+        NodeContents headNode;
+        PortProtoId headPort;
+        EPoint headPoint;
+        NodeContents tailNode;
+        PortProtoId tailPort;
+        EPoint tailPoint;
+        int angle;
+        int flags;
+        Variable[] vars;
+    }
+    
 	private static String[] revisions =
 	{
 		// Revision 1
@@ -681,7 +735,9 @@ public class JELIB extends LibraryFiles
                 ", Unable to create cell " + name, -1);
             return;
         }
-        Technology tech = findTechnology(unQuote(revision, pieces.get(fieldIndex++)));
+        String techName = unQuote(revision, pieces.get(fieldIndex++));
+        TechId techId = idManager.newTechId(techName);
+        Technology tech = findTechnology(techName);
         newCell.setTechnology(tech);
         long cDate = Long.parseLong(pieces.get(fieldIndex++));
         long rDate = Long.parseLong(pieces.get(fieldIndex++));
@@ -713,6 +769,9 @@ public class JELIB extends LibraryFiles
         realizeVariables(newCell, vars);
 
         // gather the contents of the cell into a list of Strings
+        CellId cellId = newCell.getId();
+        LibId libId = lib.getId();
+        assert libId == cellId.libId;
         CellContents cc = new CellContents(revision, version);
         cc.fileName = filePath;
         cc.lineNumber = lineReader.getLineNumber() + 1;
@@ -723,9 +782,23 @@ public class JELIB extends LibraryFiles
             if (nextLine == null) break;
             if (nextLine.length() == 0) continue;
             char nextFirst = nextLine.charAt(0);
-            if (nextFirst == '#') continue;
             if (nextFirst == 'X') break;
-            cc.cellStrings.add(nextLine);
+            switch (nextFirst) {
+                case '#':
+                    break;
+                case 'N':
+                case 'I':
+                    parseNode(revision, nextLine, newCell, techId, cc);
+                    break;
+                case 'E':
+                    parseExport(revision, nextLine, newCell, cc);
+                    break;
+                case 'A':
+                    parseArc(revision, nextLine, newCell, techId, cc);
+                    break;
+                default:
+                    cc.cellStrings.add(nextLine);
+            }
         }
 
         // remember the contents of the cell for later
@@ -733,6 +806,343 @@ public class JELIB extends LibraryFiles
         return;
     }
 
+    private void parseNode(int revision, String cellString, Cell cell, TechId techId, CellContents cc) {
+        CellId cellId = cell.getId();
+        LibId libId = cellId.libId;
+        NodeContents n = new NodeContents();
+        n.line = lineReader.getLineNumber();
+
+        // parse the node line
+        List<String> pieces = parseLine(cellString);
+        char firstChar = cellString.charAt(0);
+        int numPieces = revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
+        if (pieces.size() < numPieces)
+        {
+            String lineNumber = "";
+            if (lineReader != null) lineNumber = ", line " + lineReader.getLineNumber();
+            Input.errorLogger.logError(filePath + lineNumber +
+                ", Node instance needs " + numPieces + " fields: " + cellString, cell, -1);
+            return;
+        }
+        String protoName = unQuote(revision, pieces.get(0));
+        // figure out the name for this node.  Handle the form: "Sig"12
+        String diskNodeName = revision >= 1 ? pieces.get(1) : unQuote(revision, pieces.get(1));
+        String nodeName = diskNodeName;
+        if (nodeName.charAt(0) == '"')
+        {
+            int lastQuote = nodeName.lastIndexOf('"');
+            if (lastQuote > 1)
+            {
+                nodeName = nodeName.substring(1, lastQuote);
+                if (revision >= 1) nodeName = unQuote(revision, nodeName);
+            }
+        }
+        n.nodeName = nodeName;
+        String nameTextDescriptorInfo = pieces.get(2);
+        double x = TextUtils.atof(pieces.get(3));
+        double y = TextUtils.atof(pieces.get(4));
+
+        String prefixName = lib.getName();
+        int colonPos = protoName.indexOf(':');
+        if (colonPos < 0)
+        {
+            if (firstChar == 'I' || revision < 1)
+                n.protoId = libId.newCellId(CellName.parseName(protoName));
+            else
+                n.protoId = techId.newPrimitiveNodeId(protoName);
+        } else
+        {
+            prefixName = protoName.substring(0, colonPos);
+            protoName = protoName.substring(colonPos+1);
+            if (firstChar == 'I' || revision < 1 && protoName.indexOf('{') >= 0) {
+                LibId nodeLibId = prefixName.equals(curLibName) ? libId : idManager.newLibId(prefixName);
+                n.protoId = nodeLibId.newCellId(CellName.parseName(protoName));
+            } else {
+                n.protoId = idManager.newTechId(prefixName).newPrimitiveNodeId(protoName);
+            }
+        }
+
+        n.size = EPoint.ORIGIN;
+        boolean flipX = false, flipY = false;
+        String orientString;
+        String stateInfo;
+        String textDescriptorInfo = "";
+        if (firstChar == 'N' || revision < 1)
+        {
+            double wid = TextUtils.atof(pieces.get(5));
+            if (revision < 1 && (wid < 0 || wid == 0 && 1/wid < 0)) {
+                flipX = true;
+                wid = -wid;
+            }
+            double hei = TextUtils.atof(pieces.get(6));
+            if (revision < 1 && (hei < 0 || hei == 0 && 1/hei < 0)) {
+                flipY = true;
+                hei = -hei;
+            }
+            if (n.protoId instanceof PrimitiveNodeId)
+                n.size = EPoint.fromLambda(wid, hei);
+            orientString = pieces.get(7);
+            stateInfo = pieces.get(8);
+            if (revision < 1)
+                textDescriptorInfo = pieces.get(9);
+        } else
+        {
+            orientString = pieces.get(5);
+            stateInfo = pieces.get(6);
+            textDescriptorInfo = pieces.get(7);
+        }
+        int angle = 0;
+        for (int i = 0; i < orientString.length(); i++)
+        {
+            char ch = orientString.charAt(i);
+            if (ch == 'X') flipX = !flipX;
+            else if (ch == 'Y')	flipY = !flipY;
+            else if (ch == 'R') angle += 900;
+            else
+            {
+                angle += TextUtils.atoi(orientString.substring(i));
+                break;
+            }
+        }
+
+        // parse state information in stateInfo field
+        n.nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, filePath, lineReader.getLineNumber());
+        int flags = 0, techBits = 0;
+        // parse state information in jelibUserBits
+        parseStateInfo:
+        for(int i=0; i<stateInfo.length(); i++) {
+            char chr = stateInfo.charAt(i);
+            switch (chr) {
+                case 'E': /*flags = ImmutableNodeInst.EXPAND.set(flags, true);*/ break;
+                case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
+                case 'S': /*userBits |= NSHORT;*/ break; // deprecated
+                case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
+                case 'W': /*flags = ImmutableNodeInst.WIPED.set(flags, true);*/ break; // deprecated
+                case 'A': flags = ImmutableNodeInst.HARD_SELECT.set(flags, true); break;
+                default:
+                    if (Character.isDigit(chr)) {
+                        stateInfo = stateInfo.substring(i);
+                        try {
+                            techBits = Integer.parseInt(stateInfo);
+                        } catch (NumberFormatException e) {
+                            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+                                    " (" + cell + ") bad node bits" + stateInfo, cell, -1);
+                        }
+                        break parseStateInfo;
+                    }
+            }
+        }
+        n.flags = flags;
+        n.techBits = techBits;
+        n.protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, filePath, lineReader.getLineNumber()); 
+
+        // create the node
+        n.orient = Orientation.fromJava(angle, flipX, flipY);
+        n.anchor = EPoint.fromLambda(x, y);
+
+        // add variables in fields 10 and up
+        n.vars = readVariables(revision, null, pieces, numPieces, filePath, lineReader.getLineNumber());
+        cc.nodes.add(n);
+        // insert into map of disk names
+        cc.diskName.put(diskNodeName, n);
+    }
+    
+    private void parseExport(int revision, String cellString, Cell cell, CellContents cc) {
+        CellId cellId = cell.getId();
+        ExportContents e = new ExportContents();
+        e.line = lineReader.getLineNumber();
+
+        // parse the export line
+        List<String> pieces = parseLine(cellString);
+        if (revision >= 2 && pieces.size() == 1) {
+            // Unused ExportId
+            String exportName = unQuote(revision, pieces.get(0));
+            cellId.newPortId(exportName);
+            return;
+        }
+        int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
+        if (pieces.size() < numPieces)
+        {
+            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+                ", Export needs " + numPieces + " fields, has " + pieces.size() + ": " + cellString, cell, -1);
+            return;
+        }
+        int fieldIndex = 0;
+        String exportName = unQuote(revision, pieces.get(fieldIndex++));
+        String exportUserName = null;
+        if (revision >= 2) {
+            String s = pieces.get(fieldIndex++);
+            if (s.length() != 0)
+                exportUserName = unQuote(revision, s);
+        }
+        if (exportUserName == null || exportName.equals(exportUserName))
+            exportName = Name.findName(exportName).toString(); // save memory using String from Name
+        e.exportId = cellId.newPortId(exportName);
+        e.exportUserName = exportUserName;
+        // get text descriptor in field 1
+        String textDescriptorInfo = pieces.get(fieldIndex++);
+        String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(revision, pieces.get(fieldIndex++));
+        e.originalNode = cc.diskName.get(nodeName);
+        String portName = unQuote(revision, pieces.get(fieldIndex++));
+        e.originalPort = e.originalNode.protoId.newPortId(portName);
+        Point2D pos = null;
+        if (revision < 1)
+        {
+            double x = TextUtils.atof(pieces.get(fieldIndex++));
+            double y = TextUtils.atof(pieces.get(fieldIndex++));
+            pos = new Point2D.Double(x, y);
+        }
+        e.pos = pos;
+        // parse state information in field 6
+        String userBits = pieces.get(fieldIndex++);
+        assert fieldIndex == numPieces;
+
+        e.nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, filePath, lineReader.getLineNumber());
+        // parse state information
+        int slashPos = userBits.indexOf('/');
+        if (slashPos >= 0) {
+            String extras = userBits.substring(slashPos);
+            userBits = userBits.substring(0, slashPos);
+            while (extras.length() > 0) {
+                switch (extras.charAt(1)) {
+                    case 'A': e.alwaysDrawn = true; break;
+                    case 'B': e.bodyOnly = true; break;
+                }
+                extras = extras.substring(2);
+            }
+        }
+        PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(userBits);
+        e.ch = ch != null ? ch : PortCharacteristic.UNKNOWN;
+
+        // add variables in tail fields
+        e.vars = readVariables(revision, null, pieces, numPieces, filePath, lineReader.getLineNumber());
+        cc.exports.add(e);
+    }
+    
+    private void parseArc(int revision, String cellString, Cell cell, TechId techId, CellContents cc) {
+        ArcContents a = new ArcContents();
+        a.line = lineReader.getLineNumber();
+        
+        // parse the arc line
+        List<String> pieces = parseLine(cellString);
+        if (pieces.size() < 13)
+        {
+            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+                ", Arc instance needs 13 fields: " + cellString, cell, -1);
+            return;
+        }
+        String protoName = unQuote(revision, pieces.get(0));
+        ArcProto ap = null;
+        int indexOfColon = protoName.indexOf(':');
+        if (indexOfColon >= 0) {
+            techId = idManager.newTechId(protoName.substring(0, indexOfColon));
+            protoName = protoName.substring(indexOfColon + 1);
+        }
+        a.arcProtoId = techId.newArcProtoId(protoName);
+        String diskArcName = revision >= 1 ? pieces.get(1) : unQuote(revision, pieces.get(1));
+        String arcName = diskArcName;
+        if (arcName.charAt(0) == '"')
+        {
+            int lastQuote = arcName.lastIndexOf('"');
+            if (lastQuote > 1)
+            {
+                arcName = arcName.substring(1, lastQuote);
+                if (revision >= 1) arcName = unQuote(revision, arcName);
+            }
+        }
+        a.arcName = arcName;
+        a.diskWidth = TextUtils.atof(pieces.get(3));
+
+        String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(revision, pieces.get(5));
+        String headPortName = unQuote(revision, pieces.get(6));
+        double headX = TextUtils.atof(pieces.get(7));
+        double headY = TextUtils.atof(pieces.get(8));
+        a.headNode = cc.diskName.get(headNodeName);
+        a.headPort = a.headNode.protoId.newPortId(headPortName);
+        a.headPoint = EPoint.fromLambda(headX, headY);
+
+        String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(revision, pieces.get(9));
+        String tailPortName = unQuote(revision, pieces.get(10));
+        double tailX = TextUtils.atof(pieces.get(11));
+        double tailY = TextUtils.atof(pieces.get(12));
+        a.tailNode = cc.diskName.get(tailNodeName);
+        a.tailPort = a.tailNode.protoId.newPortId(tailPortName);
+        a.tailPoint = EPoint.fromLambda(tailX, tailY);
+
+        // parse state information in field 4
+        String stateInfo = pieces.get(4);
+        boolean extended = true, directional = false, reverseEnds = false,
+            skipHead = false, skipTail = false,
+            tailNotExtended = false, headNotExtended = false,
+            tailArrowed = false, headArrowed = false, bodyArrowed = false;
+        // Default flags are false except FIXED_ANGLE
+        // SLIDABLE 
+        int flags = defaultArcFlags;
+        int angle = 0;
+        parseStateInfo:
+        for(int i=0; i<stateInfo.length(); i++)
+        {
+            char chr = stateInfo.charAt(i);
+            switch (chr) {
+                case 'R': flags = ImmutableArcInst.RIGID.set(flags, true); break;
+                case 'F': flags = ImmutableArcInst.FIXED_ANGLE.set(flags, false); break;
+                case 'S': flags = ImmutableArcInst.SLIDABLE.set(flags, true); break;
+                case 'A': flags = ImmutableArcInst.HARD_SELECT.set(flags, true); break;
+                case 'N': flags = ImmutableArcInst.TAIL_NEGATED.set(flags, true); break;
+                case 'G': flags = ImmutableArcInst.HEAD_NEGATED.set(flags, true); break;
+                case 'X': headArrowed = true; break;
+                case 'Y': tailArrowed = true; break;
+                case 'B': bodyArrowed = true; break;
+                case 'I': headNotExtended = true; break;
+                case 'J': tailNotExtended = true; break;
+
+                // deprecated
+                case 'E': extended = false; break;
+                case 'D': directional = true; break;
+                case 'V': reverseEnds = true; break;
+                case 'H': skipHead = true; break;
+                case 'T': skipTail = true; break;
+                default:
+                    if (TextUtils.isDigit(chr))
+                    {
+                        angle = TextUtils.atoi(stateInfo.substring(i));
+                        break parseStateInfo;
+                    }
+            }
+        }
+
+        // if old bits were used, convert them
+        if (!extended || directional)
+        {
+            if (!extended) headNotExtended = tailNotExtended = true;
+            if (directional)
+            {
+                if (reverseEnds) tailArrowed = true; else
+                    headArrowed = true;
+                bodyArrowed = true;
+            }
+            if (skipHead) headArrowed = headNotExtended = false;
+            if (skipTail) tailArrowed = tailNotExtended = false;
+        }
+
+        // set the bits
+        flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, !headNotExtended);
+        flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, !tailNotExtended);
+        flags = ImmutableArcInst.HEAD_ARROWED.set(flags, headArrowed);
+        flags = ImmutableArcInst.TAIL_ARROWED.set(flags, tailArrowed);
+        flags = ImmutableArcInst.BODY_ARROWED.set(flags, bodyArrowed);
+        a.angle = angle;
+        a.flags = flags;
+
+        // get the ard name text descriptor
+        String nameTextDescriptorInfo = pieces.get(2);
+        a.nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, filePath, lineReader.getLineNumber());
+
+        // add variables in fields 13 and up
+        a.vars = readVariables(revision, null, pieces, 13, filePath, lineReader.getLineNumber());
+        cc.arcs.add(a);
+    }
+    
 	/**
 	 * Method called after all libraries have been read.
 	 * Instantiates all of the Cell contents that were saved in "allCells".
@@ -785,75 +1195,23 @@ public class JELIB extends LibraryFiles
 	{
 		int numStrings = cc.cellStrings.size();
 
-		// map disk node names (duplicate node names written "sig"1 and "sig"2)
-		HashMap<String,NodeInst> diskName = new HashMap<String,NodeInst>();
-
 		// place all nodes
-		for(int line=0; line<numStrings; line++)
-		{
-			String cellString = cc.cellStrings.get(line);
-			char firstChar = cellString.charAt(0);
-			if (firstChar != 'N' && firstChar != 'I') continue;
-//			numProcessed++;
-//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
-
-			// parse the node line
-			List<String> pieces = parseLine(cellString);
-			int numPieces = cc.revision < 1 ? 10 : firstChar == 'N' ? 9 : 8;
-			if (pieces.size() < numPieces)
-			{
-				String lineNumber = "";
-				if (lineReader != null) lineNumber = ", line " + lineReader.getLineNumber();
-				Input.errorLogger.logError(cc.fileName + lineNumber +
-					", Node instance needs " + numPieces + " fields: " + cellString, cell, -1);
-				continue;
-			}
-			String protoName = unQuote(cc.revision, pieces.get(0));
-			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = cc.revision >= 1 ? pieces.get(1) : unQuote(cc.revision, pieces.get(1));
-			String nodeName = diskNodeName;
-			if (nodeName.charAt(0) == '"')
-			{
-				int lastQuote = nodeName.lastIndexOf('"');
-				if (lastQuote > 1)
-				{
-					nodeName = nodeName.substring(1, lastQuote);
-					if (cc.revision >= 1) nodeName = unQuote(cc.revision, nodeName);
-				}
-			}
-			String nameTextDescriptorInfo = pieces.get(2);
-			double x = TextUtils.atof(pieces.get(3));
-			double y = TextUtils.atof(pieces.get(4));
+        for (NodeContents n: cc.nodes) {
+            int line = n.line;
 
 			String prefixName = lib.getName();
 			NodeProto np = null;
-			Library cellLib = lib;
-			int colonPos = protoName.indexOf(':');
-			if (colonPos < 0)
-			{
-				if (firstChar == 'I' || cc.revision < 1)
-					np = lib.findNodeProto(protoName);
-				else if (cell.getTechnology() != null)
-					np = findPrimitiveNode(cell.getTechnology(), protoName);
-			} else
-			{
-				prefixName = protoName.substring(0, colonPos);
-				protoName = protoName.substring(colonPos+1);
-				if (firstChar == 'N')
-				{
-					Technology tech = findTechnology(prefixName);
-					if (tech != null) np = findPrimitiveNode(tech, protoName);
-				}
-				if (firstChar == 'I' || cc.revision < 1 && np == null)
-				{
-					if (prefixName.equalsIgnoreCase(curLibName)) np = lib.findNodeProto(protoName); else
-					{
-						cellLib = Library.findLibrary(prefixName);
-						if (cellLib != null)
-							np = cellLib.findNodeProto(protoName);
-					}
-				}
-			}
+            NodeProtoId protoId = n.protoId;
+            if (protoId instanceof CellId)
+                np = database.getCell((CellId)protoId);
+            else {
+                PrimitiveNodeId pnId = (PrimitiveNodeId)protoId;
+                Technology tech = findTechnology(pnId.techId.techName);
+                if (tech != null)
+                    np = findPrimitiveNode(tech, pnId.name);
+                if (np == null)
+                    protoId = idManager.newLibId(pnId.techId.techName).newCellId(CellName.parseName(pnId.name));
+            }
 
 			// make sure the subcell has been instantiated
 			if (np != null && np instanceof Cell)
@@ -872,53 +1230,18 @@ public class JELIB extends LibraryFiles
 				}
 			}
 
-            EPoint size = EPoint.ORIGIN;
-            boolean flipX = false, flipY = false;
-			String orientString;
-			String stateInfo;
-			String textDescriptorInfo = "";
-			if (firstChar == 'N' || cc.revision < 1)
-			{
-				double wid = TextUtils.atof(pieces.get(5));
-				if (cc.revision < 1 && (wid < 0 || wid == 0 && 1/wid < 0)) {
-                    flipX = true;
-                    wid = -wid;
-                }
-				double hei = TextUtils.atof(pieces.get(6));
-				if (cc.revision < 1 && (hei < 0 || hei == 0 && 1/hei < 0)) {
-                    flipY = true;
-                    hei = -hei;
-                }
-                if (np instanceof PrimitiveNode) {
-                    PrimitiveNode pn = (PrimitiveNode)np;
-                    size = cc.getSizeCorrector(pn.getTechnology()).getSizeFromDisk(pn, wid, hei);
-                }
-				orientString = pieces.get(7);
-				stateInfo = pieces.get(8);
-				if (cc.revision < 1)
-					textDescriptorInfo = pieces.get(9);
-			} else
-			{
-				orientString = pieces.get(5);
-				stateInfo = pieces.get(6);
-				textDescriptorInfo = pieces.get(7);
-			}
-			int angle = 0;
-			for (int i = 0; i < orientString.length(); i++)
-			{
-				char ch = orientString.charAt(i);
-				if (ch == 'X') flipX = !flipX;
-				else if (ch == 'Y')	flipY = !flipY;
-				else if (ch == 'R') angle += 900;
-				else
-				{
-					angle += TextUtils.atoi(orientString.substring(i));
-					break;
-				}
-			}
+            EPoint size = n.size;
+            if (np instanceof PrimitiveNode) {
+                PrimitiveNode pn = (PrimitiveNode)np;
+                Technology.SizeCorrector sizeCorrector = cc.getSizeCorrector(pn.getTechnology());
+                size = sizeCorrector.getSizeFromDisk(pn, size.getLambdaX(), size.getLambdaY());
+            }
 
 			if (np == null)
 			{
+                CellId dummyCellId = (CellId)protoId;
+                String protoName = dummyCellId.cellName.toString();
+                Library cellLib = database.getLib(dummyCellId.libId);
 				if (cellLib == null)
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -934,11 +1257,11 @@ public class JELIB extends LibraryFiles
 				}
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
-				Rectangle2D bounds = externalCells.get(pieces.get(0));
+				Rectangle2D bounds = externalCells.get(dummyCellId.toString());
 				if (bounds == null)
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
+						", Warning: cannot find information about external cell " + dummyCellId, cell, -1);
 					NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), 0, 0, dummyCell);
 				} else
 				{
@@ -952,310 +1275,80 @@ public class JELIB extends LibraryFiles
 				np = dummyCell;
 			}
 
-			// make sure the subcell has been instantiated
-// 			if (np instanceof Cell)
-// 			{
-// 				Cell subCell = (Cell)np;
-// 				CellContents subCC = allCells.get(subCell);
-// 				if (subCC != null)
-// 				{
-// 					if (!subCC.filledIn)
-// 						instantiateCellContent(subCell, subCC);
-// 				}
-// 			}
-
-			// parse state information in stateInfo field
-            TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-            int flags = 0, techBits = 0;
-            // parse state information in jelibUserBits
-			parseStateInfo:
-            for(int i=0; i<stateInfo.length(); i++) {
-                char chr = stateInfo.charAt(i);
-                switch (chr) {
-                    case 'E': /*flags = ImmutableNodeInst.EXPAND.set(flags, true);*/ break;
-                    case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
-                    case 'S': /*userBits |= NSHORT;*/ break; // deprecated
-                    case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
-                    case 'W': /*flags = ImmutableNodeInst.WIPED.set(flags, true);*/ break; // deprecated
-                    case 'A': flags = ImmutableNodeInst.HARD_SELECT.set(flags, true); break;
-                    default:
-                        if (Character.isDigit(chr)) {
-                            stateInfo = stateInfo.substring(i);
-                            try {
-                                techBits = Integer.parseInt(stateInfo);
-                            } catch (NumberFormatException e) {
-                                Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-                                        " (" + cell + ") bad node bits" + stateInfo, cell, -1);
-                            }
-                            break parseStateInfo;
-                        }
-                }
-            }
-           TextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
-
 			// create the node
-            Orientation orient = Orientation.fromJava(angle, flipX, flipY);
-			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, nameTextDescriptor,
-                    EPoint.fromLambda(x, y), size, orient, flags, techBits, protoTextDescriptor, Input.errorLogger);
+			NodeInst ni = NodeInst.newInstance(cell, np, n.nodeName, n.nameTextDescriptor,
+                    n.anchor, size, n.orient, n.flags, n.techBits, n.protoTextDescriptor, Input.errorLogger);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create node " + protoName, cell, -1);
+					" (" + cell + ") cannot create node " + n.protoId, cell, -1);
 				continue;
 			}
-//            if (np instanceof PrimitiveNode) {
-//                PrimitiveNode pn = (PrimitiveNode)np;
-//                PrimitiveNode.NodeSizeRule nodeSizeRule = pn.getMinSizeRule();
-//                if (nodeSizeRule != null) {
-//                    if (size.getLambdaX() < nodeSizeRule.getWidth()) {
-//                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " width is less than minimum by " +
-//                                (nodeSizeRule.getWidth() - size.getLambdaX()), ni, cell, null, 2);
-//                    }
-//                    if (size.getLambdaY() < nodeSizeRule.getHeight()) {
-//                        Input.errorLogger.logWarning(" (" + cell + ") node " + ni.getName() + " height is less than minimum by " +
-//                                (nodeSizeRule.getHeight() - size.getLambdaY()), ni, cell, null, 2);
-//                    }
-//                }
-//            }
 
+			// add variables
+            realizeVariables(ni, n.vars);
+            
 			// insert into map of disk names
-			diskName.put(diskNodeName, ni);
+            n.ni = ni;
 
-			// add variables in fields 10 and up
-			Variable[] vars = readVariables(cc.revision, ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
-            realizeVariables(ni, vars);
 		}
 
 		// place all exports
         CellId cellId = cell.getId();
-		for(int line=0; line<numStrings; line++)
-		{
-			String cellString = cc.cellStrings.get(line);
-			if (cellString.charAt(0) != 'E') continue;
-//			numProcessed++;
-//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
+        for (ExportContents e: cc.exports) {
+            int line = e.line;
 
-			// parse the export line
-			List<String> pieces = parseLine(cellString);
-            if (cc.revision >= 2 && pieces.size() == 1) {
-                // Unused ExportId
-                String exportName = unQuote(cc.revision, pieces.get(0));
-                cellId.newPortId(exportName);
-                continue;
-            }
-			int numPieces = cc.revision >= 2 ? 6 : cc.revision == 1 ? 5 : 7;
-			if (pieces.size() < numPieces)
-			{
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					", Export needs " + numPieces + " fields, has " + pieces.size() + ": " + cellString, cell, -1);
-				continue;
-			}
-            int fieldIndex = 0;
-			String exportName = unQuote(cc.revision, pieces.get(fieldIndex++));
-            String exportUserName = null;
-            if (cc.revision >= 2) {
-                String s = pieces.get(fieldIndex++);
-                if (s.length() != 0)
-                    exportUserName = unQuote(cc.revision, s);
-            }
-            if (exportUserName == null || exportName.equals(exportUserName))
-                exportName = Name.findName(exportName).toString(); // save memory using String from Name
-            ExportId exportId = cellId.newPortId(exportName);
-			// get text descriptor in field 1
-			String textDescriptorInfo = pieces.get(fieldIndex++);
-			String nodeName = cc.revision >= 1 ? pieces.get(fieldIndex++) : unQuote(cc.revision, pieces.get(fieldIndex++));
-			String portName = unQuote(cc.revision, pieces.get(fieldIndex++));
-			Point2D pos = null;
-			if (cc.revision < 1)
-			{
-				double x = TextUtils.atof(pieces.get(fieldIndex++));
-				double y = TextUtils.atof(pieces.get(fieldIndex++));
-				pos = new Point2D.Double(x, y);
-			}
-    		// parse state information in field 6
-            String userBits = pieces.get(fieldIndex++);
-            assert fieldIndex == numPieces;
-            
-			PortInst pi = figureOutPortInst(cell, portName, nodeName, pos, diskName, cc.fileName, cc.lineNumber + line);
+			PortInst pi = figureOutPortInst(cell, e.originalPort.externalId, e.originalNode, e.pos, cc.fileName, line);
 			if (pi == null) continue;
-
-            TextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-			// parse state information
-            boolean alwaysDrawn = false;
-            boolean bodyOnly = false;
-            int slashPos = userBits.indexOf('/');
-            if (slashPos >= 0) {
-                String extras = userBits.substring(slashPos);
-                userBits = userBits.substring(0, slashPos);
-                while (extras.length() > 0) {
-                    switch (extras.charAt(1)) {
-                        case 'A': alwaysDrawn = true; break;
-                        case 'B': bodyOnly = true; break;
-                    }
-                    extras = extras.substring(2);
-                }
-            }
-            PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(userBits);
-            if (ch == null) ch = PortCharacteristic.UNKNOWN;
             
 			// create the export
-			Export pp = Export.newInstance(cell, exportId, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch, errorLogger);
+			Export pp = Export.newInstance(cell, e.exportId, e.exportUserName, e.nameTextDescriptor, pi,
+                    e.alwaysDrawn, e.bodyOnly, e.ch, errorLogger);
 			if (pp == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create export " + exportName, pi.getNodeInst(), cell, null, -1);
+					" (" + cell + ") cannot create export " + e.exportUserName, pi.getNodeInst(), cell, null, -1);
 				continue;
 			}
 
             // add variables in tail fields
-			Variable[] vars = readVariables(cc.revision, pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
-            realizeVariables(pp, vars);
+            realizeVariables(pp, e.vars);
 		}
 
 		// next place all arcs
-		for(int line=0; line<numStrings; line++)
-		{
-			String cellString = cc.cellStrings.get(line);
-			if (cellString.charAt(0) != 'A') continue;
-//			numProcessed++;
-//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
-
-			// parse the arc line
-			List<String> pieces = parseLine(cellString);
-			if (pieces.size() < 13)
-			{
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					", Arc instance needs 13 fields: " + cellString, cell, -1);
-				continue;
-			}
-			String protoName = unQuote(cc.revision, pieces.get(0));
-			ArcProto ap = null;
-            int indexOfColon = protoName.indexOf(':');
-            Technology tech = cell.getTechnology();
-			if (indexOfColon >= 0) {
-                tech = findTechnology(protoName.substring(0, indexOfColon));
-                protoName = protoName.substring(indexOfColon + 1);
-            }
+		for(ArcContents a: cc.arcs) {
+            int line = a.line;
+            
+            ArcProto ap = null;
+            Technology tech = findTechnology(a.arcProtoId.techId.techName);
             if (tech != null)
-                ap = tech.findArcProto(protoName);
+                ap = tech.findArcProto(a.arcProtoId.name);
 			if (ap == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot find arc " + protoName, cell, -1);
+					" (" + cell + ") cannot find arc " + a.arcProtoId, cell, -1);
 				continue;
 			}
-			String diskArcName = cc.revision >= 1 ? pieces.get(1) : unQuote(cc.revision, pieces.get(1));
-			String arcName = diskArcName;
-			if (arcName.charAt(0) == '"')
-			{
-				int lastQuote = arcName.lastIndexOf('"');
-				if (lastQuote > 1)
-				{
-					arcName = arcName.substring(1, lastQuote);
-					if (cc.revision >= 1) arcName = unQuote(cc.revision, arcName);
-				}
-			}
-			long gridExtendOverMin = cc.getSizeCorrector(ap.getTechnology()).getExtendFromDisk(ap, TextUtils.atof(pieces.get(3)));
+			long gridExtendOverMin = cc.getSizeCorrector(ap.getTechnology()).getExtendFromDisk(ap, a.diskWidth);
 
-			String headNodeName = cc.revision >= 1 ? pieces.get(5) : unQuote(cc.revision, pieces.get(5));
-			String headPortName = unQuote(cc.revision, pieces.get(6));
-			double headX = TextUtils.atof(pieces.get(7));
-			double headY = TextUtils.atof(pieces.get(8));
-			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, new Point2D.Double(headX, headY), diskName, cc.fileName, cc.lineNumber + line);
+			PortInst headPI = figureOutPortInst(cell, a.headPort.externalId, a.headNode, a.headPoint, cc.fileName, line);
 			if (headPI == null) continue;
 
-			String tailNodeName = cc.revision >= 1 ? pieces.get(9) : unQuote(cc.revision, pieces.get(9));
-			String tailPortName = unQuote(cc.revision, pieces.get(10));
-			double tailX = TextUtils.atof(pieces.get(11));
-			double tailY = TextUtils.atof(pieces.get(12));
-			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, new Point2D.Double(tailX, tailY), diskName, cc.fileName, cc.lineNumber + line);
+			PortInst tailPI = figureOutPortInst(cell, a.tailPort.externalId, a.tailNode, a.tailPoint, cc.fileName, line);
 			if (tailPI == null) continue;
 
-			// parse state information in field 4
-			String stateInfo = pieces.get(4);
-			boolean extended = true, directional = false, reverseEnds = false,
-				skipHead = false, skipTail = false,
-				tailNotExtended = false, headNotExtended = false,
-				tailArrowed = false, headArrowed = false, bodyArrowed = false;
-            // Default flags are false except FIXED_ANGLE
-            // SLIDABLE 
-			int flags = defaultArcFlags;
-            int angle = 0;
-            parseStateInfo:
-			for(int i=0; i<stateInfo.length(); i++)
-			{
-				char chr = stateInfo.charAt(i);
-                switch (chr) {
-                    case 'R': flags = ImmutableArcInst.RIGID.set(flags, true); break;
-                    case 'F': flags = ImmutableArcInst.FIXED_ANGLE.set(flags, false); break;
-                    case 'S': flags = ImmutableArcInst.SLIDABLE.set(flags, true); break;
-                    case 'A': flags = ImmutableArcInst.HARD_SELECT.set(flags, true); break;
-                    case 'N': flags = ImmutableArcInst.TAIL_NEGATED.set(flags, true); break;
-                    case 'G': flags = ImmutableArcInst.HEAD_NEGATED.set(flags, true); break;
-                    case 'X': headArrowed = true; break;
-                    case 'Y': tailArrowed = true; break;
-                    case 'B': bodyArrowed = true; break;
-                    case 'I': headNotExtended = true; break;
-                    case 'J': tailNotExtended = true; break;
-
-    				// deprecated
-                    case 'E': extended = false; break;
-                    case 'D': directional = true; break;
-                    case 'V': reverseEnds = true; break;
-                    case 'H': skipHead = true; break;
-                    case 'T': skipTail = true; break;
-                    default:
-                        if (TextUtils.isDigit(chr))
-                        {
-                            angle = TextUtils.atoi(stateInfo.substring(i));
-                            break parseStateInfo;
-                        }
-                }
-			}
-
-			// if old bits were used, convert them
-			if (!extended || directional)
-			{
-				if (!extended) headNotExtended = tailNotExtended = true;
-				if (directional)
-				{
-					if (reverseEnds) tailArrowed = true; else
-						headArrowed = true;
-					bodyArrowed = true;
-				}
-				if (skipHead) headArrowed = headNotExtended = false;
-				if (skipTail) tailArrowed = tailNotExtended = false;
-			}
-
-			// set the bits
-			flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, !headNotExtended);
-			flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, !tailNotExtended);
-			flags = ImmutableArcInst.HEAD_ARROWED.set(flags, headArrowed);
-			flags = ImmutableArcInst.TAIL_ARROWED.set(flags, tailArrowed);
-			flags = ImmutableArcInst.BODY_ARROWED.set(flags, bodyArrowed);
-
-			// get the ard name text descriptor
-			String nameTextDescriptorInfo = pieces.get(2);
-			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-
-            ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin, angle, flags);
+            ArcInst ai = ArcInst.newInstance(cell, ap, a.arcName, a.nameTextDescriptor,
+                    headPI, tailPI, a.headPoint, a.tailPoint, gridExtendOverMin, a.angle, a.flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();
 				geomList.add(headPI.getNodeInst());
 				geomList.add(tailPI.getNodeInst());
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create arc " + protoName, geomList, null, cell, 2);
+				Input.errorLogger.logError(cc.fileName + ", line " + line +
+					" (" + cell + ") cannot create arc " + a.arcProtoId, geomList, null, cell, 2);
 				continue;
 			}
-//            if (gridExtendOverMin < 0) {
-//				Input.errorLogger.logWarning(" (" + cell + ") arc " + ai.getName() + " width is less than minimum by " + DBMath.gridToLambda(-2*gridExtendOverMin), ai, cell, null, -1);
-//            }
-
-			// add variables in fields 13 and up
-			Variable[] vars = readVariables(cc.revision, ai, pieces, 13, cc.fileName, cc.lineNumber + line);
-            realizeVariables(ai, vars);
+            realizeVariables(ai, a.vars);
 		}
 		cc.filledIn = true;
 		cc.cellStrings = null;
@@ -1265,19 +1358,18 @@ public class JELIB extends LibraryFiles
 	 * Method to find the proper PortInst for a specified port on a node, at a given position.
 	 * @param cell the cell in which this all resides.
 	 * @param portName the name of the port (may be an empty string if there is only 1 port).
-	 * @param nodeName the name of the node.
+	 * @param n the node.
 	 * @param pos the position of the port on the node.
-	 * @param diskName a HashMap that maps node names to actual nodes.
 	 * @param lineNumber the line number in the file being read (for error reporting).
 	 * @return the PortInst specified (null if none can be found).
 	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, Point2D pos, HashMap<String,NodeInst> diskName, String fileName, int lineNumber)
+	private PortInst figureOutPortInst(Cell cell, String portName, NodeContents n, Point2D pos, String fileName, int lineNumber)
 	{
-		NodeInst ni = diskName.get(nodeName);
+		NodeInst ni = n != null ? n.ni : null;
 		if (ni == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				" (" + cell + ") cannot find node " + nodeName, cell, -1);
+				" (" + cell + ") cannot find node " + n.nodeName, cell, -1);
 			return null;
 		}
 
@@ -1327,7 +1419,7 @@ public class JELIB extends LibraryFiles
 				return null;
 			}
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Port "+portName+" on "+ni.getProto() + " renamed or deleted, still used on node "+nodeName+" in " + cell, portNI, cell, null, -1);
+				", Port "+portName+" on "+ni.getProto() + " renamed or deleted, still used on node "+n.nodeName+" in " + cell, portNI, cell, null, -1);
 			return portNI.getOnlyPortInst();
 		}
 

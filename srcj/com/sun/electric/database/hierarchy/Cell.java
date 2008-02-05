@@ -2613,7 +2613,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public Export getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != getId())
             throw new IllegalArgumentException();
-        return chronExports[portProtoId.getChronIndex()];
+        return getExportChron(portProtoId.getChronIndex());
     }
 
 	/**
