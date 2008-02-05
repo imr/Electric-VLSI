@@ -3248,11 +3248,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // if they are equal, this is recursive
         if (toInstantiate == parent)
             return true;
+        // Icons shouldn't contain cell instances
+        if (parent.isIcon())
+            return true;
 
         // special case: allow instance of icon inside of the contents for illustration
         if (toInstantiate.isIconOf(parent)) {
-            if (toInstantiate.isIcon() && !parent.isIcon())
-                return false;
+            assert toInstantiate.isIcon();
+            assert parent.isSchematic();
+            return false;
         }
 
         // if the parent is a child of the cell to instantiate, that would be a

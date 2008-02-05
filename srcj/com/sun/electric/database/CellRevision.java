@@ -152,6 +152,8 @@ public class CellRevision {
             techUsages = uc.getTechUsages(this.techUsages);
             cellUsages = uc.getCellUsages(this.cellUsages);
         }
+        if (cellId.isIcon() && cellUsages.length != 0)
+            throw new IllegalArgumentException("Icon contains subcell instances");
         
         if (nodes != this.nodes && !nodes.isEmpty()) {
             boolean hasCellCenter = false;
@@ -437,6 +439,8 @@ public class CellRevision {
         }
         for (int i = 0; i < checkCellUsages.length; i++)
             assert checkCellUsages[i] == 0;
+        if (d.cellId.isIcon())
+            assert cellUsages.length == 0;
         BitSet arcIds = new BitSet();
         ImmutableArcInst prevA = null;
         for (ImmutableArcInst a: arcs) {

@@ -44,7 +44,7 @@ import java.util.Random;
 public final class CellId implements NodeProtoId, Serializable {
     /** Empty CellId array for initialization. */
     public static final CellId[] NULL_ARRAY = {};
-    
+
     /** IdManager which owns this LibId. */
     public final IdManager idManager;
     /** LibId which owns this CellId. */
@@ -67,13 +67,13 @@ public final class CellId implements NodeProtoId, Serializable {
      * in the search sequence.
      */
     private volatile CellUsage[] hashUsagesIn = EMPTY_USAGE_HASH;
-    
+
     /**
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
     private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
-    
+
     /**
      * Number of exportIds allocated so far.
      */
@@ -92,22 +92,22 @@ public final class CellId implements NodeProtoId, Serializable {
      * in the search sequence.
      */
     private volatile int[] hashExportIds = EMPTY_EXPORT_HASH;
-    
+
     /**
      * Number of nodeIds returned by newNodeId.
      **/
     private volatile int numNodeIds = 0;
-    
+
     /**
      * Number of arcIds returned by newArcId.
      **/
     private volatile int numArcIds = 0;
-    
+
     /** Empty usage hash for initialization. */
     private static final CellUsage[] EMPTY_USAGE_HASH = { null };
     /** Empty usage hash for initialization. */
     private static final int[] EMPTY_EXPORT_HASH = { -1 };
-    
+
     /**
      * CellId constructor.
      */
@@ -119,33 +119,33 @@ public final class CellId implements NodeProtoId, Serializable {
         this.cellName = cellName;
         this.cellIndex = cellIndex;
     }
-    
+
     private Object writeReplace() { return new CellIdKey(this); }
-    
+
     private static class CellIdKey extends EObjectInputStream.Key<CellId> {
         public CellIdKey() {}
         private CellIdKey(CellId cellId) { super(cellId); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, CellId cellId) throws IOException {
             if (cellId.idManager != out.getIdManager())
                 throw new NotSerializableException(cellId + " from other IdManager");
             out.writeInt(cellId.cellIndex);
         }
-        
+
         @Override
         public CellId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int cellIndex = in.readInt();
             return in.getIdManager().getCellId(cellIndex);
         }
     }
-    
+
     /**
      * Returns IdManager which is owner of this CellId.
      * @return IdManager which is owner of this CellId.
      */
     public IdManager getIdManager() { return idManager; }
-    
+
     /**
      * Returns a number CellUsages with this CellId as a parent cell.
      * This number may grow in time.
@@ -155,7 +155,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because usagesIn is volatile.
         return usagesIn.length;
     }
-    
+
     /**
      * Returns the i-th in cronological order CellUsage with this CellId as a parent cell.
      * @param i chronological number of CellUsage.
@@ -166,7 +166,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because usagesIn is volatile and its entries are final.
         return usagesIn[i];
     }
-    
+
     /**
      * Returns a number CellUsages whith this CellId as a proto subcell.
      * This mumber may grow in time.
@@ -176,7 +176,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because usagesOf is volatile.
         return usagesOf.length;
     }
-    
+
     /**
      * Returns the i-th in cronological order CellUsage with this CellId as a proto subcell.
      * @param i chronological number of CellUsage.
@@ -187,7 +187,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because usagesOf is volatile and its entries are final.
         return usagesOf[i];
     }
-    
+
     /**
      * Returns CellUsage with this CellId as a parent cell and with given
      * CellId as a proto subcell. If this pair of cells is requested at a first time,
@@ -197,7 +197,7 @@ public final class CellId implements NodeProtoId, Serializable {
      * @throws NullPointerException if prootId is null.
      */
     public CellUsage getUsageIn(CellId protoId) { return getUsageIn(protoId, true); }
-    
+
     /**
      * Returns a number ExportIds in this parent cell.
      * This number may grow in time.
@@ -207,7 +207,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because numExportIds is volatile.
         return numExportIds;
     }
-    
+
     /**
      * Returns ExportId in this parent cell with specified chronological index.
      * @param chronIndex chronological index of ExportId.
@@ -218,7 +218,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because exportIds is volatile and its entries are final.
         return exportIds[chronIndex];
     }
-    
+
     /**
      * Returns ExportId in this parent cell with specified external id.
      * If this external id was requested earlier, the previously created ExportId returned,
@@ -228,7 +228,7 @@ public final class CellId implements NodeProtoId, Serializable {
      * @throws NullPointerException if externalId is null.
      */
     public ExportId newPortId(String externalId) { return newExportId(externalId, true); }
-    
+
     /**
      * Creates new random exportId, unique in this session for this parent CellId.
      * @param suggestedId suggested external id
@@ -253,19 +253,19 @@ public final class CellId implements NodeProtoId, Serializable {
             }
         }
     }
-    
+
     /**
      * Returns new nodeId unique for this CellId.
      * @return new nodeId unique for this CellId.
      */
     public int newNodeId() { return numNodeIds++; }
-    
+
     /**
      * Returns new arcId unique for this CellId.
      * @return new arcId unique for this CellId.
      */
     public int newArcId() { return numArcIds++; }
-    
+
     /**
      * Method to return the Cell representing CellId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -273,7 +273,7 @@ public final class CellId implements NodeProtoId, Serializable {
      * This method is not properly synchronized.
      */
     public Cell inDatabase(EDatabase database) { return database.getCell(this); }
-    
+
     /**
      * Returns a printable version of this CellId.
      * @return a printable version of this CellId.
@@ -281,7 +281,15 @@ public final class CellId implements NodeProtoId, Serializable {
     public String toString() {
         return libId + ":" + cellName.toString();
     }
-    
+
+	/**
+	 * Method to determine whether this CellId is an id of an icon Cell.
+	 * @return true if this CellId is an id of an icon Cell.
+	 */
+    public boolean isIcon() {
+        return cellName.isIcon();
+    }
+
     /**
      * Returns CellUsage with this CellId as a parent cell and with given
      * CellId as a proto subcell. If CellUsage with this pair of cells was already created,
@@ -299,32 +307,32 @@ public final class CellId implements NodeProtoId, Serializable {
         // This non-null value is final.
         // First we scan a sequence of non-null entries out of synchronized block.
         // It is guaranteed that we see the correct values of non-null entries.
-        
+
         // Get poiner to hash array locally once to avoid many reads of volatile variable.
         CellUsage[] hash = hashUsagesIn;
-        
+
         // We shall try to search a sequence of non-null entries for CellUsage with our protoId.
         int i = protoId.hashCode() & 0x7FFFFFFF;
         i %= hash.length;
         for (int j = 1; hash[i] != null; j += 2) {
             CellUsage u = hash[i];
-            
+
             // We scanned a seqence of non-null entries and found the result.
             // It is correct to return it without synchronization.
             if (u.protoId == protoId) return u;
-            
+
             i += j;
             if (i >= hash.length) i -= hash.length;
         }
-        
+
         // Need to enter into the synchronized mode.
         synchronized (CellUsage.class) {
-            
+
             if (hash == hashUsagesIn && hash[i] == null) {
                 // There we no rehash during our search and the last null entry is really null.
                 // So we can safely use results of unsynchronized search.
                 if (!create) return null;
-                
+
                 if (usagesIn.length*2 <= hash.length - 3) {
                     // create a new CellUsage, if enough space in the hash
                     CellUsage u = new CellUsage(this, protoId, usagesIn.length);
@@ -341,7 +349,7 @@ public final class CellId implements NodeProtoId, Serializable {
             return getUsageIn(protoId, create);
         }
     }
-    
+
     /**
      * Rehash the usagesIn hash.
      * @throws IndexOutOfBoundsException on hash overflow.
@@ -365,7 +373,7 @@ public final class CellId implements NodeProtoId, Serializable {
         hashUsagesIn = newHash;
         check();
     }
-    
+
     /**
      * Returns ExportId in this parent cell with specified external id.
      * If such ExportId doesn't exist returns null.
@@ -382,7 +390,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // First we scan a sequence of positive entries out of synchronized block.
         // It is guaranteed that we see the correct values of positive entries.
         // All entries in exportIds are final
-        
+
         // Get pointer to hash array locally once to avoid many reads of volatile variable.
         int[] hash = hashExportIds;
         ExportId[] exportIds = this.exportIds;
@@ -404,7 +412,7 @@ public final class CellId implements NodeProtoId, Serializable {
                 // There we no rehash during our search and the last -1 entry is really -1.
                 // So we are sure that there is not ExportId with specified external id.
                 if (!create) return null;
-                
+
                 int chronIndex = numExportIds;
                 exportIds = this.exportIds;
                 if (chronIndex*2 <= hash.length - 3) {
@@ -430,7 +438,7 @@ public final class CellId implements NodeProtoId, Serializable {
             return newExportId(externalId, create);
         }
     }
-    
+
     /**
      * Rehash the exportIds hash.
      * @throws IndexOutOfBoundsException on hash overflow.
@@ -455,7 +463,7 @@ public final class CellId implements NodeProtoId, Serializable {
         hashExportIds = newHash;
         check();
     }
-    
+
     /**
      * Append usage to the end of array.
      * @param usages array of usages.
@@ -468,7 +476,7 @@ public final class CellId implements NodeProtoId, Serializable {
         newUsages[usages.length] = newUsage;
         return newUsages;
     }
-    
+
     /**
      * Checks invariants in this CellId.
      * ALL i: usagesIn[i].parentId == this;
@@ -494,43 +502,43 @@ public final class CellId implements NodeProtoId, Serializable {
         cellName.check();
         assert cellName.getVersion() > 0;
         assert libId.getCellId(cellName) == this;
-        
+
         CellUsage[] usagesIn = this.usagesIn;
         for (int k = 0; k < usagesIn.length; k++) {
             CellUsage u = usagesIn[k];
-            
+
             // Check that this CellUsage is properly owned and has proper indexInParent.
             // This also guarantees that all elements of usagesIn are distinct.
             assert u.parentId == this;
             assert u.indexInParent == k;
             assert u.protoId.getIdManager() == getIdManager();
             u.protoId.checkLinked();
-            
+
             // Check the CellUsage invariants.
             // One of them guarantees that all CellUsages
             // in usagesIn have distinct parentIds.
             // It checks also that "u" is in hashUsageIn
             u.check();
         }
-        
+
         // Check that hashUsagesIn contains without duplicates the same set of CellUsages as
         checkHashUsagesIn();
         // Check that hashExportIds has exportIds.length entries
         checkHashExportIds();
-        
+
         // Check CellUsages in usagesOf array.
         // No need synchronization because usagesOf is volatile field.
         CellUsage[] usagesOf = this.usagesOf;
         for (int k = 0; k < usagesOf.length; k++) {
             CellUsage u = usagesOf[k];
-            
+
             // Check that this CellUsage is properly owned by its parentId and
             // the parentId is in static list of all CellIds.
             assert u.protoId.getIdManager() == getIdManager();
             u.parentId.checkLinked();
             assert u == u.parentId.usagesIn[u.indexInParent];
         }
-        
+
         int numExportIds = this.numExportIds;
         for (int chronIndex = 0; chronIndex < numExportIds; chronIndex++) {
             ExportId e = exportIds[chronIndex];
@@ -540,7 +548,7 @@ public final class CellId implements NodeProtoId, Serializable {
             e.check();
         }
     }
-    
+
     /**
      * Check that usagesIn and hashUsagesIn contains the same number of CellUsages.
      * It checks also that each CellUsage from hashUsagesIn is in usagesIn.
@@ -562,7 +570,7 @@ public final class CellId implements NodeProtoId, Serializable {
         }
         assert usagesIn.length == count;
     }
-    
+
     /**
      * Check that exportIds and hashExportIds contains the same number of ExportIds.
      */
@@ -582,7 +590,7 @@ public final class CellId implements NodeProtoId, Serializable {
         }
         assert numExportIds == count;
     }
-    
+
     /**
      * Check that this CellId is linked in static list of all CellIds.
      * @throws AssertionError if this CellId is not linked.
@@ -590,7 +598,7 @@ public final class CellId implements NodeProtoId, Serializable {
     private void checkLinked() {
         assert this == getIdManager().getCellId(cellIndex);
     }
-    
+
     public static void main(String[] args) {
         IdManager idManager = new IdManager();
         LibId libId = idManager.newLibId("lib");
@@ -601,7 +609,7 @@ public final class CellId implements NodeProtoId, Serializable {
         cellId.newPortId("A");
         String s = "B";
         cellId.newPortId(s);
-        
+
         long startTime = System.currentTimeMillis();
         int numTries = 100*1000*1000;
         int k = 0;

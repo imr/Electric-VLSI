@@ -154,6 +154,7 @@ public class Snapshot {
         }
         
         // Check usages in cells
+        boolean needCheckRecursion = false;
         BitSet newUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
@@ -169,6 +170,7 @@ public class Snapshot {
                 newUsedTechs.or(newRevision.techUsages);
                 cellId = newRevision.d.cellId;
                 if (oldBackup == null || newRevision.cellUsages != oldBackup.cellRevision.cellUsages) {
+                    needCheckRecursion = true;
                     for (int i = 0; i < newRevision.cellUsages.length; i++) {
                         CellRevision.CellUsageInfo cui = newRevision.cellUsages[i];
                         if (cui == null) continue;
@@ -209,6 +211,8 @@ public class Snapshot {
                 cui.checkUsage(newBackup.cellRevision);
             }
         }
+        if (needCheckRecursion)
+            checkRecursion(cellBackups);
         for (int techIndex = 0; techIndex < newUsedTechs.length(); techIndex++) {
             if (!newUsedTechs.get(techIndex)) continue;
             TechId techId = idManager.getTechId(techIndex);
@@ -829,6 +833,7 @@ public class Snapshot {
             assert libBackups.get(libBackups.size() - 1) != null;
         if (cellBackups.size() > 0)
             assert cellBackups.get(cellBackups.size() - 1) != null;
+        checkRecursion(cellBackups);
         int[] cellGroups = new int[cellBackups.size()];
         checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert Arrays.equals(this.cellGroups, cellGroups);
@@ -950,5 +955,35 @@ public class Snapshot {
             if (!cellNamesInLibrary.add(cellId.cellName))
                 throw new IllegalArgumentException("duplicate CellName in library");
         }
+    }
+    
+    private static void checkRecursion(ImmutableArrayList<CellBackup> cellBackups) {
+        BitSet visited = new BitSet();
+        BitSet checked = new BitSet();
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            checkRecursion(cellBackup.cellRevision.d.cellId, cellBackups, visited, checked);
+        }
+        assert visited.equals(checked);
+    }
+    
+    private static void checkRecursion(CellId cellId, ImmutableArrayList<CellBackup> cellBackups, BitSet visited, BitSet checked) {
+        int cellIndex = cellId.cellIndex;
+        if (checked.get(cellIndex)) return;
+        assert !visited.get(cellIndex);
+        visited.set(cellIndex);
+        CellBackup cellBackup = cellBackups.get(cellIndex);
+        CellRevision cellRevision = cellBackup.cellRevision;
+        for (int i = 0; i < cellRevision.cellUsages.length; i++) {
+            CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
+            if (cui == null) continue;
+            CellUsage u = cellId.getUsageIn(i);
+            int subCellIndex = u.protoId.cellIndex;
+            if (checked.get(subCellIndex)) continue;
+            if (visited.get(subCellIndex))
+                throw new IllegalArgumentException("Recursive instance of " + u.protoId + " in " + u.parentId);
+            checkRecursion(u.protoId, cellBackups, visited, checked);
+        }
+        checked.set(cellIndex);
     }
 }

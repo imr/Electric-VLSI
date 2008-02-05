@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (2/4/08, DN) Stack overflow while placing sch into icon (Bug #1556)
+FIX: 1) Check recursion in Snapshow.with method.
+     2) Forbid subcell instances in icon cell
+
 IMP: (2/4/08, DN)  JELIB reader parses cell string in parse stage instead of realize stage
 
 BUG: (2/4/08, DN) New: NPE while reading an old JELIB library (Bug #1555)
