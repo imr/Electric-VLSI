@@ -689,7 +689,7 @@ public class TechEditWizardData
 			new Color(34,139,34),   // dull green
 			new Color(178,34,34),   // dull red
 			new Color(153,153,153), // light gray
-			new Color(102,102,102), // dark gray
+			new Color(102,102,102)  // dark gray
 		};
 		Color poly_colour = new Color(255,155,192);   // pink
 		Color diff_colour = new Color(107,226,96);    // light green
@@ -755,21 +755,6 @@ public class TechEditWizardData
 		pw.println("        <g>" + metal_colour[2].getGreen() + "</g>");
 		pw.println("        <b>" + metal_colour[2].getBlue() + "</b>");
 		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + nwell_colour.getRed() + "</r>");
-		pw.println("        <g>" + nwell_colour.getGreen() + "</g>");
-		pw.println("        <b>" + nwell_colour.getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + nplus_colour.getRed() + "</r>");
-		pw.println("        <g>" + nplus_colour.getGreen() + "</g>");
-		pw.println("        <b>" + nplus_colour.getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + pplus_colour.getRed() + "</r>");
-		pw.println("        <g>" + pplus_colour.getGreen() + "</g>");
-		pw.println("        <b>" + pplus_colour.getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
 
 		// write the layers
 		pw.println();
@@ -798,22 +783,132 @@ public class TechEditWizardData
 			int r = 255;
 			int g = 0;
 			int b = 0;
-			int op = 0;
 			double la = -1;
-			List<String> pa = new ArrayList<String>();
 			String pat = null;
-			String fg = "true";
 
 			if (l.startsWith("Metal"))
 			{
 				int metLay = TextUtils.atoi(l.substring(6));
-				if (metLay==1 || metLay==2 || metLay==3) tcol = 2+metLay; else tcol = 0;
+				if (metLay == 1 || metLay == 2 || metLay == 3) tcol = metLay + 2; else
+				{
+					// set a pattern for higher-layers of metal
+					switch (metLay)
+					{
+						case 4:
+							pat="        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>                </pattern>";
+							break;
+						case 5:
+							pat="        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>";
+							break;
+						case 6:
+							pat="        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern> X X X X X X X X</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern> X X X X X X X X</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern> X X X X X X X X</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern> X X X X X X X X</pattern>";
+							break;
+						case 7:
+							pat="        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern> X   X   X   X  </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>   X   X   X   X</pattern>";
+							break;
+						case 8:
+							pat="        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>";
+							break;
+						case 9:
+							pat="        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>  X   X   X   X </pattern>\n" +
+								"        <pattern>                </pattern>\n" +
+								"        <pattern>X   X   X   X   </pattern>";
+							break;
+					}
+				}
 				fun = "METAL" + metLay;
 				r = metal_colour[metLay-1].getRed();
 				g = metal_colour[metLay-1].getGreen();
 				b = metal_colour[metLay-1].getBlue();
 				la = metal_width[metLay-1] / stepsize;
-				pa.add(l);
 			}
 
 			if (l.startsWith("Via"))
@@ -831,7 +926,6 @@ public class TechEditWizardData
 			{
 				fun = "CONTROL";
 				la = nplus_width / stepsize;
-				pa.add(l);
 				pat="        <pattern>                </pattern>\n" +
 					"        <pattern>                </pattern>\n" +
 					"        <pattern>                </pattern>\n" +
@@ -855,7 +949,6 @@ public class TechEditWizardData
 				fun = "POLY1";
 				tcol = 1;
 				la = poly_width / stepsize;
-				pa.add(l);
 			}
 
 			if (l.equals("PolyGate"))
@@ -869,8 +962,6 @@ public class TechEditWizardData
 				fun = "DIFFP";
 				tcol = 2;
 				la = diff_width / stepsize;
-				pa.add("P-Diff");
-				pa.add("N-Diff");
 			}
 
 			if (l.equals("N-Diff"))
@@ -878,14 +969,14 @@ public class TechEditWizardData
 				fun = "DIFFN";
 				tcol = 2;
 				la = diff_width / stepsize;
-				pa.add("P-Diff");
-				pa.add("N-Diff");
 			}
 
 			if (l.equals("N+"))
 			{
 				fun = "IMPLANTN";
-				tcol = 7;
+				r = nplus_colour.getRed();
+				g = nplus_colour.getGreen();
+				b = nplus_colour.getBlue();
 				la = nplus_width / stepsize;
 				pat="        <pattern>   X       X    </pattern>\n" +
 					"        <pattern>  X       X     </pattern>\n" +
@@ -909,7 +1000,9 @@ public class TechEditWizardData
 			if (l.equals("P+"))
 			{
 				fun = "IMPLANTP";
-				tcol = 8;
+				r = pplus_colour.getRed();
+				g = pplus_colour.getGreen();
+				b = pplus_colour.getBlue();
 				la = pplus_width / stepsize;
 				pat="        <pattern>   X       X    </pattern>\n" +
 					"        <pattern>  X       X     </pattern>\n" +
@@ -936,7 +1029,6 @@ public class TechEditWizardData
 				g = nwell_colour.getGreen();
 				b = nwell_colour.getBlue();
 				la = nwell_width / stepsize;
-				pa.add("P-Diff");
 				pat="        <pattern>       X       X</pattern>\n" +
 					"        <pattern>X       X       </pattern>\n" +
 					"        <pattern> X       X      </pattern>\n" +
@@ -978,7 +1070,7 @@ public class TechEditWizardData
 			pw.println();
 			pw.println("    <layer name=\"" + l + "\" " + (fun.length() > 0 ? ("fun=\"" + fun + "\"") : "") +
 				(extrafun.length() > 0 ? (" extraFun=\"" + extrafun + "\"") : "") + ">");
-			if (tcol==0)
+			if (tcol == 0)
 			{
 				pw.println("        <opaqueColor r=\"" + r + "\" g=\"" + g + "\" b=\"" + b + "\"/>");
 			} else
@@ -996,8 +1088,8 @@ public class TechEditWizardData
 				pw.println(pat);
 			}
 			pw.println("        <outlined>NOPAT</outlined>");
-			pw.println("        <opacity>" + op + "</opacity>");
-			pw.println("        <foreground>" + fg + "</foreground>");
+			pw.println("        <opacity>0</opacity>");
+			pw.println("        <foreground>true</foreground>");
 			pw.println("        <display3D thick=\"1\" height=\"1\" mode=\"NONE\" factor=\"1\"/>");
 			char cifLetter = (char)('A' + i);
 			pw.println("        <cifLayer cif=\"C" + cifLetter + cifLetter + "\"/>");
@@ -1005,7 +1097,7 @@ public class TechEditWizardData
 			pw.println("        <parasitics resistance=\"1\" capacitance=\"0.0\" edgeCapacitance=\"0.0\"/>");
 			if (fun.startsWith("METAL") || fun.startsWith("POLY") || fun.startsWith("DIFF"))
 			{
-				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port__" + l + "\"> ");
+				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port_" + l + "\"> ");
 				pw.println("            <lambda>" + floaty(la) + "</lambda>");
 				pw.println("            <portArc>" + l + "</portArc>");
 				pw.println("        </pureLayerNode>");
@@ -1048,7 +1140,7 @@ public class TechEditWizardData
 			{
 				fun = "DIFFP";
 				h.add("P-Diff=" + (diff_width / stepsize));
-				h.add("P+=" + ((nplus_overhang_diff*2 + diff_width) / stepsize));
+				h.add("P+=" + ((pplus_overhang_diff*2 + diff_width) / stepsize));
 				h.add("N-Well=" + ((nwell_overhang_diff*2 + diff_width) / stepsize));
 			}
 
@@ -1106,7 +1198,7 @@ public class TechEditWizardData
 				"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) +"\"/>");
 			pw.println("            </box>");
 			pw.println("        </nodeLayer>");
-			pw.println("        <primitivePort name=\"Port__M" + i + "\">");
+			pw.println("        <primitivePort name=\"M" + i + "\">");
 			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 			pw.println("            <portTopology>0</portTopology>");
 			pw.println("            <box>");
@@ -1126,7 +1218,7 @@ public class TechEditWizardData
 			"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) + "\"/>");
 		pw.println("            </box>");
 		pw.println("        </nodeLayer>");
-		pw.println("        <primitivePort name=\"Port__Poly\">");
+		pw.println("        <primitivePort name=\"Poly\">");
 		pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 		pw.println("            <portTopology>0</portTopology>");
 		pw.println("            <box>");
@@ -1180,7 +1272,7 @@ public class TechEditWizardData
 			pw.println("                <lambdaBox klx=\"-" + d1 + "\" khx=\"" + d1 + "\" kly=\"-" + d1 + "\" khy=\"" + d1 + "\"/>");
 			pw.println("            </box>");
 			pw.println("        </nodeLayer>");
-			pw.println("        <primitivePort name=\"Port__" + t + "-Diff\">");
+			pw.println("        <primitivePort name=\"" + t + "-Diff\">");
 			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 			pw.println("            <portTopology>0</portTopology>");
 			pw.println("            <box>");
@@ -1253,7 +1345,7 @@ public class TechEditWizardData
 				String oy = floaty(maxy-miny);
 
 				pw.println();
-				pw.println("    <primitiveNode name=\"" + src + "-" + dest + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
+				pw.println("    <primitiveNode name=\"" + src + "-" + dest + "-Con" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
 				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
 				pw.println("        <sizeOffset lx=\"" + ox + "\" hx=\"" + ox + "\" ly=\"" + oy + "\" hy=\"" + oy + "\"/>");
 				pw.println("        <nodeLayer layer=\"" + src + "\" style=\"FILLED\">");
@@ -1271,7 +1363,7 @@ public class TechEditWizardData
 				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
 				pw.println("            </multicutbox>");
 				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"Port__" + src + "-" + dest + (alt != 0 ? "-X" : "") + "\">");
+				pw.println("        <primitivePort name=\"" + src + "-" + dest + "\">");
 				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 				pw.println("            <portTopology>0</portTopology>");
 				pw.println("            <box>");
@@ -1367,7 +1459,7 @@ public class TechEditWizardData
 				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
 				pw.println("            </multicutbox>");
 				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"Port__" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\">");
+				pw.println("        <primitivePort name=\"" + t + "-Diff-Metal-1" + "\">");
 				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 				pw.println("            <portTopology>0</portTopology>");
 				pw.println("            <box>");
@@ -1469,7 +1561,7 @@ public class TechEditWizardData
 				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
 				pw.println("            </multicutbox>");
 				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"Port__" + t + "-Tie-M1" + (alt != 0 ? "-X" : "") + "\">");
+				pw.println("        <primitivePort name=\"" + t + "-Tie-M1" + "\">");
 				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 				pw.println("            <portTopology>0</portTopology>");
 				pw.println("            <box>");
@@ -1555,7 +1647,7 @@ public class TechEditWizardData
 				pw.println("        </nodeLayer>");
 			}
 
-			pw.println("        <primitivePort name=\"" + t + "MOS-Gate-Poly\">");
+			pw.println("        <primitivePort name=\"Gate-Left\">");
 			pw.println("            <portAngle primary=\"180\" range=\"90\"/>");
 			pw.println("            <portTopology>0</portTopology>");
 			pw.println("            <box>");
@@ -1564,7 +1656,7 @@ public class TechEditWizardData
 			pw.println("            <portArc>Poly</portArc>");
 			pw.println("        </primitivePort>");
 
-			pw.println("        <primitivePort name=\"" + t + "MOS-Source-Diff\">");
+			pw.println("        <primitivePort name=\"Diff-Top\">");
 			pw.println("            <portAngle primary=\"90\" range=\"90\"/>");
 			pw.println("            <portTopology>1</portTopology>");
 			pw.println("            <box>");
@@ -1573,7 +1665,7 @@ public class TechEditWizardData
 			pw.println("            <portArc>" + t + "-Diff</portArc>");
 			pw.println("        </primitivePort>");
 
-			pw.println("        <primitivePort name=\"" + t + "MOS-Gate-Poly-R\">");
+			pw.println("        <primitivePort name=\"Gate-Right\">");
 			pw.println("            <portAngle primary=\"0\" range=\"90\"/>");
 			pw.println("            <portTopology>0</portTopology>");
 			pw.println("            <box>");
@@ -1582,7 +1674,7 @@ public class TechEditWizardData
 			pw.println("            <portArc>Poly</portArc>");
 			pw.println("        </primitivePort>");
 
-			pw.println("        <primitivePort name=\"" + t + "MOS-Drain-Diff\">");
+			pw.println("        <primitivePort name=\"Diff-Bottom\">");
 			pw.println("            <portAngle primary=\"270\" range=\"90\"/>");
 			pw.println("            <portTopology>2</portTopology>");
 			pw.println("            <box>");
@@ -1624,10 +1716,10 @@ public class TechEditWizardData
 			if (i != 1)
 			{
 				pw.println("        <menuBox>");
-				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "\" function=\"CONTACT\">");
+				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-Con\" function=\"CONTACT\">");
 				pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
 				pw.println("            </menuNodeInst>");
-				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-X\" function=\"CONTACT\"/>");
+				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-Con-X\" function=\"CONTACT\"/>");
 				pw.println("        </menuBox>");
 			} else
 			{
@@ -1643,9 +1735,9 @@ public class TechEditWizardData
 		pw.println("            <menuNode>Poly-Pin</menuNode>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1\" function=\"CONTACT\">");
+		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con\" function=\"CONTACT\">");
 		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-X\" function=\"CONTACT\"/>");
+		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
