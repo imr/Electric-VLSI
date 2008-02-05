@@ -293,6 +293,40 @@ public class TechEditWizardData
 	public int getGDSMarking() { return gds_marking_layer; }
 	public void setGDSMarking(int l) { gds_marking_layer = l; }
 
+	public String errorInData()
+	{
+		// check the General data
+		if (tech_name == null || tech_name.length() == 0) return "General panel: No technology name";
+		if (stepsize == 0) return "General panel: Invalid unit size";
+
+		// check the Active data
+		if (diff_width == 0) return "Active panel: Invalid width";
+
+		// check the Poly data
+		if (poly_width == 0) return "Poly panel: Invalid width";
+
+		// check the Gate data
+		if (gate_width == 0) return "Gate panel: Invalid width";
+		if (gate_length == 0) return "Gate panel: Invalid length";
+
+		// check the Contact data
+		if (contact_size == 0) return "Contact panel: Invalid size";
+
+		// check the Well/Implant data
+		if (nplus_width == 0) return "Well/Implant panel: Invalid NPlus width";
+		if (pplus_width == 0) return "Well/Implant panel: Invalid PPlus width";
+		if (nwell_width == 0) return "Well/Implant panel: Invalid NWell width";
+
+		// check the Metal data
+		for(int i=0; i<num_metal_layers; i++)
+			if (metal_width[i] == 0) return "Metal panel: Invalid Metal-" + (i+1) + " width";
+
+		// check the Via data
+		for(int i=0; i<num_metal_layers-1; i++)
+			if (via_size[i] == 0) return "Via panel: Invalid Via-" + (i+1) + " size";
+		return null;
+	}
+
 	/************************************** IMPORT RAW NUMBERS FROM DISK **************************************/
 
 	/**
@@ -621,6 +655,13 @@ public class TechEditWizardData
 
 	public void writeXML()
 	{
+		String errorMessage = errorInData();
+		if (errorMessage != null)
+		{
+			Job.getUserInterface().showErrorMessage("ERROR: " + errorMessage,
+				"Missing Technology Data");
+			return;
+		}
 		String fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", "Technology.xml");
 		if (fileName == null) return;
 		try

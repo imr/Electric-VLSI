@@ -236,11 +236,15 @@ public class TechEditWizard extends EDialog
 
 	private void exportActionPerformed()
 	{
+        if (currentOptionPanel != null)
+            currentOptionPanel.term();
 		data.exportData();
 	}
 
 	private void makeTechnologyActionPerformed()
 	{
+        if (currentOptionPanel != null)
+            currentOptionPanel.term();
 		data.writeXML();
 	}
 
