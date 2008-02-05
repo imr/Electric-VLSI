@@ -104,17 +104,38 @@ public class Metal extends TechEditWizardPanel
         gbc.gridwidth = 2;
         gbc.insets = new Insets(4, 4, 4, 4);
         metal.add(nano, gbc);
+	}
 
-		TechEditWizardData data = getNumericData();
+	/** return the panel to use for this Numeric Technology Editor tab. */
+	public JPanel getPanel() { return metal; }
+
+	/** return the name of this Numeric Technology Editor tab. */
+	public String getName() { return "Metal"; }
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the Metal tab.
+	 */
+	public void init()
+	{
+		TechEditWizardData data = wizard.getTechEditData();
         numMetals = data.getNumMetalLayers();
         widthLabel = new JLabel[numMetals];
         width = new JTextField[numMetals];
         spacingLabel = new JLabel[numMetals];
         spacing = new JTextField[numMetals];
         for(int i=0; i<numMetals; i++)
+        {
         	addMetalLayer(i);
+        	width[i].setText(Double.toString(data.getMetalWidth()[i]));
+        	spacing[i].setText(Double.toString(data.getMetalSpacing()[i]));
+        }
 	}
 
+	/**
+	 * Method to create the dialog fields for a metal layer.
+	 * @param i the metal layer to fill-in.
+	 */
 	private void addMetalLayer(int i)
 	{
     	widthLabel[i] = new JLabel("Metal-" + (i+1) + " width (A):");
@@ -146,12 +167,9 @@ public class Metal extends TechEditWizardPanel
         metal.add(spacing[i], gbc);
 	}
 
-	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return metal; }
-
-	/** return the name of this Numeric Technology Editor tab. */
-	public String getName() { return "Metal"; }
-
+	/**
+	 * Method called when the user clicks "Add Metal"
+	 */
 	private void addMetal()
 	{
         numMetals++;
@@ -174,6 +192,9 @@ public class Metal extends TechEditWizardPanel
 		parent.pack();
 	}
 
+	/**
+	 * Method called when the user clicks "Remove Metal"
+	 */
 	private void removeMetal()
 	{
 		if (numMetals <= 1)
@@ -191,35 +212,17 @@ public class Metal extends TechEditWizardPanel
 	}
 
 	/**
-	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the Metal tab.
-	 */
-	public void init()
-	{
-		TechEditWizardData data = getNumericData();
-        for(int i=0; i<numMetals; i++)
-        {
-        	width[i].setText(Double.toString(data.getMetalWidth()[i]));
-        	spacing[i].setText(Double.toString(data.getMetalSpacing()[i]));
-        }
-	}
-
-	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Metal tab.
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setNumMetalLayers(numMetals);
-        double [] newWidth = new double[numMetals];
-        double [] newSpacing = new double[numMetals];
         for(int i=0; i<numMetals; i++)
         {
-        	newWidth[i] = TextUtils.atof(width[i].getText());
-        	newSpacing[i] = TextUtils.atof(spacing[i].getText());
+        	data.setMetalWidth(i, TextUtils.atof(width[i].getText()));
+        	data.setMetalSpacing(i, TextUtils.atof(spacing[i].getText()));
         }
-		data.setMetalWidth(newWidth);
-		data.setMetalSpacing(newSpacing);
 	}
 }

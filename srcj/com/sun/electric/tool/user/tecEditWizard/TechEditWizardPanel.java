@@ -30,35 +30,33 @@ import java.awt.Frame;
 import javax.swing.JPanel;
 
 /**
- * This class defines a superstructure for a panel in the Technology Editor Wizard dialog.
+ * This class defines a superstructure for a panel in the Technology Creation Wizard dialog.
  */
 public class TechEditWizardPanel extends EDialog
 {
-    private final TechEditWizard parent;
+    protected TechEditWizard wizard;
 
 	public TechEditWizardPanel(TechEditWizard parent, boolean modal)
 	{
 		super((Frame)parent.getOwner(), modal);
-        this.parent = parent;
+		wizard = parent;
 	}
 
-	/** return the panel to use for this Technology Editor Wizard tab. */
+	/** return the panel to use for this Technology Creation Wizard tab. */
 	public JPanel getPanel() { return null; }
 
-	/** return the name of this Technology Editor Wizard tab. */
+	/** return the name of this Technology Creation Wizard tab. */
 	public String getName() { return ""; }
-
-    protected TechEditWizardData getNumericData() { return parent.getTechEditData(); }
     
 	/**
-	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the Frame tab.
+	 * Method called when the panel is entered.
+	 * Caches current values and displays them in the tab.
 	 */
 	public void init() {}
 
 	/**
-	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the Frame tab.
+	 * Method called when the panel is left (switching to another or quitting dialog).
+	 * Updates any changed fields in the tab.
 	 */
 	public void term() {}
 }

@@ -51,7 +51,7 @@ public class General extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		stepSize.setText(Integer.toString(data.getStepSize()));
 		techName.setText(data.getTechName());
 		description.setText(data.getTechDescription());
@@ -63,7 +63,7 @@ public class General extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setStepSize(TextUtils.atoi(stepSize.getText()));
 		data.setTechName(techName.getText());
 		data.setTechDescription(description.getText());
@@ -196,7 +196,7 @@ public class General extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 0);
         general.add(jLabel7, gridBagConstraints);
 
-        jLabel8.setText("When done, click \"Make Technology\" to write");
+        jLabel8.setText("When done, click \"Write XML\" to write");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;

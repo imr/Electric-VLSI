@@ -54,7 +54,7 @@ public class WellImplant extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		nPlusWidth.setText(Double.toString(data.getNPlusWidth()));
 		nPlusOverhang.setText(Double.toString(data.getNPlusOverhangDiff()));
 		nPlusSpacing.setText(Double.toString(data.getNPlusSpacing()));
@@ -74,7 +74,7 @@ public class WellImplant extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setNPlusWidth(TextUtils.atof(nPlusWidth.getText()));
 		data.setNPlusOverhangDiff(TextUtils.atof(nPlusOverhang.getText()));
 		data.setNPlusSpacing(TextUtils.atof(nPlusSpacing.getText()));

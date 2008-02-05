@@ -42,7 +42,6 @@ public class GDS extends TechEditWizardPanel
     private JLabel [] metalGDSLabel, viaGDSLabel;
     private JTextField [] metalGDS, viaGDS;
     private JTextField diffGDS, polyGDS, nPlusGDS, pPlusGDS, nWellGDS, contactGDS, markingGDS;
-    private int numMetals;
 
     /** Creates new form GDS */
 	public GDS(TechEditWizard parent, boolean modal)
@@ -54,7 +53,6 @@ public class GDS extends TechEditWizardPanel
 
         gds = new JPanel();
         gds.setLayout(new GridBagLayout());
-		TechEditWizardData data = getNumericData();
 
         JLabel heading = new JLabel("GDS Layer Numbers");
         GridBagConstraints gbc = new GridBagConstraints();
@@ -160,8 +158,37 @@ public class GDS extends TechEditWizardPanel
         gbc.gridx = 1;   gbc.gridy = 7;
         gbc.insets = new Insets(4, 0, 1, 2);
         gds.add(markingGDS, gbc);
-        
-		numMetals = data.getNumMetalLayers();
+	}
+
+	/** return the panel to use for this Numeric Technology Editor tab. */
+	public JPanel getPanel() { return gds; }
+
+	/** return the name of this Numeric Technology Editor tab. */
+	public String getName() { return "GDS"; }
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the GDS tab.
+	 */
+	public void init()
+	{
+		TechEditWizardData data = wizard.getTechEditData();
+		diffGDS.setText(Integer.toString(data.getGDSDiff()));
+		polyGDS.setText(Integer.toString(data.getGDSPoly()));
+		nPlusGDS.setText(Integer.toString(data.getGDSNPlus()));
+		pPlusGDS.setText(Integer.toString(data.getGDSPPlus()));
+		nWellGDS.setText(Integer.toString(data.getGDSNWell()));
+		contactGDS.setText(Integer.toString(data.getGDSContact()));
+		markingGDS.setText(Integer.toString(data.getGDSMarking()));
+
+		// remove former metal data
+		if (metalGDSLabel != null) for(int i=0; i<metalGDSLabel.length; i++) gds.remove(metalGDSLabel[i]);
+		if (metalGDS != null) for(int i=0; i<metalGDS.length; i++) gds.remove(metalGDS[i]);
+		if (viaGDSLabel != null) for(int i=0; i<viaGDSLabel.length; i++) gds.remove(viaGDSLabel[i]);
+		if (viaGDS != null) for(int i=0; i<viaGDS.length; i++) gds.remove(viaGDS[i]);
+
+		// add appropriate number of metal layers
+		int numMetals = data.getNumMetalLayers();
 		metalGDSLabel = new JLabel[numMetals];
 		metalGDS = new JTextField[numMetals];
 		viaGDSLabel = new JLabel[numMetals-1];
@@ -169,13 +196,14 @@ public class GDS extends TechEditWizardPanel
         for(int i=0; i<numMetals; i++)
     	{
         	metalGDSLabel[i] = new JLabel("Metal-" + (i+1) + " GDS layer:");
-        	gbc = new GridBagConstraints();
+        	GridBagConstraints gbc = new GridBagConstraints();
         	gbc.gridx = 0;   gbc.gridy = 8+i*2;
             gbc.anchor = GridBagConstraints.WEST;
             gbc.insets = new Insets(4, 4, 1, 0);
             gds.add(metalGDSLabel[i], gbc);
 
             metalGDS[i] = new JTextField();
+        	metalGDS[i].setText(Integer.toString(data.getGDSMetal()[i]));
             metalGDS[i].setColumns(8);
         	gbc = new GridBagConstraints();
         	gbc.gridx = 1;   gbc.gridy = 8+i*2;
@@ -192,6 +220,7 @@ public class GDS extends TechEditWizardPanel
 	            gds.add(viaGDSLabel[i], gbc);
 
 	            viaGDS[i] = new JTextField();
+        		viaGDS[i].setText(Integer.toString(data.getGDSVia()[i]));
 	            viaGDS[i].setColumns(8);
 	        	gbc = new GridBagConstraints();
 	        	gbc.gridx = 1;   gbc.gridy = 9+i*2;
@@ -201,51 +230,20 @@ public class GDS extends TechEditWizardPanel
     	}
 	}
 
-	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return gds; }
-
-	/** return the name of this Numeric Technology Editor tab. */
-	public String getName() { return "GDS"; }
-
-	/**
-	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the GDS tab.
-	 */
-	public void init()
-	{
-		TechEditWizardData data = getNumericData();
-		diffGDS.setText(Integer.toString(data.getGDSDiff()));
-		polyGDS.setText(Integer.toString(data.getGDSPoly()));
-		nPlusGDS.setText(Integer.toString(data.getGDSNPlus()));
-		pPlusGDS.setText(Integer.toString(data.getGDSPPlus()));
-		nWellGDS.setText(Integer.toString(data.getGDSNWell()));
-		contactGDS.setText(Integer.toString(data.getGDSContact()));
-		markingGDS.setText(Integer.toString(data.getGDSMarking()));
-        for(int i=0; i<numMetals; i++)
-        {
-        	metalGDS[i].setText(Integer.toString(data.getGDSMetal()[i]));
-        	if (i < numMetals-1)
-        		viaGDS[i].setText(Integer.toString(data.getGDSVia()[i]));
-        }
-	}
-
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the GDS tab.
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
-        int [] newMetalGDS = new int[numMetals];
-        int [] newViaGDS = new int[numMetals-1];
+		TechEditWizardData data = wizard.getTechEditData();
+		int numMetals = data.getNumMetalLayers();
         for(int i=0; i<numMetals; i++)
         {
-        	newMetalGDS[i] = TextUtils.atoi(metalGDS[i].getText());
+        	data.setGDSMetal(i, TextUtils.atoi(metalGDS[i].getText()));
         	if (i < numMetals-1)
-        		newViaGDS[i] = TextUtils.atoi(viaGDS[i].getText());
+        		data.setGDSVia(i, TextUtils.atoi(viaGDS[i].getText()));
         }
-		data.setGDSMetal(newMetalGDS);
-		data.setGDSVia(newViaGDS);
 		data.setGDSDiff(TextUtils.atoi(diffGDS.getText()));
 		data.setGDSPoly(TextUtils.atoi(polyGDS.getText()));
 		data.setGDSNPlus(TextUtils.atoi(nPlusGDS.getText()));

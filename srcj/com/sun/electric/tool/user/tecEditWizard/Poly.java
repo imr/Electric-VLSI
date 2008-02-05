@@ -54,7 +54,7 @@ public class Poly extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		width.setText(Double.toString(data.getPolyWidth()));
 		endcap.setText(Double.toString(data.getPolyEndcap()));
 		activeSpacing.setText(Double.toString(data.getPolyDiffSpacing()));
@@ -67,7 +67,7 @@ public class Poly extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setPolyWidth(TextUtils.atof(width.getText()));
 		data.setPolyEndcap(TextUtils.atof(endcap.getText()));
 		data.setPolyDiffSpacing(TextUtils.atof(activeSpacing.getText()));

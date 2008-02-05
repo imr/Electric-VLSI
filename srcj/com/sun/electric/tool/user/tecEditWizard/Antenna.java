@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.Resources;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -43,7 +42,6 @@ public class Antenna extends TechEditWizardPanel
     private JLabel [] metalRatioLabel;
     private JTextField [] metalRatio;
     private JTextField polyRatio;
-    private int numMetals;
 
     /** Creates new form Antenna */
 	public Antenna(TechEditWizard parent, boolean modal)
@@ -55,7 +53,6 @@ public class Antenna extends TechEditWizardPanel
 
         antenna = new JPanel();
         antenna.setLayout(new GridBagLayout());
-		TechEditWizardData data = getNumericData();
 
         JLabel heading = new JLabel("Antenna Ratios");
         GridBagConstraints gbc = new GridBagConstraints();
@@ -77,26 +74,6 @@ public class Antenna extends TechEditWizardPanel
         gbc.gridx = 1;   gbc.gridy = 1;
         gbc.insets = new Insets(4, 0, 1, 2);
         antenna.add(polyRatio, gbc);
-        
-		numMetals = data.getNumMetalLayers();
-		metalRatioLabel = new JLabel[numMetals];
-		metalRatio = new JTextField[numMetals];
-        for(int i=0; i<numMetals; i++)
-    	{
-        	metalRatioLabel[i] = new JLabel("Metal-" + (i+1) + " ratio:");
-        	gbc = new GridBagConstraints();
-        	gbc.gridx = 0;   gbc.gridy = 2+i;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.insets = new Insets(4, 4, 1, 0);
-            antenna.add(metalRatioLabel[i], gbc);
-
-            metalRatio[i] = new JTextField();
-            metalRatio[i].setColumns(8);
-        	gbc = new GridBagConstraints();
-        	gbc.gridx = 1;   gbc.gridy = 2+i;
-            gbc.insets = new Insets(4, 0, 1, 2);
-            antenna.add(metalRatio[i], gbc);
-    	}
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
@@ -111,11 +88,32 @@ public class Antenna extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		// remove former metal data
+		if (metalRatioLabel != null) for(int i=0; i<metalRatioLabel.length; i++) antenna.remove(metalRatioLabel[i]);
+		if (metalRatio != null) for(int i=0; i<metalRatio.length; i++) antenna.remove(metalRatio[i]);
+
+		// add appropriate number of metal layers
+		TechEditWizardData data = wizard.getTechEditData();
+		int numMetals = data.getNumMetalLayers();
+		metalRatioLabel = new JLabel[numMetals];
+		metalRatio = new JTextField[numMetals];
         for(int i=0; i<numMetals; i++)
-        {
+    	{
+        	metalRatioLabel[i] = new JLabel("Metal-" + (i+1) + " ratio:");
+        	GridBagConstraints gbc = new GridBagConstraints();
+        	gbc.gridx = 0;   gbc.gridy = 2+i;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.insets = new Insets(4, 4, 1, 0);
+            antenna.add(metalRatioLabel[i], gbc);
+
+            metalRatio[i] = new JTextField();
         	metalRatio[i].setText(Double.toString(data.getMetalAntennaRatio()[i]));
-        }
+            metalRatio[i].setColumns(8);
+        	gbc = new GridBagConstraints();
+        	gbc.gridx = 1;   gbc.gridy = 2+i;
+            gbc.insets = new Insets(4, 0, 1, 2);
+            antenna.add(metalRatio[i], gbc);
+    	}
         polyRatio.setText(Double.toString(data.getPolyAntennaRatio()));
 	}
 
@@ -125,13 +123,10 @@ public class Antenna extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
-        double [] newRatios = new double[numMetals];
+		TechEditWizardData data = wizard.getTechEditData();
+		int numMetals = data.getNumMetalLayers();
         for(int i=0; i<numMetals; i++)
-        {
-        	newRatios[i] = TextUtils.atof(metalRatio[i].getText());
-        }
-		data.setMetalAntennaRatio(newRatios);
+        	data.setMetalAntennaRatio(i, TextUtils.atof(metalRatio[i].getText()));
 		data.setPolyAntennaRatio(TextUtils.atof(polyRatio.getText()));
 	}
 }

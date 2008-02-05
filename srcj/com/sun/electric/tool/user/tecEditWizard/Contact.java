@@ -54,7 +54,7 @@ public class Contact extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		size.setText(Double.toString(data.getContactSize()));
 		spacing.setText(Double.toString(data.getContactSpacing()));
 		metalOverhangInline.setText(Double.toString(data.getContactMetalOverhangInlineOnly()));
@@ -69,7 +69,7 @@ public class Contact extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setContactSize(TextUtils.atof(size.getText()));
 		data.setContactSpacing(TextUtils.atof(spacing.getText()));
 		data.setContactMetalOverhangInlineOnly(TextUtils.atof(metalOverhangInline.getText()));

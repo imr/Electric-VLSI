@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+IMP: (2/4/08, SMR) Improved "Technology Creation Wizard".
+
 BUG: (2/5/08, SMR) Spice output tries to write internal nets in subcircuit headers.
 FIX: In Spice.writeCellTopology(), ignore signals with no exports or globals.
 

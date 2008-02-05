@@ -54,7 +54,7 @@ public class Active extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		width.setText(Double.toString(data.getDiffWidth()));
 		polyOverhang.setText(Double.toString(data.getDiffPolyOverhang()));
 		contactOverhang.setText(Double.toString(data.getDiffContactOverhang()));
@@ -67,7 +67,7 @@ public class Active extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setDiffWidth(TextUtils.atof(width.getText()));
 		data.setDiffPolyOverhang(TextUtils.atof(polyOverhang.getText()));
 		data.setDiffContactOverhang(TextUtils.atof(contactOverhang.getText()));

@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class to handle the "Technology Editor Wizard" dialog.
+ * Class to handle the "Technology Creation Wizard" dialog.
  */
 public class TechEditWizardData
 {
@@ -116,9 +116,7 @@ public class TechEditWizardData
 	private int gds_contact_layer;
 	private int [] gds_metal_layer;
 	private int [] gds_via_layer;
-
-	// Device marking layer
-	private int gds_marking_layer;
+	private int gds_marking_layer;		// Device marking layer
 
 	TechEditWizardData()
 	{
@@ -142,7 +140,48 @@ public class TechEditWizardData
 	public String getTechDescription() { return tech_description; }
 	public void setTechDescription(String s) { tech_description = s; }
 	public int getNumMetalLayers() { return num_metal_layers; }
-	public void setNumMetalLayers(int n) { num_metal_layers = n; }
+	public void setNumMetalLayers(int n)
+	{
+		int smallest = Math.min(n, num_metal_layers);
+
+		double [] new_metal_width = new double[n];
+		for(int i=0; i<smallest; i++) new_metal_width[i] = metal_width[i];
+		metal_width = new_metal_width;
+
+		double [] new_metal_spacing = new double[n];
+		for(int i=0; i<smallest; i++) new_metal_spacing[i] = metal_spacing[i];
+		metal_spacing = new_metal_spacing;
+
+		double [] new_via_size = new double[n-1];
+		for(int i=0; i<smallest-1; i++) new_via_size[i] = via_size[i];
+		via_size = new_via_size;
+
+		double [] new_via_spacing = new double[n-1];
+		for(int i=0; i<smallest-1; i++) new_via_spacing[i] = via_spacing[i];
+		via_spacing = new_via_spacing;
+		
+		double [] new_via_array_spacing = new double[n-1];
+		for(int i=0; i<smallest-1; i++) new_via_array_spacing[i] = via_array_spacing[i];
+		via_array_spacing = new_via_array_spacing;
+
+		double [] new_via_overhang_inline = new double[n-1];
+		for(int i=0; i<smallest-1; i++) new_via_overhang_inline[i] = via_overhang_inline[i];
+		via_overhang_inline = new_via_overhang_inline;
+
+		double [] new_metal_antenna_ratio = new double[n];
+		for(int i=0; i<smallest; i++) new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
+		metal_antenna_ratio = new_metal_antenna_ratio;
+
+		int [] new_gds_metal_layer = new int[n];
+		for(int i=0; i<smallest; i++) new_gds_metal_layer[i] = gds_metal_layer[i];
+		gds_metal_layer = new_gds_metal_layer;
+
+		int [] new_gds_via_layer = new int[n-1];
+		for(int i=0; i<smallest-1; i++) new_gds_via_layer[i] = gds_via_layer[i];
+		gds_via_layer = new_gds_via_layer;
+
+		num_metal_layers = n;
+	}
 	public int getStepSize() { return stepsize; }
 	public void setStepSize(int n) { stepsize = n; }
 
@@ -214,25 +253,25 @@ public class TechEditWizardData
 
 	// METAL RULES
 	public double [] getMetalWidth() { return metal_width; }
-	public void setMetalWidth(double [] values) { metal_width = values; }
+	public void setMetalWidth(int met, double value) { metal_width[met] = value; }
 	public double [] getMetalSpacing() { return metal_spacing; }
-	public void setMetalSpacing(double [] values) { metal_spacing = values; }
+	public void setMetalSpacing(int met, double value) { metal_spacing[met] = value; }
 
 	// VIA RULES
 	public double [] getViaSize() { return via_size; }
-	public void setViaSize(double [] values) { via_size = values; }
+	public void setViaSize(int via, double value) { via_size[via] = value; }
 	public double [] getViaSpacing() { return via_spacing; }
-	public void setViaSpacing(double [] values) { via_spacing = values; }
+	public void setViaSpacing(int via, double value) { via_spacing[via] = value; }
 	public double [] getViaArraySpacing() { return via_array_spacing; }
-	public void setViaArraySpacing(double [] values) { via_array_spacing = values; }
+	public void setViaArraySpacing(int via, double value) { via_array_spacing[via] = value; }
 	public double [] getViaOverhangInline() { return via_overhang_inline; }
-	public void setViaOverhangInline(double [] values) { via_overhang_inline = values; }
+	public void setViaOverhangInline(int via, double value) { via_overhang_inline[via] = value; }
 
 	// ANTENNA RULES
 	public double getPolyAntennaRatio() { return poly_antenna_ratio; }
 	public void setPolyAntennaRatio(double v) { poly_antenna_ratio = v; }
 	public double [] getMetalAntennaRatio() { return metal_antenna_ratio; }
-	public void setMetalAntennaRatio(double [] values) { metal_antenna_ratio = values; }
+	public void setMetalAntennaRatio(int met, double value) { metal_antenna_ratio[met] = value; }
 
 	// GDS-II LAYERS
 	public int getGDSDiff() { return gds_diff_layer; }
@@ -248,9 +287,9 @@ public class TechEditWizardData
 	public int getGDSContact() { return gds_contact_layer; }
 	public void setGDSContact(int l) { gds_contact_layer = l; }
 	public int [] getGDSMetal() { return gds_metal_layer; }
-	public void setGDSMetal(int [] l) { gds_metal_layer = l; }
+	public void setGDSMetal(int met, int l) { gds_metal_layer[met] = l; }
 	public int [] getGDSVia() { return gds_via_layer; }
-	public void setGDSVia(int [] l) { gds_via_layer = l; }
+	public void setGDSVia(int via, int l) { gds_via_layer[via] = l; }
 	public int getGDSMarking() { return gds_marking_layer; }
 	public void setGDSMarking(int l) { gds_marking_layer = l; }
 
@@ -344,15 +383,15 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("nwell_overhang_diff")) setNWellOverhangDiff(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("nwell_spacing")) setNWellSpacing(TextUtils.atof(varValue)); else
 
-					if (varName.equalsIgnoreCase("metal_width")) setMetalWidth(makeDoubleArray(varValue, num_metal_layers)); else
-					if (varName.equalsIgnoreCase("metal_spacing")) setMetalSpacing(makeDoubleArray(varValue, num_metal_layers)); else
-					if (varName.equalsIgnoreCase("via_size")) setViaSize(makeDoubleArray(varValue, num_metal_layers-1)); else
-					if (varName.equalsIgnoreCase("via_spacing")) setViaSpacing(makeDoubleArray(varValue, num_metal_layers-1)); else
-					if (varName.equalsIgnoreCase("via_array_spacing")) setViaArraySpacing(makeDoubleArray(varValue, num_metal_layers-1)); else
-					if (varName.equalsIgnoreCase("via_overhang_inline")) setViaOverhangInline(makeDoubleArray(varValue, num_metal_layers-1)); else
+					if (varName.equalsIgnoreCase("metal_width")) metal_width = makeDoubleArray(varValue, num_metal_layers); else
+					if (varName.equalsIgnoreCase("metal_spacing")) metal_spacing = makeDoubleArray(varValue, num_metal_layers); else
+					if (varName.equalsIgnoreCase("via_size")) via_size = makeDoubleArray(varValue, num_metal_layers-1); else
+					if (varName.equalsIgnoreCase("via_spacing")) via_spacing = makeDoubleArray(varValue, num_metal_layers-1); else
+					if (varName.equalsIgnoreCase("via_array_spacing")) via_array_spacing = makeDoubleArray(varValue, num_metal_layers-1); else
+					if (varName.equalsIgnoreCase("via_overhang_inline")) via_overhang_inline = makeDoubleArray(varValue, num_metal_layers-1); else
 
 					if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
-					if (varName.equalsIgnoreCase("metal_antenna_ratio")) setMetalAntennaRatio(makeDoubleArray(varValue, num_metal_layers)); else
+					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue, num_metal_layers); else
 
 					if (varName.equalsIgnoreCase("gds_diff_layer")) setGDSDiff(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_poly_layer")) setGDSPoly(TextUtils.atoi(varValue)); else
@@ -360,8 +399,8 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("gds_pplus_layer")) setGDSPPlus(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_nwell_layer")) setGDSNWell(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_contact_layer")) setGDSContact(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_metal_layer")) setGDSMetal(makeIntArray(varValue)); else
-					if (varName.equalsIgnoreCase("gds_via_layer")) setGDSVia(makeIntArray(varValue)); else
+					if (varName.equalsIgnoreCase("gds_metal_layer")) gds_metal_layer = makeIntArray(varValue); else
+					if (varName.equalsIgnoreCase("gds_via_layer")) gds_via_layer = makeIntArray(varValue); else
 					if (varName.equalsIgnoreCase("gds_marking_layer")) setGDSMarking(TextUtils.atoi(varValue)); else
 					{
 						Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
@@ -696,9 +735,9 @@ public class TechEditWizardData
 		pw.println("<!--  LAYERS  -->");
 		List<String> layers = new ArrayList<String>();
 		for(int i=1; i<=num_metal_layers; i++)
-			layers.add("M"+i);
-		for(int i=1; i<=(num_metal_layers-1); i++)
-			layers.add("VI"+i);
+			layers.add("Metal-"+i);
+		for(int i=1; i<=num_metal_layers-1; i++)
+			layers.add("Via-"+i);
 		layers.add("Poly");
 		layers.add("PolyGate");
 		layers.add("PolyCon");
@@ -724,9 +763,9 @@ public class TechEditWizardData
 			String pat = null;
 			String fg = "true";
 
-			if (l.startsWith("M"))
+			if (l.startsWith("Metal"))
 			{
-				int metLay = TextUtils.atoi(l.substring(1));
+				int metLay = TextUtils.atoi(l.substring(6));
 				if (metLay==1 || metLay==2 || metLay==3) tcol = 2+metLay; else tcol = 0;
 				fun = "METAL" + metLay;
 				r = metal_colour[metLay-1].getRed();
@@ -736,9 +775,9 @@ public class TechEditWizardData
 				pa.add(l);
 			}
 
-			if (l.startsWith("VI"))
+			if (l.startsWith("Via"))
 			{
-				int viaLay = TextUtils.atoi(l.substring(2));
+				int viaLay = TextUtils.atoi(l.substring(4));
 				fun = "CONTACT" + viaLay;
 				extrafun = "connects-metal";
 				r = via_colour.getRed();
@@ -936,7 +975,7 @@ public class TechEditWizardData
 		// write the arcs
 		List<String> arcs = new ArrayList<String>();
 		for(int i=1; i<=num_metal_layers; i++)
-			arcs.add("M"+i);
+			arcs.add("Metal-"+i);
 		arcs.add("Poly");
 		arcs.add("N-Diff");
 		arcs.add("P-Diff");
@@ -948,9 +987,9 @@ public class TechEditWizardData
 			int ant = -1;
 			double la = 0;
 			List<String> h = new ArrayList<String>();
-			if (l.startsWith("M"))
+			if (l.startsWith("Metal"))
 			{
-				int metalLay = TextUtils.atoi(l.substring(1));
+				int metalLay = TextUtils.atoi(l.substring(6));
 				fun = "METAL" + metalLay;
 				la = metal_width[metalLay-1] / stepsize;
 				ant = (int)Math.round(metal_antenna_ratio[metalLay-1]) | 200;
@@ -1018,9 +1057,9 @@ public class TechEditWizardData
 		{
 			double hla = metal_width[i-1] / (stepsize*2);
 			pw.println();
-			pw.println("    <primitiveNode name=\"M" + i + "-Pin\" fun=\"PIN\">");
+			pw.println("    <primitiveNode name=\"Metal-" + i + "-Pin\" fun=\"PIN\">");
 			pw.println("        <shrinkArcs/>");
-			pw.println("        <nodeLayer layer=\"M" + i + "\" style=\"CROSSED\">");
+			pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
 			pw.println("            <box>");
 			pw.println("                <lambdaBox klx=\"-" + floaty(hla) + "\" khx=\"" + floaty(hla) +
 				"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) +"\"/>");
@@ -1032,7 +1071,7 @@ public class TechEditWizardData
 			pw.println("            <box>");
 			pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
 			pw.println("            </box>");
-			pw.println("            <portArc>M" + i + "</portArc>");
+			pw.println("            <portArc>Metal-" + i + "</portArc>");
 			pw.println("        </primitivePort>");
 			pw.println("    </primitiveNode>");
 		}
@@ -1119,8 +1158,8 @@ public class TechEditWizardData
 			for(int vl=0; vl<num_metal_layers; vl++)
 			{
 				String src, il;
-				if (vl == 0) { src = "Poly"; il = "PolyCon"; } else { src = "M" + vl; il = "VI" + vl; }
-				String dest = "M" + (vl+1);
+				if (vl == 0) { src = "Poly"; il = "PolyCon"; } else { src = "Metal-" + vl; il = "Via-" + vl; }
+				String dest = "Metal-" + (vl+1);
 				String upperx, uppery, lowerx, lowery, cs, cs2, c;
 				if (vl == 0)
 				{
@@ -1206,7 +1245,7 @@ public class TechEditWizardData
 		}
 
 		pw.println();
-		pw.println("<!--  N-Diff-M1 and P-Diff-M1  -->");
+		pw.println("<!--  N-Diff-Metal-1 and P-Diff-Metal-1  -->");
 		for(int alt=0; alt<=1; alt++)
 		{
 			for(int i=0; i<2; i++)
@@ -1253,11 +1292,11 @@ public class TechEditWizardData
 				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
 
 				pw.println();
-				pw.println("    <primitiveNode name=\"" + t + "-Diff-M1" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
+				pw.println("    <primitiveNode name=\"" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
 				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
 				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
 				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
-				pw.println("        <nodeLayer layer=\"M1\" style=\"FILLED\">");
+				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
 				pw.println("            </box>");
@@ -1287,14 +1326,14 @@ public class TechEditWizardData
 				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
 				pw.println("            </multicutbox>");
 				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"Port__" + t + "-Diff-M1" + (alt != 0 ? "-X" : "") + "\">");
+				pw.println("        <primitivePort name=\"Port__" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\">");
 				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
 				pw.println("            <portTopology>0</portTopology>");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
 				pw.println("            </box>");
 				pw.println("            <portArc>" + t + "-Diff</portArc>");
-				pw.println("            <portArc>M1</portArc>");
+				pw.println("            <portArc>Metal-1</portArc>");
 				pw.println("        </primitivePort>");
 				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
 					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + t + "-Diff, " + t + "+, M1" +
@@ -1304,7 +1343,7 @@ public class TechEditWizardData
 		}
 
 		pw.println();
-		pw.println("<!--  VDD-Tie-M1 and VSS-Tie-M1  -->");
+		pw.println("<!--  VDD-Tie-Metal-1 and VSS-Tie-Metal-1  -->");
 		for(int alt=0; alt<=1; alt++)
 		{
 			for(int i=0; i<2; i++)
@@ -1355,11 +1394,11 @@ public class TechEditWizardData
 				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
 
 				pw.println();
-				pw.println("    <primitiveNode name=\"" + t + "-Tie-M1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
+				pw.println("    <primitiveNode name=\"" + t + "-Tie-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
 				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
 				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
 				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>"); 
-				pw.println("        <nodeLayer layer=\"M1\" style=\"FILLED\">");
+				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
 				pw.println("            </box>");
@@ -1395,7 +1434,7 @@ public class TechEditWizardData
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
 				pw.println("            </box>");
-				pw.println("            <portArc>M1</portArc>");
+				pw.println("            <portArc>Metal-1</portArc>");
 				pw.println("        </primitivePort>");
 				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
 					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + dt + "-Diff, " + dt + "+, M1" +
@@ -1430,9 +1469,9 @@ public class TechEditWizardData
 			String sx = floaty(TextUtils.atof(polyx)-TextUtils.atof(diffx));
 			String sy = floaty(TextUtils.atof(diffy)-TextUtils.atof(polyy));
 			pw.println();
-			pw.println("<!-- " + t + "MOS -->");
+			pw.println("<!-- " + t + "-Transistor -->");
 			pw.println();
-			pw.println("    <primitiveNode name=\"" + t + "MOS\" fun=\"TRA" + t + "MOS\">");
+			pw.println("    <primitiveNode name=\"" + t + "-Transistor\" fun=\"TRA" + t + "MOS\">");
 			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + polyx + "\" y=\"" + diffy + "\"/>");
 			pw.println("        <sizeOffset lx=\"" + sx + "\" hx=\"" + sx + "\" ly=\"" + sy + "\" hy=\"" + sy + "\"/>");
 
@@ -1530,43 +1569,27 @@ public class TechEditWizardData
 		pw.println();
 		pw.println("<!--  PALETTE  -->");
 		pw.println();
-		pw.println("    <menuPalette numColumns=\"4\">");
+		pw.println("    <menuPalette numColumns=\"3\">");
 		for(int i=1; i<=num_metal_layers; i++)
 		{
 			int h = i-1;
 			pw.println();
 			pw.println("        <menuBox>");
-			pw.println("            <menuArc>M" + i + "</menuArc>");
+			pw.println("            <menuArc>Metal-" + i + "</menuArc>");
 			pw.println("        </menuBox>");
 			pw.println("        <menuBox>");
-			pw.println("            <menuNode>M" + i + "-Pin</menuNode>");
+			pw.println("            <menuNode>Metal-" + i + "-Pin</menuNode>");
 			pw.println("        </menuBox>");
 			if (i != 1)
 			{
-//				if (i == num_metal_layers || via_overhang_inline[i-1] == 0)
-//				{
-//					pw.println("        <menuBox>");
-//					pw.println("            <menuNodeInst protoName=\"M" + h + "-M" + i + "\" function=\"CONTACT\">");
-//					pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
-//					pw.println("            </menuNodeInst>");
-//					pw.println("        </menuBox>");
-//					pw.println("        <menuBox>");
-//					pw.println("        </menuBox>");
-//				} else
-				{
-					pw.println("        <menuBox>");
-					pw.println("            <menuNodeInst protoName=\"M" + h + "-M" + i + "\" function=\"CONTACT\">");
-					pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
-					pw.println("            </menuNodeInst>");
-					pw.println("        </menuBox>");
-					pw.println("        <menuBox>");
-					pw.println("            <menuNodeInst protoName=\"M" + h + "-M" + i + "-X\" function=\"CONTACT\"/>");
-					pw.println("        </menuBox>");
-				}
+				pw.println("        <menuBox>");
+				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "\" function=\"CONTACT\">");
+				pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
+				pw.println("            </menuNodeInst>");
+				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-X\" function=\"CONTACT\"/>");
+				pw.println("        </menuBox>");
 			} else
 			{
-				pw.println("        <menuBox>");
-				pw.println("        </menuBox>");
 				pw.println("        <menuBox>");
 				pw.println("        </menuBox>");
 			}
@@ -1579,11 +1602,9 @@ public class TechEditWizardData
 		pw.println("            <menuNode>Poly-Pin</menuNode>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"Poly-M1\" function=\"CONTACT\">");
+		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1\" function=\"CONTACT\">");
 		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"Poly-M1-X\" function=\"CONTACT\"/>");
+		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
@@ -1593,11 +1614,9 @@ public class TechEditWizardData
 		pw.println("            <menuNode>P-Diff-Pin</menuNode>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"PMOS\" function=\"TRAPMOS\">");
+		pw.println("            <menuNodeInst protoName=\"P-Transistor\" function=\"TRAPMOS\">");
 		pw.println("                <menuNodeText text=\"P\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
@@ -1607,52 +1626,44 @@ public class TechEditWizardData
 		pw.println("            <menuNode>N-Diff-Pin</menuNode>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"NMOS\" function=\"TRANMOS\">");
+		pw.println("            <menuNodeInst protoName=\"N-Transistor\" function=\"TRANMOS\">");
 		pw.println("                <menuNodeText text=\"N\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
 		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VSS-Tie-M1\" function=\"SUBSTRATE\">");
+		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1\" function=\"SUBSTRATE\">");
 		pw.println("                <menuNodeText text=\"VSS-Tie\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VSS-Tie-M1-X\" function=\"SUBSTRATE\">");
+		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1-X\" function=\"SUBSTRATE\">");
 		pw.println("            </menuNodeInst>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"N-Diff-M1\" function=\"CONTACT\">");
+		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1\" function=\"CONTACT\">");
 		pw.println("                <menuNodeText text=\"N-Con\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
+		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"N-Diff-M1-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VDD-Tie-M1\" function=\"WELL\">");
+		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1\" function=\"WELL\">");
 		pw.println("                <menuNodeText text=\"VDD-Tie\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VDD-Tie-M1-X\" function=\"WELL\">");
+		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1-X\" function=\"WELL\">");
 		pw.println("            </menuNodeInst>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"P-Diff-M1\" function=\"CONTACT\">");
+		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1\" function=\"CONTACT\">");
 		pw.println("                <menuNodeText text=\"P-Con\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
+		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"P-Diff-M1-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
 		pw.println("            <menuText>Pure</menuText>");
 		pw.println("        </menuBox>");
@@ -1671,7 +1682,7 @@ public class TechEditWizardData
 		// WIDTHS
 		for(int i=1; i<=num_metal_layers; i++)
 		{
-			pw.println("        <LayerRule ruleName=\"M" + i + " w\" layerName=\"M" + i + "\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(metal_width[i-1]/stepsize) + "\"/>");
+			pw.println("        <LayerRule ruleName=\"M" + i + " w\" layerName=\"Metal-" + i + "\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(metal_width[i-1]/stepsize) + "\"/>");
 		}
 
 		pw.println("        <LayerRule ruleName=\"N-Diff w\" layerName=\"N-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width/stepsize) + "\"/>");
@@ -1707,24 +1718,23 @@ public class TechEditWizardData
 
 		for(int i=1; i<=num_metal_layers; i++)
 		{
-			pw.println("        <LayersRule ruleName=\"M" + i + " spc\" layerNames=\"{M" + i + ",M" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(metal_spacing[i-1]/stepsize) + "\"/>");
+			pw.println("        <LayersRule ruleName=\"M" + i + " spc\" layerNames=\"{Metal-" + i + ",Metal-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(metal_spacing[i-1]/stepsize) + "\"/>");
 			if (i != num_metal_layers)
 			{
-				pw.println("        <LayersRule ruleName=\"VI" + i + " spc\" layerNames=\"{VI" + i + ",VI" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(via_spacing[i-1]/stepsize) + "\"/>");
-			}
-		}
-
-		// End design rules
-		for(int i=1; i<=num_metal_layers; i++)
-		{
-			pw.println("        <layerGds layer=\"M" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
-			if (i != num_metal_layers)
-			{
-				pw.println("        <layerGds layer=\"VI" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
+				pw.println("        <LayersRule ruleName=\"VI" + i + " spc\" layerNames=\"{Via-" + i + ",Via-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(via_spacing[i-1]/stepsize) + "\"/>");
 			}
 		}
 
 		// write GDS layers
+		pw.println();
+		for(int i=1; i<=num_metal_layers; i++)
+		{
+			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
+			if (i != num_metal_layers)
+			{
+				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
+			}
+		}
 		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
 		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
 		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");

@@ -54,7 +54,7 @@ public class Gate extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		width.setText(Double.toString(data.getGateWidth()));
 		length.setText(Double.toString(data.getGateLength()));
 		contactSpacing.setText(Double.toString(data.getGateContactSpacing()));
@@ -67,7 +67,7 @@ public class Gate extends TechEditWizardPanel
 	 */
 	public void term()
 	{
-		TechEditWizardData data = getNumericData();
+		TechEditWizardData data = wizard.getTechEditData();
 		data.setGateWidth(TextUtils.atof(width.getText()));
 		data.setGateLength(TextUtils.atof(length.getText()));
 		data.setGateContactSpacing(TextUtils.atof(contactSpacing.getText()));

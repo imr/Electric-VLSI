@@ -52,7 +52,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 /**
- * Class to handle the "Technology Editor Wizard" dialog.
+ * Class to handle the "Technology Creation Wizard" dialog.
  */
 public class TechEditWizard extends EDialog
 {
@@ -66,7 +66,7 @@ public class TechEditWizard extends EDialog
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 
     /**
-	 * This method implements the command to show the Technology Editor Wizard dialog.
+	 * This method implements the command to show the Technology Creation Wizard dialog.
 	 */
 	public static void techEditWizardCommand()
 	{
@@ -128,24 +128,13 @@ public class TechEditWizard extends EDialog
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		leftPanel.add(scrolledTree, gbc);
 
-		JButton makeTech = new JButton("Make Technology");
-		makeTech.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { makeTechnologyActionPerformed(); }
-		});
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 1;
-		gbc.gridwidth = 2;
-		gbc.insets = new Insets(4, 4, 4, 4);
-		leftPanel.add(makeTech, gbc);
-
 		JButton importBut = new JButton("Load Parameters");
 		importBut.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { importActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 2;
+		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(importBut, gbc);
 
@@ -155,27 +144,27 @@ public class TechEditWizard extends EDialog
 			public void actionPerformed(ActionEvent evt) { exportActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 3;
+		gbc.gridx = 0;   gbc.gridy = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(exportBut, gbc);
 
-		JButton cancelBut = new JButton("Cancel");
-		cancelBut.addActionListener(new ActionListener()
+		JButton makeTech = new JButton("Write XML");
+		makeTech.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
+			public void actionPerformed(ActionEvent evt) { makeTechnologyActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 2;
+		gbc.gridx = 1;   gbc.gridy = 1;
 		gbc.insets = new Insets(4, 4, 4, 4);
-		leftPanel.add(cancelBut, gbc);
+		leftPanel.add(makeTech, gbc);
 
-		JButton okBut = new JButton("OK");
+		JButton okBut = new JButton("Done");
 		okBut.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 3;
+		gbc.gridx = 1;   gbc.gridy = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(okBut, gbc);
 
@@ -226,11 +215,6 @@ public class TechEditWizard extends EDialog
         }
         return false;
     }
-
-	private void cancelActionPerformed()
-	{
-		closeDialog(null);
-	}
 
 	private void okActionPerformed()
 	{
@@ -296,7 +280,7 @@ public class TechEditWizard extends EDialog
         return null;
     }
 
-	protected void escapePressed() { cancelActionPerformed(); }
+	protected void escapePressed() { okActionPerformed(); }
 
 	private static class TreeHandler implements MouseListener, TreeExpansionListener
 	{
