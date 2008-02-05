@@ -2848,7 +2848,10 @@ public class Spice extends Topology
         }
         multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
 
-		// if sizes to be written in lambda, tell spice conversion factor
+        if (Simulation.isSpiceUseCellParameters()) {
+            multiLinePrint(false, ".options parhier=local\n");
+        }
+        // if sizes to be written in lambda, tell spice conversion factor
 		if (Simulation.isSpiceWriteTransSizeInLambda())
 		{
 			double scale = layoutTechnology.getScale();
