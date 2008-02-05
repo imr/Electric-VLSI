@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (2/5/08, SMR) Spice output may crash.
+FIX: In Spice.writeCellTopology(), check for null networks.
+
 BUG: (2/4/08, DN) Stack overflow while placing sch into icon (Bug #1556)
 FIX: 1) Check recursion in Snapshow.with method.
      2) Forbid subcell instances in icon cell

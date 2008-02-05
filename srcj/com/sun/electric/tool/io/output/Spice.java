@@ -962,7 +962,14 @@ public class Spice extends Topology
 						net = netList.getNetwork(no, subCS.getGlobal());
 					else
 						net = netList.getNetwork(no, pp, exportIndex);
+					if (net == null)
+					{
+						System.out.println("Warning: cannot find network for signal " + subCS.getName() + " in cell " +
+							subCni.getCell().describe(false));
+						continue;
+					}
 					CellSignal cs = cni.getCellSignal(net);
+
                     // special case for parasitic extraction
                     if (useParasitics && !cs.isGlobal() && getSegmentedNets((Cell)no.getProto()) != null) {
                         // connect to all exports (except power and ground of subcell net)
