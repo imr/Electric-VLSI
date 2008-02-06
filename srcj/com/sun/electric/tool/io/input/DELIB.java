@@ -27,8 +27,8 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.tool.io.FileType;
 
+import com.sun.electric.tool.io.FileType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,18 +40,21 @@ import java.util.HashSet;
  * User: gainsley
  * Date: Mar 8, 2006
  */
-public class DELIB extends JELIB {
+class DELIB extends JelibParser {
     public static final Version newHeaderVersion = Version.parseVersion("8.04n");
     
     private LineNumberReader headerReader;
     private HashSet<String> delibCellFiles = new HashSet<String>();
 
-    DELIB() {}
+    DELIB(JELIB reader) {
+        super(reader);
+    }
 
     /**
      * Method to read a Library in new library file (.jelib) format.
      * @return true on error.
      */
+    @Override
     protected boolean readLib()
     {
         String header = filePath + File.separator + "header";
@@ -64,7 +67,7 @@ public class DELIB extends JELIB {
             return true;
         }
         lineReader = headerReader;
-        boolean b = super.readLib();
+        boolean b = reader.readLib0();
         if (!b)
             lib.setDelibCellFiles(delibCellFiles);
         return b;
@@ -139,7 +142,7 @@ public class DELIB extends JELIB {
             curReadFile = filePath;
         }
     }
-
-
+    
+    @Override
     protected FileType getPreferredFileType() { return FileType.DELIB; }
 }

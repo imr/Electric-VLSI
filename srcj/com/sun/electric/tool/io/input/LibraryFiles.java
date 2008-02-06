@@ -273,17 +273,13 @@ public abstract class LibraryFiles extends Input
         {
             in = new ELIB();
             if (in.openBinaryInput(fileURL)) return null;
-        } else if (type == FileType.JELIB)
+        } else if (type == FileType.JELIB || type == FileType.DELIB)
         {
-            in = new JELIB();
+            in = new JELIB(type);
             if (in.openTextInput(fileURL)) return null;
         } else if (type == FileType.READABLEDUMP)
         {
             in = new ReadableDump();
-            if (in.openTextInput(fileURL)) return null;
-        } else if (type == FileType.DELIB)
-        {
-            in = new DELIB();
             if (in.openTextInput(fileURL)) return null;
         } else
         {
@@ -329,18 +325,14 @@ public abstract class LibraryFiles extends Input
 		{
 			in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
-		} else if (type == FileType.JELIB)
+		} else if (type == FileType.JELIB || type == FileType.DELIB)
 		{
-			in = new JELIB();
+			in = new JELIB(type);
 			if (in.openTextInput(fileURL)) return null;
 		} else if (type == FileType.READABLEDUMP)
 		{
 			in = new ReadableDump();
 			if (in.openTextInput(fileURL)) return null;
-        } else if (type == FileType.DELIB)
-        {
-            in = new DELIB();
-            if (in.openTextInput(fileURL)) return null;
 		} else
 		{
 			System.out.println("Unknown import type: " + type);

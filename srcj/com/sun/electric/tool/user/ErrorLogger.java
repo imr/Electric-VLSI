@@ -93,8 +93,12 @@ public class ErrorLogger implements Serializable
         protected int    index;
 
         public MessageLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) {
+            this(message, cell != null ? (CellId)cell.getId() : null, sortKey, highlights);
+        }
+
+        public MessageLog(String message, CellId logCellId, int sortKey, List<ErrorHighlight> highlights) {
             this.message = message;
-            this.logCellId = cell != null ? (CellId)cell.getId() : null;
+            this.logCellId = logCellId;
             this.sortKey = sortKey;
             this.highlights = highlights.toArray(ErrorHighlight.NULL_ARRAY);
             index = 0;
@@ -257,7 +261,17 @@ public class ErrorLogger implements Serializable
      * with the given text "message" applying to cell "cell".
      * Returns a pointer to the message (0 on error) which can be used to add highlights.
      */
-    private synchronized MessageLog logAnError(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
+    private synchronized MessageLog logAnError(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) {
+        CellId cellId = cell != null ? cell.getId() : null;
+        return logAnError(message, cellId, sortKey, highlights);
+    }
+    
+    /**
+     * Factory method to create an error message and log.
+     * with the given text "message" applying to cell "cell".
+     * Returns a pointer to the message (0 on error) which can be used to add highlights.
+     */
+    private synchronized MessageLog logAnError(String message, CellId cellId, int sortKey, List<ErrorHighlight> highlights)
     {
         if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
@@ -275,7 +289,7 @@ public class ErrorLogger implements Serializable
         }
 
         // create a new ErrorLog object
-        MessageLog el = new MessageLog(message, cell, sortKey, highlights);
+        MessageLog el = new MessageLog(message, cellId, sortKey, highlights);
 
         // add the ErrorLog into the global list
         allErrors.add(el);
@@ -293,7 +307,7 @@ public class ErrorLogger implements Serializable
     public synchronized void logError(String message, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-    	logAnError(message, null, sortKey, h);
+    	logAnError(message, (CellId)null, sortKey, h);
     }
 
     /**
@@ -306,6 +320,18 @@ public class ErrorLogger implements Serializable
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
     	logAnError(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error message.
+     * @param message the string to display.
+     * @param cellId the Id of the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     */
+    public synchronized void logError(String message, CellId cellId, int sortKey)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+    	logAnError(message, cellId, sortKey, h);
     }
 
     /**
