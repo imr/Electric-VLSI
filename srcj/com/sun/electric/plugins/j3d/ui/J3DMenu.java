@@ -25,7 +25,6 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -36,7 +35,6 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
-import com.sun.electric.technology.Technology;
 
 import java.lang.reflect.Method;
 

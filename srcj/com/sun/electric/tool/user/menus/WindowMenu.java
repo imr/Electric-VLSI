@@ -29,7 +29,6 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -618,7 +617,7 @@ public class WindowMenu {
 
 	private static Rectangle [] getWindowAreas()
     {
-		Rectangle [] areas = null;
+		Rectangle [] areas;
 		if (TopLevel.isMDIMode())
 		{
 			TopLevel tl = TopLevel.getCurrentJFrame();
