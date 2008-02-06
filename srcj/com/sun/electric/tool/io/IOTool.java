@@ -888,23 +888,6 @@ public class IOTool extends Tool
 	 */
 	public static void setEDIFCadenceCompatibility(boolean c) { cacheEDIFCadenceCompatibility.setBoolean(c); }
 
-	private static Pref cacheEDIFUseExistingCells = Pref.makeBooleanPref("EDIFUseExistingCells", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether EDIF should use existing cells when reading.
-	 * When true, EDIF cells are ignored and existing cells are used instead.
-	 * When false, EDIF cells are created and used (and if they already exist, become newer versions).
-	 * The default is "false".
-	 * @return true if EDIF should use existing cells when reading.
-	 */
-	public static boolean isEDIFUseExistingCells() { return cacheEDIFUseExistingCells.getBoolean(); }
-	/**
-	 * Method to set whether EDIF should use existing cells when reading.
-	 * When true, EDIF cells are ignored and existing cells are used instead.
-	 * When false, EDIF cells are created and used (and if they already exist, become newer versions).
-	 * @param s true if EDIF should use existing cells when reading.
-	 */
-	public static void setEDIFUseExistingCells(boolean s) { cacheEDIFUseExistingCells.setBoolean(s); }
-
 	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
 	 * Method to return the EDIF input scale.

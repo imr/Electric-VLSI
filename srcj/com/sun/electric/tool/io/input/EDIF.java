@@ -186,6 +186,7 @@ public class EDIF extends Input
 	/** the read buffer */						private String inputBuffer;
 	/** the position within the buffer */		private int inputBufferPos;
 	/** no update flag */						private boolean ignoreBlock;
+	/** no update flag */						private boolean ignoreHigherBlock;
 	/** load status */							private int errorCount, warningCount;
 
 	// electric context data ...
@@ -343,7 +344,7 @@ public class EDIF extends Input
 		inputBuffer = "";
 		inputBufferPos = 0;
 		errorCount = warningCount = 0;
-		ignoreBlock = false;
+		ignoreBlock = ignoreHigherBlock = false;
 		curVendor = EVUNKNOWN;
 		builtCells = new HashSet<Cell>();
 
@@ -432,7 +433,7 @@ public class EDIF extends Input
 			String token = getKeyword();
 			if (token == null) break;
 
-			// locate the keyword, and execute the function
+			// locate the keyword
 			EDIFKEY key = edifKeys.get(TextUtils.canonicString(token));
 			if (key == null)
 			{
@@ -440,34 +441,43 @@ public class EDIF extends Input
 				warningCount++;
 				keyStack[keyStackDepth++] = curKeyword;
 				curKeyword = KUNKNOWN;
-			} else
-			{
-				// found the function, check state
-				if (key.stateArray != null && curKeyword != KUNKNOWN)
-				{
-					boolean found = false;
-					for(int i=0; i<key.stateArray.length; i++)
-						if (key.stateArray[i] == curKeyword) { found = true;   break; }
-					if (!found)
-					{
-						System.out.println("Error, line " + lineReader.getLineNumber() + ": illegal state (" + curKeyword.name + ") for keyword <" + token + ">");
-						errorCount++;
-					}
-				}
+				continue;
+			}
 
-				// call the function
-				keyStack[keyStackDepth++] = curKeyword;
-				curKeyword = key;
-				if (saveStack >= keyStackDepth)
+			// found the keyword, check state
+			if (key.stateArray != null && curKeyword != KUNKNOWN)
+			{
+				boolean found = false;
+				for(int i=0; i<key.stateArray.length; i++)
+					if (key.stateArray[i] == curKeyword) { found = true;   break; }
+				if (!found)
 				{
-					saveStack = -1;
-					ignoreBlock = false;
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": illegal state (" + curKeyword.name + ") for keyword <" + token + ">");
+					errorCount++;
 				}
-				if (!ignoreBlock) key.push();
-				if (ignoreBlock)
+			}
+
+			// call the function
+			keyStack[keyStackDepth++] = curKeyword;
+			curKeyword = key;
+			if (saveStack >= keyStackDepth)
+			{
+				saveStack = -1;
+				ignoreBlock = false;
+			}
+			if (!ignoreBlock)
+			{
+				key.push();
+				if (ignoreHigherBlock)
 				{
-					if (saveStack == -1) saveStack = keyStackDepth;
+					ignoreHigherBlock = false;
+					ignoreBlock = true;
+					saveStack = keyStackDepth-1;
 				}
+			}
+			if (ignoreBlock)
+			{
+				if (saveStack == -1) saveStack = keyStackDepth;
 			}
 		}
 		if (curKeyword != KINIT)
@@ -475,7 +485,43 @@ public class EDIF extends Input
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": unexpected end-of-file encountered");
 			errorCount++;
 		}
+		cleanupAtEnd();
+	}
 
+	/**
+	 * Method to get a keyword.
+	 */
+	private String getKeyword()
+		throws IOException
+	{
+		// look for a '(' before the edif keyword
+		for(;;)
+		{
+			String p = getToken((char)0);
+			if (p == null) break;
+			if (p.equals("(")) break;
+			if (p.equals(")"))
+			{
+				// pop the keyword state stack, called when ')' is encountered.
+				if (keyStackDepth != 0)
+				{
+					if (!ignoreBlock)
+					{
+						curKeyword.pop();
+					}
+					if (keyStackDepth != 0) curKeyword = keyStack[--keyStackDepth]; else
+						curKeyword = KINIT;
+				}
+			} else
+			{
+				if (TextUtils.isANumber(inputBuffer)) processInteger(TextUtils.atoi(inputBuffer));
+			}
+		}
+		return getToken((char)0);
+	}
+
+	private void cleanupAtEnd()
+	{
 		// clean-up schematic cells with isolated pins
 		for(Cell cell : builtCells)
 		{
@@ -543,38 +589,6 @@ public class EDIF extends Input
 			if (len1 < len2) return 1;
 			return -1;
 		}
-	}
-
-	/**
-	 * get a keyword routine
-	 */
-	private String getKeyword()
-		throws IOException
-	{
-		// look for a '(' before the edif keyword
-		for(;;)
-		{
-			String p = getToken((char)0);
-			if (p == null) break;
-			if (p.equals("(")) break;
-			if (p.equals(")"))
-			{
-				// pop the keyword state stack, called when ')' is encountered.
-				if (keyStackDepth != 0)
-				{
-					if (!ignoreBlock)
-					{
-						curKeyword.pop();
-					}
-					if (keyStackDepth != 0) curKeyword = keyStack[--keyStackDepth]; else
-						curKeyword = KINIT;
-				}
-			} else
-			{
-				if (TextUtils.isANumber(inputBuffer)) processInteger(TextUtils.atoi(inputBuffer));
-			}
-		}
-		return getToken((char)0);
 	}
 
 	/**
@@ -1330,6 +1344,31 @@ public class EDIF extends Input
 		return busName;
 	}
 
+	/**
+	 * Method to find a cell in the current library.
+	 * @param name the name of the cell.
+	 * @param view the view name of the cell.
+	 * @return the cell if it exists; null if not.
+	 */
+	private Cell findCellInLibrary(String name, String view)
+	{
+		for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+		{
+			Cell cell = it.next();
+			if (cell.getName().equalsIgnoreCase(name) &&
+				cell.getView().getAbbreviation().equalsIgnoreCase(view)) return cell;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to create a new cell.
+	 * @param libName the name of the library in which the cell will be created
+	 * (null to use the current library).
+	 * @param name the name of the cell.
+	 * @param view the view name to create.
+	 * @return the newly created cell (or existing one if allowed).
+	 */
 	private Cell createCell(String libName, String name, String view)
 	{
 		Library lib = curLibrary;
@@ -1338,13 +1377,13 @@ public class EDIF extends Input
 			Library namedLib = Library.findLibrary(libName);
 			if (namedLib != null) lib = namedLib;
 		}
-		Cell proto = null;
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = it.next();
 			if (cell.getName().equalsIgnoreCase(name) &&
-				cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
+				cell.getView().getAbbreviation().equalsIgnoreCase(view)) return cell;
 		}
+		Cell proto = null;
 		if (proto == null)
 		{
 			String cName = name;
@@ -4015,22 +4054,17 @@ public class EDIF extends Input
 			if (activeView == VMASKLAYOUT || activeView == VGRAPHIC ||
 				activeView == VNETLIST || activeView == VSCHEMATIC)
 			{
-				// locate this in the list of cells
-				Cell proto = null;
-				for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-				{
-					Cell cell = it.next();
-					if (cell.getName().equalsIgnoreCase(cellName) &&
-						cell.getView().getAbbreviation().equalsIgnoreCase(view)) { proto = cell;   break; }
-				}
+				Cell proto = findCellInLibrary(cellName, view);
 				if (proto == null)
 				{
-					// allocate the cell
+					// create the cell
 					proto = createCell(null, cellName, view);
 					if (proto == null) throw new IOException("Error creating cell");
 				} else
 				{
-					if (!builtCells.contains(proto)) ignoreBlock = true;
+					ignoreHigherBlock = true;
+					System.out.println("Warning: Cell " + proto.describe(false) + " exists...EDIF for it is being ignored");
+//					if (!builtCells.contains(proto)) ignoreBlock = true;
 				}
 
 				curCell = proto;
