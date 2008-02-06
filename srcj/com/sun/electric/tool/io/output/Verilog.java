@@ -68,300 +68,257 @@ import java.util.Map;
  */
 public class Verilog extends Topology
 {
-    /** A set of keywords that are reserved in Verilog */
-    private static HashSet<String> reservedWords;
-    static
-    {
-        reservedWords = new HashSet<String>();
-        reservedWords.add("always");
-        reservedWords.add("and");
-        reservedWords.add("assign");
-        reservedWords.add("attribute");
-        reservedWords.add("begin");
-        reservedWords.add("buf");
-        reservedWords.add("bufif0");
-        reservedWords.add("bufif1");
-        reservedWords.add("case");
-        reservedWords.add("casex");
-        reservedWords.add("casez");
-        reservedWords.add("cmos");
-        reservedWords.add("deassign");
-        reservedWords.add("default");
-        reservedWords.add("defpram");
-        reservedWords.add("disable");
-        reservedWords.add("edge");
-        reservedWords.add("else");
-        reservedWords.add("end");
-        reservedWords.add("endattribute");
-        reservedWords.add("endcase");
-        reservedWords.add("endfunction");
-        reservedWords.add("endmodule");
-        reservedWords.add("endprimitive");
-        reservedWords.add("endspecify");
-        reservedWords.add("endtable");
-        reservedWords.add("endtask");
-        reservedWords.add("event");
-        reservedWords.add("for");
-        reservedWords.add("force");
-        reservedWords.add("forever");
-        reservedWords.add("fork");
-        reservedWords.add("function");
-        reservedWords.add("highz0");
-        reservedWords.add("highz1");
-        reservedWords.add("if");
-        reservedWords.add("initial");
-        reservedWords.add("inout");
-        reservedWords.add("input");
-        reservedWords.add("integer");
-        reservedWords.add("join");
-        reservedWords.add("large");
-        reservedWords.add("macromodule");
-        reservedWords.add("meduim");
-        reservedWords.add("module");
-        reservedWords.add("nand");
-        reservedWords.add("negedge");
-        reservedWords.add("nmos");
-        reservedWords.add("nor");
-        reservedWords.add("not");
-        reservedWords.add("notif0");
-        reservedWords.add("notif1");
-        reservedWords.add("or");
-        reservedWords.add("output");
-        reservedWords.add("parameter");
-        reservedWords.add("pmos");
-        reservedWords.add("posedge");
-        reservedWords.add("primitive");
-        reservedWords.add("pull0");
-        reservedWords.add("pull1");
-        reservedWords.add("pulldown");
-        reservedWords.add("pullup");
-        reservedWords.add("rcmos");
-        reservedWords.add("real");
-        reservedWords.add("realtime");
-        reservedWords.add("reg");
-        reservedWords.add("release");
-        reservedWords.add("repeat");
-        reservedWords.add("rtranif1");
-        reservedWords.add("scalared");
-        reservedWords.add("signed");
-        reservedWords.add("small");
-        reservedWords.add("specify");
-        reservedWords.add("specpram");
-        reservedWords.add("strength");
-        reservedWords.add("strong0");
-        reservedWords.add("strong1");
-        reservedWords.add("supply0");
-        reservedWords.add("supply1");
-        reservedWords.add("table");
-        reservedWords.add("task");
-        reservedWords.add("time");
-        reservedWords.add("tran");
-        reservedWords.add("tranif0");
-        reservedWords.add("tranif1");
-        reservedWords.add("tri");
-        reservedWords.add("tri0");
-        reservedWords.add("tri1");
-        reservedWords.add("triand");
-        reservedWords.add("trior");
-        reservedWords.add("trireg");
-        reservedWords.add("unsigned");
-        reservedWords.add("vectored");
-        reservedWords.add("wait");
-        reservedWords.add("wand");
-        reservedWords.add("weak0");
-        reservedWords.add("weak1");
-        reservedWords.add("while");
-        reservedWords.add("wire");
-        reservedWords.add("wor");
-        reservedWords.add("xnor");
-        reservedWords.add("xor");
-    }
+	/** A set of keywords that are reserved in Verilog */
+	private static HashSet<String> reservedWords;
+	static
+	{
+		reservedWords = new HashSet<String>();
+		reservedWords.add("always");
+		reservedWords.add("and");
+		reservedWords.add("assign");
+		reservedWords.add("attribute");
+		reservedWords.add("begin");
+		reservedWords.add("buf");
+		reservedWords.add("bufif0");
+		reservedWords.add("bufif1");
+		reservedWords.add("case");
+		reservedWords.add("casex");
+		reservedWords.add("casez");
+		reservedWords.add("cmos");
+		reservedWords.add("deassign");
+		reservedWords.add("default");
+		reservedWords.add("defpram");
+		reservedWords.add("disable");
+		reservedWords.add("edge");
+		reservedWords.add("else");
+		reservedWords.add("end");
+		reservedWords.add("endattribute");
+		reservedWords.add("endcase");
+		reservedWords.add("endfunction");
+		reservedWords.add("endmodule");
+		reservedWords.add("endprimitive");
+		reservedWords.add("endspecify");
+		reservedWords.add("endtable");
+		reservedWords.add("endtask");
+		reservedWords.add("event");
+		reservedWords.add("for");
+		reservedWords.add("force");
+		reservedWords.add("forever");
+		reservedWords.add("fork");
+		reservedWords.add("function");
+		reservedWords.add("highz0");
+		reservedWords.add("highz1");
+		reservedWords.add("if");
+		reservedWords.add("initial");
+		reservedWords.add("inout");
+		reservedWords.add("input");
+		reservedWords.add("integer");
+		reservedWords.add("join");
+		reservedWords.add("large");
+		reservedWords.add("macromodule");
+		reservedWords.add("meduim");
+		reservedWords.add("module");
+		reservedWords.add("nand");
+		reservedWords.add("negedge");
+		reservedWords.add("nmos");
+		reservedWords.add("nor");
+		reservedWords.add("not");
+		reservedWords.add("notif0");
+		reservedWords.add("notif1");
+		reservedWords.add("or");
+		reservedWords.add("output");
+		reservedWords.add("parameter");
+		reservedWords.add("pmos");
+		reservedWords.add("posedge");
+		reservedWords.add("primitive");
+		reservedWords.add("pull0");
+		reservedWords.add("pull1");
+		reservedWords.add("pulldown");
+		reservedWords.add("pullup");
+		reservedWords.add("rcmos");
+		reservedWords.add("real");
+		reservedWords.add("realtime");
+		reservedWords.add("reg");
+		reservedWords.add("release");
+		reservedWords.add("repeat");
+		reservedWords.add("rtranif1");
+		reservedWords.add("scalared");
+		reservedWords.add("signed");
+		reservedWords.add("small");
+		reservedWords.add("specify");
+		reservedWords.add("specpram");
+		reservedWords.add("strength");
+		reservedWords.add("strong0");
+		reservedWords.add("strong1");
+		reservedWords.add("supply0");
+		reservedWords.add("supply1");
+		reservedWords.add("table");
+		reservedWords.add("task");
+		reservedWords.add("time");
+		reservedWords.add("tran");
+		reservedWords.add("tranif0");
+		reservedWords.add("tranif1");
+		reservedWords.add("tri");
+		reservedWords.add("tri0");
+		reservedWords.add("tri1");
+		reservedWords.add("triand");
+		reservedWords.add("trior");
+		reservedWords.add("trireg");
+		reservedWords.add("unsigned");
+		reservedWords.add("vectored");
+		reservedWords.add("wait");
+		reservedWords.add("wand");
+		reservedWords.add("weak0");
+		reservedWords.add("weak1");
+		reservedWords.add("while");
+		reservedWords.add("wire");
+		reservedWords.add("wor");
+		reservedWords.add("xnor");
+		reservedWords.add("xor");
+	}
 
-    /** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
-    /** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
-    /** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
+	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
+	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
+	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
 
-    /** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
-    /** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
-    /** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
-    /** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
-    /** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
-    /** those cells that have overridden models */	        private HashSet<Cell> modelOverrides = new HashSet<Cell>();
-    /** those cells that have modules defined */            private HashMap<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
-    /** those cells that have primitives defined */         private HashMap<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
-    /** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
+	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
+	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
+	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
+	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
+	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
+	/** those cells that have overridden models */	        private HashSet<Cell> modelOverrides = new HashSet<Cell>();
+	/** those cells that have modules defined */            private HashMap<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
+	/** those cells that have primitives defined */         private HashMap<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
+	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
 
-    /**
-     * The main entry point for Verilog deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-     * @param filePath the disk file to create.
-     */
-    public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
-    {
-        Verilog out = new Verilog();
-        if (out.openTextOutputStream(filePath)) return;
-        if (out.writeCell(cell, context)) return;
-        if (out.closeTextOutputStream()) return;
-        System.out.println(filePath + " written");
-    }
+	/**
+	 * The main entry point for Verilog deck writing.
+	 * @param cell the top-level cell to write.
+	 * @param context the hierarchical context to the cell.
+	 * @param filePath the disk file to create.
+	 */
+	public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
+	{
+		Verilog out = new Verilog();
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell, context)) return;
+		if (out.closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
+	}
 
-    /**
-     * Creates a new instance of Verilog
-     */
-    Verilog()
-    {
-    }
+	/**
+	 * Creates a new instance of Verilog
+	 */
+	Verilog()
+	{
+	}
 
-    protected void start()
-    {
-        // parameters to the output-line-length limit and how to break long lines
-        setOutputWidth(MAXDECLARATIONWIDTH, false);
-        setContinuationString("      ");
+	protected void start()
+	{
+		// parameters to the output-line-length limit and how to break long lines
+		setOutputWidth(MAXDECLARATIONWIDTH, false);
+		setContinuationString("      ");
 
-        // write header information
-        printWriter.println("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */");
-        emitCopyright("/* ", " */");
-        if (User.isIncludeDateAndVersionInOutput())
-        {
-            printWriter.println("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */");
-            printWriter.println("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */");
-            printWriter.println("/* Written on " + TextUtils.formatDate(new Date()) +
-                " by Electric VLSI Design System, version " + Version.getVersion() + " */");
-        } else
-        {
-            printWriter.println("/* Written by Electric VLSI Design System */");
-        }
-
-        // gather all global signal names
-/*
-		Netlist netList = getNetlistForCell(topCell);
-		Global.Set globals = netList.getGlobals();
-        int globalSize = globals.size();
-
-        // see if any globals besides power and ground to write
-        ArrayList globalsToWrite = new ArrayList();
-        for (int i=0; i<globalSize; i++) {
-            Global global = (Global)globals.get(i);
-            if (global == Global.power || global == Global.ground) continue;
-            globalsToWrite.add(global);
-        }
-
-		if (globalsToWrite.size() > 0)
+		// write header information
+		printWriter.println("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */");
+		emitCopyright("/* ", " */");
+		if (User.isIncludeDateAndVersionInOutput())
 		{
-			printWriter.println("\nmodule glbl();");
-			for(int i=0; i<globalsToWrite.size(); i++)
-			{
-				Global global = (Global)globalsToWrite.get(i);
-				if (Simulation.getVerilogUseTrireg())
-				{
-					printWriter.println("    trireg " + global.getName() + ";");
-				} else
-				{
-					printWriter.println("    wire " + global.getName() + ";");
-				}
-			}
-			printWriter.println("endmodule");
+			printWriter.println("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */");
+			printWriter.println("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */");
+			printWriter.println("/* Written on " + TextUtils.formatDate(new Date()) +
+				" by Electric VLSI Design System, version " + Version.getVersion() + " */");
+		} else
+		{
+			printWriter.println("/* Written by Electric VLSI Design System */");
 		}
-*/
-        if (Simulation.getVerilogStopAtStandardCells()) {
-            // enumerate to find which cells contain standard cells
-            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
-            for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
-                System.out.println("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
-            }
-            if (standardCells.getNameConflict()) {
-                System.out.println("Name conflicts found, please see above messages");
-            }
-        }
-    }
 
-    protected void done()
-    {
-        Simulation.setVerilogStopAtStandardCells(false);
-    }
+		if (Simulation.getVerilogStopAtStandardCells()) {
+			// enumerate to find which cells contain standard cells
+			HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
+			for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
+				System.out.println("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
+			}
+			if (standardCells.getNameConflict()) {
+				System.out.println("Name conflicts found, please see above messages");
+			}
+		}
+	}
 
-    protected boolean skipCellAndSubcells(Cell cell) {
-        // do not write modules for cells with verilog_templates defined
-        // also skip their subcells
-        if (cell.getVar(VERILOG_TEMPLATE_KEY) != null) {
-            return true;
-        }
-        // also skip subcells if a behavioral file specified.
-        // If one specified, write it out here and skip both cell and subcells
-        if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
-            String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
-            // check that data from file is consistent
-            VerilogReader reader = new VerilogReader();
-            VerilogData data = reader.parseVerilog(fileName, true);
-            if (data == null) {
-                System.out.println("Error reading include file: "+fileName);
-                return false;
-            }
-            if (!checkIncludedData(data, cell, fileName))
-                return false;
+	protected void done()
+	{
+		Simulation.setVerilogStopAtStandardCells(false);
+	}
 
-            if (!modelOverrides.contains(cell))
-            {
-                printWriter.println("`include \"" + fileName + "\"");
-                modelOverrides.add(cell);
-            }
-            return true;
-        }
-/*
-        Variable behaveFileVar = cell.getVar(VERILOG_BEHAVE_FILE_KEY);
-        if (behaveFileVar != null)
-        {
-            String fileName = behaveFileVar.getObject().toString();
-            if (fileName.length() > 0)
-            {
-                printWriter.println("`include \"" + fileName + "\"");
-                return true;
-            }
-        }
-*/
+	protected boolean skipCellAndSubcells(Cell cell) {
+		// do not write modules for cells with verilog_templates defined
+		// also skip their subcells
+		if (cell.getVar(VERILOG_TEMPLATE_KEY) != null) {
+			return true;
+		}
+		// also skip subcells if a behavioral file specified.
+		// If one specified, write it out here and skip both cell and subcells
+		if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
+			String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
+			// check that data from file is consistent
+			VerilogReader reader = new VerilogReader();
+			VerilogData data = reader.parseVerilog(fileName, true);
+			if (data == null) {
+				System.out.println("Error reading include file: "+fileName);
+				return false;
+			}
+			if (!checkIncludedData(data, cell, fileName))
+				return false;
 
-        // use library behavior if it is available
-        Cell verViewCell = cell.otherView(View.VERILOG);
-        if (verViewCell != null)
-        {
-            String [] stringArray = verViewCell.getTextViewContents();
-            if (stringArray != null)
-            {
-                if (stringArray.length > 0) {
-                    String line = stringArray[0].toLowerCase();
-                    if (line.startsWith("do not use")) {
-                        return false;
-                    }
-                }
-                VerilogReader reader = new VerilogReader();
-                VerilogData data = reader.parseVerilog(stringArray, cell.getLibrary().getName());
-                if (data == null) {
-                    System.out.println("Error parsing Verilog View for cell "+cell.describe(false));
-                    return false;
-                }
-                if (!checkIncludedData(data, cell, null))
-                    return false;
+			if (!modelOverrides.contains(cell))
+			{
+				printWriter.println("`include \"" + fileName + "\"");
+				modelOverrides.add(cell);
+			}
+			return true;
+		}
 
-                // write to output file
-                System.out.println("Info: Netlisting Verilog view of "+cell.describe(false));
-                printWriter.println();
-                printWriter.println("/* Verilog view of "+verViewCell.libDescribe()+" */");
-                for(int i=0; i<stringArray.length; i++)
-                    printWriter.println(stringArray[i]);
-            }
-            return true;
-        }
+		// use library behavior if it is available
+		Cell verViewCell = cell.otherView(View.VERILOG);
+		if (verViewCell != null)
+		{
+			String [] stringArray = verViewCell.getTextViewContents();
+			if (stringArray != null)
+			{
+				if (stringArray.length > 0) {
+					String line = stringArray[0].toLowerCase();
+					if (line.startsWith("do not use")) {
+						return false;
+					}
+				}
+				VerilogReader reader = new VerilogReader();
+				VerilogData data = reader.parseVerilog(stringArray, cell.getLibrary().getName());
+				if (data == null) {
+					System.out.println("Error parsing Verilog View for cell "+cell.describe(false));
+					return false;
+				}
+				if (!checkIncludedData(data, cell, null))
+					return false;
 
-        if (Simulation.getVerilogStopAtStandardCells()) {
-            // do not netlist contents of standard cells
-            if (!standardCells.containsStandardCell(cell)) {
-                return true;
-            }
-        }
+				// write to output file
+				System.out.println("Info: Netlisting Verilog view of "+cell.describe(false));
+				printWriter.println();
+				printWriter.println("/* Verilog view of "+verViewCell.libDescribe()+" */");
+				for(int i=0; i<stringArray.length; i++)
+					printWriter.println(stringArray[i]);
+			}
+			return true;
+		}
 
-        return false;
-    }
+		if (Simulation.getVerilogStopAtStandardCells()) {
+			// do not netlist contents of standard cells
+			if (!standardCells.containsStandardCell(cell)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
     /**
      * Method to write cellGeom
@@ -399,12 +356,6 @@ public class Verilog extends Topology
                 printWriter.println("endmodule");
             }
         }
-
-        // if verilog template specified, don't need to write out this cell
-/*        Variable varT = cell.getVar(VERILOG_TEMPLATE_KEY);
-        if (varT != null) {
-            return;
-        } */
 
         // prepare arcs to store implicit inverters
         Map<ArcInst,Integer> implicitHeadInverters = new HashMap<ArcInst,Integer>();
@@ -448,9 +399,25 @@ public class Verilog extends Topology
         {
             CellAggregateSignal cas = it.next();
             if (cas.getExport() == null) continue;
-            if (!first) sb.append(", ");
-            sb.append(cas.getName());
-            first = false;
+            if (cas.getLowIndex() <= cas.getHighIndex() && cas.getIndices() != null)
+            {
+            	// fragmented bus: write individual signals
+            	int [] indices = cas.getIndices();
+        		for(int i=0; i<indices.length; i++)
+        		{
+        			int ind = i;
+        			if (cas.isDescending()) ind = indices.length - i - 1;
+                    if (!first) sb.append(",");
+        			sb.append(" \\" + cas.getName() + "[" + indices[ind] + "] ");
+                    first = false;
+        		}
+        	} else
+        	{
+        		// simple name, add to module header
+                if (!first) sb.append(", ");
+        		sb.append(cas.getName());
+                first = false;
+        	}
         }
         sb.append(");\n");
         writeWidthLimited(sb.toString());
@@ -682,12 +649,10 @@ public class Verilog extends Topology
 
                 // if writing standard cell netlist, do not write out cells that
                 // do not contain standard cells
-                if (Simulation.getVerilogStopAtStandardCells()) {
+                if (Simulation.getVerilogStopAtStandardCells())
+                {
                     if (!standardCells.containsStandardCell((Cell)niProto) &&
-                            !SCLibraryGen.isStandardCell((Cell)niProto)) {
-                    //if (!SCLibraryGen.isStandardCell((Cell)niProto)) {
-                        continue;
-                    }
+                        !SCLibraryGen.isStandardCell((Cell)niProto)) continue;
                 }
             }
 
@@ -848,16 +813,37 @@ public class Verilog extends Topology
                             infstr.append(")");
                         } else
                         {
-                            int total = cas.getNumSignals();
-                            CellSignal [] outerSignalList = new CellSignal[total];
-                            for(int j=0; j<total; j++)
+                        	int [] indices = cas.getIndices();
+                            if (indices != null)
                             {
-                                CellSignal cInnerSig = cas.getSignal(j);
-                                Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
-                                outerSignalList[j] = cni.getCellSignal(net);
-                            }
-                            writeBus(outerSignalList, total, cas.isDescending(),
-                                cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
+                            	// broken bus internally, write signals individually
+                        		for(int i=0; i<indices.length; i++)
+                        		{
+	                                CellSignal cInnerSig = cas.getSignal(i);
+	                                Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+	                                CellSignal outerSignal = cni.getCellSignal(net);
+
+	                                int ind = i;
+                        			if (cas.isDescending()) ind = indices.length - i - 1;
+                        			if (i > 0) infstr.append(", ");
+                        			infstr.append(".\\" + cas.getName() + "[" + indices[ind] + "] (");
+                                   	infstr.append(getSignalName(outerSignal));
+                                    infstr.append(")");
+                        		}
+                        	} else
+                        	{
+	                            // simple bus, write signals
+	                            int total = cas.getNumSignals();
+	                            CellSignal [] outerSignalList = new CellSignal[total];
+	                            for(int j=0; j<total; j++)
+	                            {
+	                                CellSignal cInnerSig = cas.getSignal(j);
+	                                Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+	                                outerSignalList[j] = cni.getCellSignal(net);
+	                            }
+	                            writeBus(outerSignalList, total, cas.isDescending(),
+	                                cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
+                        	}
                         }
                     }
                     infstr.append(");");
