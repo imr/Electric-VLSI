@@ -488,36 +488,43 @@ public class Artwork extends Technology
 			return techEditSet;
 		}
 
-		// normal menu
-    	if (nodeGroups == null) getPrefComponentMenu();
-    	if (nodeGroups != null) return nodeGroups;
-		nodeGroups = new Object[12][2];
-		nodeGroups[0][0] = solidArc;
-		nodeGroups[1][0] = thickerArc;
-		nodeGroups[2][0] = Technology.SPECIALMENUCELL;
-		nodeGroups[3][0] = openedPolygonNode;
-		nodeGroups[4][0] = openedThickerPolygonNode;
-		nodeGroups[5][0] = filledTriangleNode;
-		nodeGroups[6][0] = filledBoxNode;
-		nodeGroups[7][0] = Technology.makeNodeInst(filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-		nodeGroups[8][0] = filledCircleNode;
-		nodeGroups[9][0] = pinNode;
-		nodeGroups[10][0] = crossedBoxNode;
-		nodeGroups[11][0] = thickCircleNode;
+		// just use the default
+		return super.getNodesGrouped(curCell);
+	}
 
-		nodeGroups[0][1] = dottedArc;
-		nodeGroups[1][1] = dashedArc;
-		nodeGroups[2][1] = Technology.SPECIALMENUTEXT;
-		nodeGroups[3][1] = openedDottedPolygonNode;
-		nodeGroups[4][1] = openedDashedPolygonNode;
-		nodeGroups[5][1] = triangleNode;
-		nodeGroups[6][1] = boxNode;
-		nodeGroups[7][1] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-		nodeGroups[8][1] = circleNode;
-		nodeGroups[9][1] = Technology.SPECIALMENUEXPORT;
-		nodeGroups[10][1] = arrowNode;
-		nodeGroups[11][1] = Technology.makeNodeInst(splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-		return nodeGroups;
+    /**
+	 * Method to construct a default group of elements for the palette.
+	 * @return the default set of objects to display in the component menu.
+	 */
+	public Object[][] getDefaultNodesGrouped()
+	{
+		factoryNodeGroups = new Object[12][2];
+		factoryNodeGroups[0][0] = solidArc;
+		factoryNodeGroups[1][0] = thickerArc;
+		factoryNodeGroups[2][0] = Technology.SPECIALMENUCELL;
+		factoryNodeGroups[3][0] = openedPolygonNode;
+		factoryNodeGroups[4][0] = openedThickerPolygonNode;
+		factoryNodeGroups[5][0] = filledTriangleNode;
+		factoryNodeGroups[6][0] = filledBoxNode;
+		factoryNodeGroups[7][0] = Technology.makeNodeInst(filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		factoryNodeGroups[8][0] = filledCircleNode;
+		factoryNodeGroups[9][0] = pinNode;
+		factoryNodeGroups[10][0] = crossedBoxNode;
+		factoryNodeGroups[11][0] = thickCircleNode;
+
+		factoryNodeGroups[0][1] = dottedArc;
+		factoryNodeGroups[1][1] = dashedArc;
+		factoryNodeGroups[2][1] = Technology.SPECIALMENUTEXT;
+		factoryNodeGroups[3][1] = openedDottedPolygonNode;
+		factoryNodeGroups[4][1] = openedDashedPolygonNode;
+		factoryNodeGroups[5][1] = triangleNode;
+		factoryNodeGroups[6][1] = boxNode;
+		factoryNodeGroups[7][1] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		factoryNodeGroups[8][1] = circleNode;
+		factoryNodeGroups[9][1] = Technology.SPECIALMENUEXPORT;
+		factoryNodeGroups[10][1] = arrowNode;
+		factoryNodeGroups[11][1] = Technology.makeNodeInst(splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+		return factoryNodeGroups;
 	}
 
 	/**

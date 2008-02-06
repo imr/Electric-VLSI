@@ -55,15 +55,15 @@ public class IOTool extends Tool
 		super("io");
 	}
 
-    /**
-     * Method to retrieve the singleton associated with the IOTool tool.
-     * @return the IOTool tool.
-     */
-    public static IOTool getIOTool() { return tool; }
+	/**
+	 * Method to retrieve the singleton associated with the IOTool tool.
+	 * @return the IOTool tool.
+	 */
+	public static IOTool getIOTool() { return tool; }
 
 	/****************************** SKILL FORMAT INTERFACE ******************************/
 
-    private static boolean skillChecked = false;
+	private static boolean skillChecked = false;
 	private static Class<?> skillClass = null;
 	private static Method skillOutputMethod;
 
@@ -119,13 +119,13 @@ public class IOTool extends Tool
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Skill output module");
-            e.printStackTrace(System.out);
+			e.printStackTrace(System.out);
 		}
 	}
 
 	/****************************** DAIS FORMAT INTERFACE ******************************/
 
-    private static boolean daisChecked = false;
+	private static boolean daisChecked = false;
 	private static Class<?> daisClass = null;
 	private static Method daisInputMethod;
 
@@ -180,18 +180,18 @@ public class IOTool extends Tool
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");
-            e.printStackTrace(System.out);
+			e.printStackTrace(System.out);
 		}
 	}
 
-    @Override
-    protected void initProjectSettings() {
-        initGeneralOutputProjectSettings();
-        initCIFProjectSettings();
-        initGDSProjectSettings();
-        initDXFProjectSettings();
-    }
-    
+	@Override
+	protected void initProjectSettings() {
+		initGeneralOutputProjectSettings();
+		initCIFProjectSettings();
+		initGDSProjectSettings();
+		initDXFProjectSettings();
+	}
+	
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
 	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
@@ -240,14 +240,14 @@ public class IOTool extends Tool
 	 */
 	public static Setting getCopyrightMessageSetting() { return tool.cacheCopyrightMessage; }
 
-    private Setting cacheUseCopyrightMessage;
+	private Setting cacheUseCopyrightMessage;
 	private Setting cacheCopyrightMessage;
-    
-    private void initGeneralOutputProjectSettings() {
-        makeBooleanSetting("UseCopyrightMessage", "Netlists tab", "Use copyright message", false);
-        makeStringSetting("CopyrightMessage", "Netlists tab", "Copyright message", "");
-    }
-    
+	
+	private void initGeneralOutputProjectSettings() {
+		makeBooleanSetting("UseCopyrightMessage", "Netlists tab", "Use copyright message", false);
+		makeStringSetting("CopyrightMessage", "Netlists tab", "Copyright message", "");
+	}
+	
 	private static Pref cachePlotArea = Pref.makeIntPref("PlotArea", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
@@ -354,27 +354,12 @@ public class IOTool extends Tool
 	private Setting cacheCIFMimicsDisplay;
  	private Setting cacheCIFMergesBoxes;
 	private Setting cacheCIFInstantiatesTopLevel;
-    
-    private void initCIFProjectSettings() {
-        makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
-        makeBooleanSetting("CIFMergesBoxes", "CIF tab", "CIF output merges boxes", false);
-        makeBooleanSetting("CIFInstantiatesTopLevel", "CIF tab", "CIF output instantiates top level", true);
-    }
-    
-//	private static Pref cacheCIFOutResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
-//	/**
-//	 * Method to tell the minimum CIF Output resolution.
-//	 * This is the smallest feature size that can be safely generated.
-//	 * The default is "0" (no resolution check).
-//	 * @return the minimum CIF Output resolution.
-//	 */
-//	public static double getCIFOutResolution() { return cacheCIFOutResolution.getDouble(); }
-//	/**
-//	 * Method to set the minimum CIF Output resolution.
-//	 * This is the smallest feature size that can be safely generated.
-//	 * @param r the minimum CIF Output resolution.
-//	 */
-//	public static void setCIFOutResolution(double r) { cacheCIFOutResolution.setDouble(r); }
+	
+	private void initCIFProjectSettings() {
+		makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
+		makeBooleanSetting("CIFMergesBoxes", "CIF tab", "CIF output merges boxes", false);
+		makeBooleanSetting("CIFInstantiatesTopLevel", "CIF tab", "CIF output instantiates top level", true);
+	}
 
 	private static Pref cacheCIFInSquaresWires = Pref.makeBooleanPref("CIFInSquaresWires", IOTool.tool.prefs, true);
 	/**
@@ -477,45 +462,45 @@ public class IOTool extends Tool
 	 */
 	public static Setting getGDSOutDefaultTextLayerSetting() { return tool.cacheGDSDefaultTextLayer; }
 
-    /**
-     * Method to get the state of whether the GDS writer converts brackets
-     * to underscores in export names.
-     */
-    public static boolean getGDSOutputConvertsBracketsInExports() { return tool.cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
-    /**
-     * Returns Setting to tell the state of whether the GDS writer converts brackets
-     * to underscores in export names.
-     * @return Setting to tell the state of whether the GDS writer converts brackets
-     */
-    public static Setting getGDSOutputConvertsBracketsInExportsSetting() { return tool.cacheGDSOutputConvertsBracketsInExports; }
+	/**
+	 * Method to get the state of whether the GDS writer converts brackets
+	 * to underscores in export names.
+	 */
+	public static boolean getGDSOutputConvertsBracketsInExports() { return tool.cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
+	/**
+	 * Returns Setting to tell the state of whether the GDS writer converts brackets
+	 * to underscores in export names.
+	 * @return Setting to tell the state of whether the GDS writer converts brackets
+	 */
+	public static Setting getGDSOutputConvertsBracketsInExportsSetting() { return tool.cacheGDSOutputConvertsBracketsInExports; }
 
-    /**
-     * Get the maximum length (number of chars) for Cell names in the GDS output file
-     * @return the number of chars
-     */
-    public static int getGDSCellNameLenMax() { return tool.cacheGDSCellNameLenMax.getInt(); }
-    /**
-     * Returns Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
-     * @return Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
-     */
-    public static Setting getGDSCellNameLenMaxSetting() { return tool.cacheGDSCellNameLenMax; }
+	/**
+	 * Get the maximum length (number of chars) for Cell names in the GDS output file
+	 * @return the number of chars
+	 */
+	public static int getGDSCellNameLenMax() { return tool.cacheGDSCellNameLenMax.getInt(); }
+	/**
+	 * Returns Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
+	 * @return Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
+	 */
+	public static Setting getGDSCellNameLenMaxSetting() { return tool.cacheGDSCellNameLenMax; }
 
 	private Setting cacheGDSMergesBoxes;
 	private Setting cacheGDSWritesExportPins;
 	private Setting cacheGDSOutputUpperCase;
 	private Setting cacheGDSDefaultTextLayer;
-    private Setting cacheGDSOutputConvertsBracketsInExports;
-    private Setting cacheGDSCellNameLenMax;
-    
-    private void initGDSProjectSettings() {
-        makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
-        makeBooleanSetting("GDSWritesExportPins", "GDS tab", "GDS output writes export pins", false);
-        makeBooleanSetting("GDSOutputUpperCase", "GDS tab", "GDS output all upper-case", false);
-        makeIntSetting("GDSDefaultTextLayer", "GDS tab", "GDS output default text layer", 230);
-        makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
-        makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
-    }
-    
+	private Setting cacheGDSOutputConvertsBracketsInExports;
+	private Setting cacheGDSCellNameLenMax;
+	
+	private void initGDSProjectSettings() {
+		makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
+		makeBooleanSetting("GDSWritesExportPins", "GDS tab", "GDS output writes export pins", false);
+		makeBooleanSetting("GDSOutputUpperCase", "GDS tab", "GDS output all upper-case", false);
+		makeIntSetting("GDSDefaultTextLayer", "GDS tab", "GDS output default text layer", 230);
+		makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
+		makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
+	}
+	
 	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input merges boxes into complex polygons.
@@ -589,25 +574,25 @@ public class IOTool extends Tool
 	 */
 	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
 
-    private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
-    /**
-     * True to convert pin names to name:name for pins that are specified in the
-     * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
-     * perform the analogous operation of virtual connection of networks.
-     * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
-     * pins that match the assertion to vdd:vdd.
-     */
-    public static boolean getGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBoolean(); }
-    /**
-     * True to convert pin names to name:name for pins that are specified in the
-     * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
-     * perform the analogous operation of virtual connection of networks.
-     * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
-     * pins that match the assertion to vdd:vdd.
-     */
-    public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
+	private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
+	/**
+	 * True to convert pin names to name:name for pins that are specified in the
+	 * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
+	 * perform the analogous operation of virtual connection of networks.
+	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
+	 * pins that match the assertion to vdd:vdd.
+	 */
+	public static boolean getGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBoolean(); }
+	/**
+	 * True to convert pin names to name:name for pins that are specified in the
+	 * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
+	 * perform the analogous operation of virtual connection of networks.
+	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
+	 * pins that match the assertion to vdd:vdd.
+	 */
+	public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
 
-    private static Pref cacheGDSInSimplifyCells = Pref.makeBooleanPref("GDSInSimplifyCells", IOTool.tool.prefs, false);
+	private static Pref cacheGDSInSimplifyCells = Pref.makeBooleanPref("GDSInSimplifyCells", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input simplifies contact vias.
 	 * The default is "false".
@@ -620,17 +605,17 @@ public class IOTool extends Tool
 	 */
 	public static void setGDSInSimplifyCells(boolean on) { cacheGDSInSimplifyCells.setBoolean(on); }
 
-    private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
-    /**
-     * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
-     * @return true if GDS Input colapses vdd/gnd names.
-     */
-    public static boolean isGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBoolean(); }
-    /**
-     * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
-     * @param on true if GDS Input colapses vdd/gnd names.
-     */
-    public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
+	private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
+	 * @return true if GDS Input colapses vdd/gnd names.
+	 */
+	public static boolean isGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBoolean(); }
+	/**
+	 * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
+	 * @param on true if GDS Input colapses vdd/gnd names.
+	 */
+	public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
@@ -880,7 +865,7 @@ public class IOTool extends Tool
 	private static Pref cacheEDIFUseSchematicView = Pref.makeBooleanPref("EDIFUseSchematicView", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether EDIF uses the schematic view.
-	 * The default is "false".
+	 * The default is "true".
 	 * @return true if EDIF uses the schematic view.
 	 */
 	public static boolean isEDIFUseSchematicView() { return cacheEDIFUseSchematicView.getBoolean(); }
@@ -902,6 +887,23 @@ public class IOTool extends Tool
 	 * @param c true if EDIF I/O is compatible with Cadence.
 	 */
 	public static void setEDIFCadenceCompatibility(boolean c) { cacheEDIFCadenceCompatibility.setBoolean(c); }
+
+	private static Pref cacheEDIFUseExistingCells = Pref.makeBooleanPref("EDIFUseExistingCells", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether EDIF should use existing cells when reading.
+	 * When true, EDIF cells are ignored and existing cells are used instead.
+	 * When false, EDIF cells are created and used (and if they already exist, become newer versions).
+	 * The default is "false".
+	 * @return true if EDIF should use existing cells when reading.
+	 */
+	public static boolean isEDIFUseExistingCells() { return cacheEDIFUseExistingCells.getBoolean(); }
+	/**
+	 * Method to set whether EDIF should use existing cells when reading.
+	 * When true, EDIF cells are ignored and existing cells are used instead.
+	 * When false, EDIF cells are created and used (and if they already exist, become newer versions).
+	 * @param s true if EDIF should use existing cells when reading.
+	 */
+	public static void setEDIFUseExistingCells(boolean s) { cacheEDIFUseExistingCells.setBoolean(s); }
 
 	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
@@ -968,11 +970,11 @@ public class IOTool extends Tool
 	public static Setting getDXFScaleSetting() { return tool.cacheDXFScale; }
 
 	private Setting cacheDXFScale;
-    
-    private void initDXFProjectSettings() {
-        makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
-    }
-    
+
+	private void initDXFProjectSettings() {
+		makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
+	}
+
 	private static Pref cacheDXFInputFlattensHierarchy = Pref.makeBooleanPref("DXFInputFlattensHierarchy", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether DXF Input flattens the hierarchy.
@@ -1069,20 +1071,20 @@ public class IOTool extends Tool
 	 */
 	public static void setSkillFlattensHierarchy(boolean on) { cacheSkillFlattensHierarchy.setBoolean(on); }
 
-    private static Pref cacheSkillGDSNameLimit = Pref.makeBooleanPref("SkillGDSNameLimit", IOTool.tool.prefs, false);
-    /**
-     * Method to tell whether Skill Output flattens the hierarchy.
-     * Flattened files are larger, but have no hierarchical structure.
-     * The default is "false".
-     * @return true if Skill Output flattens the hierarchy.
-     */
-    public static boolean isSkillGDSNameLimit() { return cacheSkillGDSNameLimit.getBoolean(); }
-    /**
-     * Method to set whether Skill Output flattens the hierarchy.
-     * Flattened files are larger, but have no hierarchical structure.
-     * @param on true if Skill Output flattens the hierarchy.
-     */
-    public static void setSkillGDSNameLimit(boolean on) { cacheSkillGDSNameLimit.setBoolean(on); }
+	private static Pref cacheSkillGDSNameLimit = Pref.makeBooleanPref("SkillGDSNameLimit", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Skill Output flattens the hierarchy.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * The default is "false".
+	 * @return true if Skill Output flattens the hierarchy.
+	 */
+	public static boolean isSkillGDSNameLimit() { return cacheSkillGDSNameLimit.getBoolean(); }
+	/**
+	 * Method to set whether Skill Output flattens the hierarchy.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * @param on true if Skill Output flattens the hierarchy.
+	 */
+	public static void setSkillGDSNameLimit(boolean on) { cacheSkillGDSNameLimit.setBoolean(on); }
 
 	/****************************** DAIS OUTPUT PREFERENCES ******************************/
 

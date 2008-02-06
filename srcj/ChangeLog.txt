@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG/MAN: (2/6/08, SMR) Technology edit commands are in a confusing place (Bug #1559).
+FIX: Moved tech-edit commands to their own submenu.  Fixed technology edit
+     component editing so that it is clear that it is part of tech-edit.
+     Also added "Factory Reset" to Component Menu preferences panel.
+
 BUG: (2/6/08, SMR) Verilog output still writes fragmented busses wrong (Bug #1523).
 FIX: In Verilog.writeCellTopology(), write module header and invocation as
      separate signals when bus is fragmented.

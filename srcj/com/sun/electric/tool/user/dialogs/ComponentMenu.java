@@ -72,6 +72,7 @@ public class ComponentMenu extends EDialog
 	private int menuWid, menuHei, menuSelectedX, menuSelectedY;
 	private int lastListSelected = -1;
 	private Object [][] menuArray;
+	private Object [][] factoryMenuArray;
 	private MenuView menuView;
 	private String techName;
 	private Xml.Technology xTech;
@@ -80,11 +81,13 @@ public class ComponentMenu extends EDialog
 
 	/**
 	 * Method to display a dialog for showing the component menu.
+	 * Called only from the technology editor.
 	 */
 	public static void showComponentMenuDialog(String techName, Xml.MenuPalette xmp,
 		List<Xml.PrimitiveNode> nodes, List<Xml.ArcProto> arcs)
 	{
 		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true);
+		dialog.setTitle("Technology Edit: Component Menu Layout");
 		Xml.Technology xTech = new Xml.Technology();
 		for(Xml.PrimitiveNode xnp : nodes)
 			xTech.nodes.add(xnp);
@@ -109,14 +112,14 @@ public class ComponentMenu extends EDialog
 				menuArray[y][x] = obj;
 			}
 		}
-		dialog.showTechnology(techName, xTech, menuArray);
+		dialog.showTechnology(techName, xTech, menuArray, menuArray);
 
 		dialog.finishInitialization();
 		dialog.setVisible(true);
 	}
 
 	/** Creates new form ComponentMenu */
-	public ComponentMenu(Frame parent, boolean standAlone)
+	public ComponentMenu(Frame parent, boolean techEdit)
 	{
 		super(parent, true);
 		initComponents();
@@ -153,6 +156,11 @@ public class ComponentMenu extends EDialog
 		});
 
 		modelSpecials = new DefaultListModel();
+		modelSpecials.addElement(Technology.SPECIALMENUCELL);
+		modelSpecials.addElement(Technology.SPECIALMENUEXPORT);
+		modelSpecials.addElement(Technology.SPECIALMENUMISC);
+		modelSpecials.addElement(Technology.SPECIALMENUPURE);
+		modelSpecials.addElement(Technology.SPECIALMENUSPICE);
 		listSpecials = new JList(modelSpecials);
 		specialListPane.setViewportView(listSpecials);
 		listSpecials.addMouseListener(new MouseAdapter()
@@ -180,7 +188,7 @@ public class ComponentMenu extends EDialog
 			public void actionPerformed(ActionEvent evt) { nodeInfoChanged(); }
 		});
 
-		if (standAlone)
+		if (techEdit)
 		{
 			JButton OK = new JButton("OK");
 			gbc = new GridBagConstraints();
@@ -188,8 +196,8 @@ public class ComponentMenu extends EDialog
 			gbc.insets = new Insets(25, 4, 4, 4);
 			lowerRight.add(OK, gbc);
 			OK.addActionListener(new ActionListener() {
-	            public void actionPerformed(ActionEvent evt) { saveChanges();   closeDialog(null); }
-	        });
+				public void actionPerformed(ActionEvent evt) { saveChanges();   closeDialog(null); }
+			});
 
 			JButton cancel = new JButton("Cancel");
 			gbc = new GridBagConstraints();
@@ -197,19 +205,31 @@ public class ComponentMenu extends EDialog
 			gbc.insets = new Insets(25, 4, 4, 4);
 			lowerRight.add(cancel, gbc);
 			cancel.addActionListener(new ActionListener() {
-	            public void actionPerformed(ActionEvent evt) { closeDialog(null); }
-	        });
+				public void actionPerformed(ActionEvent evt) { closeDialog(null); }
+			});
+		} else
+		{
+			// TODO need factory reset button when part of preferences
+			JButton reset = new JButton("Factory Reset");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;       gbc.gridy = 4;
+			gbc.insets = new Insets(25, 4, 4, 4);
+			lowerRight.add(reset, gbc);
+			reset.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) { factoryReset(); }
+			});
 		}
 	}
 
 	/**
 	 * Method to load the dialog with menu information.
 	 */
-	public void showTechnology(String name, Xml.Technology xt, Object [][] theArray)
+	public void showTechnology(String name, Xml.Technology xt, Object [][] theArray, Object [][] factoryArray)
 	{
 		techName = name;
 		xTech = xt;
 		menuArray = theArray;
+		factoryMenuArray = factoryArray;
 		menuHei = menuArray.length;
 		menuWid = menuArray[0].length;
 
@@ -225,18 +245,28 @@ public class ComponentMenu extends EDialog
 			modelArcs.addElement(ap.name);
 		}
 
-		modelSpecials.clear();
-		modelSpecials.addElement(Technology.SPECIALMENUCELL);
-		modelSpecials.addElement(Technology.SPECIALMENUEXPORT);
-		modelSpecials.addElement(Technology.SPECIALMENUMISC);
-		modelSpecials.addElement(Technology.SPECIALMENUPURE);
-		modelSpecials.addElement(Technology.SPECIALMENUSPICE);
-
 		// display the menu
 		showMenuSize();
 		showSelected();
 		menuView.repaint();
 		changed = false;
+	}
+
+	private void factoryReset()
+	{
+		menuHei = factoryMenuArray.length;
+		menuWid = factoryMenuArray[0].length;
+		menuArray = new Object[menuHei][];
+		for(int y=0; y<menuHei; y++)
+		{
+			menuArray[y] = new Object[menuWid];
+			for(int x=0; x<menuWid; x++) menuArray[y][x] = factoryMenuArray[y][x];
+		}
+		menuSelectedY = menuSelectedX = 0;
+		showMenuSize();
+		showSelected();
+		menuView.repaint();
+		changed = true;
 	}
 
 	/** return the name of this preferences tab. */
@@ -278,7 +308,7 @@ public class ComponentMenu extends EDialog
 				}
 			}
 		}
-        ;
+
 		new SetMenuJob(xmp.writeXml());
 	}
 

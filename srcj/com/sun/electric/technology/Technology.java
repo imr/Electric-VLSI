@@ -126,21 +126,21 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
-    public static final Technology[] NULL_ARRAY = {};
-    public static final ImmutableArrayList<Technology> EMPTY_LIST = new ImmutableArrayList<Technology>(NULL_ARRAY);
+	public static final Technology[] NULL_ARRAY = {};
+	public static final ImmutableArrayList<Technology> EMPTY_LIST = new ImmutableArrayList<Technology>(NULL_ARRAY);
 
-    /** key of Variable for saving scalable transistor contact information. */
-    public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
+	/** key of Variable for saving scalable transistor contact information. */
+	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
-    // strings used in the Component Menu
-    public static final String SPECIALMENUCELL   = "Cell";
-    public static final String SPECIALMENUMISC   = "Misc.";
-    public static final String SPECIALMENUPURE   = "Pure";
-    public static final String SPECIALMENUSPICE  = "Spice";
-    public static final String SPECIALMENUEXPORT = "Export";
-    public static final String SPECIALMENUTEXT   = "Text";
-    public static final String SPECIALMENUHIGH   = "High";
-    public static final String SPECIALMENUPORT   = "Port";
+	// strings used in the Component Menu
+	public static final String SPECIALMENUCELL   = "Cell";
+	public static final String SPECIALMENUMISC   = "Misc.";
+	public static final String SPECIALMENUPURE   = "Pure";
+	public static final String SPECIALMENUSPICE  = "Spice";
+	public static final String SPECIALMENUEXPORT = "Export";
+	public static final String SPECIALMENUTEXT   = "Text";
+	public static final String SPECIALMENUHIGH   = "High";
+	public static final String SPECIALMENUPORT   = "Port";
 
    /**
 	 * Defines a single layer of a ArcProto.
@@ -815,6 +815,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
 
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
+	/** Default element groups for the component menu */    protected Object[][] factoryNodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
@@ -1191,7 +1192,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 row[column] = list;
             }
         }
-        nodeGroups = rows.toArray(new Object[rows.size()][]);
+        nodeGroups = factoryNodeGroups = rows.toArray(new Object[rows.size()][]);
     }
     
     private Object convertMenuItem(Object menuItem) {
@@ -4899,25 +4900,48 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 		Xml.MenuPalette xx = Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodes, xmlArcs);
         convertMenuPalette(xx);
-//		List<List<Object>> menuData = xx.menuBoxes;
-//		int menuWid = xx.numColumns;
-//		int menuHei = menuData.size() / menuWid;
-//		nodeGroups = new Object[menuHei][menuWid];
-//		int next = 0;
-//		for(int y=0; y<menuHei; y++)
-//		{
-//			for(int x=0; x<menuWid; x++)
-//			{
-//				Object obj = menuData.get(next++);
-//				if (obj instanceof List)
-//				{
-//					List<?> list = (List)obj;
-//					if (list.size() == 0) obj = null; else
-//						if (list.size() == 1) obj = list.get(0);
-//				}
-//				nodeGroups[y][x] = obj;
-//			}
-//		}
+	}
+
+	/**
+	 * Method to construct a default group of elements for the palette.
+	 * @return the default set of objects to display in the component menu.
+	 */
+	public Object[][] getDefaultNodesGrouped()
+	{
+		if (factoryNodeGroups != null) return factoryNodeGroups;
+
+		// compute palette information automatically
+		List<Object> things = new ArrayList<Object>();
+		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			if (!ap.isNotUsed()) things.add(ap);
+		}
+		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = it.next();
+			if (np.isNotUsed()) continue;
+			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
+			things.add(np);
+		}
+		things.add(SPECIALMENUPURE);
+		things.add(SPECIALMENUMISC);
+		things.add(SPECIALMENUCELL);
+		int columns = (things.size()+13) / 14;
+		int rows = (things.size() + columns-1) / columns;
+		factoryNodeGroups = new Object[rows][columns];
+		int rowPos = 0, colPos = 0;
+		for(Object obj : things)
+		{
+			factoryNodeGroups[rowPos][colPos] = obj;
+			rowPos++;
+			if (rowPos >= rows)
+			{
+				rowPos = 0;
+				colPos++;
+			}
+		}
+		return factoryNodeGroups;
 	}
 
 	/**
@@ -4929,46 +4953,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	{
 		// make sure any preferences are applied
 		getPrefComponentMenu();
-		if (nodeGroups == null)
-		{
-			// compute palette information automatically
-			List<Object> things = new ArrayList<Object>();
-			for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-				if (!ap.isNotUsed()) things.add(ap);
-			}
-			for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = it.next();
-				if (np.isNotUsed()) continue;
-				if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
-				things.add(np);
-			}
-			things.add(SPECIALMENUPURE);
-			things.add(SPECIALMENUMISC);
-			things.add(SPECIALMENUCELL);
-			int columns = (things.size()+13) / 14;
-			int rows = (things.size() + columns-1) / columns;
-			nodeGroups = new Object[rows][columns];
-			int rowPos = 0, colPos = 0;
-			for(Object obj : things)
-			{
-				nodeGroups[rowPos][colPos] = obj;
-				rowPos++;
-				if (rowPos >= rows)
-				{
-					rowPos = 0;
-					colPos++;
-				}
-			}
-		}
 
+		// if there are no preferences, setup default
+		if (nodeGroups == null) nodeGroups = getDefaultNodesGrouped();
+
+		return filterNodeGroups(nodeGroups);
+	}
+
+	/**
+	 * Method to remove component menu entries that are impossible
+	 * because of inaccessible objects.
+	 * @param oldNG the old list of component menu entries.
+	 * @return a filtered list of component menu entries.
+	 */
+	public Object[][] filterNodeGroups(Object [][] oldNG)
+	{
 		// Check if some metal layers are not used
-		List <Object>list = new ArrayList<Object>(nodeGroups.length);
-		for (int i = 0; i < nodeGroups.length; i++)
+		List <Object>list = new ArrayList<Object>(oldNG.length);
+		for (int i = 0; i < oldNG.length; i++)
 		{
-			Object[] objs = nodeGroups[i];
+			Object[] objs = oldNG[i];
 			if (objs != null)
 			{
 				Object obj = objs[0];
@@ -4982,7 +4986,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					list.add(objs);
 			}
 		}
-		Object[][] newMatrix = new Object[list.size()][nodeGroups[0].length];
+		Object[][] newMatrix = new Object[list.size()][oldNG[0].length];
 		for (int i = 0; i < list.size(); i++)
 		{
 			Object[] objs = (Object[])list.get(i);

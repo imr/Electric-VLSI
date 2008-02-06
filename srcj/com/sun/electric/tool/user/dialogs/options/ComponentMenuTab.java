@@ -74,20 +74,26 @@ public class ComponentMenuTab extends PreferencePanel
 		{
 			ArcProto ap = it.next();
 			Xml.ArcProto curArc = new Xml.ArcProto();
-            curArc.name = ap.getName();
-            xTech.arcs.add(curArc);
+			curArc.name = ap.getName();
+			xTech.arcs.add(curArc);
 		}
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
-            curNode.name = np.getName();
-            curNode.function = np.getFunction();
-            xTech.nodes.add(curNode);
+			curNode.name = np.getName();
+			curNode.function = np.getFunction();
+			xTech.nodes.add(curNode);
 		}
 
 		// build a set of XML objects that refer to this XML technology
-		Object[][] curMenu = tech.getNodesGrouped(null);
+		Object[][] menuArray = makeMenuArray(xTech, tech.getNodesGrouped(null));
+		Object[][] defMenuArray = makeMenuArray(xTech, tech.filterNodeGroups(tech.getDefaultNodesGrouped()));
+		theMenu.showTechnology(tech.getTechName(), xTech, menuArray, defMenuArray);
+	}
+
+	private Object[][] makeMenuArray(Xml.Technology xTech, Object[][] curMenu)
+	{
 		int menuWid = curMenu[0].length;
 		int menuHei = curMenu.length;
 		Object[][] menuArray = new Object[menuHei][menuWid];
@@ -108,10 +114,8 @@ public class ComponentMenuTab extends PreferencePanel
 				}
 			}
 		}
-
-		theMenu.showTechnology(tech.getTechName(), xTech, menuArray);
+		return menuArray;
 	}
-
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the tab.

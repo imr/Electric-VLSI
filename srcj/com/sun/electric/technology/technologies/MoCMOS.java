@@ -26,6 +26,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -2663,21 +2664,25 @@ public class MoCMOS extends Technology
      */
     private void buildTechPalette()
     {
-    	if (nodeGroups == null)
-    	{
-    		getPrefComponentMenu();
-        	if (nodeGroups != null) return;
-    	}
+		getPrefComponentMenu();
+		if (nodeGroups == null) nodeGroups = getDefaultNodesGrouped();
+    }
 
-    	// Information for palette
+    /**
+	 * Method to construct a default group of elements for the palette.
+	 * @return the default set of objects to display in the component menu.
+	 */
+	public Object[][] getDefaultNodesGrouped()
+	{
+		// Information for palette
         int maxY = metalArcs.length + activeArcs.length + 2 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
-        nodeGroups = new Object[maxY][3];
+        factoryNodeGroups = new Object[maxY][3];
         int count = 0;
         List<NodeInst> tmp;
         String[] stdNames = {"p", "n"};
 
         // Transistor nodes first
-        nodeGroups[count][0] = npnTransistorNode;
+        factoryNodeGroups[count][0] = npnTransistorNode;
         for (int i = 0; i < transistorNodes.length; i++)
         {
             tmp = new ArrayList<NodeInst>(2);
@@ -2686,7 +2691,7 @@ public class MoCMOS extends Technology
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             if (scalableTransistorNodes != null)
                 tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
-            nodeGroups[count][i+1] = tmp;
+            factoryNodeGroups[count][i+1] = tmp;
         }
 
         // Well second
@@ -2694,44 +2699,45 @@ public class MoCMOS extends Technology
         for (int i = 0; i < metalWellContactNodes.length; i++)
         {
             String tmpVar = stdNames[i]+"Well";
-            nodeGroups[count][i+1] = makeNodeInst(metalWellContactNodes[i], metalWellContactNodes[i].getFunction(),
+            factoryNodeGroups[count][i+1] = makeNodeInst(metalWellContactNodes[i], metalWellContactNodes[i].getFunction(),
                     0, true, tmpVar, 5.5);
         }
 
         // Active/Well first
         for (int i = 0; i < activeArcs.length; i++)
         {
-            nodeGroups[++count][0] = activeArcs[i];
-            nodeGroups[count][1] = activePinNodes[i];
+        	factoryNodeGroups[++count][0] = activeArcs[i];
+        	factoryNodeGroups[count][1] = activePinNodes[i];
             String tmpVar = stdNames[i]+"Act";
-            nodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
+            factoryNodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
                     0, true, tmpVar, 5.55);
         }
 
         // Poly-related node insts
-        nodeGroups[++count][0] = polyArcs[0];
-        nodeGroups[count][1] = polyPinNodes[0];
-        nodeGroups[count][2] = metal1PolyContactNodes[0];
+        factoryNodeGroups[++count][0] = polyArcs[0];
+        factoryNodeGroups[count][1] = polyPinNodes[0];
+        factoryNodeGroups[count][2] = metal1PolyContactNodes[0];
 
-        nodeGroups[++count][0] = polyArcs[1];
-        nodeGroups[count][1] = polyPinNodes[1];
+        factoryNodeGroups[++count][0] = polyArcs[1];
+        factoryNodeGroups[count][1] = polyPinNodes[1];
         tmp = new ArrayList<NodeInst>();
         tmp.add(makeNodeInst(metal1PolyContactNodes[1], metal1PolyContactNodes[1].getFunction(), 0, true, null, 5.5));
         tmp.add(makeNodeInst(metal1PolyContactNodes[2], metal1PolyContactNodes[2].getFunction(), 0, true, null, 5.5));
-        nodeGroups[count][2] = tmp;
+        factoryNodeGroups[count][2] = tmp;
 
         // MXMY contacts
         for (int i = 0; i < metalArcs.length; i++)
         {
-            nodeGroups[++count][0] = metalArcs[i];
-            nodeGroups[count][1] = metalPinNodes[i];
-            nodeGroups[count][2] = (i < metalArcs.length - 1) ? metalContactNodes[i] : null;
+        	factoryNodeGroups[++count][0] = metalArcs[i];
+        	factoryNodeGroups[count][1] = metalPinNodes[i];
+        	factoryNodeGroups[count][2] = (i < metalArcs.length - 1) ? metalContactNodes[i] : null;
         }
 
         // On the side
-        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
-        nodeGroups[count][1] = Technology.SPECIALMENUMISC;
-        nodeGroups[count][2] = Technology.SPECIALMENUCELL;
+        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE;
+        factoryNodeGroups[count][1] = Technology.SPECIALMENUMISC;
+        factoryNodeGroups[count][2] = Technology.SPECIALMENUCELL;
+        return factoryNodeGroups;
 	}
 
 	/******************** SUPPORT METHODS ********************/

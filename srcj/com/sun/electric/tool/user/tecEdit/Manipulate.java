@@ -574,7 +574,7 @@ public class Manipulate
 			arcs.add(xap);
 		}
 	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
-	    ComponentMenu.showComponentMenuDialog(Technology.getCurrent().getTechName(), xmp, nodes, arcs);
+	    ComponentMenu.showComponentMenuDialog(Library.getCurrent().getName(), xmp, nodes, arcs);
 	}
 
 	/**

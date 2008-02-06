@@ -121,7 +121,7 @@ public class EditMenu {
     static EMenu makeMenu() {
         /****************************** THE EDIT MENU ******************************/
 
-        // mnemonic keys available:  B   F   JK     Q
+        // mnemonic keys available:  B       JK     Q
         // still don't have mnemonic for "Repeat Last Action"
         return new EMenu("_Edit",
 
@@ -302,15 +302,25 @@ public class EditMenu {
                 new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
                     CircuitChanges.showRedundantPureLayerNodes(); }}),
 
-        // mnemonic keys available:       GH JK   O QRS UV XYZ
-            new EMenu("Technolo_gy Specific",
+        // mnemonic keys available:    DE GHIJKL  OPQRSTUVWXYZ
+            new EMenu("Technology Speci_fic",
                 new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
                     CircuitChanges.toggleNegatedCommand(); }},
                 new EMenuItem("_Artwork Color and Pattern...") { public void run() {
                     ArtworkLook.showArtworkLookDialog(); }},
                 SEPARATOR,
+                new EMenuItem("Descri_be this Technology") { public void run() {
+                    describeTechnologyCommand(); }},
+                new EMenuItem("Do_cument Current Technology") { public void run() {
+                    Manipulate.describeTechnology(Technology.getCurrent()); }},
+                SEPARATOR,
+                new EMenuItem("Rena_me Current Technology...") { public void run() {
+                    CircuitChanges.renameCurrentTechnology(); }},
+//              new EMenuItem("D_elete Current Technology", null, { public void run() {
+//                  CircuitChanges.deleteCurrentTechnology(); }});
+                SEPARATOR,
 
-        // mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
+                // mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
                 new EMenu("_FPGA",
                     new EMenuItem("Read _Architecture And Primitives...") { public void run() {
                         FPGA.tech().readArchitectureFile(true); }},
@@ -330,9 +340,10 @@ public class EditMenu {
                     new EMenuItem("_Show Text") { public void run() {
                         FPGA.tech().setTextDisplay(true); }},
                     new EMenuItem("_Hide Text") { public void run() {
-                        FPGA.tech().setTextDisplay(false); }}),
+                        FPGA.tech().setTextDisplay(false); }})),
 
-                SEPARATOR,
+        // mnemonic keys available: AB  EFGH JK MNO QRS UV XYZ
+            new EMenu("Technolo_gy Editing",
                 new EMenuItem("Convert Technology to _Library for Editing...") { public void run() {
                     TechToLib.makeLibFromTech(); }},
                 new EMenuItem("Convert Library to _Technology...") { public void run() {
@@ -345,21 +356,11 @@ public class EditMenu {
                 SEPARATOR,
                 new EMenuItem("Edit Library _Dependencies...") { public void run() {
                     Manipulate.editLibraryDependencies(); }},
-                new EMenuItem("Edit Component Menu...") { public void run() {
+                new EMenuItem("Edit _Component Menu...") { public void run() {
                     Manipulate.editComponentMenu(); }},
-                SEPARATOR,
-                new EMenuItem("Descri_be this Technology") { public void run() {
-                    describeTechnologyCommand(); }},
-                new EMenuItem("Do_cument Current Technology") { public void run() {
-                    Manipulate.describeTechnology(Technology.getCurrent()); }},
-                SEPARATOR,
-                new EMenuItem("Rena_me Current Technology...") { public void run() {
-                    CircuitChanges.renameCurrentTechnology(); }},
                 SEPARATOR,
                 new EMenuItem("Technology Creation _Wizard...") { public void run() {
                     TechEditWizard.techEditWizardCommand(); }}),
-//              new EMenuItem("D_elete Current Technology", null, { public void run() {
-//                  CircuitChanges.deleteCurrentTechnology(); }});
 
         // mnemonic keys available:  B   F    KLM   Q        Z
             new EMenu("_Selection",
