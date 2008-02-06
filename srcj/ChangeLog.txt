@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07d: *******************************
+
 ************************* Version 8.07c: *******************************
 
 BUG: (2/6/08, GVG) via, M1_PP_Contact, M1_NP_Contact and PNJunction nodes in bipolar tech
