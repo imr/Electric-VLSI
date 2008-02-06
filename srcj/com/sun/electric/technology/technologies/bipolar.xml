@@ -392,7 +392,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="1.5" height="9.5" mode="NONE" factor="0.2"/>
         <cifLayer cif="IC"/>
         <pureLayerNode name="Contact_Node" style="CROSSED" port="contact">
             <lambda>4.0</lambda>
@@ -422,7 +422,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="11.5" mode="NONE" factor="0.2"/>
         <cifLayer cif="IV"/>
         <pureLayerNode name="Via_Node" port="via">
             <lambda>4.0</lambda>
@@ -631,7 +631,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="Via" fun="CONNECT">
+    <primitiveNode name="Via" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
@@ -659,7 +659,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="M1_PP_Contact" fun="CONNECT">
+    <primitiveNode name="M1_PP_Contact" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
@@ -694,7 +694,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="M1_NP_Contact" fun="CONNECT">
+    <primitiveNode name="M1_NP_Contact" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
@@ -938,7 +938,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="PNJunction" fun="CONNECT">
+    <primitiveNode name="PNJunction" fun="CONTACT">
         <diskOffset untilVersion="1" x="2.0" y="2.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
         <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>

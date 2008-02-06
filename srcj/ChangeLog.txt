@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07c: *******************************
 
+BUG: (2/6/08, GVG) via, M1_PP_Contact, M1_NP_Contact and PNJunction nodes in bipolar tech
+should be CONTACT instead of CONNECT in bipolar.xml
+FIX: Fixed and new 3D values were added.
+
 BUG/MAN: (2/6/08, SMR) Technology edit commands are in a confusing place (Bug #1559).
 FIX: Moved tech-edit commands to their own submenu.  Fixed technology edit
      component editing so that it is clear that it is part of tech-edit.
