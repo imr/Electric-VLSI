@@ -38,6 +38,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
+import com.sun.electric.tool.io.input.LibraryStatistics;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -295,4 +296,10 @@ public class SnapshotTest {
         
         instance.check();
     }
+    
+    @Test public void scanDirs() {
+        LibraryStatistics stat = LibraryStatistics.scanDirectories(new String[] { "/import/async/cad"});
+        stat.writeList("./dirs.lst");
+    }
+    
 }

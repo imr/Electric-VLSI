@@ -48,6 +48,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * This class is a collection of text utilities.
@@ -489,17 +490,17 @@ public class TextUtils
 
 	// SMR removed this method because the initialization of the "PST" timezone only works in the USA
 
-//	private static SimpleDateFormat simpleDateFormatGMT = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
-//	static { simpleDateFormatGMT.setTimeZone(TimeZone.getTimeZone("GMT")); }
-//	/**
-//	 * Method to convert a Date to a String using GMT TimeZone.
-//	 * @param date the date to format.
-//	 * @return the string representation of the date.
-//	 */
-//	public static String formatDateGMT(Date date)
-//	{
-//		return simpleDateFormatGMT.format(date);
-//	}
+	private static SimpleDateFormat simpleDateFormatGMT = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
+	static { simpleDateFormatGMT.setTimeZone(TimeZone.getTimeZone("GMT")); }
+	/**
+	 * Method to convert a Date to a String using GMT TimeZone.
+	 * @param date the date to format.
+	 * @return the string representation of the date.
+	 */
+	public static String formatDateGMT(Date date)
+	{
+		return simpleDateFormatGMT.format(date);
+	}
 
 	/**
 	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
