@@ -29,8 +29,6 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
@@ -40,6 +38,7 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.CellName;
@@ -47,24 +46,27 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 
+import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -74,7 +76,6 @@ public class JelibParser
 {
 	class CellContents
 	{
-        final int revision;
         final Version version;
 		boolean filledIn;
 		String fileName;
@@ -98,9 +99,8 @@ public class JelibParser
 		// map disk node names (duplicate node names written "sig"1 and "sig"2)
 		HashMap<String,NodeContents> diskName = new HashMap<String,NodeContents>();
 
-		CellContents(int revision, Version version)
+		CellContents(Version version)
 		{
-            this.revision = revision;
             this.version = version;
 			filledIn = false;
 		}
@@ -153,6 +153,25 @@ public class JelibParser
         Variable[] vars;
     }
     
+    // The parsing result
+    Version version;
+    Variable[] libVars;
+    
+    final LinkedHashMap<LibId,String> externalLibIds = new LinkedHashMap<LibId,String>();
+	final LinkedHashMap<CellId,Rectangle2D> externalCells = new LinkedHashMap<CellId,Rectangle2D>();
+	final LinkedHashMap<ExportId,EPoint> externalExports = new LinkedHashMap<ExportId,EPoint>();
+    final LinkedHashMap<TechId,Variable[]> techIds = new LinkedHashMap<TechId,Variable[]>();
+    final LinkedHashMap<PrimitiveNodeId,Variable[]> primitiveNodeIds = new LinkedHashMap<PrimitiveNodeId,Variable[]>();
+    final LinkedHashMap<PrimitivePortId,Variable[]> primitivePortIds = new LinkedHashMap<PrimitivePortId,Variable[]>();
+    final LinkedHashMap<ArcProtoId,Variable[]> arcProtoIds = new LinkedHashMap<ArcProtoId,Variable[]>();
+    final LinkedHashMap<Tool,Variable[]> tools = new LinkedHashMap<Tool,Variable[]>();
+    
+ 	final LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
+    final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
+    final ArrayList<CellId[]> groupLines = new ArrayList<CellId[]>();
+    
+    /*---------------------------------------------------------------------*/
+    
 	private static String[] revisions =
 	{
 		// Revision 1
@@ -160,7 +179,9 @@ public class JelibParser
 		// Revision 2
 		"8.04l",
 	};
-
+    
+    private static final Version newDelibHeaderVersion = Version.parseVersion("8.04n");
+    
     private static int defaultArcFlags;
     static {
         defaultArcFlags = ImmutableArcInst.DEFAULT_FLAGS;
@@ -178,104 +199,66 @@ public class JelibParser
     }
     
     // Were in LibraryFiles
-    final JELIB reader;
+    private final URL fileURL;
+    private final FileType fileType;
     private final IdManager idManager;
-    Version version;
-    final Library lib;
-    final String filePath;
-    LineNumberReader lineReader;
+    private final LibId libId;
+    private final String filePath;
+    private LineNumberReader lineReader;
+    private final LineNumberReader delibHeaderReader;
+    private int revision = revisions.length;
+    private final ErrorLogger errorLogger;
     private final MutableTextDescriptor mtd = new MutableTextDescriptor();
     /** buffer for reading Variables. */                                    private final ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
     
- 	LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
-	HashMap<String,Rectangle2D> externalCells;
-	HashMap<String,Point2D.Double> externalExports;
-    private HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
-    private HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
+    private final HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
+    private final HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
 //	private Version version;
-	char escapeChar = '\\';
-	String curLibName;
-    String curReadFile;
+	private char escapeChar = '\\';
+	private String curLibName;
+    private String curReadFile;
 
-    private String curExternalLibName = "";
-    private String curExternalCellName = "";
-    private Technology curTech = null;
-    private PrimitiveNode curPrim = null;
-    ArrayList<String[]> groupLines;
+    private LibId curExternalLibId = null;
+    private CellId curExternalCellId = null;
+    private TechId curTechId = null;
+    private PrimitiveNodeId curPrimId = null;
 
-//	/** The number of lines that have been "processed" so far. */	private int numProcessed;
-//	/** The number of lines that must be "processed". */			private int numToProcess;
-
-	JelibParser(JELIB reader)
+	private JelibParser(LibId libId, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException
 	{
-        this.reader = reader;
-        idManager = reader.idManager;
-        assert reader.version == null;
-        lib = reader.lib;
-        filePath = reader.filePath;
-        lineReader = reader.lineReader;
+        idManager = libId.idManager;
+        this.libId = libId;
+        this.fileURL = fileURL;
+        this.fileType = fileType;
+        filePath = fileURL.getFile();
+        this.errorLogger = errorLogger;
+        InputStream inputStream;
+        if (fileType == FileType.JELIB) {
+            URLConnection urlCon = fileURL.openConnection();
+            urlCon.setConnectTimeout(10000);
+            urlCon.setReadTimeout(1000);
+            curReadFile = filePath;
+            inputStream = urlCon.getInputStream();
+        } else if (fileType == FileType.DELIB) {
+            curReadFile = filePath + File.separator + "header";
+            inputStream = new FileInputStream(curReadFile);
+        } else {
+            throw new IllegalArgumentException("fileType");
+        }
+        InputStreamReader is = new InputStreamReader(inputStream, "UTF-8");
+        this.lineReader = new LineNumberReader(is);
+        delibHeaderReader = fileType == FileType.DELIB ? lineReader : null;
+        try {
+            readFromFile(onlyProjectSettings);
+        } finally {
+            lineReader.close();
+        }
 	}
     
-	/**
-	 * Method to read a Library in new library file (.jelib) format.
-	 * @return true on error.
-	 */
-    protected boolean readProjectSettings() {
-        try {
-            curLibName = null;
-            version = null;
-            curExternalLibName = "";
-            curExternalCellName = "";
-            curTech = null;
-            curPrim = null;
-            externalCells = new HashMap<String,Rectangle2D>();
-            externalExports = new HashMap<String,Point2D.Double>();
-            curReadFile = filePath;
-            
-            // do all the reading
-            readFromFile(false, true);
-            return false;
-        } catch (IOException e) {
-            Input.errorLogger.logError("End of file reached while reading " + filePath, -1);
-            return true;
-        }
-    }
-
-	/**
-	 * Method to read a Library in new library file (.jelib) format.
-	 * @return true on error.
-	 */
-	protected boolean readLib() {
-        return reader.readLib0();
+    public static JelibParser parse(LibId libId, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException {
+        return new JelibParser(libId, fileURL, fileType, onlyProjectSettings, errorLogger);
     }
     
-	/**
-	 * Method to read the .elib file.
-	 * Returns true on error.
-	 */
-	boolean readTheLibrary()
-		throws IOException
-	{
-		lib.erase();
-		curLibName = null;
-		version = null;
-		curExternalLibName = "";
-		curExternalCellName = "";
-		curTech = null;
-		curPrim = null;
-		externalCells = new HashMap<String,Rectangle2D>();
-		externalExports = new HashMap<String,Point2D.Double>();
-		groupLines = new ArrayList<String[]>();
-        curReadFile = filePath;
-
-        // do all the reading
-        readFromFile(false, false);
-
-        return false;
-    }
-
-    protected void readFromFile(boolean fromDelib, boolean onlyProjectSettings) throws IOException {
-		int revision = revisions.length;
+    private void readFromFile(boolean onlyProjectSettings) throws IOException {
         boolean ignoreCvsMergedContent = false;
 		for(;;)
 		{
@@ -291,8 +274,7 @@ public class JelibParser
             if (line.startsWith("<<<<<<<")) {
                 // This marks start of stuff merged from CVS, ignore this stuff
                 ignoreCvsMergedContent = true;
-                Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-                    ", CVS conflicts found: " + line, -1);
+                logError("CVS conflicts found: " + line);
                 continue;
             }
             if (ignoreCvsMergedContent && line.startsWith("=======")) {
@@ -309,7 +291,11 @@ public class JelibParser
 
 			if (first == 'C')
 			{
-                readCell(revision, line);
+                if (lineReader == delibHeaderReader) {
+                    readDelibCell(line);
+                } else {
+                    readCell(line);
+                }
                 continue;
 			}
 
@@ -319,102 +305,81 @@ public class JelibParser
 				List<String> pieces = parseLine(line);
 				if (pieces.size() != 2)
 				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", External library declaration needs 2 fields: " + line, -1);
+					logError("External library declaration needs 2 fields: " + line);
 					continue;
 				}
-				curExternalLibName = unQuote(revision, pieces.get(0));
-				if (Library.findLibrary(curExternalLibName) != null) continue;
+                String libName = unQuote(pieces.get(0));
+                curExternalLibId = idManager.newLibId(libName);
+                String libFileName = unQuote(pieces.get(1));
 
 				// recurse
-				readExternalLibraryFromFilename(unQuote(revision, pieces.get(1)), getPreferredFileType());
+                if (!externalLibIds.containsKey(curExternalLibId))
+                    externalLibIds.put(curExternalLibId, libFileName);
 				continue;
 			}
 
-			if (first == 'R')
-			{
+			if (first == 'R') {
 				// cross-library cell information
 				List<String> pieces = parseLine(line);
-//				if (pieces.size() != 5 && pieces.size( ) != 7)
  				int numPieces = revision == 1 ? 7 : 5;
- 				if (pieces.size() != numPieces)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-//						", External cell declaration needs 5 or 7 fields: " + line, -1);
-						", External cell declaration needs " + numPieces + " fields: " + line, -1);
+ 				if (pieces.size() != numPieces) {
+					logError("External cell declaration needs " + numPieces + " fields: " + line);
 					continue;
 				}
 				double lowX = TextUtils.atof(pieces.get(1));
 				double highX = TextUtils.atof(pieces.get(2));
 				double lowY = TextUtils.atof(pieces.get(3));
 				double highY = TextUtils.atof(pieces.get(4));
-//				if (pieces.size() > 5)
 				if (revision == 1)
 				{
 					Long.parseLong(pieces.get(5));		// ignore cdate
 					Long.parseLong(pieces.get(6));		// ignore rdate
 				}
 				Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, highX-lowX, highY-lowY);
-				curExternalCellName = curExternalLibName + ":" + unQuote(revision, pieces.get(0));
-				externalCells.put(curExternalCellName, bounds);
+                String cellName = unQuote(pieces.get(0));
+                curExternalCellId = curExternalLibId.newCellId(CellName.parseName(cellName));
+                if (!externalCells.containsKey(curExternalCellId))
+                    externalCells.put(curExternalCellId, bounds);
 				continue;
 			}
 
-			if (first == 'F')
-			{
+			if (first == 'F') {
 				// cross-library export information
 				List<String> pieces = parseLine(line);
-				if (pieces.size() != 3)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", External export declaration needs 3 fields: " + line, -1);
+				if (pieces.size() != 3) {
+					logError("External export declaration needs 3 fields: " + line);
 					continue;
 				}
-				String exportName = unQuote(revision, pieces.get(0));
+				String exportName = unQuote(pieces.get(0));
 				double posX = TextUtils.atof(pieces.get(1));
 				double posY = TextUtils.atof(pieces.get(1));
-				externalExports.put(curExternalCellName + ":" + exportName, new Point2D.Double(posX, posY));
+                ExportId exportId = curExternalCellId.newPortId(exportName);
+				externalExports.put(exportId, EPoint.fromLambda(posX, posY));
 				continue;
 			}
 
-			if (first == 'H')
-			{
+			if (first == 'H') {
 				// parse header
 				List<String> pieces = parseLine(line);
-				if (pieces.size() < 2)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Library declaration needs 2 fields: " + line, -1);
+				if (pieces.size() < 2) {
+					logError("Library declaration needs 2 fields: " + line);
 					continue;
 				}
 				version = Version.parseVersion(pieces.get(1));
-				if (version == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Badly formed version: " + pieces.get(1), -1);
+				if (version == null) {
+					logError("Badly formed version: " + pieces.get(1));
 					continue;
 				}
-				for (revision = 0; revision < revisions.length; revision++)
-				{
+				for (revision = 0; revision < revisions.length; revision++) {
 					if (version.compareTo(Version.parseVersion(revisions[revision])) < 0) break;
 				}
-				if (revision < 1)
-				{
-					escapeChar = '^';
-					pieces = parseLine(line);
+				escapeChar = revision < 1 ? '^' : '\\';
+				pieces = parseLine(line);
+				curLibName = unQuote(pieces.get(0));
+				if (version.compareTo(Version.getVersion()) > 0) {
+					logWarning("Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")");
 				}
-				curLibName = unQuote(revision, pieces.get(0));
-				if (version.compareTo(Version.getVersion()) > 0)
-				{
-					Input.errorLogger.logWarning(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
-				}
-				Variable[] vars = readVariables(revision, pieces, 2);
-                
-                if (!fromDelib && !onlyProjectSettings) {
-                    realizeVariables(lib, vars);
-                    lib.setVersion(version);
-                }
+				libVars = readVariables(pieces, 2);
 				continue;
 			}
 
@@ -422,137 +387,101 @@ public class JelibParser
 			{
 				// parse Tool information
 				List<String> pieces = parseLine(line);
-				String toolName = unQuote(revision, pieces.get(0));
+				String toolName = unQuote(pieces.get(0));
 				Tool tool = Tool.findTool(toolName);
-				if (tool == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Cannot identify tool " + toolName, -1);
+				if (tool == null) {
+					logError("Cannot identify tool " + toolName);
 					continue;
 				}
 
 				// get additional meaning preferences starting at position 1
-                Variable[] vars = readVariables(revision, pieces, 1);
-                realizeMeaningPrefs(tool, vars);
-//				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1);
+                if (!tools.containsKey(tool))
+                    tools.put(tool, vars);
 				continue;
 			}
 
-			if (first == 'V')
-			{
+			if (first == 'V') {
 				// parse View information
 				List<String> pieces = parseLine(line);
-				String viewName = unQuote(revision, pieces.get(0));
+				String viewName = unQuote(pieces.get(0));
 				View view = View.findView(viewName);
-				if (view == null)
-				{
-					String viewAbbr = unQuote(revision, pieces.get(1));
+				if (view == null) {
+					String viewAbbr = unQuote(pieces.get(1));
 					view = View.newInstance(viewName, viewAbbr);
-					if (view == null)
-					{
-						Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-							", Cannot create view " + viewName, -1);
+					if (view == null) {
+						logError("Cannot create view " + viewName);
 						continue;
 					}
 				}
 
-//				// get additional variables starting at position 2
-//				addVariables(view, pieces, 2, filePath, lineReader.getLineNumber());
+				// get additional variables starting at position 2
+                Variable[] vars = readVariables(pieces, 2);
 				continue;
 			}
 
-			if (first == 'T')
-			{
+			if (first == 'T') {
 				// parse Technology information
 				List<String> pieces = parseLine(line);
-				String techName = unQuote(revision, pieces.get(0));
-				curTech = findTechnology(techName);
-				if (curTech == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Cannot identify technology " + techName, -1);
-					continue;
-				}
-				curPrim = null;
+				String techName = unQuote(pieces.get(0));
+                curTechId = idManager.newTechId(techName);
+                curPrimId = null;
 
 				// get additional meaning preferences  starting at position 1
-                Variable[] vars = readVariables(revision, pieces, 1);
-				realizeMeaningPrefs(curTech, vars);
-//				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1);
+                if (!techIds.containsKey(curTechId))
+                    techIds.put(curTechId, vars);
 				continue;
 			}
 
-			if (first == 'D')
-			{
+			if (first == 'D') {
 				// parse PrimitiveNode information
 				List<String> pieces = parseLine(line);
-				String primName = unQuote(revision, pieces.get(0));
-				if (curTech == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Primitive node " + primName + " has no technology before it", -1);
+				String primName = unQuote(pieces.get(0));
+				if (curTechId == null) {
+					logError("Primitive node " + primName + " has no technology before it");
 					continue;
 				}
-				curPrim = findPrimitiveNode(curTech, primName);
-				if (curPrim == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive node " + primName, -1);
-					continue;
-				}
+                curPrimId = curTechId.newPrimitiveNodeId(primName);
 
 				// get additional variables starting at position 1
-//				addVariables(curPrim, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1);
+                if (!primitiveNodeIds.containsKey(curPrimId))
+                    primitiveNodeIds.put(curPrimId, vars);
 				continue;
 			}
 
-			if (first == 'P')
-			{
+			if (first == 'P') {
 				// parse PrimitivePort information
 				List<String> pieces = parseLine(line);
-				String primPortName = unQuote(revision, pieces.get(0));
-				if (curPrim == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Primitive port " + primPortName + " has no primitive node before it", -1);
+				String primPortName = unQuote(pieces.get(0));
+				if (curPrimId == null) {
+					logError("Primitive port " + primPortName + " has no primitive node before it");
 					continue;
 				}
-
-				PrimitivePort pp = (PrimitivePort)curPrim.findPortProto(primPortName);
-				if (pp == null) pp = curTech.convertOldPortName(primPortName, curPrim);
-				if (pp == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive port " + primPortName, -1);
-					continue;
-				}
+                PrimitivePortId primitivePortId = curPrimId.newPortId(primPortName);
 
 				// get additional variables starting at position 1
-//				addVariables(pp, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1);
+                if (!primitivePortIds.containsKey(primitivePortId))
+                    primitivePortIds.put(primitivePortId, vars);
 				continue;
 			}
 
-			if (first == 'W')
-			{
+			if (first == 'W') {
 				// parse ArcProto information
 				List<String> pieces = parseLine(line);
-				String arcName = unQuote(revision, pieces.get(0));
-				if (curTech == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Primitive arc " + arcName + " has no technology before it", -1);
+				String arcName = unQuote(pieces.get(0));
+				if (curTechId == null) {
+					logError("Primitive arc " + arcName + " has no technology before it");
 					continue;
 				}
-				ArcProto ap = curTech.findArcProto(arcName);
-				if (ap == null)
-				{
-					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-						", Cannot identify primitive arc " + arcName, -1);
-					continue;
-				}
+                ArcProtoId arcProtoId = curTechId.newArcProtoId(arcName);
 
 				// get additional variables starting at position 1
-//				addVariables(ap, pieces, 1, filePath, lineReader.getLineNumber());
+                Variable[] vars = readVariables(pieces, 1);
+                if (!arcProtoIds.containsKey(arcProtoId))
+                    arcProtoIds.put(arcProtoId, vars);
 				continue;
 			}
 
@@ -560,57 +489,132 @@ public class JelibParser
 			{
 				// group information
 				List<String> pieces = parseLine(line);
-				String[] groupLine = new String[pieces.size()];
+				CellId[] groupLine = new CellId[pieces.size()];
 				for(int i=0; i<pieces.size(); i++)
 				{
-					String cellName = unQuote(revision, pieces.get(i));
-					if (cellName.length() == 0) continue;
-					int colonPos = cellName.indexOf(':');
-					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
-					groupLine[i] = cellName;
+					String cellNameString = unQuote(pieces.get(i));
+					if (cellNameString.length() == 0) continue;
+					int colonPos = cellNameString.indexOf(':');
+					if (colonPos >= 0) cellNameString = cellNameString.substring(colonPos+1);
+                    CellName cellName = CellName.parseName(cellNameString);
+					if (cellName == null) {
+						logError("Bad cell name " + cellNameString);
+						continue;
+					}
+                    for (CellId cellId: allCells.keySet()) {
+                        if (cellId.cellName.getName().equals(cellName.getName())) {
+                            groupLine[i] = cellId;
+                        }
+                    }
+                    if (groupLine[i] == null) {
+						logError("Unknow cell " + cellName);
+						continue;
+                    }
 				}
 				groupLines.add(groupLine);
 				continue;
 			}
 
-			Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
-				", Unrecognized line: " + line, -1);
+			logError("Unrecognized line: " + line);
 		}
 	}
 
-    void readCell(int revision, String line) throws IOException {
+    private void readDelibCell(String line) throws IOException {
+        // get the file location; remove 'C' at start
+        String cellFile = line.substring(1, line.length());
+
+        // New header file as of version 8.04n, no cell refs, searches delib dir for cell files
+        if (version.compareTo(newDelibHeaderVersion) >= 0) {
+            if (cellFile.equals(com.sun.electric.tool.io.output.DELIB.SEARCH_FOR_CELL_FILES)) {
+                File delibDir = new File(filePath);
+                if (delibDir.exists() && delibDir.isDirectory()) {
+                    for (File file : delibDir.listFiles()) {
+                        if (file.isDirectory()) continue;
+                        String name = file.getName();
+                        int dot = name.lastIndexOf('.');
+                        if (dot < 0) continue;
+                        View view = View.findView(name.substring(dot+1));
+                        if (view == null) continue;
+                        try {
+                            readDelibFile(file);
+                        } catch (Exception e) {
+                            if (e instanceof IOException) throw (IOException)e;
+                            // some other exception, probably invalid cell file
+                            Input.errorLogger.logError("Exception reading file "+file, -1);
+                        }
+                    }
+                }
+            }
+            return;
+        }
+
+        cellFile = cellFile.replace(com.sun.electric.tool.io.output.DELIB.PLATFORM_INDEPENDENT_FILE_SEPARATOR, File.separatorChar);
+        File cellFD = new File(filePath, cellFile);
+        readDelibFile(cellFD);
+    }
+
+    private void readDelibFile(File cellFD) throws IOException {
+
+        LineNumberReader cellReader;
+        try {
+            FileInputStream fin = new FileInputStream(cellFD);
+            InputStreamReader is = new InputStreamReader(fin);
+            cellReader = new LineNumberReader(is);
+        } catch (IOException e) {
+            System.out.println("Error opening file "+cellFD+": "+e.getMessage());
+            return;
+        }
+        Version savedVersion = version;
+        int savedRevision = revision;
+        char savedEscapeChar = escapeChar;
+        String savedCurLibName = curLibName;
+        lineReader = cellReader;
+        curReadFile = cellFD.getAbsolutePath();
+        try {
+            readFromFile(false);
+            delibCellFiles.add(curReadFile);
+        } finally {
+            version = savedVersion;
+            revision = savedRevision;
+            escapeChar = savedEscapeChar;
+            curLibName = savedCurLibName;
+            lineReader.close();
+            lineReader = delibHeaderReader;
+            curReadFile = filePath;
+        }
+    }
+    
+    private void readCell(String line) throws IOException {
         // grab a cell description
         List<String> pieces = parseLine(line);
         int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
         if (pieces.size() < numPieces)
         {
-            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-                ", Cell declaration needs " + numPieces + " fields: " + line, -1);
+            logError("Cell declaration needs " + numPieces + " fields: " + line);
             return;
         }
         int fieldIndex = 0;
         String name;
         String groupName = null;
         if (revision >= 1) {
-            name = unQuote(revision, pieces.get(fieldIndex++));
+            name = unQuote(pieces.get(fieldIndex++));
             if (revision >= 2) {
                 String s = pieces.get(fieldIndex++);
                 if (s.length() > 0)
-                    groupName = unQuote(revision, s);
+                    groupName = unQuote(s);
             }
         } else {
-            name = unQuote(revision, pieces.get(fieldIndex++));
+            name = unQuote(pieces.get(fieldIndex++));
             String viewAbbrev = pieces.get(fieldIndex++);
             String versionString = pieces.get(fieldIndex++);
             name = name + ";" + versionString + "{" + viewAbbrev + "}";
         }
-        LibId libId = lib.getId();
-        CellContents cc = new CellContents(revision, version);
-        cc.fileName = filePath;
+        CellContents cc = new CellContents(version);
+        cc.fileName = curReadFile;
         cc.lineNumber = lineReader.getLineNumber() + 1;
         cc.cellId = libId.newCellId(CellName.parseName(name));
         cc.groupName = groupName;
-        String techName = unQuote(revision, pieces.get(fieldIndex++));
+        String techName = unQuote(pieces.get(fieldIndex++));
         cc.techId = idManager.newTechId(techName);
         cc.creationDate = Long.parseLong(pieces.get(fieldIndex++));
         cc.revisionDate = Long.parseLong(pieces.get(fieldIndex++));
@@ -630,7 +634,7 @@ public class JelibParser
 
         // add variables
         assert fieldIndex == numPieces;
-        cc.vars = readVariables(revision, pieces, numPieces);
+        cc.vars = readVariables(pieces, numPieces);
 
         // gather the contents of the cell
         for(;;)
@@ -645,13 +649,13 @@ public class JelibParser
                     break;
                 case 'N':
                 case 'I':
-                    parseNode(revision, nextLine, cc);
+                    parseNode(nextLine, cc);
                     break;
                 case 'E':
-                    parseExport(revision, nextLine, cc);
+                    parseExport(nextLine, cc);
                     break;
                 case 'A':
-                    parseArc(revision, nextLine, cc);
+                    parseArc(nextLine, cc);
                     break;
                 default:
             }
@@ -662,7 +666,7 @@ public class JelibParser
         return;
     }
 
-    private void parseNode(int revision, String cellString, CellContents cc) {
+    private void parseNode(String cellString, CellContents cc) {
         NodeContents n = new NodeContents();
         n.line = lineReader.getLineNumber();
 
@@ -675,9 +679,9 @@ public class JelibParser
             logError("Node instance needs " + numPieces + " fields: " + cellString, cc.cellId);
             return;
         }
-        String protoName = unQuote(revision, pieces.get(0));
+        String protoName = unQuote(pieces.get(0));
         // figure out the name for this node.  Handle the form: "Sig"12
-        String diskNodeName = revision >= 1 ? pieces.get(1) : unQuote(revision, pieces.get(1));
+        String diskNodeName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
         String nodeName = diskNodeName;
         if (nodeName.charAt(0) == '"')
         {
@@ -685,7 +689,7 @@ public class JelibParser
             if (lastQuote > 1)
             {
                 nodeName = nodeName.substring(1, lastQuote);
-                if (revision >= 1) nodeName = unQuote(revision, nodeName);
+                if (revision >= 1) nodeName = unQuote(nodeName);
             }
         }
         n.nodeName = nodeName;
@@ -793,13 +797,13 @@ public class JelibParser
         n.anchor = EPoint.fromLambda(x, y);
 
         // add variables in fields 10 and up
-        n.vars = readVariables(revision, pieces, numPieces);
+        n.vars = readVariables(pieces, numPieces);
         cc.nodes.add(n);
         // insert into map of disk names
         cc.diskName.put(diskNodeName, n);
     }
     
-    private void parseExport(int revision, String cellString, CellContents cc) {
+    private void parseExport(String cellString, CellContents cc) {
         ExportContents e = new ExportContents();
         e.line = lineReader.getLineNumber();
 
@@ -807,7 +811,7 @@ public class JelibParser
         List<String> pieces = parseLine(cellString);
         if (revision >= 2 && pieces.size() == 1) {
             // Unused ExportId
-            String exportName = unQuote(revision, pieces.get(0));
+            String exportName = unQuote(pieces.get(0));
             cc.cellId.newPortId(exportName);
             return;
         }
@@ -818,12 +822,12 @@ public class JelibParser
             return;
         }
         int fieldIndex = 0;
-        String exportName = unQuote(revision, pieces.get(fieldIndex++));
+        String exportName = unQuote(pieces.get(fieldIndex++));
         String exportUserName = null;
         if (revision >= 2) {
             String s = pieces.get(fieldIndex++);
             if (s.length() != 0)
-                exportUserName = unQuote(revision, s);
+                exportUserName = unQuote(s);
         }
         if (exportUserName == null || exportName.equals(exportUserName))
             exportName = Name.findName(exportName).toString(); // save memory using String from Name
@@ -831,9 +835,9 @@ public class JelibParser
         e.exportUserName = exportUserName;
         // get text descriptor in field 1
         String textDescriptorInfo = pieces.get(fieldIndex++);
-        String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(revision, pieces.get(fieldIndex++));
+        String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(pieces.get(fieldIndex++));
         e.originalNode = cc.diskName.get(nodeName);
-        String portName = unQuote(revision, pieces.get(fieldIndex++));
+        String portName = unQuote(pieces.get(fieldIndex++));
         e.originalPort = e.originalNode.protoId.newPortId(portName);
         Point2D pos = null;
         if (revision < 1)
@@ -865,11 +869,11 @@ public class JelibParser
         e.ch = ch != null ? ch : PortCharacteristic.UNKNOWN;
 
         // add variables in tail fields
-        e.vars = readVariables(revision, pieces, numPieces);
+        e.vars = readVariables(pieces, numPieces);
         cc.exports.add(e);
     }
     
-    private void parseArc(int revision, String cellString, CellContents cc) {
+    private void parseArc(String cellString, CellContents cc) {
         ArcContents a = new ArcContents();
         a.line = lineReader.getLineNumber();
         
@@ -881,15 +885,14 @@ public class JelibParser
             return;
         }
         TechId techId = cc.techId;
-        String protoName = unQuote(revision, pieces.get(0));
-        ArcProto ap = null;
+        String protoName = unQuote(pieces.get(0));
         int indexOfColon = protoName.indexOf(':');
         if (indexOfColon >= 0) {
             techId = idManager.newTechId(protoName.substring(0, indexOfColon));
             protoName = protoName.substring(indexOfColon + 1);
         }
         a.arcProtoId = techId.newArcProtoId(protoName);
-        String diskArcName = revision >= 1 ? pieces.get(1) : unQuote(revision, pieces.get(1));
+        String diskArcName = revision >= 1 ? pieces.get(1) : unQuote(pieces.get(1));
         String arcName = diskArcName;
         if (arcName.charAt(0) == '"')
         {
@@ -897,22 +900,22 @@ public class JelibParser
             if (lastQuote > 1)
             {
                 arcName = arcName.substring(1, lastQuote);
-                if (revision >= 1) arcName = unQuote(revision, arcName);
+                if (revision >= 1) arcName = unQuote(arcName);
             }
         }
         a.arcName = arcName;
         a.diskWidth = TextUtils.atof(pieces.get(3));
 
-        String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(revision, pieces.get(5));
-        String headPortName = unQuote(revision, pieces.get(6));
+        String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
+        String headPortName = unQuote(pieces.get(6));
         double headX = TextUtils.atof(pieces.get(7));
         double headY = TextUtils.atof(pieces.get(8));
         a.headNode = cc.diskName.get(headNodeName);
         a.headPort = a.headNode.protoId.newPortId(headPortName);
         a.headPoint = EPoint.fromLambda(headX, headY);
 
-        String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(revision, pieces.get(9));
-        String tailPortName = unQuote(revision, pieces.get(10));
+        String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(pieces.get(9));
+        String tailPortName = unQuote(pieces.get(10));
         double tailX = TextUtils.atof(pieces.get(11));
         double tailY = TextUtils.atof(pieces.get(12));
         a.tailNode = cc.diskName.get(tailNodeName);
@@ -989,7 +992,7 @@ public class JelibParser
         a.nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false);
 
         // add variables in fields 13 and up
-        a.vars = readVariables(revision, pieces, 13);
+        a.vars = readVariables(pieces, 13);
         cc.arcs.add(a);
     }
 
@@ -1027,7 +1030,7 @@ public class JelibParser
 		return stringPieces;
 	}
 
-	private String unQuote(int revision, String line)
+	private String unQuote(String line)
 	{
 		int len = line.length();
 		if (revision >= 1)
@@ -1035,7 +1038,7 @@ public class JelibParser
 			if (len < 2 || line.charAt(0) != '"') return line;
 			int lastQuote = line.lastIndexOf('"');
 			if (lastQuote != len - 1)
-				return unQuote(revision, line.substring(0, lastQuote + 1)) + line.substring(lastQuote + 1);
+				return unQuote(line.substring(0, lastQuote + 1)) + line.substring(lastQuote + 1);
 			line = line.substring(1, len - 1);
 			len -= 2;
 		} else
@@ -1062,12 +1065,11 @@ public class JelibParser
 
 	/**
 	 * Method to read variables to an ElectricObject from a List of strings.
-     * @param revision the revision of JELIB format
 	 * @param pieces the array of Strings that described the ElectricObject.
 	 * @param position the index in the array of strings where Variable descriptions begin.
      * @return an array of Variables. 
 	 */
-	private Variable[] readVariables(int revision, List<String> pieces, int position)
+	private Variable[] readVariables(List<String> pieces, int position)
 	{
         variablesBuf.clear();
 		int total = pieces.size();
@@ -1088,7 +1090,7 @@ public class JelibParser
 				logError("Badly formed variable (no open parenthesis): " + piece);
 				continue;
 			}
-			String varName = unQuote(revision, piece.substring(0, openPos));
+			String varName = unQuote(piece.substring(0, openPos));
 			Variable.Key varKey = Variable.newKey(varName);
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)
@@ -1162,7 +1164,7 @@ public class JelibParser
 							}
 							objectPos++;
 						}
-						Object oneObj = getVariableValue(revision, piece.substring(start, objectPos), varType);
+						Object oneObj = getVariableValue(piece.substring(start, objectPos), varType);
 						objList.add(oneObj);
 						if (piece.charAt(objectPos) == ']') break;
 						objectPos++;
@@ -1205,7 +1207,7 @@ public class JelibParser
 				} else
 				{
 					// a scalar Variable
-					obj = getVariableValue(revision, piece.substring(objectPos), varType);
+					obj = getVariableValue(piece.substring(objectPos), varType);
                     if (obj == null) {
                         // ????
                         continue;
@@ -1424,12 +1426,11 @@ public class JelibParser
 
 	/**
 	 * Method to convert a String to an Object so that it can be stored in a Variable.
-     * @param revision the revision of JELIB format.
 	 * @param piece the String to be converted.
 	 * @param varType the type of the object to convert (a letter from the file).
 	 * @return the Object representation of the given String.
 	 */
-	private Object getVariableValue(int revision, String piece, char varType)
+	private Object getVariableValue(String piece, char varType)
 	{
 		int colonPos;
 		String libName;
@@ -1438,7 +1439,7 @@ public class JelibParser
 		int commaPos;
 
 		if (revision >= 1)
-			piece = unQuote(revision, piece);
+			piece = unQuote(piece);
 
 		switch (varType)
 		{
@@ -1577,39 +1578,17 @@ public class JelibParser
 	}
 
     private void logError(String message) {
-        String s = filePath + ", line " + lineReader.getLineNumber() + ", " + message;
-        Input.errorLogger.logError(s, -1);
+        String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
+        errorLogger.logError(s, -1);
+    }
+    
+    private void logWarning(String message) {
+        String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
+        errorLogger.logWarning(s, null, -1);
     }
     
     private void logError(String message, CellId cellId) {
-        String s = filePath + ", line " + lineReader.getLineNumber() + ", " + message;
-        Input.errorLogger.logError(s, cellId, -1);
-    }
-    
-    Technology findTechnology(String techName) {
-        Technology tech = Technology.findTechnology(techName);
-        if (tech == null && techName.equals("tsmc90"))
-            tech = Technology.findTechnology("cmos90");
-        return tech;
-            
-    }
-    
-	PrimitiveNode findPrimitiveNode(Technology tech, String name)
-	{
-		PrimitiveNode pn = tech.findNodeProto(name);
-		if (pn != null) return pn;
-		return tech.convertOldNodeName(name);
-	}
-
-    protected FileType getPreferredFileType() { return FileType.JELIB; }
-    
-    private void realizeVariables(ElectricObject eObj, Variable[] vars) {
-        reader.realizeVariables(eObj, vars);
-    }
-    private void realizeMeaningPrefs(Object owner, Variable[] vars) {
-        reader.realizeMeaningPrefs(owner, vars);
-    }
-	private Library readExternalLibraryFromFilename(String theFileName, FileType defaultType) {
-        return reader.readExternalLibraryFromFilename(theFileName, defaultType);
+        String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
+        errorLogger.logError(s, cellId, -1);
     }
 }

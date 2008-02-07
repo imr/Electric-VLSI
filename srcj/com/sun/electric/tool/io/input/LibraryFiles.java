@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -48,6 +49,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Listener;
@@ -67,6 +69,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -268,15 +271,19 @@ public abstract class LibraryFiles extends Input
             }
         }
         // handle different file types
+        if (type == FileType.JELIB || type == FileType.DELIB) {
+            TechPool techPool = EDatabase.serverDatabase().getTechPool();
+            try {
+                return JELIB.readProjectSettings(fileURL, type, techPool, errorLogger);
+            } finally {
+                errorLogger.termLogging(true);
+            }
+        }
         LibraryFiles in;
         if (type == FileType.ELIB)
         {
             in = new ELIB();
             if (in.openBinaryInput(fileURL)) return null;
-        } else if (type == FileType.JELIB || type == FileType.DELIB)
-        {
-            in = new JELIB(type);
-            if (in.openTextInput(fileURL)) return null;
         } else if (type == FileType.READABLEDUMP)
         {
             in = new ReadableDump();
@@ -327,8 +334,12 @@ public abstract class LibraryFiles extends Input
 			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == FileType.JELIB || type == FileType.DELIB)
 		{
-			in = new JELIB(type);
-			if (in.openTextInput(fileURL)) return null;
+            try {
+                LibId libId = lib != null ? lib.getId() : EDatabase.serverDatabase().getIdManager().newLibId(libName);
+                in = new JELIB(libId, fileURL, type);
+            } catch (IOException e) {
+                return null;
+            }
 		} else if (type == FileType.READABLEDUMP)
 		{
 			in = new ReadableDump();
@@ -712,7 +723,7 @@ public abstract class LibraryFiles extends Input
 			// get the library name
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
             elib = readALibrary(externalURL, elib, eLibName, importType);
-            setProgressValue((int)(byteCount * 100 / fileLength));
+            setProgressValue(100);
             setProgressNote(oldNote);
         }
 
@@ -1203,6 +1214,16 @@ public abstract class LibraryFiles extends Input
 	 * @param vars Variables with meaning preferences.
 	 */
     void realizeMeaningPrefs(Object obj, Variable[] vars) {
+        realizeMeaningPrefs(projectSettings, obj, vars);
+	}
+
+	/**
+	 * Method to add meaning preferences to an ElectricObject from a List of strings.
+     * @param projectSettings a map for result
+	 * @param obj the Object to augment with meaning preferences.
+	 * @param vars Variables with meaning preferences.
+	 */
+    static void realizeMeaningPrefs(HashMap<Setting,Object> projectSettings, Object obj, Variable[] vars) {
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;

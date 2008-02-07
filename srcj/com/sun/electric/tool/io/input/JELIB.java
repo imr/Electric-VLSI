@@ -29,12 +29,17 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -43,20 +48,25 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
-
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
+import com.sun.electric.tool.user.ErrorLogger;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -65,23 +75,49 @@ import java.util.Set;
 public class JELIB extends LibraryFiles
 {
     private final FileType fileType;
-    private JelibParser parser;
+    private final JelibParser parser;
 
-	JELIB(FileType fileType)
+	JELIB(LibId libId, URL fileURL, FileType fileType) throws IOException
 	{
         this.fileType = fileType;
+        parser = JelibParser.parse(libId, fileURL, fileType, false, Input.errorLogger);
 	}
     
-	/**
-	 * Method to read a Library in new library file (.jelib) format.
-	 * @return true on error.
-	 */
-    @Override
-    protected boolean readProjectSettings() {
-        createParser();
-        return parser.readProjectSettings();
+    public static Map<Setting,Object> readProjectSettings(URL fileURL, FileType fileType, TechPool techPool, ErrorLogger errorLogger) {
+        JelibParser parser;
+        try {
+            parser = parse(techPool.idManager, fileURL, fileType, true, errorLogger);
+        } catch (IOException e) {
+            errorLogger.logError("Error readeing " + fileURL + ": " + e.getMessage(), -1);
+            return null;
+        }
+        HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
+        for (Map.Entry<TechId,Variable[]> e: parser.techIds.entrySet()) {
+            TechId techId = e.getKey();
+            Variable[] vars = e.getValue();
+            Technology tech = techPool.getTech(techId);
+            if (tech == null && techId.techName.equals("tsmc90"))
+                tech = techPool.getTech(techPool.idManager.newTechId("cmos90"));
+            if (tech == null) {
+                Input.errorLogger.logError(fileURL +
+                    ", Cannot identify technology " + techId.techName, -1);
+                continue;
+            }
+            realizeMeaningPrefs(projectSettings, tech, vars);
+        }
+        for (Map.Entry<Tool,Variable[]> e: parser.tools.entrySet()) {
+            Tool tool = e.getKey();
+            Variable[] vars = e.getValue();
+            realizeMeaningPrefs(projectSettings, tool, vars);
+        }
+        return projectSettings;
     }
-
+    
+    public static JelibParser parse(IdManager idManager, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException {
+        LibId libId = idManager.newLibId(TextUtils.getFileNameWithoutExtension(fileURL));
+        return JelibParser.parse(libId, fileURL, fileType, onlyProjectSettings, errorLogger);
+    }
+    
 	/**
 	 * Method to read a Library in new library file (.jelib) format.
 	 * @return true on error.
@@ -89,167 +125,151 @@ public class JELIB extends LibraryFiles
     @Override
 	protected boolean readLib()
 	{
-        createParser();
-        return parser.readLib();
-	}
-    
-    private void createParser() {
-        if (fileType == FileType.DELIB)
-            parser = new DELIB(this);
-        else if (fileType == FileType.JELIB)
-            parser = new JelibParser(this);
-        else
-            throw new AssertionError();
-    }
+        lib.erase();
+        realizeVariables(lib, parser.libVars);
+        lib.setVersion(parser.version);
+        
+        // Project settings
+        for (Map.Entry<TechId,Variable[]> e: parser.techIds.entrySet()) {
+            TechId techId = e.getKey();
+            Variable[] vars = e.getValue();
+            Technology tech = findTechnology(techId);
+            if (tech == null) {
+                Input.errorLogger.logError(filePath +
+                    ", Cannot identify technology " + techId.techName, -1);
+                continue;
+            }
+            realizeMeaningPrefs(tech, vars);
+        }
+        for (Map.Entry<Tool,Variable[]> e: parser.tools.entrySet()) {
+            Tool tool = e.getKey();
+            Variable[] vars = e.getValue();
+            realizeMeaningPrefs(tool, vars);
+        }
+        for (Map.Entry<LibId,String> e: parser.externalLibIds.entrySet()) {
+            LibId libId = e.getKey();
+            String libFileName = e.getValue();
+            if (Library.findLibrary(libId.libName) == null) 
+                readExternalLibraryFromFilename(libFileName, fileType);
+        }
+        
+        nodeProtoCount = parser.allCells.size();
+        nodeProtoList = new Cell[nodeProtoCount];
+        cellLambda = new double[nodeProtoCount];
+        int cellNum = 0;
+        for (JelibParser.CellContents cc: parser.allCells.values()) {
+            CellId cellId = cc.cellId;
+            Cell cell = Cell.newInstance(lib, cellId.cellName.toString());
+             Technology tech = findTechnology(cc.techId);
+            cell.setTechnology(tech);
+            cell.lowLevelSetCreationDate(new Date(cc.creationDate));
+            cell.lowLevelSetRevisionDate(new Date(cc.revisionDate));
+            if (cc.expanded) cell.setWantExpanded();
+            if (cc.allLocked) cell.setAllLocked();
+            if (cc.instLocked) cell.setInstancesLocked();
+            if (cc.cellLib) cell.setInCellLibrary();
+            if (cc.techLib) cell.setInTechnologyLibrary();
+            realizeVariables(cell, cc.vars);
+            nodeProtoList[cellNum++] = cell;
+       }
 
-	boolean readLib0()
-	{
-		try
-		{
-			if (readTheLibrary()) return true;
-			nodeProtoCount = parser.allCells.size();
-			nodeProtoList = new Cell[nodeProtoCount];
-			cellLambda = new double[nodeProtoCount];
-			int cellNum = 0;
-			for (JelibParser.CellContents cc: parser.allCells.values()) {
-                CellId cellId = cc.cellId;
-                Cell cell = Cell.newInstance(lib, cellId.cellName.toString());
-                if (cell == null) {
+        // collect the cells by common protoName and by "groupLines" relation
+        TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
+        HashMap<String,String> protoNames = new HashMap<String,String>();
+        for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
+        {
+            Cell cell = cit.next();
+            String protoName = protoNames.get(cell.getName());
+            if (protoName == null)
+            {
+                protoName = cell.getName();
+                protoNames.put(protoName, protoName);
+            }
+            transitive.theseAreRelated(cell, protoName);
+
+            // consider groupName fields
+            String groupName = parser.allCells.get(cell.getId()).groupName;
+            if (groupName == null) continue;
+            protoName = protoNames.get(groupName);
+            if (protoName == null)
+            {
+                protoName = groupName;
+                protoNames.put(protoName, protoName);
+            }
+            transitive.theseAreRelated(cell, protoName);
+        }
+        for (CellId[] groupLine : parser.groupLines)
+        {
+            Cell firstCell = null;
+            for (int i = 0; i < groupLine.length; i++)
+            {
+                if (groupLine[i] == null) continue;
+                CellId cellId = groupLine[i];
+                Cell cell = lib.findNodeProto(cellId.cellName.toString());
+                if (cell == null)
+                {
                     Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-                    ", Unable to create cell " + cellId.cellName, -1);
-                    return true;
+                        ", Cannot find cell " + cellId, -1);
+                    break;
                 }
-				nodeProtoList[cellNum++] = cell;
-                Technology tech = findTechnology(cc.techId.techName);
-                cell.setTechnology(tech);
-                cell.lowLevelSetCreationDate(new Date(cc.creationDate));
-                cell.lowLevelSetRevisionDate(new Date(cc.revisionDate));
-                if (cc.expanded) cell.setWantExpanded();
-                if (cc.allLocked) cell.setAllLocked();
-                if (cc.instLocked) cell.setInstancesLocked();
-                if (cc.cellLib) cell.setInCellLibrary();
-                if (cc.techLib) cell.setInTechnologyLibrary();
-                realizeVariables(cell, cc.vars);
+                if (firstCell == null)
+                    firstCell = cell;
+                else
+                    transitive.theseAreRelated(firstCell, cell);
             }
-            
-            // collect the cells by common protoName and by "groupLines" relation
-            TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
-            HashMap<String,String> protoNames = new HashMap<String,String>();
-            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
+        }
+
+        // create the cell groups
+        for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
+        {
+            Set<Object> group = git.next();
+            Cell firstCell = null;
+            for (Object o : group)
             {
-                Cell cell = cit.next();
-                String protoName = protoNames.get(cell.getName());
-                if (protoName == null)
-                {
-                    protoName = cell.getName();
-                    protoNames.put(protoName, protoName);
-                }
-                transitive.theseAreRelated(cell, protoName);
-
-                // consider groupName fields
-                String groupName = parser.allCells.get(cell.getId()).groupName;
-                if (groupName == null) continue;
-                protoName = protoNames.get(groupName);
-                if (protoName == null)
-                {
-                    protoName = groupName;
-                    protoNames.put(protoName, protoName);
-                }
-                transitive.theseAreRelated(cell, protoName);
+                if (!(o instanceof Cell)) continue;
+                Cell cell = (Cell)o;
+                if (firstCell == null)
+                    firstCell = cell;
+                else
+                    cell.joinGroup(firstCell);
             }
-            for (String[] groupLine : parser.groupLines)
+        }
+
+//        // set main schematic cells
+//        for (Cell[] groupLine : groupLines)
+//        {
+//            Cell firstCell = groupLine[0];
+//            if (firstCell == null) continue;
+//            if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
+//                firstCell.getCellGroup().setMainSchematics(firstCell);
+//        }
+
+        // sensibility check: shouldn't all cells with the same root name be in the same group?
+        HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
+        for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+        {
+            Cell cell = it.next();
+            String canonicName = TextUtils.canonicString(cell.getName());
+            Cell.CellGroup group = cell.getCellGroup();
+            Cell.CellGroup groupOfName = cellGroups.get(canonicName);
+            if (groupOfName == null)
             {
-                Cell firstCell = null;
-                for (int i = 0; i < groupLine.length; i++)
-                {
-                    if (groupLine[i] == null) continue;
-					String cellName = groupLine[i];
-					Cell cell = lib.findNodeProto(cellName);
-					if (cell == null)
-					{
-						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-							", Cannot find cell " + cellName, -1);
-						break;
-					}
-                    if (firstCell == null)
-                        firstCell = cell;
-                    else
-                        transitive.theseAreRelated(firstCell, cell);
-                }
-            }
-
-            // create the cell groups
-            for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
+                cellGroups.put(canonicName, group);
+            } else
             {
-                Set<Object> group = git.next();
-                Cell firstCell = null;
-                for (Object o : group)
+                if (groupOfName != group)
                 {
-                    if (!(o instanceof Cell)) continue;
-                    Cell cell = (Cell)o;
-                    if (firstCell == null)
-                        firstCell = cell;
-                    else
-                        cell.joinGroup(firstCell);
+                    Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
+                        canonicName + "' that are not in the same group", -1);
                 }
             }
+        }
 
-    //        // set main schematic cells
-    //        for (Cell[] groupLine : groupLines)
-    //        {
-    //            Cell firstCell = groupLine[0];
-    //            if (firstCell == null) continue;
-    //            if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
-    //                firstCell.getCellGroup().setMainSchematics(firstCell);
-    //        }
-
-            // sensibility check: shouldn't all cells with the same root name be in the same group?
-            HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
-            for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-            {
-                Cell cell = it.next();
-                String canonicName = TextUtils.canonicString(cell.getName());
-                Cell.CellGroup group = cell.getCellGroup();
-                Cell.CellGroup groupOfName = cellGroups.get(canonicName);
-                if (groupOfName == null)
-                {
-                    cellGroups.put(canonicName, group);
-                } else
-                {
-                    if (groupOfName != group)
-                    {
-                        Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
-                            canonicName + "' that are not in the same group", -1);
-
-                        // Join groups with like-names cells
-    // 					for (Iterator cit = group.getCells(); cit.hasNext(); )
-    // 					{
-    // 						Cell cellInGroup = cit.next();
-    // 						cellInGroup.setCellGroup(groupOfName);
-    // 					}
-                    }
-                }
-            }
-
-            lib.setFromDisk();
-			return false;
-		} catch (IOException e)
-		{
-			Input.errorLogger.logError("End of file reached while reading " + filePath, -1);
-			return true;
-		}
+        lib.setFromDisk();
+        lib.setDelibCellFiles(parser.delibCellFiles);
+        return false;
 	}
 
-	/**
-	 * Method to read the .elib file.
-	 * Returns true on error.
-	 */
-	private boolean readTheLibrary()
-		throws IOException
-	{
-        return parser.readTheLibrary();
-    }
-    
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
@@ -286,11 +306,15 @@ public class JELIB extends LibraryFiles
                 np = database.getCell((CellId)protoId);
             else {
                 PrimitiveNodeId pnId = (PrimitiveNodeId)protoId;
-                Technology tech = findTechnology(pnId.techId.techName);
-                if (tech != null)
-                    np = findPrimitiveNode(tech, pnId.name);
-                if (np == null)
-                    protoId = idManager.newLibId(pnId.techId.techName).newCellId(CellName.parseName(pnId.name));
+                np = findPrimitiveNode(pnId);
+                if (np == null) {
+					Input.errorLogger.logError(cc.fileName + ", line " + line +
+						", Cannot find primitive node " + pnId, cell, -1);
+                    CellName cellName = CellName.parseName(pnId.name);
+                    if (cellName.getVersion() <= 0)
+                        cellName = CellName.newName(cellName.getName(), cellName.getView(), 1);
+                    protoId = lib.getId().newCellId(cellName);
+                }
             }
 
 			// make sure the subcell has been instantiated
@@ -329,23 +353,23 @@ public class JELIB extends LibraryFiles
                 Library cellLib = database.getLib(dummyCellId.libId);
 				if (cellLib == null)
 				{
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + line +
 						", Creating dummy library " + prefixName, cell, -1);
 					cellLib = Library.newInstance(prefixName, null);
 				}
 				Cell dummyCell = Cell.makeInstance(cellLib, protoName);
 				if (dummyCell == null)
 				{
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + line +
 						", Unable to create dummy cell " + protoName + " in " + cellLib, cell, -1);
 					continue;
 				}
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + line +
 					", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
 				Rectangle2D bounds = parser.externalCells.get(dummyCellId.toString());
 				if (bounds == null)
 				{
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + line +
 						", Warning: cannot find information about external cell " + dummyCellId, cell, -1);
 					NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), 0, 0, dummyCell);
 				} else
@@ -403,19 +427,16 @@ public class JELIB extends LibraryFiles
 		for(JelibParser.ArcContents a: cc.arcs) {
             int line = a.line;
             
-            ArcProto ap = null;
-            Technology tech = findTechnology(a.arcProtoId.techId.techName);
-            if (tech != null)
-                ap = tech.findArcProto(a.arcProtoId.name);
-			if (ap == null)
-			{
+            ArcProto ap = findArcProto(a.arcProtoId);
+			if (ap == null) {
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (" + cell + ") cannot find arc " + a.arcProtoId, cell, -1);
 				continue;
 			}
+            Technology tech = ap.getTechnology();
             Technology.SizeCorrector sizeCorrector = sizeCorrectors.get(tech);
             if (sizeCorrector == null) {
-                sizeCorrector = tech.getSizeCorrector(cc.version, projectSettings, true, false);
+                 sizeCorrector = tech.getSizeCorrector(cc.version, projectSettings, true, false);
                 sizeCorrectors.put(tech, sizeCorrector);
             }
 			long gridExtendOverMin = sizeCorrector.getExtendFromDisk(ap, a.diskWidth);
@@ -492,7 +513,7 @@ public class JELIB extends LibraryFiles
             subCell = (Cell)ni.getProto();
             var = subCell.getVar(IO_TRUE_LIBRARY);
             if (pos == null)
-                pos = parser.externalExports.get(subCell.getCellName().toString() + ":" + portName);
+                pos = parser.externalExports.get(subCell.getId().newPortId(portName));
 		}
         if (pos == null)
             pos = ni.getAnchorCenter().lambdaMutable();
@@ -537,19 +558,32 @@ public class JELIB extends LibraryFiles
 		return pi;
 	}
 
-    Technology findTechnology(String techName) {
-        Technology tech = Technology.findTechnology(techName);
-        if (tech == null && techName.equals("tsmc90"))
-            tech = Technology.findTechnology("cmos90");
+    Technology findTechnology(TechId techId) {
+        TechPool techPool = database.getTechPool();
+        Technology tech = techPool.getTech(techId);
+        if (tech == null && techId.techName.equals("tsmc90"))
+            tech = techPool.getTech(idManager.newTechId("cmos90"));
         return tech;
-            
     }
     
-	PrimitiveNode findPrimitiveNode(Technology tech, String name)
-	{
-		PrimitiveNode pn = tech.findNodeProto(name);
-		if (pn != null) return pn;
-		return tech.convertOldNodeName(name);
+	PrimitiveNode findPrimitiveNode(PrimitiveNodeId primitiveNodeId) {
+        TechPool techPool = database.getTechPool();
+        PrimitiveNode pn = techPool.getPrimitiveNode(primitiveNodeId);
+        if (pn == null && primitiveNodeId.techId.techName.equals("tsmc90"))
+            pn = findPrimitiveNode(idManager.newTechId("cmos90").newPrimitiveNodeId(primitiveNodeId.name));
+		if (pn == null) {
+            Technology tech = findTechnology(primitiveNodeId.techId);
+            if (tech != null)
+                pn = tech.convertOldNodeName(primitiveNodeId.name);
+        }
+        return pn;
 	}
-
+    
+    ArcProto findArcProto(ArcProtoId arcProtoId) {
+        TechPool techPool = database.getTechPool();
+        ArcProto ap = techPool.getArcProto(arcProtoId);
+        if (ap == null && arcProtoId.techId.techName.equals("tsmc90"))
+            ap = findArcProto(idManager.newTechId("cmos90").newArcProtoId(arcProtoId.name));
+        return ap;
+    }
 }

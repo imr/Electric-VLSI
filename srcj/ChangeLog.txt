@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07d: *******************************
 
+BUG: (2/6/08, DN) Illegal exception while reading an old library (Bug #1561)
+FIX: In JELIB.realizeCellsRecursively add version number for dummy CellId.
+
 ************************* Version 8.07c: *******************************
 
 BUG/MAN: (2/6/08, SMR) EDIF input now ignores EDIF for existing cells (Bug #1532).
