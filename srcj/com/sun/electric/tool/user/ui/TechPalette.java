@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -313,16 +314,23 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             String msg = (String)obj;
             if (msg.equals(Technology.SPECIALMENUCELL))
             {
+            	// get current cell type
+            	View view = null;
+            	Cell curCell = WindowFrame.getCurrentCell();
+            	if (curCell != null)
+            	{
+                	if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
+                		if (curCell.getTechnology().isSchematics()) view = View.ICON;
+            	}
                 JPopupMenu cellMenu = new JPopupMenu("Cells");
                 for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
                 {
                     Cell cell = it.next();
+                    if (view != null && cell.getView() != view) continue;
                     menuItem = new JMenuItem(cell.describe(false));
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                     cellMenu.add(menuItem);
                 }
-//					cellMenu.addMouseListener(new MyPopupListener());
-//					cellMenu.addPopupMenuListener(new MyPopupListener());
                 cellMenu.show(panel, e.getX(), e.getY());
             } else if (msg.equals(Technology.SPECIALMENUMISC))
             {

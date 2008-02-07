@@ -58,7 +58,9 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.FPGA;
+import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -4725,11 +4727,20 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
     /**
-     * Returns true if this Technology is layout technology.
-     * @return true if this Technology is layout technology.
+     * Returns true if this Technology is a layout technology.
+     * @return true if this Technology is a layout technology.
      */
     public boolean isLayout() {
-        return !(this instanceof Schematics || this instanceof Artwork && this instanceof Generic);
+        return !(this instanceof Artwork || this instanceof EFIDO ||
+        	this instanceof GEM || this instanceof Generic || this instanceof Schematics);
+    }
+
+    /**
+     * Returns true if this Technology is a schematics technology.
+     * @return true if this Technology is a schematics technology.
+     */
+    public boolean isSchematics() {
+        return this instanceof Schematics || this instanceof EFIDO || this instanceof GEM;
     }
 
     /**

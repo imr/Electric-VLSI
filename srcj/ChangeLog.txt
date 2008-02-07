@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07d: *******************************
 
+IMP: (2/7/08, SMR) "Cells" component menu entry now shows only appropriate
+     cell types (Bug #1557).
+
 BUG: (2/6/08, DN) Illegal exception while reading an old library (Bug #1561)
 FIX: In JELIB.realizeCellsRecursively add version number for dummy CellId.
 
