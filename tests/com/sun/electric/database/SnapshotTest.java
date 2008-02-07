@@ -297,9 +297,8 @@ public class SnapshotTest {
         instance.check();
     }
     
-    @Test public void scanDirs() {
-        LibraryStatistics stat = LibraryStatistics.scanDirectories(new String[] { "/import/async/cad"});
-        stat.writeList("./dirs.lst");
-    }
-    
+//    @Test public void scanDirs() {
+//        LibraryStatistics stat = LibraryStatistics.scanDirectories(new String[] { "/import/async/cad"});
+//        stat.writeList("./dirs.lst");
+//    }
 }
