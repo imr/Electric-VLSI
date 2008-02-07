@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -79,13 +80,15 @@ import java.util.concurrent.Semaphore;
  * > The router uses vias to move up and down the metal layers.
  *   > Understands multiple vias and multiple via orientations.
  * > The router is not tracked: it runs on the Electric grid
- *   > All wires are on full-grid units
+ *   > Favors wires on full-grid units
  *   > Tries to cover multiple grid units in a single jump
  * > Routes power and ground first, then goes by length (shortest nets first)
  * > Prefers to run odd metal layers on horizontal, even layers on vertical
- * > Routes in both directions (from A to B and from B to A) and chooses the best
+ * > Routes in both directions (from A to B and from B to A) and chooses the best (shortest)
+ *   > Parallel option runs both directions at once and aborts the slower one
  * > Users can request that some layers not be used, can request that some layers be favored
  * > Routes are made as wide as the widest arc already connected to any point
+ *   > User preference can limit width
  * > Cost penalty also includes space left in the track on either side of a segment
  *
  * Things to do:
@@ -95,7 +98,11 @@ import java.util.concurrent.Semaphore;
  *     Lower cost if running over existing layout (on the same net)
  *     Ability to connect to anything on the destination net
  *     Rip-up
- *     Global routing
+ *     Global routing(?)
+ *     Sweeping cost parameters (with parallel processors) to find best, dynamically
+ *     Forcing each processor to use a different grid track
+ *     Characterizing routing task (which parallelism to use)
+ *     Dima's idea: run from both ends at once and find meeting point in center
  */
 public class SeaOfGatesEngine
 {
@@ -404,7 +411,8 @@ public class SeaOfGatesEngine
 				// determine the coordinates of the route
 				EPoint fromLoc = fromPi.getPoly().getCenter();
 				EPoint toLoc = toPi.getPoly().getCenter();
-				double fromX, fromY, toX, toY;
+				double fromX = fromLoc.getX(), fromY = fromLoc.getY();
+				double toX = toLoc.getX(), toY = toLoc.getY();
 				if (toLoc.getX() < fromLoc.getX())
 				{
 					toX = upToGrain(toLoc.getX());
@@ -438,45 +446,60 @@ public class SeaOfGatesEngine
 				SOGBound block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX, fromY);
 				if (block != null)
 				{
-					String errorMsg = "Cannot Route to port " + fromPi.getPortProto().getName() + " of node " + fromPi.getNodeInst().describe(false) +
-						" because it is blocked on layer " + metalLayers[fromZ].getName() + " [needs " + TextUtils.formatDouble(metalSpacing+surround) +
-						" all around, has blockage at (" + TextUtils.formatDouble(block.bound.getCenterX()) + "," +
-						TextUtils.formatDouble(block.bound.getCenterY()) + ") that is " + TextUtils.formatDouble(block.bound.getWidth()) +
-						"x" + TextUtils.formatDouble(block.bound.getHeight()) + "]";
-					System.out.println(errorMsg);
-					List<PolyBase> polyList = new ArrayList<PolyBase>();
-					polyList.add(new PolyBase(fromX, fromY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
-					polyList.add(new PolyBase(block.bound));
-					List<EPoint> lineList = new ArrayList<EPoint>();
-					lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
-					lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
-					lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
-					lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-					errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
-					continue;
+					// see if gridding caused the blockage
+					fromX = fromLoc.getX();
+					fromY = fromLoc.getY();
+					block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX, fromY);
+					if (block != null)
+					{
+						String errorMsg = "Cannot Route to port " + fromPi.getPortProto().getName() +
+							" of node " + fromPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDouble(fromX) + "," +
+							TextUtils.formatDouble(fromY) + ") because it is blocked on layer " + metalLayers[fromZ].getName() +
+							" [needs " + TextUtils.formatDouble(metalSpacing+surround) + " all around, blockage is " +
+							TextUtils.formatDouble(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDouble(block.bound.getMaxX()) + " and " +
+							TextUtils.formatDouble(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDouble(block.bound.getMaxY()) + "]";
+						System.out.println(errorMsg);
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(new PolyBase(fromX, fromY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
+						polyList.add(new PolyBase(block.bound));
+						List<EPoint> lineList = new ArrayList<EPoint>();
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+						errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
+						continue;
+					}
 				}
 				metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
 				surround = getSpacingRule(toZ, -1, -1);
 				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
 				if (block != null)
 				{
-					String errorMsg = "Cannot route to port " + toPi.getPortProto().getName() +
-						" of node " + toPi.getNodeInst().describe(false) +
-						" because it is blocked on layer " + metalLayers[toZ].getName() +
-						".  Needs " + TextUtils.formatDouble(metalSpacing+surround) + " all around, has blockage at (" +
-						TextUtils.formatDouble(block.bound.getCenterX()) + "," + TextUtils.formatDouble(block.bound.getCenterY()) +
-						") that is " + TextUtils.formatDouble(block.bound.getWidth()) + "x" + TextUtils.formatDouble(block.bound.getHeight());
-					System.out.println("ERROR: " + errorMsg);
-					List<PolyBase> polyList = new ArrayList<PolyBase>();
-					polyList.add(new PolyBase(toX, toY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
-					polyList.add(new PolyBase(block.bound));
-					List<EPoint> lineList = new ArrayList<EPoint>();
-					lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
-					lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
-					lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
-					lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-					errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
-					continue;
+					// see if gridding caused the blockage
+					toX = toLoc.getX();
+					toY = toLoc.getY();
+					block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
+					if (block != null)
+					{
+						String errorMsg = "Cannot route to port " + toPi.getPortProto().getName() +
+							" of node " + toPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDouble(toX) + "," +
+							TextUtils.formatDouble(toY) + ") because it is blocked on layer " + metalLayers[toZ].getName() +
+							" [needs " + TextUtils.formatDouble(metalSpacing+surround) + " all around, blockage is " +
+							TextUtils.formatDouble(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDouble(block.bound.getMaxX()) + " and " +
+							TextUtils.formatDouble(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDouble(block.bound.getMaxY()) + "]";
+						System.out.println("ERROR: " + errorMsg);
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(new PolyBase(toX, toY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
+						polyList.add(new PolyBase(block.bound));
+						List<EPoint> lineList = new ArrayList<EPoint>();
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+						errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
+						continue;
+					}
 				}
 
 				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY, toZ,
@@ -1393,7 +1416,17 @@ public class SeaOfGatesEngine
 	 */
 	private void findPath(NeededRoute nr)
 	{
+		// special case when route is null length
 		List<SearchVertex> vertices, verticesRev;
+		if (DBMath.areEquals(nr.toX, nr.fromX) && DBMath.areEquals(nr.toY, nr.fromY) && nr.toZ == nr.fromZ)
+		{
+			vertices = verticesRev = new ArrayList<SearchVertex>();
+			SearchVertex sv = new SearchVertex(nr.toX, nr.toY, nr.toZ, 0, null, 0, nr);
+			vertices.add(sv);
+			nr.vertices = vertices;
+			return;
+		}
+
 		Map<Integer,Set<Integer>> [] saveD1Planes = null;
 		if (parallelDij)
 		{
@@ -1414,18 +1447,18 @@ public class SeaOfGatesEngine
 		} else
 		{
 // this is for debugging only
-//if (fromX < toX)
+//if (nr.fromX > nr.toX)
 //{
-//	double s = fromX;   fromX = toX;   toX = s;
-//	s = fromY;   fromY = toY;   toY = s;
-//	int is = fromZ;   fromZ = toZ;   toZ = is;
+//	double s = nr.fromX;   nr.fromX = nr.toX;   nr.toX = s;
+//	s = nr.fromY;   nr.fromY = nr.toY;   nr.toY = s;
+//	int is = nr.fromZ;   nr.fromZ = nr.toZ;   nr.toZ = is;
 //}
 			// do the Dijkstra one way
 			vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, nr);
 			if (DEBUGFAILURE && firstFailure) saveD1Planes = nr.searchVertexPlanes;
 
 			// do the Dijkstra the other way
-//List<SearchVertex> verticesRev = new ArrayList<SearchVertex>();
+//verticesRev = new ArrayList<SearchVertex>();
 			verticesRev = doDijkstra(nr.toX, nr.toY, nr.toZ, nr.fromX, nr.fromY, nr.fromZ, nr, nr);
 		}
 
@@ -1513,16 +1546,9 @@ public class SeaOfGatesEngine
 		nr.destX = toX;   nr.destY = toY;   nr.destZ = toZ;
 		int numSearchVertices = 0;
 
-		// for debugging
-		if (DEBUGSTEPS) System.out.println("SEARCHING FROM ("+TextUtils.formatDouble(fromX)+","+TextUtils.formatDouble(fromY)+","+fromZ+
-			") TO ("+TextUtils.formatDouble(toX)+","+TextUtils.formatDouble(toY)+","+toZ+")");
-		SearchVertex cannotMove = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex outOfBounds = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex alreadyVisited = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex blocked = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex blockedNotch = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex foundDestination = new SearchVertex(0,0,0,0,null,0,nr);
-		SearchVertex [] costs = new SearchVertex[6];
+		if (DEBUGSTEPS) System.out.println("----------- SEARCHING FROM ("+TextUtils.formatDouble(fromX)+","+
+			TextUtils.formatDouble(fromY)+","+fromZ+") TO ("+TextUtils.formatDouble(toX)+","+
+			TextUtils.formatDouble(toY)+","+toZ+") -----------");
 
 		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0, null, 0, nr);
 		svStart.cost = 0;
@@ -1548,11 +1574,13 @@ public class SeaOfGatesEngine
 			double curY = svCurrent.getY();
 			int curZ = svCurrent.getZ();
 
+			if (DEBUGSTEPS) System.out.print("AT ("+TextUtils.formatDouble(curX)+","+TextUtils.formatDouble(curY)+","
+				+curZ+")C="+svCurrent.cost+" WENT");
+
 			// look at all directions from this point
 			for(int i=0; i<6; i++)
 			{
 				// compute a neighboring point
-				if (DEBUGSTEPS) costs[i] = null;
 				double dx = 0, dy = 0;
 				int dz = 0;
 				switch (i)
@@ -1594,6 +1622,7 @@ public class SeaOfGatesEngine
 				}
 
 				// extend the distance if heading toward the goal
+				boolean stuck = false;
 				if (dz == 0)
 				{
 					boolean goFarther = false;
@@ -1609,59 +1638,77 @@ public class SeaOfGatesEngine
 						double jumpSize = getJumpSize(curX, curY, curZ, dx, dy, toX, toY, jumpBound, nr.netID, nr.minWidth);
 						if (dx > 0)
 						{
-							if (jumpSize <= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
+							if (jumpSize <= 0) stuck = true;
 							dx = jumpSize;
 						}
 						if (dx < 0)
 						{
-							if (jumpSize >= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
+							if (jumpSize >= 0) stuck = true;
 							dx = jumpSize;
 						}
 						if (dy > 0)
 						{
-							if (jumpSize <= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
+							if (jumpSize <= 0) stuck = true;
 							dy = jumpSize;
 						}
 						if (dy < 0)
 						{
-							if (jumpSize >= 0) { if (DEBUGSTEPS) costs[i] = cannotMove;   continue; }
+							if (jumpSize >= 0) stuck = true;
 							dy = jumpSize;
 						}
 					}
 				}
-
 				double nX = curX + dx;
 				double nY = curY + dy;
 				int nZ = curZ + dz;
+
+				if (DEBUGSTEPS)
+				{
+					switch (i)
+					{
+						case 0: System.out.print("  -X="+TextUtils.formatDouble(nX));   break;
+						case 1: System.out.print("  +X="+TextUtils.formatDouble(nX));   break;
+						case 2: System.out.print("  -Y="+TextUtils.formatDouble(nY));   break;
+						case 3: System.out.print("  +Y="+TextUtils.formatDouble(nY));   break;
+						case 4: System.out.print("  -Z");   break;
+						case 5: System.out.print("  +Z");   break;
+					}
+				}
+				if (stuck)
+				{
+					if (DEBUGSTEPS) System.out.print(":CannotMove");
+					continue;
+				}
+
 				if (nX < lowX)
 				{
 					nX = lowX;
 					dx = nX - curX;
-					if (dx == 0) { if (DEBUGSTEPS) costs[i] = outOfBounds;   continue; }
+					if (dx == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
 				}
 				if (nX > highX)
 				{
 					nX = highX;
 					dx = nX - curX;
-					if (dx == 0) { if (DEBUGSTEPS) costs[i] = outOfBounds;   continue; }
+					if (dx == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
 				}
 				if (nY < lowY)
 				{
 					nY = lowY;
 					dy = nY - curY;
-					if (dy == 0) { if (DEBUGSTEPS) costs[i] = outOfBounds;   continue; }
+					if (dy == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
 				}
 				if (nY > highY)
 				{
 					nY = highY;
 					dy = nY - curY;
-					if (dy == 0) { if (DEBUGSTEPS) costs[i] = outOfBounds;   continue; }
+					if (dy == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
 				}
-				if (nZ < 0 || nZ >= numMetalLayers) { if (DEBUGSTEPS) costs[i] = outOfBounds;   continue; }
-				if (preventArcs[nZ]) continue;
+				if (nZ < 0 || nZ >= numMetalLayers) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
+				if (preventArcs[nZ])  { if (DEBUGSTEPS) System.out.print(":IllegalArc");   continue; }
 
 				// see if the adjacent point has already been visited
-				if (nr.getVertex(nX, nY, nZ)) { if (DEBUGSTEPS) costs[i] = alreadyVisited;   continue; }
+				if (nr.getVertex(nX, nY, nZ)) { if (DEBUGSTEPS) System.out.print(":AlreadyVisited");   continue; }
 
 				// see if the space is available
 				int whichContact = 0;
@@ -1737,8 +1784,8 @@ public class SeaOfGatesEngine
 							double halfHei = metalSpacing + Math.abs(dy)/2;
 							double surround = worstMetalSurround[nZ];
 							SOGBound sb = getMetalBlockage(nr.netID, nZ, halfWid, halfHei, surround, checkX, checkY);
-							if (sb != null) costs[i] = blocked; else
-								costs[i] = blockedNotch;
+							if (sb != null) System.out.print(":Blocked"); else
+								System.out.print(":BlockedNotch");
 						}
 						continue;
 					}
@@ -1835,7 +1882,7 @@ public class SeaOfGatesEngine
 						cuts = curCuts;
 						break;
 					}
-					if (whichContact < 0) { if (DEBUGSTEPS) costs[i] = blocked;   continue; }
+					if (whichContact < 0) { if (DEBUGSTEPS) System.out.print(":Blocked");   continue; }
 				}
 
 				// we have a candidate next-point
@@ -1845,7 +1892,7 @@ public class SeaOfGatesEngine
 				// stop if we found the destination
 				if (nX == toX && nY == toY && nZ == toZ)
 				{
-					costs[i] = foundDestination;
+					if (DEBUGSTEPS) System.out.print(":FoundDestination");
 					thread = svNext;
 					break;
 				}
@@ -1903,34 +1950,11 @@ public class SeaOfGatesEngine
 				// add this vertex into the data structures
 				nr.setVertex(nX, nY, nZ);
 				active.add(svNext);
-				if (DEBUGSTEPS) costs[i] = svNext;
+				if (DEBUGSTEPS)
+					System.out.print("("+TextUtils.formatDouble(svNext.getX())+","+TextUtils.formatDouble(svNext.getY())+
+						","+svNext.getZ()+")C="+svNext.cost);
 			}
-			if (DEBUGSTEPS)
-			{
-				System.out.print("AT ("+TextUtils.formatDouble(curX)+","+TextUtils.formatDouble(curY)+","+curZ+")C="+svCurrent.cost+" WENT");
-				for(int i=0; i<6; i++)
-				{
-					if (costs[i] == null) continue;
-					switch (i)
-					{
-						case 0: System.out.print("  -X");   break;
-						case 1: System.out.print("  +X");   break;
-						case 2: System.out.print("  -Y");   break;
-						case 3: System.out.print("  +Y");   break;
-						case 4: System.out.print("  -Z");   break;
-						case 5: System.out.print("  +Z");   break;
-					}
-					if (costs[i] == cannotMove) System.out.print(":CannotMove"); else
-					if (costs[i] == outOfBounds) System.out.print(":OutOfBounds"); else
-					if (costs[i] == alreadyVisited) System.out.print(":AlreadyVisited"); else
-					if (costs[i] == blocked) System.out.print(":Blocked"); else
-					if (costs[i] == blockedNotch) System.out.print(":BlockedNotch"); else
-					if (costs[i] == foundDestination) System.out.print(":FoundDestination"); else
-					System.out.print("("+TextUtils.formatDouble(costs[i].getX())+","+TextUtils.formatDouble(costs[i].getY())+
-						","+costs[i].getZ()+")C="+costs[i].cost);
-				}
-				System.out.println();
-			}
+			if (DEBUGSTEPS) System.out.println();
 			if (thread != null) break;
 		}
 
@@ -1944,7 +1968,7 @@ public class SeaOfGatesEngine
 		nr.searchVertexPlanes = null;
 		nr.searchVertexPlanesDBL = null;
 		nr.timeTaken = System.currentTimeMillis() - startTime;
-		otherNr.abort = true;
+		if (thread != null) otherNr.abort = true;
 		return realVertices;
 	}
 
@@ -2258,8 +2282,8 @@ public class SeaOfGatesEngine
 			double spacing = getSpacingRule(metNo, drWid, drLen);
 			double lXAllow = metLX - spacing, hXAllow = metHX + spacing;
 			double lYAllow = metLY - spacing, hYAllow = metHY + spacing;
-			if (bound.getMaxX() <= lXAllow || bound.getMinX() >= hXAllow ||
-				bound.getMaxY() <= lYAllow || bound.getMinY() >= hYAllow) continue;
+			if (DBMath.isLessThanOrEqualTo(bound.getMaxX(), lXAllow) || DBMath.isGreaterThanOrEqualTo(bound.getMinX(), hXAllow) ||
+				DBMath.isLessThanOrEqualTo(bound.getMaxY(), lYAllow) || DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hYAllow)) continue;
 
 			// too close for DRC: allow if on the same net
 			if (Math.abs(sBound.getNetID()) == netID)
@@ -2501,8 +2525,9 @@ public class SeaOfGatesEngine
 		{
 			SOGBound sBound = (SOGBound)sea.next();
 			Rectangle2D bound = sBound.getBounds();
-			if (bound.getMaxX() <= lX || bound.getMinX() >= hX ||
-				bound.getMaxY() <= lY || bound.getMinY() >= hY) continue;
+			if (DBMath.isLessThanOrEqualTo(bound.getMaxX(), lX) || DBMath.isGreaterThanOrEqualTo(bound.getMinX(), hX) ||
+				DBMath.isLessThanOrEqualTo(bound.getMaxY(), lY) || DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hY))
+					continue;
 
 			// ignore if on the same net
 			if (Math.abs(sBound.getNetID()) == netID) continue;
@@ -2780,6 +2805,16 @@ public class SeaOfGatesEngine
 		/** the previous vertex in the search. */	private SearchVertex last;
 		/** the routing state. */					private NeededRoute nr;
 
+		/**
+		 * Method to create a new SearchVertex.
+		 * @param x the X coordinate of the SearchVertex.
+		 * @param y the Y coordinate of the SearchVertex.
+		 * @param z the Z coordinate (metal layer) of the SearchVertex.
+		 * @param whichContact the contact number to use if switching layers.
+		 * @param cuts an array of cuts in this contact (if switching layers).
+		 * @param cl the layer of the cut (if switching layers).
+		 * @param nr the NeededRoute that this SearchVertex is part of.
+		 */
 		SearchVertex(double x, double y, int z, int whichContact, Point2D [] cuts, int cl, NeededRoute nr)
 		{
 			xv = x;

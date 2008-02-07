@@ -120,14 +120,51 @@ public class DBMath extends GenMath {
     }
 
 	/**
-	 * Method to determine if first value is greater than second but counting for
-	 * rounding error
+	 * Method to determine if one value is greater than another,
+	 * but counting for rounding error
 	 * @param a the first number.
 	 * @param b the second number.
 	 * @return true if first number is greater than the second number.
 	 */
-	public static boolean isGreaterThan(double a, double b) {
-        return a - b > HALF_EPSILON; // 0.5/GRID;
+	public static boolean isGreaterThan(double a, double b)
+	{
+        return a - b > HALF_EPSILON;
+	}
+
+	/**
+	 * Method to determine if one value is less than another,
+	 * but counting for rounding error
+	 * @param a the first number.
+	 * @param b the second number.
+	 * @return true if first number is less than the second number.
+	 */
+	public static boolean isLessThan(double a, double b)
+	{
+        return b - a > HALF_EPSILON;
+	}
+
+	/**
+	 * Method to determine if one value is greater than or equal to another,
+	 * but counting for rounding error
+	 * @param a the first number.
+	 * @param b the second number.
+	 * @return true if first number is greater than or equal to the second number.
+	 */
+	public static boolean isGreaterThanOrEqualTo(double a, double b)
+	{
+        return a - b > -HALF_EPSILON;
+	}
+
+	/**
+	 * Method to determine if one value is less than or equal to another,
+	 * but counting for rounding error
+	 * @param a the first number.
+	 * @param b the second number.
+	 * @return true if first number is less than or equal to the second number.
+	 */
+	public static boolean isLessThanOrEqualTo(double a, double b)
+	{
+        return b - a > -HALF_EPSILON;
 	}
 
 	/**
