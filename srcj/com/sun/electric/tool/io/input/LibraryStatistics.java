@@ -26,10 +26,15 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 
+import com.sun.electric.tool.user.ErrorLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -198,7 +203,8 @@ public class LibraryStatistics implements Serializable
 			String extension = name.substring(extensionPos);
 			name = name.substring(0, extensionPos);
 
-			if (extension.equals(".elib") || extension.equals(".jelib") || isDelib)
+			if (extension.equals(".elib") || extension.equals(".jelib") ||
+                    isDelib && !extension.equals(".bak") && !extension.equals(".log"))
 			{
 				if (!libFound)
 				{
@@ -229,27 +235,56 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-//	public void readHeaders()
-//	{
-//		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
-//		{
-//			LibraryName libraryName = (LibraryName)lit.next();
-//			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
-//			{
-//				FileContents fc = (FileContents)it.next();
-//				if (!fc.isElib()) continue;
-//				String fileName = fc.fileName();
-//				URL fileURL = TextUtils.makeURLToFile(fileName);
-//				fc.header = ELIB1.readLibraryHeader(fileURL);
-//				if (fc.header == null)
-//				{
-//					System.out.println(fileName + " INVALID HEADER");
-//					continue;
-//				}
-//			}
-//		}
-//	}
-//
+	public void readHeaders()
+	{
+		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
+		{
+			LibraryName libraryName = lit.next();
+			for (Iterator<FileContents> it = libraryName.getVersions(); it.hasNext(); )
+			{
+				FileContents fc = it.next();
+				if (!fc.isElib()) continue;
+				String fileName = fc.fileName();
+				URL fileURL = TextUtils.makeURLToFile(fileName);
+				fc.header = ELIB.readLibraryHeader(fileURL);
+				if (fc.header == null)
+				{
+					System.out.println(fileName + " INVALID HEADER");
+					continue;
+				}
+			}
+		}
+	}
+
+	public void readJelibVersions()
+	{
+        ErrorLogger errorLogger = ErrorLogger.newInstance("ReadJelibVersions");
+        IdManager idManager = new IdManager();
+		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
+		{
+			LibraryName libraryName = lit.next();
+            String libName = libraryName.name;
+            int indexOfColon = libName.indexOf(':');
+            if (indexOfColon >= 0)
+                libName = libName.substring(0, indexOfColon);
+            LibId libId = idManager.newLibId(libName);
+			for (Iterator<FileContents> it = libraryName.getVersions(); it.hasNext(); )
+			{
+				FileContents fc = it.next();
+				if (fc.isElib()) continue;
+				String fileName = fc.fileName();
+				URL fileURL = TextUtils.makeURLToFile(fileName);
+                try {
+                    JelibParser parser = JelibParser.parse(libId, fileURL, FileType.JELIB, false, errorLogger);
+                    fc.version = parser.version;
+                } catch (Exception e) {
+                    System.out.println("Error reading " + e.getMessage());
+                }
+			}
+		}
+        errorLogger.termLogging(true);
+	}
+
 //	public void readLibraries()
 //	{
 //		totalLibraryContents = new LibraryContents("noname", new JELIB1());
@@ -296,7 +331,6 @@ public class LibraryStatistics implements Serializable
 
 	public static LibraryStatistics readList(String fileName)
 	{
-		System.out.println(java.io.ObjectStreamClass.lookup(VarStat.class).getSerialVersionUID());
 		URL fileURL = TextUtils.makeURLToFile(fileName);
 		try
 		{
@@ -309,82 +343,90 @@ public class LibraryStatistics implements Serializable
 		return null;
 	}
 
-//	public void writeSerialized(String fileName)
-//	{
-//		try
-//		{
-//			new StatisticsOutputSerialized(fileName);
-//		} catch (IOException e)
-//		{
-//			System.out.println("Error storing LibraryStatistics to " + fileName + " " + e);
-//		}
-//	}
-//
-//	public static LibraryStatistics readSerialized(String fileName)
-//	{
-//		URL fileURL = TextUtils.makeURLToFile(fileName);
-//		try
-//		{
-//			StatisticsInputSerialized in = new StatisticsInputSerialized(fileURL);
-//			return in.stat;
-//		} catch (IOException e)
-//		{
-//			System.out.println("Error loading LibraryStatistics from " + fileName + " " + e);
-//		}
-//		return null;
-//	}
-//
-//	public void reportFileLength()
-//	{
-//		int elibUniqueCount = 0;
-//		int jelibUniqueCount = 0;
-//		int elibCount = 0;
-//		int jelibCount = 0;
-//		long elibUniqueLength = 0;
-//		long jelibUniqueLength = 0;
-//		long elibLength = 0;
-//		long jelibLength = 0;
-//
-//		TreeMap/*<ELIB1.Header,GenMath.MutableInteger>*/ headerCounts = new TreeMap();
-//		int withoutHeader = 0;
-//
-//		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
-//		{
-//			LibraryName libraryName = (LibraryName)lit.next();
-//			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
-//			{
-//				FileContents fc = (FileContents)it.next();
-//				if (fc.isElib())
-//				{
-//					elibUniqueCount++;
-//					elibCount += fc.instances.size();
-//					elibUniqueLength += fc.fileLength;
-//					elibLength += fc.fileLength * fc.instances.size();
-//					if (fc.header != null)
-//						GenMath.addToBag(headerCounts, fc.header);
-//					else
-//						withoutHeader++;
-//				} else
-//				{
-//					jelibUniqueCount++;
-//					jelibCount += fc.instances.size();
-//					jelibUniqueLength += fc.fileLength;
-//					jelibLength += fc.fileLength * fc.instances.size();
-//				}
-//			}
-//		}
-//		System.out.println("Scanned " + directories.size() + " directories. " + libraryNames.size() + " library names");
-//		System.out.println((elibUniqueLength>>20) + "M (" + elibUniqueLength + ") in " +
-//						   elibUniqueCount + " ELIB files ( unique )");
-//		System.out.println((elibLength>>20) + "M (" + elibLength + ") in " +
-//						   elibCount + " ELIB files ( with duplicates )");
-//		System.out.println((jelibUniqueLength>>20) + "M (" + jelibUniqueLength + ") in " +
-//						   jelibUniqueCount + " JELIB files ( unique )");
-//		System.out.println((jelibLength>>20) + "M (" + jelibLength + ") in " +
-//						   jelibCount + " JELIB files ( with duplicates )");
-//		System.out.println("NOHEADER:" + withoutHeader + bagReport(headerCounts));
-//	}
-//
+	public void writeSerialized(String fileName)
+	{
+		try
+		{
+			new StatisticsOutputSerialized(fileName);
+		} catch (IOException e)
+		{
+			System.out.println("Error storing LibraryStatistics to " + fileName + " " + e);
+		}
+	}
+
+	public static LibraryStatistics readSerialized(String fileName)
+	{
+		URL fileURL = TextUtils.makeURLToFile(fileName);
+		try
+		{
+			StatisticsInputSerialized in = new StatisticsInputSerialized(fileURL);
+			return in.stat;
+		} catch (IOException e)
+		{
+			System.out.println("Error loading LibraryStatistics from " + fileName + " " + e);
+		}
+		return null;
+	}
+
+	public void reportFileLength()
+	{
+		int elibUniqueCount = 0;
+		int jelibUniqueCount = 0;
+		int elibCount = 0;
+		int jelibCount = 0;
+		long elibUniqueLength = 0;
+		long jelibUniqueLength = 0;
+		long elibLength = 0;
+		long jelibLength = 0;
+
+		TreeMap<ELIB.Header,GenMath.MutableInteger> headerCounts = new TreeMap<ELIB.Header,GenMath.MutableInteger>();
+		int withoutHeader = 0;
+		TreeMap<Version,GenMath.MutableInteger> versionCounts = new TreeMap<Version,GenMath.MutableInteger>();
+        int withoutVersion = 0;
+
+		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
+		{
+			LibraryName libraryName = (LibraryName)lit.next();
+			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
+			{
+				FileContents fc = (FileContents)it.next();
+				if (fc.isElib())
+				{
+					elibUniqueCount++;
+					elibCount += fc.instances.size();
+					elibUniqueLength += fc.fileLength;
+					elibLength += fc.fileLength * fc.instances.size();
+					if (fc.header != null)
+						GenMath.addToBag(headerCounts, fc.header);
+					else
+						withoutHeader++;
+				} else
+				{
+					jelibUniqueCount++;
+					jelibCount += fc.instances.size();
+					jelibUniqueLength += fc.fileLength;
+					jelibLength += fc.fileLength * fc.instances.size();
+                    if (fc.version != null)
+						GenMath.addToBag(versionCounts, fc.version);
+                    else
+                        withoutVersion++;
+				}
+			}
+		}
+		System.out.println("Scanned " + directories.size() + " directories. " + libraryNames.size() + " library names");
+		System.out.println((elibUniqueLength>>20) + "M (" + elibUniqueLength + ") in " +
+						   elibUniqueCount + " ELIB files ( unique )");
+		System.out.println((elibLength>>20) + "M (" + elibLength + ") in " +
+						   elibCount + " ELIB files ( with duplicates )");
+		System.out.println("NOHEADER:" + withoutHeader + bagReport(headerCounts));
+        
+		System.out.println((jelibUniqueLength>>20) + "M (" + jelibUniqueLength + ") in " +
+						   jelibUniqueCount + " JELIB files ( unique )");
+		System.out.println((jelibLength>>20) + "M (" + jelibLength + ") in " +
+						   jelibCount + " JELIB files ( with duplicates )");
+		System.out.println("NOVERSION:" + withoutVersion + bagReport(versionCounts));
+	}
+
 //	public void reportMemoryUsage()
 //	{
 //		int elibCount = 0;
@@ -578,13 +620,13 @@ public class LibraryStatistics implements Serializable
 		return libName.substring(0, i - 1);
 	}
 
-	static String bagReport(Map/*<Object,GenMath.MutableInteger>*/ bag)
+	static <T> String bagReport(Map<T,GenMath.MutableInteger> bag)
 	{
 		String s = "";
-		for (Iterator it = bag.entrySet().iterator(); it.hasNext(); )
+		for (Iterator<Map.Entry<T,GenMath.MutableInteger>> it = bag.entrySet().iterator(); it.hasNext(); )
 		{
-			Map.Entry e = (Map.Entry)it.next();
-			GenMath.MutableInteger count = (GenMath.MutableInteger)e.getValue();
+			Map.Entry<T,GenMath.MutableInteger> e = it.next();
+			GenMath.MutableInteger count = e.getValue();
 			s += " " + e.getKey() + ":" + count.intValue();
 		}
 		return s;
@@ -644,7 +686,8 @@ public class LibraryStatistics implements Serializable
 		List<FileInstance> instances = new ArrayList<FileInstance>();
 		TreeMap<String,LibraryUse> uses = new TreeMap<String,LibraryUse>();
 
-//		ELIB1.Header header;
+		ELIB.Header header;
+        Version version;
 		boolean readOk;
 		int toolCount;
 		int techCount;
@@ -778,6 +821,7 @@ public class LibraryStatistics implements Serializable
 						String timeString;
 						int indexElib = line.lastIndexOf(".elib");
 						int indexJelib = line.lastIndexOf(".jelib");
+						int indexDelib = line.lastIndexOf(".delib");
 						if (indexElib >= 0)
 						{
 							fileName = line.substring(8, indexElib + 5);
@@ -786,6 +830,12 @@ public class LibraryStatistics implements Serializable
 						{
 							fileName = line.substring(8, indexJelib + 6);
 							timeString = line.substring(indexJelib + 6);
+						} else if (indexDelib >= 0)
+						{
+                            while (indexDelib < line.length() && line.charAt(indexDelib) != ' ')
+                                indexDelib++;
+							fileName = line.substring(8, indexDelib);
+							timeString = line.substring(indexDelib);
 						} else
 						{
 							throw new IOException("Library extension: " + line);
@@ -890,23 +940,23 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-//	private class StatisticsOutputSerialized extends Output
-//	{
-//		StatisticsOutputSerialized(String filePath)
-//			throws IOException
-//		{
-//			if (openBinaryOutputStream(filePath)) throw new IOException("openStatisticsOutputSerialized");
-//			try
-//			{
-//				ObjectOutputStream objectOutputStream = new ObjectOutputStream(dataOutputStream);
-//				objectOutputStream.writeObject(LibraryStatistics.this);
-//				objectOutputStream.close();
-//			} finally {
-//				closeBinaryOutputStream();
-//			}
-//		}
-//	}
-//
+	private class StatisticsOutputSerialized extends Output
+	{
+		StatisticsOutputSerialized(String filePath)
+			throws IOException
+		{
+			if (openBinaryOutputStream(filePath)) throw new IOException("openStatisticsOutputSerialized");
+			try
+			{
+				ObjectOutputStream objectOutputStream = new ObjectOutputStream(dataOutputStream);
+				objectOutputStream.writeObject(LibraryStatistics.this);
+				objectOutputStream.close();
+			} finally {
+				closeBinaryOutputStream();
+			}
+		}
+	}
+
 //	private class StatisticsOutputJelib extends Output
 //	{
 //		StatisticsOutputJelib(String filePath)

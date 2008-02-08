@@ -66,11 +66,16 @@ import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 
+import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,15 +89,97 @@ import java.util.TreeSet;
  */
 public class ELIB extends LibraryFiles
 {
+	public static class Header implements Comparable, Serializable
+	{
+		/** current header */
+		static final Header DEFAULT = new Header(ELIBConstants.MAGIC13, ByteOrder.BIG_ENDIAN, 4, 2, 1);
+
+		/** the magic number in the library file */							private final int magic;
+		// characteristics of the file
+		/** byte order on disk */											private transient ByteOrder byteOrder;
+		/** true if BIG_ENDIAN byte order on disk */						private final boolean bytesSwapped;
+		/** the size of a "big" integer on disk (4 or more bytes) */		private final int sizeOfBig;
+		/** the size of a "small" integer on disk (2 or more bytes) */		private final int sizeOfSmall;
+		/** the size of a character on disk (1 or 2 bytes) */				private final int sizeOfChar;
+		/** string description */											private final String s;
+
+		Header(int magic, ByteOrder byteOrder, int sizeOfBig, int sizeOfSmall, int sizeOfChar)
+		{
+			this.magic = magic;
+			this.byteOrder = byteOrder;
+			this.bytesSwapped = (byteOrder == ByteOrder.BIG_ENDIAN);
+			this.sizeOfBig = sizeOfBig;
+			this.sizeOfSmall = sizeOfSmall;
+			this.sizeOfChar = sizeOfChar;
+
+			int magicNum = ELIBConstants.MAGIC1 + 2 - magic;
+			String s = "MAGIC" + (magicNum/2);
+			if (magicNum%2 != 0) s += "?";
+			if (byteOrder != ByteOrder.BIG_ENDIAN) s += "L";
+			if (sizeOfBig != 4) s += "I" + sizeOfBig;
+			if (sizeOfSmall != 2) s += "S" + sizeOfSmall;
+			if (sizeOfChar != 1) s += "C" + sizeOfChar;
+			this.s = s;
+		}
+
+		private void readObject(ObjectInputStream s)
+			throws IOException, ClassNotFoundException
+		{
+			s.defaultReadObject();
+			byteOrder = bytesSwapped ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
+		}
+
+		/**
+		 * Returns a hash code for this <code>Header</code>.
+		 * @return  a hash code value for this Header.
+		 */
+        @Override
+		public int hashCode() {
+			return s.hashCode();
+		}
+
+		/**
+		 * Compares this Header object to the specified object.  The result is
+		 * <code>true</code> if and only if the argument is not
+		 * <code>null</code> and is an <code>Header</code> object that
+		 * contains the same <code>version</code>, <code>view</code> and case-insensitive <code>name</code> as this Header.
+		 *
+		 * @param   obj   the object to compare with.
+		 * @return  <code>true</code> if the objects are the same;
+		 *          <code>false</code> otherwise.
+		 */
+        @Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Header) {
+				Header h = (Header)obj;
+				return s.equals(h.s);
+			}
+			return false;
+		}
+
+		/**
+		 * Compares two <code>Header</code> objects.
+		 * @param   o   the object to be compared.
+		 * @return	the result of comparision.
+		 */
+		public int compareTo(Object o) {
+			Header h = (Header)o;
+			return TextUtils.STRING_NUMBER_ORDER.compare(s, h.s);
+		}
+
+		/**
+		 * Returns string description of this Header.
+		 * @return the string description of this Header.
+		 */
+        @Override
+		public String toString()
+		{
+			return s;
+		}
+	}
+
 	// ------------------------- private data ----------------------------
-	/** the magic number in the library file */								private int magic;
-
-	// characteristics of the file
-	/** true if bytes are swapped on disk */								private boolean bytesSwapped;
-	/** the size of a "big" integer on disk (4 or more bytes) */			private int sizeOfBig;
-	/** the size of a "small" integer on disk (2 or more bytes) */			private int sizeOfSmall;
-	/** the size of a character on disk (1 or 2 bytes) */					private int sizeOfChar;
-
+	/** header of the file */												private Header header;
 	// statistics about the file
 	/** the number of integers on disk that got clipped during input */		private int clippedIntegers;
 
@@ -190,6 +277,30 @@ public class ELIB extends LibraryFiles
 
 	// ----------------------- public methods -------------------------------
 
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static synchronized Header readLibraryHeader(URL fileURL)
+	{
+		errorLogger = ErrorLogger.newInstance("Read Library Header");
+		try {
+			ELIB in = new ELIB();
+			if (in.openBinaryInput(fileURL)) return null;
+			Header header = in.readHeader();
+			// read the library
+			in.closeInput();
+			errorLogger.termLogging(true);
+			return header;
+        } catch (IOException e)
+		{
+            System.out.println("Error " + e + " in " + fileURL);
+        }
+		return null;
+    }
+
     @Override
     protected boolean readProjectSettings() {
 		try
@@ -230,7 +341,8 @@ public class ELIB extends LibraryFiles
 		byteCount = 0;
 
 		// read the magic number and determine whether bytes are swapped
-		if (readHeader())
+		header = readHeader();
+		if (header == null)
 		{
 			System.out.println("Error reading header");
 			return true;
@@ -247,7 +359,7 @@ public class ELIB extends LibraryFiles
 		exportCount = readBigInteger();
 		arcCount = readBigInteger();
 		geomCount = readBigInteger();
-		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
+		if (header.magic <= ELIBConstants.MAGIC9 && header.magic >= ELIBConstants.MAGIC11)
 		{
 			// versions 9 through 11 stored a "cell count"
 			cellCount = readBigInteger();
@@ -259,7 +371,7 @@ public class ELIB extends LibraryFiles
 
 		// get the Electric version (version 8 and later)
 		String versionString;
-		if (magic <= ELIBConstants.MAGIC8) versionString = readString(); else
+		if (header.magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
 
@@ -296,7 +408,7 @@ public class ELIB extends LibraryFiles
 		viewMapping.put(new Integer(-14), View.NETLISTSILOS);
 		viewMapping.put(new Integer(-15), View.VERILOG);
 		viewMapping.put(new Integer(-16), View.LAYOUTCOMP);
-		if (magic <= ELIBConstants.MAGIC9)
+		if (header.magic <= ELIBConstants.MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
 			for(int i=0; i<numExtraViews; i++)
@@ -319,7 +431,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// get the number of toolbits to ignore
-		if (magic <= ELIBConstants.MAGIC3 && magic >= ELIBConstants.MAGIC6)
+		if (header.magic <= ELIBConstants.MAGIC3 && header.magic >= ELIBConstants.MAGIC6)
 		{
 			// versions 3, 4, 5, and 6 find this in the file
 			toolBCount = readBigInteger();
@@ -363,7 +475,7 @@ public class ELIB extends LibraryFiles
 		xLibRefSatisfied = new boolean[nodeProtoCount];
 
 		// allocate pointers for the NodeInsts
-        boolean hasAnchor = magic <= ELIBConstants.MAGIC13;
+        boolean hasAnchor = header.magic <= ELIBConstants.MAGIC13;
 		nodeInstList = new LibraryFiles.NodeInstList(nodeCount, hasAnchor);
 
 		// allocate pointers for the ArcInsts
@@ -402,7 +514,7 @@ public class ELIB extends LibraryFiles
         exportVariables = new Variable[exportCount][];
 
 		// versions 9 to 11 allocate fake-cell pointers
-		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
+		if (header.magic <= ELIBConstants.MAGIC9 && header.magic >= ELIBConstants.MAGIC11)
 		{
 			fakeCellList = new FakeCell[cellCount];
 			for(int i=0; i<cellCount; i++)
@@ -410,14 +522,14 @@ public class ELIB extends LibraryFiles
 		}
 
 		// versions 4 and earlier allocate geometric pointers
-		if (magic > ELIBConstants.MAGIC5)
+		if (header.magic > ELIBConstants.MAGIC5)
 		{
 			geomType = new boolean [geomCount];
 			geomMoreUp = new int [geomCount];
 		}
 
 		// get number of arcinsts and nodeinsts in each cell
-		if (magic != ELIBConstants.MAGIC1)
+		if (header.magic != ELIBConstants.MAGIC1)
 		{
 			// versions 2 and later find this in the file
 			int nodeInstPos = 0, arcInstPos = 0, portProtoPos = 0;
@@ -652,7 +764,7 @@ public class ELIB extends LibraryFiles
 			}
 			toolList[i] = t;
 		}
-		if (magic <= ELIBConstants.MAGIC3 && magic >= ELIBConstants.MAGIC6)
+		if (header.magic <= ELIBConstants.MAGIC3 && header.magic >= ELIBConstants.MAGIC6)
 		{
 			// versions 3, 4, 5, and 6 must ignore toolbits associations
 			for(int i=0; i<toolBCount; i++) readString();
@@ -660,7 +772,7 @@ public class ELIB extends LibraryFiles
 
 		// get the library userbits
 		int userBits = 0;
-		if (magic <= ELIBConstants.MAGIC7)
+		if (header.magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
@@ -742,7 +854,7 @@ public class ELIB extends LibraryFiles
 			readVariables();
 
 		// read the view variables (version 9 and later)
-		if (magic <= ELIBConstants.MAGIC9)
+		if (header.magic <= ELIBConstants.MAGIC9)
 		{
 			int count = readBigInteger();
 			for(int i=0; i<count; i++)
@@ -756,7 +868,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// setup fake cell structures (version 9 to 11)
-		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
+		if (header.magic <= ELIBConstants.MAGIC9 && header.magic >= ELIBConstants.MAGIC11)
 		{
 			for(int i=0; i<cellCount; i++)
 			{
@@ -856,7 +968,7 @@ public class ELIB extends LibraryFiles
 			Cell cell = nodeProtoList[cellIndex];
 			firstNodeIndex[cellIndex] = nodeIndex;
 			firstArcIndex[cellIndex] = arcIndex;
-			if (magic > ELIBConstants.MAGIC5)
+			if (header.magic > ELIBConstants.MAGIC5)
 			{
 				// versions 4 and earlier must read some geometric information
 				int j = geomIndex;
@@ -1530,15 +1642,15 @@ public class ELIB extends LibraryFiles
 	 * The header consists of the "magic" number and the size of various pieces of data.
 	 * Returns true on error.
 	 */
-	private boolean readHeader()
+	private Header readHeader()
 		throws IOException
 	{
-		bytesSwapped = false;
+		ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
 		byte byte1 = readByte();
 		byte byte2 = readByte();
 		byte byte3 = readByte();
 		byte byte4 = readByte();
-		magic = ((byte4&0xFF) << 24) | ((byte3&0xFF) << 16) | ((byte2&0xFF) << 8) | (byte1&0xFF);
+		int magic = ((byte4&0xFF) << 24) | ((byte3&0xFF) << 16) | ((byte2&0xFF) << 8) | (byte1&0xFF);
 		if (magic != ELIBConstants.MAGIC1 && magic != ELIBConstants.MAGIC2 &&
 			magic != ELIBConstants.MAGIC3 && magic != ELIBConstants.MAGIC4 &&
 			magic != ELIBConstants.MAGIC5 && magic != ELIBConstants.MAGIC6 &&
@@ -1557,29 +1669,25 @@ public class ELIB extends LibraryFiles
 				magic != ELIBConstants.MAGIC13)
 			{
 				System.out.println("Bad file format: does not start with proper magic number");
-				return true;
+				return null;
 			}
-			bytesSwapped = true;
+			byteOrder = ByteOrder.BIG_ENDIAN;
 		}
 
 		// determine the size of "big" and "small" integers as well as characters on disk
+		int sizeOfBig = 4;
+		int sizeOfSmall = 2;
+		int sizeOfChar = 1;
 		if (magic <= ELIBConstants.MAGIC10)
 		{
 			sizeOfSmall = readByte();
 			sizeOfBig = readByte();
-		} else
-		{
-			sizeOfSmall = 2;
-			sizeOfBig = 4;
 		}
 		if (magic <= ELIBConstants.MAGIC11)
 		{
 			sizeOfChar = readByte();
-		} else
-		{
-			sizeOfChar = 1;
 		}
-		return false;
+		return new Header(magic, byteOrder, sizeOfBig, sizeOfSmall, sizeOfChar);
 	}
 
 	/**
@@ -1591,11 +1699,11 @@ public class ELIB extends LibraryFiles
         Cell cell;
 		// read the cell name
 		String theProtoName;
-		if (magic <= ELIBConstants.MAGIC9)
+		if (header.magic <= ELIBConstants.MAGIC9)
 		{
             Integer nextInCell = null;
 			// read the cell information (version 9 and later)
-			if (magic >= ELIBConstants.MAGIC11)
+			if (header.magic >= ELIBConstants.MAGIC11)
 			{
 				// only versions 9 to 11
 				int k = readBigInteger();
@@ -1646,7 +1754,7 @@ public class ELIB extends LibraryFiles
 		readBigInteger(); // highY
 
 		// ignore the linked list pointers (versions 5 or older)
-		if (magic >= ELIBConstants.MAGIC5)
+		if (header.magic >= ELIBConstants.MAGIC5)
 		{
 			readBigInteger();		// ignore "prev index"
 			readBigInteger();		// ignore "next index"
@@ -1688,7 +1796,7 @@ public class ELIB extends LibraryFiles
 
 			// read the portproto text descriptor
 			int descript0 = 0, descript1 = 0;
-			if (magic <= ELIBConstants.MAGIC9)
+			if (header.magic <= ELIBConstants.MAGIC9)
 			{
 				if (convertTextDescriptors)
 				{
@@ -1704,17 +1812,17 @@ public class ELIB extends LibraryFiles
             exportNameDescriptors[exportIndex] = makeDescriptor(descript0, descript1);
 
 			// ignore the "seen" bits (versions 8 and older)
-			if (magic > ELIBConstants.MAGIC9) readBigInteger();
+			if (header.magic > ELIBConstants.MAGIC9) readBigInteger();
 
 			// read the portproto's "user bits"
 			exportUserbits[exportIndex] = 0;
-			if (magic <= ELIBConstants.MAGIC7)
+			if (header.magic <= ELIBConstants.MAGIC7)
 			{
 				// version 7 and later simply read the relevant data
 				exportUserbits[exportIndex] = readBigInteger();
 
 				// versions 7 and 8 ignore net number
-				if (magic >= ELIBConstants.MAGIC8) readBigInteger();
+				if (header.magic >= ELIBConstants.MAGIC8) readBigInteger();
 			} else
 			{
 				// version 6 and earlier must sift through the information
@@ -1729,7 +1837,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// ignore the cell's geometry information
-		if (magic > ELIBConstants.MAGIC5)
+		if (header.magic > ELIBConstants.MAGIC5)
 		{
 			// versions 4 and older have geometry module pointers (ignore it)
 			readBigInteger();
@@ -1744,13 +1852,13 @@ public class ELIB extends LibraryFiles
 		
 		// read the "user bits"
 		int userBits = 0;
-		if (magic <= ELIBConstants.MAGIC7)
+		if (header.magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
 
 			// versions 7 and 8 ignore net number
-			if (magic >= ELIBConstants.MAGIC8) readBigInteger();
+			if (header.magic >= ELIBConstants.MAGIC8) readBigInteger();
 		} else
 		{
 			// version 6 and earlier must sift through the information
@@ -1772,7 +1880,7 @@ public class ELIB extends LibraryFiles
 	{
 		// read the cell information (version 9 and later)
 		String theProtoName;
-		if (magic >= ELIBConstants.MAGIC11)
+		if (header.magic >= ELIBConstants.MAGIC11)
 		{
 			// only versions 9 to 11
 			int k = readBigInteger();
@@ -1964,7 +2072,7 @@ public class ELIB extends LibraryFiles
 		nodeInstList.lowY[nodeIndex] = readBigInteger();
 		nodeInstList.highX[nodeIndex] = readBigInteger();
 		nodeInstList.highY[nodeIndex] = readBigInteger();
-		if (magic <= ELIBConstants.MAGIC13)
+		if (header.magic <= ELIBConstants.MAGIC13)
 		{
 			// read anchor point for cell references
 			if (np instanceof Cell)
@@ -1980,7 +2088,7 @@ public class ELIB extends LibraryFiles
 
 		// versions 9 and later get text descriptor for cell name
 		int descript0 = 0, descript1 = 0;
-		if (magic <= ELIBConstants.MAGIC9)
+		if (header.magic <= ELIBConstants.MAGIC9)
 		{
 			if (convertTextDescriptors)
 			{
@@ -1999,7 +2107,7 @@ public class ELIB extends LibraryFiles
 //		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
-		if (magic >= ELIBConstants.MAGIC3)
+		if (header.magic >= ELIBConstants.MAGIC3)
 		{
 			String instName = readString();
 			if (instName.length() > 0)
@@ -2007,7 +2115,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// ignore the geometry index (versions 4 or older)
-		if (magic > ELIBConstants.MAGIC5) readBigInteger();
+		if (header.magic > ELIBConstants.MAGIC5) readBigInteger();
 
 		// read the arc ports
 		int numPorts = readBigInteger();
@@ -2037,11 +2145,11 @@ public class ELIB extends LibraryFiles
 		}
 
 		// ignore the "seen" bits (versions 8 and older)
-		if (magic > ELIBConstants.MAGIC9) readBigInteger();
+		if (header.magic > ELIBConstants.MAGIC9) readBigInteger();
 
 		// read the tool information
 		int userBits = 0;
-		if (magic <= ELIBConstants.MAGIC7)
+		if (header.magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
@@ -2082,17 +2190,17 @@ public class ELIB extends LibraryFiles
 		arcTypeList[arcIndex] = ap;
 
 		// read the arc length (versions 5 or older)
-		if (magic >= ELIBConstants.MAGIC5) readBigInteger();
+		if (header.magic >= ELIBConstants.MAGIC5) readBigInteger();
 
 		// read the arc width
 		arcWidthList[arcIndex] = readBigInteger();
 
 		// ignore the signals value (versions 6, 7, or 8)
-		if (magic <= ELIBConstants.MAGIC6 && magic >= ELIBConstants.MAGIC8)
+		if (header.magic <= ELIBConstants.MAGIC6 && header.magic >= ELIBConstants.MAGIC8)
 			readBigInteger();
 
 		// read the arcinst name (versions 3 or older)
-		if (magic >= ELIBConstants.MAGIC3)
+		if (header.magic >= ELIBConstants.MAGIC3)
 		{
 			String instName = readString();
 			if (instName.length() > 0)
@@ -2114,20 +2222,20 @@ public class ELIB extends LibraryFiles
 			arcHeadNodeList[arcIndex] = headNodeIndex;
 
 		// ignore the geometry index (versions 4 or older)
-		if (magic > ELIBConstants.MAGIC5) readBigInteger();
+		if (header.magic > ELIBConstants.MAGIC5) readBigInteger();
 
 		// ignore the "seen" bits (versions 8 and older)
-		if (magic > ELIBConstants.MAGIC9) readBigInteger();
+		if (header.magic > ELIBConstants.MAGIC9) readBigInteger();
 
 		// read the arcinst's tool information
 		int userBits = 0;
-		if (magic <= ELIBConstants.MAGIC7)
+		if (header.magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
 
 			// versions 7 and 8 ignore net number
-			if (magic >= ELIBConstants.MAGIC8) readBigInteger();
+			if (header.magic >= ELIBConstants.MAGIC8) readBigInteger();
 		} else
 		{
 			// version 6 and earlier must sift through the information
@@ -2226,7 +2334,7 @@ public class ELIB extends LibraryFiles
 			// version 9 and later reads text description on displayable variables
 			int descript0 = 0;
 			int descript1 = 0;
-			if (magic <= ELIBConstants.MAGIC9)
+			if (header.magic <= ELIBConstants.MAGIC9)
 			{
 				if (alwaysTextDescriptors)
 				{
@@ -2583,16 +2691,16 @@ public class ELIB extends LibraryFiles
 	private int readBigInteger()
 		throws IOException
 	{
-		if (sizeOfBig == 4)
+		if (header.sizeOfBig == 4)
 		{
 			updateProgressDialog(4);
 			int data = dataInputStream.readInt();
-			if (!bytesSwapped)
+			if (!header.bytesSwapped)
 				data = ((data >> 24) & 0xFF) | ((data >> 8) & 0xFF00) | ((data & 0xFF00) << 8) | ((data & 0xFF) << 24);
 			return data;
 		}
-		readBytes(rawData, sizeOfBig, 4, true);
-		if (bytesSwapped)
+		readBytes(rawData, header.sizeOfBig, 4, true);
+		if (header.bytesSwapped)
 		{
 			bb.put(0, rawData[0]);
 			bb.put(1, rawData[1]);
@@ -2608,23 +2716,24 @@ public class ELIB extends LibraryFiles
 		return bb.getInt(0);
 	}
 
+
 	/**
 	 * Method to read a float (4 bytes) from the input stream and return it.
 	 */
 	private float readFloat()
 		throws IOException
 	{
-		if (bytesSwapped)
+		if (header.bytesSwapped)
 		{
 			updateProgressDialog(4);
 			return dataInputStream.readFloat();
 		}
-		readBytes(rawData, sizeOfBig, 4, true);
-		bb.put(0, rawData[3]);
-		bb.put(1, rawData[2]);
-		bb.put(2, rawData[1]);
-		bb.put(3, rawData[0]);
-		return bb.getFloat(0);
+        readBytes(rawData, header.sizeOfBig, 4, true);
+        bb.put(0, rawData[3]);
+        bb.put(1, rawData[2]);
+        bb.put(2, rawData[1]);
+        bb.put(3, rawData[0]);
+        return bb.getFloat(0);
 	}
 
 	/**
@@ -2633,12 +2742,12 @@ public class ELIB extends LibraryFiles
 	private double readDouble()
 		throws IOException
 	{
-		if (bytesSwapped)
+		if (header.bytesSwapped)
 		{
 			updateProgressDialog(8);
 			return dataInputStream.readDouble();
 		}
-		readBytes(rawData, sizeOfBig, 8, true);
+		readBytes(rawData, header.sizeOfBig, 8, true);
 		bb.put(0, rawData[7]);
 		bb.put(1, rawData[2]);
 		bb.put(2, rawData[3]);
@@ -2656,16 +2765,16 @@ public class ELIB extends LibraryFiles
 	private short readSmallInteger()
 		throws IOException
 	{
-		if (sizeOfSmall == 2)
+		if (header.sizeOfSmall == 2)
 		{
 			updateProgressDialog(2);
 			int data = dataInputStream.readShort();
-			if (!bytesSwapped)
+			if (!header.bytesSwapped)
 				data = ((data >> 8) & 0xFF) | ((data & 0xFF) << 8);
 			return (short)data;
 		}
-		readBytes(rawData, sizeOfSmall, 2, true);
-		if (bytesSwapped)
+		readBytes(rawData, header.sizeOfSmall, 2, true);
+		if (header.bytesSwapped)
 		{
 			bb.put(0, rawData[0]);
 			bb.put(1, rawData[1]);
@@ -2683,7 +2792,7 @@ public class ELIB extends LibraryFiles
 	private String readString()
 		throws IOException
 	{
-		if (sizeOfChar != 1)
+		if (header.sizeOfChar != 1)
 		{
 			// disk and memory don't match: read into temporary string
 			System.out.println("Cannot handle library files with unicode strings");

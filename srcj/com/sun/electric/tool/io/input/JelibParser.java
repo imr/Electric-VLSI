@@ -43,7 +43,6 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -326,10 +325,10 @@ public class JelibParser
 					logError("External cell declaration needs " + numPieces + " fields: " + line);
 					continue;
 				}
-				double lowX = TextUtils.atof(pieces.get(1));
-				double highX = TextUtils.atof(pieces.get(2));
-				double lowY = TextUtils.atof(pieces.get(3));
-				double highY = TextUtils.atof(pieces.get(4));
+				double lowX = readDouble(pieces.get(1));
+				double highX = readDouble(pieces.get(2));
+				double lowY = readDouble(pieces.get(3));
+				double highY = readDouble(pieces.get(4));
 				if (revision == 1)
 				{
 					Long.parseLong(pieces.get(5));		// ignore cdate
@@ -351,8 +350,8 @@ public class JelibParser
 					continue;
 				}
 				String exportName = unQuote(pieces.get(0));
-				double posX = TextUtils.atof(pieces.get(1));
-				double posY = TextUtils.atof(pieces.get(1));
+				double posX = readDouble(pieces.get(1));
+				double posY = readDouble(pieces.get(1));
                 ExportId exportId = curExternalCellId.newPortId(exportName);
 				externalExports.put(exportId, EPoint.fromLambda(posX, posY));
 				continue;
@@ -694,8 +693,8 @@ public class JelibParser
         }
         n.nodeName = nodeName;
         String nameTextDescriptorInfo = pieces.get(2);
-        double x = TextUtils.atof(pieces.get(3));
-        double y = TextUtils.atof(pieces.get(4));
+        double x = readDouble(pieces.get(3));
+        double y = readDouble(pieces.get(4));
 
         LibId libId = cc.cellId.libId;
         String prefixName = libId.libName;
@@ -726,12 +725,12 @@ public class JelibParser
         String textDescriptorInfo = "";
         if (firstChar == 'N' || revision < 1)
         {
-            double wid = TextUtils.atof(pieces.get(5));
+            double wid = readDouble(pieces.get(5));
             if (revision < 1 && (wid < 0 || wid == 0 && 1/wid < 0)) {
                 flipX = true;
                 wid = -wid;
             }
-            double hei = TextUtils.atof(pieces.get(6));
+            double hei = readDouble(pieces.get(6));
             if (revision < 1 && (hei < 0 || hei == 0 && 1/hei < 0)) {
                 flipY = true;
                 hei = -hei;
@@ -757,7 +756,7 @@ public class JelibParser
             else if (ch == 'R') angle += 900;
             else
             {
-                angle += TextUtils.atoi(orientString.substring(i));
+                angle += Integer.valueOf(orientString.substring(i));
                 break;
             }
         }
@@ -842,8 +841,8 @@ public class JelibParser
         Point2D pos = null;
         if (revision < 1)
         {
-            double x = TextUtils.atof(pieces.get(fieldIndex++));
-            double y = TextUtils.atof(pieces.get(fieldIndex++));
+            double x = readDouble(pieces.get(fieldIndex++));
+            double y = readDouble(pieces.get(fieldIndex++));
             pos = new Point2D.Double(x, y);
         }
         e.pos = pos;
@@ -904,20 +903,20 @@ public class JelibParser
             }
         }
         a.arcName = arcName;
-        a.diskWidth = TextUtils.atof(pieces.get(3));
+        a.diskWidth = readDouble(pieces.get(3));
 
         String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
         String headPortName = unQuote(pieces.get(6));
-        double headX = TextUtils.atof(pieces.get(7));
-        double headY = TextUtils.atof(pieces.get(8));
+        double headX = readDouble(pieces.get(7));
+        double headY = readDouble(pieces.get(8));
         a.headNode = cc.diskName.get(headNodeName);
         a.headPort = a.headNode.protoId.newPortId(headPortName);
         a.headPoint = EPoint.fromLambda(headX, headY);
 
         String tailNodeName = revision >= 1 ? pieces.get(9) : unQuote(pieces.get(9));
         String tailPortName = unQuote(pieces.get(10));
-        double tailX = TextUtils.atof(pieces.get(11));
-        double tailY = TextUtils.atof(pieces.get(12));
+        double tailX = readDouble(pieces.get(11));
+        double tailY = readDouble(pieces.get(12));
         a.tailNode = cc.diskName.get(tailNodeName);
         a.tailPort = a.tailNode.protoId.newPortId(tailPortName);
         a.tailPoint = EPoint.fromLambda(tailX, tailY);
@@ -956,9 +955,9 @@ public class JelibParser
                 case 'H': skipHead = true; break;
                 case 'T': skipTail = true; break;
                 default:
-                    if (TextUtils.isDigit(chr))
+                    if ('0' <= chr && chr <= '9')
                     {
-                        angle = TextUtils.atoi(stateInfo.substring(i));
+                        angle = Integer.valueOf(stateInfo.substring(i));
                         break parseStateInfo;
                     }
             }
@@ -1280,7 +1279,7 @@ public class JelibParser
                         error = true;
 						break;
 					}
-					mtd.setAbsSize(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					mtd.setAbsSize(Integer.valueOf(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'G':		// relative text size
@@ -1291,7 +1290,7 @@ public class JelibParser
                         error = true;
 						break;
 					}
-					mtd.setRelSize(TextUtils.atof(varBits.substring(j+1, semiPos)));
+					mtd.setRelSize(readDouble(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'X':		// X offset
@@ -1302,7 +1301,7 @@ public class JelibParser
                         error = true;
 						break;
 					}
-					xoff = TextUtils.atof(varBits.substring(j+1, semiPos));
+					xoff = readDouble(varBits.substring(j+1, semiPos));
 					j = semiPos;
 					break;
 				case 'Y':		// Y offset
@@ -1313,7 +1312,7 @@ public class JelibParser
                         error = true;
 						break;
 					}
-					yoff = TextUtils.atof(varBits.substring(j+1, semiPos));
+					yoff = readDouble(varBits.substring(j+1, semiPos));
 					j = semiPos;
 					break;
 				case 'B':		// bold
@@ -1346,7 +1345,7 @@ public class JelibParser
                         error = true;
 						break;
 					}
-					mtd.setColorIndex(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					mtd.setColorIndex(Integer.valueOf(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'R':		// rotation
@@ -1460,7 +1459,7 @@ public class JelibParser
 				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
                 return libId.newCellId(CellName.parseName(cellName));
 			case 'D':		// Double
-				return new Double(TextUtils.atof(piece));
+				return Double.valueOf(piece);
 			case 'E':		// Export (should delay analysis until database is built!!!)
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
@@ -1483,13 +1482,13 @@ public class JelibParser
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
                 return cellId.newPortId(exportName);
 			case 'F':		// Float
-				return new Float((float)TextUtils.atof(piece));
+				return Float.valueOf(piece);
 			case 'G':		// Long
 				return Long.valueOf(piece);
 			case 'H':		// Short
-				return new Short((short)TextUtils.atoi(piece));
+				return Short.valueOf(piece);
 			case 'I':		// Integer
-				return new Integer(TextUtils.atoi(piece));
+				return Integer.valueOf(piece);
 			case 'L':		// Library (should delay analysis until database is built!!!)
 				libName = piece;
 				commaPos = libName.indexOf(',');
@@ -1562,20 +1561,24 @@ public class JelibParser
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);
                 return idManager.newTechId(techName);
 			case 'V':		// Point2D
-				double x = TextUtils.atof(piece);
+				double x = Double.valueOf(piece);
 				int slashPos = piece.indexOf('/');
 				if (slashPos < 0)
 				{
 					logError("Badly formed Point2D variable (missing slash): " + piece);
 					break;
 				}
-				double y = TextUtils.atof(piece.substring(slashPos+1));
+				double y = Double.valueOf(piece.substring(slashPos+1));
 				return new EPoint(x, y);
 			case 'Y':		// Byte
-				return new Byte((byte)TextUtils.atoi(piece));
+				return Byte.valueOf(piece);
 		}
 		return null;
 	}
+    
+    private static double readDouble(String s) {
+        return s.length() > 0 ? Double.parseDouble(s) : 0;
+    }
 
     private void logError(String message) {
         String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
