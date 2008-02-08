@@ -751,7 +751,8 @@ public class LibraryStatistics implements Serializable
 		transient String canonicalPath;
 
 		private FileInstance(LibraryStatistics stat, String fileName, long fileLength, long lastModified, long crc)
-		{
+            throws IOException
+        {
 			File file = new File(fileName);
 			this.fileName = fileName;
 			this.fileLength = fileLength;
@@ -759,7 +760,7 @@ public class LibraryStatistics implements Serializable
             this.fileUrl = file.toURI().toURL();
 			this.crc = crc;
             
-			File file = new File(fileName);
+//			File file = new File(fileName);
 			stat.getDirectory(file.getParent()).files.put(file.getName(), this);
 		}
 
