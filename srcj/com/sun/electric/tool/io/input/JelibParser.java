@@ -248,6 +248,8 @@ public class JelibParser
         delibHeaderReader = fileType == FileType.DELIB ? lineReader : null;
         try {
             readFromFile(onlyProjectSettings);
+        } catch (Exception e) {
+            logError("Exception " + e.getMessage());
         } finally {
             lineReader.close();
         }

@@ -60,11 +60,14 @@ import java.util.zip.CheckedInputStream;
 public class LibraryStatistics implements Serializable
 {
     private static final long serialVersionUID = -361650802811567400L;
-	private TreeMap<String,Directory> directories = new TreeMap<String,Directory>();
-	private TreeMap<String,LibraryName> libraryNames = new TreeMap<String,LibraryName>();
+    private final transient IdManager idManager;
+	private final TreeMap<String,Directory> directories = new TreeMap<String,Directory>();
+	private final TreeMap<String,LibraryName> libraryNames = new TreeMap<String,LibraryName>();
 //	transient LibraryContents totalLibraryContents;
 
-	private LibraryStatistics() {}
+	private LibraryStatistics(IdManager idManager) {
+        this.idManager = idManager;
+    }
 
 	Directory getDirectory(String dirName)
 	{
@@ -83,9 +86,9 @@ public class LibraryStatistics implements Serializable
 	Iterator<Directory> getDirectories() { return directories.values().iterator(); }
 	Iterator<LibraryName> getLibraryNames() { return libraryNames.values().iterator(); }
 
-	public static LibraryStatistics scanDirectories(String[] dirNames)
+	public static LibraryStatistics scanDirectories(IdManager idManager, String[] dirNames)
 	{
-		LibraryStatistics stat = new LibraryStatistics();
+		LibraryStatistics stat = new LibraryStatistics(idManager);
 		Set<String> canonicalDirs = new HashSet<String>();
 		Map<String,Set<FileInstance>> preLibraries = new HashMap<String,Set<FileInstance>>();
 
@@ -179,6 +182,11 @@ public class LibraryStatistics implements Serializable
 			System.out.println(dir + " CANONICAL FAILED");
 			return;
 		}
+        if (dir.getPath().equals("/import/async/archive/2005/tic/gilda/TreasureIsland/electric-old/projectManagement") ||
+                dir.getPath().equals("/import/async/archive/2005/tic/jkg/projectTest")) {
+            System.out.println(dir + " IGNORED");
+            return;
+        }
 		File[] files = dir.listFiles();
 		if (files == null)
 		{
@@ -256,10 +264,8 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-	public void readJelibVersions()
+	public void readJelibVersions(ErrorLogger errorLogger)
 	{
-        ErrorLogger errorLogger = ErrorLogger.newInstance("ReadJelibVersions");
-        IdManager idManager = new IdManager();
 		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
 		{
 			LibraryName libraryName = lit.next();
@@ -282,7 +288,6 @@ public class LibraryStatistics implements Serializable
                 }
 			}
 		}
-        errorLogger.termLogging(true);
 	}
 
 //	public void readLibraries()
@@ -329,12 +334,12 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-	public static LibraryStatistics readList(String fileName)
+	public static LibraryStatistics readList(IdManager idManager, String fileName)
 	{
 		URL fileURL = TextUtils.makeURLToFile(fileName);
 		try
 		{
-			StatisticsInput in = new StatisticsInput(fileURL);
+			StatisticsInput in = new StatisticsInput(idManager, fileURL);
 			return in.stat;
 		} catch (IOException e)
 		{
@@ -762,12 +767,12 @@ public class LibraryStatistics implements Serializable
 			canonicalPath = file.getCanonicalPath();
 			fileLength = file.length();
 			lastModified = file.lastModified();
-			URL fileURL = TextUtils.makeURLToFile(fileName);
-
+            URL fileURL = file.toURI().toURL();
 			Input in = new Input();
 			try
 			{
-				if (in.openBinaryInput(fileURL)) throw new IOException("openBytesInput");
+				if (in.openBinaryInput(fileURL))
+                    throw new IOException("openBytesInput");
 				CheckedInputStream checkedInputStream = new CheckedInputStream(in.dataInputStream, new CRC32());
 				if (checkedInputStream.skip(fileLength) != fileLength)
 					throw new IOException("skip failed");
@@ -793,13 +798,13 @@ public class LibraryStatistics implements Serializable
 	{
 		private LibraryStatistics stat;
 
-		StatisticsInput(URL url)
+		StatisticsInput(IdManager idManager, URL url)
 			throws IOException
 		{
 			if (openTextInput(url)) throw new IOException("openStatisticsInput");
 			try
 			{
-				stat = new LibraryStatistics();
+				stat = new LibraryStatistics(idManager);
 				LibraryName libraryName = null;
 				long fileLength = 0;
 				long crc = 0;

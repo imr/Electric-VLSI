@@ -39,10 +39,13 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
 import com.sun.electric.tool.io.input.LibraryStatistics;
+import com.sun.electric.tool.user.ErrorLogger;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -297,8 +300,30 @@ public class SnapshotTest {
         instance.check();
     }
     
-//    @Test public void scanDirs() {
-//        LibraryStatistics stat = LibraryStatistics.scanDirectories(new String[] { "/import/async/cad"});
-//        stat.writeList("./dirs.lst");
-//    }
+    @Test public void scanDirs() {
+        String[] dirs = { "/import/async/" };
+//        String[] dirs = { "/home/nadezhin" };
+        IdManager idManager = new IdManager();
+        LibraryStatistics stat = LibraryStatistics.scanDirectories(idManager, dirs);
+        stat.writeList("./dirs.lst");
+        stat.reportFileLength();
+        
+        ErrorLogger errorLogger = ErrorLogger.newInstance("ReadJelibVersions");
+        stat.readJelibVersions(errorLogger);
+        System.out.println(errorLogger.getInfo());
+        errorLogger.exportErrorLogger("./dirs.xml");
+        stat.readHeaders();
+        stat.writeSerialized("./dirs.ser");
+        stat.reportFileLength();
+        
+        try {
+            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./dirs.ids")));
+            IdWriter writer = new IdWriter(idManager, outStream);
+            writer.writeDiffs();
+            outStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+   }
 }
