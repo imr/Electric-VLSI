@@ -119,7 +119,7 @@ public class LibraryStatistics implements Serializable
 						if (bytes == null)
 						{
 							Input in = new Input();
-							if (in.openBinaryInput(TextUtils.makeURLToFile(f1.fileName))) continue;
+							if (in.openBinaryInput(f1.fileUrl)) continue;
 							try {
 								bytes = new byte[len];
 								try {
@@ -134,7 +134,7 @@ public class LibraryStatistics implements Serializable
 							}
 						}
 						Input in = new Input();
-						if (in.openBinaryInput(TextUtils.makeURLToFile(f1.fileName))) continue;
+						if (in.openBinaryInput(f1.fileUrl)) continue;
 						try
 						{
 							int n = 0;
@@ -744,6 +744,7 @@ public class LibraryStatistics implements Serializable
 	{
 		private FileContents contents;
 		private String fileName;
+        private final URL fileUrl;
 		private long fileLength;
 		private long crc;
 		private long lastModified;
@@ -751,10 +752,13 @@ public class LibraryStatistics implements Serializable
 
 		private FileInstance(LibraryStatistics stat, String fileName, long fileLength, long lastModified, long crc)
 		{
+			File file = new File(fileName);
 			this.fileName = fileName;
 			this.fileLength = fileLength;
 			this.lastModified = lastModified;
+            this.fileUrl = file.toURI().toURL();
 			this.crc = crc;
+            
 			File file = new File(fileName);
 			stat.getDirectory(file.getParent()).files.put(file.getName(), this);
 		}
@@ -767,11 +771,11 @@ public class LibraryStatistics implements Serializable
 			canonicalPath = file.getCanonicalPath();
 			fileLength = file.length();
 			lastModified = file.lastModified();
-            URL fileURL = file.toURI().toURL();
+            fileUrl = file.toURI().toURL();
 			Input in = new Input();
 			try
 			{
-				if (in.openBinaryInput(fileURL))
+				if (in.openBinaryInput(fileUrl))
                     throw new IOException("openBytesInput");
 				CheckedInputStream checkedInputStream = new CheckedInputStream(in.dataInputStream, new CRC32());
 				if (checkedInputStream.skip(fileLength) != fileLength)
