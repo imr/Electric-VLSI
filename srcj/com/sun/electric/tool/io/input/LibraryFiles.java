@@ -1197,7 +1197,7 @@ public abstract class LibraryFiles extends Input
         PortProtoId portProtoId = np.getId().newPortId(portId);
         PortProto pp = np.getPort(portProtoId);
         if (pp != null) return pp;
-        if (np.getNumPorts() == 1)
+        if (np.getNumPorts() == 1 && portId.length() == 0)
             return np.getPort(0);
         if (np instanceof PrimitiveNode) {
             PrimitiveNode primNode = (PrimitiveNode)np;
