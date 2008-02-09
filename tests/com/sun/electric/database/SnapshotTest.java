@@ -37,9 +37,9 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-
 import com.sun.electric.tool.io.input.LibraryStatistics;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,6 +49,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -300,24 +301,43 @@ public class SnapshotTest {
         instance.check();
     }
     
-    @Test public void scanDirs() {
-        String[] dirs = { "/import/async/" };
-//        String[] dirs = { "/home/nadezhin" };
+/*    @Test */
+    public void scanDirs() {
         IdManager idManager = new IdManager();
-        LibraryStatistics stat = LibraryStatistics.scanDirectories(idManager, dirs);
-        stat.writeList("./dirs.lst");
+        LibraryStatistics stat;
+        
+        String wrkDir = "./home/";
+        String[] dirs = { "/home/nadezhin/" };
+        
+//        String wrkDir = "./regression/";
+//        String[] dirs = { "/home/nadezhin/regression/" };
+//        
+//        String wrkDir = "./bic/";
+//        String[] dirs = { "/home/nadezhin/electric/cvs/bic/" };
+        
+        if (true) {
+//            String[] dirs = { "/import/async/" };
+            stat = LibraryStatistics.scanDirectories(idManager, dirs);
+            stat.writeList(wrkDir + "dirs.lst");
+        } else {
+            stat = LibraryStatistics.readList(idManager, wrkDir + "dirs.lst");
+        }
         stat.reportFileLength();
         
-        ErrorLogger errorLogger = ErrorLogger.newInstance("ReadJelibVersions");
+        ErrorLogger errorLogger = ErrorLogger.newInstance("ReadHeaders");
         stat.readJelibVersions(errorLogger);
-        System.out.println(errorLogger.getInfo());
-        errorLogger.exportErrorLogger("./dirs.xml");
-        stat.readHeaders();
-        stat.writeSerialized("./dirs.ser");
+        stat.readHeaders(errorLogger);
+         System.out.println(errorLogger.getInfo());
+        for (Iterator<ErrorLogger.MessageLog> it = errorLogger.getLogs(); it.hasNext(); ) {
+            ErrorLogger.MessageLog m = it.next();
+            System.out.println(m.getMessageString());
+        }
+        stat.writeSerialized(wrkDir + "dirs.ser");
         stat.reportFileLength();
         
         try {
-            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./dirs.ids")));
+            String fileName = wrkDir + "dirs.ids";
+            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
             IdWriter writer = new IdWriter(idManager, outStream);
             writer.writeDiffs();
             outStream.close();

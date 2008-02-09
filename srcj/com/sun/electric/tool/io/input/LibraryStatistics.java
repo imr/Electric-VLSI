@@ -243,7 +243,7 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-	public void readHeaders()
+	public void readHeaders(ErrorLogger errorLogger)
 	{
 		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
 		{
@@ -252,12 +252,13 @@ public class LibraryStatistics implements Serializable
 			{
 				FileContents fc = it.next();
 				if (!fc.isElib()) continue;
-				String fileName = fc.fileName();
-				URL fileURL = TextUtils.makeURLToFile(fileName);
-				fc.header = ELIB.readLibraryHeader(fileURL);
-				if (fc.header == null)
-				{
-					System.out.println(fileName + " INVALID HEADER");
+                for (Iterator<URL> uit = fc.fileUrl(); uit.hasNext(); ) {
+                    URL fileUrl = uit.next();
+    				fc.header = ELIB.readLibraryHeader(fileUrl, errorLogger);
+                    if (fc.header != null) break;
+                }
+        		if (fc.header == null) {
+					System.out.println(fc.fileUrl().next() + " INVALID HEADER");
 					continue;
 				}
 			}
@@ -278,13 +279,15 @@ public class LibraryStatistics implements Serializable
 			{
 				FileContents fc = it.next();
 				if (fc.isElib()) continue;
-				String fileName = fc.fileName();
-				URL fileURL = TextUtils.makeURLToFile(fileName);
-                try {
-                    JelibParser parser = JelibParser.parse(libId, fileURL, FileType.JELIB, false, errorLogger);
-                    fc.version = parser.version;
-                } catch (Exception e) {
-                    System.out.println("Error reading " + e.getMessage());
+                for (Iterator<URL> uit = fc.fileUrl(); uit.hasNext(); ) {
+                    URL fileUrl = uit.next();
+                    try {
+                        JelibParser parser = JelibParser.parse(libId, fileUrl, FileType.JELIB, false, errorLogger);
+                        fc.version = parser.version;
+                        break;
+                    } catch (Exception e) {
+                        System.out.println("Error reading " + fileUrl + " " + e.getMessage());
+                    }
                 }
 			}
 		}
@@ -734,9 +737,14 @@ public class LibraryStatistics implements Serializable
 			if (f.lastModified < lastModified) lastModified = f.lastModified;
 		}
 
-		String fileName() { return ((FileInstance)instances.get(0)).fileName; }
+		Iterator<URL> fileUrl() {
+            ArrayList<URL> urls = new ArrayList<URL>();
+            for (FileInstance instance: instances)
+                urls.add(instance.fileUrl);
+            return urls.iterator();
+        }
 
-		boolean isElib() { return fileName().endsWith(".elib"); }
+		boolean isElib() { return instances.get(0).fileName.endsWith(".elib"); }
 
 	}
 

@@ -50,8 +50,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
-
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -163,7 +163,7 @@ public class JelibParser
     final LinkedHashMap<PrimitiveNodeId,Variable[]> primitiveNodeIds = new LinkedHashMap<PrimitiveNodeId,Variable[]>();
     final LinkedHashMap<PrimitivePortId,Variable[]> primitivePortIds = new LinkedHashMap<PrimitivePortId,Variable[]>();
     final LinkedHashMap<ArcProtoId,Variable[]> arcProtoIds = new LinkedHashMap<ArcProtoId,Variable[]>();
-    final LinkedHashMap<Tool,Variable[]> tools = new LinkedHashMap<Tool,Variable[]>();
+    final LinkedHashMap<String,Variable[]> tools = new LinkedHashMap<String,Variable[]>();
     
  	final LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
     final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
@@ -198,7 +198,7 @@ public class JelibParser
     }
     
     // Were in LibraryFiles
-    private final URL fileURL;
+    final URL fileURL;
     private final FileType fileType;
     private final IdManager idManager;
     private final LibId libId;
@@ -389,16 +389,11 @@ public class JelibParser
 				// parse Tool information
 				List<String> pieces = parseLine(line);
 				String toolName = unQuote(pieces.get(0));
-				Tool tool = Tool.findTool(toolName);
-				if (tool == null) {
-					logError("Cannot identify tool " + toolName);
-					continue;
-				}
 
 				// get additional meaning preferences starting at position 1
                 Variable[] vars = readVariables(pieces, 1);
-                if (!tools.containsKey(tool))
-                    tools.put(tool, vars);
+                if (!tools.containsKey(toolName))
+                    tools.put(toolName, vars);
 				continue;
 			}
 
@@ -1563,13 +1558,13 @@ public class JelibParser
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);
                 return idManager.newTechId(techName);
 			case 'V':		// Point2D
-				double x = Double.valueOf(piece);
 				int slashPos = piece.indexOf('/');
 				if (slashPos < 0)
 				{
 					logError("Badly formed Point2D variable (missing slash): " + piece);
 					break;
 				}
+				double x = Double.valueOf(piece.substring(0, slashPos));
 				double y = Double.valueOf(piece.substring(slashPos+1));
 				return new EPoint(x, y);
 			case 'Y':		// Byte

@@ -283,20 +283,18 @@ public class ELIB extends LibraryFiles
 	 * @param fileURL the URL to the disk file.
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Header readLibraryHeader(URL fileURL)
+	public static synchronized Header readLibraryHeader(URL fileURL, ErrorLogger errorLogger)
 	{
-		errorLogger = ErrorLogger.newInstance("Read Library Header");
 		try {
 			ELIB in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
 			Header header = in.readHeader();
 			// read the library
 			in.closeInput();
-			errorLogger.termLogging(true);
 			return header;
-        } catch (IOException e)
+        } catch (Exception e)
 		{
-            System.out.println("Error " + e + " in " + fileURL);
+            errorLogger.logError("Error " + e + " on " + fileURL, -1);
         }
 		return null;
     }

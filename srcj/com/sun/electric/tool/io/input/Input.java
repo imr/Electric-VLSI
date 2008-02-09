@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
@@ -295,7 +296,9 @@ public class Input
 		byteCount += bytesRead;
         if (fileLength == 0) return;
         long pct = byteCount * 100L / fileLength;
-        Job.getUserInterface().setProgressValue(pct);
+        UserInterface ui = Job.getUserInterface();
+        if (ui != null)
+            ui.setProgressValue(pct);
 	}
 
 	protected void closeInput()

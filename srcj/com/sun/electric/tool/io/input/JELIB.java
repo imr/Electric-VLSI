@@ -105,9 +105,15 @@ public class JELIB extends LibraryFiles
             }
             realizeMeaningPrefs(projectSettings, tech, vars);
         }
-        for (Map.Entry<Tool,Variable[]> e: parser.tools.entrySet()) {
-            Tool tool = e.getKey();
+        for (Map.Entry<String,Variable[]> e: parser.tools.entrySet()) {
+            String toolName = e.getKey();
             Variable[] vars = e.getValue();
+			Tool tool = Tool.findTool(toolName);
+			if (tool == null) {
+				Input.errorLogger.logError(fileURL +
+                    ", Cannot identify tool " + toolName, -1);
+				continue;
+			}
             realizeMeaningPrefs(projectSettings, tool, vars);
         }
         return projectSettings;
@@ -141,9 +147,15 @@ public class JELIB extends LibraryFiles
             }
             realizeMeaningPrefs(tech, vars);
         }
-        for (Map.Entry<Tool,Variable[]> e: parser.tools.entrySet()) {
-            Tool tool = e.getKey();
+        for (Map.Entry<String,Variable[]> e: parser.tools.entrySet()) {
+            String toolName = e.getKey();
             Variable[] vars = e.getValue();
+			Tool tool = Tool.findTool(toolName);
+			if (tool == null) {
+				Input.errorLogger.logError(parser.fileURL +
+                    ", Cannot identify tool " + toolName, -1);
+				continue;
+			}
             realizeMeaningPrefs(tool, vars);
         }
         for (Map.Entry<LibId,String> e: parser.externalLibIds.entrySet()) {
@@ -516,7 +528,7 @@ public class JELIB extends LibraryFiles
                 pos = parser.externalExports.get(subCell.getId().newPortId(portName));
 		}
         if (pos == null)
-            pos = ni.getAnchorCenter().lambdaMutable();
+            pos = ni.getAnchorCenter();
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
@@ -535,8 +547,9 @@ public class JELIB extends LibraryFiles
 		// a dummy cell: create a dummy export on it to fit this
 		String name = portName;
 		if (name.length() == 0) name = "X";
-        ni.transformIn().transform(pos, pos);
-		NodeInst portNI = NodeInst.newInstance(Generic.tech().universalPinNode, pos, 0, 0, subCell);
+        Point2D.Double tpos = new Point2D.Double();
+        ni.transformIn().transform(pos, tpos);
+		NodeInst portNI = NodeInst.newInstance(Generic.tech().universalPinNode, tpos, 0, 0, subCell);
 		if (portNI == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +

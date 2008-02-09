@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07d: *******************************
 
+BUG: (2/8/08, DN) Reading process got broken (Bug #1562).
+FIX: In JELIB.figureOutPortInst use local variable for transformed port position.
+     In.JelibParser.getVariableValue extract substring for x value of EPoint .
+
 IMP: (2/7/08, SMR) "Cells" component menu entry now shows only appropriate
      cell types (Bug #1557).
 
