@@ -301,12 +301,12 @@ public class SnapshotTest {
         instance.check();
     }
     
-/*    @Test */
+    @Test
     public void scanDirs() {
         IdManager idManager = new IdManager();
         LibraryStatistics stat;
         
-        String wrkDir = "./home/";
+        String wrkDir = "./";
         String[] dirs = { "/home/nadezhin/" };
         
 //        String wrkDir = "./regression/";
@@ -315,12 +315,13 @@ public class SnapshotTest {
 //        String wrkDir = "./bic/";
 //        String[] dirs = { "/home/nadezhin/electric/cvs/bic/" };
         
-        if (true) {
+        if (false) {
 //            String[] dirs = { "/import/async/" };
             stat = LibraryStatistics.scanDirectories(idManager, dirs);
             stat.writeList(wrkDir + "dirs.lst");
         } else {
-            stat = LibraryStatistics.readList(idManager, wrkDir + "dirs.lst");
+			stat = LibraryStatistics.readList(idManager, "/home/dn146861/projDirs/dirs.lst");
+			//            stat = LibraryStatistics.readList(idManager, wrkDir + "dirs.lst");
         }
         stat.reportFileLength();
         
