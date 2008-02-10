@@ -399,6 +399,8 @@ public class ELIB extends LibraryFiles
 		version = Version.parseVersion(versionString);
         if (fc != null)
             fc.version = version;
+        if (fc != null)
+            return false;
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		convertMosisCmosTechnologies = version.compareTo(Version.parseVersion("6.03q")) < 0;
