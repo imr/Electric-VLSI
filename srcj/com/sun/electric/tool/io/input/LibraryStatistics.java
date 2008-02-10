@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.TextUtils;
@@ -60,7 +61,7 @@ import java.util.zip.CheckedInputStream;
 public class LibraryStatistics implements Serializable
 {
     private static final long serialVersionUID = -361650802811567400L;
-    private final transient IdManager idManager;
+    private transient IdManager idManager;
 	private final TreeMap<String,Directory> directories = new TreeMap<String,Directory>();
 	private final TreeMap<String,LibraryName> libraryNames = new TreeMap<String,LibraryName>();
 //	transient LibraryContents totalLibraryContents;
@@ -69,6 +70,11 @@ public class LibraryStatistics implements Serializable
         this.idManager = idManager;
     }
 
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        idManager = new IdManager();
+        in.defaultReadObject();
+    }
+    
 	Directory getDirectory(String dirName)
 	{
 		Directory dir = directories.get(dirName);
@@ -254,8 +260,8 @@ public class LibraryStatistics implements Serializable
 				if (!fc.isElib()) continue;
                 for (Iterator<URL> uit = fc.fileUrl(); uit.hasNext(); ) {
                     URL fileUrl = uit.next();
-    				fc.header = ELIB.readLibraryHeader(fileUrl, errorLogger);
-                    if (fc.header != null) break;
+    				if (!ELIB.readStatistics(fileUrl, errorLogger, fc))
+                        break;
                 }
         		if (fc.header == null) {
 					System.out.println(fc.fileUrl().next() + " INVALID HEADER");
@@ -270,11 +276,6 @@ public class LibraryStatistics implements Serializable
 		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
 		{
 			LibraryName libraryName = lit.next();
-            String libName = libraryName.name;
-            int indexOfColon = libName.indexOf(':');
-            if (indexOfColon >= 0)
-                libName = libName.substring(0, indexOfColon);
-            LibId libId = idManager.newLibId(libName);
 			for (Iterator<FileContents> it = libraryName.getVersions(); it.hasNext(); )
 			{
 				FileContents fc = it.next();
@@ -282,8 +283,21 @@ public class LibraryStatistics implements Serializable
                 for (Iterator<URL> uit = fc.fileUrl(); uit.hasNext(); ) {
                     URL fileUrl = uit.next();
                     try {
-                        JelibParser parser = JelibParser.parse(libId, fileUrl, FileType.JELIB, false, errorLogger);
+                        JelibParser parser = JelibParser.parse(libraryName.getLibId(), fileUrl, FileType.JELIB, false, errorLogger);
                         fc.version = parser.version;
+                        TreeMap<String,ExternalCell> externalCells = new TreeMap<String,ExternalCell>();
+                        for (JelibParser.CellContents cc: parser.allCells.values()) {
+                            fc.localCells.add(cc.cellId.cellName.toString());
+                            for (JelibParser.NodeContents nc: cc.nodes) {
+                                if (!(nc.protoId instanceof CellId)) continue;
+                                CellId cellId = (CellId)nc.protoId;
+                                if (externalCells.containsKey(cellId.toString())) continue;
+                                String libPath = parser.externalLibIds.get(cellId.libId);
+                                ExternalCell ec = new ExternalCell(libPath, cellId.libId.libName, cellId.cellName.toString());
+                                externalCells.put(cellId.toString(), ec);
+                            }
+                        }
+                        fc.externalCells.addAll(externalCells.values());
                         break;
                     } catch (Exception e) {
                         System.out.println("Error reading " + fileUrl + " " + e.getMessage());
@@ -395,6 +409,7 @@ public class LibraryStatistics implements Serializable
 		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
 		{
 			LibraryName libraryName = (LibraryName)lit.next();
+            libraryName.getLibId();
 			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
 			{
 				FileContents fc = (FileContents)it.next();
@@ -414,11 +429,11 @@ public class LibraryStatistics implements Serializable
 					jelibCount += fc.instances.size();
 					jelibUniqueLength += fc.fileLength;
 					jelibLength += fc.fileLength * fc.instances.size();
-                    if (fc.version != null)
-						GenMath.addToBag(versionCounts, fc.version);
-                    else
-                        withoutVersion++;
 				}
+                if (fc.version != null)
+                    GenMath.addToBag(versionCounts, fc.version);
+                else
+                    withoutVersion++;
 			}
 		}
 		System.out.println("Scanned " + directories.size() + " directories. " + libraryNames.size() + " library names");
@@ -435,6 +450,23 @@ public class LibraryStatistics implements Serializable
 		System.out.println("NOVERSION:" + withoutVersion + bagReport(versionCounts));
 	}
 
+	public void reportCells() {
+		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
+		{
+			LibraryName libraryName = (LibraryName)lit.next();
+            
+            System.out.println("LibraryName " + libraryName.getLibId() + " " + libraryName.getName());
+			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
+			{
+				FileContents fc = (FileContents)it.next();
+                System.out.println("    " + fc.fileUrl().next() + " " + fc.fileLength + " " + fc.localCells.size() + " " + fc.externalCells.size());
+                for (String localName: fc.localCells)
+                    System.out.println("\t" + localName);
+                for (ExternalCell extCell: fc.externalCells)
+                    System.out.println("\t" + extCell.libPath + " " + extCell.libName + " " + extCell.cellName);
+			}
+		}
+    }
 //	public void reportMemoryUsage()
 //	{
 //		int elibCount = 0;
@@ -660,17 +692,26 @@ public class LibraryStatistics implements Serializable
 
 	private static class LibraryName implements Serializable
 	{
-		String name;
-
-		List<FileContents> versions = new ArrayList<FileContents>();
+        final LibraryStatistics stat;
+		final String name;
+		final List<FileContents> versions = new ArrayList<FileContents>();
 		TreeMap<String,LibraryUse> references;
 
 		LibraryName(LibraryStatistics stat, String name)
 		{
+            this.stat = stat;
 			this.name = name;
 			stat.libraryNames.put(name, this);
 		}
 
+        LibId getLibId() {
+            String libName = name;
+            int indexOfColon = libName.indexOf(':');
+            if (indexOfColon >= 0)
+                libName = libName.substring(0, indexOfColon);
+            return stat.idManager.newLibId(LibId.legalLibraryName(libName));
+        }
+        
 		String getName() { return name; }
 
 		Iterator<FileContents> getVersions() { return versions.iterator(); }
@@ -683,6 +724,18 @@ public class LibraryStatistics implements Serializable
 		String fullName;
 		FileContents from;
 	}
+    
+    static class ExternalCell implements Serializable {
+        final String libPath;
+        final String libName;
+        final String cellName;
+        
+        ExternalCell(String libPath, String libName, String cellName) {
+            this.libPath = libPath;
+            this.libName = libName;
+            this.cellName = cellName;
+        }
+    }
 
 	static class FileContents implements Serializable
 	{
@@ -696,6 +749,9 @@ public class LibraryStatistics implements Serializable
 
 		ELIB.Header header;
         Version version;
+        List<String> localCells = new ArrayList<String>();
+        List<ExternalCell> externalCells = new ArrayList<ExternalCell>();
+        
 		boolean readOk;
 		int toolCount;
 		int techCount;
@@ -744,6 +800,8 @@ public class LibraryStatistics implements Serializable
             return urls.iterator();
         }
 
+        IdManager idManager() { return libraryName.stat.idManager; }
+        
 		boolean isElib() { return instances.get(0).fileName.endsWith(".elib"); }
 
 	}

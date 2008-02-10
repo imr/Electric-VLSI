@@ -305,10 +305,13 @@ public class SnapshotTest {
     public void scanDirs() {
         IdManager idManager = new IdManager();
         LibraryStatistics stat;
-        
+
         String wrkDir = "./";
-        String[] dirs = { "/home/nadezhin/" };
+        String[] dirs = { "/import/async/" };
         
+//        String wrkDir = "./home/";
+//        String[] dirs = { "/home/nadezhin/" };
+//        
 //        String wrkDir = "./regression/";
 //        String[] dirs = { "/home/nadezhin/regression/" };
 //        
@@ -316,19 +319,19 @@ public class SnapshotTest {
 //        String[] dirs = { "/home/nadezhin/electric/cvs/bic/" };
         
         if (false) {
-//            String[] dirs = { "/import/async/" };
             stat = LibraryStatistics.scanDirectories(idManager, dirs);
             stat.writeList(wrkDir + "dirs.lst");
         } else {
 			stat = LibraryStatistics.readList(idManager, "/home/dn146861/projDirs/dirs.lst");
-			//            stat = LibraryStatistics.readList(idManager, wrkDir + "dirs.lst");
+//            stat = LibraryStatistics.readList(idManager, "/home/nadezhin/electric/wrk/bic/dirs.lst");
+//            stat = LibraryStatistics.readList(idManager, "/home/nadezhin/electric/wrk/home/dirs.lst");
         }
         stat.reportFileLength();
         
         ErrorLogger errorLogger = ErrorLogger.newInstance("ReadHeaders");
         stat.readJelibVersions(errorLogger);
         stat.readHeaders(errorLogger);
-         System.out.println(errorLogger.getInfo());
+        System.out.println(errorLogger.getInfo());
         for (Iterator<ErrorLogger.MessageLog> it = errorLogger.getLogs(); it.hasNext(); ) {
             ErrorLogger.MessageLog m = it.next();
             System.out.println(m.getMessageString());
@@ -345,6 +348,5 @@ public class SnapshotTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
    }
 }

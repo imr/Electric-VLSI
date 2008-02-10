@@ -299,11 +299,34 @@ public class ELIB extends LibraryFiles
 		return null;
     }
 
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static synchronized boolean readStatistics(URL fileURL, ErrorLogger errorLogger, LibraryStatistics.FileContents fc)
+	{
+		try {
+			ELIB in = new ELIB();
+			if (in.openBinaryInput(fileURL)) return true;
+			boolean error = in.readTheLibrary(true, fc);
+			// read the library
+			in.closeInput();
+			return error;
+        } catch (Exception e)
+		{
+            errorLogger.logError("Error " + e + " on " + fileURL, -1);
+            e.printStackTrace();
+        }
+		return true;
+    }
+
     @Override
     protected boolean readProjectSettings() {
 		try
 		{
-			return readTheLibrary(true);
+			return readTheLibrary(true, null);
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while reading " + filePath);
@@ -319,7 +342,7 @@ public class ELIB extends LibraryFiles
 	{
 		try
 		{
-			return readTheLibrary(false);
+			return readTheLibrary(false, null);
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while reading " + filePath);
@@ -331,7 +354,7 @@ public class ELIB extends LibraryFiles
 	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
-	private boolean readTheLibrary(boolean onlyProjectSettings)
+	private boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc)
 		throws IOException
 	{
 		// initialize
@@ -345,6 +368,8 @@ public class ELIB extends LibraryFiles
 			System.out.println("Error reading header");
 			return true;
 		}
+        if (fc != null)
+            fc.header = header;
 
 		// get count of objects in the file
 		toolCount = readBigInteger();
@@ -372,6 +397,8 @@ public class ELIB extends LibraryFiles
 		if (header.magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
+        if (fc != null)
+            fc.version = version;
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		convertMosisCmosTechnologies = version.compareTo(Version.parseVersion("6.03q")) < 0;
@@ -596,6 +623,8 @@ public class ELIB extends LibraryFiles
 		{
 			// get the technology
 			String name = readString();
+            if (fc != null)
+                fc.idManager().newTechId(name);
 			Technology tech = findTechnologyName(name);
 			boolean imosconv = false;
 			if (name.equals("imos"))
@@ -749,6 +778,7 @@ public class ELIB extends LibraryFiles
 				arcProtoList[arcProtoCount++] = ap;
 			}
 		}
+        if (fc != null) return false;
 
 		// setup pointers for tools
 		for(int i=0; i<toolCount; i++)
