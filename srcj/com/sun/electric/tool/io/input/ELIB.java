@@ -38,9 +38,11 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -76,6 +78,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -188,27 +191,46 @@ public class ELIB extends LibraryFiles
 	/** the number of tools in older files */								private int toolBCount;
 	/** list of all tools in the library */									private Tool [] toolList;
 	/** list of all tool-related errors in the library */					private String [] toolError;
+	/** list of all tool variables */                                       private Variable [][] toolVars;
+    /** the library userbits */                                             private int libUserBits;
+	/** the library variables */                                            private Variable[] libVars;
 
 	// the technology information
 	/** the number of technologies in the file */							private int techCount;
+	/** list of all TechIds in the library */                               private TechId [] techIdList;
 	/** list of all Technologies in the library */							private Technology [] techList;
 	/** list of all technology-related errors in the library */				private String [] techError;
+	/** list of all technology variables in the library */                  private Variable [][] techVars;
+    /** list of technology lambda values in the library */                  private int [] techLambda;
 	/** scale factors for each technology in the library */					private HashMap<Technology,Double> techScale = new HashMap<Technology,Double>();
 	/** the number of ArcProtos in the file */								private int arcProtoCount;
+	/** list of all ArcProtoIds in the library */							private ArcProtoId [] arcProtoIdList;
 	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
 	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
 	/** the number of primitive NodeProtos in the file */					private int primNodeProtoCount;
+	/** list of all PrimitiveNodeIds in the library */					    private PrimitiveNodeId [] primitiveNodeIdList;
 	/** list of all Primitive NodeProtos in the library */					private PrimitiveNode [] primNodeProtoList;
 	/** list of the primitive-NodeProto-related errors in the library */	private boolean [] primNodeProtoError;
 	/** list of the original primitive NodeProtos in the library */			private String [] primNodeProtoOrig;
 	/** list of all NodeProto technologies in the library */				private int [] primNodeProtoTech;
 	/** the number of primitive PortProtos in the file */					private int primPortProtoCount;
+	/** list of all PrimitivePortIds in the library */                      private PrimitivePortId [] primitivePortIdList;
 	/** list of all Primitive PortProtos in the library */					private PrimitivePort [] primPortProtoList;
 	/** list of all Primitive-PortProto-related errors in the library */	private String [] primPortProtoError;
 
 	// the cell information
 	/** the number of Cells in the file */									private int cellCount;
 	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
+    /** list of Cell full names in the library */                           private String [] cellProtoName;
+    /** list of Cell creation dates in the library */                       private int [] cellCreationDate;
+    /** list of Cell revision dates in the library */                       private int [] cellRevisionDate;
+    /** list of Cell user bits in the library */                            private int [] cellUserBits;
+    /** list of Cell variables in the library */                            private Variable [][] cellVars;
+    /** list of Cell low X coordinates in the library */                    private int [] cellLowX;
+    /** list of Cell high X coordinates in the library */                   private int [] cellHighX;
+    /** list of Cell low Y coordinates in the library */                    private int [] cellLowY;
+    /** list of Cell high Y coordinates in the library */                   private int [] cellHighY;
+    /** list of Cell library paths in the library */                        private String [] cellLibraryPath;
 	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
 	/** index of first NodeInst in each cell of the library */				private int [] firstNodeIndex;
 	/** list of number of ArcInsts in each Cell of the library */			private int [] arcCounts;
@@ -217,6 +239,7 @@ public class ELIB extends LibraryFiles
 	/** index of first Export in each cell of the library */				private int [] firstPortIndex;
 	/** X center each cell of the library */								private int [] cellXOff;
 	/** Y center each cell of the library */								private int [] cellYOff;
+    /** a next cell index in the same next group of the library */          private int [] cellNextInCellGroup;
 	/** true if this x-lib cell ref is satisfied */							private boolean [] xLibRefSatisfied;
 	/** mapping view indices to views */									private HashMap<Integer,View> viewMapping;
 
@@ -473,23 +496,40 @@ public class ELIB extends LibraryFiles
             lib.erase();
 
 		// allocate pointers for the Technologies
+        techIdList = new TechId[techCount];
 		techList = new Technology[techCount];
 		techError = new String[techCount];
+        techVars = new Variable[techCount][];
+        techLambda = new int[techCount];
+		arcProtoIdList = new ArcProtoId[arcProtoCount];
 		arcProtoList = new ArcProto[arcProtoCount];
 		arcProtoError = new String[arcProtoCount];
+		primitiveNodeIdList = new PrimitiveNodeId[primNodeProtoCount];
 		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
 		primNodeProtoError = new boolean[primNodeProtoCount];
 		primNodeProtoOrig = new String[primNodeProtoCount];
 		primNodeProtoTech = new int[primNodeProtoCount];
+		primitivePortIdList = new PrimitivePortId[primPortProtoCount];
 		primPortProtoList = new PrimitivePort[primPortProtoCount];
 		primPortProtoError = new String[primPortProtoCount];
 
 		// allocate pointers for the Tools
 		toolList = new Tool[toolCount];
 		toolError = new String[toolCount];
+        toolVars = new Variable[toolCount][];
 
 		// allocate pointers for the Cells
 		nodeProtoList = new Cell[nodeProtoCount];
+        cellProtoName = new String[nodeProtoCount];
+        cellCreationDate = new int[nodeProtoCount];
+        cellRevisionDate = new int[nodeProtoCount];
+        cellUserBits = new int[nodeProtoCount];
+        cellVars = new Variable[nodeProtoCount][];
+        cellLowX = new int[nodeProtoCount];
+        cellHighX = new int[nodeProtoCount];
+        cellLowY = new int[nodeProtoCount];
+        cellHighY = new int[nodeProtoCount];
+        cellLibraryPath = new String[nodeProtoCount];
 		nodeCounts = new int[nodeProtoCount];
 		firstNodeIndex = new int[nodeProtoCount+1];
 		arcCounts = new int[nodeProtoCount];
@@ -499,7 +539,9 @@ public class ELIB extends LibraryFiles
 		cellLambda = new double[nodeProtoCount];
 		cellXOff = new int[nodeProtoCount];
 		cellYOff = new int[nodeProtoCount];
+        cellNextInCellGroup = new int[nodeProtoCount];
 		xLibRefSatisfied = new boolean[nodeProtoCount];
+        Arrays.fill(cellNextInCellGroup, -1);
 
 		// allocate pointers for the NodeInsts
         boolean hasAnchor = header.magic <= ELIBConstants.MAGIC13;
@@ -617,170 +659,43 @@ public class ELIB extends LibraryFiles
 //			}
 //		}
 
-		// setup pointers for technologies and primitives
+		// setup pointers for technology and primitive ids
+        IdManager idManager = fc != null ? fc.idManager() : this.idManager;
 		primNodeProtoCount = 0;
 		primPortProtoCount = 0;
 		arcProtoCount = 0;
-		for(int techIndex=0; techIndex<techCount; techIndex++)
-		{
+		for(int techIndex=0; techIndex<techCount; techIndex++) {
 			// get the technology
 			String name = readString();
-            if (fc != null)
-                fc.idManager().newTechId(name);
-			Technology tech = findTechnologyName(name);
-			boolean imosconv = false;
-			if (name.equals("imos"))
-			{
-				tech = Technology.getMocmosTechnology();
-				imosconv = true;
-			}
-			if (tech == null)
-			{
-				// cannot figure it out: just pick the generic technology
-				tech = Generic.tech();
-				techError[techIndex] = name;
-			} else techError[techIndex] = null;
-			techList[techIndex] = tech;
+            TechId techId = idManager.newTechId(name);
+            techIdList[techIndex] = techId;
 
 			// get the number of primitive node prototypes
 			int numPrimNodes = readBigInteger();
-			for(int j=0; j<numPrimNodes; j++)
-			{
-				primNodeProtoOrig[primNodeProtoCount] = null;
-				primNodeProtoError[primNodeProtoCount] = false;
+			for(int j=0; j<numPrimNodes; j++) {
 				name = readString();
-				if (imosconv) name = name.substring(6);
-				PrimitiveNode pnp = tech.findNodeProto(name);
-				if (pnp == null)
-				{
-					// automatic conversion of "Active-Node" in to "P-Active-Node" (MOSIS CMOS)
-					if (name.equals("Active-Node"))
-						pnp = tech.findNodeProto("P-Active-Node");
-				}
-				if (pnp == null)
-				{
-					boolean advise = true;
-
-					// look for substring name match at start of name
-					for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
-					{
-						PrimitiveNode opnp = it.next();
-						String primName = opnp.getName();
-						if (primName.startsWith(name) || name.startsWith(primName))
-						{
-							pnp = opnp;
-							break;
-						}
-					}
-
-					// look for substring match at end of name
-					if (pnp == null)
-					{
-						for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
-						{
-							PrimitiveNode opnp = it.next();
-							String primName = opnp.getName();
-							if (primName.endsWith(name) || name.endsWith(primName))
-							{
-								pnp = opnp;
-								break;
-							}
-						}
-					}
-
-					// special cases: convert special primitives that are known to the technologies
-					if (pnp == null)
-					{
-						pnp = tech.convertOldNodeName(name);
-						if (pnp != null) advise = false;
-					}
-
-					// give up and use first primitive in this technology
-					if (pnp == null)
-					{
-						Iterator<PrimitiveNode> it = tech.getNodes();
-						pnp = it.next();
-					}
-
-					// construct the error message
-					if (advise)
-					{
-						String errorMessage;
-						if (techError[techIndex] != null) errorMessage = techError[techIndex]; else
-							errorMessage = tech.getTechName();
-						errorMessage += ":" + name;
-						primNodeProtoOrig[primNodeProtoCount] = errorMessage;
-						primNodeProtoError[primNodeProtoCount] = true;
-					}
-				}
+                PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId(name);
+                primitiveNodeIdList[primNodeProtoCount] = primitiveNodeId; 
 				primNodeProtoTech[primNodeProtoCount] = techIndex;
-				primNodeProtoList[primNodeProtoCount] = pnp;
 
 				// get the number of primitive port prototypes
 				int numPrimPorts = readBigInteger();
-				for(int i=0; i<numPrimPorts; i++)
-				{
-					primPortProtoError[primPortProtoCount] = null;
+				for(int i=0; i<numPrimPorts; i++) {
 					name = readString();
-					PrimitivePort pp = (PrimitivePort)pnp.findPortProto(name);
-
-					// convert special port names
-					if (pp == null)
-						pp = tech.convertOldPortName(name, pnp);
-
-					if (pp == null)
-					{
-						Iterator<PrimitivePort> it = pnp.getPrimitivePorts();
-						if (it.hasNext())
-						{
-							pp = it.next();
-							if (!primNodeProtoError[primNodeProtoCount])
-							{
-								String errorMessage = name + " on ";
-								if (primNodeProtoOrig[primNodeProtoCount] != null)
-									errorMessage += primNodeProtoOrig[primNodeProtoCount]; else
-								{
-									if (techError[techIndex] != null)
-										errorMessage += techError[techIndex]; else
-											errorMessage += tech.getTechName();
-									errorMessage += ":" + pnp.getName();
-								}
-								primPortProtoError[primPortProtoCount] = errorMessage;
-							}
-						}
-					}
-					primPortProtoList[primPortProtoCount++] = pp;
+                    PrimitivePortId primitivePortId = primitiveNodeId.newPortId(name);
+					primitivePortIdList[primPortProtoCount++] = primitivePortId;
 				}
 				primNodeProtoCount++;
 			}
 
 			// get the number of arc prototypes
 			int numArcProtos = readBigInteger();
-			for(int j=0; j<numArcProtos; j++)
-			{
-				arcProtoError[arcProtoCount] = null;
+			for(int j=0; j<numArcProtos; j++) {
 				name = readString();
-				if (imosconv) name = name.substring(6);
-				ArcProto ap = tech.findArcProto(name);
-				if (ap == null)
-				{
-					ap = tech.convertOldArcName(name);
-				}
-				if (ap == null)
-				{
-					Iterator<ArcProto> it = tech.getArcs();
-					ap = it.next();
-					String errorMessage;
-					if (techError[techIndex] != null)
-						errorMessage = techError[techIndex]; else
-							errorMessage = tech.getTechName();
-					errorMessage += ":" + name;
-					arcProtoError[arcProtoCount] = errorMessage;
-				}
-				arcProtoList[arcProtoCount++] = ap;
+                ArcProtoId arcProtoId = techId.newArcProtoId(name);
+				arcProtoIdList[arcProtoCount++] = arcProtoId;
 			}
 		}
-        if (fc != null) return false;
 
 		// setup pointers for tools
 		for(int i=0; i<toolCount; i++)
@@ -801,44 +716,28 @@ public class ELIB extends LibraryFiles
 		}
 
 		// get the library userbits
-		int userBits = 0;
 		if (header.magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
-			userBits = readBigInteger();
+			libUserBits = readBigInteger();
 		} else
 		{
 			// version 6 and earlier must sift through the information
-			if (toolBCount >= 1) userBits = readBigInteger();
+			if (toolBCount >= 1) libUserBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-        if (!onlyProjectSettings) {
-            lib.lowLevelSetUserBits(userBits);
-            lib.setFromDisk();
-            lib.setVersion(version);
-        }
-
+        
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
 		{
-			int lambda = readBigInteger();
-			if (techError[i] != null) continue;
-			Technology tech = techList[i];
-
-			// for Electric version 4 or earlier, scale lambda by 20
-			if (scaleLambdaBy20) lambda *= 20;
-
-            techScale.put(tech, Double.valueOf(lambda));
-            String varName = tech.getScaleVariableName();
-            Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
-            realizeMeaningPrefs(tech, new Variable[] { var });
+			techLambda[i] = readBigInteger();
 		}
 
 		// read the global namespace
 		readNameSpace();
 
 		// read the library variables
-        Variable[] libVars = readVariables();
+        libVars = readVariables();
         for (int i = 0; i < libVars.length; i++) {
             Variable var = libVars[i];
             if (var == null || var.getKey() != Library.FONT_ASSOCIATIONS) continue;
@@ -847,29 +746,18 @@ public class ELIB extends LibraryFiles
             setFontNames((String[])value);
             libVars[i] = null;
         }
-        if (!onlyProjectSettings)
-		    realizeVariables(lib, libVars);
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
-			Tool tool = toolList[i];
-            Variable[] vars = readVariables();
-			if (tool != null)
-                realizeMeaningPrefs(tool, vars);
+            toolVars[i] = readVariables();
 		}
 
 		// read the technology variables
 		for(int i=0; i<techCount; i++)
 		{
-			Technology tech = techList[i];
-            Variable[] vars = readVariables();
-			if (tech != null)
-                realizeMeaningPrefs(tech, vars);
-//				getTechList(i);
+            techVars[i] = readVariables();
 		}
-        if (onlyProjectSettings)
-            return false;
 
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
@@ -911,78 +799,40 @@ public class ELIB extends LibraryFiles
 
 		// read the cells
 		exportIndex = 0;
-		HashMap<Cell,Integer> nextInCellGroup = new HashMap<Cell,Integer>();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			if (arcCounts[i] < 0 && nodeCounts[i] < 0) continue;
-            xLibRefSatisfied[i] = true;
-//			Cell cell = nodeProtoList[i];
-//			if (cell == null) continue;
-			if (readNodeProto(i, nextInCellGroup))
+			if (readNodeProto(i))
 			{
 				System.out.println("Error reading cell");
 				return true;
 			}
 		}
 
-		// collect the cells by common protoName and by "nextInCellGroup" relation
-		TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
-		HashMap<String,String> protoNames = new HashMap<String,String>();
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null || cell.getLibrary() != lib) continue;
-			String protoName = protoNames.get(cell.getName());
-			if (protoName == null)
-			{
-				protoName = cell.getName();
-				protoNames.put(protoName, protoName);
-			}
-			transitive.theseAreRelated(cell, protoName);
-            Cell otherCell = null;
-            Integer nextInCell = nextInCellGroup.get(cell);
-            if (nextInCell != null)
-                otherCell = nodeProtoList[nextInCell.intValue()];
-			if (otherCell != null && cell.getLibrary() == lib)
-				transitive.theseAreRelated(cell, otherCell);
-		}
-
-//		// link the cells
-//		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-//		{
-//			Cell cell = nodeProtoList[cellIndex];
-//			if (cell == null) continue;
-//			cell.lowLevelLink();
-//		}
-
-		// join the cell groups
-		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
-		{
-			Set<Object> group = git.next();
-			Cell firstCell = null;
-			for (Object o : group)
-			{
-				if (!(o instanceof Cell)) continue;
-				Cell cell = (Cell)o;
-				if (firstCell == null)
-					firstCell = cell;
-				else
-					cell.joinGroup(firstCell);
-			}
-		}
-
 		// now read external cells
 		for(int i=0; i<nodeProtoCount; i++)
 		{
-			Cell cell = nodeProtoList[i];
-			if (cell != null) continue;
-			if (readExternalNodeProto(lib, i))
+			if (arcCounts[i] >= 0 || nodeCounts[i] >= 0) continue;
+			if (readExternalNodeProto(i))
 			{
 				System.out.println("Error reading external cell");
 				return true;
 			}
 		}
 
+        if (fc != null) {
+            for (int cellIndex = 0; cellIndex < nodeProtoCount; cellIndex++) {
+                if (arcCounts[cellIndex] >= 0 || nodeCounts[cellIndex] >= 0) {
+                    fc.localCells.add(cellProtoName[cellIndex]);
+                } else {
+                    fc.externalCells.add(new LibraryStatistics.ExternalCell(cellLibraryPath[cellIndex], null, cellProtoName[cellIndex]));
+                }
+                
+            }
+            return false;
+        }
+        setupTechs(onlyProjectSettings);
+        
 		// now that external cells are resolved, fix all variables that may have used them
 		fixExternalVariables(lib);
 		for(int i=0; i<nodeProtoCount; i++)
@@ -1073,6 +923,277 @@ public class ELIB extends LibraryFiles
 			System.out.println("Binary: finished reading data for " + lib);
 		return false;
 	}
+
+    private void setupTechs(boolean onlyProjectSettings) {
+		// setup pointers for technologies and primitives
+		primNodeProtoCount = 0;
+		primPortProtoCount = 0;
+		arcProtoCount = 0;
+		for(int techIndex=0; techIndex<techCount; techIndex++)
+		{
+			// get the technology
+            TechId techId = techIdList[techIndex];
+			String name = techId.techName;
+			Technology tech = findTechnologyName(name);
+			boolean imosconv = false;
+			if (name.equals("imos"))
+			{
+				tech = Technology.getMocmosTechnology();
+				imosconv = true;
+			}
+			if (tech == null)
+			{
+				// cannot figure it out: just pick the generic technology
+				tech = Generic.tech();
+				techError[techIndex] = name;
+			} else techError[techIndex] = null;
+			techList[techIndex] = tech;
+
+			// get the number of primitive node prototypes
+			while (primNodeProtoCount < primitiveNodeIdList.length) {
+                PrimitiveNodeId primitiveNodeId = primitiveNodeIdList[primNodeProtoCount];
+                if (primitiveNodeId.techId != techId) break;
+                
+				primNodeProtoOrig[primNodeProtoCount] = null;
+				primNodeProtoError[primNodeProtoCount] = false;
+				name = primitiveNodeId.name;
+				if (imosconv) name = name.substring(6);
+				PrimitiveNode pnp = tech.findNodeProto(name);
+				if (pnp == null)
+				{
+					// automatic conversion of "Active-Node" in to "P-Active-Node" (MOSIS CMOS)
+					if (name.equals("Active-Node"))
+						pnp = tech.findNodeProto("P-Active-Node");
+				}
+				if (pnp == null)
+				{
+					boolean advise = true;
+
+					// look for substring name match at start of name
+					for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
+					{
+						PrimitiveNode opnp = it.next();
+						String primName = opnp.getName();
+						if (primName.startsWith(name) || name.startsWith(primName))
+						{
+							pnp = opnp;
+							break;
+						}
+					}
+
+					// look for substring match at end of name
+					if (pnp == null)
+					{
+						for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
+						{
+							PrimitiveNode opnp = it.next();
+							String primName = opnp.getName();
+							if (primName.endsWith(name) || name.endsWith(primName))
+							{
+								pnp = opnp;
+								break;
+							}
+						}
+					}
+
+					// special cases: convert special primitives that are known to the technologies
+					if (pnp == null)
+					{
+						pnp = tech.convertOldNodeName(name);
+						if (pnp != null) advise = false;
+					}
+
+					// give up and use first primitive in this technology
+					if (pnp == null)
+					{
+						Iterator<PrimitiveNode> it = tech.getNodes();
+						pnp = it.next();
+					}
+
+					// construct the error message
+					if (advise)
+					{
+						String errorMessage;
+						if (techError[techIndex] != null) errorMessage = techError[techIndex]; else
+							errorMessage = tech.getTechName();
+						errorMessage += ":" + name;
+						primNodeProtoOrig[primNodeProtoCount] = errorMessage;
+						primNodeProtoError[primNodeProtoCount] = true;
+					}
+				}
+				primNodeProtoTech[primNodeProtoCount] = techIndex;
+				primNodeProtoList[primNodeProtoCount] = pnp;
+
+				// get the number of primitive port prototypes
+				while (primPortProtoCount < primitivePortIdList.length) {
+                    PrimitivePortId primitivePortId = primitivePortIdList[primPortProtoCount];
+                    if (primitivePortId.parentId != primitiveNodeId) break;
+                
+					primPortProtoError[primPortProtoCount] = null;
+					name = primitivePortId.externalId;
+					PrimitivePort pp = (PrimitivePort)pnp.findPortProto(name);
+
+					// convert special port names
+					if (pp == null)
+						pp = tech.convertOldPortName(name, pnp);
+
+					if (pp == null)
+					{
+						Iterator<PrimitivePort> it = pnp.getPrimitivePorts();
+						if (it.hasNext())
+						{
+							pp = it.next();
+							if (!primNodeProtoError[primNodeProtoCount])
+							{
+								String errorMessage = name + " on ";
+								if (primNodeProtoOrig[primNodeProtoCount] != null)
+									errorMessage += primNodeProtoOrig[primNodeProtoCount]; else
+								{
+									if (techError[techIndex] != null)
+										errorMessage += techError[techIndex]; else
+											errorMessage += tech.getTechName();
+									errorMessage += ":" + pnp.getName();
+								}
+								primPortProtoError[primPortProtoCount] = errorMessage;
+							}
+						}
+					}
+					primPortProtoList[primPortProtoCount++] = pp;
+				}
+				primNodeProtoCount++;
+			}
+
+			// get the number of arc prototypes
+			while (arcProtoCount < arcProtoIdList.length) {
+                ArcProtoId arcProtoId = arcProtoIdList[arcProtoCount];
+                if (arcProtoId.techId != techId) break;
+                
+				arcProtoError[arcProtoCount] = null;
+				name = arcProtoId.name;
+				if (imosconv) name = name.substring(6);
+				ArcProto ap = tech.findArcProto(name);
+				if (ap == null)
+				{
+					ap = tech.convertOldArcName(name);
+				}
+				if (ap == null)
+				{
+					Iterator<ArcProto> it = tech.getArcs();
+					ap = it.next();
+					String errorMessage;
+					if (techError[techIndex] != null)
+						errorMessage = techError[techIndex]; else
+							errorMessage = tech.getTechName();
+					errorMessage += ":" + name;
+					arcProtoError[arcProtoCount] = errorMessage;
+				}
+				arcProtoList[arcProtoCount++] = ap;
+			}
+		}
+        
+		// get the lambda values in the library
+		for(int i=0; i<techCount; i++)
+		{
+			int lambda = techLambda[i];
+			if (techError[i] != null) continue;
+			Technology tech = techList[i];
+
+			// for Electric version 4 or earlier, scale lambda by 20
+			if (scaleLambdaBy20) lambda *= 20;
+
+            techScale.put(tech, Double.valueOf(lambda));
+            String varName = tech.getScaleVariableName();
+            Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
+            realizeMeaningPrefs(tech, new Variable[] { var });
+		}
+        
+		// read the tool variables
+		for(int i=0; i<toolCount; i++)
+		{
+			Tool tool = toolList[i];
+			if (tool != null)
+                realizeMeaningPrefs(tool, toolVars[i]);
+		}
+        
+		// read the technology variables
+		for(int i=0; i<techCount; i++)
+		{
+			Technology tech = techList[i];
+			if (tech != null)
+                realizeMeaningPrefs(tech, techVars[i]);
+//				getTechList(i);
+		}
+        
+        if (onlyProjectSettings)
+            return;
+        
+        lib.lowLevelSetUserBits(libUserBits);
+        lib.setFromDisk();
+        lib.setVersion(version);
+        realizeVariables(lib, libVars);
+        
+		// read the cells
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			if (arcCounts[i] < 0 && nodeCounts[i] < 0) continue;
+            xLibRefSatisfied[i] = true;
+			realizeNodeProto(i);
+		}
+
+		// collect the cells by common protoName and by "nextInCellGroup" relation
+		TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
+		HashMap<String,String> protoNames = new HashMap<String,String>();
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null || cell.getLibrary() != lib) continue;
+			String protoName = protoNames.get(cell.getName());
+			if (protoName == null)
+			{
+				protoName = cell.getName();
+				protoNames.put(protoName, protoName);
+			}
+			transitive.theseAreRelated(cell, protoName);
+            Cell otherCell = null;
+            int nextInCell = cellNextInCellGroup[cellIndex];
+            if (nextInCell >= 0)
+                otherCell = nodeProtoList[nextInCell];
+			if (otherCell != null && cell.getLibrary() == lib)
+				transitive.theseAreRelated(cell, otherCell);
+		}
+
+//		// link the cells
+//		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+//		{
+//			Cell cell = nodeProtoList[cellIndex];
+//			if (cell == null) continue;
+//			cell.lowLevelLink();
+//		}
+
+		// join the cell groups
+		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
+		{
+			Set<Object> group = git.next();
+			Cell firstCell = null;
+			for (Object o : group)
+			{
+				if (!(o instanceof Cell)) continue;
+				Cell cell = (Cell)o;
+				if (firstCell == null)
+					firstCell = cell;
+				else
+					cell.joinGroup(firstCell);
+			}
+		}
+        
+		// now read external cells
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell cell = nodeProtoList[i];
+			if (cell != null) continue;
+			realizeExternalNodeProto(lib, i);
+		}
+    }
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
@@ -1723,15 +1844,14 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to read a cell.  returns true upon error
 	 */
-	private boolean readNodeProto(int cellIndex, HashMap<Cell,Integer> nextInCellGroup)
+	private boolean readNodeProto(int cellIndex)
 		throws IOException
 	{
-        Cell cell;
 		// read the cell name
 		String theProtoName;
 		if (header.magic <= ELIBConstants.MAGIC9)
 		{
-            Integer nextInCell = null;
+            int nextInCell = -1;
 			// read the cell information (version 9 and later)
 			if (header.magic >= ELIBConstants.MAGIC11)
 			{
@@ -1753,7 +1873,7 @@ public class ELIB extends LibraryFiles
 //                    }
                 }
 
-                nextInCell = Integer.valueOf(k); // the "next in cell group" circular pointer
+                nextInCell = k; // the "next in cell group" circular pointer
 				k = readBigInteger();
 //				cell->nextcont = nodeProtoList[k];		// the "next in cell continuation" circular pointer
 			}
@@ -1761,21 +1881,15 @@ public class ELIB extends LibraryFiles
 			if (v == null) v = View.UNKNOWN;
 			int version = readBigInteger();
 			theProtoName += ";" + version + v.getAbbreviationExtension();
-            cell = Cell.newInstance(lib, theProtoName);
-            if (nextInCell != null)
-                nextInCellGroup.put(cell, nextInCell);
-			int creationDate = readBigInteger();
-			int revisionDate = readBigInteger();
-			cell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(creationDate));
-			cell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(revisionDate));
+            cellNextInCellGroup[cellIndex] = nextInCell;
+            cellCreationDate[cellIndex] = readBigInteger();
+            cellRevisionDate[cellIndex] = readBigInteger();
 		} else
 		{
 			// versions 8 and earlier read a cell name
 			theProtoName = readString();
-            cell = Cell.newInstance(lib, theProtoName);
 		}
-        nodeProtoList[cellIndex] = cell;
-        assert cell.getCellName() != null;
+        cellProtoName[cellIndex] = theProtoName;
 
 		// ignore the cell bounding box
 		readBigInteger(); // lowX
@@ -1895,17 +2009,35 @@ public class ELIB extends LibraryFiles
 			if (toolBCount >= 1) userBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-		cell.lowLevelSetUserbits(userBits);
+        cellUserBits[cellIndex] = userBits;
 
 		// read variable information
-		realizeVariables(cell, readVariables());
+        cellVars[cellIndex] = readVariables();
 
 		// cell read successfully
 		return false;
 	}
 
+	/**
+	 * Method to realize a cell.  returns true upon error
+	 */
+	private void realizeNodeProto(int cellIndex)
+	{
+		String theProtoName = cellProtoName[cellIndex];
+        Cell cell = Cell.newInstance(lib, theProtoName);
+		if (header.magic <= ELIBConstants.MAGIC9)
+		{
+			cell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(cellCreationDate[cellIndex]));
+			cell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(cellRevisionDate[cellIndex]));
+		}
+        nodeProtoList[cellIndex] = cell;
+        assert cell.getCellName() != null;
+		cell.lowLevelSetUserbits(cellUserBits[cellIndex]);
+		realizeVariables(cell, cellVars[cellIndex]);
+	}
+
 	/** Method to read node prototype for external references */
-	private boolean readExternalNodeProto(Library lib, int cellIndex)
+	private boolean readExternalNodeProto(int cellIndex)
 		throws IOException
 	{
 		// read the cell information (version 9 and later)
@@ -1927,23 +2059,55 @@ public class ELIB extends LibraryFiles
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + v.getAbbreviationExtension();
         if (version <= 1) fullCellName = theProtoName + v.getAbbreviationExtension();
-		Date creationDate = ELIBConstants.secondsToDate(readBigInteger());
-		Date revisionDate = ELIBConstants.secondsToDate(readBigInteger());
+        cellProtoName[cellIndex] = fullCellName;
+		cellCreationDate[cellIndex] = readBigInteger();
+		cellRevisionDate[cellIndex] = readBigInteger();
 
 		// read the nodeproto bounding box
-		int lowX = readBigInteger();
-		int highX = readBigInteger();
-		int lowY = readBigInteger();
-		int highY = readBigInteger();
+		cellLowX[cellIndex] = readBigInteger();
+		cellHighX[cellIndex] = readBigInteger();
+		cellLowY[cellIndex] = readBigInteger();
+		cellHighY[cellIndex] = readBigInteger();
 
 		// get the external library
-		Library elib = readExternalLibraryFromFilename(readString(), FileType.ELIB);
+        cellLibraryPath[cellIndex] = readString();
 
  		// read the portproto names on this nodeproto
 		int portCount = readBigInteger();
 		String [] localPortNames = new String[portCount];
 		for(int j=0; j<portCount; j++)
 			localPortNames[j] = readString();
+
+		// read the portprotos on this Cell
+		firstPortIndex[cellIndex] = exportIndex;
+		if (portCount != portCounts[cellIndex])
+			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
+		for(int j=0; j<portCount; j++)
+		{
+			// read the portproto name
+			String protoName = localPortNames[j];
+			exportNameList[exportIndex] = protoName;
+			exportIndex++;
+		}
+		return false;
+	}
+
+	/** Method to read node prototype for external references */
+	private boolean realizeExternalNodeProto(Library lib, int cellIndex)
+	{
+		// read the cell information (version 9 and later)
+		String fullCellName = cellProtoName[cellIndex];
+		Date creationDate = ELIBConstants.secondsToDate(cellCreationDate[cellIndex]);
+		Date revisionDate = ELIBConstants.secondsToDate(cellRevisionDate[cellIndex]);
+
+		// read the nodeproto bounding box
+		int lowX = cellLowX[cellIndex];
+		int highX = cellHighX[cellIndex];
+		int lowY = cellLowY[cellIndex];
+		int highY = cellHighY[cellIndex];
+
+		// get the external library
+		Library elib = readExternalLibraryFromFilename(cellLibraryPath[cellIndex], FileType.ELIB);
 
 		// find this cell in the external library
 		Cell c = elib.findNodeProto(fullCellName);
@@ -2070,17 +2234,12 @@ public class ELIB extends LibraryFiles
 		}
 		nodeProtoList[cellIndex] = c;
 
-		// read the portprotos on this Cell
-		firstPortIndex[cellIndex] = exportIndex;
-		if (portCount != portCounts[cellIndex])
-			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
+		// realize the portprotos on this Cell
+		int portCount = portCounts[cellIndex];
 		for(int j=0; j<portCount; j++)
 		{
-			// read the portproto name
-			String protoName = localPortNames[j];
-			exportList[exportIndex] = c;
-			exportNameList[exportIndex] = protoName;
-			exportIndex++;
+			// realize the portproto name
+			exportList[firstPortIndex[cellIndex] + j] = c;
 		}
 		return false;
 	}

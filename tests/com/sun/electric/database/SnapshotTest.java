@@ -308,7 +308,7 @@ public class SnapshotTest {
 
         String wrkDir = "./";
         String[] dirs = { "/import/async/" };
-        
+//        
 //        String wrkDir = "./home/";
 //        String[] dirs = { "/home/nadezhin/" };
 //        
@@ -323,8 +323,8 @@ public class SnapshotTest {
             stat.writeList(wrkDir + "dirs.lst");
         } else {
 			stat = LibraryStatistics.readList(idManager, "/home/dn146861/projDirs/dirs.lst");
-//            stat = LibraryStatistics.readList(idManager, "/home/nadezhin/electric/wrk/bic/dirs.lst");
-//            stat = LibraryStatistics.readList(idManager, "/home/nadezhin/electric/wrk/home/dirs.lst");
+//			stat = LibraryStatistics.readList(idManager, "/home/nadezhin/electric/wrk/home/dirs.lst");
+//            stat = LibraryStatistics.readList(idManager, wrkDir + "dirs.lst");
         }
         stat.reportFileLength();
         

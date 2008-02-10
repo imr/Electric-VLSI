@@ -31,6 +31,7 @@ import com.sun.electric.technology.TechPool;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -191,6 +192,21 @@ public class IdManager {
             assert cellId.cellIndex == cellIndex;
             assert cellId.libId.getCellId(cellId.cellName) == cellId;
             cellId.check();
+        }
+    }
+    
+    public void dump() {
+        System.out.println(techIds.size() + " TechIds:");
+        for (TechId techId: new TreeMap<String,TechId>(techIdsByName).values()) {
+            System.out.println("TechId " + techId + " " + techId.primitiveNodeIds.size() + " " + techId.arcProtoIds.size());
+        }
+        System.out.println(libIds.size() + " LibIds:");
+        for (LibId libId: new TreeMap<String,LibId>(libIdsByName).values()) {
+            System.out.println("LibId " + libId);
+            for (CellId cellId: cellIds) {
+                if (cellId.libId != libId) continue;
+                System.out.println(cellId + " " + cellId.numUsagesIn() + " " + cellId.numUsagesOf() + " " + cellId.numExportIds());
+            }
         }
     }
 }
