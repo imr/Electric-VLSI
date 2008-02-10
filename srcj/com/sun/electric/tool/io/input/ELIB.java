@@ -489,10 +489,6 @@ public class ELIB extends LibraryFiles
 			toolBCount = toolCount;
 		}
 
-		// erase the current database
-        if (!onlyProjectSettings)
-            lib.erase();
-
 		// allocate pointers for the Technologies
         techIdList = new TechId[techCount];
 		techList = new Technology[techCount];
@@ -1125,6 +1121,9 @@ public class ELIB extends LibraryFiles
         if (onlyProjectSettings)
             return;
         
+		// erase the current database
+        lib.erase();
+
         lib.lowLevelSetUserBits(libUserBits);
         lib.setFromDisk();
         lib.setVersion(version);
