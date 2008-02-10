@@ -99,7 +99,7 @@ public class LibraryStatistics implements Serializable
 		Map<String,Set<FileInstance>> preLibraries = new HashMap<String,Set<FileInstance>>();
 
 		for (int i = 0; i < dirNames.length; i++)
-			stat.scanDir(new File(dirNames[i]), canonicalDirs, preLibraries);
+			stat.scanDir(new File(dirNames[i]), canonicalDirs, preLibraries, null);
 
 		byte[] buf = new byte[Input.READ_BUFFER_SIZE];
 		for (Iterator lit = preLibraries.entrySet().iterator(); lit.hasNext(); )
@@ -175,7 +175,7 @@ public class LibraryStatistics implements Serializable
 	}
 
 	private void scanDir(File dir, Set<String> canonicalDirs,
-						 Map<String,Set<FileInstance>> preLibraries)
+						 Map<String,Set<FileInstance>> preLibraries, String parentLibName)
 	{
 		try
 		{
@@ -189,7 +189,8 @@ public class LibraryStatistics implements Serializable
 			return;
 		}
         if (dir.getPath().equals("/import/async/archive/2005/tic/gilda/TreasureIsland/electric-old/projectManagement") ||
-                dir.getPath().equals("/import/async/archive/2005/tic/jkg/projectTest")) {
+            dir.getPath().equals("/import/async/archive/2005/tic/jkg/projectTest") ||
+            dir.getPath().equals("/import/async/cad/cvs")) {
             System.out.println(dir + " IGNORED");
             return;
         }
@@ -210,6 +211,7 @@ public class LibraryStatistics implements Serializable
 		boolean libFound = false;
 		for (int i = 0; i < files.length; i++)
 		{
+            if (files[i].isDirectory()) continue;
 			String name = files[i].getName();
 			if (name.startsWith("._")) continue;
 			int extensionPos = name.lastIndexOf('.');
@@ -218,14 +220,15 @@ public class LibraryStatistics implements Serializable
 			name = name.substring(0, extensionPos);
 
 			if (extension.equals(".elib") || extension.equals(".jelib") ||
-                    isDelib && !extension.equals(".bak") && !extension.equals(".log"))
+                    isDelib && !extension.equals(".bak") && !extension.equals(".log") ||
+                    parentLibName != null)
 			{
 				if (!libFound)
 				{
 					System.out.println(dir.toString());
 					libFound = true;
 				}
-				String strippedName = isDelib ? libName + ":" + name : stripBackup(name);
+				String strippedName = isDelib ? libName + ":" + name : parentLibName != null ? parentLibName + ":" + name : stripBackup(name);
 				try
 				{
 					FileInstance f = new FileInstance(this, files[i].toString());
@@ -245,7 +248,8 @@ public class LibraryStatistics implements Serializable
 		for (int i = 0; i < files.length; i++)
 		{
 			if (!files[i].isDirectory()) continue;
-			scanDir(files[i], canonicalDirs, preLibraries);
+            if (files[i].getName().equals("CVS")) continue;
+			scanDir(files[i], canonicalDirs, preLibraries, isDelib ? libName : null);
 		}
 	}
 
