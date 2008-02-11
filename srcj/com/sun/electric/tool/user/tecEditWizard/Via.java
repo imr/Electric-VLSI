@@ -29,10 +29,15 @@ import com.sun.electric.tool.user.Resources;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "Via" tab of the Numeric Technology Editor dialog.
@@ -40,8 +45,10 @@ import javax.swing.JTextField;
 public class Via extends TechEditWizardPanel
 {
     private JPanel via;
-    private JLabel [] sizeLabel, spacingLabel, arraySpacingLabel, overhangInlineLabel;
-    private JTextField [] size, spacing, arraySpacing, overhangInline;
+    private JComboBox whichVia;
+    private JTextField size, spacing, arraySpacing, overhangInline;
+    private double [] vSize, vSpacing, vArraySpacing, vOverhangInline;
+    private boolean dataChanging;
 
     /** Creates new form Via */
 	public Via(TechEditWizard parent, boolean modal)
@@ -68,9 +75,86 @@ public class Via extends TechEditWizardPanel
         gbc.insets = new Insets(4, 4, 4, 4);
         via.add(image, gbc);
 
+        JLabel whichViaLabel = new JLabel("Which via:");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 0;   gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(4, 4, 1, 0);
+        via.add(whichViaLabel, gbc);
+
+        whichVia = new JComboBox();
+		whichVia.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { viaChanged(); }
+		});
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;   gbc.gridy = 2;
+        gbc.insets = new Insets(4, 0, 4, 2);
+        via.add(whichVia, gbc);
+
+        JLabel sizeLabel = new JLabel("Via size (A):");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 0;   gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(4, 4, 1, 0);
+        via.add(sizeLabel, gbc);
+
+        size = new JTextField();
+        size.getDocument().addDocumentListener(new ViaDocumentListener());
+        size.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 1;   gbc.gridy = 3;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        via.add(size, gbc);
+
+        JLabel spacingLabel = new JLabel("Via spacing (B):");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 0;   gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(1, 4, 1, 0);
+        via.add(spacingLabel, gbc);
+
+        spacing = new JTextField();
+        spacing.getDocument().addDocumentListener(new ViaDocumentListener());
+        spacing.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 1;   gbc.gridy = 4;
+        gbc.insets = new Insets(1, 0, 1, 2);
+        via.add(spacing, gbc);
+
+        JLabel arraySpacingLabel = new JLabel("Via array spacing (C):");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 0;   gbc.gridy = 5;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(1, 4, 1, 0);
+        via.add(arraySpacingLabel, gbc);
+
+        arraySpacing = new JTextField();
+        arraySpacing.getDocument().addDocumentListener(new ViaDocumentListener());
+        arraySpacing.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 1;   gbc.gridy = 5;
+        gbc.insets = new Insets(1, 0, 1, 2);
+        via.add(arraySpacing, gbc);
+
+        JLabel overhangInlineLabel = new JLabel("Via inline overhang (D):");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 0;   gbc.gridy = 6;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(1, 4, 4, 0);
+        via.add(overhangInlineLabel, gbc);
+
+        overhangInline = new JTextField();
+        overhangInline.getDocument().addDocumentListener(new ViaDocumentListener());
+        overhangInline.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 1;   gbc.gridy = 6;
+        gbc.insets = new Insets(1, 0, 4, 2);
+        via.add(overhangInline, gbc);
+
         JLabel nano = new JLabel("All values are in nanometers");
         gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 99;
+        gbc.gridx = 0;   gbc.gridy = 7;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(4, 4, 4, 4);
         via.add(nano, gbc);
@@ -88,97 +172,27 @@ public class Via extends TechEditWizardPanel
 	 */
 	public void init()
 	{
-		// remove former via data
-		if (sizeLabel != null) for(int i=0; i<sizeLabel.length; i++) via.remove(sizeLabel[i]);
-		if (size != null) for(int i=0; i<size.length; i++) via.remove(size[i]);
-		if (spacingLabel != null) for(int i=0; i<spacingLabel.length; i++) via.remove(spacingLabel[i]);
-		if (spacing != null) for(int i=0; i<spacing.length; i++) via.remove(spacing[i]);
-		if (arraySpacingLabel != null) for(int i=0; i<arraySpacingLabel.length; i++) via.remove(arraySpacingLabel[i]);
-		if (arraySpacing != null) for(int i=0; i<arraySpacing.length; i++) via.remove(arraySpacing[i]);
-		if (overhangInlineLabel != null) for(int i=0; i<overhangInlineLabel.length; i++) via.remove(overhangInlineLabel[i]);
-		if (overhangInline != null) for(int i=0; i<overhangInline.length; i++) via.remove(overhangInline[i]);
-
 		// add appropriate number of via layers
 		TechEditWizardData data = wizard.getTechEditData();
 		int numVias = data.getNumMetalLayers() - 1;
-		if (numVias >= 0)
-		{
-	        sizeLabel = new JLabel[numVias];
-	        size = new JTextField[numVias];
-	        spacingLabel = new JLabel[numVias];
-	        spacing = new JTextField[numVias];
-	        arraySpacingLabel = new JLabel[numVias];
-	        arraySpacing = new JTextField[numVias];
-	        overhangInlineLabel = new JLabel[numVias];
-	        overhangInline = new JTextField[numVias];
-		}
+		whichVia.removeAllItems();
         for(int i=0; i<numVias; i++)
-        {
-        	addViaLayer(i);
-        	size[i].setText(Double.toString(data.getViaSize()[i]));
-        	spacing[i].setText(Double.toString(data.getViaSpacing()[i]));
-        	arraySpacing[i].setText(Double.toString(data.getViaArraySpacing()[i]));
-        	overhangInline[i].setText(Double.toString(data.getViaOverhangInline()[i]));
-        }
-	}
-
-	private void addViaLayer(int i)
-	{
-		sizeLabel[i] = new JLabel("Via-" + (i+1) + " size (A):");
-    	GridBagConstraints gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 2+i*4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        via.add(sizeLabel[i], gbc);
-
-        size[i] = new JTextField();
-        size[i].setColumns(8);
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 2+i*4;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        via.add(size[i], gbc);
-
-        spacingLabel[i] = new JLabel("Via-" + (i+1) + " spacing (B):");
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 3+i*4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(1, 4, 1, 0);
-        via.add(spacingLabel[i], gbc);
-
-        spacing[i] = new JTextField();
-        spacing[i].setColumns(8);
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 3+i*4;
-        gbc.insets = new Insets(1, 0, 1, 2);
-        via.add(spacing[i], gbc);
-
-        arraySpacingLabel[i] = new JLabel("Via-" + (i+1) + " array spacing (C):");
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 4+i*4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(1, 4, 1, 0);
-        via.add(arraySpacingLabel[i], gbc);
-
-        arraySpacing[i] = new JTextField();
-        arraySpacing[i].setColumns(8);
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 4+i*4;
-        gbc.insets = new Insets(1, 0, 1, 2);
-        via.add(arraySpacing[i], gbc);
-
-        overhangInlineLabel[i] = new JLabel("Via-" + (i+1) + " inline overhang (D):");
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 5+i*4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(1, 4, 4, 0);
-        via.add(overhangInlineLabel[i], gbc);
-
-        overhangInline[i] = new JTextField();
-        overhangInline[i].setColumns(8);
-    	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 5+i*4;
-        gbc.insets = new Insets(1, 0, 4, 2);
-        via.add(overhangInline[i], gbc);
+	        whichVia.addItem((i+1) + " to " + (i+2));
+		if (numVias > 0)
+		{
+		    vSize = new double[numVias];
+		    vSpacing = new double[numVias];
+		    vArraySpacing = new double[numVias];
+		    vOverhangInline = new double[numVias];
+	        for(int i=0; i<numVias; i++)
+	        {
+	        	vSize[i] = data.getViaSize()[i];
+	        	vSpacing[i] = data.getViaSpacing()[i];
+	        	vArraySpacing[i] = data.getViaArraySpacing()[i];
+	        	vOverhangInline[i] = data.getViaOverhangInline()[i];
+	        }
+			whichVia.setSelectedIndex(0);
+		}
 	}
 
 	/**
@@ -189,15 +203,53 @@ public class Via extends TechEditWizardPanel
 	{
 		TechEditWizardData data = wizard.getTechEditData();
 		int numVias = data.getNumMetalLayers() - 1;
-		if (numVias > 0)
-		{
-	        for(int i=0; i<numVias; i++)
-	        {
-	        	data.setViaSize(i, TextUtils.atof(size[i].getText()));
-	        	data.setViaSpacing(i, TextUtils.atof(spacing[i].getText()));
-	        	data.setViaArraySpacing(i, TextUtils.atof(arraySpacing[i].getText()));
-	        	data.setViaOverhangInline(i, TextUtils.atof(overhangInline[i].getText()));
-	        }
+        for(int i=0; i<numVias; i++)
+        {
+        	data.setViaSize(i, vSize[i]);
+        	data.setViaSpacing(i, vSpacing[i]);
+        	data.setViaArraySpacing(i, vArraySpacing[i]);
+        	data.setViaOverhangInline(i, vOverhangInline[i]);
 		}
+	}
+
+	private void viaChanged()
+	{
+		dataChanging = true;
+		int which = whichVia.getSelectedIndex();
+		if (which < 0 || vSize == null || which >= vSize.length)
+		{
+		    size.setText("");
+		    spacing.setText("");
+		    arraySpacing.setText("");
+		    overhangInline.setText("");
+		} else
+		{
+		    size.setText(TextUtils.formatDouble(vSize[which]));
+		    spacing.setText(TextUtils.formatDouble(vSpacing[which]));
+		    arraySpacing.setText(TextUtils.formatDouble(vArraySpacing[which]));
+		    overhangInline.setText(TextUtils.formatDouble(vOverhangInline[which]));
+		}
+		dataChanging = false;
+	}
+
+	private void viaDataChanged()
+	{
+		if (dataChanging) return;
+		int which = whichVia.getSelectedIndex();
+		if (which < 0 || vSize == null || which >= vSize.length) return;
+		vSize[which] = TextUtils.atof(size.getText());
+		vSpacing[which] = TextUtils.atof(spacing.getText());
+		vArraySpacing[which] = TextUtils.atof(arraySpacing.getText());
+		vOverhangInline[which] = TextUtils.atof(overhangInline.getText());
+	}
+
+	/**
+	 * Class to handle special changes to changes to a via size data.
+	 */
+	private class ViaDocumentListener implements DocumentListener
+	{
+		public void changedUpdate(DocumentEvent e) { viaDataChanged(); }
+		public void insertUpdate(DocumentEvent e) { viaDataChanged(); }
+		public void removeUpdate(DocumentEvent e) { viaDataChanged(); }
 	}
 }

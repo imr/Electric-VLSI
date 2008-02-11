@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07d: *******************************
 
+IMP: (2/11/08, SMR) "Via" panel of Technology Creation Wizard now uses pulldown (Bug #1565).
+
 IMP/MAN: (2/11/08, SMR) Component menu dialog now supports cell instances.
 
 BUG: (2/4/08, DN) New: NPE while reading an old JELIB library (Bug #1555)
