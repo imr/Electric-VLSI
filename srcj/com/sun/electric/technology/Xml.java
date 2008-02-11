@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
@@ -265,6 +266,12 @@ public class Xml {
         public int rotation;
     }
 
+    public static class MenuCell implements Serializable {
+        public String cellName;
+        public String text;
+        public double fontSize;
+    }
+
     public static class Distance implements Serializable {
         public double k;
         public double value;
@@ -365,6 +372,7 @@ public class Xml {
         menuBox,
         menuArc(true),
         menuNode(true),
+        menuCell,
         menuText(true),
         menuNodeInst,
         menuNodeText,
@@ -1039,6 +1047,11 @@ public class Xml {
                     curMenuBox = new ArrayList<Object>();
                     tech.menuPalette.menuBoxes.add(curMenuBox);
                     break;
+                case menuCell:
+                    curMenuNodeInst = new MenuNodeInst();
+                    curMenuNodeInst.protoName = a("cellName");
+                    curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.UNKNOWN;
+                    break;
                 case menuNodeInst:
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
@@ -1255,6 +1268,10 @@ public class Xml {
                     break;
                 case menuNodeInst:
                 	curMenuBox.add(curMenuNodeInst);
+                    curMenuNodeInst = null;
+                    break;
+                case menuCell:
+                	curMenuBox.add("LOADCELL " + curMenuNodeInst.protoName);
                     curMenuNodeInst = null;
                     break;
 
@@ -1898,6 +1915,8 @@ public class Xml {
                     bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
                 } else if (o instanceof Xml.PrimitiveNode) {
                     bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
+                } else if (o instanceof Cell) {
+                    b(XmlKeyword.menuCell); a("cellName", ((Cell)o).libDescribe()); el();
                 } else if (o instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());

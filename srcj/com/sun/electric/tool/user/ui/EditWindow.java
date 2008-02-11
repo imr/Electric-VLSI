@@ -814,8 +814,7 @@ public class EditWindow extends JPanel
 			{
 				ni = (NodeInst)obj;
 				np = ni.getProto();
-			}
-            else if (obj instanceof Cell.CellGroup)
+			} else if (obj instanceof Cell.CellGroup)
             {
                 Cell.CellGroup gp = (Cell.CellGroup)obj;
                 View view = wnd.getCell().getView();
@@ -832,6 +831,14 @@ public class EditWindow extends JPanel
                 }
                 if (np == null)
                     System.out.println("No " + view + " type found in the dragged group '" + gp.getName() + "'");
+            } else if (obj instanceof String)
+            {
+            	String str = (String)obj;
+            	if (str.startsWith("LOADCELL "))
+            	{
+            		String cellName = str.substring(9);
+            		np = Cell.findNodeProto(cellName);
+            	}
             }
             if (np != null) // doesn't make sense to call this job if nothing is selected
                 new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);

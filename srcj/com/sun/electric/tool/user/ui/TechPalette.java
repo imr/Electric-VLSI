@@ -166,7 +166,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							}
 						}
 					}
-					item = getInUsed(item);
+					item = getInUse(item);
 					inPalette.add(item);
 				}
 			}
@@ -200,14 +200,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	}
 
     /**
-     * Method to determine if item is in used or not. Null if not.
+     * Method to determine if item is in use or not. Null if not.
      */
-    private static Object getInUsed(Object item)
+    private static Object getInUse(Object item)
     {
         if (item != null)
         {
             PrimitiveNode p = null;
-            // checking if node is in used
+            // checking if node is in use
             if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
             {
                 p = (PrimitiveNode)((NodeInst)item).getProto();
@@ -285,7 +285,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							List<?> subList = (List)item;
 							for (Object subItem : subList)
 							{
-                                subItem = getInUsed(subItem);
+                                subItem = getInUse(subItem);
                                 if (subItem == null) continue;
 								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
                                 menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, subItem, list, subList));
@@ -293,7 +293,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 						}
                         else
 						{
-                            item = getInUsed(item);
+                            item = getInUse(item);
                             if (item == null) continue;
 							menu.add(menuItem = new JMenuItem(getItemName(item, true)));
                             menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, item, list, null));
@@ -312,7 +312,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         } else if (obj instanceof String)
         {
             String msg = (String)obj;
-            if (msg.equals(Technology.SPECIALMENUCELL))
+            if (msg.startsWith("LOADCELL "))
+            {
+            	String cellName = msg.substring(9);
+            	Cell cell = (Cell)Cell.findNodeProto(cellName);
+            	if (cell == null)
+            	{
+            		Job.getUserInterface().showErrorMessage("Cannot find cell " + cellName, "Unknown Cell");
+            		return;
+            	}
+                PaletteFrame.placeInstance(cell, panel, false);
+            } else if (msg.equals(Technology.SPECIALMENUCELL))
             {
             	// get current cell type
             	View view = null;
@@ -480,7 +490,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         highlightedNode = null;
         repaint();
     }
-    
+
     // ************************************************ DRAG-AND-DROP CODE ************************************************
 
     public void dragGestureRecognized(DragGestureEvent e)
@@ -489,7 +499,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
 		// make a Transferable Object
 		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(obj, null);
-	
+
 		// begin the drag
 		dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
 	}
@@ -666,7 +676,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             StatusBar.setSelectionOverride("USE ARC: " + ap.describe());
         } else if (obj instanceof String)
         {
-            StatusBar.setSelectionOverride(null);
+        	String str = (String)obj;
+        	if (str.startsWith("LOADCELL "))
+        		StatusBar.setSelectionOverride("CREATE CELL: " + str.substring(9)); else
+        			StatusBar.setSelectionOverride(null);
         }
     }
 
@@ -711,14 +724,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // old paletteImage doesn't work with new GraphicsConfig; re-create it
                     paletteImage.flush();
                     paletteImage = createVolatileImage(getWidth(), getHeight());
-                }   
+                }
             }
             if (returnCode != VolatileImage.IMAGE_OK || paletteImageStale)
                 renderPaletteImage();
             g.drawImage(paletteImage, 0, 0, this);
         } while (paletteImage.contentsLost());
         paletteImageStale = false;
-       
+
         // highlight node that user selected
         if (highlightedNode != null) {
             // draw highlights around cell with highlighted node
@@ -763,17 +776,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     }
 
     private final static double menuArcLength = 8;
-    
+
     private void renderPaletteImage() {
         // draw the menu entries
         if (entrySize < 2) return;
         entryRect = new Rectangle(new Dimension(entrySize-2, entrySize-2));
         offscreen = new PixelDrawing(new Dimension(entrySize, entrySize));
-        
+
         Graphics2D g = (Graphics2D)paletteImage.getGraphics();
         g.setBackground(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
         g.clearRect(0, 0, getWidth(), getHeight());
-        
+
         for(int x=0; x<menuX; x++) {
             for(int y=0; y<menuY; y++) {
                 // render the entry into an Image
@@ -781,22 +794,22 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (index >= inPalette.size()) continue;
                 Object toDraw = inPalette.get(index);
                 boolean drawArrow = false;
-                
+
                 if (toDraw instanceof List) {
                     List list = ((List)toDraw);
                     toDraw = list.get(0);
                     if (toDraw instanceof List) toDraw = ((List)toDraw).get(0);
                     drawArrow = list.size() > 1;
                 }
-                
+
                 // put the Image in the proper place
                 int imgX = x * (entrySize+1)+1;
                 int imgY = (menuY-y-1) * (entrySize+1)+1;
-                
+
                 if (toDraw instanceof ArcProto) {
                     // rendering an arc: create the temporary arc
                     ArcProto ap = (ArcProto)toDraw;
-                    
+
                     // determine scale for rendering
                     double largest = 0;
                     for(Iterator<ArcProto> it = ap.getTechnology().getArcs(); it.hasNext(); ) {
@@ -807,16 +820,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 //                        double wid = otherAp.getDefaultLambdaFullWidth();
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }
-                    
+
                     // render the arc
                     double scalex = entrySize/largest * 0.8;
                     double scaley = entrySize/largest * 0.8;
                     double scale = Math.min(scalex, scaley);
-                    
+
             		// draw the arc
                     VectorCache.VectorBase[] shapes = VectorCache.drawPolys(ap.getShapeOfDummyArc(menuArcLength));
                     drawShapes(g, imgX, imgY, scale, shapes);
-                    
+
                     g.setColor(Color.RED);
                     g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
                 }
@@ -833,40 +846,61 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (np == Schematics.tech().diodeNode || np == Schematics.tech().capacitorNode ||
                             np == Schematics.tech().flipflopNode) drawArrow = true;
                     }
-                    
+
                     // determine scale for rendering
-                    PrimitiveNode np = (PrimitiveNode)ni.getProto();
-                    double largest = 0;
-                    PrimitiveNode.Function groupFunction = np.getGroupFunction();
-                    for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); ) {
-                        PrimitiveNode otherNp = it.next();
-                        if (otherNp.getGroupFunction() != groupFunction) continue;
-                        if (otherNp.isSkipSizeInPalette()) continue;
-                        if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
-                        if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
-                    }
-                    
-                    // for pins, make them the same scale as the arcs
-                    if (groupFunction == PrimitiveNode.Function.PIN) {
-                        largest = 0;
-                        for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); ) {
-                            ArcProto otherAp = it.next();
-                            if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
-                            if (otherAp.isSkipSizeInPalette()) continue;
-                            double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
-//                            double wid = otherAp.getDefaultLambdaFullWidth();
-                            if (wid+8 > largest) largest = wid+8;
+                    if (ni.isCellInstance())
+                    {
+                    	String str = ni.getProto().describe(false);
+                        int defSize = 12;
+                        Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
+                        FontMetrics fm = g.getFontMetrics(f);
+                        float width = fm.stringWidth(str);
+                        if (width > entryRect.width)
+                        {
+                            f = new Font(User.getDefaultFont(), Font.BOLD, (int)(defSize*entryRect.width/width));
+                            fm = g.getFontMetrics(f);
+                            width = fm.stringWidth(str);
                         }
+                        g.setFont(f);
+                        g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+                        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                        g.drawString(str, imgX + (entryRect.width - width)/2, imgY + (entryRect.height + (float)fm.getAscent())/2);
+                    } else
+                    {
+	                    PrimitiveNode np = (PrimitiveNode)ni.getProto();
+	                    double largest = 0;
+	                    PrimitiveNode.Function groupFunction = np.getGroupFunction();
+	                    for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
+	                    {
+	                        PrimitiveNode otherNp = it.next();
+	                        if (otherNp.getGroupFunction() != groupFunction) continue;
+	                        if (otherNp.isSkipSizeInPalette()) continue;
+	                        if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
+	                        if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
+	                    }
+
+	                    // for pins, make them the same scale as the arcs
+	                    if (groupFunction == PrimitiveNode.Function.PIN)
+	                    {
+	                        largest = 0;
+	                        for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )
+	                        {
+	                            ArcProto otherAp = it.next();
+	                            if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
+	                            if (otherAp.isSkipSizeInPalette()) continue;
+	                            double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+	                            if (wid+8 > largest) largest = wid+8;
+	                        }
+	                    }
+
+	                    // render it
+	                    double scalex = entrySize/largest * 0.8;
+	                    double scaley = entrySize/largest * 0.8;
+	                    double scale = Math.min(scalex, scaley);
+
+	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
+	                    drawShapes(g, imgX, imgY, scale, shapes);
                     }
-                    
-                    // render it
-                    double scalex = entrySize/largest * 0.8;
-                    double scaley = entrySize/largest * 0.8;
-                    double scale = Math.min(scalex, scaley);
-                    
-                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
-                    drawShapes(g, imgX, imgY, scale, shapes);
-                    
                     g.setColor(Color.BLUE);
                     g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
                 }
@@ -875,7 +909,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     if (str.equals(Technology.SPECIALMENUCELL) || str.equals(Technology.SPECIALMENUSPICE) ||
                     	str.equals(Technology.SPECIALMENUMISC) || str.equals(Technology.SPECIALMENUPURE))
                         	drawArrow = true;
-                    
+                    if (str.startsWith("LOADCELL "))
+                    {
+                    	int colonPos = str.indexOf(':');
+                    	if (colonPos < 0) str = str.substring(9); else
+                    		str = str.substring(colonPos+1);
+                        g.setColor(Color.BLUE);
+                        g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
+                    }
+
                     int defSize = 18;
                     Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                     FontMetrics fm = g.getFontMetrics(f);
@@ -894,7 +936,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
         }
         offscreen = null;
-        
+
         // show dividing lines
         g.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
         for(int i=0; i<=menuX; i++) {
@@ -907,7 +949,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         }
         g.dispose();
     }
-    
+
     private void drawArrow(Graphics g, int x, int y) {
         int imgX = x * (entrySize+1)+1;
         int imgY = (menuY-y-1) * (entrySize+1)+1;

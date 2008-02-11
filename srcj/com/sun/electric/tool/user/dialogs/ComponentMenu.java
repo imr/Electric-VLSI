@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
@@ -52,6 +53,7 @@ import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -67,8 +69,8 @@ import javax.swing.event.DocumentListener;
  */
 public class ComponentMenu extends EDialog
 {
-	private JList listNodes, listArcs, listSpecials, listPopup;
-	private DefaultListModel modelNodes, modelArcs, modelSpecials, modelPopup;
+	private JList listNodes, listArcs, listCells, listSpecials, listPopup;
+	private DefaultListModel modelNodes, modelArcs, modelCells, modelSpecials, modelPopup;
 	private int menuWid, menuHei, menuSelectedX, menuSelectedY;
 	private int lastListSelected = -1;
 	private Object [][] menuArray;
@@ -127,7 +129,7 @@ public class ComponentMenu extends EDialog
 		menuView = new MenuView();
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
-		gbc.gridwidth = 1;   gbc.gridheight = 6;
+		gbc.gridwidth = 1;   gbc.gridheight = 8;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 0.5;   gbc.weighty = 0.9;
 		gbc.insets = new Insets(1, 4, 4, 4);
@@ -155,6 +157,22 @@ public class ComponentMenu extends EDialog
 			public void mouseClicked(MouseEvent evt) { selectList(1); }
 		});
 
+		modelCells = new DefaultListModel();
+		listCells = new JList(modelCells);
+		cellListPane.setViewportView(listCells);
+		listCells.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { selectList(2); }
+		});
+		for(Library lib : Library.getVisibleLibraries())
+			libraryName.addItem(lib.getName());
+		libraryName.setSelectedItem(Library.getCurrent());
+		libraryChanged();
+		libraryName.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { libraryChanged(); }
+		});
+
 		modelSpecials = new DefaultListModel();
 		modelSpecials.addElement(Technology.SPECIALMENUCELL);
 		modelSpecials.addElement(Technology.SPECIALMENUEXPORT);
@@ -165,7 +183,7 @@ public class ComponentMenu extends EDialog
 		specialListPane.setViewportView(listSpecials);
 		listSpecials.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent evt) { selectList(2); }
+			public void mouseClicked(MouseEvent evt) { selectList(3); }
 		});
 
 		modelPopup = new DefaultListModel();
@@ -354,17 +372,25 @@ public class ComponentMenu extends EDialog
 		lastListSelected = list;
 		switch (list)
 		{
-			case 0:
+			case 0:		// nodes list
+				listArcs.clearSelection();
+				listCells.clearSelection();
+				listSpecials.clearSelection();
+				break;
+			case 1:		// arcs list
+				listNodes.clearSelection();
+				listCells.clearSelection();
+				listSpecials.clearSelection();
+				break;
+			case 2:		// cells list
+				listNodes.clearSelection();
 				listArcs.clearSelection();
 				listSpecials.clearSelection();
 				break;
-			case 1:
-				listNodes.clearSelection();
-				listSpecials.clearSelection();
-				break;
-			case 2:
+			case 3:		// specials list
 				listNodes.clearSelection();
 				listArcs.clearSelection();
+				listCells.clearSelection();
 				break;
 		}
 	}
@@ -498,6 +524,23 @@ public class ComponentMenu extends EDialog
 	}
 
 	/**
+	 * Method called when the library popup above the cells list changes.
+	 */
+	private void libraryChanged()
+	{
+		modelCells.clear();
+		String libName = (String)libraryName.getSelectedItem();
+		if (libName == null) return;
+		Library lib = Library.findLibrary(libName);
+		if (lib == null) return;
+		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = it.next();
+			modelCells.addElement(cell.noLibDescribe());
+		}
+	}
+
+	/**
 	 * Method to show details about the selected node.
 	 * @param valid true if this is a valid node (false to dim all detail fields).
 	 * @param ni the NodeInst (may be null but still have a valid prototype).
@@ -602,19 +645,27 @@ public class ComponentMenu extends EDialog
 		}
 		for(Object oldOne : list)
 		{
-			if (newOne instanceof Xml.ArcProto)
+			if (oldOne instanceof Xml.ArcProto)
 			{
-				if (!(oldOne instanceof Xml.ArcProto))
+				if (!(newOne instanceof Xml.ArcProto))
 				{
-					Job.getUserInterface().showErrorMessage("Existing Arc menu can only have other Arcs added to it",
+					Job.getUserInterface().showErrorMessage("Existing Arc menu can only have other arcs added to it",
 						"Cannot Add");
 					return false;
 				}
-			} else
+			} else if (oldOne instanceof Xml.PrimitiveNode)
 			{
-				if (oldOne instanceof Xml.ArcProto)
+				if (!(newOne instanceof Xml.PrimitiveNode))
 				{
-					Job.getUserInterface().showErrorMessage("Existing Node menu can only have other Nodes added to it",
+					Job.getUserInterface().showErrorMessage("Existing Primitive Node menu can only have other primitive nodes added to it",
+						"Cannot Add");
+					return false;
+				}
+			} else if (oldOne instanceof Cell)
+			{
+				if (!(newOne instanceof Cell))
+				{
+					Job.getUserInterface().showErrorMessage("Existing Cell menu can only have other cells added to it",
 						"Cannot Add");
 					return false;
 				}
@@ -680,6 +731,13 @@ public class ComponentMenu extends EDialog
 						int midY = (lowY + highY) / 2;
 						showString(g, "Node", lowX, highX, lowY, midY);
 						showString(g, getNodeName(ni), lowX, highX, midY, highY);
+						borderColor = Color.BLUE;
+					} else if (item instanceof Cell)
+					{
+						Cell cell = (Cell)item;
+						int midY = (lowY + highY) / 2;
+						showString(g, "Cell", lowX, highX, lowY, midY);
+						showString(g, cell.describe(false), lowX, highX, midY, highY);
 						borderColor = Color.BLUE;
 					} else if (item instanceof Xml.ArcProto)
 					{
@@ -810,6 +868,9 @@ public class ComponentMenu extends EDialog
         nodeName = new javax.swing.JTextField();
         nodeFunction = new javax.swing.JComboBox();
         nodeAngle = new javax.swing.JTextField();
+        cellListPane = new javax.swing.JScrollPane();
+        jLabel1 = new javax.swing.JLabel();
+        libraryName = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.BorderLayout(0, 10));
 
@@ -828,9 +889,10 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.weighty = 0.5;
+        gridBagConstraints.weighty = 0.3;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         Top.add(nodeListPane, gridBagConstraints);
 
@@ -838,6 +900,7 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
@@ -856,10 +919,11 @@ public class ComponentMenu extends EDialog
         specialListPane.setPreferredSize(new java.awt.Dimension(200, 50));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.weighty = 0.2;
+        gridBagConstraints.weighty = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         Top.add(specialListPane, gridBagConstraints);
 
@@ -867,21 +931,27 @@ public class ComponentMenu extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 1, 4);
         Top.add(jLabel2, gridBagConstraints);
 
         jLabel3.setText("Arcs:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 1, 4);
         Top.add(jLabel3, gridBagConstraints);
 
         jLabel4.setText("Special:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 1, 4);
         Top.add(jLabel4, gridBagConstraints);
 
         addButton.setText("<< Add");
@@ -974,7 +1044,8 @@ public class ComponentMenu extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         Top.add(lowerRight, gridBagConstraints);
 
@@ -1072,9 +1143,33 @@ public class ComponentMenu extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         Top.add(lowerLeft, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        Top.add(cellListPane, gridBagConstraints);
+
+        jLabel1.setText("Cells:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 1, 4);
+        Top.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        Top.add(libraryName, gridBagConstraints);
 
         getContentPane().add(Top, java.awt.BorderLayout.CENTER);
 
@@ -1206,7 +1301,17 @@ public class ComponentMenu extends EDialog
 				Xml.ArcProto ap = xTech.findArc(arcName);
 				addToMenu(ap);
 				break;
-			case 2:	// add a special text
+			case 2: // add a cell
+				String cellName = (String)listCells.getSelectedValue();
+				String libName = (String)libraryName.getSelectedItem();
+				Library lib = Library.findLibrary(libName);
+				if (lib != null)
+				{
+					Cell cell = lib.findNodeProto(cellName);
+					if (cell != null) addToMenu(cell);
+				}
+				break;
+			case 3:	// add a special text
 				String specialName = (String)listSpecials.getSelectedValue();
 				addToMenu(specialName);
 				break;
@@ -1226,11 +1331,14 @@ public class ComponentMenu extends EDialog
     private javax.swing.JButton addColumn;
     private javax.swing.JButton addRow;
     private javax.swing.JScrollPane arcListPane;
+    private javax.swing.JScrollPane cellListPane;
     private javax.swing.JButton deleteColumn;
     private javax.swing.JButton deleteRow;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JComboBox libraryName;
     private javax.swing.JPanel lowerLeft;
     private javax.swing.JPanel lowerRight;
     private javax.swing.JLabel menuSize;

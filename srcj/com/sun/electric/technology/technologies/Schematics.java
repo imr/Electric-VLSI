@@ -1413,7 +1413,6 @@ public class Schematics extends Technology
 	 */
 	public Object[][] getDefaultNodesGrouped()
 	{
-System.out.println("SCHEMATICS: WANT DEFAULT");
 		factoryNodeGroups = new Object[14][2];
 		factoryNodeGroups[0][0] = wire_arc;
 		factoryNodeGroups[1][0] = wirePinNode;
