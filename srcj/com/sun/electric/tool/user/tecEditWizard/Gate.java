@@ -55,8 +55,8 @@ public class Gate extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(Double.toString(data.getGateWidth()));
 		length.setText(Double.toString(data.getGateLength()));
+		width.setText(Double.toString(data.getGateWidth()));
 		contactSpacing.setText(Double.toString(data.getGateContactSpacing()));
 		spacing.setText(Double.toString(data.getGateSpacing()));
 	}
@@ -68,8 +68,8 @@ public class Gate extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setGateWidth(TextUtils.atof(width.getText()));
 		data.setGateLength(TextUtils.atof(length.getText()));
+		data.setGateWidth(TextUtils.atof(width.getText()));
 		data.setGateContactSpacing(TextUtils.atof(contactSpacing.getText()));
 		data.setGateSpacing(TextUtils.atof(spacing.getText()));
 	}
@@ -108,10 +108,10 @@ public class Gate extends TechEditWizardPanel
 
         gate.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Width (A):");
+        jLabel1.setText("Width (B):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         gate.add(jLabel1, gridBagConstraints);
@@ -119,14 +119,14 @@ public class Gate extends TechEditWizardPanel
         width.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         gate.add(width, gridBagConstraints);
 
-        jLabel2.setText("Length (B):");
+        jLabel2.setText("Length (A):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         gate.add(jLabel2, gridBagConstraints);
@@ -134,7 +134,7 @@ public class Gate extends TechEditWizardPanel
         length.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         gate.add(length, gridBagConstraints);
 
