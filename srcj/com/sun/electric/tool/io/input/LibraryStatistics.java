@@ -253,6 +253,75 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
+	public static void scanProjectDirs(String[] dirNames) {
+		HashSet<String> canonicalDirs = new HashSet<String>();
+        TreeSet<String> projectDirs = new TreeSet<String>();
+		for (int i = 0; i < dirNames.length; i++)
+			scanDir(new File(dirNames[i]), canonicalDirs, projectDirs);
+        System.out.println("Sorted Project Dirs:");
+        for (String projectDir: projectDirs)
+            System.out.println(projectDir);
+    }
+    
+	private static void scanDir(File dir, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
+		try {
+			String canonicalDir = dir.getCanonicalPath();
+			if (canonicalDirs.contains(canonicalDir)) return;
+			canonicalDirs.add(canonicalDir);
+			dir = new File(canonicalDir);
+            assert dir.getPath().equals(canonicalDir);
+		} catch (IOException e) {
+			System.out.println(dir + " CANONICAL FAILED");
+			return;
+		}
+		File[] files = dir.listFiles();
+		if (files == null) {
+			System.out.println(dir + " ACCESS DENIED");
+			return;
+		}
+        int elibs = 0;
+        int jelibs = 0;
+		int delibs = 0;
+		for (File file: files) {
+			String name = file.getName();
+			if (name.startsWith("._")) continue;
+			int extensionPos = name.lastIndexOf('.');
+			if (extensionPos < 0) continue;
+			String extension = name.substring(extensionPos);
+			name = name.substring(0, extensionPos);
+
+            if (file.isDirectory()) {
+                if (extension.equals(".delib"))
+                    delibs++;
+            } else {
+                if (extension.equals(".elib"))
+                    elibs++;
+                if (extension.equals(".jelib"))
+                    jelibs++;
+            }
+        }
+		if (delibs > 0 || elibs > 0 || jelibs > 0) {
+            String projectDir = dir.getPath();
+            System.out.print(projectDir + " :");
+            if (elibs > 0)
+                System.out.print(" " + elibs + " elibs");
+            if (jelibs > 0)
+                System.out.print(" " + jelibs + " jelibs");
+            if (delibs > 0)
+                System.out.print(" " + delibs + " delibs");
+            System.out.println();
+            assert canonicalDirs.contains(projectDir);
+            boolean added = projectDirs.add(projectDir);
+            assert added;
+            return;
+		}
+		for (File file: files) {
+			if (!file.isDirectory()) continue;
+            if (file.getName().equals("CVS")) continue;
+			scanDir(file, canonicalDirs, projectDirs);
+		}
+	}
+
 	public void readHeaders(ErrorLogger errorLogger)
 	{
 		for (Iterator<LibraryName> lit = getLibraryNames(); lit.hasNext(); )
@@ -452,6 +521,28 @@ public class LibraryStatistics implements Serializable
 		System.out.println((jelibLength>>20) + "M (" + jelibLength + ") in " +
 						   jelibCount + " JELIB files ( with duplicates )");
 		System.out.println("NOVERSION:" + withoutVersion + bagReport(versionCounts));
+	}
+
+	public void reportFilePaths() {
+        TreeMap<String,GenMath.MutableInteger> paths = new TreeMap<String,GenMath.MutableInteger>();
+        System.out.println(directories.size() + " Directories");
+		for (Iterator<Directory> it = getDirectories(); it.hasNext(); ) {
+            Directory directory = it.next();
+            System.out.print(directory.dirName);
+            String projName = directory.dirName;
+            int delibPos = projName.indexOf(".delib");
+            if (delibPos >= 0) {
+                int slashPos = projName.lastIndexOf('/', delibPos);
+                projName = projName.substring(0, slashPos);
+                System.out.print(" -> " + projName);
+            }
+            GenMath.addToBag(paths, projName);
+            System.out.println();
+		}
+       System.out.println(paths.size() + " Projects");
+       for (Map.Entry<String,GenMath.MutableInteger> e: paths.entrySet()) {
+           System.out.println(e.getKey() + " " + e.getValue());
+       }
 	}
 
 	public void reportCells() {

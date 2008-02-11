@@ -302,7 +302,18 @@ public class SnapshotTest {
     }
     
     @Test
+    public void scanProjectDirs() {
+        System.out.println("scan project dirs");
+        
+        String[] dirs = { "/import/async" };
+//        String[] dirs = { "/home/nadezhin" };
+        
+        LibraryStatistics.scanProjectDirs(dirs);
+    }
+    
+    @Test
     public void scanDirs() {
+        System.out.println("scan dirs");
         IdManager idManager = new IdManager();
         LibraryStatistics stat;
 
