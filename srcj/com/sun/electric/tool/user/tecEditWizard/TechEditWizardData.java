@@ -688,6 +688,7 @@ public class TechEditWizardData
 			new Color(255,160,122), // salmon
 			new Color(34,139,34),   // dull green
 			new Color(178,34,34),   // dull red
+			new Color(34,34,178),   // dull blue
 			new Color(153,153,153), // light gray
 			new Color(102,102,102)  // dark gray
 		};
@@ -789,125 +790,143 @@ public class TechEditWizardData
 			if (l.startsWith("Metal"))
 			{
 				int metLay = TextUtils.atoi(l.substring(6));
-				if (metLay == 1 || metLay == 2 || metLay == 3) tcol = metLay + 2; else
+				int metLayDig = (metLay-1) % 10;
+				switch (metLayDig)
 				{
-					// set a pattern for higher-layers of metal
-					switch (metLay)
-					{
-						case 4:
-							pat="        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>                </pattern>";
-							break;
-						case 5:
-							pat="        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>";
-							break;
-						case 6:
-							pat="        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern> X X X X X X X X</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern> X X X X X X X X</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern> X X X X X X X X</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern> X X X X X X X X</pattern>";
-							break;
-						case 7:
-							pat="        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern> X   X   X   X  </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>   X   X   X   X</pattern>";
-							break;
-						case 8:
-							pat="        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>";
-							break;
-						case 9:
-							pat="        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>  X   X   X   X </pattern>\n" +
-								"        <pattern>                </pattern>\n" +
-								"        <pattern>X   X   X   X   </pattern>";
-							break;
-					}
+					case 0: tcol = 3;   break;
+					case 1: tcol = 4;   break;
+					case 2: tcol = 5;   break;
+					case 3:
+						pat="        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>                </pattern>";
+						break;
+					case 4:
+						pat="        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>";
+						break;
+					case 5:
+						pat="        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern> X X X X X X X X</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern> X X X X X X X X</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern> X X X X X X X X</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern> X X X X X X X X</pattern>";
+						break;
+					case 6:
+						pat="        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern> X   X   X   X  </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>   X   X   X   X</pattern>";
+						break;
+					case 7:
+						pat="        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>";
+						break;
+					case 8:
+						pat="        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>  X   X   X   X </pattern>\n" +
+							"        <pattern>                </pattern>\n" +
+							"        <pattern>X   X   X   X   </pattern>";
+					case 9:
+						pat="        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>\n" +
+							"        <pattern>X X X X X X X X </pattern>";
+						break;
 				}
 				fun = "METAL" + metLay;
-				r = metal_colour[metLay-1].getRed();
-				g = metal_colour[metLay-1].getGreen();
-				b = metal_colour[metLay-1].getBlue();
+				int metLayHigh = (metLay-1) / 10;
+				r = metal_colour[metLayDig].getRed() * (10-metLayHigh) / 10;
+				g = metal_colour[metLayDig].getGreen() * (10-metLayHigh) / 10;
+				b = metal_colour[metLayDig].getBlue() * (10-metLayHigh) / 10;
 				la = metal_width[metLay-1] / stepsize;
 			}
 

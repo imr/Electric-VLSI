@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/11/08, SMR) Technology Creation Wizard crashes if more than 10 metals (Bug #1566).
+FIX: Allowed more than 10 (limited by color list).
+
 IMP: (2/11/08, SMR) "Via" panel of Technology Creation Wizard now uses pulldown (Bug #1565).
 
 ************************* Version 8.07d: *******************************
