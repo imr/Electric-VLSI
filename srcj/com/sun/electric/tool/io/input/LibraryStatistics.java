@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -125,7 +126,7 @@ public class LibraryStatistics implements Serializable
 						if (bytes == null)
 						{
 							Input in = new Input();
-							if (in.openBinaryInput(f1.fileUrl)) continue;
+							if (in.openBinaryInput(f1.getUrl())) continue;
 							try {
 								bytes = new byte[len];
 								try {
@@ -140,7 +141,7 @@ public class LibraryStatistics implements Serializable
 							}
 						}
 						Input in = new Input();
-						if (in.openBinaryInput(f1.fileUrl)) continue;
+						if (in.openBinaryInput(f1.getUrl())) continue;
 						try
 						{
 							int n = 0;
@@ -253,17 +254,15 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
-	public static void scanProjectDirs(String[] dirNames) {
+	public static TreeSet<String> scanProjectDirs(String[] dirNames, String[] excludeDirs) {
 		HashSet<String> canonicalDirs = new HashSet<String>();
         TreeSet<String> projectDirs = new TreeSet<String>();
 		for (int i = 0; i < dirNames.length; i++)
-			scanDir(new File(dirNames[i]), canonicalDirs, projectDirs);
-        System.out.println("Sorted Project Dirs:");
-        for (String projectDir: projectDirs)
-            System.out.println(projectDir);
+			scanDir(new File(dirNames[i]), excludeDirs, canonicalDirs, projectDirs);
+        return projectDirs;
     }
     
-	private static void scanDir(File dir, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
+	private static void scanDir(File dir, String[] excludeDirs, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
 		try {
 			String canonicalDir = dir.getCanonicalPath();
 			if (canonicalDirs.contains(canonicalDir)) return;
@@ -274,6 +273,12 @@ public class LibraryStatistics implements Serializable
 			System.out.println(dir + " CANONICAL FAILED");
 			return;
 		}
+        for (String excludeDir: excludeDirs) {
+            if (dir.getPath().equals(excludeDir)) {
+    			System.out.println(dir + " EXCLUDED");
+                return;
+            }
+        }
 		File[] files = dir.listFiles();
 		if (files == null) {
 			System.out.println(dir + " ACCESS DENIED");
@@ -313,12 +318,11 @@ public class LibraryStatistics implements Serializable
             assert canonicalDirs.contains(projectDir);
             boolean added = projectDirs.add(projectDir);
             assert added;
-            return;
 		}
 		for (File file: files) {
 			if (!file.isDirectory()) continue;
             if (file.getName().equals("CVS")) continue;
-			scanDir(file, canonicalDirs, projectDirs);
+			scanDir(file, excludeDirs, canonicalDirs, projectDirs);
 		}
 	}
 
@@ -523,27 +527,53 @@ public class LibraryStatistics implements Serializable
 		System.out.println("NOVERSION:" + withoutVersion + bagReport(versionCounts));
 	}
 
-	public void reportFilePaths() {
+	public void reportFilePaths(String[] projPatterns) {
         TreeMap<String,GenMath.MutableInteger> paths = new TreeMap<String,GenMath.MutableInteger>();
         System.out.println(directories.size() + " Directories");
 		for (Iterator<Directory> it = getDirectories(); it.hasNext(); ) {
             Directory directory = it.next();
-            System.out.print(directory.dirName);
+//            System.out.print(directory.dirName);
             String projName = directory.dirName;
+            
+            if (projName.startsWith("/import/async/cad/tools/electric/builds/svn")) continue;
+            if (projName.startsWith("/import/async/archive/2005/tic/gilda/TreasureIsland/electric-old/projectManagement")) continue;
+            if (projName.startsWith("/import/async/archive/2005/tic/jkg/projectTest")) continue;
+            if (projName.startsWith("/import/async/cad/cvs")) continue;
+            
             int delibPos = projName.indexOf(".delib");
             if (delibPos >= 0) {
                 int slashPos = projName.lastIndexOf('/', delibPos);
                 projName = projName.substring(0, slashPos);
-                System.out.print(" -> " + projName);
+//                System.out.print(" -> " + projName);
             }
             GenMath.addToBag(paths, projName);
-            System.out.println();
+//            System.out.println();
 		}
        System.out.println(paths.size() + " Projects");
+       for (Map.Entry<String,GenMath.MutableInteger> e: paths.entrySet()) {
+           System.out.println(e.getKey());
+//           System.out.println(e.getKey() + " " + e.getValue());
+       }
+       
+
+       for (String pattern: projPatterns)
+           selectProject(paths, pattern);
+       System.out.println("Remaining " + paths.size() + " Projects");
        for (Map.Entry<String,GenMath.MutableInteger> e: paths.entrySet()) {
            System.out.println(e.getKey() + " " + e.getValue());
        }
 	}
+    
+    private void selectProject(TreeMap<String,GenMath.MutableInteger> paths, String pattern) {
+        System.out.println(pattern);
+        for (Iterator<String> it = paths.keySet().iterator(); it.hasNext(); ) {
+           String path = it.next();
+           if (path.contains(pattern)) {
+               System.out.println(path);
+               it.remove();
+           }
+       }
+    }
 
 	public void reportCells() {
 		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
@@ -554,7 +584,7 @@ public class LibraryStatistics implements Serializable
 			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
 			{
 				FileContents fc = (FileContents)it.next();
-                System.out.println("    " + fc.fileUrl().next() + " " + fc.fileLength + " " + fc.localCells.size() + " " + fc.externalCells.size());
+                System.out.println("    " + fc.getFileName() + " " + fc.fileLength + " " + fc.localCells.size() + " " + fc.externalCells.size());
                 for (String localName: fc.localCells)
                     System.out.println("\t" + localName);
                 for (ExternalCell extCell: fc.externalCells)
@@ -771,6 +801,7 @@ public class LibraryStatistics implements Serializable
 
 	private static class Directory implements Serializable
 	{
+		private static final long serialVersionUID = -8627329891776990655L;
 		private String dirName;
 		private TreeMap<String,FileInstance> files = new TreeMap<String,FileInstance>();
 
@@ -834,6 +865,8 @@ public class LibraryStatistics implements Serializable
 
 	static class FileContents implements Serializable
 	{
+        private static final long serialVersionUID = 8673043477742718970L;
+        
 		LibraryName libraryName;
 		long fileLength;
 		long crc;
@@ -891,21 +924,23 @@ public class LibraryStatistics implements Serializable
 		Iterator<URL> fileUrl() {
             ArrayList<URL> urls = new ArrayList<URL>();
             for (FileInstance instance: instances)
-                urls.add(instance.fileUrl);
+                urls.add(instance.getUrl());
             return urls.iterator();
         }
 
         IdManager idManager() { return libraryName.stat.idManager; }
         
 		boolean isElib() { return instances.get(0).fileName.endsWith(".elib"); }
-
+        
+        String getFileName() { return instances.get(0).fileName; }
 	}
 
 	private static class FileInstance implements Comparable, Serializable
 	{
+		private static final long serialVersionUID = -5726569346410497467L;
 		private FileContents contents;
 		private String fileName;
-        private final URL fileUrl;
+        private final File file;
 		private long fileLength;
 		private long crc;
 		private long lastModified;
@@ -914,11 +949,10 @@ public class LibraryStatistics implements Serializable
 		private FileInstance(LibraryStatistics stat, String fileName, long fileLength, long lastModified, long crc)
             throws IOException
         {
-			File file = new File(fileName);
+			file = new File(fileName);
 			this.fileName = fileName;
 			this.fileLength = fileLength;
 			this.lastModified = lastModified;
-            this.fileUrl = file.toURI().toURL();
 			this.crc = crc;
             
 //			File file = new File(fileName);
@@ -928,16 +962,15 @@ public class LibraryStatistics implements Serializable
 		FileInstance(LibraryStatistics stat, String fileName)
 			throws IOException
 		{
-			File file = new File(fileName);
+			file = new File(fileName);
 			this.fileName = fileName;
 			canonicalPath = file.getCanonicalPath();
 			fileLength = file.length();
 			lastModified = file.lastModified();
-            fileUrl = file.toURI().toURL();
 			Input in = new Input();
 			try
 			{
-				if (in.openBinaryInput(fileUrl))
+				if (in.openBinaryInput(getUrl()))
                     throw new IOException("openBytesInput");
 				CheckedInputStream checkedInputStream = new CheckedInputStream(in.dataInputStream, new CRC32());
 				if (checkedInputStream.skip(fileLength) != fileLength)
@@ -950,6 +983,14 @@ public class LibraryStatistics implements Serializable
 
 			stat.getDirectory(file.getParent()).files.put(file.getName(), this);
 		}
+        
+        private URL getUrl() {
+            try {
+                return file.toURI().toURL();
+            } catch (MalformedURLException e) {
+                return null;
+            }
+        }
 
 		public int compareTo(Object o)
 		{
