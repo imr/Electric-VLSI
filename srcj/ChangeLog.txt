@@ -2,9 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.07d: *******************************
+************************* Version 8.07e: *******************************
 
 IMP: (2/11/08, SMR) "Via" panel of Technology Creation Wizard now uses pulldown (Bug #1565).
+
+************************* Version 8.07d: *******************************
 
 IMP/MAN: (2/11/08, SMR) Component menu dialog now supports cell instances.
 
