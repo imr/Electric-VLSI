@@ -1289,7 +1289,7 @@ public class Technology implements Comparable<Technology>, Serializable
         	} else
         	{
         		System.out.println("WARNING: could not find added technology: " + softTechFile);
-        		System.out.println("  (fix this error in the 'Added Technologies' Preferences)");
+        		System.out.println("  (fix this error in the 'Added Technologies' Project Settings)");
         	}
         }
 

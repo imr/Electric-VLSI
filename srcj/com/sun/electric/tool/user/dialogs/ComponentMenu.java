@@ -60,6 +60,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -227,7 +228,6 @@ public class ComponentMenu extends EDialog
 			});
 		} else
 		{
-			// TODO need factory reset button when part of preferences
 			JButton reset = new JButton("Factory Reset");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 4;
@@ -433,10 +433,17 @@ public class ComponentMenu extends EDialog
 			String name = "Node entry: " + ni.protoName;
 			if (!fromPopup) selectedMenuName.setText(name);
 			showThisNode(true, ni, null);
+		} else if (item instanceof Xml.MenuCell)
+		{
+			Xml.MenuCell mc = (Xml.MenuCell)item;
+			if (!fromPopup) selectedMenuName.setText("Cell entry: " + mc.cellName);
 		} else if (item instanceof Xml.ArcProto)
 		{
 			Xml.ArcProto ap = (Xml.ArcProto)item;
 			if (!fromPopup) selectedMenuName.setText("Arc entry: " + ap.name);
+		} else if (item instanceof JSeparator)
+		{
+			if (!fromPopup) selectedMenuName.setText("Separator");
 		} else if (item instanceof List && !fromPopup)
 		{
 			selectedMenuName.setText("Popup menu entry:");
@@ -446,8 +453,9 @@ public class ComponentMenu extends EDialog
 			{
 				if (obj instanceof Xml.PrimitiveNode) modelPopup.addElement(((Xml.PrimitiveNode)obj).name); else
 				if (obj instanceof Xml.MenuNodeInst) modelPopup.addElement(getNodeName((Xml.MenuNodeInst)obj)); else
-					if (obj instanceof Xml.ArcProto) modelPopup.addElement(((Xml.ArcProto)obj).name); else
-						modelPopup.addElement(obj);
+				if (obj instanceof Xml.ArcProto) modelPopup.addElement(((Xml.ArcProto)obj).name); else
+				if (obj instanceof JSeparator) modelPopup.addElement("----------"); else
+					modelPopup.addElement(obj);
 			}
 		} else if (item instanceof String)
 		{
@@ -661,9 +669,9 @@ public class ComponentMenu extends EDialog
 						"Cannot Add");
 					return false;
 				}
-			} else if (oldOne instanceof Cell)
+			} else if (oldOne instanceof Xml.MenuCell)
 			{
-				if (!(newOne instanceof Cell))
+				if (!(newOne instanceof Xml.MenuCell))
 				{
 					Job.getUserInterface().showErrorMessage("Existing Cell menu can only have other cells added to it",
 						"Cannot Add");
@@ -732,12 +740,12 @@ public class ComponentMenu extends EDialog
 						showString(g, "Node", lowX, highX, lowY, midY);
 						showString(g, getNodeName(ni), lowX, highX, midY, highY);
 						borderColor = Color.BLUE;
-					} else if (item instanceof Cell)
+					} else if (item instanceof Xml.MenuCell)
 					{
-						Cell cell = (Cell)item;
+						Xml.MenuCell cell = (Xml.MenuCell)item;
 						int midY = (lowY + highY) / 2;
 						showString(g, "Cell", lowX, highX, lowY, midY);
-						showString(g, cell.describe(false), lowX, highX, midY, highY);
+						showString(g, cell.cellName, lowX, highX, midY, highY);
 						borderColor = Color.BLUE;
 					} else if (item instanceof Xml.ArcProto)
 					{
@@ -1304,12 +1312,9 @@ public class ComponentMenu extends EDialog
 			case 2: // add a cell
 				String cellName = (String)listCells.getSelectedValue();
 				String libName = (String)libraryName.getSelectedItem();
-				Library lib = Library.findLibrary(libName);
-				if (lib != null)
-				{
-					Cell cell = lib.findNodeProto(cellName);
-					if (cell != null) addToMenu(cell);
-				}
+				Xml.MenuCell mc = new Xml.MenuCell();
+				mc.cellName = libName + ":" + cellName;
+				addToMenu(mc);
 				break;
 			case 3:	// add a special text
 				String specialName = (String)listSpecials.getSelectedValue();

@@ -271,8 +271,8 @@ public class Xml {
 
     public static class MenuCell implements Serializable {
         public String cellName;
-        public String text;
-        public double fontSize;
+//        public String text;
+//        public double fontSize;
     }
 
     public static class Distance implements Serializable {
@@ -1281,7 +1281,8 @@ public class Xml {
                     curMenuNodeInst = null;
                     break;
                 case menuCell:
-                	curMenuBox.add(curMenuCell);
+                	curMenuBox.add("LOADCELL " + curMenuCell.cellName);
+//                	curMenuBox.add(curMenuCell);
                     curMenuCell = null;
                     break;
 

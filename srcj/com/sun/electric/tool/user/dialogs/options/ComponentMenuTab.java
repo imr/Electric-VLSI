@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -181,6 +182,13 @@ public class ComponentMenuTab extends PreferencePanel
 		} else if (obj instanceof NodeProto)
 		{
 			NodeProto np = (NodeProto)obj;
+			if (np instanceof Cell)
+			{
+				Cell cell = (Cell)np;
+				Xml.MenuCell xmc = new Xml.MenuCell();
+				xmc.cellName = cell.libDescribe();
+				return xmc;
+			}
 			for(Xml.PrimitiveNode xnp : xTech.nodes)
 			{
 				if (xnp.name.equals(np.getName())) return xnp;
@@ -221,6 +229,11 @@ public class ComponentMenuTab extends PreferencePanel
 			Xml.ArcProto xap = (Xml.ArcProto)obj;
 			ArcProto ap = tech.findArcProto(xap.name);
 			return ap;
+		} else if (obj instanceof Xml.MenuCell)
+		{
+			Xml.MenuCell xmc = (Xml.MenuCell)obj;
+			Cell cell = (Cell)Cell.findNodeProto(xmc.cellName);
+			return cell;
 		}
 		return obj;
 	}

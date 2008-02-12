@@ -2774,7 +2774,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			if (np != null) return np;
 		}
 
-		if (!saidtech)
+		if (!saidtech && lib != null)
 		{
 			Cell np = lib.findNodeProto(withoutPrefix);
 			if (np != null) return np;

@@ -234,7 +234,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             NodeInst ni = (NodeInst)item;
             Variable var = ni.getVar(Technology.TECH_TMPVAR);
-            if (getVarName && var != null && !var.isDisplay())
+            if (getVarName && var != null) // && !var.isDisplay())
             {
                 return (var.getObject().toString());
             }
@@ -794,7 +794,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (index >= inPalette.size()) continue;
                 Object toDraw = inPalette.get(index);
                 boolean drawArrow = false;
-
+//System.out.print("ENTRY "+x+","+y+" IS "+toDraw);
+//if (toDraw != null) System.out.print(" (TYPE="+toDraw.getClass()+")");
+//System.out.println();
                 if (toDraw instanceof List) {
                     List list = ((List)toDraw);
                     toDraw = list.get(0);
@@ -850,14 +852,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // determine scale for rendering
                     if (ni.isCellInstance())
                     {
-                    	String str = ni.getProto().describe(false);
+                    	String str = ni.getProto().getName(); // .describe(false);
                         int defSize = 12;
                         Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                         FontMetrics fm = g.getFontMetrics(f);
                         float width = fm.stringWidth(str);
                         if (width > entryRect.width)
                         {
-                            f = new Font(User.getDefaultFont(), Font.BOLD, (int)(defSize*entryRect.width/width));
+                        	defSize = (int)(defSize * entryRect.width / width);
+                            f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                             fm = g.getFontMetrics(f);
                             width = fm.stringWidth(str);
                         }
@@ -922,8 +925,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                     FontMetrics fm = g.getFontMetrics(f);
                     float width = fm.stringWidth(str);
-                    if (width > entryRect.width) {
-                        f = new Font(User.getDefaultFont(), Font.BOLD, (int)(defSize*entryRect.width/width));
+                    if (width > entryRect.width)
+                    {
+                    	defSize = (int)(defSize * entryRect.width / width);
+                        f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                         fm = g.getFontMetrics(f);
                         width = fm.stringWidth(str);
                     }
