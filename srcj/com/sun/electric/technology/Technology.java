@@ -1394,7 +1394,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 System.out.println("GNU Release can't find extra technologies");
 
         } catch (Exception e) {
-            System.out.println("Exceptions while importing extra technologies");
+            System.out.println("Exceptions while importing extra technology from " + urlXml);
             ActivityLogger.logException(e);
         } finally {
             Pref.resumePrefFlushing();

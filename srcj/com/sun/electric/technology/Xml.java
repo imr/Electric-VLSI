@@ -26,7 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
@@ -49,9 +48,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -366,6 +369,7 @@ public class Xml {
         serpTrans,
         specialValue(true),
         minSizeRule,
+        spiceTemplate,
         spiceHeader,
         spiceLine,
         menuPalette,
@@ -382,8 +386,7 @@ public class Xml {
         LayerRule,
         LayersRule,
         NodeLayersRule,
-        NodeRule,
-        spiceTemplate;
+        NodeRule;
 
         private final boolean hasText;
 
@@ -401,32 +404,39 @@ public class Xml {
             xmlKeywords.put(k.name(), k);
     }
 
-    public static Technology parseTechnology(URL fileURL) {
+    private static Schema schema = null;
+    
+    private static synchronized void loadTechnologySchema() throws SAXException {
+        if (schema != null) return;
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        URL technologySchemaUrl = Technology.class.getResource("Technology.xsd");
+        schema = schemaFactory.newSchema(technologySchemaUrl);
+    }
+    
+    public static Technology parseTechnology(URL fileURL)
+            throws ParserConfigurationException, SAXException, IOException  {
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
+        if (schema == null)
+            loadTechnologySchema();
+        factory.setSchema(schema);
 //        factory.setValidating(true);
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         // create the parser
-        try {
-            long startTime = System.currentTimeMillis();
-            SAXParser parser = factory.newSAXParser();
-            URLConnection urlCon = fileURL.openConnection();
-            InputStream inputStream = urlCon.getInputStream();
+        long startTime = System.currentTimeMillis();
+        SAXParser parser = factory.newSAXParser();
+        URLConnection urlCon = fileURL.openConnection();
+        InputStream inputStream = urlCon.getInputStream();
 
-            XMLReader handler = new XMLReader();
-            parser.parse(inputStream, handler);
-            if (Job.getDebug())
-            {
-                long stopTime = System.currentTimeMillis();
-            	System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
-            }
-            return handler.tech;
-        } catch (Exception e) {
-            e.printStackTrace();
+        XMLReader handler = new XMLReader();
+        parser.parse(inputStream, handler);
+        if (Job.getDebug())
+        {
+            long stopTime = System.currentTimeMillis();
+            System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
         }
-        System.out.println("Error parsing XML file ...");
-        return null;
+        return handler.tech;
     }
 
     /**
@@ -481,6 +491,7 @@ public class Xml {
         private int curSpecialValueIndex;
         private ArrayList<Object> curMenuBox;
         private MenuNodeInst curMenuNodeInst;
+        private MenuCell curMenuCell;
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
@@ -1028,6 +1039,9 @@ public class Xml {
                             Double.parseDouble(a("height")),
                             a("rule"));
                     break;
+                case spiceTemplate:
+                	curNode.spiceTemplate = a("value");
+                	break;
                 case spiceHeader:
                     curSpiceHeader = new SpiceHeader();
                     curSpiceHeader.level = Integer.parseInt(a("level"));
@@ -1036,9 +1050,6 @@ public class Xml {
                 case spiceLine:
                     curSpiceHeader.spiceLines.add(a("line"));
                     break;
-                case spiceTemplate:
-                	curNode.spiceTemplate = a("value");
-                	break;
                 case menuPalette:
                     tech.menuPalette = new MenuPalette();
                     tech.menuPalette.numColumns = Integer.parseInt(a("numColumns"));
@@ -1048,9 +1059,8 @@ public class Xml {
                     tech.menuPalette.menuBoxes.add(curMenuBox);
                     break;
                 case menuCell:
-                    curMenuNodeInst = new MenuNodeInst();
-                    curMenuNodeInst.protoName = a("cellName");
-                    curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.UNKNOWN;
+                    curMenuCell = new MenuCell();
+                    curMenuCell.cellName = a("cellName");
                     break;
                 case menuNodeInst:
                     curMenuNodeInst = new MenuNodeInst();
@@ -1271,8 +1281,8 @@ public class Xml {
                     curMenuNodeInst = null;
                     break;
                 case menuCell:
-                	curMenuBox.add("LOADCELL " + curMenuNodeInst.protoName);
-                    curMenuNodeInst = null;
+                	curMenuBox.add(curMenuCell);
+                    curMenuCell = null;
                     break;
 
                 case version:
@@ -1485,6 +1495,7 @@ public class Xml {
         throws SAXException {
             System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
                     " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
+            throw e;
         }
 
 
@@ -1915,8 +1926,9 @@ public class Xml {
                     bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
                 } else if (o instanceof Xml.PrimitiveNode) {
                     bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
-                } else if (o instanceof Cell) {
-                    b(XmlKeyword.menuCell); a("cellName", ((Cell)o).libDescribe()); el();
+                } else if (o instanceof Xml.MenuCell) {
+                    Xml.MenuCell cell = (Xml.MenuCell)o;
+                    b(XmlKeyword.menuCell); a("cellName", cell.cellName); el();
                 } else if (o instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());

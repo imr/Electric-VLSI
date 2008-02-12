@@ -28,9 +28,9 @@
     <xsd:group name="MenuItem">
         <xsd:sequence>
             <xsd:choice>
-            <xsd:element name="menuArc" type="tns:ArcProtoName"></xsd:element>
-            <xsd:element name="menuNode" type="tns:PrimitiveNodeName"></xsd:element>
-            <xsd:element name="menuText" type="xsd:string"></xsd:element>
+                <xsd:element name="menuArc" type="tns:ArcProtoName"></xsd:element>
+                <xsd:element name="menuNode" type="tns:PrimitiveNodeName"></xsd:element>
+                <xsd:element name="menuText" type="xsd:string"></xsd:element>
                 <xsd:element name="menuNodeInst">
                     <xsd:complexType>
                         <xsd:sequence>
@@ -44,6 +44,11 @@
                         <xsd:attribute name="protoName" type="tns:PrimitiveNodeName" use="required"/>
                         <xsd:attribute name="function" type="tns:PrimitiveNodeFun" use="required"/>
                         <xsd:attribute name="rotation" type="xsd:integer"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="menuCell">
+                    <xsd:complexType>
+                        <xsd:attribute name="cellName" type="tns:CellName" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:choice>
@@ -240,6 +245,10 @@
     
     <xsd:simpleType name="PrimitiveNodeName">
         <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="CellName">
+        <xsd:restriction base="xsd:Name"/>
     </xsd:simpleType>
     
     <xsd:simpleType name="PrimitiveNodeFun">
@@ -724,6 +733,11 @@
                                     <xsd:attribute name="width" type="xsd:double" use="required"/>
                                     <xsd:attribute name="height" type="xsd:double" use="required"/>
                                     <xsd:attribute name="rule" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="spiceTemplate" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="value" type="xsd:string" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>

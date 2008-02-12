@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/12/08, DN) "bipolar.xml" and "cmos.xml" has port names with '+' char which is illegal in XML NCName.
+FIX: Change port names.
+
+BUG: (2/12/08, DN) Technology ".xml" file are not validated.
+FIX: In Xml.parseTechnology set Schema to SAXParserFactory.
+   Add "spiceTemplate" and "menuCell" entities to "Technology.xsd".
+   In "Tehnology.Xml" remove import of Cell class.
+
 BUG: (2/11/08, SMR) Technology Creation Wizard swapped transistor length/width (Bug #1564).
 FIX: Swapped letters in "gate" panel.
 

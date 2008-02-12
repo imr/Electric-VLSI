@@ -156,7 +156,7 @@
         <foreground>true</foreground>
         <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="INP"/>
-        <pureLayerNode name="NPImplant_Node" port="N+implant">
+        <pureLayerNode name="NPImplant_Node" port="NPimplant">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>
@@ -186,7 +186,7 @@
         <foreground>true</foreground>
         <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IPP"/>
-        <pureLayerNode name="PPImplant_Node" port="P+implant">
+        <pureLayerNode name="PPImplant_Node" port="PPimplant">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>

@@ -272,7 +272,7 @@
         <foreground>true</foreground>
         <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CS"/>
-        <pureLayerNode name="P-Node" port="p+">
+        <pureLayerNode name="P-Node" port="p-plus">
             <lambda>2.0</lambda>
         </pureLayerNode>
     </layer>

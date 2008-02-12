@@ -516,6 +516,7 @@ public class TechExplorer extends ESandBox {
             } else {
                 minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
             }
+            n.spiceTemplate = null; // ??????????
             if (so != null) {
                 EPoint p2 = EPoint.fromGrid(
                         minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
