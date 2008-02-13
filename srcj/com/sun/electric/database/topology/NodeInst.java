@@ -366,7 +366,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
             nameKey = parent.getNodeAutoname(baseName);
             if (msg != null) {
-                msg += ", reanmed to \"" + nameKey + "\"";
+                msg += ", renamed to \"" + nameKey + "\"";
                 System.out.println(msg);
             }
         }

@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import bsh.commands.dir;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
@@ -36,10 +37,15 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 
 import com.sun.electric.tool.user.ErrorLogger;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -93,14 +99,166 @@ public class LibraryStatistics implements Serializable
 	Iterator<Directory> getDirectories() { return directories.values().iterator(); }
 	Iterator<LibraryName> getLibraryNames() { return libraryNames.values().iterator(); }
 
-	public static LibraryStatistics scanDirectories(IdManager idManager, String[] dirNames)
+	public static void scanProjectDirs(String[] dirNames, String[] excludeDirs, File projListDir) {
+		HashSet<String> canonicalDirs = new HashSet<String>();
+        TreeSet<String> projectDirs = new TreeSet<String>();
+		for (int i = 0; i < dirNames.length; i++)
+			scanProjectDir(new File(dirNames[i]), excludeDirs, canonicalDirs, projectDirs);
+        File projListFile = new File(projListDir, "proj.list");
+        try {
+            PrintWriter out = new PrintWriter(projListFile);
+            for (Iterator it = projectDirs.iterator(); it.hasNext(); )
+                out.println((String)it.next());
+            out.close();
+        } catch (IOException e) {
+            System.out.println("Error writing " + projListFile);
+            e.printStackTrace();
+        }
+    }
+    
+	private static void scanProjectDir(File dir, String[] excludeDirs, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
+		try {
+			String canonicalDir = dir.getCanonicalPath();
+			if (canonicalDirs.contains(canonicalDir)) return;
+			canonicalDirs.add(canonicalDir);
+            if (!canonicalDir.equals(dir.getPath()))
+                System.out.println(dir + " -> " + canonicalDir);
+			dir = new File(canonicalDir);
+            assert dir.getPath().equals(canonicalDir);
+		} catch (IOException e) {
+			System.out.println(dir + " CANONICAL FAILED");
+			return;
+		}
+        for (String excludeDir: excludeDirs) {
+            if (dir.getPath().equals(excludeDir)) {
+    			System.out.println(dir + " EXCLUDED");
+                return;
+            }
+        }
+		File[] files = dir.listFiles();
+		if (files == null) {
+			System.out.println(dir + " ACCESS DENIED");
+			return;
+		}
+        boolean libdirs = false;
+        int xmls = 0;
+        int txts = 0;
+        int elibs = 0;
+        int jelibs = 0;
+		int delibs = 0;
+		for (File file: files) {
+			String name = file.getName();
+			if (name.startsWith("._")) continue;
+			int extensionPos = name.lastIndexOf('.');
+			if (extensionPos < 0) continue;
+			String extension = name.substring(extensionPos);
+			name = name.substring(0, extensionPos);
+
+            if (file.isDirectory()) {
+                if (extension.equals(".delib"))
+                    delibs++;
+            } else {
+                if (name.equals("LIBDIRS"))
+                    libdirs = true;
+                if (extension.equals(".xml"))
+                    xmls++;
+                if (extension.equals(".txt"))
+                    txts++;
+                if (extension.equals(".elib"))
+                    elibs++;
+                if (extension.equals(".jelib"))
+                    jelibs++;
+            }
+        }
+		if (delibs > 0 || elibs > 0 || jelibs > 0) {
+            String projectDir = dir.getPath();
+            System.out.print(projectDir + " :");
+            if (libdirs)
+                System.out.print(" LIBDIRS");
+            if (xmls > 0)
+                System.out.print(" " + xmls + " xmls");
+            if (txts > 0)
+                System.out.print(" " + txts + " txts");
+            if (elibs > 0)
+                System.out.print(" " + elibs + " elibs");
+            if (jelibs > 0)
+                System.out.print(" " + jelibs + " jelibs");
+            if (delibs > 0)
+                System.out.print(" " + delibs + " delibs");
+            System.out.println();
+            assert canonicalDirs.contains(projectDir);
+            boolean added = projectDirs.add(projectDir);
+            assert added;
+		}
+		for (File file: files) {
+			if (!file.isDirectory()) continue;
+            if (file.getName().equals("CVS")) continue;
+			scanProjectDir(file, excludeDirs, canonicalDirs, projectDirs);
+		}
+	}
+
+    public static TreeSet<String> readProjList(File wrkDir) {
+        File projListFile = new File(wrkDir, "proj.list");
+        try {
+            TreeSet<String> dirs = new TreeSet<String>();
+            BufferedReader in = new BufferedReader(new FileReader(projListFile));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.length() == 0) continue;
+                boolean added = dirs.add(line);
+                assert added;
+            }
+            in.close();
+            return dirs;
+        } catch (IOException e) {
+            System.out.println("Error reading " + projListFile + " : " + e);
+            return null;
+        }
+    }
+
+    public static Map<String,File[]> readProjectDirs(File wrkDir, boolean allDirs) {
+        final String projectsExt = ".projects";
+        FilenameFilter filter = new FilenameFilter() {
+            public boolean accept(File dir, String name) { return name.endsWith(projectsExt); }
+        };
+        Map<String,File[]> projectDirs = new TreeMap<String,File[]>(); 
+        for (File file: wrkDir.listFiles(filter)) {
+            String projectName = file.getName();
+            assert projectName.endsWith(projectsExt);
+            projectName = projectName.substring(0, projectName.length() - projectsExt.length());
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(file));
+                ArrayList<File> dirs = new ArrayList<File>();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.length() == 0) continue;
+                    char firstChar = line.charAt(0);
+                    if (firstChar == '-') {
+                        if (!allDirs) continue;
+                    } else if (firstChar != '+') {
+                        continue;
+                    }
+                    String fileName = line.substring(1);
+                    dirs.add(new File(fileName));
+                }
+                in.close();
+                projectDirs.put(projectName, dirs.toArray(new File[dirs.size()]));
+            } catch (IOException e) {
+                System.out.println("Error reading " + file);
+                e.printStackTrace();
+            }
+        }
+        return projectDirs;
+    }
+
+	public static LibraryStatistics scanDirectories(IdManager idManager, File[] dirs)
 	{
 		LibraryStatistics stat = new LibraryStatistics(idManager);
 		Set<String> canonicalDirs = new HashSet<String>();
 		Map<String,Set<FileInstance>> preLibraries = new HashMap<String,Set<FileInstance>>();
 
-		for (int i = 0; i < dirNames.length; i++)
-			stat.scanDir(new File(dirNames[i]), canonicalDirs, preLibraries, null);
+		for (File dir: dirs)
+			stat.scanDir(dir, canonicalDirs, preLibraries, null);
 
 		byte[] buf = new byte[Input.READ_BUFFER_SIZE];
 		for (Iterator lit = preLibraries.entrySet().iterator(); lit.hasNext(); )
@@ -251,78 +409,6 @@ public class LibraryStatistics implements Serializable
 			if (!files[i].isDirectory()) continue;
             if (files[i].getName().equals("CVS")) continue;
 			scanDir(files[i], canonicalDirs, preLibraries, isDelib ? libName : null);
-		}
-	}
-
-	public static TreeSet<String> scanProjectDirs(String[] dirNames, String[] excludeDirs) {
-		HashSet<String> canonicalDirs = new HashSet<String>();
-        TreeSet<String> projectDirs = new TreeSet<String>();
-		for (int i = 0; i < dirNames.length; i++)
-			scanDir(new File(dirNames[i]), excludeDirs, canonicalDirs, projectDirs);
-        return projectDirs;
-    }
-    
-	private static void scanDir(File dir, String[] excludeDirs, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
-		try {
-			String canonicalDir = dir.getCanonicalPath();
-			if (canonicalDirs.contains(canonicalDir)) return;
-			canonicalDirs.add(canonicalDir);
-			dir = new File(canonicalDir);
-            assert dir.getPath().equals(canonicalDir);
-		} catch (IOException e) {
-			System.out.println(dir + " CANONICAL FAILED");
-			return;
-		}
-        for (String excludeDir: excludeDirs) {
-            if (dir.getPath().equals(excludeDir)) {
-    			System.out.println(dir + " EXCLUDED");
-                return;
-            }
-        }
-		File[] files = dir.listFiles();
-		if (files == null) {
-			System.out.println(dir + " ACCESS DENIED");
-			return;
-		}
-        int elibs = 0;
-        int jelibs = 0;
-		int delibs = 0;
-		for (File file: files) {
-			String name = file.getName();
-			if (name.startsWith("._")) continue;
-			int extensionPos = name.lastIndexOf('.');
-			if (extensionPos < 0) continue;
-			String extension = name.substring(extensionPos);
-			name = name.substring(0, extensionPos);
-
-            if (file.isDirectory()) {
-                if (extension.equals(".delib"))
-                    delibs++;
-            } else {
-                if (extension.equals(".elib"))
-                    elibs++;
-                if (extension.equals(".jelib"))
-                    jelibs++;
-            }
-        }
-		if (delibs > 0 || elibs > 0 || jelibs > 0) {
-            String projectDir = dir.getPath();
-            System.out.print(projectDir + " :");
-            if (elibs > 0)
-                System.out.print(" " + elibs + " elibs");
-            if (jelibs > 0)
-                System.out.print(" " + jelibs + " jelibs");
-            if (delibs > 0)
-                System.out.print(" " + delibs + " delibs");
-            System.out.println();
-            assert canonicalDirs.contains(projectDir);
-            boolean added = projectDirs.add(projectDir);
-            assert added;
-		}
-		for (File file: files) {
-			if (!file.isDirectory()) continue;
-            if (file.getName().equals("CVS")) continue;
-			scanDir(file, excludeDirs, canonicalDirs, projectDirs);
 		}
 	}
 
@@ -511,6 +597,7 @@ public class LibraryStatistics implements Serializable
                     GenMath.addToBag(versionCounts, fc.version);
                 else
                     withoutVersion++;
+                System.out.println(fc.getFileName() + " " + fc.version);
 			}
 		}
 		System.out.println("Scanned " + directories.size() + " directories. " + libraryNames.size() + " library names");
@@ -527,7 +614,7 @@ public class LibraryStatistics implements Serializable
 		System.out.println("NOVERSION:" + withoutVersion + bagReport(versionCounts));
 	}
 
-	public void reportFilePaths(String[] projPatterns) {
+	public void reportFilePaths() {
         TreeMap<String,GenMath.MutableInteger> paths = new TreeMap<String,GenMath.MutableInteger>();
         System.out.println(directories.size() + " Directories");
 		for (Iterator<Directory> it = getDirectories(); it.hasNext(); ) {
@@ -554,27 +641,8 @@ public class LibraryStatistics implements Serializable
            System.out.println(e.getKey());
 //           System.out.println(e.getKey() + " " + e.getValue());
        }
-       
-
-       for (String pattern: projPatterns)
-           selectProject(paths, pattern);
-       System.out.println("Remaining " + paths.size() + " Projects");
-       for (Map.Entry<String,GenMath.MutableInteger> e: paths.entrySet()) {
-           System.out.println(e.getKey() + " " + e.getValue());
-       }
 	}
     
-    private void selectProject(TreeMap<String,GenMath.MutableInteger> paths, String pattern) {
-        System.out.println(pattern);
-        for (Iterator<String> it = paths.keySet().iterator(); it.hasNext(); ) {
-           String path = it.next();
-           if (path.contains(pattern)) {
-               System.out.println(path);
-               it.remove();
-           }
-       }
-    }
-
 	public void reportCells() {
 		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
 		{

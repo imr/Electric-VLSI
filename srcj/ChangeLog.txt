@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/13/08, DN) ELIB reader doesn't read Float numbers from old libraries.
+FIX: In ELIB.getInVar read floats into Double objects.
+
 BUG: (2/12/08, DN) Better catching of validation errors in XML tech files? (Bug #1574)
 FIX: Don't print stack trace on parse error in Xml technology file.
 

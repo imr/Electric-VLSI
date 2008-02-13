@@ -826,6 +826,7 @@ public class ELIB extends LibraryFiles
             return false;
         }
         setupTechs(onlyProjectSettings);
+        if (onlyProjectSettings) return false;
         
 		// now that external cells are resolved, fix all variables that may have used them
 		fixExternalVariables(lib);
@@ -2549,14 +2550,14 @@ public class ELIB extends LibraryFiles
 			{
 				int len = readBigInteger();
 				int cou = len;
-				if ((newtype&ELIBConstants.VLENGTH) == 0) cou++;
+//				if ((newtype&ELIBConstants.VLENGTH) == 0) cou++;
 				Object [] newAddrArray = null;
 				switch (newtype&ELIBConstants.VTYPE)
 				{
 					case ELIBConstants.VADDRESS:
 					case ELIBConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
 					case ELIBConstants.VFRACT:
-					case ELIBConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
+					case ELIBConstants.VFLOAT:
 					case ELIBConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
 					case ELIBConstants.VSHORT:      newAddrArray = new Short[cou];       break;
 					case ELIBConstants.VBOOLEAN:    newAddrArray = new Boolean[cou];     break;
@@ -2642,19 +2643,19 @@ public class ELIB extends LibraryFiles
 		{
 			case ELIBConstants.VADDRESS:
 			case ELIBConstants.VINTEGER:
-				return new Integer(readBigInteger());
+				return Integer.valueOf(readBigInteger());
 			case ELIBConstants.VFRACT:
-				return new Float(readBigInteger() / 120.0f);
+				return Double.valueOf(readBigInteger() / 120.0f);
 			case ELIBConstants.VFLOAT:
-				return new Float(readFloat());
+				return Double.valueOf(readFloat());
 			case ELIBConstants.VDOUBLE:
-				return new Double(readDouble());
+				return Double.valueOf(readDouble());
 			case ELIBConstants.VSHORT:
-				return new Short(readSmallInteger());
+				return Short.valueOf(readSmallInteger());
 			case ELIBConstants.VBOOLEAN:
-                return new Boolean(readByte() != 0);
+                return Boolean.valueOf(readByte() != 0);
 			case ELIBConstants.VCHAR:
-				return new Byte(readByte());
+				return Byte.valueOf(readByte());
 			case ELIBConstants.VSTRING:
 				return readString();
 			case ELIBConstants.VNODEINST:
