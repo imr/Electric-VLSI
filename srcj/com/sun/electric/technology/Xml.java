@@ -429,7 +429,7 @@ public class Xml {
         URLConnection urlCon = fileURL.openConnection();
         InputStream inputStream = urlCon.getInputStream();
 
-        XMLReader handler = new XMLReader();
+        XMLReader handler = new XMLReader(fileURL);
         parser.parse(inputStream, handler);
         if (Job.getDebug())
         {
@@ -469,6 +469,7 @@ public class Xml {
 
     private static class XMLReader extends DefaultHandler {
         private static boolean DEBUG = false;
+        private URL fileURL;
         private Locator locator;
 
         private Xml.Technology tech = new Xml.Technology();
@@ -500,7 +501,9 @@ public class Xml {
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
 
-        XMLReader() {}
+        XMLReader(URL fileURL) {
+            this.fileURL = fileURL;
+        }
 
         XMLReader(List<PrimitiveNode> nodes, List<ArcProto> arcs)
         {
@@ -1494,8 +1497,8 @@ public class Xml {
          */
         public void error(SAXParseException e)
         throws SAXException {
-            System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
-                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
+            System.out.println("Error parsing Xml technology: " + e.getMessage() +
+                    " in line " + e.getLineNumber() + " column " + e.getColumnNumber() + " of " + fileURL);
             throw e;
         }
 
