@@ -142,8 +142,6 @@ public class LayerTab extends JPanel
 	public void loadTechnologies(boolean makeCurrent)
 	{
         Technology cur = Technology.getCurrent();
-        if (cur == null)
-            System.out.println("The current technology is null. Check the technology settings.");
         if (!makeCurrent || cur == null)
             cur = Technology.findTechnology((String)technology.getSelectedItem());
 		loading = true;

@@ -14,7 +14,7 @@ public class TechTypeMoCMOS extends TechType {
 	}
 	
 	private TechTypeMoCMOS() {
-		super(Technology.findTechnology("MOCMOS"), LAYER_NAMES);
+		super(Technology.getMocmosTechnology(), LAYER_NAMES);
         error(wellWidth != 17, "wrong value in Tech");
 	    wellSurroundDiff = 3;
 	    gateExtendPastMOS = 2;

@@ -1485,7 +1485,7 @@ public class ViewChanges
                 TechType type = null;
                 if (oldTech == Schematics.tech())
                 {
-	                if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
+	                if      (newTech == Technology.getMocmosTechnology()) type = TechType.MOCMOS;
 	                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
 	                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.CMOS90;
 	                Tech.setTechnology(type);

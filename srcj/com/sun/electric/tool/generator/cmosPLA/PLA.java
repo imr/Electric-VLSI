@@ -271,7 +271,7 @@ public class PLA
 		throws JobException
 	{
 		// get the right technology and all its nodes and arcs
-		Technology theTech = Technology.findTechnology("mocmos");
+		Technology theTech = Technology.getMocmosTechnology();
 		if (theTech == null) throw new JobException("Cannot find technology 'mocmos'");
 
 		m1Pin = theTech.findNodeProto("Metal-1-Pin");

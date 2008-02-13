@@ -1395,7 +1395,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         } catch (Exception e) {
             System.out.println("Can't load extra technology: " + urlXml);
-//            ActivityLogger.logException(e);
+            ActivityLogger.logException(e);
         } finally {
             Pref.resumePrefFlushing();
         }
@@ -1506,7 +1506,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * The current technology is maintained by the system as a default
 	 * in situations where a technology cannot be determined.
 	 */
-	public static Technology getCurrent() { return curTech; }
+	public static Technology getCurrent()
+    {
+        if (curTech == null)
+        {
+            System.out.println("The current technology is null. Check the technology settings.");
+            // tries to get the User default
+            curTech = findTechnology(User.getDefaultTechnology());
+            if (curTech == null)
+            {
+                System.out.println("User default technology is not loaded. Check the technology settings");
+                // tries to get MoCMOS tech
+                curTech = getMocmosTechnology();
+                if (curTech == null)
+                {
+                    System.out.println("Major error: MoCMOS technology not loaded. Check the technology settings");
+                }
+            }
+        }
+        return curTech;
+    }
 
 	/**
 	 * Set this to be the current Technology

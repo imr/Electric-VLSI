@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/13/08, GVG) Changes to guarantee Technology.getCurrent() won't retrieve a null tech
+if problems during technology parsing occurs. More consistent way to get MocMOS tech.
+
 BUG: (2/13/08, GVG) DRC crashes after run with error (Bug #1575)
 FIX: Problem introduced when dates for spacing rules were split from dates for areas (Bug #1539)
 

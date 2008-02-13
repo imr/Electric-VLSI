@@ -168,7 +168,7 @@ public class ROMGenerator
 		double[] appos1, appos2, appos3, appos4;
 
 		// presume MOSIS CMOS
-		tech = Technology.findTechnology("mocmos");	
+		tech = Technology.getMocmosTechnology();	
 
 		int[][] romarray = romarraygen(romfile);
 	
