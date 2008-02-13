@@ -119,6 +119,9 @@
                 <include name="**/*.prm"/>
                 <include name="**/*.txt"/>
                 <include name="**/*.wav"/>
+                <include name="**/*.xml"/>
+                <include name="**/*.xsd"/>
+                <include name="**/*.dtd"/>
             </fileset>
         </copy>
     </target>
