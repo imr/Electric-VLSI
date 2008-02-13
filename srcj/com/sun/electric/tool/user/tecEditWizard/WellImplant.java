@@ -39,6 +39,9 @@ public class WellImplant extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "WellImplant.png"));
+		nPlusOverhangRule.setEnabled(false);
+		pPlusOverhangRule.setEnabled(false);
+		nWellOverhangRule.setEnabled(false);
 		pack();
 	}
 
@@ -55,17 +58,26 @@ public class WellImplant extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		nPlusWidth.setText(Double.toString(data.getNPlusWidth()));
-		nPlusOverhang.setText(Double.toString(data.getNPlusOverhangDiff()));
-		nPlusSpacing.setText(Double.toString(data.getNPlusSpacing()));
+		nPlusWidth.setText(Double.toString(data.getNPlusWidth().v));
+		nPlusWidthRule.setText(data.getNPlusWidth().rule);
+		nPlusOverhang.setText(Double.toString(data.getNPlusOverhangDiff().v));
+		nPlusOverhangRule.setText(data.getNPlusOverhangDiff().rule);
+		nPlusSpacing.setText(Double.toString(data.getNPlusSpacing().v));
+		nPlusSpacingRule.setText(data.getNPlusSpacing().rule);
 
-		pPlusWidth.setText(Double.toString(data.getPPlusWidth()));
-		pPlusOverhang.setText(Double.toString(data.getPPlusOverhangDiff()));
-		pPlusSpacing.setText(Double.toString(data.getPPlusSpacing()));
+		pPlusWidth.setText(Double.toString(data.getPPlusWidth().v));
+		pPlusWidthRule.setText(data.getPPlusWidth().rule);
+		pPlusOverhang.setText(Double.toString(data.getPPlusOverhangDiff().v));
+		pPlusOverhangRule.setText(data.getPPlusOverhangDiff().rule);
+		pPlusSpacing.setText(Double.toString(data.getPPlusSpacing().v));
+		pPlusSpacingRule.setText(data.getPPlusSpacing().rule);
 
-		nWellWidth.setText(Double.toString(data.getNWellWidth()));
-		nWellOverhang.setText(Double.toString(data.getNWellOverhangDiff()));
-		nWellSpacing.setText(Double.toString(data.getNWellSpacing()));
+		nWellWidth.setText(Double.toString(data.getNWellWidth().v));
+		nWellWidthRule.setText(data.getNWellWidth().rule);
+		nWellOverhang.setText(Double.toString(data.getNWellOverhangDiff().v));
+		nWellOverhangRule.setText(data.getNWellOverhangDiff().rule);
+		nWellSpacing.setText(Double.toString(data.getNWellSpacing().v));
+		nWellSpacingRule.setText(data.getNWellSpacing().rule);
 	}
 
 	/**
@@ -75,17 +87,17 @@ public class WellImplant extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setNPlusWidth(TextUtils.atof(nPlusWidth.getText()));
-		data.setNPlusOverhangDiff(TextUtils.atof(nPlusOverhang.getText()));
-		data.setNPlusSpacing(TextUtils.atof(nPlusSpacing.getText()));
+		data.setNPlusWidth(new WizardField(TextUtils.atof(nPlusWidth.getText()), nPlusWidthRule.getText()));
+		data.setNPlusOverhangDiff(new WizardField(TextUtils.atof(nPlusOverhang.getText()), nPlusOverhangRule.getText()));
+		data.setNPlusSpacing(new WizardField(TextUtils.atof(nPlusSpacing.getText()), nPlusSpacingRule.getText()));
 
-		data.setPPlusWidth(TextUtils.atof(pPlusWidth.getText()));
-		data.setPPlusOverhangDiff(TextUtils.atof(pPlusOverhang.getText()));
-		data.setPPlusSpacing(TextUtils.atof(pPlusSpacing.getText()));
+		data.setPPlusWidth(new WizardField(TextUtils.atof(pPlusWidth.getText()), pPlusWidthRule.getText()));
+		data.setPPlusOverhangDiff(new WizardField(TextUtils.atof(pPlusOverhang.getText()), pPlusOverhangRule.getText()));
+		data.setPPlusSpacing(new WizardField(TextUtils.atof(pPlusSpacing.getText()), pPlusSpacingRule.getText()));
 
-		data.setNWellWidth(TextUtils.atof(nWellWidth.getText()));
-		data.setNWellOverhangDiff(TextUtils.atof(nWellOverhang.getText()));
-		data.setNWellSpacing(TextUtils.atof(nWellSpacing.getText()));
+		data.setNWellWidth(new WizardField(TextUtils.atof(nWellWidth.getText()), nWellWidthRule.getText()));
+		data.setNWellOverhangDiff(new WizardField(TextUtils.atof(nWellOverhang.getText()), nWellOverhangRule.getText()));
+		data.setNWellSpacing(new WizardField(TextUtils.atof(nWellSpacing.getText()), nWellSpacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to
@@ -119,6 +131,17 @@ public class WellImplant extends TechEditWizardPanel
         nWellSpacing = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        nPlusWidthRule = new javax.swing.JTextField();
+        nPlusOverhangRule = new javax.swing.JTextField();
+        nPlusSpacingRule = new javax.swing.JTextField();
+        pPlusWidthRule = new javax.swing.JTextField();
+        pPlusOverhangRule = new javax.swing.JTextField();
+        pPlusSpacingRule = new javax.swing.JTextField();
+        nWellWidthRule = new javax.swing.JTextField();
+        nWellOverhangRule = new javax.swing.JTextField();
+        nWellSpacingRule = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -135,7 +158,7 @@ public class WellImplant extends TechEditWizardPanel
         jLabel1.setText("NPlus width (A):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         wellImplant.add(jLabel1, gridBagConstraints);
@@ -143,14 +166,14 @@ public class WellImplant extends TechEditWizardPanel
         nPlusWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         wellImplant.add(nPlusWidth, gridBagConstraints);
 
         jLabel2.setText("NPlus active overhang (B):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         wellImplant.add(jLabel2, gridBagConstraints);
@@ -158,14 +181,14 @@ public class WellImplant extends TechEditWizardPanel
         nPlusOverhang.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         wellImplant.add(nPlusOverhang, gridBagConstraints);
 
         jLabel3.setText("NPlus spacing (C):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 0);
         wellImplant.add(jLabel3, gridBagConstraints);
@@ -173,14 +196,14 @@ public class WellImplant extends TechEditWizardPanel
         nPlusSpacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 4, 2);
         wellImplant.add(nPlusSpacing, gridBagConstraints);
 
         jLabel4.setText("PPlus width (D):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         wellImplant.add(jLabel4, gridBagConstraints);
@@ -188,21 +211,21 @@ public class WellImplant extends TechEditWizardPanel
         pPlusWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 1, 2);
         wellImplant.add(pPlusWidth, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         wellImplant.add(image, gridBagConstraints);
 
         jLabel5.setText("PPlus active overhang (E):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         wellImplant.add(jLabel5, gridBagConstraints);
@@ -210,14 +233,14 @@ public class WellImplant extends TechEditWizardPanel
         pPlusOverhang.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         wellImplant.add(pPlusOverhang, gridBagConstraints);
 
         jLabel6.setText("PPlus spacing (F):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 0);
         wellImplant.add(jLabel6, gridBagConstraints);
@@ -225,14 +248,14 @@ public class WellImplant extends TechEditWizardPanel
         pPlusSpacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 4, 2);
         wellImplant.add(pPlusSpacing, gridBagConstraints);
 
         jLabel7.setText("NWell width (G):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         wellImplant.add(jLabel7, gridBagConstraints);
@@ -240,14 +263,14 @@ public class WellImplant extends TechEditWizardPanel
         nWellWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 1, 2);
         wellImplant.add(nWellWidth, gridBagConstraints);
 
         jLabel8.setText("NWell active overhang (H):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         wellImplant.add(jLabel8, gridBagConstraints);
@@ -255,14 +278,14 @@ public class WellImplant extends TechEditWizardPanel
         nWellOverhang.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         wellImplant.add(nWellOverhang, gridBagConstraints);
 
         jLabel9.setText("NWell spacing (I):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         wellImplant.add(jLabel9, gridBagConstraints);
@@ -270,15 +293,15 @@ public class WellImplant extends TechEditWizardPanel
         nWellSpacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         wellImplant.add(nWellSpacing, gridBagConstraints);
 
-        jLabel10.setText("All values are in nanometers");
+        jLabel10.setText("Distances are in nanometers");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         wellImplant.add(jLabel10, gridBagConstraints);
 
@@ -286,9 +309,82 @@ public class WellImplant extends TechEditWizardPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         wellImplant.add(jLabel11, gridBagConstraints);
+
+        jLabel12.setText("Distance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        wellImplant.add(jLabel12, gridBagConstraints);
+
+        jLabel13.setText("Rule Name");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        wellImplant.add(jLabel13, gridBagConstraints);
+
+        nPlusWidthRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
+        wellImplant.add(nPlusWidthRule, gridBagConstraints);
+
+        nPlusOverhangRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
+        wellImplant.add(nPlusOverhangRule, gridBagConstraints);
+
+        nPlusSpacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        wellImplant.add(nPlusSpacingRule, gridBagConstraints);
+
+        pPlusWidthRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 1, 2);
+        wellImplant.add(pPlusWidthRule, gridBagConstraints);
+
+        pPlusOverhangRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
+        wellImplant.add(pPlusOverhangRule, gridBagConstraints);
+
+        pPlusSpacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        wellImplant.add(pPlusSpacingRule, gridBagConstraints);
+
+        nWellWidthRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 1, 2);
+        wellImplant.add(nWellWidthRule, gridBagConstraints);
+
+        nWellOverhangRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
+        wellImplant.add(nWellOverhangRule, gridBagConstraints);
+
+        nWellSpacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
+        wellImplant.add(nWellSpacingRule, gridBagConstraints);
 
         getContentPane().add(wellImplant, new java.awt.GridBagConstraints());
 
@@ -307,6 +403,8 @@ public class WellImplant extends TechEditWizardPanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -316,14 +414,23 @@ public class WellImplant extends TechEditWizardPanel
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JTextField nPlusOverhang;
+    private javax.swing.JTextField nPlusOverhangRule;
     private javax.swing.JTextField nPlusSpacing;
+    private javax.swing.JTextField nPlusSpacingRule;
     private javax.swing.JTextField nPlusWidth;
+    private javax.swing.JTextField nPlusWidthRule;
     private javax.swing.JTextField nWellOverhang;
+    private javax.swing.JTextField nWellOverhangRule;
     private javax.swing.JTextField nWellSpacing;
+    private javax.swing.JTextField nWellSpacingRule;
     private javax.swing.JTextField nWellWidth;
+    private javax.swing.JTextField nWellWidthRule;
     private javax.swing.JTextField pPlusOverhang;
+    private javax.swing.JTextField pPlusOverhangRule;
     private javax.swing.JTextField pPlusSpacing;
+    private javax.swing.JTextField pPlusSpacingRule;
     private javax.swing.JTextField pPlusWidth;
+    private javax.swing.JTextField pPlusWidthRule;
     private javax.swing.JPanel wellImplant;
     // End of variables declaration//GEN-END:variables
 

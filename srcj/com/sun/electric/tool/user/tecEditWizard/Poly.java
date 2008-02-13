@@ -39,6 +39,7 @@ public class Poly extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Poly.png"));
+		endcapRule.setEnabled(false);
 		pack();
 	}
 
@@ -55,10 +56,14 @@ public class Poly extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(Double.toString(data.getPolyWidth()));
-		endcap.setText(Double.toString(data.getPolyEndcap()));
-		activeSpacing.setText(Double.toString(data.getPolyDiffSpacing()));
-		spacing.setText(Double.toString(data.getPolySpacing()));
+		width.setText(Double.toString(data.getPolyWidth().v));
+		widthRule.setText(data.getPolyWidth().rule);
+		endcap.setText(Double.toString(data.getPolyEndcap().v));
+		endcapRule.setText(data.getPolyEndcap().rule);
+		activeSpacing.setText(Double.toString(data.getPolyDiffSpacing().v));
+		activeSpacingRule.setText(data.getPolyDiffSpacing().rule);
+		spacing.setText(Double.toString(data.getPolySpacing().v));
+		spacingRule.setText(data.getPolySpacing().rule);
 	}
 
 	/**
@@ -68,10 +73,10 @@ public class Poly extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setPolyWidth(TextUtils.atof(width.getText()));
-		data.setPolyEndcap(TextUtils.atof(endcap.getText()));
-		data.setPolyDiffSpacing(TextUtils.atof(activeSpacing.getText()));
-		data.setPolySpacing(TextUtils.atof(spacing.getText()));
+		data.setPolyWidth(new WizardField(TextUtils.atof(width.getText()), widthRule.getText()));
+		data.setPolyEndcap(new WizardField(TextUtils.atof(endcap.getText()), endcapRule.getText()));
+		data.setPolyDiffSpacing(new WizardField(TextUtils.atof(activeSpacing.getText()), activeSpacingRule.getText()));
+		data.setPolySpacing(new WizardField(TextUtils.atof(spacing.getText()), spacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to
@@ -95,6 +100,12 @@ public class Poly extends TechEditWizardPanel
         image = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        widthRule = new javax.swing.JTextField();
+        endcapRule = new javax.swing.JTextField();
+        activeSpacingRule = new javax.swing.JTextField();
+        spacingRule = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -111,7 +122,7 @@ public class Poly extends TechEditWizardPanel
         jLabel1.setText("Width (A):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         poly.add(jLabel1, gridBagConstraints);
@@ -119,14 +130,14 @@ public class Poly extends TechEditWizardPanel
         width.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         poly.add(width, gridBagConstraints);
 
         jLabel2.setText("Endcap (B):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         poly.add(jLabel2, gridBagConstraints);
@@ -134,14 +145,14 @@ public class Poly extends TechEditWizardPanel
         endcap.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         poly.add(endcap, gridBagConstraints);
 
         jLabel3.setText("Active spacing (C):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         poly.add(jLabel3, gridBagConstraints);
@@ -149,14 +160,14 @@ public class Poly extends TechEditWizardPanel
         activeSpacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         poly.add(activeSpacing, gridBagConstraints);
 
         jLabel4.setText("Spacing (D):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         poly.add(jLabel4, gridBagConstraints);
@@ -164,22 +175,22 @@ public class Poly extends TechEditWizardPanel
         spacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         poly.add(spacing, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         poly.add(image, gridBagConstraints);
 
-        jLabel7.setText("All values are in nanometers");
+        jLabel7.setText("Distances are in nanometers");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         poly.add(jLabel7, gridBagConstraints);
 
@@ -187,9 +198,49 @@ public class Poly extends TechEditWizardPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         poly.add(jLabel5, gridBagConstraints);
+
+        jLabel6.setText("Distance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        poly.add(jLabel6, gridBagConstraints);
+
+        jLabel8.setText("Rule Name");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        poly.add(jLabel8, gridBagConstraints);
+
+        widthRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        poly.add(widthRule, gridBagConstraints);
+
+        endcapRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        poly.add(endcapRule, gridBagConstraints);
+
+        activeSpacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        poly.add(activeSpacingRule, gridBagConstraints);
+
+        spacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        poly.add(spacingRule, gridBagConstraints);
 
         getContentPane().add(poly, new java.awt.GridBagConstraints());
 
@@ -205,17 +256,23 @@ public class Poly extends TechEditWizardPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField activeSpacing;
+    private javax.swing.JTextField activeSpacingRule;
     private javax.swing.JTextField endcap;
+    private javax.swing.JTextField endcapRule;
     private javax.swing.JLabel image;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel poly;
     private javax.swing.JTextField spacing;
+    private javax.swing.JTextField spacingRule;
     private javax.swing.JTextField width;
+    private javax.swing.JTextField widthRule;
     // End of variables declaration//GEN-END:variables
 
 }

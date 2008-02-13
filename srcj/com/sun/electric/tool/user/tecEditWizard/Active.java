@@ -39,6 +39,8 @@ public class Active extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Active.png"));
+		polyOverhangRule.setEnabled(false);
+		contactOverhangRule.setEnabled(false);
 		pack();
 	}
 
@@ -55,10 +57,14 @@ public class Active extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(Double.toString(data.getDiffWidth()));
-		polyOverhang.setText(Double.toString(data.getDiffPolyOverhang()));
-		contactOverhang.setText(Double.toString(data.getDiffContactOverhang()));
-		spacing.setText(Double.toString(data.getDiffSpacing()));
+		width.setText(Double.toString(data.getDiffWidth().v));
+		widthRule.setText(data.getDiffWidth().rule);
+		polyOverhang.setText(Double.toString(data.getDiffPolyOverhang().v));
+		polyOverhangRule.setText(data.getDiffPolyOverhang().rule);
+		contactOverhang.setText(Double.toString(data.getDiffContactOverhang().v));
+		contactOverhangRule.setText(data.getDiffContactOverhang().rule);
+		spacing.setText(Double.toString(data.getDiffSpacing().v));
+		spacingRule.setText(data.getDiffSpacing().rule);
 	}
 
 	/**
@@ -68,10 +74,10 @@ public class Active extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setDiffWidth(TextUtils.atof(width.getText()));
-		data.setDiffPolyOverhang(TextUtils.atof(polyOverhang.getText()));
-		data.setDiffContactOverhang(TextUtils.atof(contactOverhang.getText()));
-		data.setDiffSpacing(TextUtils.atof(spacing.getText()));
+		data.setDiffWidth(new WizardField(TextUtils.atof(width.getText()), widthRule.getText()));
+		data.setDiffPolyOverhang(new WizardField(TextUtils.atof(polyOverhang.getText()), polyOverhangRule.getText()));
+		data.setDiffContactOverhang(new WizardField(TextUtils.atof(contactOverhang.getText()), contactOverhangRule.getText()));
+		data.setDiffSpacing(new WizardField(TextUtils.atof(spacing.getText()), spacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to
@@ -95,6 +101,12 @@ public class Active extends TechEditWizardPanel
         image = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
+        widthRule = new javax.swing.JTextField();
+        polyOverhangRule = new javax.swing.JTextField();
+        contactOverhangRule = new javax.swing.JTextField();
+        spacingRule = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -111,7 +123,7 @@ public class Active extends TechEditWizardPanel
         jLabel1.setText("Width (A):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         active.add(jLabel1, gridBagConstraints);
@@ -119,14 +131,14 @@ public class Active extends TechEditWizardPanel
         width.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         active.add(width, gridBagConstraints);
 
         jLabel2.setText("Poly overhang (B):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         active.add(jLabel2, gridBagConstraints);
@@ -134,14 +146,14 @@ public class Active extends TechEditWizardPanel
         polyOverhang.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         active.add(polyOverhang, gridBagConstraints);
 
         jLabel3.setText("Contact overhang (C):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         active.add(jLabel3, gridBagConstraints);
@@ -149,14 +161,14 @@ public class Active extends TechEditWizardPanel
         contactOverhang.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         active.add(contactOverhang, gridBagConstraints);
 
         jLabel4.setText("Spacing (D):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         active.add(jLabel4, gridBagConstraints);
@@ -164,22 +176,22 @@ public class Active extends TechEditWizardPanel
         spacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         active.add(spacing, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         active.add(image, gridBagConstraints);
 
-        jLabel5.setText("All values are in nanometers");
+        jLabel5.setText("Distances are in nanometers");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         active.add(jLabel5, gridBagConstraints);
 
@@ -187,9 +199,49 @@ public class Active extends TechEditWizardPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         active.add(jLabel6, gridBagConstraints);
+
+        widthRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        active.add(widthRule, gridBagConstraints);
+
+        polyOverhangRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        active.add(polyOverhangRule, gridBagConstraints);
+
+        contactOverhangRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        active.add(contactOverhangRule, gridBagConstraints);
+
+        spacingRule.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
+        active.add(spacingRule, gridBagConstraints);
+
+        jLabel7.setText("Rule Name");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        active.add(jLabel7, gridBagConstraints);
+
+        jLabel8.setText("Distance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        active.add(jLabel8, gridBagConstraints);
 
         getContentPane().add(active, new java.awt.GridBagConstraints());
 
@@ -206,6 +258,7 @@ public class Active extends TechEditWizardPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel active;
     private javax.swing.JTextField contactOverhang;
+    private javax.swing.JTextField contactOverhangRule;
     private javax.swing.JLabel image;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -213,9 +266,14 @@ public class Active extends TechEditWizardPanel
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JTextField polyOverhang;
+    private javax.swing.JTextField polyOverhangRule;
     private javax.swing.JTextField spacing;
+    private javax.swing.JTextField spacingRule;
     private javax.swing.JTextField width;
+    private javax.swing.JTextField widthRule;
     // End of variables declaration//GEN-END:variables
 
 }

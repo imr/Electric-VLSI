@@ -216,7 +216,7 @@ public class GDS extends TechEditWizardPanel
 	        	gbc = new GridBagConstraints();
 	        	gbc.gridx = 0;   gbc.gridy = 9+i*2;
 	            gbc.anchor = GridBagConstraints.WEST;
-	            gbc.insets = new Insets(4, 4, 1, 0);
+	            gbc.insets = new Insets(4, 10, 1, 0);
 	            gds.add(viaGDSLabel[i], gbc);
 
 	            viaGDS[i] = new JTextField();

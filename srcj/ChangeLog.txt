@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/13/08, SMR) Technology Creation Wizard now uses rule names (Bug #1569).
+
+BUG: (2/13/08, SMR) Technology Creation Wizard doesn't write proper XML (Bug #1571).
+FIX: Reordered GDS output, fixed "+" in layer names.
+
 BUG: (2/13/08, DN) ELIB reader doesn't read Float numbers from old libraries.
 FIX: In ELIB.getInVar read floats into Double objects.
 

@@ -47,7 +47,9 @@ public class Via extends TechEditWizardPanel
     private JPanel via;
     private JComboBox whichVia;
     private JTextField size, spacing, arraySpacing, overhangInline;
+    private JTextField sizeRule, spacingRule, arraySpacingRule, overhangInlineRule;
     private double [] vSize, vSpacing, vArraySpacing, vOverhangInline;
+    private String [] vSizeRule, vSpacingRule, vArraySpacingRule, vOverhangInlineRule;
     private boolean dataChanging;
 
     /** Creates new form Via */
@@ -63,7 +65,7 @@ public class Via extends TechEditWizardPanel
         JLabel heading = new JLabel("Via Parameters");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 3;
         gbc.insets = new Insets(4, 4, 4, 4);
         via.add(heading, gbc);
 
@@ -71,7 +73,7 @@ public class Via extends TechEditWizardPanel
 		image.setIcon(Resources.getResource(getClass(), "Via.png"));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = 1;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 3;
         gbc.insets = new Insets(4, 4, 4, 4);
         via.add(image, gbc);
 
@@ -92,9 +94,19 @@ public class Via extends TechEditWizardPanel
         gbc.insets = new Insets(4, 0, 4, 2);
         via.add(whichVia, gbc);
 
+        JLabel l1 = new JLabel("Distance");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 1;   gbc.gridy = 3;
+        via.add(l1, gbc);
+
+        JLabel l2 = new JLabel("Rule Name");
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 2;   gbc.gridy = 3;
+        via.add(l2, gbc);
+
         JLabel sizeLabel = new JLabel("Via size (A):");
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 3;
+    	gbc.gridx = 0;   gbc.gridy = 4;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(4, 4, 1, 0);
         via.add(sizeLabel, gbc);
@@ -103,13 +115,22 @@ public class Via extends TechEditWizardPanel
         size.getDocument().addDocumentListener(new ViaDocumentListener());
         size.setColumns(8);
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 3;
+    	gbc.gridx = 1;   gbc.gridy = 4;
         gbc.insets = new Insets(4, 0, 1, 2);
         via.add(size, gbc);
 
+        sizeRule = new JTextField();
+        sizeRule.getDocument().addDocumentListener(new ViaDocumentListener());
+        sizeRule.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 2;   gbc.gridy = 4;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        via.add(sizeRule, gbc);
+        sizeRule.setEnabled(false);
+
         JLabel spacingLabel = new JLabel("Via spacing (B):");
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 4;
+    	gbc.gridx = 0;   gbc.gridy = 5;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(1, 4, 1, 0);
         via.add(spacingLabel, gbc);
@@ -118,13 +139,21 @@ public class Via extends TechEditWizardPanel
         spacing.getDocument().addDocumentListener(new ViaDocumentListener());
         spacing.setColumns(8);
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 4;
+    	gbc.gridx = 1;   gbc.gridy = 5;
         gbc.insets = new Insets(1, 0, 1, 2);
         via.add(spacing, gbc);
 
+        spacingRule = new JTextField();
+        spacingRule.getDocument().addDocumentListener(new ViaDocumentListener());
+        spacingRule.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 2;   gbc.gridy = 5;
+        gbc.insets = new Insets(1, 0, 1, 2);
+        via.add(spacingRule, gbc);
+
         JLabel arraySpacingLabel = new JLabel("Via array spacing (C):");
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 5;
+    	gbc.gridx = 0;   gbc.gridy = 6;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(1, 4, 1, 0);
         via.add(arraySpacingLabel, gbc);
@@ -133,13 +162,22 @@ public class Via extends TechEditWizardPanel
         arraySpacing.getDocument().addDocumentListener(new ViaDocumentListener());
         arraySpacing.setColumns(8);
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 5;
+    	gbc.gridx = 1;   gbc.gridy = 6;
         gbc.insets = new Insets(1, 0, 1, 2);
         via.add(arraySpacing, gbc);
 
+        arraySpacingRule = new JTextField();
+        arraySpacingRule.getDocument().addDocumentListener(new ViaDocumentListener());
+        arraySpacingRule.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 2;   gbc.gridy = 6;
+        gbc.insets = new Insets(1, 0, 1, 2);
+        via.add(arraySpacingRule, gbc);
+        arraySpacingRule.setEnabled(false);
+
         JLabel overhangInlineLabel = new JLabel("Via inline overhang (D):");
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 0;   gbc.gridy = 6;
+    	gbc.gridx = 0;   gbc.gridy = 7;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(1, 4, 4, 0);
         via.add(overhangInlineLabel, gbc);
@@ -148,14 +186,23 @@ public class Via extends TechEditWizardPanel
         overhangInline.getDocument().addDocumentListener(new ViaDocumentListener());
         overhangInline.setColumns(8);
     	gbc = new GridBagConstraints();
-    	gbc.gridx = 1;   gbc.gridy = 6;
+    	gbc.gridx = 1;   gbc.gridy = 7;
         gbc.insets = new Insets(1, 0, 4, 2);
         via.add(overhangInline, gbc);
 
-        JLabel nano = new JLabel("All values are in nanometers");
+        overhangInlineRule = new JTextField();
+        overhangInlineRule.getDocument().addDocumentListener(new ViaDocumentListener());
+        overhangInlineRule.setColumns(8);
+    	gbc = new GridBagConstraints();
+    	gbc.gridx = 2;   gbc.gridy = 7;
+        gbc.insets = new Insets(1, 0, 4, 2);
+        via.add(overhangInlineRule, gbc);
+        overhangInlineRule.setEnabled(false);
+
+        JLabel nano = new JLabel("Distances are in nanometers");
         gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 7;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0;   gbc.gridy = 8;
+        gbc.gridwidth = 3;
         gbc.insets = new Insets(4, 4, 4, 4);
         via.add(nano, gbc);
 	}
@@ -181,15 +228,23 @@ public class Via extends TechEditWizardPanel
 		if (numVias > 0)
 		{
 		    vSize = new double[numVias];
+		    vSizeRule = new String[numVias];
 		    vSpacing = new double[numVias];
+		    vSpacingRule = new String[numVias];
 		    vArraySpacing = new double[numVias];
+		    vArraySpacingRule = new String[numVias];
 		    vOverhangInline = new double[numVias];
+		    vOverhangInlineRule = new String[numVias];
 	        for(int i=0; i<numVias; i++)
 	        {
-	        	vSize[i] = data.getViaSize()[i];
-	        	vSpacing[i] = data.getViaSpacing()[i];
-	        	vArraySpacing[i] = data.getViaArraySpacing()[i];
-	        	vOverhangInline[i] = data.getViaOverhangInline()[i];
+	        	vSize[i] = data.getViaSize()[i].v;
+	        	vSizeRule[i] = data.getViaSize()[i].rule;
+	        	vSpacing[i] = data.getViaSpacing()[i].v;
+	        	vSpacingRule[i] = data.getViaSpacing()[i].rule;
+	        	vArraySpacing[i] = data.getViaArraySpacing()[i].v;
+	        	vArraySpacingRule[i] = data.getViaArraySpacing()[i].rule;
+	        	vOverhangInline[i] = data.getViaOverhangInline()[i].v;
+	        	vOverhangInlineRule[i] = data.getViaOverhangInline()[i].rule;
 	        }
 			whichVia.setSelectedIndex(0);
 		}
@@ -205,10 +260,10 @@ public class Via extends TechEditWizardPanel
 		int numVias = data.getNumMetalLayers() - 1;
         for(int i=0; i<numVias; i++)
         {
-        	data.setViaSize(i, vSize[i]);
-        	data.setViaSpacing(i, vSpacing[i]);
-        	data.setViaArraySpacing(i, vArraySpacing[i]);
-        	data.setViaOverhangInline(i, vOverhangInline[i]);
+        	data.setViaSize(i, new WizardField(vSize[i], vSizeRule[i]));
+        	data.setViaSpacing(i, new WizardField(vSpacing[i], vSpacingRule[i]));
+        	data.setViaArraySpacing(i, new WizardField(vArraySpacing[i], vArraySpacingRule[i]));
+        	data.setViaOverhangInline(i, new WizardField(vOverhangInline[i], vOverhangInlineRule[i]));
 		}
 	}
 
@@ -219,15 +274,23 @@ public class Via extends TechEditWizardPanel
 		if (which < 0 || vSize == null || which >= vSize.length)
 		{
 		    size.setText("");
+		    sizeRule.setText("");
 		    spacing.setText("");
+		    spacingRule.setText("");
 		    arraySpacing.setText("");
+		    arraySpacingRule.setText("");
 		    overhangInline.setText("");
+		    overhangInlineRule.setText("");
 		} else
 		{
 		    size.setText(TextUtils.formatDouble(vSize[which]));
+		    sizeRule.setText(vSizeRule[which]);
 		    spacing.setText(TextUtils.formatDouble(vSpacing[which]));
+		    spacingRule.setText(vSpacingRule[which]);
 		    arraySpacing.setText(TextUtils.formatDouble(vArraySpacing[which]));
+		    arraySpacingRule.setText(vArraySpacingRule[which]);
 		    overhangInline.setText(TextUtils.formatDouble(vOverhangInline[which]));
+		    overhangInlineRule.setText(vOverhangInlineRule[which]);
 		}
 		dataChanging = false;
 	}
@@ -238,9 +301,13 @@ public class Via extends TechEditWizardPanel
 		int which = whichVia.getSelectedIndex();
 		if (which < 0 || vSize == null || which >= vSize.length) return;
 		vSize[which] = TextUtils.atof(size.getText());
+		vSizeRule[which] = sizeRule.getText();
 		vSpacing[which] = TextUtils.atof(spacing.getText());
+		vSpacingRule[which] = spacingRule.getText();
 		vArraySpacing[which] = TextUtils.atof(arraySpacing.getText());
+		vArraySpacingRule[which] = arraySpacingRule.getText();
 		vOverhangInline[which] = TextUtils.atof(overhangInline.getText());
+		vOverhangInlineRule[which] = overhangInlineRule.getText();
 	}
 
 	/**
