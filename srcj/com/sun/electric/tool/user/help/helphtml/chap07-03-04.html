@@ -19,8 +19,10 @@ EDIF options are controlled with the EDIF Preferences
 <P>
 This dialog controls whether EDIF output writes schematic or netlist views (the default is netlist).
 It also lets you set a scale factor for EDIF input.
-The "Cadence compatibility" check requests that multidimensional and symbolic
-busses be converted to simpler, all-numeric busses.
+The "Cadence compatibility" check affects both EDIF input and output.
+When checked, output of multidimensional and symbolic
+busses is converted to simpler, all-numeric busses,
+and input of properties starting with "def" are added to cells as parameters.
 </TD><TD><CENTER><IMG SRC="fig07-04.png" ALT="Figure 7.4"></CENTER></TD></TR></TABLE>
 <P>
 The bottom section of the panel lets you specify a configuration file that will control EDIF I/O.
