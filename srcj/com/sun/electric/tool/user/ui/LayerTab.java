@@ -167,11 +167,11 @@ public class LayerTab extends JPanel
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				visibility.put(layer, new Boolean(layer.isVisible()));
+				visibility.put(layer, layer.isVisible()); // autoboxing
 			}
 		}
-        visibility.put(Generic.tech().drcLay, new Boolean(Generic.tech().drcLay.isVisible()));
-        visibility.put(Generic.tech().afgLay, new Boolean(Generic.tech().afgLay.isVisible()));
+        visibility.put(Generic.tech().drcLay, Generic.tech().drcLay.isVisible()); // autoboxing
+        visibility.put(Generic.tech().afgLay, Generic.tech().afgLay.isVisible()); // autoboxing
 	}
 
     /**
