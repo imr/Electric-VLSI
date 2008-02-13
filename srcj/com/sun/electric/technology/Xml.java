@@ -750,10 +750,10 @@ public class Xml {
 //                    dump = true;
                     break;
                 case version:
-                    Version version = new Version();
-                    version.techVersion = Integer.parseInt(a("tech"));
-                    version.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
-                    tech.versions.add(version);
+                    Version ver = new Version();
+                    ver.techVersion = Integer.parseInt(a("tech"));
+                    ver.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
+                    tech.versions.add(ver);
                     break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));
@@ -880,11 +880,11 @@ public class Xml {
                         curDistance = curNode.defaultWidth;
                     break;
                 case arcLayer:
-                    ArcLayer arcLayer = new ArcLayer();
-                    arcLayer.layer = a("layer");
-                    curDistance = arcLayer.extend;
-                    arcLayer.style = Poly.Type.valueOf(a("style"));
-                    curArc.arcLayers.add(arcLayer);
+                    ArcLayer arcLay = new ArcLayer();
+                    arcLay.layer = a("layer");
+                    curDistance = arcLay.extend;
+                    arcLay.style = Poly.Type.valueOf(a("style"));
+                    curArc.arcLayers.add(arcLay);
                     break;
                 case primitiveNode:
                     curNode = new PrimitiveNode();
