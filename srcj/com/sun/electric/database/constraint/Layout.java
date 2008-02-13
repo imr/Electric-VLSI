@@ -144,7 +144,7 @@ public class Layout extends Constraints
         if (goodAreaDRCCells != null)
         {
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
-            goodAreaDRCDate = Variable.newInstance(DRC_LAST_GOOD_DATE_SPACING, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
+            goodAreaDRCDate = Variable.newInstance(DRC_LAST_GOOD_DATE_AREA, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
         }
         if (!doChangesQuietly) {
             // Propagate changes and mark changed cells.

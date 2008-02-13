@@ -30,6 +30,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
@@ -982,14 +983,20 @@ public class DRC extends Listener
         addDRCUpdate(0, null, cleanSpacingDRCDate, null, cleanAreaDRCDate, null);
     }
 
-    private static long getDateStored(Cell cell, Variable.Key key)
+    /**
+     * Method to retrieve Date in miliseconds if a valid date for the given Key is found
+     * @param cell
+     * @param key
+     * @return true if a valid date is found
+     */
+    private static boolean getDateStored(Cell cell, Variable.Key key, GenMath.MutableLong date)
     {
         long lastDRCDateInMilliseconds = 0;
         // disk version
         Variable varSpacingDate = cell.getVar(key, Long.class); // new strategy
         if (varSpacingDate == null)
             varSpacingDate = cell.getVar(key, Integer[].class);
-        if (varSpacingDate == null) return lastDRCDateInMilliseconds;
+        if (varSpacingDate == null) return false;
         Object lastDRCDateObject = varSpacingDate.getObject();
         if (lastDRCDateObject instanceof Integer[]) {
             Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
@@ -999,7 +1006,8 @@ public class DRC extends Listener
         } else {
             lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
         }
-        return lastDRCDateInMilliseconds;
+        date.setValue(lastDRCDateInMilliseconds);
+        return true;
     }
 
     /**
@@ -1039,8 +1047,9 @@ public class DRC extends Listener
         if (fromDisk || (!fromDisk && firstTime))
         {
             int thisByte = 0;
-            long lastDRCDateInMilliseconds = getDateStored(cell, dateKey);
-            if (lastDRCDateInMilliseconds == 0)
+            GenMath.MutableLong lastDRCDateInMilliseconds = new GenMath.MutableLong(0);
+            // Nothing found
+            if (!getDateStored(cell, dateKey, lastDRCDateInMilliseconds))
                 return null;
             if (bitKey != null)
             {
@@ -1055,7 +1064,7 @@ public class DRC extends Listener
                     thisByte = ((Integer)varBits.getObject()).intValue();
             }
             data.bits = thisByte;
-            data.date = lastDRCDateInMilliseconds;
+            data.date = lastDRCDateInMilliseconds.longValue();
         }
         else
         {
@@ -1096,7 +1105,7 @@ public class DRC extends Listener
             return null;
 
         int thisByte = data.bits;
-        if (fromDisk)
+        if (fromDisk && spacingCheck)
             assert(thisByte!=0);
         if (activeBits != -1)
         {

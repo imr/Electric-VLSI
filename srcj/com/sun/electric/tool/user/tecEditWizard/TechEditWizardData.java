@@ -180,7 +180,7 @@ public class TechEditWizardData
 		for(int i=0; i<smallest-1; i++) new_via_spacing[i] = via_spacing[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_spacing[i] = new WizardField();
 		via_spacing = new_via_spacing;
-		
+
 		WizardField [] new_via_array_spacing = new WizardField[n-1];
 		for(int i=0; i<smallest-1; i++) new_via_array_spacing[i] = via_array_spacing[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_array_spacing[i] = new WizardField();
@@ -829,7 +829,7 @@ public class TechEditWizardData
 			return;
 		}
 	}
-	
+
 	private void dumpTechnology(PrintWriter pw)
 	{
 		// LAYER COLOURS
@@ -1424,7 +1424,7 @@ public class TechEditWizardData
 			pw.println();
 			pw.println("    <primitiveNode name=\"" + t + "-Diff-Pin\" fun=\"PIN\">");
 			pw.println("        <shrinkArcs/>");
-//			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>"); 
+//			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>");
 //			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + d1 + "\" y=\"" + d1 + "\"/>");
 			pw.println("        <sizeOffset lx=\"" + x + "\" hx=\"" + x + "\" ly=\"" + x + "\" hy=\"" + x + "\"/>");
 			if (t.equals("P"))
@@ -1565,7 +1565,7 @@ public class TechEditWizardData
 				{
 					t = "P";
 					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				}			   
+				}
 
 				if (alt != 0)
 				{
@@ -1593,7 +1593,7 @@ public class TechEditWizardData
 				String miny = my;
 				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
 				if (i==1 && TextUtils.atof(wx) < TextUtils.atof(miny)) miny = wx;
-				
+
 				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
 				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
 
@@ -1667,7 +1667,7 @@ public class TechEditWizardData
 					fun = "SUBSTRATE";
 					dt = "P";
 					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				}			   
+				}
 
 				if (alt != 0)
 				{
@@ -1695,7 +1695,7 @@ public class TechEditWizardData
 				String miny = my;
 				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
 				if (i==0 && TextUtils.atof(wx)<TextUtils.atof(miny)) miny = wx;
-		
+
 				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
 				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
 
@@ -1703,7 +1703,7 @@ public class TechEditWizardData
 				pw.println("    <primitiveNode name=\"" + t + "-Tie-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
 //				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
 //				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
-				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>"); 
+				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
 				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
@@ -1982,6 +1982,27 @@ public class TechEditWizardData
 		pw.println("    </menuPalette>");
 		pw.println();
 		pw.println("    <Foundry name=\"" + foundry_name + "\">");
+
+        // write GDS layers
+		pw.println();
+		for(int i=1; i<=num_metal_layers; i++)
+		{
+			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
+			if (i != num_metal_layers)
+			{
+				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
+			}
+		}
+		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
+		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
+		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");
+		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
+		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
+		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
+		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
+		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
 
 		// write GDS layers
 		pw.println();
