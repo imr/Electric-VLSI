@@ -61,14 +61,14 @@ public abstract class Topology extends Output
 
 	/** HashMap of all CellTopologies */				private HashMap<String,CellNetInfo> cellTopos;
 	/** HashMap of all Cell names */					private HashMap<Cell,String> cellNameMap;
-                                                        private HierarchyEnumerator.CellInfo lastInfo;
+														private HierarchyEnumerator.CellInfo lastInfo;
 
 	/** Creates a new instance of Topology */
-	public Topology() 
+	public Topology()
 	{
 	}
 
-	/** 
+	/**
 	 * Write cell to file
 	 * @return true on error
 	 */
@@ -78,7 +78,7 @@ public abstract class Topology extends Output
 		return false;
 	}
 
-	/** 
+	/**
 	 * Write cell to file
 	 * @return true on error
 	 */
@@ -91,15 +91,14 @@ public abstract class Topology extends Output
 		cellTopos = new HashMap<String,CellNetInfo>();
 
 		// make a map of cell names to use (unique across libraries)
-        cellNameMap = makeCellNameMap(topCell);
+		cellNameMap = makeCellNameMap(topCell);
 
 		// write out cells
 		start();
-        HierarchyEnumerator.enumerateCell(cell, context, visitor, getShortResistors());
+		HierarchyEnumerator.enumerateCell(cell, context, visitor, getShortResistors());
 		done();
 		return false;
 	}
-
 
 	/** Abstract method called before hierarchy traversal */
 	protected abstract void start();
@@ -107,8 +106,8 @@ public abstract class Topology extends Output
 	/** Abstract method called after traversal */
 	protected abstract void done();
 
-    /** Called at the end of the enter cell phase of hierarchy enumeration */
-    protected void enterCell(HierarchyEnumerator.CellInfo info) { }
+	/** Called at the end of the enter cell phase of hierarchy enumeration */
+	protected void enterCell(HierarchyEnumerator.CellInfo info) { }
 
 	/** Abstract method to write CellGeom to disk */
 	protected abstract void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info);
@@ -128,8 +127,10 @@ public abstract class Topology extends Output
 	/** Abstract method to return the proper name of a Global signal */
 	protected abstract String getGlobalName(Global glob);
 
-	/** Abstract method to decide whether export names take precedence over
-	 * arc names when determining the name of the network. */
+	/**
+	 * Abstract method to decide whether export names take precedence over
+	 * arc names when determining the name of the network.
+	 */
 	protected abstract boolean isNetworksUseExportedNames();
 
 	/** Abstract method to decide whether library names are always prepended to cell names. */
@@ -141,51 +142,53 @@ public abstract class Topology extends Output
 	/** Abstract method to decide whether aggregate names (busses) can have gaps in their ranges. */
 	protected abstract boolean isAggregateNameGapsSupported();
 
-    /** Method to decide whether to choose best export name among exports connected to signal. */
-    protected boolean isChooseBestExportName() { return true; } 
-    
-    /** Abstract method to decide whether aggregate names (busses) are used. */
+	/** Method to decide whether to choose best export name among exports connected to signal. */
+	protected boolean isChooseBestExportName() { return true; }
+
+	/** Abstract method to decide whether aggregate names (busses) are used. */
 	protected abstract boolean isSeparateInputAndOutput();
 
-    /** If the netlister has requirments not to netlist certain cells and their
-     * subcells, override this method. */
-    protected boolean skipCellAndSubcells(Cell cell) { return false; }
+	/**
+	 * If the netlister has requirments not to netlist certain cells and their
+	 * subcells, override this method.
+	 */
+	protected boolean skipCellAndSubcells(Cell cell) { return false; }
 
-    /** If a cell is skipped, this method can perform any checking to
-     * validate that no error occurs */
-    protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) { }
+	/**
+	 * If a cell is skipped, this method can perform any checking to
+	 * validate that no error occurs
+	 */
+	protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) { }
 
-    /**
+	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
 	protected boolean canParameterizeNames() { return false; }
 
-    /** Tell the Hierarchy enumerator how to short resistors */
-    protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.NO; }
-    
-    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
-    protected boolean isShortResistors() { return getShortResistors() != Netlist.ShortResistors.NO; }
+	/** Tell the Hierarchy enumerator how to short resistors */
+	protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.NO; }
 
-    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return getShortResistors() == Netlist.ShortResistors.ALL; }
+	/** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
+	protected boolean isShortResistors() { return getShortResistors() != Netlist.ShortResistors.NO; }
+
+	/** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
+	protected boolean isShortExplicitResistors() { return getShortResistors() == Netlist.ShortResistors.ALL; }
 
 	/**
 	 * Method to tell set a limit on the number of characters in a name.
-	 * @return the limit to name size (0 if no limit). 
+	 * @return the limit to name size (0 if no limit).
 	 */
 	protected int maxNameLength() { return 0; }
 
 	/** Abstract method to convert a cell name to one that is safe for this format */
-	//protected abstract Netlist getNetlistForCell(Cell cell);
-
 	protected CellNetInfo getCellNetInfo(String cellName)
 	{
 		CellNetInfo cni = cellTopos.get(cellName);
 		return cni;
 	}
 
-    /** Used to switch from schematic enumeration to layout enumeration */
-    protected boolean enumerateLayoutView(Cell cell) { return false; }
+	/** Used to switch from schematic enumeration to layout enumeration */
+	protected boolean enumerateLayoutView(Cell cell) { return false; }
 
 	//------------------ override for HierarchyEnumerator.Visitor ----------------------
 
@@ -203,24 +206,24 @@ public abstract class Topology extends Output
 			this.outGeom = outGeom;
 		}
 
-		public boolean enterCell(HierarchyEnumerator.CellInfo info) 
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
-            if (skipCellAndSubcells(info.getCell()))
+			if (skipCellAndSubcells(info.getCell()))
 			{
 				if (!info.isRootCell())
 				{
-	                // save subcell topology, even though the cell isn't being written
-	                HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
-	                Nodable no = info.getParentInst();
-	                String parameterizedName = parameterizedName(no, parentInfo.getContext());
+					// save subcell topology, even though the cell isn't being written
+					HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
+					Nodable no = info.getParentInst();
+					String parameterizedName = parameterizedName(no, parentInfo.getContext());
 					CellNetInfo cni = getNetworkInformation(info.getCell(), false, parameterizedName,
-	                        isNetworksUseExportedNames(), info);
-	                cellTopos.put(parameterizedName, cni);
+						isNetworksUseExportedNames(), info);
+					cellTopos.put(parameterizedName, cni);
 				}
-                validateSkippedCell(info);
-                return false;
+				validateSkippedCell(info);
+				return false;
 			}
-            outGeom.enterCell(info);
+			outGeom.enterCell(info);
 			return true;
 		}
 
@@ -232,28 +235,23 @@ public abstract class Topology extends Output
 			if (info.isRootCell())
 			{
 				cni = getNetworkInformation(cell, false, cell.getName(),
-                        isNetworksUseExportedNames(), info);
-                cellTopos.put(cell.getName(), cni);
+					isNetworksUseExportedNames(), info);
+				cellTopos.put(cell.getName(), cni);
 			} else
 			{
-                // derived parameterized name of instance of this cell in parent
-                HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
-                Nodable no = info.getParentInst();
-                String parameterizedName = parameterizedName(no, parentInfo.getContext());
-                cni = getNetworkInformation(info.getCell(), false, parameterizedName,
-                        isNetworksUseExportedNames(), info);
-                cellTopos.put(parameterizedName, cni);
-/*
-				MyCellInfo mci = (MyCellInfo)info;
-				mci = (MyCellInfo)mci.getParentInfo();
-				cni = getCellNetInfo(mci.currentInstanceParametizedName);
-*/
+				// derived parameterized name of instance of this cell in parent
+				HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
+				Nodable no = info.getParentInst();
+				String parameterizedName = parameterizedName(no, parentInfo.getContext());
+				cni = getNetworkInformation(info.getCell(), false, parameterizedName,
+					isNetworksUseExportedNames(), info);
+				cellTopos.put(parameterizedName, cni);
 			}
 			outGeom.writeCellTopology(cell, cni, info.getContext(), (MyCellInfo)info);
-            lastInfo = info;
+			lastInfo = info;
 		}
 
-		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			if (!no.isCellInstance()) return false;
 
@@ -262,34 +260,27 @@ public abstract class Topology extends Output
 
 			if (cellTopos.containsKey(parameterizedName)) return false;	// already processed this Cell
 
-            Cell cell = (Cell)no.getProto();
-            Cell schcell = cell.contentsView();
-            if (schcell == null) schcell = cell;
-            if (cell.getView() == View.SCHEMATIC && enumerateLayoutView(schcell)) {
-                Cell layCell = null;
-                for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
-                    Cell c = it.next();
-                    if (c.getView() == View.LAYOUT) {
-                        layCell = c;
-                        break;
-                    }
-                }
-                if (layCell != null) {
-                    HierarchyEnumerator.enumerateCell(layCell, context, this);
-                    // save subcell topology, even though the cell isn't being written
-                    CellNetInfo cni = getNetworkInformation(layCell, false, layCell.getName(),
-                            isNetworksUseExportedNames(), lastInfo);
-                    cellTopos.put(parameterizedName, cni);
-                    return false;
-                }
-            }
-
-/*
-			Cell cell = (Cell)np;
-			Netlist netList = getNetlistForCell(cell);
-			CellNetInfo cni = getNetworkInformation(cell, false, mci.currentInstanceParametizedName, isNetworksUseExportedNames());
-			cellTopos.put(mci.currentInstanceParametizedName, cni);
-*/
+			Cell cell = (Cell)no.getProto();
+			Cell schcell = cell.contentsView();
+			if (schcell == null) schcell = cell;
+			if (cell.getView() == View.SCHEMATIC && enumerateLayoutView(schcell)) {
+				Cell layCell = null;
+				for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
+					Cell c = it.next();
+					if (c.getView() == View.LAYOUT) {
+						layCell = c;
+						break;
+					}
+				}
+				if (layCell != null) {
+					HierarchyEnumerator.enumerateCell(layCell, context, this);
+					// save subcell topology, even though the cell isn't being written
+					CellNetInfo cni = getNetworkInformation(layCell, false, layCell.getName(),
+						isNetworksUseExportedNames(), lastInfo);
+					cellTopos.put(parameterizedName, cni);
+					return false;
+				}
+			}
 
 			// else just a cell
 			return true;
@@ -312,7 +303,7 @@ public abstract class Topology extends Output
 		/** Network for this signal. */				private Network net;
 		/** CellAggregate that this is part of. */	private CellAggregateSignal aggregateSignal;
 		/** export that this is part of. */			private Export pp;
-        /** if export is bussed, index of signal */ private int ppIndex;
+		/** if export is bussed, index of signal */ private int ppIndex;
 		/** true if part of a descending bus */		private boolean descending;
 		/** true if a power signal */				private boolean power;
 		/** true if a ground signal */				private boolean ground;
@@ -321,7 +312,7 @@ public abstract class Topology extends Output
 		protected String getName() { return name; }
 		protected Network getNetwork() { return net; }
 		protected Export getExport() { return pp; }
-        protected int getExportIndex() { return ppIndex; }
+		protected int getExportIndex() { return ppIndex; }
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isGlobal() { return globalSignal != null; }
@@ -347,7 +338,7 @@ public abstract class Topology extends Output
 	{
 		private String name;
 		private Export pp;
-        private int ppIndex;
+		private int ppIndex;
 		private int low;
 		private int high;
 		private int[] indices;
@@ -385,8 +376,8 @@ public abstract class Topology extends Output
 		protected boolean isDescending() { return descending; }
 		protected boolean isSupply() { return supply; }
 		protected Export getExport() { return pp; }
-        protected int getExportIndex() { return ppIndex; }
-        protected int [] getIndices() { return indices; }
+		protected int getExportIndex() { return ppIndex; }
+		protected int [] getIndices() { return indices; }
 		protected int getLowIndex() { return low; }
 		protected int getHighIndex() { return high; }
 		protected int getFlags() { return flags; }
@@ -410,7 +401,7 @@ public abstract class Topology extends Output
 	 */
 	protected static class CellNetInfo
 	{
-        private Cell cell;
+		private Cell cell;
 		private String paramName;
 		private HashMap<Network,CellSignal> cellSignals;
 		private List<CellSignal> cellSignalsSorted;
@@ -426,11 +417,11 @@ public abstract class Topology extends Output
 		protected Network getPowerNet() { return pwrNet; }
 		protected Network getGroundNet() { return gndNet; }
 		protected Netlist getNetList() { return netList; }
-        protected Cell getCell() { return cell; }
+		protected Cell getCell() { return cell; }
 	}
 
-	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, 
-                                              HierarchyEnumerator.CellInfo info)
+	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName,
+		HierarchyEnumerator.CellInfo info)
 	{
 		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, info);
 //printWriter.println("********Decomposition of " + cell);
@@ -466,11 +457,11 @@ public abstract class Topology extends Output
 	}
 
 	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName,
-                                      HierarchyEnumerator.CellInfo info)
+		HierarchyEnumerator.CellInfo info)
 	{
 		// create the object with cell net information
 		CellNetInfo cni = new CellNetInfo();
-        cni.cell = cell;
+		cni.cell = cell;
 		cni.paramName = paramName;
 
 		// get network information about this cell
@@ -504,7 +495,7 @@ public abstract class Topology extends Output
 				cs.name = getGlobalName(cs.globalSignal);
 			} else
 			{
-                cs.name = net.getName();
+				cs.name = net.getName();
 			}
 
 			// save it in the map of signals
@@ -526,24 +517,24 @@ public abstract class Topology extends Output
 
 				// if there is already an export on this signal, make sure that it is wider
 				if (cs.pp != null)
-                {
-                    if (isChooseBestExportName())
-                    {
-                        int oldPortWidth = cni.netList.getBusWidth(cs.pp);
-                        if (isAggregateNamesSupported())
-                        {
-                            // with aggregate names, the widest bus is the best, so that long runs can be emitted
-                            if (oldPortWidth >= portWidth) continue;
-                        } else
-                        {
-                            // without aggregate names, individual signal names are more important
-                            if (oldPortWidth == 1) continue;
-                            if (portWidth != 1 && oldPortWidth >= portWidth) continue;
-                        }
+				{
+					if (isChooseBestExportName())
+					{
+						int oldPortWidth = cni.netList.getBusWidth(cs.pp);
+						if (isAggregateNamesSupported())
+						{
+							// with aggregate names, the widest bus is the best, so that long runs can be emitted
+							if (oldPortWidth >= portWidth) continue;
+						} else
+						{
+							// without aggregate names, individual signal names are more important
+							if (oldPortWidth == 1) continue;
+							if (portWidth != 1 && oldPortWidth >= portWidth) continue;
+						}
 					} else
-                    {
-                        if (TextUtils.STRING_NUMBER_ORDER.compare(cs.pp.getName(), pp.getName()) <= 0) continue;
-                    }
+					{
+						if (TextUtils.STRING_NUMBER_ORDER.compare(cs.pp.getName(), pp.getName()) <= 0) continue;
+					}
 				}
 
 				// save this export's information
@@ -724,7 +715,7 @@ public abstract class Topology extends Output
 				CellAggregateSignal cas = new CellAggregateSignal();
 				cas.name = unIndexedName(cs.name);
 				cas.pp = cs.pp;
-	            cas.ppIndex = cs.ppIndex;
+				cas.ppIndex = cs.ppIndex;
 				cas.supply = cs.power | cs.ground;
 				cas.descending = cs.descending;
 				cas.flags = 0;
@@ -745,7 +736,7 @@ public abstract class Topology extends Output
 					{
 						CellSignal csEnd = cni.cellSignalsSorted.get(j);
 						if (csEnd.descending != cs.descending) break;
-						if (csEnd.pp != cs.pp) break;
+						if (cell.getView() == View.SCHEMATIC && csEnd.pp != cs.pp) break;
 						if (csEnd.globalSignal != cs.globalSignal) break;
 						String endName = csEnd.name;
 						String ept = unIndexedName(endName);
@@ -837,15 +828,15 @@ public abstract class Topology extends Output
 				}
 			}
 
-            Collections.sort(cni.cellAggretateSignals, new SortAggregateNetsByName(isSeparateInputAndOutput()));
-
-		} else {
-            // just get safe net names for all cell signals
-            for (CellSignal cs : cni.cellSignalsSorted)
+			Collections.sort(cni.cellAggretateSignals, new SortAggregateNetsByName(isSeparateInputAndOutput()));
+		} else
+		{
+			// just get safe net names for all cell signals
+			for (CellSignal cs : cni.cellSignalsSorted)
 			{
-                cs.name = getSafeNetName(cs.name, false);
-            }
-        }
+				cs.name = getSafeNetName(cs.name, false);
+			}
+		}
 
 		return cni;
 	}
@@ -918,6 +909,7 @@ public abstract class Topology extends Output
 	private static class SortNetsByName implements Comparator<CellSignal>
 	{
 		private boolean separateInputAndOutput, aggregateNamesSupported;
+
 		SortNetsByName(boolean separateInputAndOutput, boolean aggregateNamesSupported)
 		{
 			this.separateInputAndOutput = separateInputAndOutput;
@@ -946,45 +938,45 @@ public abstract class Topology extends Output
 				// one is descending and the other isn't...sort accordingly
 				return cs1.descending ? 1 : -1;
 			}
-            if (aggregateNamesSupported)
-			    return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
+			if (aggregateNamesSupported)
+				return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
 
-            // Sort by simple string comparison, otherwise it is impossible
-            // to stitch this together with netlists from other tools
-            return cs1.name.compareTo(cs2.name);
+			// Sort by simple string comparison, otherwise it is impossible
+			// to stitch this together with netlists from other tools
+			return cs1.name.compareTo(cs2.name);
 		}
 	}
 
-    private static class SortAggregateNetsByName implements Comparator<CellAggregateSignal>
-    {
-        private boolean separateInputAndOutput;
-        SortAggregateNetsByName(boolean separateInputAndOutput)
-        {
-            this.separateInputAndOutput = separateInputAndOutput;
-        }
+	private static class SortAggregateNetsByName implements Comparator<CellAggregateSignal>
+	{
+		private boolean separateInputAndOutput;
+		SortAggregateNetsByName(boolean separateInputAndOutput)
+		{
+			this.separateInputAndOutput = separateInputAndOutput;
+		}
 
-        public int compare(CellAggregateSignal cs1, CellAggregateSignal cs2)
-        {
-            if ((separateInputAndOutput) && (cs1.pp == null) != (cs2.pp == null))
-            {
-                // one is exported and the other isn't...sort accordingly
-                return cs1.pp == null ? 1 : -1;
-            }
-            if (cs1.pp != null && cs2.pp != null)
-            {
-                if (separateInputAndOutput)
-                {
-                    // both are exported: sort by characteristics (if different)
-                    PortCharacteristic ch1 = cs1.pp.getCharacteristic();
-                    PortCharacteristic ch2 = cs2.pp.getCharacteristic();
-                    if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
-                }
-            }
-            // Sort by simple string comparison, otherwise it is impossible
-            // to stitch this together with netlists from other tools
-            return cs1.name.compareTo(cs2.name);
-        }
-    }
+		public int compare(CellAggregateSignal cs1, CellAggregateSignal cs2)
+		{
+			if ((separateInputAndOutput) && (cs1.pp == null) != (cs2.pp == null))
+			{
+				// one is exported and the other isn't...sort accordingly
+				return cs1.pp == null ? 1 : -1;
+			}
+			if (cs1.pp != null && cs2.pp != null)
+			{
+				if (separateInputAndOutput)
+				{
+					// both are exported: sort by characteristics (if different)
+					PortCharacteristic ch1 = cs1.pp.getCharacteristic();
+					PortCharacteristic ch2 = cs2.pp.getCharacteristic();
+					if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
+				}
+			}
+			// Sort by simple string comparison, otherwise it is impossible
+			// to stitch this together with netlists from other tools
+			return cs1.name.compareTo(cs2.name);
+		}
+	}
 
 	/**
 	 * Method to create a parameterized name for node instance "ni".
@@ -1003,17 +995,14 @@ public abstract class Topology extends Output
 			{
 				Variable var = it.next();
 				if (!no.getNodeInst().isParam(var.getKey())) continue;
-//				if (!var.isParam()) continue;
 				paramValues.put(var.getKey(), var);
 			}
 			for(Variable.Key key : paramValues.keySet())
 			{
 				Variable var = no.getVar(key);
-                String eval = var.describe(context, no.getNodeInst());
-				//Object eval = context.evalVar(var, no);
+				String eval = var.describe(context, no.getNodeInst());
 				if (eval == null) continue;
-                //uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
-                uniqueCellName += "-" + eval.toString();
+				uniqueCellName += "-" + eval.toString();
 			}
 		}
 
@@ -1038,155 +1027,154 @@ public abstract class Topology extends Output
 	 */
 	protected String getUniqueCellName(Cell cell)
 	{
-        Cell contents = cell.contentsView();
-        if (contents != null) cell = contents;
+		Cell contents = cell.contentsView();
+		if (contents != null) cell = contents;
 		String name = cellNameMap.get(cell);
 		return name;
 	}
 
-    private static class NameMapGenerator extends HierarchyEnumerator.Visitor {
+	private static class NameMapGenerator extends HierarchyEnumerator.Visitor {
 
-        private HashMap<Cell,String> cellNameMap;
-        private HashMap<String,List<Cell>> cellNameMapReverse;
-        private boolean alwaysUseLibName;
-        private Topology topology;
-        private Cell topCell;
+		private HashMap<Cell,String> cellNameMap;
+		private HashMap<String,List<Cell>> cellNameMapReverse;
+		private boolean alwaysUseLibName;
+		private Topology topology;
+		private Cell topCell;
 
-        public NameMapGenerator(boolean alwaysUseLibName, Topology topology) {
-            cellNameMap = new HashMap<Cell,String>();
-            cellNameMapReverse = new HashMap<String,List<Cell>>();
-            this.alwaysUseLibName = alwaysUseLibName;
-            this.topology = topology;
-            topCell = null;
-        }
+		public NameMapGenerator(boolean alwaysUseLibName, Topology topology) {
+			cellNameMap = new HashMap<Cell,String>();
+			cellNameMapReverse = new HashMap<String,List<Cell>>();
+			this.alwaysUseLibName = alwaysUseLibName;
+			this.topology = topology;
+			topCell = null;
+		}
 
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) {
-            Cell cell = info.getCell();
-            if (topCell == null) topCell = cell;
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+			Cell cell = info.getCell();
+			if (topCell == null) topCell = cell;
 
-            if (cellNameMap.containsKey(cell)) return false;
-            // add name for this cell
-            String name = getDefaultName(cell);
-            cellNameMap.put(cell, name);
-            getConflictList(name).add(cell);
-            //System.out.println("Mapped "+cell.describe(false) + " --> " + name);
-            return true;
-        }
+			if (cellNameMap.containsKey(cell)) return false;
+			// add name for this cell
+			String name = getDefaultName(cell);
+			cellNameMap.put(cell, name);
+			getConflictList(name).add(cell);
+			//System.out.println("Mapped "+cell.describe(false) + " --> " + name);
+			return true;
+		}
 
-        private List<Cell> getConflictList(String cellname) {
-            List<Cell> conflictList = cellNameMapReverse.get(cellname.toLowerCase());
-            if (conflictList == null) {
-                conflictList = new ArrayList<Cell>();
-                cellNameMapReverse.put(cellname.toLowerCase(), conflictList);
-            }
-            return conflictList;
-        }
+		private List<Cell> getConflictList(String cellname) {
+			List<Cell> conflictList = cellNameMapReverse.get(cellname.toLowerCase());
+			if (conflictList == null) {
+				conflictList = new ArrayList<Cell>();
+				cellNameMapReverse.put(cellname.toLowerCase(), conflictList);
+			}
+			return conflictList;
+		}
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) {
-            Cell cell = info.getCell();
-            if (cell == topCell) {
-                // resolve conflicts
-                if (!alwaysUseLibName)
-                    resolveConflicts(1);
-                resolveConflicts(2);
-                resolveConflicts(3);
-            }
-        }
+		public void exitCell(HierarchyEnumerator.CellInfo info) {
+			Cell cell = info.getCell();
+			if (cell == topCell) {
+				// resolve conflicts
+				if (!alwaysUseLibName)
+					resolveConflicts(1);
+				resolveConflicts(2);
+				resolveConflicts(3);
+			}
+		}
 
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
-            if (!no.isCellInstance()) return false;
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
+			if (!no.isCellInstance()) return false;
 
-            VarContext context = info.getContext();
+			VarContext context = info.getContext();
 
-            Cell cell = (Cell)no.getProto();
-            Cell schcell = cell.contentsView();
-            if (schcell == null) schcell = cell;
-            if (cell.getView() == View.SCHEMATIC && topology.enumerateLayoutView(schcell)) {
-                Cell layCell = null;
-                for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
-                    Cell c = it.next();
-                    if (c.getView() == View.LAYOUT) {
-                        layCell = c;
-                        break;
-                    }
-                }
-                if (layCell != null) {
-                    String name = getDefaultName(schcell);
-                    cellNameMap.put(schcell, name);
-                    getConflictList(name).add(schcell);
-                    //System.out.println("Mapped "+schcell.describe(false) + " --> " + name);
-                    HierarchyEnumerator.enumerateCell(layCell, context, this);
-                    return false;
-                }
-            } else {
-                // special case for cells with only icons
-                schcell = cell.contentsView();
-                if (cell.isIcon() && schcell == null && !cellNameMap.containsKey(cell)) {
-                    String name = getDefaultName(cell);
-                    cellNameMap.put(cell, name);
-                    getConflictList(name).add(cell);
-                    return false;
-                }
-            }
+			Cell cell = (Cell)no.getProto();
+			Cell schcell = cell.contentsView();
+			if (schcell == null) schcell = cell;
+			if (cell.getView() == View.SCHEMATIC && topology.enumerateLayoutView(schcell)) {
+				Cell layCell = null;
+				for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
+					Cell c = it.next();
+					if (c.getView() == View.LAYOUT) {
+						layCell = c;
+						break;
+					}
+				}
+				if (layCell != null) {
+					String name = getDefaultName(schcell);
+					cellNameMap.put(schcell, name);
+					getConflictList(name).add(schcell);
+					//System.out.println("Mapped "+schcell.describe(false) + " --> " + name);
+					HierarchyEnumerator.enumerateCell(layCell, context, this);
+					return false;
+				}
+			} else {
+				// special case for cells with only icons
+				schcell = cell.contentsView();
+				if (cell.isIcon() && schcell == null && !cellNameMap.containsKey(cell)) {
+					String name = getDefaultName(cell);
+					cellNameMap.put(cell, name);
+					getConflictList(name).add(cell);
+					return false;
+				}
+			}
 
+			return true;
+		}
 
-            return true;
-        }
+		private String getDefaultName(Cell cell) {
+			if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell))
+				return cell.getLibrary().getName() + "__" + cell.getName();
+			return cell.getName();
+		}
 
-        private String getDefaultName(Cell cell) {
-            if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell))
-                return cell.getLibrary().getName() + "__" + cell.getName();
-            return cell.getName();
-        }
-
-        private void resolveConflicts(int whichPass) {
-            List<List<Cell>> conflictLists = new ArrayList<List<Cell>>();
-            for (List<Cell> conflictList : cellNameMapReverse.values()) {
-                if (conflictList.size() <= 1) continue; // no conflict
-                conflictLists.add(conflictList);
-            }
-            for (List<Cell> conflictList : conflictLists) {
-                // on pass 1, only cell names. If any conflicts, prepend libname
-                if (whichPass == 1) {
-                    // replace name with lib + name
-                    for (Cell cell : conflictList) {
-                        String name = cell.getLibrary().getName() + "__" + cell.getName();
-                        cellNameMap.put(cell, name);
-                        getConflictList(name).add(cell);
-                    }
-                    conflictList.clear();
-                }
-                if (whichPass == 2) {
-                    // lib + name conflicts, append view
-                    for (Cell cell : conflictList) {
-                        String name = cell.getLibrary().getName() + "__" + cell.getName() + "__" + cell.getView().getAbbreviation();
-                        cellNameMap.put(cell, name);
-                        getConflictList(name).add(cell);
-                    }
-                    conflictList.clear();
-                }
-                if (whichPass == 3) {
-                    // must be an error
-                    Cell cell = conflictList.get(0);
-                    System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
-                            ", it conflicts with: ");
-                    for (int i=1; i<conflictList.size(); i++) {
-                        System.out.print(conflictList.get(i).describe(false)+" ");
-                    }
-                    System.out.println();
-                }
-            }
-        }
-    }
+		private void resolveConflicts(int whichPass) {
+			List<List<Cell>> conflictLists = new ArrayList<List<Cell>>();
+			for (List<Cell> conflictList : cellNameMapReverse.values()) {
+				if (conflictList.size() <= 1) continue; // no conflict
+				conflictLists.add(conflictList);
+			}
+			for (List<Cell> conflictList : conflictLists) {
+				// on pass 1, only cell names. If any conflicts, prepend libname
+				if (whichPass == 1) {
+					// replace name with lib + name
+					for (Cell cell : conflictList) {
+						String name = cell.getLibrary().getName() + "__" + cell.getName();
+						cellNameMap.put(cell, name);
+						getConflictList(name).add(cell);
+					}
+					conflictList.clear();
+				}
+				if (whichPass == 2) {
+					// lib + name conflicts, append view
+					for (Cell cell : conflictList) {
+						String name = cell.getLibrary().getName() + "__" + cell.getName() + "__" + cell.getView().getAbbreviation();
+						cellNameMap.put(cell, name);
+						getConflictList(name).add(cell);
+					}
+					conflictList.clear();
+				}
+				if (whichPass == 3) {
+					// must be an error
+					Cell cell = conflictList.get(0);
+					System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
+						", it conflicts with: ");
+					for (int i=1; i<conflictList.size(); i++) {
+						System.out.print(conflictList.get(i).describe(false)+" ");
+					}
+					System.out.println();
+				}
+			}
+		}
+	}
 
 	/**
 	 * determine whether any cells have name clashes in other libraries
 	 */
 	private HashMap<Cell,String> makeCellNameMap(Cell cell)
 	{
-        NameMapGenerator gen = new NameMapGenerator(isLibraryNameAlwaysAddedToCellName(), this);
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, gen);
-        return gen.cellNameMap;
+		NameMapGenerator gen = new NameMapGenerator(isLibraryNameAlwaysAddedToCellName(), this);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, gen);
+		return gen.cellNameMap;
 	}
 
 }
