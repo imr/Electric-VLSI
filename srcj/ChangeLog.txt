@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/13/08, DN) Remove versions and diskOffsets from tecEditWizard technologies
+    because they are not necessary for new technologies.
+
 IMP: (2/13/08, SMR) Technology Creation Wizard now uses rule names (Bug #1569).
 
 BUG: (2/13/08, SMR) Technology Creation Wizard doesn't write proper XML (Bug #1571).

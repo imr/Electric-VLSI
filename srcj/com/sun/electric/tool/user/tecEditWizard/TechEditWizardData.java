@@ -873,8 +873,8 @@ public class TechEditWizardData
 		pw.println();
 		pw.println("    <shortName>" + tech_name + "</shortName>");
 		pw.println("    <description>" + tech_description + "</description>");
-		pw.println("    <version tech=\"1\" electric=\"8.05g\"/>");
-		pw.println("    <version tech=\"2\" electric=\"8.05o\"/>");
+//		pw.println("    <version tech=\"1\" electric=\"8.05g\"/>");
+//		pw.println("    <version tech=\"2\" electric=\"8.05o\"/>");
 		pw.println("    <numMetals min=\"" + num_metal_layers + "\" max=\"" + num_metal_layers + "\" default=\"" + num_metal_layers + "\"/>");
 		pw.println("    <scale value=\"" + floaty(stepsize) + "\" relevant=\"true\"/>");
 		pw.println("    <defaultFoundry value=\"" + foundry_name + "\"/>");
@@ -1341,7 +1341,7 @@ public class TechEditWizardData
 			pw.println("        <fixedAngle>true</fixedAngle>");
 			pw.println("        <angleIncrement>90</angleIncrement>");
 			pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
-			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
+//			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
 
 			for(String each : h)
 			{
@@ -1424,8 +1424,8 @@ public class TechEditWizardData
 			pw.println();
 			pw.println("    <primitiveNode name=\"" + t + "-Diff-Pin\" fun=\"PIN\">");
 			pw.println("        <shrinkArcs/>");
-			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>"); 
-			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + d1 + "\" y=\"" + d1 + "\"/>");
+//			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>"); 
+//			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + d1 + "\" y=\"" + d1 + "\"/>");
 			pw.println("        <sizeOffset lx=\"" + x + "\" hx=\"" + x + "\" ly=\"" + x + "\" hy=\"" + x + "\"/>");
 			if (t.equals("P"))
 			{
@@ -1519,8 +1519,8 @@ public class TechEditWizardData
 
 				pw.println();
 				pw.println("    <primitiveNode name=\"" + src + "-" + dest + "-Con" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
-				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-				pw.println("        <sizeOffset lx=\"" + ox + "\" hx=\"" + ox + "\" ly=\"" + oy + "\" hy=\"" + oy + "\"/>");
+//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+//				pw.println("        <sizeOffset lx=\"" + ox + "\" hx=\"" + ox + "\" ly=\"" + oy + "\" hy=\"" + oy + "\"/>");
 				pw.println("        <nodeLayer layer=\"" + src + "\" style=\"FILLED\">");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + lowerx + "\" khx=\"" + lowerx + "\" kly=\"-" + lowery + "\" khy=\"" + lowery + "\"/>");
@@ -1599,8 +1599,8 @@ public class TechEditWizardData
 
 				pw.println();
 				pw.println("    <primitiveNode name=\"" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
-				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
+//				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
 				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
 				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
 				pw.println("            <box>");
@@ -1701,8 +1701,8 @@ public class TechEditWizardData
 
 				pw.println();
 				pw.println("    <primitiveNode name=\"" + t + "-Tie-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
-				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
+//				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
 				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>"); 
 				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
 				pw.println("            <box>");
@@ -1778,8 +1778,8 @@ public class TechEditWizardData
 			pw.println("<!-- " + t + "-Transistor -->");
 			pw.println();
 			pw.println("    <primitiveNode name=\"" + t + "-Transistor\" fun=\"TRA" + t + "MOS\">");
-			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + polyx + "\" y=\"" + diffy + "\"/>");
-			pw.println("        <sizeOffset lx=\"" + sx + "\" hx=\"" + sx + "\" ly=\"" + sy + "\" hy=\"" + sy + "\"/>");
+//			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + polyx + "\" y=\"" + diffy + "\"/>");
+//			pw.println("        <sizeOffset lx=\"" + sx + "\" hx=\"" + sx + "\" ly=\"" + sy + "\" hy=\"" + sy + "\"/>");
 
 			pw.println("        <nodeLayer layer=\"Poly\" style=\"FILLED\">");
 			pw.println("        <box>");
