@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP/MAN: (2/13/08, SMR) EDIF input adds cell properties that start with "def"
+     as parameters (in Cadence compatibility mode only) (Bug #1533, #1568).
+
 IMP: (2/13/08, DN) Remove versions and diskOffsets from tecEditWizard technologies
     because they are not necessary for new technologies.
 

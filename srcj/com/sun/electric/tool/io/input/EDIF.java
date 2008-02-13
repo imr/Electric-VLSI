@@ -194,6 +194,7 @@ public class EDIF extends Input
 	/** the active technology */				private Technology curTechnology;
 	/** the current active cell */				private Cell curCell;
 	/** the current page in cell */				private int curCellPage;
+	/** the parameter position in cell */		private int curCellParameterOff;
 	/** the current active instance */			private NodeInst curNode;
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
@@ -359,6 +360,7 @@ public class EDIF extends Input
 		// active database inits
 		curCell = null;
 		curCellPage = 0;
+		curCellParameterOff = 0;
 		curNode = null;
 		curArc = null;
 		curPort = null;
@@ -3282,6 +3284,15 @@ public class EDIF extends Input
 					propertiesListHead = property;
 					property.name = "ATTR_" + propertyReference;
 					property.val = propertyValue;
+				} else if (keyStack[keyStackDepth - 1] == KCELL)
+				{
+					if (IOTool.isEDIFCadenceCompatibility() && propertyReference.startsWith("def"))
+					{
+						curCellParameterOff++;
+						TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
+							withInherit(true).withParam(true).withOff(0, curCellParameterOff);
+						curCell.newVar(Variable.newKey("ATTR_" + propertyReference.substring(3)), propertyValue, td);
+					}					
 				}
 			}
 			propertyReference = "";
@@ -3659,6 +3670,7 @@ public class EDIF extends Input
 
 			curCell = proto;
 			curCellPage = 0;
+			curCellParameterOff = 0;
 			curFigureGroup = null;
 		}
 
@@ -4069,6 +4081,7 @@ public class EDIF extends Input
 
 				curCell = proto;
 				curCellPage = 0;
+				curCellParameterOff = 0;
 			}
 			else curCell = null;
 
