@@ -231,8 +231,8 @@ public class LayerTab extends JPanel
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				if (noDimming) highlighted.put(layer, new Boolean(false)); else
-					highlighted.put(layer, new Boolean(!layer.isDimmed()));
+				if (noDimming) highlighted.put(layer, false);
+                else highlighted.put(layer, !layer.isDimmed());
 			}
 		}
 
@@ -240,24 +240,26 @@ public class LayerTab extends JPanel
         setSelectedTechnology(tech);
 		layerListModel.clear();
 		layersInList = new ArrayList<Layer>();
-		for(Layer layer : tech.getLayersSortedByHeight())
-		{
-			if (layer.isPseudoLayer()) continue;
-			layersInList.add(layer);
-
-			// add the line to the scroll list
-			layerListModel.addElement(lineName(layer));
-		}
-        // Adding special layers in case of layout technologies
-        if (tech.isLayout())
+        if (tech != null)
         {
-            layersInList.add(Generic.tech().drcLay);
-            layerListModel.addElement(lineName(Generic.tech().drcLay));
-            layersInList.add(Generic.tech().afgLay);
-            layerListModel.addElement(lineName(Generic.tech().afgLay));
-        }
+            for(Layer layer : tech.getLayersSortedByHeight())
+            {
+                if (layer.isPseudoLayer()) continue;
+                layersInList.add(layer);
 
-        layerList.setSelectedIndex(0);
+                // add the line to the scroll list
+                layerListModel.addElement(lineName(layer));
+            }
+            // Adding special layers in case of layout technologies
+            if (tech.isLayout())
+            {
+                layersInList.add(Generic.tech().drcLay);
+                layerListModel.addElement(lineName(Generic.tech().drcLay));
+                layersInList.add(Generic.tech().afgLay);
+                layerListModel.addElement(lineName(Generic.tech().afgLay));
+            }
+            layerList.setSelectedIndex(0);
+        }
         opacitySlider.setVisible(layerDrawing);
         resetOpacity.setVisible(layerDrawing);
 	}
