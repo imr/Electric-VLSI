@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import bsh.commands.dir;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
@@ -40,7 +39,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
