@@ -142,7 +142,10 @@ public class LayerTab extends JPanel
 	public void loadTechnologies(boolean makeCurrent)
 	{
         Technology cur = Technology.getCurrent();
-        if (!makeCurrent) cur = Technology.findTechnology((String)technology.getSelectedItem());
+        if (cur == null)
+            System.out.println("The current technology is null. Check the technology settings.");
+        if (!makeCurrent || cur == null)
+            cur = Technology.findTechnology((String)technology.getSelectedItem());
 		loading = true;
 		technology.removeAllItems();
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -151,6 +154,7 @@ public class LayerTab extends JPanel
             if (tech == Generic.tech() && !Job.getDebug()) continue;
 			technology.addItem(tech.getTechName());
         }
+
         setSelectedTechnology(cur);
 		loading = false;
 
@@ -174,7 +178,13 @@ public class LayerTab extends JPanel
      * Method to set the technology in the pull down menu of this Layers tab.
      * @param tech the technology to set.
      */
-    public void setSelectedTechnology(Technology tech) { technology.setSelectedItem(tech.getTechName()); }
+    public void setSelectedTechnology(Technology tech)
+    {
+        if (tech == null)
+            System.out.println("Selecting a null technology");
+        else
+            technology.setSelectedItem(tech.getTechName());
+    }
 
     public void setDisplayAlgorithm(boolean layerDrawing) {
         boolean changed = this.layerDrawing != layerDrawing;
@@ -226,8 +236,8 @@ public class LayerTab extends JPanel
 			}
 		}
 
-		Technology tech = Technology.getCurrent();
-		technology.setSelectedItem(tech.getTechName());
+        Technology tech = Technology.getCurrent();
+        setSelectedTechnology(tech);
 		layerListModel.clear();
 		layersInList = new ArrayList<Layer>();
 		for(Layer layer : tech.getLayersSortedByHeight())

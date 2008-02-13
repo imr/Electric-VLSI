@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/12/08, GVG) NPE if current technology can't be set (Bug #1572)
+FIX: Detect when the current technology is null
+
 BUG: (2/12/08, DN) "bipolar.xml" and "cmos.xml" has port names with '+' char which is illegal in XML NCName.
 FIX: Change port names.
 
