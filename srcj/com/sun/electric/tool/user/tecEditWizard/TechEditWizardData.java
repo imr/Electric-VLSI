@@ -717,10 +717,10 @@ public class TechEditWizardData
 		pw.println("    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		pw.println("    xsi:schemaLocation=\"http://electric.sun.com/Technology ../../technology/Technology.xsd\">");
 		pw.println();
-		pw.println("    <version tech=\"1\" electric=\"8.05g\"/>");
-		pw.println("    <version tech=\"2\" electric=\"8.05o\"/>");
 		pw.println("    <shortName>" + tech_name + "</shortName>");
 		pw.println("    <description>" + tech_description + "</description>");
+		pw.println("    <version tech=\"1\" electric=\"8.05g\"/>");
+		pw.println("    <version tech=\"2\" electric=\"8.05o\"/>");
 		pw.println("    <numMetals min=\"" + num_metal_layers + "\" max=\"" + num_metal_layers + "\" default=\"" + num_metal_layers + "\"/>");
 		pw.println("    <scale value=\"" + floaty(stepsize) + "\" relevant=\"true\"/>");
 		pw.println("    <defaultFoundry value=\"" + foundry_name + "\"/>");
@@ -771,8 +771,8 @@ public class TechEditWizardData
 		layers.add("DiffCon");
 		layers.add("N-Diff");
 		layers.add("P-Diff");
-		layers.add("N+");
-		layers.add("P+");
+		layers.add("NPlus");
+		layers.add("PPlus");
 		layers.add("N-Well");
 		layers.add("DeviceMark");
 		for(int i=0; i<layers.size(); i++)
@@ -990,7 +990,7 @@ public class TechEditWizardData
 				la = diff_width / stepsize;
 			}
 
-			if (l.equals("N+"))
+			if (l.equals("NPlus"))
 			{
 				fun = "IMPLANTN";
 				r = nplus_colour.getRed();
@@ -1016,7 +1016,7 @@ public class TechEditWizardData
 			}
 
 
-			if (l.equals("P+"))
+			if (l.equals("PPlus"))
 			{
 				fun = "IMPLANTP";
 				r = pplus_colour.getRed();
@@ -1152,14 +1152,14 @@ public class TechEditWizardData
 			{
 				fun = "DIFFN";
 				h.add("N-Diff=" + (diff_width/stepsize));
-				h.add("N+=" + ((nplus_overhang_diff*2+diff_width)/stepsize));
+				h.add("NPlus=" + ((nplus_overhang_diff*2+diff_width)/stepsize));
 			}
 
 			if (l.equals("P-Diff"))
 			{
 				fun = "DIFFP";
 				h.add("P-Diff=" + (diff_width / stepsize));
-				h.add("P+=" + ((pplus_overhang_diff*2 + diff_width) / stepsize));
+				h.add("PPlus=" + ((pplus_overhang_diff*2 + diff_width) / stepsize));
 				h.add("N-Well=" + ((nwell_overhang_diff*2 + diff_width) / stepsize));
 			}
 
@@ -1186,8 +1186,8 @@ public class TechEditWizardData
 			pw.println("        <extended>true</extended>");
 			pw.println("        <fixedAngle>true</fixedAngle>");
 			pw.println("        <angleIncrement>90</angleIncrement>");
+			pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
 			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
-			if (ant >= 0) pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
 
 			for(String each : h)
 			{
@@ -1466,7 +1466,7 @@ public class TechEditWizardData
 					pw.println("            </box>");
 					pw.println("        </nodeLayer>");
 				}
-				pw.println("        <nodeLayer layer=\"" + t + "+\" style=\"FILLED\">");
+				pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"FILLED\">");
 				pw.println("            <box>");
 				pw.println("                <lambdaBox klx=\"-" + sx + "\" khx=\"" + sx + "\" kly=\"-" + sx + "\" khy=\"" + sx + "\"/>");
 				pw.println("            </box>");
@@ -1840,8 +1840,8 @@ public class TechEditWizardData
 		pw.println("        <LayerRule ruleName=\"N-Diff w\" layerName=\"N-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width/stepsize) + "\"/>");
 		pw.println("        <LayerRule ruleName=\"P-Diff w\" layerName=\"P-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width/stepsize) + "\"/>");
 		pw.println("        <LayerRule ruleName=\"N-Well w\" layerName=\"N-Well\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nwell_width/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"N+ w\" layerName=\"N+\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nplus_width/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"P+ w\" layerName=\"P+\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(pplus_width/stepsize) + "\"/>");
+		pw.println("        <LayerRule ruleName=\"NPlus w\" layerName=\"NPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nplus_width/stepsize) + "\"/>");
+		pw.println("        <LayerRule ruleName=\"PPlus w\" layerName=\"PPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(pplus_width/stepsize) + "\"/>");
 		pw.println("        <LayerRule ruleName=\"Poly w\" layerName=\"Poly\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width/stepsize) + "\"/>");
 		pw.println("        <LayerRule ruleName=\"PolyGate w\" layerName=\"PolyGate\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width/stepsize) + "\"/>");
 
@@ -1856,8 +1856,8 @@ public class TechEditWizardData
 		pw.println("        <LayersRule ruleName=\"PolyGate spc\" layerNames=\"{PolyGate,PolyGate}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_spacing/stepsize) + "\"/>");
 
 		pw.println("        <LayersRule ruleName=\"N-Well spc\" layerNames=\"{N-Well,N-Well}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nwell_spacing/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"N+ spc\" layerNames=\"{N+,N+}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nplus_spacing/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"P+ spc\" layerNames=\"{P+,P+}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(pplus_spacing/stepsize) + "\"/>");
+		pw.println("        <LayersRule ruleName=\"NPlus spc\" layerNames=\"{NPlus,NPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nplus_spacing/stepsize) + "\"/>");
+		pw.println("        <LayersRule ruleName=\"PPlus spc\" layerNames=\"{PPlus,PPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(pplus_spacing/stepsize) + "\"/>");
 
 		pw.println("        <LayersRule ruleName=\"PolyCon spc\" layerNames=\"{PolyCon,PolyCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing/stepsize) + "\"/>");
 		pw.println("        <LayersRule ruleName=\"DiffCon spc\" layerNames=\"{DiffCon,DiffCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing/stepsize) + "\"/>");
@@ -1893,8 +1893,8 @@ public class TechEditWizardData
 		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
 		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
 		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
-		pw.println("        <layerGds layer=\"N+\" gds=\"" + gds_nplus_layer + "\"/>");
-		pw.println("        <layerGds layer=\"P+\" gds=\"" + gds_pplus_layer + "\"/>");
+		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
+		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
 		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
 		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
 		pw.println("    </Foundry>");
