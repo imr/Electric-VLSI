@@ -26,7 +26,6 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -1292,7 +1291,7 @@ public class TechEditWizardData
 		for(String l : arcs)
 		{
 			String fun = "";
-			int ant = -1;
+			int ant = 0;
 			double la = 0;
 			List<String> h = new ArrayList<String>();
 			if (l.startsWith("Metal"))
@@ -2082,7 +2081,9 @@ public class TechEditWizardData
 
 	private String floaty(double v)
 	{
-		long rounded = Math.round(v);
+        if (v < 0)
+            System.out.println("Negative distance of " + v + " in the tech editor wizard");
+        long rounded = Math.round(v);
 		if (Math.abs(rounded-v) < 0.001) return rounded + ".0";
         double roundedV = DBMath.round(v);
         return roundedV + "";

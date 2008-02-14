@@ -46,6 +46,7 @@ import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
@@ -313,6 +314,12 @@ public class EditMenu {
                     describeTechnologyCommand(); }},
                 new EMenuItem("Do_cument Current Technology") { public void run() {
                     Manipulate.describeTechnology(Technology.getCurrent()); }},
+                new EMenuItem("Write XML of this Technology") { public void run()
+                {
+                    Technology tech = Technology.getCurrent();
+                    Xml.Technology xmlTech = Xml.makeXml(tech);
+                    xmlTech.writeXml(tech.getTechName() + ".xml");
+                }},
                 SEPARATOR,
                 new EMenuItem("Rena_me Current Technology...") { public void run() {
                     CircuitChanges.renameCurrentTechnology(); }},

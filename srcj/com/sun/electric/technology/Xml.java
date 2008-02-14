@@ -26,8 +26,12 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.erc.ERC;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -38,15 +42,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -66,6 +62,362 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class Xml {
+
+    /**
+     * Public static function to create Xml structure out of this Technology
+     * @param tech
+     * @return
+     */
+    public static Technology makeXml(com.sun.electric.technology.Technology tech) {
+        Technology t = new Technology();
+        t.techName = tech.getTechName();
+        if (tech.getClass() != com.sun.electric.technology.Technology.class)
+            t.className = tech.getClass().getName();
+        t.shortTechName = tech.getTechShortName();
+        t.description = tech.getTechDesc();
+        Version version = new Version();
+        version.techVersion = 1;
+        version.electricVersion = com.sun.electric.database.text.Version.parseVersion("8.05g");
+        t.versions.add(version);
+        version = new Version();
+        version.techVersion = 2;
+        version.electricVersion = com.sun.electric.database.text.Version.parseVersion("8.05o");
+        t.versions.add(version);
+        XMLRules xmlRules = tech.getFactoryDesignRules();
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = tech.getNumMetals();
+        t.scaleValue = tech.getScale();
+        t.scaleRelevant = tech.isScaleRelevant();
+        t.defaultFoundry = tech.getPrefFoundry();
+        t.minResistance = tech.getMinResistance();
+        t.minCapacitance = tech.getMinCapacitance();
+		for (int i = 0, numLayers = tech.getNumTransparentLayers(); i < numLayers; i++) {
+            Color transparentColor = tech.getColorMap()[1 << i];
+            t.transparentLayers.add(transparentColor);
+        }
+        for (Iterator<com.sun.electric.technology.Layer> it = tech.getLayers(); it.hasNext(); ) {
+            com.sun.electric.technology.Layer layer = it.next();
+            if (layer.isPseudoLayer()) continue;
+            Layer l = new Layer();
+            l.name = layer.getName();
+            l.function = layer.getFunction();
+            l.extraFunction = layer.getFunctionExtras();
+            l.desc = layer.getGraphics();
+            l.thick3D = layer.getThickness();
+            l.height3D = layer.getDistance();
+            l.mode3D = layer.getTransparencyMode();
+            l.factor3D = layer.getTransparencyFactor();
+            l.cif = layer.getCIFLayer();
+            l.skill = layer.getSkillLayer();
+            l.resistance = layer.getResistance();
+            l.capacitance = layer.getCapacitance();
+            l.edgeCapacitance = layer.getEdgeCapacitance();
+//            if (layer.getPseudoLayer() != null)
+//                l.pseudoLayer = layer.getPseudoLayer().getName();
+            if (layer.getPureLayerNode() != null) {
+                com.sun.electric.technology.PrimitiveNode pureLayerNode = layer.getPureLayerNode();
+                l.pureLayerNode = new PureLayerNode();
+                l.pureLayerNode.name = pureLayerNode.getName();
+                for (Map.Entry<String, com.sun.electric.technology.PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+                    if (e.getValue() != pureLayerNode) continue;
+                    assert l.pureLayerNode.oldName == null;
+                    l.pureLayerNode.oldName = e.getKey();
+                }
+                l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
+                l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
+                l.pureLayerNode.size.value = pureLayerNode.getDefWidth();
+                for (com.sun.electric.technology.ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
+                    if (ap.getTechnology() != tech) continue;
+                    l.pureLayerNode.portArcs.add(ap.getName());
+                }
+            }
+            t.layers.add(l);
+        }
+        for (Iterator<com.sun.electric.technology.ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+            com.sun.electric.technology.ArcProto ap = it.next();
+            ArcProto a = new ArcProto();
+            a.name = ap.getName();
+            for (Map.Entry<String, com.sun.electric.technology.ArcProto> e: tech.getOldArcNames().entrySet()) {
+                if (e.getValue() != ap) continue;
+                assert a.oldName == null;
+                a.oldName = e.getKey();
+            }
+            a.function = ap.getFunction();
+            a.wipable = ap.isWipable();
+            a.curvable = ap.isCurvable();
+            a.special = ap.isSpecialArc();
+            a.notUsed = ap.isNotUsed();
+            a.skipSizeInPalette = ap.isSkipSizeInPalette();
+
+            DRCTemplate arcSize = xmlRules.getRule(ap.getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID);
+            double corr2 = DBMath.round(0.5*(arcSize != null ? arcSize.values[0] : ap.getDefaultLambdaBaseWidth()));
+            if (ap.getLambdaWidthOffset() != 0) {
+                a.diskOffset.put(Integer.valueOf(1), DBMath.round(corr2 + DBMath.gridToLambda(ap.getGridFullExtend() - ap.getGridBaseExtend())));
+                a.diskOffset.put(Integer.valueOf(2), corr2);
+            } else {
+                a.diskOffset.put(Integer.valueOf(2), corr2);
+            }
+//            if (ap.getLambdaWidthOffset() != 0) {
+//                a.diskOffset.put(Integer.valueOf(1), 0.5*ap.getDefaultLambdaFullWidth());
+//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaBaseWidth());
+//            } else {
+//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaFullWidth());
+//            }
+            a.defaultWidth.value = DBMath.round(ap.getDefaultLambdaBaseWidth() - 2*corr2);
+//            if (ap.getLambdaWidthOffset() != 0)
+//                a.widthOffset.put(Integer.valueOf(1), ap.getLambdaWidthOffset());
+//            a.defaultWidth.value = 2*ap.getDefaultLambdaExtendOverMin();
+            a.extended = ap.isExtended();
+            a.fixedAngle = ap.isFixedAngle();
+            a.angleIncrement = ap.getAngleIncrement();
+            a.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
+            for (int arcLayerIndex = 0; arcLayerIndex < ap.getNumArcLayers(); arcLayerIndex++) {
+                ArcLayer al = new ArcLayer();
+                al.layer = ap.getLayer(arcLayerIndex).getName();
+                al.style = ap.getLayerStyle(arcLayerIndex);
+                al.extend.value = DBMath.round(ap.getLayerLambdaExtend(arcLayerIndex) + DBMath.round(corr2 - DBMath.gridToLambda(ap.getGridBaseExtend())));
+//                al.extend.value = ap.getLayerLambdaExtend(arcLayerIndex);
+                a.arcLayers.add(al);
+            }
+            t.arcs.add(a);
+        }
+        for (Iterator<com.sun.electric.technology.PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+            com.sun.electric.technology.PrimitiveNode pnp = it.next();
+            if (pnp.getFunction() == com.sun.electric.technology.PrimitiveNode.Function.NODE) continue;
+            PrimitiveNode n = new PrimitiveNode();
+            n.name = pnp.getName();
+            for (Map.Entry<String, com.sun.electric.technology.PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+                if (e.getValue() != pnp) continue;
+                assert n.oldName == null;
+                n.oldName = e.getKey();
+            }
+            n.function = pnp.getFunction();
+            n.shrinkArcs = pnp.isArcsShrink();
+            n.square = pnp.isSquare();
+            n.canBeZeroSize = pnp.isCanBeZeroSize();
+            n.wipes = pnp.isWipeOn1or2();
+            n.lockable = pnp.isLockedPrim();
+            n.edgeSelect = pnp.isEdgeSelect();
+            n.skipSizeInPalette = pnp.isSkipSizeInPalette();
+            n.notUsed = pnp.isNotUsed();
+            n.lowVt = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.LOWVTBIT);
+            n.highVt = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.HIGHVTBIT);
+            n.nativeBit  = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.NATIVEBIT);
+            n.od18 = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.OD18BIT);
+            n.od25 = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.OD25BIT);
+            n.od33 = pnp.isNodeBitOn(com.sun.electric.technology.PrimitiveNode.OD33BIT);
+
+            com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule = pnp.getMinSizeRule();
+            EPoint minFullSize = nodeSizeRule != null ?
+                EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
+                EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
+            if (pnp.getFunction() == com.sun.electric.technology.PrimitiveNode.Function.PIN && pnp.isArcsShrink()) {
+                assert pnp.getNumPorts() == 1;
+                assert nodeSizeRule == null;
+                com.sun.electric.technology.PrimitivePort pp = pnp.getPort(0);
+                assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
+                assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
+                minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
+            }
+//            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+            SizeOffset so = pnp.getProtoSizeOffset();
+            if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+                so = null;
+//            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
+            if (so != null) {
+                EPoint p2 = EPoint.fromGrid(
+                        minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
+                        minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
+                n.diskOffset.put(Integer.valueOf(1), minFullSize);
+                n.diskOffset.put(Integer.valueOf(2), p2);
+            } else {
+                n.diskOffset.put(Integer.valueOf(2), minFullSize);
+            }
+            n.defaultWidth.value = DBMath.round(pnp.getDefWidth() - 2*minFullSize.getLambdaX());
+            n.defaultHeight.value = DBMath.round(pnp.getDefHeight() - 2*minFullSize.getLambdaY());
+//            if (so != null) {
+//                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
+//                n.diskOffset.put(Integer.valueOf(1), p1);
+//                n.diskOffset.put(Integer.valueOf(2), EPoint.ORIGIN);
+//            } else {
+//            }
+//            n.defaultWidth.value = DBMath.round(pnp.getDefWidth());
+//            n.defaultHeight.value = DBMath.round(pnp.getDefHeight());
+            n.sizeOffset = so;
+
+            List<com.sun.electric.technology.Technology.NodeLayer> nodeLayers = Arrays.asList(pnp.getLayers());
+            List<com.sun.electric.technology.Technology.NodeLayer> electricalNodeLayers = nodeLayers;
+            if (pnp.getElectricalLayers() != null)
+                electricalNodeLayers = Arrays.asList(pnp.getElectricalLayers());
+            boolean isSerp = pnp.getSpecialType() == com.sun.electric.technology.PrimitiveNode.SERPTRANS;
+            int m = 0;
+            for (com.sun.electric.technology.Technology.NodeLayer nld: electricalNodeLayers) {
+                int j = nodeLayers.indexOf(nld);
+                if (j < 0) {
+                    n.nodeLayers.add(makeNodeLayerDetails(nld, isSerp, minFullSize, false, true));
+                    continue;
+                }
+                while (m < j)
+                    n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, false));
+                n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, true));
+            }
+            while (m < nodeLayers.size())
+                n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, false));
+            for (Iterator<com.sun.electric.technology.PrimitivePort> pit = pnp.getPrimitivePorts(); pit.hasNext(); ) {
+                com.sun.electric.technology.PrimitivePort pp = pit.next();
+                PrimitivePort ppd = new PrimitivePort();
+                ppd.name = pp.getName();
+                ppd.portAngle = pp.getAngle();
+                ppd.portRange = pp.getAngleRange();
+                ppd.portTopology = pp.getTopology();
+
+                ppd.lx.k = pp.getLeft().getMultiplier()*2;
+                ppd.lx.value = DBMath.round(pp.getLeft().getAdder() + minFullSize.getLambdaX()*pp.getLeft().getMultiplier()*2);
+                ppd.hx.k = pp.getRight().getMultiplier()*2;
+                ppd.hx.value = DBMath.round(pp.getRight().getAdder() + minFullSize.getLambdaX()*pp.getRight().getMultiplier()*2);
+                ppd.ly.k = pp.getBottom().getMultiplier()*2;
+                ppd.ly.value = DBMath.round(pp.getBottom().getAdder() + minFullSize.getLambdaY()*pp.getBottom().getMultiplier()*2);
+                ppd.hy.k = pp.getTop().getMultiplier()*2;
+                ppd.hy.value = DBMath.round(pp.getTop().getAdder() + minFullSize.getLambdaY()*pp.getTop().getMultiplier()*2);
+
+                for (com.sun.electric.technology.ArcProto ap: pp.getConnections()) {
+                    if (ap.getTechnology() != tech) continue;
+                    ppd.portArcs.add(ap.getName());
+                }
+                n.ports.add(ppd);
+            }
+            n.specialType = pnp.getSpecialType();
+            if (pnp.getSpecialValues() != null)
+                n.specialValues = pnp.getSpecialValues().clone();
+            n.nodeSizeRule = pnp.getMinSizeRule();
+            n.spiceTemplate = pnp.getSpiceTemplate();
+            t.nodes.add(n);
+        }
+
+        addSpiceHeader(t, 1, tech.getSpiceHeaderLevel1());
+        addSpiceHeader(t, 2, tech.getSpiceHeaderLevel2());
+        addSpiceHeader(t, 3, tech.getSpiceHeaderLevel3());
+
+        Object[][] origPalette = tech.getNodesGrouped(null);
+        int numRows = origPalette.length;
+        int numCols = origPalette[0].length;
+        for (Object[] row: origPalette) {
+            assert row.length == numCols;
+        }
+        t.menuPalette = new MenuPalette();
+        t.menuPalette.numColumns = numCols;
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                Object origEntry = origPalette[row][col];
+                Object newEntry = null;
+                ArrayList<Object> newBox = new ArrayList<Object>();
+                if (origEntry instanceof List) {
+                    List<?> list = (List<?>)origEntry;
+                    for (Object o: list)
+                        newBox.add(makeMenuEntry(t, o));
+                } else if (origEntry != null) {
+                    newBox.add(makeMenuEntry(t, origEntry));
+                }
+                t.menuPalette.menuBoxes.add(newBox);
+            }
+        }
+
+        for (Iterator<com.sun.electric.technology.Foundry> it = tech.getFoundries(); it.hasNext(); ) {
+            com.sun.electric.technology.Foundry foundry = it.next();
+            Foundry f = new Foundry();
+            f.name = foundry.toString();
+            Map<com.sun.electric.technology.Layer,String> gdsMap = foundry.getGDSLayers();
+            for (Map.Entry<com.sun.electric.technology.Layer,String> e: gdsMap.entrySet()) {
+                String gds = e.getValue();
+                if (gds.length() == 0) continue;
+                f.layerGds.put(e.getKey().getName(), gds);
+            }
+            List<DRCTemplate> rules = foundry.getRules();
+            if (rules != null)
+                f.rules.addAll(rules);
+            t.foundries.add(f);
+       }
+        return t;
+    }
+
+    private static com.sun.electric.technology.Technology.TechPoint correction(com.sun.electric.technology.Technology.TechPoint p,
+                                                                               EPoint correction) {
+        EdgeH h = p.getX();
+        EdgeV v = p.getY();
+        h = new EdgeH(h.getMultiplier(), h.getAdder() + correction.getLambdaX()*h.getMultiplier()*2);
+        v = new EdgeV(v.getMultiplier(), v.getAdder() + correction.getLambdaY()*v.getMultiplier()*2);
+        return new com.sun.electric.technology.Technology.TechPoint(h, v);
+    }
+
+    private static Xml.NodeLayer makeNodeLayerDetails(com.sun.electric.technology.Technology.NodeLayer nl,
+                                                      boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
+    {
+        Xml.NodeLayer nld = new Xml.NodeLayer();
+        nld.layer = nl.getLayer().getNonPseudoLayer().getName();
+        nld.style = nl.getStyle();
+        nld.portNum = nl.getPortNum();
+        nld.inLayers = inLayers;
+        nld.inElectricalLayers = inElectricalLayers;
+        nld.representation = nl.getRepresentation();
+        com.sun.electric.technology.Technology.TechPoint[] points = nl.getPoints();
+        if (nld.representation == com.sun.electric.technology.Technology.NodeLayer.BOX || nld.representation == com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX) {
+            nld.lx.k = points[0].getX().getMultiplier()*2;
+            nld.lx.value = DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2);
+            nld.hx.k = points[1].getX().getMultiplier()*2;
+            nld.hx.value = DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2);
+            nld.ly.k = points[0].getY().getMultiplier()*2;
+            nld.ly.value = DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2);
+            nld.hy.k = points[1].getY().getMultiplier()*2;
+            nld.hy.value = DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2);
+        } else {
+            for (com.sun.electric.technology.Technology.TechPoint p: points)
+                nld.techPoints.add(correction(p, correction));
+        }
+        nld.sizex = DBMath.round(nl.getMulticutSizeX());
+        nld.sizey = DBMath.round(nl.getMulticutSizeY());
+        nld.sep1d = DBMath.round(nl.getMulticutSep1D());
+        nld.sep2d = DBMath.round(nl.getMulticutSep2D());
+        if (isSerp) {
+            nld.lWidth = DBMath.round(nl.getSerpentineLWidth());
+            nld.rWidth = DBMath.round(nl.getSerpentineRWidth());
+            nld.tExtent = DBMath.round(nl.getSerpentineExtentT());
+            nld.bExtent = DBMath.round(nl.getSerpentineExtentB());
+        }
+        return nld;
+    }
+
+
+    private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
+        if (spiceLines == null) return;
+        Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
+        spiceHeader.level = level;
+        for (String spiceLine: spiceLines)
+            spiceHeader.spiceLines.add(spiceLine);
+        t.spiceHeaders.add(spiceHeader);
+    }
+
+    private static Object makeMenuEntry(Xml.Technology t, Object entry) {
+        if (entry instanceof com.sun.electric.technology.ArcProto)
+            return t.findArc(((com.sun.electric.technology.ArcProto)entry).getName());
+        if (entry instanceof com.sun.electric.technology.PrimitiveNode)
+            return t.findNode(((com.sun.electric.technology.PrimitiveNode)entry).getName());
+        if (entry instanceof NodeInst) {
+            NodeInst ni = (NodeInst)entry;
+            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+            n.protoName = ni.getProto().getName();
+            n.function = ni.getFunction();
+            n.rotation = ni.getOrient().getAngle();
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                n.text = (String)var.getObject();
+                n.fontSize = var.getSize().getSize();
+            }
+            return n;
+        }
+        assert entry instanceof String;
+        return entry;
+    }
+
+    /************ END Functions Required by makeXml ***********************/
 
     public static class Technology implements Serializable {
         public String techName;
