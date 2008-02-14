@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.Job;
 import java.awt.Color;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.Comparator;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
@@ -1335,4 +1337,82 @@ public class Layer
 	{
 		return "Layer " + name;
 	}
+    
+    void dump(PrintWriter out) {
+        final String[] layerBits = {
+            null, null, null,
+            null, null, null,
+            "PTYPE", "NTYPE", "DEPLETION",
+            "ENHANCEMENT",  "LIGHT", "HEAVY",
+            null, "NONELEC", "CONMETAL",
+            "CONPOLY", "CONDIFF", null,
+            null, null, null,
+            "HLVT", "INTRANS", "THICK"
+        };
+        out.print("Layer " + getName() + " " + getFunction().name());
+        Technology.printlnBits(out, layerBits, getFunctionExtras());
+        out.print("\t"); Technology.printlnSetting(out, getCIFLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, getDXFLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, getSkillLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, getResistanceSetting());
+        out.print("\t"); Technology.printlnSetting(out, getCapacitanceSetting());
+        out.print("\t"); Technology.printlnSetting(out, getEdgeCapacitanceSetting());
+        // GDS
+        EGraphics desc = getGraphics();
+        out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + desc.isFactoryPatternedOnDisplay() + ")");
+        out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + desc.isFactoryPatternedOnPrinter() + ")");
+        out.println("\toutlined=" + desc.getOutlined() + "(" + desc.getFactoryOutlined() + ")");
+        out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + desc.getFactoryTransparentLayer() + ")");
+        out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()) + ")");
+        out.println("\topacity=" + desc.getOpacity() + "(" + desc.getFactoryOpacity() + ")");
+        out.println("\tforeground=" + desc.getForeground());
+        int pattern[] = desc.getFactoryPattern();
+        out.print("\tpattern");
+        for (int p: pattern)
+            out.print(" " + Integer.toHexString(p));
+        out.println();
+        out.println("\tdistance3D=" + getDistance());
+        out.println("\tthickness3D=" + getThickness());
+        out.println("\tmode3D=" + getTransparencyMode());
+        out.println("\tfactor3D=" + getTransparencyFactor());
+
+        if (getPseudoLayer() != null)
+            out.println("\tpseudoLayer=" + getPseudoLayer().getName());
+    }
+    
+    Xml.Layer makeXml() {
+        Xml.Layer l = new Xml.Layer();
+        l.name = getName();
+        l.function = getFunction();
+        l.extraFunction = getFunctionExtras();
+        l.desc = getGraphics();
+        l.thick3D = getThickness();
+        l.height3D = getDistance();
+        l.mode3D = getTransparencyMode();
+        l.factor3D = getTransparencyFactor();
+        l.cif = (String)getCIFLayerSetting().getFactoryValue();
+        l.skill = (String)getSkillLayerSetting().getFactoryValue();
+        l.resistance = getResistanceSetting().getDoubleFactoryValue();
+        l.capacitance = getCapacitanceSetting().getDoubleFactoryValue();
+        l.edgeCapacitance = getEdgeCapacitanceSetting().getDoubleFactoryValue();
+//            if (layer.getPseudoLayer() != null)
+//                l.pseudoLayer = layer.getPseudoLayer().getName();
+        if (pureLayerNode != null) {
+            l.pureLayerNode = new Xml.PureLayerNode();
+            l.pureLayerNode.name = pureLayerNode.getName();
+            for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+                if (e.getValue() != pureLayerNode) continue;
+                assert l.pureLayerNode.oldName == null;
+                l.pureLayerNode.oldName = e.getKey();
+            }
+            l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
+            l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
+            l.pureLayerNode.size.value = pureLayerNode.getDefWidth();
+            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
+                if (ap.getTechnology() != tech) continue;
+                l.pureLayerNode.portArcs.add(ap.getName());
+            }
+        }
+        return l;
+    }
 }

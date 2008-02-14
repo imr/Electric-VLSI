@@ -80,6 +80,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -329,6 +330,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
 		 */
 		public EdgeV getY() { return y; }
+        
+        TechPoint makeCorrection(EPoint correction) {
+            EdgeH h = new EdgeH(x.getMultiplier(), x.getAdder() + correction.getLambdaX()*x.getMultiplier()*2);
+            EdgeV v = new EdgeV(y.getMultiplier(), y.getAdder() + correction.getLambdaY()*y.getMultiplier()*2);
+            return new TechPoint(h, v);
+        }
 	}
 
 	/**
@@ -640,6 +647,56 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
+        
+        void dump(PrintWriter out, boolean isSerp) {
+            out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
+            if (getMessage() != null) {
+                TextDescriptor td = getDescriptor();
+                out.println("\t\tmessage=\"" + getMessage() + "\" td=" + Long.toHexString(td.lowLevelGet()) + " colorIndex=" + td.getColorIndex() + " disp=" + td.isDisplay());
+            }
+            if (getMulticutSizeX() != 0 || getMulticutSizeY() != 0 || getMulticutSep1D() != 0 || getMulticutSep2D() != 0)
+                out.println("\t\tmultiSizeX=" + getMulticutSizeX() + " multiSizeY=" + getMulticutSizeY() + " multiSep=" + getMulticutSep1D() + " multiSpe2D=" + getMulticutSep2D());
+            
+            if (isSerp)
+                out.println("\t\tLWidth=" + getSerpentineLWidth() + " rWidth=" + getSerpentineRWidth() + " bExtend=" + getSerpentineExtentB() + " tExtend=" + getSerpentineExtentT());
+            for (Technology.TechPoint p: getPoints())
+                out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
+        }
+        
+        Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+            Xml.NodeLayer nld = new Xml.NodeLayer();
+            nld.layer = getLayer().getNonPseudoLayer().getName();
+            nld.style = getStyle();
+            nld.portNum = getPortNum();
+            nld.inLayers = inLayers;
+            nld.inElectricalLayers = inElectricalLayers;
+            nld.representation = getRepresentation();
+            Technology.TechPoint[] points = getPoints();
+            if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+                nld.lx.k = points[0].getX().getMultiplier()*2;
+                nld.lx.value = DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2);
+                nld.hx.k = points[1].getX().getMultiplier()*2;
+                nld.hx.value = DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2);
+                nld.ly.k = points[0].getY().getMultiplier()*2;
+                nld.ly.value = DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2);
+                nld.hy.k = points[1].getY().getMultiplier()*2;
+                nld.hy.value = DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2);
+            } else {
+                for (Technology.TechPoint p: points)
+                    nld.techPoints.add(p.makeCorrection(correction));
+            }
+            nld.sizex = DBMath.round(getMulticutSizeX());
+            nld.sizey = DBMath.round(getMulticutSizeY());
+            nld.sep1d = DBMath.round(getMulticutSep1D());
+            nld.sep2d = DBMath.round(getMulticutSep2D());
+            if (isSerp) {
+                nld.lWidth = DBMath.round(getSerpentineLWidth());
+                nld.rWidth = DBMath.round(getSerpentineRWidth());
+                nld.tExtent = DBMath.round(getSerpentineExtentT());
+                nld.bExtent = DBMath.round(getSerpentineExtentB());
+            }
+            return nld;
+        }
 	}
 
     public class SizeCorrector {
@@ -1615,16 +1672,6 @@ public class Technology implements Comparable<Technology>, Serializable
             "NONELECTRICAL", "NODIRECTIONALARCS", "NONEGATEDARCS",
             "NONSTANDARD", "STATICTECHNOLOGY", "NOPRIMTECHNOLOGY"
         };
-        final String[] layerBits = {
-            null, null, null,
-            null, null, null,
-            "PTYPE", "NTYPE", "DEPLETION",
-            "ENHANCEMENT",  "LIGHT", "HEAVY",
-            null, "NONELEC", "CONMETAL",
-            "CONPOLY", "CONDIFF", null,
-            null, null, null,
-            "HLVT", "INTRANS", "THICK"
-        };
 
         out.println("Technology " + getTechName());
         out.println(getClass().toString());
@@ -1651,35 +1698,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         for (Layer layer: layers) {
             if (layer.isPseudoLayer()) continue;
-            out.print("Layer " + layer.getName() + " " + layer.getFunction().name());
-            printlnBits(out, layerBits, layer.getFunctionExtras());
-            out.print("\t"); printlnSetting(out, layer.getCIFLayerSetting());
-            out.print("\t"); printlnSetting(out, layer.getDXFLayerSetting());
-            out.print("\t"); printlnSetting(out, layer.getSkillLayerSetting());
-            out.print("\t"); printlnSetting(out, layer.getResistanceSetting());
-            out.print("\t"); printlnSetting(out, layer.getCapacitanceSetting());
-            out.print("\t"); printlnSetting(out, layer.getEdgeCapacitanceSetting());
-            // GDS
-            EGraphics desc = layer.getGraphics();
-            out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + desc.isFactoryPatternedOnDisplay() + ")");
-            out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + desc.isFactoryPatternedOnPrinter() + ")");
-            out.println("\toutlined=" + desc.getOutlined() + "(" + desc.getFactoryOutlined() + ")");
-            out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + desc.getFactoryTransparentLayer() + ")");
-            out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()) + ")");
-            out.println("\topacity=" + desc.getOpacity() + "(" + desc.getFactoryOpacity() + ")");
-            out.println("\tforeground=" + desc.getForeground());
-            int pattern[] = desc.getFactoryPattern();
-            out.print("\tpattern");
-            for (int p: pattern)
-                out.print(" " + Integer.toHexString(p));
-            out.println();
-            out.println("\tdistance3D=" + layer.getDistance());
-            out.println("\tthickness3D=" + layer.getThickness());
-            out.println("\tmode3D=" + layer.getTransparencyMode());
-            out.println("\tfactor3D=" + layer.getTransparencyFactor());
-
-            if (layer.getPseudoLayer() != null)
-                out.println("\tpseudoLayer=" + layer.getPseudoLayer().getName());
+            layer.dump(out);
         }
         for (ArcProto ap: arcs.values())
             ap.dump(out);
@@ -1791,6 +1810,131 @@ public class Technology implements Comparable<Technology>, Serializable
         for (String s: header)
             out.println("\t\"" + s + "\"");
     }
+    
+    /**
+     * Create Xml structure of this Technology
+     */
+    public Xml.Technology makeXml() {
+        Xml.Technology t = new Xml.Technology();
+        t.techName = getTechName();
+        if (getClass() != Technology.class)
+            t.className = getClass().getName();
+        t.shortTechName = getTechShortName();
+        t.description = getTechDesc();
+        Xml.Version version = new Xml.Version();
+        version.techVersion = 1;
+        version.electricVersion = Version.parseVersion("8.05g");
+        t.versions.add(version);
+        version = new Xml.Version();
+        version.techVersion = 2;
+        version.electricVersion = Version.parseVersion("8.05o");
+        t.versions.add(version);
+        XMLRules xmlRules = getFactoryDesignRules();
+        int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
+        t.scaleValue = getScaleSetting().getDoubleFactoryValue();
+        t.scaleRelevant = isScaleRelevant();
+        t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
+        t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
+        t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
+        Color[] colorMap = getFactoryColorMap();
+		for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
+            Color transparentColor = colorMap[1 << i];
+            t.transparentLayers.add(transparentColor);
+        }
+        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            if (layer.isPseudoLayer()) continue;
+            t.layers.add(layer.makeXml());
+        }
+        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            t.arcs.add(ap.makeXml(xmlRules));
+        }
+        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
+            PrimitiveNode pnp = it.next();
+            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            t.nodes.add(pnp.makeXml());
+        }
+        
+        addSpiceHeader(t, 1, getSpiceHeaderLevel1());
+        addSpiceHeader(t, 2, getSpiceHeaderLevel2());
+        addSpiceHeader(t, 3, getSpiceHeaderLevel3());
+        
+        Object[][] origPalette = getNodesGrouped(null);
+        int numRows = origPalette.length;
+        int numCols = origPalette[0].length;
+        for (Object[] row: origPalette) {
+            assert row.length == numCols;
+        }
+        t.menuPalette = new Xml.MenuPalette();
+        t.menuPalette.numColumns = numCols;
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                Object origEntry = origPalette[row][col];
+                Object newEntry = null;
+                ArrayList<Object> newBox = new ArrayList<Object>();
+                if (origEntry instanceof List) {
+                    List<?> list = (List<?>)origEntry;
+                    for (Object o: list)
+                        newBox.add(makeMenuEntry(t, o));
+                } else if (origEntry != null) {
+                    newBox.add(makeMenuEntry(t, origEntry));
+                }
+                t.menuPalette.menuBoxes.add(newBox);
+            }
+        }
+        
+        for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
+            Foundry foundry = it.next();
+            Xml.Foundry f = new Xml.Foundry();
+            f.name = foundry.toString();
+            Map<Layer,String> gdsMap = foundry.getGDSLayers();
+            for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
+                String gds = e.getValue();
+                if (gds.length() == 0) continue;
+                f.layerGds.put(e.getKey().getName(), gds);
+            }
+            List<DRCTemplate> rules = foundry.getRules();
+            if (rules != null)
+                f.rules.addAll(rules);
+            t.foundries.add(f);
+       }
+        return t;
+    }
+    
+    private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
+        if (spiceLines == null) return;
+        Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
+        spiceHeader.level = level;
+        for (String spiceLine: spiceLines)
+            spiceHeader.spiceLines.add(spiceLine);
+        t.spiceHeaders.add(spiceHeader);
+    }
+    
+    private static Object makeMenuEntry(Xml.Technology t, Object entry) {
+        if (entry instanceof ArcProto)
+            return t.findArc(((ArcProto)entry).getName());
+        if (entry instanceof PrimitiveNode)
+            return t.findNode(((PrimitiveNode)entry).getName());
+        if (entry instanceof NodeInst) {
+            NodeInst ni = (NodeInst)entry;
+            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+            n.protoName = ni.getProto().getName();
+            n.function = ni.getFunction();
+            n.rotation = ni.getOrient().getAngle();
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                n.text = (String)var.getObject();
+                n.fontSize = var.getSize().getSize();
+            }
+            return n;
+        }
+        assert entry instanceof String;
+        return entry;
+    }
+    
+    
 //	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
 //    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
 //    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;

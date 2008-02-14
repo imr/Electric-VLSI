@@ -25,10 +25,10 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -451,5 +451,29 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
             out.println("\t\tisolated=" + isolated + " negatable=" + negatable);
             for (ArcProto ap: portArcs)
                 out.println("\t\tportArc " + ap.getName());
+    }
+    
+    Xml.PrimitivePort makeXml(EPoint minFullSize) {
+        Xml.PrimitivePort ppd = new Xml.PrimitivePort();
+        ppd.name = getName();
+        ppd.portAngle = getAngle();
+        ppd.portRange = getAngleRange();
+        ppd.portTopology = getTopology();
+
+        ppd.lx.k = getLeft().getMultiplier()*2;
+        ppd.lx.value = DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2);
+        ppd.hx.k = getRight().getMultiplier()*2;
+        ppd.hx.value = DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2);
+        ppd.ly.k = getBottom().getMultiplier()*2;
+        ppd.ly.value = DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2);
+        ppd.hy.k = getTop().getMultiplier()*2;
+        ppd.hy.value = DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2);
+
+        Technology tech = parent.getTechnology();
+        for (ArcProto ap: getConnections()) {
+            if (ap.getTechnology() != tech) continue;
+            ppd.portArcs.add(ap.getName());
+        }
+        return ppd;
     }
 }

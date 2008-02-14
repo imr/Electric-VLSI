@@ -29,21 +29,21 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
-import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.io.NotSerializableException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -1274,6 +1274,54 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
                     " style=" + getLayerStyle(arcLayerIndex).name() +
                     " extend=" + getLayerLambdaExtend(arcLayerIndex));
         }
+    }
+    
+    Xml.ArcProto makeXml(XMLRules xmlRules) {
+        Xml.ArcProto a = new Xml.ArcProto();
+        a.name = getName();
+        for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {
+            if (e.getValue() != this) continue;
+            assert a.oldName == null;
+            a.oldName = e.getKey();
+        }
+        a.function = getFunction();
+        a.wipable = isWipable();
+        a.curvable = isCurvable();
+        a.special = isSpecialArc();
+        a.notUsed = isNotUsed();
+        a.skipSizeInPalette = isSkipSizeInPalette();
+
+        DRCTemplate arcSize = xmlRules.getRule(getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID);
+        double corr2 = DBMath.round(0.5*(arcSize != null ? arcSize.values[0] : getDefaultLambdaBaseWidth()));
+        if (getLambdaWidthOffset() != 0) {
+            a.diskOffset.put(Integer.valueOf(1), DBMath.round(corr2 + DBMath.gridToLambda(getGridFullExtend() - getGridBaseExtend())));
+            a.diskOffset.put(Integer.valueOf(2), corr2);
+        } else {
+            a.diskOffset.put(Integer.valueOf(2), corr2);
+        }
+//            if (ap.getLambdaWidthOffset() != 0) {
+//                a.diskOffset.put(Integer.valueOf(1), 0.5*ap.getDefaultLambdaFullWidth());
+//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaBaseWidth());
+//            } else {
+//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaFullWidth());
+//            }
+        a.defaultWidth.value = DBMath.round(getDefaultLambdaBaseWidth() - 2*corr2);
+//            if (ap.getLambdaWidthOffset() != 0)
+//                a.widthOffset.put(Integer.valueOf(1), ap.getLambdaWidthOffset());
+//            a.defaultWidth.value = 2*ap.getDefaultLambdaExtendOverMin();
+        a.extended = isExtended();
+        a.fixedAngle = isFixedAngle();
+        a.angleIncrement = getAngleIncrement();
+        a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
+        for (int arcLayerIndex = 0; arcLayerIndex < getNumArcLayers(); arcLayerIndex++) {
+            Xml.ArcLayer al = new Xml.ArcLayer();
+            al.layer = getLayer(arcLayerIndex).getName();
+            al.style = getLayerStyle(arcLayerIndex);
+            al.extend.value = DBMath.round(getLayerLambdaExtend(arcLayerIndex) + DBMath.round(corr2 - DBMath.gridToLambda(getGridBaseExtend())));
+//                al.extend.value = ap.getLayerLambdaExtend(arcLayerIndex);
+            a.arcLayers.add(al);
+        }
+        return a;
     }
     
     /**

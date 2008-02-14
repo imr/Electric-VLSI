@@ -1732,20 +1732,101 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
     
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
-        for (Technology.NodeLayer nl: layers) {
-            out.println("\tlayer=" + nl.getLayerOrPseudoLayer().getName() + " port=" + nl.getPortNum() + " style=" + nl.getStyle().name() + " repr=" + nl.getRepresentation());
-            if (nl.getMessage() != null) {
-                TextDescriptor td = nl.getDescriptor();
-                out.println("\t\tmessage=\"" + nl.getMessage() + "\" td=" + Long.toHexString(td.lowLevelGet()) + " colorIndex=" + td.getColorIndex() + " disp=" + td.isDisplay());
-            }
-            if (nl.getMulticutSizeX() != 0 || nl.getMulticutSizeY() != 0 || nl.getMulticutSep1D() != 0 || nl.getMulticutSep2D() != 0)
-                out.println("\t\tmultiSizeX=" + nl.getMulticutSizeX() + " multiSizeY=" + nl.getMulticutSizeY() + " multiSep=" + nl.getMulticutSep1D() + " multiSpe2D=" + nl.getMulticutSep2D());
-            
-            if (isSerp)
-                out.println("\t\tLWidth=" + nl.getSerpentineLWidth() + " rWidth=" + nl.getSerpentineRWidth() + " bExtend=" + nl.getSerpentineExtentB() + " tExtend=" + nl.getSerpentineExtentT());
-            for (Technology.TechPoint p: nl.getPoints())
-                out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
+        for (Technology.NodeLayer nl: layers)
+            nl.dump(out, isSerp);
+    }
+    
+    Xml.PrimitiveNode makeXml() {
+        Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+        n.name = getName();
+        for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+            if (e.getValue() != this) continue;
+            assert n.oldName == null;
+            n.oldName = e.getKey();
         }
+        n.function = getFunction();
+        n.shrinkArcs = isArcsShrink();
+        n.square = isSquare();
+        n.canBeZeroSize = isCanBeZeroSize();
+        n.wipes = isWipeOn1or2();
+        n.lockable = isLockedPrim();
+        n.edgeSelect = isEdgeSelect();
+        n.skipSizeInPalette = isSkipSizeInPalette();
+        n.notUsed = isNotUsed();
+        n.lowVt = isNodeBitOn(PrimitiveNode.LOWVTBIT);
+        n.highVt = isNodeBitOn(PrimitiveNode.HIGHVTBIT);
+        n.nativeBit  = isNodeBitOn(PrimitiveNode.NATIVEBIT);
+        n.od18 = isNodeBitOn(PrimitiveNode.OD18BIT);
+        n.od25 = isNodeBitOn(PrimitiveNode.OD25BIT);
+        n.od33 = isNodeBitOn(PrimitiveNode.OD33BIT);
+
+        PrimitiveNode.NodeSizeRule nodeSizeRule = getMinSizeRule();
+        EPoint minFullSize = nodeSizeRule != null ?
+            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
+            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
+        if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
+            assert getNumPorts() == 1;
+            assert nodeSizeRule == null;
+            PrimitivePort pp = getPort(0);
+            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
+            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
+            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
+        }
+//            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+        SizeOffset so = getProtoSizeOffset();
+        if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+            so = null;
+//            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
+        if (so != null) {
+            EPoint p2 = EPoint.fromGrid(
+                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
+                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
+            n.diskOffset.put(Integer.valueOf(1), minFullSize);
+            n.diskOffset.put(Integer.valueOf(2), p2);
+        } else {
+            n.diskOffset.put(Integer.valueOf(2), minFullSize);
+        }
+        n.defaultWidth.value = DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX());
+        n.defaultHeight.value = DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY());
+//            if (so != null) {
+//                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
+//                n.diskOffset.put(Integer.valueOf(1), p1);
+//                n.diskOffset.put(Integer.valueOf(2), EPoint.ORIGIN);
+//            } else {
+//            }
+//            n.defaultWidth.value = DBMath.round(pnp.getDefWidth());
+//            n.defaultHeight.value = DBMath.round(pnp.getDefHeight());
+        n.sizeOffset = so;
+
+        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
+        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
+        if (getElectricalLayers() != null)
+            electricalNodeLayers = Arrays.asList(getElectricalLayers());
+        boolean isSerp = getSpecialType() == PrimitiveNode.SERPTRANS;
+        int m = 0;
+        for (Technology.NodeLayer nld: electricalNodeLayers) {
+            int j = nodeLayers.indexOf(nld);
+            if (j < 0) {
+                n.nodeLayers.add(nld.makeXml(isSerp, minFullSize, false, true));
+                continue;
+            }
+            while (m < j)
+                n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, true));
+        }
+        while (m < nodeLayers.size())
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+        
+        for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
+            PrimitivePort pp = pit.next();
+            n.ports.add(pp.makeXml(minFullSize));
+        }
+        n.specialType = getSpecialType();
+        if (getSpecialValues() != null)
+            n.specialValues = getSpecialValues().clone();
+        n.nodeSizeRule = getMinSizeRule();
+        n.spiceTemplate = getSpiceTemplate();
+        return n;
     }
     
 	/**

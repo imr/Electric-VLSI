@@ -317,7 +317,9 @@ public class EditMenu {
                 new EMenuItem("Write XML of this Technology") { public void run()
                 {
                     Technology tech = Technology.getCurrent();
-                    Xml.Technology xmlTech = Xml.makeXml(tech);
+                    Xml.Technology xmlTech = tech.getXmlTech();
+                    if (xmlTech == null)
+                        xmlTech = tech.makeXml();
                     xmlTech.writeXml(tech.getTechName() + ".xml");
                 }},
                 SEPARATOR,
