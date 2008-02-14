@@ -2083,8 +2083,8 @@ public class TechEditWizardData
 	{
         if (v < 0)
             System.out.println("Negative distance of " + v + " in the tech editor wizard");
-        long rounded = Math.round(v);
-		if (Math.abs(rounded-v) < 0.001) return rounded + ".0";
+//        long rounded = Math.round(v);
+//		if (Math.abs(rounded-v) < 0.001) return rounded + ".0";
         double roundedV = DBMath.round(v);
         return roundedV + "";
 	}
