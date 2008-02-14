@@ -26,6 +26,8 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -1341,7 +1343,7 @@ public class TechEditWizardData
 			pw.println("        <fixedAngle>true</fixedAngle>");
 			pw.println("        <angleIncrement>90</angleIncrement>");
 			pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
-//			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
+			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
 
 			for(String each : h)
 			{
@@ -2082,6 +2084,7 @@ public class TechEditWizardData
 	{
 		long rounded = Math.round(v);
 		if (Math.abs(rounded-v) < 0.001) return rounded + ".0";
-		return v + "";
+        double roundedV = DBMath.round(v);
+        return roundedV + "";
 	}
 }
