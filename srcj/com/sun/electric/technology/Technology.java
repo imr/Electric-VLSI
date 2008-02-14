@@ -1452,7 +1452,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         } catch (Exception e) {
             System.out.println("Can't load extra technology: " + urlXml);
-            ActivityLogger.logException(e);
+            ActivityLogger.logException(e.getCause() != null ? e.getCause() : e);
         } finally {
             Pref.resumePrefFlushing();
         }

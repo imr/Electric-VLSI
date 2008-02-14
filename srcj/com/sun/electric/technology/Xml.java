@@ -413,30 +413,43 @@ public class Xml {
         schema = schemaFactory.newSchema(technologySchemaUrl);
     }
     
-    public static Technology parseTechnology(URL fileURL)
-            throws ParserConfigurationException, SAXException, IOException  {
+    public static Technology parseTechnology(URL fileURL) {
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
-        if (schema == null)
-            loadTechnologySchema();
-        factory.setSchema(schema);
-//        factory.setValidating(true);
-//        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
-        // create the parser
-        long startTime = System.currentTimeMillis();
-        SAXParser parser = factory.newSAXParser();
-        URLConnection urlCon = fileURL.openConnection();
-        InputStream inputStream = urlCon.getInputStream();
+        try {
+            if (schema == null)
+                loadTechnologySchema();
+            factory.setSchema(schema);
+    //        factory.setValidating(true);
+    //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
+            // create the parser
+            long startTime = System.currentTimeMillis();
+            SAXParser parser = factory.newSAXParser();
+            URLConnection urlCon = fileURL.openConnection();
+            InputStream inputStream = urlCon.getInputStream();
 
-        XMLReader handler = new XMLReader(fileURL);
-        parser.parse(inputStream, handler);
-        if (Job.getDebug())
-        {
-            long stopTime = System.currentTimeMillis();
-            System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
+            XMLReader handler = new XMLReader();
+            parser.parse(inputStream, handler);
+            if (Job.getDebug())
+            {
+                long stopTime = System.currentTimeMillis();
+                System.out.println("Loading technology " + fileURL + " ... " + (stopTime - startTime) + " msec");
+            }
+            return handler.tech;
+        } catch (SAXParseException e) {
+            String msg = "Error parsing Xml technology:\n" +
+                    e.getMessage() + "\n" +
+                    " Line " + e.getLineNumber() + " column " + e.getColumnNumber() + " of " + fileURL;
+            System.out.println(msg);
+            Job.getUserInterface().showErrorMessage(msg, "Error parsing Xml technology");
+        } catch (Exception e) {
+            String msg = "Error loading Xml technology " + fileURL + " :\n"
+                   + e.getMessage() + "\n";
+            System.out.println(msg);
+            Job.getUserInterface().showErrorMessage(msg, "Error loading Xml technology");
         }
-        return handler.tech;
+        return null;
     }
 
     /**
@@ -469,7 +482,6 @@ public class Xml {
 
     private static class XMLReader extends DefaultHandler {
         private static boolean DEBUG = false;
-        private URL fileURL;
         private Locator locator;
 
         private Xml.Technology tech = new Xml.Technology();
@@ -501,8 +513,7 @@ public class Xml {
         private StringBuilder charBuffer = new StringBuilder();
         private Attributes attributes;
 
-        XMLReader(URL fileURL) {
-            this.fileURL = fileURL;
+        XMLReader() {
         }
 
         XMLReader(List<PrimitiveNode> nodes, List<ArcProto> arcs)
@@ -1497,8 +1508,6 @@ public class Xml {
          */
         public void error(SAXParseException e)
         throws SAXException {
-            System.out.println("Error parsing Xml technology: " + e.getMessage() +
-                    " in line " + e.getLineNumber() + " column " + e.getColumnNumber() + " of " + fileURL);
             throw e;
         }
 
