@@ -8,7 +8,7 @@
  * nmos technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="NM"/>
         <parasitics resistance="0.03" capacitance="0.03" edgeCapacitance="0.0"/>
         <pureLayerNode name="Metal-Node" port="metal">
@@ -125,7 +125,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="9" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="9.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="NP"/>
         <parasitics resistance="50.0" capacitance="0.04" edgeCapacitance="0.0"/>
         <pureLayerNode name="Polysilicon-Node" port="polysilicon">
@@ -157,7 +157,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="7.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="ND"/>
         <parasitics resistance="10.0" capacitance="0.1" edgeCapacitance="0.0"/>
         <pureLayerNode name="Diffusion-Node" port="diffusion">
@@ -189,7 +189,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="NI"/>
         <pureLayerNode name="Implant-Node" port="implant">
             <lambda>2.0</lambda>
@@ -219,7 +219,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="9" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="9.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="NC"/>
         <pureLayerNode name="Cut-Node" style="CROSSED" port="cut">
             <lambda>2.0</lambda>
@@ -249,7 +249,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="NB"/>
         <pureLayerNode name="Buried-Node" port="buried">
             <lambda>2.0</lambda>
@@ -279,7 +279,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="13" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="NG"/>
         <pureLayerNode name="Overglass-Node" port="overglass">
             <lambda>2.0</lambda>
@@ -309,7 +309,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="NJ"/>
         <pureLayerNode name="Light-Implant-Node" port="light-implant">
             <lambda>2.0</lambda>
@@ -339,7 +339,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-         <display3D thick="1" height="12" mode="NONE" factor="0.2"/>
+        <display3D thick="1.0" height="12.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="NO"/>
         <pureLayerNode name="Oversize-Cut-Node" style="CLOSED" port="oversize-contact">
             <lambda>2.0</lambda>
@@ -369,7 +369,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="NE"/>
         <pureLayerNode name="Hard-Enhancement-Node" port="hard-enhancement">
             <lambda>2.0</lambda>
@@ -399,7 +399,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="NF"/>
         <pureLayerNode name="Light-Enhancement-Node" port="light-enhancement">
             <lambda>2.0</lambda>
@@ -752,7 +752,7 @@
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Implant" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Implant" style="FILLED" portNum="-1">
             <serpbox lWidth="2.5" rWidth="2.5" tExtent="1.5" bExtent="1.5">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
             </serpbox>

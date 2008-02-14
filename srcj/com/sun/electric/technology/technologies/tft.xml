@@ -8,7 +8,7 @@
  * tft technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,7 +152,6 @@
         <cifLayer cif="CPG"/>
         <pureLayerNode name="HiK-Node" port="polysilicon">
             <lambda>4.0</lambda>
-            <!--portArc>HiK</portArc-->
         </pureLayerNode>
     </layer>
 
@@ -182,7 +181,6 @@
         <cifLayer cif="CSP"/>
         <pureLayerNode name="Pent-Node" port="P2">
             <lambda>2.0</lambda>
-            <!--portArc>Pent</portArc-->
         </pureLayerNode>
     </layer>
 
@@ -212,7 +210,6 @@
         <cifLayer cif="CVA"/>
         <pureLayerNode name="Via1-Node" port="active">
             <lambda>4.0</lambda>
-            <!--portArc>Via1</portArc-->
         </pureLayerNode>
     </layer>
 
@@ -455,7 +452,7 @@
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
         <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
-        <nodeLayer layer="Metal-1" style="FILLED" portNum="0">
+        <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
             </box>
@@ -558,14 +555,14 @@
             <portAngle primary="0" range="180"/>
             <portTopology>1</portTopology>
             <box khy="-1.0">
-                <lambdaBox klx="0" khx="0" kly="-1.5" khy="-1.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="-1.5" khy="-1.5"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
         <primitivePort name="trans-met1-right">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
-            <box khx="1.0">
+            <box>
                 <lambdaBox klx="5.0" khx="5.0" kly="0.0" khy="0.0"/>
             </box>
             <portArc>Metal_1</portArc>
@@ -574,7 +571,7 @@
             <portAngle primary="0" range="180"/>
             <portTopology>2</portTopology>
             <box kly="1.0">
-                <lambdaBox klx="0" khx="0" kly="1.5" khy="1.5"/>
+                <lambdaBox klx="0.0" khx="0.0" kly="1.5" khy="1.5"/>
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
@@ -620,7 +617,7 @@
     </menuPalette>
 
     <Foundry name="NONE">
-        
+
         <layerGds layer="Metal-1" gds="49"/>
         <layerGds layer="Metal-2" gds="51"/>
         <layerGds layer="HiK" gds="46"/>
@@ -638,9 +635,8 @@
         <LayerRule ruleName="3.1" layerName="Pent" type="MINWID" when="ALL" value="4.0"/>
         <LayerRule ruleName="4.1" layerName="Via1" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="4.2" layerNames="{Via1,Via1}" type="UCONSPA" when="ALL" value="2.0"/>
-        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/> 
+        <LayerRule ruleName="5.1" layerName="Metal-2" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="5.2" layerNames="{Metal-2,Metal-2}" type="UCONSPA" when="ALL" value="1.0"/>
         <LayerRule ruleName="6.1" layerName="Passivation" type="MINWID" when="ALL" value="9.0"/>
-
     </Foundry>
 </technology>

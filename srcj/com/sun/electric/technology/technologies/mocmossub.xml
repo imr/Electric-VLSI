@@ -8,7 +8,7 @@
  * mocmossub technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -349,7 +349,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="13.0" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <parasitics resistance="2.5" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="Active-Node" port="active">
@@ -383,7 +383,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="13.0" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <parasitics resistance="3.0" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="N-Active-Node" port="active">
@@ -417,7 +417,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="3" height="12.0" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="3.0" height="12.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSP"/>
         <pureLayerNode name="P-Select-Node" port="select">
             <lambda>4.0</lambda>
@@ -447,7 +447,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="3" height="12.0" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="3.0" height="12.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSN"/>
         <pureLayerNode name="N-Select-Node" port="select">
             <lambda>4.0</lambda>
@@ -477,7 +477,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="4" height="11.0" mode="NICEST" factor="0.8"/>
+        <display3D thick="4.0" height="11.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CWP"/>
         <pureLayerNode name="P-Well-Node" port="well">
             <lambda>12.0</lambda>
@@ -508,7 +508,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="4" height="11.0" mode="NICEST" factor="0.8"/>
+        <display3D thick="4.0" height="11.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CWN"/>
         <pureLayerNode name="N-Well-Node" port="well">
             <lambda>12.0</lambda>
@@ -1438,12 +1438,12 @@
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
@@ -1514,12 +1514,12 @@
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>

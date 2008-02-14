@@ -8,7 +8,7 @@
  * mocmos technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1559,12 +1559,12 @@
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="1" electrical="true">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="3" electrical="true">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="3" electrical="true">
             <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
             </serpbox>
@@ -1584,7 +1584,7 @@
                 <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="1" electrical="false">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1594,12 +1594,12 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
@@ -1651,12 +1651,12 @@
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="1" electrical="true">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="3" electrical="true">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="3" electrical="true">
             <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
             </serpbox>
@@ -1676,7 +1676,7 @@
                 <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="1" electrical="false">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1686,12 +1686,12 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
@@ -1745,12 +1745,12 @@
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="1" electrical="true">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="3" electrical="true">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="3" electrical="true">
             <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
             </serpbox>
@@ -1770,7 +1770,7 @@
                 <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="1" electrical="false">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1780,17 +1780,17 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Thick-Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Thick-Active" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
@@ -1844,12 +1844,12 @@
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="1" electrical="true">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="3" electrical="true">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="3" electrical="true">
             <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
             </serpbox>
@@ -1869,7 +1869,7 @@
                 <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="1" electrical="false">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="false">
             <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </serpbox>
@@ -1879,17 +1879,17 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
             <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Thick-Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Thick-Active" style="FILLED" portNum="-1">
             <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
                 <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
             </serpbox>
@@ -1941,27 +1941,27 @@
         <diskOffset untilVersion="1" x="8.5" y="13.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="7.0" hx="7.0" ly="12.0" hy="12.0"/>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="1">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="7.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="1">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="6.5" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="3">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.0" khy="-7.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="3">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.5" khy="-6.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Active" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </box>
@@ -1971,22 +1971,22 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-8.5" khx="8.5" kly="-13.0" khy="13.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-4.5" khx="4.5" kly="-9.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
             <box khx="-1.0" khy="-1.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.5" khy="-5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
             <box khx="-1.0" kly="1.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="5.5" khy="3.5"/>
             </box>
@@ -2032,27 +2032,27 @@
         <diskOffset untilVersion="1" x="8.5" y="13.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <sizeOffset lx="7.0" hx="7.0" ly="12.0" hy="12.0"/>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="1">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="7.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="1">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="6.5" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="3">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.0" khy="-7.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="3">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.5" khy="-6.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
             </box>
@@ -2062,22 +2062,22 @@
                 <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-8.5" khx="8.5" kly="-13.0" khy="13.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-4.5" khx="4.5" kly="-9.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
             <box khx="-1.0" khy="-1.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.5" khy="-5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
             <box khx="-1.0" kly="1.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="5.5" khy="3.5"/>
             </box>
@@ -2125,107 +2125,107 @@
         <diskOffset untilVersion="1" x="28.0" y="24.0"/>
         <diskOffset untilVersion="2" x="15.0" y="11.0"/>
         <sizeOffset lx="13.0" hx="13.0" ly="13.0" hy="13.0"/>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox klx="1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="22.0" khx="22.0" kly="-16.0" khy="16.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="2">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="19.0" khx="25.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="19.0" khx="25.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="17.0" khx="28.0" kly="-13.0" khy="13.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox khx="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="-22.0" khx="-22.0" kly="-16.0" khy="16.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="2">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="2">
             <box khx="-1.0">
                 <lambdaBox klx="-25.0" khx="-19.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="2">
             <box khx="-1.0">
                 <lambdaBox klx="-25.0" khx="-19.0" kly="-21.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="2">
             <box khx="-1.0">
                 <lambdaBox klx="-28.0" khx="-17.0" kly="-13.0" khy="13.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox khx="0.0" khy="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="-17.0" khx="-13.0" kly="-18.0" khy="-18.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="2">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="2">
             <box khx="0.0" khy="-1.0">
                 <lambdaBox klx="-19.0" khx="-10.0" kly="-21.0" khy="-15.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox klx="0.0" khy="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="13.0" khx="17.0" kly="-18.0" khy="-18.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="2">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="2">
             <box klx="0.0" khy="-1.0">
                 <lambdaBox klx="10.0" khx="19.0" kly="-21.0" khy="-15.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="2">
             <box khy="-1.0">
                 <lambdaBox klx="-19.0" khx="19.0" kly="-21.0" khy="-15.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="2">
             <box khy="-1.0">
                 <lambdaBox klx="-28.0" khx="28.0" kly="-24.0" khy="-13.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox kly="1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="-17.0" khx="17.0" kly="18.0" khy="18.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="2">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="2">
             <box kly="1.0">
                 <lambdaBox klx="-19.0" khx="19.0" kly="15.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Active" style="FILLED" portNum="2">
             <box kly="1.0">
                 <lambdaBox klx="-19.0" khx="19.0" kly="15.0" khy="21.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="2">
             <box kly="1.0">
                 <lambdaBox klx="-28.0" khx="28.0" kly="13.0" khy="24.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED"  portNum="1">
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="1">
             <multicutbox khx="0.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="-6.0" khx="-6.0" kly="0.0" khy="0.0"/>
             </multicutbox>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED"  portNum="1">
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="1">
             <box khx="0.0">
                 <lambdaBox klx="-9.0" khx="-3.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED"  portNum="1">
+        <nodeLayer layer="N-Select" style="FILLED" portNum="1">
             <box khx="0.0">
                 <lambdaBox klx="-9.0" khx="-3.0" kly="-3.0" khy="3.0"/>
             </box>
@@ -2245,12 +2245,12 @@
                 <lambdaBox klx="3.0" khx="9.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P-Base" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P-Base" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-15.0" khx="15.0" kly="-11.0" khy="11.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-28.0" khx="28.0" kly="-24.0" khy="24.0"/>
             </box>

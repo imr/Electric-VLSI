@@ -8,7 +8,7 @@
  * bicmos technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMF"/>
         <pureLayerNode name="M1_Node" port="metal-1">
             <lambda>4.0</lambda>
@@ -123,7 +123,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="12" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="12.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMS"/>
         <pureLayerNode name="M2_Node" port="metal-2">
             <lambda>4.0</lambda>
@@ -154,7 +154,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="9" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="9.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPG"/>
         <pureLayerNode name="Poly1_Node" port="polysilicon">
             <lambda>4.0</lambda>
@@ -185,7 +185,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="10" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="10.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CEL"/>
         <pureLayerNode name="Poly2_Node" port="P2">
             <lambda>2.0</lambda>
@@ -216,7 +216,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="7.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CAA"/>
         <pureLayerNode name="Active_Node" port="active">
             <lambda>4.0</lambda>
@@ -310,7 +310,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="9" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="9.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCA"/>
         <pureLayerNode name="Active_Cut_Node" port="activecut">
             <lambda>2.0</lambda>
@@ -340,7 +340,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVA"/>
         <pureLayerNode name="Via_Node" style="CLOSED" port="via">
             <lambda>2.0</lambda>
@@ -370,7 +370,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSP"/>
         <pureLayerNode name="P_Select_Node" style="CLOSED" port="select">
             <lambda>6.0</lambda>
@@ -400,7 +400,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSN"/>
         <pureLayerNode name="N_Select_Node" style="CLOSED" port="N_Select">
             <lambda>4.0</lambda>
@@ -430,7 +430,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="9" height="0" mode="NICEST" factor="0.8"/>
+        <display3D thick="9.0" height="0.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CWN"/>
         <pureLayerNode name="N_Well_Node" port="well">
             <lambda>6.0</lambda>
@@ -461,7 +461,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="1" height="13" mode="NONE" factor="0.2"/>
+        <display3D thick="1.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="XP"/>
         <pureLayerNode name="Pad_Frame_Node" style="CLOSED" port="pad-frame">
             <lambda>8.0</lambda>
@@ -516,7 +516,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="7.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CBA"/>
         <pureLayerNode name="P_Base_Active_Node" port="P_Base">
             <lambda>4.0</lambda>
@@ -546,7 +546,7 @@
         <outlined>PAT_S</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CCD"/>
         <pureLayerNode name="BCCD_Node" port="BCCD">
             <lambda>4.0</lambda>
@@ -576,7 +576,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="9" height="0" mode="NICEST" factor="0.8"/>
+        <display3D thick="9.0" height="0.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CAA"/>
         <pureLayerNode name="Ohmic_Substrate" port="Ohmic_Substrate">
             <lambda>4.0</lambda>
@@ -635,7 +635,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="1" height="13" mode="NONE" factor="0.2"/>
+        <display3D thick="1.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="COG"/>
         <pureLayerNode name="Passivation_Node" style="CLOSED" port="passivation">
             <lambda>8.0</lambda>
@@ -1054,12 +1054,12 @@
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="P_Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P_Select" style="FILLED" portNum="-1">
             <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-5.0" khy="5.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Well" style="FILLED" portNum="-1">
             <serpbox lWidth="8.0" rWidth="8.0" tExtent="5.0" bExtent="5.0">
                 <lambdaBox klx="-6.0" khx="6.0" kly="-8.0" khy="8.0"/>
             </serpbox>
@@ -1130,7 +1130,7 @@
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="-1">
             <serpbox lWidth="5.0" rWidth="5.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-5.0" khy="5.0"/>
             </serpbox>
@@ -1196,17 +1196,17 @@
                 <lambdaBox klx="12.0" khx="16.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="1">
+        <nodeLayer layer="M1" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-10.0" khx="-6.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="2">
+        <nodeLayer layer="M1" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="1.0" khx="5.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="3">
+        <nodeLayer layer="M1" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-20.0" khx="-16.0" kly="-2.0" khy="2.0"/>
             </box>
@@ -1216,17 +1216,17 @@
                 <lambdaBox klx="11.0" khx="17.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="-4.0" khy="4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="1">
+        <nodeLayer layer="Active" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-11.0" khx="-5.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="3">
+        <nodeLayer layer="Active" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-21.0" khx="-15.0" kly="-3.0" khy="3.0"/>
             </box>
@@ -1236,17 +1236,17 @@
                 <lambdaBox klx="13.0" khx="15.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-19.0" khx="-17.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-9.0" khx="-7.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="2.0" khx="4.0" kly="-1.0" khy="1.0"/>
             </box>
@@ -1256,27 +1256,27 @@
                 <lambdaBox klx="11.0" khx="17.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Select" style="FILLED"  portNum="1">
+        <nodeLayer layer="P_Select" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-11.0" khx="-5.0" kly="-3.0" khy="3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="-4.0" khy="4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="CLOSED"  portNum="3">
+        <nodeLayer layer="N_Select" style="CLOSED" portNum="3">
             <box>
                 <lambdaBox klx="-23.0" khx="-13.0" kly="-5.0" khy="5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Well" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-21.0" khx="23.0" kly="-12.0" khy="12.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P_Base_Active" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-11.0" khx="17.0" kly="-6.0" khy="6.0"/>
             </box>
@@ -1322,37 +1322,37 @@
                 <lambdaBox klx="-10.0" khx="-6.0" kly="-8.0" khy="-4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="6">
+        <nodeLayer layer="M1" style="FILLED" portNum="6">
             <box>
                 <lambdaBox klx="12.0" khx="16.0" kly="4.0" khy="8.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="1">
+        <nodeLayer layer="M1" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="1.0" khx="5.0" kly="4.0" khy="8.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="3">
+        <nodeLayer layer="M1" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-20.0" khx="-16.0" kly="-8.0" khy="-4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="2">
+        <nodeLayer layer="M1" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-10.0" khx="-6.0" kly="4.0" khy="8.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="5">
+        <nodeLayer layer="M1" style="FILLED" portNum="5">
             <box>
                 <lambdaBox klx="1.0" khx="5.0" kly="-8.0" khy="-4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="7">
+        <nodeLayer layer="M1" style="FILLED" portNum="7">
             <box>
                 <lambdaBox klx="12.0" khx="16.0" kly="-8.0" khy="-4.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="M1" style="FILLED"  portNum="4">
+        <nodeLayer layer="M1" style="FILLED" portNum="4">
             <box>
                 <lambdaBox klx="-20.0" khx="-16.0" kly="4.0" khy="8.0"/>
             </box>
@@ -1362,37 +1362,37 @@
                 <lambdaBox klx="-11.0" khx="-5.0" kly="-9.0" khy="-3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="6">
+        <nodeLayer layer="Active" style="FILLED" portNum="6">
             <box>
                 <lambdaBox klx="11.0" khx="17.0" kly="3.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="1">
+        <nodeLayer layer="Active" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="2.0" khy="10.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-11.0" khx="-5.0" kly="3.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="4">
+        <nodeLayer layer="Active" style="FILLED" portNum="4">
             <box>
                 <lambdaBox klx="-21.0" khx="-15.0" kly="3.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="7">
+        <nodeLayer layer="Active" style="FILLED" portNum="7">
             <box>
                 <lambdaBox klx="11.0" khx="17.0" kly="-9.0" khy="-3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="5">
+        <nodeLayer layer="Active" style="FILLED" portNum="5">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="-10.0" khy="-2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active" style="FILLED"  portNum="3">
+        <nodeLayer layer="Active" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-21.0" khx="-15.0" kly="-9.0" khy="-3.0"/>
             </box>
@@ -1402,37 +1402,37 @@
                 <lambdaBox klx="-9.0" khx="-7.0" kly="-7.0" khy="-5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="2">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-9.0" khx="-7.0" kly="5.0" khy="7.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="5">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="5">
             <box>
                 <lambdaBox klx="2.0" khx="4.0" kly="-7.0" khy="-5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="6">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="6">
             <box>
                 <lambdaBox klx="13.0" khx="15.0" kly="5.0" khy="7.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="1">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="2.0" khx="4.0" kly="5.0" khy="7.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="7">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="7">
             <box>
                 <lambdaBox klx="13.0" khx="15.0" kly="-7.0" khy="-5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="3">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-19.0" khx="-17.0" kly="-7.0" khy="-5.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Active_Cut" style="FILLED"  portNum="4">
+        <nodeLayer layer="Active_Cut" style="FILLED" portNum="4">
             <box>
                 <lambdaBox klx="-19.0" khx="-17.0" kly="5.0" khy="7.0"/>
             </box>
@@ -1442,47 +1442,47 @@
                 <lambdaBox klx="-11.0" khx="-5.0" kly="-9.0" khy="-3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Select" style="FILLED"  portNum="6">
+        <nodeLayer layer="P_Select" style="FILLED" portNum="6">
             <box>
                 <lambdaBox klx="11.0" khx="17.0" kly="3.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Select" style="FILLED"  portNum="7">
+        <nodeLayer layer="P_Select" style="FILLED" portNum="7">
             <box>
                 <lambdaBox klx="11.0" khx="17.0" kly="-9.0" khy="-3.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Select" style="FILLED"  portNum="2">
+        <nodeLayer layer="P_Select" style="FILLED" portNum="2">
             <box>
                 <lambdaBox klx="-11.0" khx="-5.0" kly="3.0" khy="9.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="4">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="4">
             <box>
                 <lambdaBox klx="-23.0" khx="-13.0" kly="1.0" khy="11.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="3">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="3">
             <box>
                 <lambdaBox klx="-23.0" khx="-13.0" kly="-11.0" khy="-1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="1">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="2.0" khy="10.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Select" style="FILLED"  portNum="5">
+        <nodeLayer layer="N_Select" style="FILLED" portNum="5">
             <box>
                 <lambdaBox klx="-1.0" khx="7.0" kly="-10.0" khy="-2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Well" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Well" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-21.0" khx="23.0" kly="-18.0" khy="18.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="P_Base_Active" style="FILLED"  portNum="-1">
+        <nodeLayer layer="P_Base_Active" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-11.0" khx="17.0" kly="-12.0" khy="12.0"/>
             </box>

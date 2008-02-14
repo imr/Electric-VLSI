@@ -8,7 +8,7 @@
  * bipolar technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="11" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="11.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="IM1"/>
         <pureLayerNode name="Metal1_Node" port="metal1">
             <lambda>2.0</lambda>
@@ -123,7 +123,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="12" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="12.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="IM2"/>
         <pureLayerNode name="Metal2_Node" port="metal2">
             <lambda>2.0</lambda>
@@ -154,7 +154,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="INP"/>
         <pureLayerNode name="NPImplant_Node" port="NPimplant">
             <lambda>2.0</lambda>
@@ -184,7 +184,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IPP"/>
         <pureLayerNode name="PPImplant_Node" port="PPimplant">
             <lambda>2.0</lambda>
@@ -214,7 +214,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.5" height="9" mode="NONE" factor="0.2"/>
+        <display3D thick="0.5" height="9.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="IP"/>
         <pureLayerNode name="Poly_Def_Node" port="poly-def">
             <lambda>2.0</lambda>
@@ -244,7 +244,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IF"/>
         <pureLayerNode name="Field_Implant_Node" style="CLOSED" port="field">
             <lambda>4.0</lambda>
@@ -303,7 +303,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="IS"/>
         <pureLayerNode name="Sink_Implant_Node" style="CLOSED" port="sink-implant">
             <lambda>4.0</lambda>
@@ -333,7 +333,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="5" height="4" mode="SCREEN_DOOR" factor="0.4"/>
+        <display3D thick="5.0" height="4.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="INM"/>
         <pureLayerNode name="N_Implant_Node" style="CLOSED" port="N-implant">
             <lambda>4.0</lambda>
@@ -452,7 +452,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="1" height="13" mode="NONE" factor="0.2"/>
+        <display3D thick="1.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="ISP"/>
         <pureLayerNode name="Scratch_Protection_Node" port="scratch-protection">
             <lambda>4.0</lambda>
@@ -482,7 +482,7 @@
         <outlined>NOPAT</outlined>
         <opacity>0.8</opacity>
         <foreground>true</foreground>
-        <display3D thick="2" height="7" mode="NONE" factor="0.2"/>
+        <display3D thick="2.0" height="7.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="IB"/>
         <pureLayerNode name="Buried_Node" style="CLOSED" port="buried">
             <lambda>4.0</lambda>
@@ -733,12 +733,12 @@
         <diskOffset untilVersion="1" x="2.5" y="3.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="Silicide_Exclusion" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Silicide_Exclusion" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box khy="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-1.5" khy="0.0"/>
             </box>
@@ -748,7 +748,7 @@
                 <lambdaBox klx="-1.5" khx="1.5" kly="0.0" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Poly_Definition" style="FILLED"  portNum="1">
+        <nodeLayer layer="Poly_Definition" style="FILLED" portNum="1">
             <box khy="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-2.5" khy="0.0"/>
             </box>
@@ -758,7 +758,7 @@
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="3.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="NPImplant" style="FILLED"  portNum="1">
+        <nodeLayer layer="NPImplant" style="FILLED" portNum="1">
             <box khy="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-3.5" khy="0.0"/>
             </box>
@@ -785,7 +785,7 @@
         <diskOffset untilVersion="1" x="2.5" y="3.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
-        <nodeLayer layer="Silicide_Exclusion" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
             </box>
@@ -795,12 +795,12 @@
                 <lambdaBox klx="-1.5" khx="1.5" kly="0.0" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Silicide_Exclusion" style="FILLED"  portNum="-1">
+        <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box khy="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-1.5" khy="0.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Poly_Definition" style="FILLED"  portNum="1">
+        <nodeLayer layer="Poly_Definition" style="FILLED" portNum="1">
             <box khy="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="-2.5" khy="0.0"/>
             </box>
@@ -810,17 +810,17 @@
                 <lambdaBox klx="-2.5" khx="2.5" kly="1.5" khy="3.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Implant" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Implant" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="N_Implant" style="FILLED"  portNum="-1">
+        <nodeLayer layer="N_Implant" style="FILLED" portNum="-1">
             <box khy="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.0" khy="0.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="NPImplant" style="FILLED"  portNum="1">
+        <nodeLayer layer="NPImplant" style="FILLED" portNum="1">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-3.5" khy="-1.5"/>
             </box>
@@ -857,22 +857,22 @@
                 <lambdaBox klx="-6.5" khx="-2.5" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Poly_Definition" style="FILLED"  portNum="1">
+        <nodeLayer layer="Poly_Definition" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="0.0" khx="2.0" kly="-2.5" khy="2.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Isolation" style="FILLED"  portNum="1">
+        <nodeLayer layer="Isolation" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-1.0" khx="3.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Isolation" style="FILLED"  portNum="2">
+        <nodeLayer layer="Isolation" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="3.0" khx="6.5" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Poly_Definition" style="FILLED"  portNum="2">
+        <nodeLayer layer="Poly_Definition" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="4.0" khx="7.0" kly="-2.5" khy="2.5"/>
             </box>
@@ -892,22 +892,22 @@
                 <lambdaBox klx="-10.0" khx="-1.0" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="NPImplant" style="FILLED"  portNum="1">
+        <nodeLayer layer="NPImplant" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-1.0" khx="3.0" kly="-3.5" khy="3.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Field_Implant" style="FILLED"  portNum="1">
+        <nodeLayer layer="Field_Implant" style="FILLED" portNum="1">
             <box>
                 <lambdaBox klx="-1.0" khx="3.0" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Field_Implant" style="FILLED"  portNum="2">
+        <nodeLayer layer="Field_Implant" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="3.0" khx="10.0" kly="-5.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="PPImplant" style="FILLED"  portNum="2">
+        <nodeLayer layer="PPImplant" style="FILLED" portNum="2">
             <box klx="1.0">
                 <lambdaBox klx="3.0" khx="8.0" kly="-3.5" khy="3.5"/>
             </box>
@@ -947,7 +947,7 @@
                 <lambdaBox klx="0.0" khx="1.0" kly="-1.0" khy="1.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Poly_Definition" style="FILLED"  portNum="1">
+        <nodeLayer layer="Poly_Definition" style="FILLED" portNum="1">
             <box khx="0.0">
                 <lambdaBox klx="-1.0" khx="0.0" kly="-1.0" khy="1.0"/>
             </box>
@@ -957,7 +957,7 @@
                 <lambdaBox klx="0.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="NPImplant" style="FILLED"  portNum="1">
+        <nodeLayer layer="NPImplant" style="FILLED" portNum="1">
             <box khx="0.0">
                 <lambdaBox klx="-2.0" khx="0.0" kly="-2.0" khy="2.0"/>
             </box>
