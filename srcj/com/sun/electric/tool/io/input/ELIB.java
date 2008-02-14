@@ -2557,7 +2557,7 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VADDRESS:
 					case ELIBConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
 					case ELIBConstants.VFRACT:
-					case ELIBConstants.VFLOAT:
+					case ELIBConstants.VFLOAT:      newAddrArray = new Float[cou];      break;
 					case ELIBConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
 					case ELIBConstants.VSHORT:      newAddrArray = new Short[cou];       break;
 					case ELIBConstants.VBOOLEAN:    newAddrArray = new Boolean[cou];     break;
@@ -2645,9 +2645,9 @@ public class ELIB extends LibraryFiles
 			case ELIBConstants.VINTEGER:
 				return Integer.valueOf(readBigInteger());
 			case ELIBConstants.VFRACT:
-				return Double.valueOf(readBigInteger() / 120.0f);
+				return Float.valueOf(readBigInteger() / 120.0f);
 			case ELIBConstants.VFLOAT:
-				return Double.valueOf(readFloat());
+				return Float.valueOf(readFloat());
 			case ELIBConstants.VDOUBLE:
 				return Double.valueOf(readDouble());
 			case ELIBConstants.VSHORT:
