@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/13/08, GVG) Exception if number of metal layers is larger than 10 (Bug #1577)
+FIX: Number of DRCmodes extended.
+
 IMP/MAN: (2/13/08, GVG) Ability to export any given technology in XML (Bug #1567)
 
 IMP: (2/13/08, GVG) Changes to guarantee Technology.getCurrent() won't retrieve a null tech
