@@ -215,6 +215,21 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the Poly.Style of this ArcLayer.
 		 */
 		Poly.Type getStyle() { return style; }
+        
+        void dump(PrintWriter out, int gridFullExtend) {
+            out.println("\t\tarcLayer layer=" + layer.getName() +
+                    " style=" + style.name() +
+                    " extend=" + DBMath.gridToLambda(gridFullExtend - (gridOffset >> 1)));
+        }
+        
+        Xml.ArcLayer makeXml(int gridFullExtend, double arcLayerCorr) {
+            Xml.ArcLayer al = new Xml.ArcLayer();
+            al.layer = layer.getName();
+            al.style = style;
+            al.extend.value = DBMath.round(DBMath.gridToLambda(gridFullExtend - (gridOffset >> 1)) + arcLayerCorr);
+//                al.extend.value = ap.getLayerLambdaExtend(arcLayerIndex);
+            return al;
+        }
 	}
 
 	/**

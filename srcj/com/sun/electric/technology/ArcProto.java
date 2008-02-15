@@ -1269,11 +1269,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         Technology.printlnPref(out, 1, defaultExtendedPrefs.get(this));
         Technology.printlnPref(out, 1, defaultDirectionalPrefs.get(this));
         
-        for (int arcLayerIndex = 0; arcLayerIndex < getNumArcLayers(); arcLayerIndex++) {
-            out.println("\t\tarcLayer layer=" + getLayer(arcLayerIndex).getName() +
-                    " style=" + getLayerStyle(arcLayerIndex).name() +
-                    " extend=" + getLayerLambdaExtend(arcLayerIndex));
-        }
+        for (Technology.ArcLayer arcLayer: layers)
+            arcLayer.dump(out, gridFullExtend);
     }
     
     Xml.ArcProto makeXml(XMLRules xmlRules) {
@@ -1313,14 +1310,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.fixedAngle = isFixedAngle();
         a.angleIncrement = getAngleIncrement();
         a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
-        for (int arcLayerIndex = 0; arcLayerIndex < getNumArcLayers(); arcLayerIndex++) {
-            Xml.ArcLayer al = new Xml.ArcLayer();
-            al.layer = getLayer(arcLayerIndex).getName();
-            al.style = getLayerStyle(arcLayerIndex);
-            al.extend.value = DBMath.round(getLayerLambdaExtend(arcLayerIndex) + DBMath.round(corr2 - DBMath.gridToLambda(getGridBaseExtend())));
-//                al.extend.value = ap.getLayerLambdaExtend(arcLayerIndex);
-            a.arcLayers.add(al);
-        }
+        double arcLayerCorr = DBMath.round(corr2 - DBMath.gridToLambda(getGridBaseExtend()));
+        for (Technology.ArcLayer arcLayer: layers)
+            a.arcLayers.add(arcLayer.makeXml(gridFullExtend, arcLayerCorr));
         return a;
     }
     
