@@ -681,11 +681,6 @@
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
             </serpbox>
         </nodeLayer>
-        <nodeLayer layer="Diffusion" style="FILLED" electrical="false">
-            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
-            </serpbox>
-        </nodeLayer>
         <nodeLayer layer="Diffusion" style="FILLED" portNum="3" electrical="true">
             <serpbox kly="0.0" lWidth="3.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="0.0" khy="3.0"/>
@@ -694,6 +689,11 @@
         <nodeLayer layer="Diffusion" style="FILLED" portNum="1" electrical="true">
             <serpbox khy="0.0" lWidth="0.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="0.0"/>
+            </serpbox>
+        </nodeLayer>
+        <nodeLayer layer="Diffusion" style="FILLED" electrical="false">
+            <serpbox lWidth="3.0" rWidth="3.0" tExtent="0.0" bExtent="0.0">
+                <lambdaBox klx="-1.0" khx="1.0" kly="-3.0" khy="3.0"/>
             </serpbox>
         </nodeLayer>
         <primitivePort name="trans-poly-left">
