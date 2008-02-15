@@ -1735,7 +1735,8 @@ public class Xml {
             bcpel(XmlKeyword.extended, ai.extended);
             bcpel(XmlKeyword.fixedAngle, ai.fixedAngle);
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
-            bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
+            if (ai.antennaRatio != 0)
+                bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
             
             for (Map.Entry<Integer,Double> e: ai.diskOffset.entrySet()) {
                 b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("width", e.getValue()); el();
