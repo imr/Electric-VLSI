@@ -68,12 +68,15 @@ public class RawSpiceOut extends Simulate
 	private Stimuli readRawFile(Cell cell)
 		throws IOException
 	{
+		// once per deck
 		boolean first = true;
+		Stimuli sd = new Stimuli();
+		sd.setCell(cell);
+
+		// once per analysis in the deck
+		AnalogAnalysis an = null; // new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		int numSignals = -1;
 		int eventCount = -1;
-		Stimuli sd = new Stimuli();
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
-		sd.setCell(cell);
         String[] signalNames = null;
         double[][] values = null;
 		for(;;)
@@ -103,10 +106,34 @@ public class RawSpiceOut extends Simulate
 			String preColon = line.substring(0, colonPos);
 			String postColon = line.substring(colonPos+1).trim();
 
-//			if (preColon.equals("Plotname"))
-//			{
-//				continue;
-//			}
+			if (preColon.equals("Plotname"))
+			{
+				// terminate any previous analysis
+				if (an != null)
+				{
+					numSignals = -1;
+					eventCount = -1;
+			        signalNames = null;
+			        values = null;
+				}
+
+				// start reading a new analysis
+				if (postColon.startsWith("Transient Analysis"))
+				{
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS);
+				} else if (postColon.startsWith("DC Analysis"))
+				{
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC);
+				} else if (postColon.startsWith("AC Analysis"))
+				{
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC);
+				} else
+				{
+					System.out.println("ERROR: Unknown analysis: " + postColon);
+					return null;
+				}
+				continue;
+			}
 
 			if (preColon.equals("No. Variables"))
 			{
@@ -132,11 +159,18 @@ public class RawSpiceOut extends Simulate
                 values = new double[numSignals][eventCount];
 				for(int i=0; i<=numSignals; i++)
 				{
-					line = getLineFromSimulator();
-					if (line == null)
+					if (postColon.length() > 0)
 					{
-						System.out.println("Error: end of file during signal names");
-						return null;
+						line = postColon;
+						postColon = "";
+					} else
+					{
+						line = getLineFromSimulator();
+						if (line == null)
+						{
+							System.out.println("Error: end of file during signal names");
+							return null;
+						}
 					}
 					line = line.trim();
 					int numberOnLine = TextUtils.atoi(line);
@@ -146,13 +180,13 @@ public class RawSpiceOut extends Simulate
 					int tabPos = line.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
 					int pos = Math.min(spacePos, tabPos);
 					String name = line.substring(pos).trim();
-					spacePos = name.indexOf(" ");   if (spacePos < 0) spacePos = line.length();
-					tabPos = name.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
+					spacePos = name.indexOf(" ");   if (spacePos < 0) spacePos = name.length();
+					tabPos = name.indexOf("\t");    if (tabPos < 0) tabPos = name.length();
 					pos = Math.min(spacePos, tabPos);
 					name = name.substring(0, pos);
 					if (i == 0)
 					{
-						if (!name.equals("time"))
+						if (!name.equals("time") && an.getAnalysisType() == AnalogAnalysis.ANALYSIS_TRANS)
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
@@ -175,28 +209,43 @@ public class RawSpiceOut extends Simulate
 				}
 				for(int j=0; j<eventCount; j++)
 				{
-					for(int i=0; i<=numSignals; i++)
+					for(int i = -1; i <= numSignals; )
 					{
-						do {
-							line = getLineFromSimulator();
-							if (line == null)
-							{
-								System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
-								return null;
-							}
-						} while (line.length() == 0);
-						if (i == 0)
+						line = getLineFromSimulator();
+						if (line == null)
 						{
-							int lineNumber = TextUtils.atoi(line);
-							if (lineNumber != j)
-								System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
-							while (TextUtils.isDigit(line.charAt(0))) line = line.substring(1);
+							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
+							return null;
 						}
 						line = line.trim();
-						if (i == 0) an.setCommonTime(j, TextUtils.atof(line)); else
-							values[i-1][j] = TextUtils.atof(line);
+						if (line.length() == 0) continue;
+						int charPos = 0;
+						while (charPos <= line.length())
+						{
+							int tabPos = line.indexOf("\t", charPos);
+							if (tabPos < 0) tabPos = line.length();
+							String field = line.substring(charPos, tabPos);
+							charPos = tabPos+1;
+							while (charPos < line.length() && line.charAt(charPos) == '\t') charPos++;
+							if (i < 0)
+							{
+								int lineNumber = TextUtils.atoi(field);
+								if (lineNumber != j)
+									System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
+							} else
+							{
+								double val = TextUtils.atof(field);
+								if (i == 0) an.setCommonTime(j, val); else
+									values[i-1][j] = val;
+							}
+							i++;
+							if (i > numSignals) break;
+						}
 					}
 				}
+		        for (int i = 0; i < numSignals; i++)
+		            an.addSignal(signalNames[i], values[i]);
+				continue;
 			}
 			if (preColon.equals("Binary"))
 			{
@@ -218,11 +267,10 @@ public class RawSpiceOut extends Simulate
 					for(int i=0; i<numSignals; i++)
 						values[i][j] = dataInputStream.readDouble();
 				}
+				continue;
 			}
 		}
 
-        for (int i = 0; i < numSignals; i++)
-            an.addSignal(signalNames[i], values[i]);
       	return sd;
 	}
 

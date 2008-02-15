@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/15/08, SMR) Extended "raw" reader (used by SmartSpice output) to handle
+     raw output of Spectre.
+
 IMP: (2/15/08, GVG) Uploading of XML techs should not tolarate same names (Bug #1578)
 
 IMP: (2/15/08, DN) Field gridOffset of Technology.ArcLayer is replaced by field gridExtend with
