@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/14/08, GVG) Save Paramaters in TechEditorWizard not exporting diff_poly_overhang properly.
+FIX: Wrong text exported.
+
+IMP: (2/14/08, GVG) Preventing NPE in TechType constructor if technology is null.
+
 IMP: (2/14/08, GVG) minOccurs="0" in Technology.xsd, antennaRatio
 
 BUG: (2/13/08, GVG) Exception if number of metal layers is larger than 10 (Bug #1577)

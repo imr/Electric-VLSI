@@ -616,7 +616,7 @@ public class TechEditWizardData
 		pw.println("$diff_width = " + TextUtils.formatDouble(diff_width.v) + ";");
 		pw.println("$diff_width_rule = \"" + diff_width.rule + "\";");
 		pw.println("$diff_poly_overhang = " + TextUtils.formatDouble(diff_poly_overhang.v) + ";        # min. diff overhang from gate edge");
-		pw.println("$diff_poly_overhang = \"" + diff_poly_overhang.rule + "\";        # min. diff overhang from gate edge");
+		pw.println("$diff_poly_overhang_rule = \"" + diff_poly_overhang.rule + "\";        # min. diff overhang from gate edge");
 		pw.println("$diff_contact_overhang = " + TextUtils.formatDouble(diff_contact_overhang.v) + ";     # min. diff overhang contact");
 		pw.println("$diff_contact_overhang_rule = \"" + diff_contact_overhang.rule + "\";     # min. diff overhang contact");
 		pw.println("$diff_spacing = " + TextUtils.formatDouble(diff_spacing.v) + ";");

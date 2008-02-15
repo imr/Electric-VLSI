@@ -181,6 +181,9 @@ public abstract class TechType implements Serializable {
     }
 
     protected TechType(Technology tech, String[] layerNms) {
+        // This error could happen when there are XML errors while uploading the technologies.
+        error((tech==null), "Null technology in TechType constructor");
+        
         // I can't break this into subroutines because most data members are
         // final.
         nbLay = layerNms.length;
