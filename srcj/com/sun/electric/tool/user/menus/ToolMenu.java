@@ -715,7 +715,7 @@ public class ToolMenu {
                 Equivalence equiv = result.getEquivalence();
                 HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalentNet(VarContext.globalContext, schNet);
                 if (proxy == null) {
-                    System.out.println("No matching network in layout for "+proxy.toString()+", ignoring");
+                    System.out.println("No matching network in layout for "+schNet.getName()+", ignoring");
                     continue;
                 }
                 Network layNet = proxy.getNet();
