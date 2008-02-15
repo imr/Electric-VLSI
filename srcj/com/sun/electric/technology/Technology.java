@@ -29,7 +29,6 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -80,7 +79,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1442,6 +1440,12 @@ public class Technology implements Comparable<Technology>, Serializable
             {
                 if (Job.getDebug())
                     System.out.println("Can't find extra technology: " + urlXml.getFile());
+            }
+            Technology existingT = Technology.findTechnology(t.techName);
+            if (Technology.findTechnology(t.techName) != null)
+            {
+                // name is being used.
+                throw new Exception("Technology with the same name exists: " + t.techName);
             }
             Class<?> techClass = Technology.class;
             if (t.className != null)
