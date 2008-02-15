@@ -534,7 +534,7 @@
                             <xsd:element name="extended" type="xsd:boolean"/>
                             <xsd:element name="fixedAngle" type="xsd:boolean"/>
                             <xsd:element name="angleIncrement" type="xsd:integer"/>
-                            <xsd:element name="antennaRatio" type="xsd:double"/>
+                            <xsd:element name="antennaRatio" minOccurs="0" type="xsd:double"/>
                             <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>

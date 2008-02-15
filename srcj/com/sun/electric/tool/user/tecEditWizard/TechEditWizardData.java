@@ -1291,7 +1291,7 @@ public class TechEditWizardData
 		for(String l : arcs)
 		{
 			String fun = "";
-			int ant = 0;
+			int ant = -1;
 			double la = 0;
 			List<String> h = new ArrayList<String>();
 			if (l.startsWith("Metal"))
@@ -1341,7 +1341,8 @@ public class TechEditWizardData
 			pw.println("        <extended>true</extended>");
 			pw.println("        <fixedAngle>true</fixedAngle>");
 			pw.println("        <angleIncrement>90</angleIncrement>");
-			pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
+            if (ant >= 0)
+                pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
 			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
 
 			for(String each : h)
