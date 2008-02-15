@@ -1620,6 +1620,7 @@ public class AutoStitch
 	{
 		// compute the list of polygons
 		Technology tech = ni.getProto().getTechnology();
+		if (tech.isSchematics()) return new Poly[0];
 		Poly [] nodePolys = tech.getShapeOfNode(ni, true, true, null);
 		if (nodePolys.length == 0) return nodePolys;
 

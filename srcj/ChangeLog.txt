@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/15/08, SMR) Auto-stitching doesn't work well in schematics.
+FIX: Use position detection for schematics, force busses where appropriate.
+
 IMP: (2/15/08, SMR) Extended "raw" reader (used by SmartSpice output) to handle
      raw output of Spectre.
 

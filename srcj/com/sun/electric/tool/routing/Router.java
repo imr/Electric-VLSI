@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -307,6 +308,14 @@ public abstract class Router {
         ArcProto uni = Generic.tech().universal_arc;
         ArcProto invis = Generic.tech().invisible_arc;
         ArcProto unr = Generic.tech().unrouted_arc;
+
+        // if connecting two busses, force a bus arc
+		if (curAp == Schematics.tech().wire_arc)
+		{
+			boolean bus1 = (port1.getParent() == Schematics.tech().busPinNode) || port1.getNameKey().isBus();
+			boolean bus2 = (port2.getParent() == Schematics.tech().busPinNode) || port2.getNameKey().isBus();
+			if (bus1 && bus2) return Schematics.tech().bus_arc;
+		}
 
         PortProto pp1 = null, pp2 = null;
         // Note: this makes it so either port1 or port2 can be null,
