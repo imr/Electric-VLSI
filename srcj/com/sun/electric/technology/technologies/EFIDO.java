@@ -95,7 +95,7 @@ public class EFIDO extends Technology
 
 		/** bus arc */
 		ArcProto bus_arc = newArcProto("bus", 0, 2, ArcProto.Function.BUS,
-			new Technology.ArcLayer(A_lay, 0, Poly.Type.CLOSED)
+			new Technology.ArcLayer(A_lay, 2, Poly.Type.CLOSED)
 		);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactoryAngleIncrement(45);

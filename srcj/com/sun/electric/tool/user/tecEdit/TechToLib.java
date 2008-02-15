@@ -790,7 +790,7 @@ public class TechToLib
                 if (lList[j].name.equals(layerName)) { ald.layer = lList[j];   break; }
             }
             ald.style = ap.getLayerStyle(i);
-            ald.width = DBMath.gridToLambda(ap.getGridWidthOffset() - 2*ap.getLayerGridExtend(i));
+            ald.width = ap.getLayerGridExtend(i);
         }
         return aIn;
     }

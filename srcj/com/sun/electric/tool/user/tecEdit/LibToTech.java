@@ -825,7 +825,7 @@ public class LibToTech
 
 					// determine the width offset of this arc layer
 					double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
-					allArcs[i].arcDetails[layerIndex].width = maxWid-wid;
+					allArcs[i].arcDetails[layerIndex].width = wid;
 
 					layerIndex++;
 				}
@@ -3450,12 +3450,11 @@ public class LibToTech
             } else {
                 ap.diskOffset.put(Integer.valueOf(2), new Double(DBMath.round(0.5*ai.maxWidth)));
             }
-            ap.defaultWidth.value = 0;
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;
                 l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
-                l.extend.value = DBMath.round((ai.maxWidth - al.width)/2);
+                l.extend.value = DBMath.round(al.width/2);
                 ap.arcLayers.add(l);
             }
             t.arcs.add(ap);

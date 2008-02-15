@@ -274,11 +274,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	/**
 	 * The constructor is never called.  Use "Technology.newArcProto" instead.
 	 */
-	ArcProto(Technology tech, String protoName, long gridFullExtend, long gridBaseExtend, long gridExtendOverMin, Function function, Technology.ArcLayer [] layers, int primArcIndex)
+	ArcProto(Technology tech, String protoName, long gridFullExtend, long gridBaseExtend, Function function, Technology.ArcLayer [] layers, int primArcIndex)
 	{
         assert -Integer.MAX_VALUE/8 < gridFullExtend && gridFullExtend < Integer.MAX_VALUE/8;
         assert -Integer.MAX_VALUE/8 < gridBaseExtend && gridBaseExtend < Integer.MAX_VALUE/8;
-        assert -Integer.MAX_VALUE/8 < gridExtendOverMin && gridExtendOverMin < Integer.MAX_VALUE/8;
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
         protoId = tech.getId().newArcProtoId(protoName);
@@ -291,7 +290,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         this.gridBaseExtend = (int)gridBaseExtend;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-        getArcProtoExtendPref(DBMath.gridToLambda(gridExtendOverMin));
+        getArcProtoExtendPref();
 	}
 
     protected Object writeReplace() { return new ArcProtoKey(this); }
@@ -344,8 +343,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public Technology getTechnology() { return tech; }
 
-	private Pref getArcProtoExtendPref(double factory)
+	private Pref getArcProtoExtendPref()
 	{
+        double factory = 0;
 		Pref pref = defaultExtendPrefs.get(this);
 		if (pref == null)
 		{
@@ -368,12 +368,17 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             System.out.println("ArcProto " + tech.getTechName() + ":" + getName() + " has invalid default base width " + lambdaWidth);
             return false;
         }
-        return getArcProtoExtendPref(0).setDouble(DBMath.gridToLambda(gridExtendOverMin));
+        return getArcProtoExtendPref().setDouble(DBMath.gridToLambda(gridExtendOverMin));
     }
 
-    public void setExtends(int gridBaseExtend, int gridFullExtend) {
-        this.gridBaseExtend = gridBaseExtend;
-        this.gridFullExtend = gridFullExtend;
+    public void setExtends(int gridBaseExtend) {
+        int delta = gridBaseExtend - this.gridBaseExtend;
+        this.gridBaseExtend += delta;
+        this.gridFullExtend += delta;
+        for (int i = 0; i < layers.length; i++) {
+            Technology.ArcLayer arcLayer = layers[i];
+            layers[i] = arcLayer.withGridExtend(arcLayer.getGridExtend() + delta);
+        }
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
     }
@@ -425,7 +430,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
 	 */
     public long getDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(getArcProtoExtendPref(0).getDouble());
+        return DBMath.lambdaToGrid(getArcProtoExtendPref().getDouble());
     }
 
 	/**
@@ -991,7 +996,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * @param arcLayerIndex layer index
      * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      */
-    public int getLayerGridExtend(int arcLayerIndex) { return gridFullExtend - (layers[arcLayerIndex].getGridOffset() >>> 1); }
+    public int getLayerGridExtend(int arcLayerIndex) { return layers[arcLayerIndex].getGridExtend(); }
     
     /**
      * Returns the Poly.Style of specified layer that comprise this ArcLayer.
@@ -1135,8 +1140,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		}
 
 		// compute the indentation of the outer layer
-		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
-        layers[i] = layers[i].withGridOffset(indent);
+		long extent = layers[inLayerIndex].getGridExtend() + DBMath.lambdaToGrid(surround);
+        layers[i] = layers[i].withGridExtend(extent);
+//		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
+//        layers[i] = layers[i].withGridOffset(indent);
         computeLayerGridExtendRange();
 	}
     
@@ -1270,10 +1277,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         Technology.printlnPref(out, 1, defaultDirectionalPrefs.get(this));
         
         for (Technology.ArcLayer arcLayer: layers)
-            arcLayer.dump(out, gridFullExtend);
+            arcLayer.dump(out);
     }
     
-    Xml.ArcProto makeXml(XMLRules xmlRules) {
+    Xml.ArcProto makeXml(XMLRules factoryXmlRules) {
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = getName();
         for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {
@@ -1288,31 +1295,18 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.notUsed = isNotUsed();
         a.skipSizeInPalette = isSkipSizeInPalette();
 
-        DRCTemplate arcSize = xmlRules.getRule(getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID);
-        double corr2 = DBMath.round(0.5*(arcSize != null ? arcSize.values[0] : getDefaultLambdaBaseWidth()));
-        if (getLambdaWidthOffset() != 0) {
-            a.diskOffset.put(Integer.valueOf(1), DBMath.round(corr2 + DBMath.gridToLambda(getGridFullExtend() - getGridBaseExtend())));
-            a.diskOffset.put(Integer.valueOf(2), corr2);
-        } else {
-            a.diskOffset.put(Integer.valueOf(2), corr2);
-        }
-//            if (ap.getLambdaWidthOffset() != 0) {
-//                a.diskOffset.put(Integer.valueOf(1), 0.5*ap.getDefaultLambdaFullWidth());
-//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaBaseWidth());
-//            } else {
-//                a.diskOffset.put(Integer.valueOf(2), 0.5*ap.getDefaultLambdaFullWidth());
-//            }
-        a.defaultWidth.value = DBMath.round(getDefaultLambdaBaseWidth() - 2*corr2);
-//            if (ap.getLambdaWidthOffset() != 0)
-//                a.widthOffset.put(Integer.valueOf(1), ap.getLambdaWidthOffset());
-//            a.defaultWidth.value = 2*ap.getDefaultLambdaExtendOverMin();
+        double diskOffset1 = DBMath.gridToLambda(getGridFullExtend());
+        double diskOffset2 = getLambdaBaseExtend();
+        if (diskOffset1 != diskOffset2)
+            a.diskOffset.put(Integer.valueOf(1), diskOffset1);
+        if (diskOffset2 != 0)
+            a.diskOffset.put(Integer.valueOf(2), diskOffset2);
         a.extended = isExtended();
         a.fixedAngle = isFixedAngle();
         a.angleIncrement = getAngleIncrement();
         a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
-        double arcLayerCorr = DBMath.round(corr2 - DBMath.gridToLambda(getGridBaseExtend()));
         for (Technology.ArcLayer arcLayer: layers)
-            a.arcLayers.add(arcLayer.makeXml(gridFullExtend, arcLayerCorr));
+            a.arcLayers.add(arcLayer.makeXml());
         return a;
     }
     

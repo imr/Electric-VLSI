@@ -541,13 +541,6 @@
                                     <xsd:attribute name="width" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="defaultWidth" minOccurs="0">
-                                <xsd:complexType>
-                                    <xsd:sequence>
-                                        <xsd:group ref="tns:Distance"/>
-                                    </xsd:sequence>
-                                </xsd:complexType>
-                            </xsd:element>
                             <xsd:element name="arcLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:group ref="tns:Distance"/>

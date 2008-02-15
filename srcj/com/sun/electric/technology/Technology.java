@@ -155,24 +155,24 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected static class ArcLayer
 	{
 		private final Layer layer;
-		private final int gridOffset;
+        private final int gridExtend;
 		private final Poly.Type style;
 
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
-		 * @param lambdaOffset the distance from the outside of the ArcInst to this ArcLayer in lambda units.
+         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-        public ArcLayer(Layer layer, double lambdaOffset, Poly.Type style) {
-            this(layer, DBMath.lambdaToSizeGrid(lambdaOffset), style);
+        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style) {
+            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style);
         }
 
-        private ArcLayer(Layer layer, long gridOffset, Poly.Type style) {
-            if (gridOffset < 0 || gridOffset >= Integer.MAX_VALUE/4 || (gridOffset&1) != 0)
-                throw new IllegalArgumentException("gridOffset=" + gridOffset);
+        private ArcLayer(Layer layer, long gridExtend, Poly.Type style) {
+            if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
+                throw new IllegalArgumentException("gridExtend=" + gridExtend);
             this.layer = layer;
-            this.gridOffset = (int)gridOffset;
+            this.gridExtend = (int)gridExtend;
             this.style = style;
         }
 
@@ -183,31 +183,23 @@ public class Technology implements Comparable<Technology>, Serializable
 		Layer getLayer() { return layer; }
 
 		/**
-		 * Returns the distance from the outside of the ArcInst to this ArcLayer in lambda units.
-		 * This is the difference between the width of this layer and the overall width of the arc.
-		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
-		 * @return the distance from the outside of the ArcInst to this ArcLayer in lambda units.
-		 */
-		double getLambdaOffset() { return DBMath.gridToLambda(getGridOffset()); }
-
-		/**
-		 * Returns the distance from the outside of the ArcInst to this ArcLayer in grid units.
-		 * This is the difference between the width of this layer and the overall width of the arc.
-		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
+		 * Returns the distance from the center of the standard ArcInst to the outsize of this ArcLayer in grid units.
+         * The distance from the center of arbitrary ArcInst ai to the outsize of its ArcLayer is
+         * ai.getD().getExtendOverMin() + arcLayer.getGridExtend()
 		 * @return the distance from the outside of the ArcInst to this ArcLayer in grid units.
 		 */
-		int getGridOffset() { return gridOffset; }
+		int getGridExtend() { return gridExtend; }
 
 		/**
-         * Returns ArcLayer which differs from this ArcLayer by offset.
-         * Offset is specified in grid units.
-         * This is the difference between the width of this layer and the overall width of the arc.
-         * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
-         * @param gridOffset the distance from the outside of the ArcInst to this ArcLayer in grid units.
+         * Returns ArcLayer which differs from this ArcLayer by extebd.
+         * Extend is specified in grid units.
+         * The distance from the center of arbitrary ArcInst ai to the outsize of its ArcLayer is
+         * ai.getD().getExtendOverMin() + arcLayer.getGridExtend()
+         * @param gridExtend new extend to this ArcLayer in grid units.
          */
-		ArcLayer withGridOffset(long gridOffset) {
-            if (this.gridOffset == gridOffset) return this;
-            return new ArcLayer(layer, gridOffset, style);
+		ArcLayer withGridExtend(long gridExtend) {
+            if (this.gridExtend == gridExtend) return this;
+            return new ArcLayer(layer, gridExtend, style);
         }
 
 		/**
@@ -216,18 +208,17 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		Poly.Type getStyle() { return style; }
         
-        void dump(PrintWriter out, int gridFullExtend) {
+        void dump(PrintWriter out) {
             out.println("\t\tarcLayer layer=" + layer.getName() +
                     " style=" + style.name() +
-                    " extend=" + DBMath.gridToLambda(gridFullExtend - (gridOffset >> 1)));
+                    " extend=" + DBMath.gridToLambda(gridExtend));
         }
         
-        Xml.ArcLayer makeXml(int gridFullExtend, double arcLayerCorr) {
+        Xml.ArcLayer makeXml() {
             Xml.ArcLayer al = new Xml.ArcLayer();
             al.layer = layer.getName();
             al.style = style;
-            al.extend.value = DBMath.round(DBMath.gridToLambda(gridFullExtend - (gridOffset >> 1)) + arcLayerCorr);
-//                al.extend.value = ap.getLayerLambdaExtend(arcLayerIndex);
+            al.extend.value = DBMath.gridToLambda(gridExtend);
             return al;
         }
 	}
@@ -1027,17 +1018,15 @@ public class Technology implements Comparable<Technology>, Serializable
 //                if (e.getKey() <= techVersion)
 //                    widthOffset = e.getValue();
 //            }
+            long gridFullExtend = DBMath.lambdaToSizeGrid(widthOffset)/2;
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
                 long gridLayerExtend = DBMath.lambdaToGrid(al.extend.value);
-                double layerWidthOffset = DBMath.gridToLambda(DBMath.lambdaToSizeGrid(widthOffset) - 2*gridLayerExtend);
-//                double layerWidthOffset = DBMath.gridToLambda(2*(maxGridExtend - gridLayerExtend));
-                arcLayers[i] = new ArcLayer(layers.get(al.layer), layerWidthOffset, al.style);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer), gridLayerExtend, al.style);
             }
             if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.value))
             	assert true;
-            long gridExtendOverMin = DBMath.lambdaToGrid(0.5*a.defaultWidth.value);
-            ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToSizeGrid(widthOffset)/2, minGridExtend, gridExtendOverMin, a.function, arcLayers, arcs.size());
+            ArcProto ap = new ArcProto(this, a.name, gridFullExtend, minGridExtend, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
             addArcProto(ap);
 
@@ -1844,7 +1833,7 @@ public class Technology implements Comparable<Technology>, Serializable
         version.techVersion = 2;
         version.electricVersion = Version.parseVersion("8.05o");
         t.versions.add(version);
-        XMLRules xmlRules = getFactoryDesignRules();
+        XMLRules factoryXmlRules = getFactoryDesignRules();
         int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
         t.scaleValue = getScaleSetting().getDoubleFactoryValue();
@@ -1864,7 +1853,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
-            t.arcs.add(ap.makeXml(xmlRules));
+            t.arcs.add(ap.makeXml(factoryXmlRules));
         }
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
@@ -1887,7 +1876,6 @@ public class Technology implements Comparable<Technology>, Serializable
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
                 Object origEntry = origPalette[row][col];
-                Object newEntry = null;
                 ArrayList<Object> newBox = new ArrayList<Object>();
                 if (origEntry instanceof List) {
                     List<?> list = (List<?>)origEntry;
@@ -2196,8 +2184,8 @@ public class Technology implements Comparable<Technology>, Serializable
 			return null;
 		}
         long defaultGridWidth = DBMath.lambdaToSizeGrid(defaultWidth);
-
-		ArcProto ap = new ArcProto(this, protoName, defaultGridWidth/2, (defaultGridWidth - gridWidthOffset)/2, 0, function, layers, arcs.size());
+        long gridFullExtend = defaultGridWidth/2;
+		ArcProto ap = new ArcProto(this, protoName, gridFullExtend, (defaultGridWidth - gridWidthOffset)/2, function, layers, arcs.size());
 		addArcProto(ap);
 		return ap;
 	}

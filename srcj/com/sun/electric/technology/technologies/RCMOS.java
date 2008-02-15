@@ -439,7 +439,7 @@ public class RCMOS extends Technology
 
 		/** Metal-1 arc */
 		ArcProto metal1_arc = newArcProto("Metal-1", 0, 3, ArcProto.Function.METAL1,
-			new Technology.ArcLayer(metal1_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metal1_lay, 3, Poly.Type.FILLED)
 		);
 		metal1_arc.setFactoryFixedAngle(false);
 		metal1_arc.setCurvable();
@@ -448,7 +448,7 @@ public class RCMOS extends Technology
 
 		/** Metal-2 arc */
 		ArcProto metal2_arc = newArcProto("Metal-2", 0, 3, ArcProto.Function.METAL2,
-			new Technology.ArcLayer(metal2_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metal2_lay, 3, Poly.Type.FILLED)
 		);
 //		metal2_arc.setFunction(ArcProto.Function.METAL1);
 		metal2_arc.setFactoryFixedAngle(false);
@@ -458,7 +458,7 @@ public class RCMOS extends Technology
 
 		/** Polysilicon arc */
 		ArcProto polysilicon_arc = newArcProto("Polysilicon", 0, 2, ArcProto.Function.POLY1,
-			new Technology.ArcLayer(polysilicon_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(polysilicon_lay, 2, Poly.Type.FILLED)
 		);
 //		polysilicon_arc.setFunction(ArcProto.Function.METAL1);
 		polysilicon_arc.setFactoryFixedAngle(false);
@@ -468,8 +468,8 @@ public class RCMOS extends Technology
 
 		/** S-Active arc */
 		ArcProto sActive_arc = newArcProto("S-Active", 4, 6, ArcProto.Function.DIFFN,
-			new Technology.ArcLayer(sActive_lay, 4, Poly.Type.FILLED),
-			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(sActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(select_lay, 6, Poly.Type.FILLED)
 		);
 		sActive_arc.setFactoryFixedAngle(false);
 		sActive_arc.setCurvable();
@@ -478,8 +478,8 @@ public class RCMOS extends Technology
 
 		/** D-Active arc */
 		ArcProto dActive_arc = newArcProto("D-Active", 8, 10, ArcProto.Function.DIFFP,
-			new Technology.ArcLayer(dActive_lay, 8, Poly.Type.FILLED),
-			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(dActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(well_lay, 10, Poly.Type.FILLED)
 		);
 		dActive_arc.setFactoryFixedAngle(false);
 		dActive_arc.setCurvable();
@@ -488,8 +488,8 @@ public class RCMOS extends Technology
 
 		/** Substrate-Active arc */
 		ArcProto substrateActive_arc = newArcProto("Substrate-Active", 0, 2, ArcProto.Function.DIFFS,
-			new Technology.ArcLayer(dActive_lay, 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(sActive_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(dActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(sActive_lay, 2, Poly.Type.FILLED)
 		);
 		substrateActive_arc.setFactoryFixedAngle(false);
 		substrateActive_arc.setCurvable();
@@ -498,10 +498,10 @@ public class RCMOS extends Technology
 
 		/** Well arc */
 		ArcProto wellActive_arc = newArcProto("Well-Active", 4, 6, ArcProto.Function.DIFFW,
-			new Technology.ArcLayer(dActive_lay, 4, Poly.Type.FILLED),
-			new Technology.ArcLayer(sActive_lay, 4, Poly.Type.FILLED),
-			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(dActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(sActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(well_lay, 6, Poly.Type.FILLED),
+			new Technology.ArcLayer(select_lay, 6, Poly.Type.FILLED)
 		);
 		wellActive_arc.setFactoryFixedAngle(false);
 		wellActive_arc.setCurvable();
@@ -510,9 +510,9 @@ public class RCMOS extends Technology
 
 		/** S-Transistor arc */
 		ArcProto sTransistor_arc = newArcProto("S-Transistor", 4, 6, ArcProto.Function.DIFFN,
-			new Technology.ArcLayer(dActive_lay, 4, Poly.Type.FILLED),
-			new Technology.ArcLayer(polysilicon_lay, 4, Poly.Type.FILLED),
-			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(dActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(polysilicon_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(select_lay, 6, Poly.Type.FILLED)
 		);
 		sTransistor_arc.setFactoryFixedAngle(false);
 		sTransistor_arc.setCurvable();
@@ -521,9 +521,9 @@ public class RCMOS extends Technology
 
 		/** D-Transistor arc */
 		ArcProto dTransistor_arc = newArcProto("D-Transistor", 8, 10, ArcProto.Function.DIFFP,
-			new Technology.ArcLayer(dActive_lay, 8, Poly.Type.FILLED),
-			new Technology.ArcLayer(polysilicon_lay, 8, Poly.Type.FILLED),
-			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(dActive_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(polysilicon_lay, 2, Poly.Type.FILLED),
+			new Technology.ArcLayer(well_lay, 10, Poly.Type.FILLED)
 		);
 		dTransistor_arc.setFactoryFixedAngle(false);
 		dTransistor_arc.setCurvable();

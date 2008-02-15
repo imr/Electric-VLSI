@@ -338,7 +338,7 @@ public class Schematics extends Technology
 
 		/** bus arc */
 		bus_arc = newArcProto("bus", 0, 1.0, ArcProto.Function.BUS,
-			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(bus_lay, 1, Poly.Type.FILLED)
 		);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactorySlidable(false);

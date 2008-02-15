@@ -1280,7 +1280,7 @@ public class MoCMOS extends Technology
 
 		/** metal 1 arc */
 		metalArcs[0] = newArcProto("Metal-1", 0, 3.0, ArcProto.Function.METAL1,
-			new Technology.ArcLayer(metalLayers[0], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[0], 3, Poly.Type.FILLED)
 		);
 		metalArcs[0].setFactoryFixedAngle(true);
 		metalArcs[0].setWipable();
@@ -1288,7 +1288,7 @@ public class MoCMOS extends Technology
 
 		/** metal 2 arc */
 		metalArcs[1] = newArcProto("Metal-2", 0, 3.0, ArcProto.Function.METAL2,
-			new Technology.ArcLayer(metalLayers[1], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[1], 3, Poly.Type.FILLED)
 		);
 		metalArcs[1].setFactoryFixedAngle(true);
 		metalArcs[1].setWipable();
@@ -1296,7 +1296,7 @@ public class MoCMOS extends Technology
 
 		/** metal 3 arc */
 		metalArcs[2] = newArcProto("Metal-3", 0, 3.0, ArcProto.Function.METAL3,
-			new Technology.ArcLayer(metalLayers[2], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[2], 3, Poly.Type.FILLED)
 		);
 		metalArcs[2].setFactoryFixedAngle(true);
 		metalArcs[2].setWipable();
@@ -1304,7 +1304,7 @@ public class MoCMOS extends Technology
 
 		/** metal 4 arc */
 		metalArcs[3] = newArcProto("Metal-4", 0, 3.0, ArcProto.Function.METAL4,
-			new Technology.ArcLayer(metalLayers[3], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[3], 3, Poly.Type.FILLED)
 		);
 		metalArcs[3].setFactoryFixedAngle(true);
 		metalArcs[3].setWipable();
@@ -1312,7 +1312,7 @@ public class MoCMOS extends Technology
 
 		/** metal 5 arc */
 		metalArcs[4] = newArcProto("Metal-5", 0, 3.0, ArcProto.Function.METAL5,
-			new Technology.ArcLayer(metalLayers[4], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[4], 3, Poly.Type.FILLED)
 		);
 		metalArcs[4].setFactoryFixedAngle(true);
 		metalArcs[4].setWipable();
@@ -1320,7 +1320,7 @@ public class MoCMOS extends Technology
 
 		/** metal 6 arc */
 		metalArcs[5] = newArcProto("Metal-6", 0, 5.0, ArcProto.Function.METAL6,
-			new Technology.ArcLayer(metalLayers[5], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[5], 5, Poly.Type.FILLED)
 		);
 		metalArcs[5].setFactoryFixedAngle(true);
 		metalArcs[5].setWipable();
@@ -1328,7 +1328,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 1 arc */
 		polyArcs[0] = newArcProto("Polysilicon-1", 0, 2.0, ArcProto.Function.POLY1,
-			new Technology.ArcLayer(poly1Layer, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(poly1Layer, 2, Poly.Type.FILLED)
 		);
 		polyArcs[0].setFactoryFixedAngle(true);
 		polyArcs[0].setWipable();
@@ -1336,7 +1336,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 2 arc */
 		polyArcs[1] = newArcProto("Polysilicon-2", 0, 7.0, ArcProto.Function.POLY2,
-			new Technology.ArcLayer(poly2_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(poly2_lay, 7, Poly.Type.FILLED)
 		);
 		polyArcs[1].setFactoryFixedAngle(true);
 		polyArcs[1].setWipable();
@@ -1345,9 +1345,9 @@ public class MoCMOS extends Technology
 
 		/** P-active arc */
 		activeArcs[P_TYPE] = newArcProto("P-Active", 12.0, 15.0, ArcProto.Function.DIFFP,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 12, Poly.Type.FILLED),
-			new Technology.ArcLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(selectLayers[P_TYPE], 8, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED),
+			new Technology.ArcLayer(wellLayers[N_TYPE], 15, Poly.Type.FILLED),
+			new Technology.ArcLayer(selectLayers[P_TYPE], 7, Poly.Type.FILLED)
 		);
 		activeArcs[P_TYPE].setFactoryFixedAngle(true);
 		activeArcs[P_TYPE].setWipable();
@@ -1355,9 +1355,9 @@ public class MoCMOS extends Technology
 
 		/** N-active arc */
 		activeArcs[N_TYPE] = newArcProto("N-Active", 12.0, 15.0, ArcProto.Function.DIFFN,
-			new Technology.ArcLayer(activeLayers[N_TYPE], 12, Poly.Type.FILLED),
-			new Technology.ArcLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(selectLayers[N_TYPE], 8, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED),
+			new Technology.ArcLayer(wellLayers[P_TYPE], 15, Poly.Type.FILLED),
+			new Technology.ArcLayer(selectLayers[N_TYPE], 7, Poly.Type.FILLED)
 		);
 		activeArcs[N_TYPE].setFactoryFixedAngle(true);
 		activeArcs[N_TYPE].setWipable();
@@ -1365,8 +1365,8 @@ public class MoCMOS extends Technology
 
 		/** General active arc */
 		active_arc = newArcProto("Active", 0, 3.0, ArcProto.Function.DIFF,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED),
-			new Technology.ArcLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED),
+			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED)
 		);
 		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
@@ -3237,7 +3237,7 @@ public class MoCMOS extends Technology
             double width = DBMath.round(wid.getValue(0));
             double half = DBMath.round(width/2);
             int baseExtend = (int)DBMath.lambdaToGrid(width*0.5);
-            ap.setExtends(baseExtend, baseExtend + ap.getGridFullExtend() - ap.getGridBaseExtend());
+            ap.setExtends(baseExtend);
         }
 
 //        // poly arcs

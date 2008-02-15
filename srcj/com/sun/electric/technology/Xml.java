@@ -169,7 +169,6 @@ public class Xml {
         public boolean skipSizeInPalette;
 
         public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
-        public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
         public int angleIncrement;
@@ -331,7 +330,6 @@ public class Xml {
         antennaRatio(true),
 
         diskOffset,
-        defaultWidth,
         arcLayer,
 
         primitiveNode,
@@ -350,7 +348,7 @@ public class Xml {
         od18,
         od25,
         od33,
-//        defaultWidth,
+        defaultWidth,
         defaultHeight,
         sizeOffset,
         nodeLayer,
@@ -887,12 +885,6 @@ public class Xml {
                     if (curNode != null)
                         curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
-                case defaultWidth:
-                    if (curArc != null)
-                        curDistance = curArc.defaultWidth;
-                    if (curNode != null)
-                        curDistance = curNode.defaultWidth;
-                    break;
                 case arcLayer:
                     ArcLayer arcLay = new ArcLayer();
                     arcLay.layer = a("layer");
@@ -940,6 +932,9 @@ public class Xml {
                     break;
                 case od33:
                     curNode.od33 = true;
+                    break;
+                case defaultWidth:
+                    curDistance = curNode.defaultWidth;
                     break;
                 case defaultHeight:
                     curDistance = curNode.defaultHeight;
@@ -1321,7 +1316,6 @@ public class Xml {
                 case notUsed:
                 case skipSizeInPalette:
                 case diskOffset:
-                case defaultWidth:
                 case arcLayer:
 
                 case shrinkArcs:
@@ -1337,6 +1331,7 @@ public class Xml {
                 case od25:
                 case od33:
 
+                case defaultWidth:
                 case defaultHeight:
                 case sizeOffset:
                 case box:
@@ -1740,12 +1735,6 @@ public class Xml {
             
             for (Map.Entry<Integer,Double> e: ai.diskOffset.entrySet()) {
                 b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("width", e.getValue()); el();
-            }
-            
-            if (ai.defaultWidth.value != 0) {
-                bcl(XmlKeyword.defaultWidth);
-                bcpel(XmlKeyword.lambda, ai.defaultWidth.value);
-                el(XmlKeyword.defaultWidth);
             }
             
             for (Xml.ArcLayer al: ai.arcLayers) {
