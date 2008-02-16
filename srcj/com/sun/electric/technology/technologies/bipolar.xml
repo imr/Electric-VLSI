@@ -33,8 +33,6 @@
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
     <description>Bipolar (self-aligned, single poly)</description>
-    <version tech="1" electric="8.05g"/>
-    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -496,7 +494,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -508,7 +505,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="2.0"/>
         <arcLayer layer="Metal2" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
@@ -519,8 +515,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="2.0"/>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <elibWidthOffset>2.0</elibWidthOffset>
         <arcLayer layer="Poly_Definition" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -534,8 +529,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="2.0"/>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <elibWidthOffset>2.0</elibWidthOffset>
         <arcLayer layer="Poly_Definition" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>

@@ -766,16 +766,13 @@ public class LibToTech
 			Collections.sort(arcEx.samples, new SamplesByLayerOrder(lList));
 
 			// get width and polygon count information
-			double maxWid = -1, hWid = -1;
+			double hWid = -1;
 			int count = 0;
 			for(Sample ns : arcEx.samples)
 			{
 				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
-				if (wid > maxWid) maxWid = wid;
 				if (ns.layer == null) hWid = wid; else count++;
 			}
-			allArcs[i].widthOffset = maxWid - hWid;
-			allArcs[i].maxWidth = maxWid;
 
 			// error if there is no highlight box
 			if (hWid < 0)
@@ -3382,14 +3379,6 @@ public class LibToTech
         t.techName = newTechName;
         t.shortTechName = gi.shortName;
         t.description = gi.description;
-        Xml.Version version = new Xml.Version();
-        version.techVersion = 1;
-        version.electricVersion = Version.parseVersion("8.05g");
-        t.versions.add(version);
-        version = new Xml.Version();
-        version.techVersion = 2;
-        version.electricVersion = Version.parseVersion("8.05o");
-        t.versions.add(version);
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = gi.defaultNumMetals;
         t.scaleValue = gi.scale;
         t.scaleRelevant = gi.scaleRelevant;
@@ -3444,12 +3433,7 @@ public class LibToTech
             ap.fixedAngle = ai.fixAng;
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
-            if (ai.widthOffset != 0) {
-                ap.diskOffset.put(Integer.valueOf(1), new Double(DBMath.round(0.5*ai.maxWidth)));
-                ap.diskOffset.put(Integer.valueOf(2), new Double(DBMath.round(0.5*(ai.maxWidth - ai.widthOffset))));
-            } else {
-                ap.diskOffset.put(Integer.valueOf(2), new Double(DBMath.round(0.5*ai.maxWidth)));
-            }
+            ap.elibWidthOffset = DBMath.round(ai.widthOffset);
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;

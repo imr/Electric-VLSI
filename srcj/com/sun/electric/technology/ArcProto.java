@@ -238,8 +238,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //	/** Pref map for arc negation. */							private static HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 	/** The name of this ArcProto. */							private final ArcProtoId protoId;
-	/** The technology in which this ArcProto resides. */		final Technology tech;
-	/** The full extend of this ArcProto in grid units. */      private int gridFullExtend;
+	/** The technology in which this ArcProto resides. */		private final Technology tech;
+    /** The ELIB width offset */                                private final double lambdaElibWidthOffset;
 	/** The base extend of this ArcProto in lambda units. */    private double lambdaBaseExtend;
 	/** The base extend of this ArcProto in grid units. */      private int gridBaseExtend;
     /** The minimum extend among ArcLayers. */                  private int minLayerGridExtend;
@@ -286,7 +286,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		this.function = function;
 		this.layers = layers.clone();
         this.primArcIndex = primArcIndex;
-        this.gridFullExtend = (int)gridFullExtend;
+        lambdaElibWidthOffset = DBMath.gridToLambda(2*(gridFullExtend - gridBaseExtend));
         this.gridBaseExtend = (int)gridBaseExtend;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
@@ -374,7 +374,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     public void setExtends(int gridBaseExtend) {
         int delta = gridBaseExtend - this.gridBaseExtend;
         this.gridBaseExtend += delta;
-        this.gridFullExtend += delta;
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer arcLayer = layers[i];
             layers[i] = arcLayer.withGridExtend(arcLayer.getGridExtend() + delta);
@@ -383,22 +382,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         computeLayerGridExtendRange();
     }
     
-	/**
-	 * Method to return the full default width of this ArcProto in lambda units.
-	 * This is the full width, including nonselectable layers such as implants.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * @return the full default width of this ArcProto in lambda units.
-	 */
-	public double getDefaultLambdaFullWidth() { return DBMath.gridToLambda(getDefaultGridFullWidth()); }
-
-	/**
-	 * Method to return the full default width of this ArcProto in lambda units.
-	 * This is the full width, including nonselectable layers such as implants.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * @return the full default width of this ArcProto in lambda units.
-	 */
-	public long getDefaultGridFullWidth() { return 2*(getDefaultGridExtendOverMin() + gridFullExtend); }
-
 	/**
 	 * Method to return the default base width of this ArcProto in lambda units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
@@ -434,15 +417,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     }
 
 	/**
-	 * Method to return the full width extend of this ArcProto in grid units.
-	 * This is the full width, including nonselectable layers such as implants.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns only the half width of the well of minimal-width arc. 
-	 * @return the default full width extend of this ArcProto in grid units.
-	 */
-	public int getGridFullExtend() { return gridFullExtend; }
-
-	/**
 	 * Method to return the base width extend of this ArcProto in lambda units.
 	 * This is the reported/selected width.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
@@ -467,16 +441,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * The offset amount is the difference between the diffusion width and the overall width.
 	 * @return the width offset of this ArcProto in lambda units.
 	 */
-	public double getLambdaWidthOffset() { return DBMath.gridToLambda(getGridWidthOffset()); }
-
-	/**
-	 * Method to return the width offset of this ArcProto in grid units.
-	 * The width offset excludes the surrounding implang material.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * The offset amount is the difference between the diffusion width and the overall width.
-	 * @return the width offset of this ArcProto in grid units.
-	 */
-	public int getGridWidthOffset() { return 2*(gridFullExtend - gridBaseExtend); }
+	public double getLambdaElibWidthOffset() { return lambdaElibWidthOffset; }
 
 	/**
 	 * Method to return the minimal layer extend of this ArcProto in grid units.
@@ -916,8 +881,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	}
     
     public PrimitiveNode makeWipablePin(String pinName, String portName) {
-        double sizeOffset = DBMath.gridToLambda(getGridFullExtend() - getGridBaseExtend());
-        double defSize = 2*DBMath.gridToLambda(getGridFullExtend());
+        double sizeOffset = getLambdaElibWidthOffset();
+        double defSize = DBMath.round(2*getLambdaBaseExtend() + sizeOffset);
         return makeWipablePin(pinName, portName, sizeOffset, defSize);
     }
     
@@ -1270,6 +1235,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         Technology.printlnPref(out, 1, defaultExtendPrefs.get(this));
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
         out.println("\tdefaultLambdaBaseWidth=" + getDefaultLambdaBaseWidth());
+        out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
+        out.println("\tdiskOffset2=" + getLambdaBaseExtend());
         Technology.printlnPref(out, 1, defaultAnglePrefs.get(this));
         Technology.printlnPref(out, 1, defaultRigidPrefs.get(this));
         Technology.printlnPref(out, 1, defaultFixedAnglePrefs.get(this));
@@ -1295,12 +1262,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.notUsed = isNotUsed();
         a.skipSizeInPalette = isSkipSizeInPalette();
 
-        double diskOffset1 = DBMath.gridToLambda(getGridFullExtend());
-        double diskOffset2 = getLambdaBaseExtend();
-        if (diskOffset1 != diskOffset2)
-            a.diskOffset.put(Integer.valueOf(1), diskOffset1);
-        if (diskOffset2 != 0)
-            a.diskOffset.put(Integer.valueOf(2), diskOffset2);
+        a.elibWidthOffset = getLambdaElibWidthOffset();
         a.extended = isExtended();
         a.fixedAngle = isFixedAngle();
         a.angleIncrement = getAngleIncrement();
@@ -1320,6 +1282,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             long gridExtend = getLayerGridExtend(primLayer.getLayer());
             assert minLayerGridExtend <= gridExtend && gridExtend <= maxLayerGridExtend;
         }
-        assert 0 <= gridBaseExtend && gridBaseExtend <= gridFullExtend && gridBaseExtend <= maxLayerGridExtend;
+        assert lambdaElibWidthOffset >= 0;
+        assert 0 <= gridBaseExtend && gridBaseExtend <= maxLayerGridExtend;
     }
 }

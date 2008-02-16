@@ -112,10 +112,6 @@ public class TechExplorer extends ESandBox {
     }
     
     public void dumpAll(String fileName) throws IllegalAccessException, InvocationTargetException {
-        String version = (String)Version_getVersion.invoke(null).toString();
-        Xml.Version v = new Xml.Version();
-        v.electricVersion = Version.parseVersion(version);
-        v.techVersion = 1;
         for (Iterator<?> tit = (Iterator)Technology_getTechnologies.invoke(null); tit.hasNext(); ) {
             Object tech = tit.next();
             String techName = (String)Technology_getTechName.invoke(tech);
@@ -154,9 +150,6 @@ public class TechExplorer extends ESandBox {
     private void dumpPrefs(PrintWriter out, DataOutputStream dout) throws IOException {
         try {
             String version = (String)Version_getVersion.invoke(null).toString();
-            Xml.Version v = new Xml.Version();
-            v.electricVersion = Version.parseVersion(version);
-            v.techVersion = 1;
             out.println("Version " + version); dout.writeUTF(version);
             for (Iterator<?> tit = (Iterator)Technology_getTechnologies.invoke(null); tit.hasNext(); ) {
                 Object tech = tit.next();
@@ -278,18 +271,6 @@ public class TechExplorer extends ESandBox {
         t.className = tech.getClass().getName();
         if (t.className.equals("com.sun.electric.technology.Technology"))
             t.className = null;
-        Xml.Version version = new Xml.Version();
-        String versionStr = (String)Version_getVersion.invoke(null).toString();
-//        version.electricVersion = Version.parseVersion(versionStr);
-//        version.techVersion = 1;
-//        t.versions.add(version);
-        version.techVersion = 1;
-        version.electricVersion = Version.parseVersion("8.05g");
-        t.versions.add(version);
-        version = new Xml.Version();
-        version.techVersion = 2;
-        version.electricVersion = Version.parseVersion("8.05o");
-        t.versions.add(version);
         t.shortTechName = (String)Technology_getTechShortName.invoke(tech);
         t.description = (String)Technology_getTechDesc.invoke(tech);
         t.scaleValue = (Double)Technology_getScale.invoke(tech);
@@ -404,12 +385,7 @@ public class TechExplorer extends ESandBox {
                 widthOffset = (Double)ArcProto_getLambdaWidthOffset.invoke(ap);
             else if (ArcProto_getWidthOffset != null)
                 widthOffset = (Double)ArcProto_getWidthOffset.invoke(ap);
-            if (widthOffset != 0) {
-                a.diskOffset.put(Integer.valueOf(1), round(0.5*defaultFullWidth));
-                a.diskOffset.put(Integer.valueOf(2), round(0.5*(defaultFullWidth - widthOffset)));
-            } else {
-                a.diskOffset.put(Integer.valueOf(2), round(0.5*defaultFullWidth));
-            }
+            a.elibWidthOffset = round(widthOffset);
             Object[] arcLayers = (Object[])ArcProto_layers.get(ap);
             for (Object arcLayer: arcLayers) {
                 Xml.ArcLayer al = new Xml.ArcLayer();

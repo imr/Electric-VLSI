@@ -127,6 +127,8 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
+    private static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
+    private static final Version DISK_VERSION_2 = Version.parseVersion("8.05o");
 	public static final Technology[] NULL_ARRAY = {};
 	public static final ImmutableArrayList<Technology> EMPTY_LIST = new ImmutableArrayList<Technology>(NULL_ARRAY);
 
@@ -708,25 +710,26 @@ public class Technology implements Comparable<Technology>, Serializable
         public final HashMap<PrimitiveNodeId,EPoint> nodeExtends = new HashMap<PrimitiveNodeId,EPoint>();
 
         private SizeCorrector(Version version, boolean isJelib) {
+            int techVersion = 0;
+            if (isJelib) {
+                if (version.compareTo(DISK_VERSION_2) >= 0)
+                    techVersion = 2;
+                else if (version.compareTo(DISK_VERSION_1) >= 0)
+                    techVersion = 1;
+            }
+            for (ArcProto ap: arcs.values()) {
+                int correction = 0;
+                switch (techVersion) {
+                    case 0:
+                        correction = ap.getGridBaseExtend() + (int)DBMath.lambdaToGrid(0.5*ap.getLambdaElibWidthOffset());
+                        break;
+                    case 1:
+                        correction = ap.getGridBaseExtend();
+                        break;
+                }
+                arcExtends.put(ap.getId(), Integer.valueOf(correction));
+            }
             if (xmlTech != null) {
-                int techVersion = 0;
-                if (isJelib) {
-                    for (Xml.Version xmlVersion: xmlTech.versions) {
-                        if (version.compareTo(xmlVersion.electricVersion) >= 0 && techVersion < xmlVersion.techVersion)
-                            techVersion = xmlVersion.techVersion;
-                    }
-                }
-                for (Xml.ArcProto xap: xmlTech.arcs) {
-                    ArcProto ap = arcs.get(xap.name);
-                    double correction = 0;
-                    for (Map.Entry<Integer,Double> e: xap.diskOffset.entrySet()) {
-                        if (techVersion < e.getKey().intValue()) {
-                            correction = e.getValue().doubleValue();
-                            break;
-                        }
-                    }
-                    arcExtends.put(ap.getId(), Integer.valueOf((int)DBMath.lambdaToGrid(correction)));
-                }
                 for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
                     PrimitiveNode pn = nodes.get(xpn.name);
                     EPoint correction = EPoint.ORIGIN;
@@ -745,18 +748,17 @@ public class Technology implements Comparable<Technology>, Serializable
                     nodeExtends.put(pn.getId(), EPoint.ORIGIN);
                 }
             } else {
-                boolean oldRevision = !isJelib || version.compareTo(Version.parseVersion("8.05g")) < 0;
-                boolean newestRevision = isJelib && version.compareTo(Version.parseVersion("8.05o")) >= 0;
-                for (ArcProto ap: arcs.values()) {
-                    arcExtends.put(ap.getId(), Integer.valueOf(newestRevision ? 0 : oldRevision ? ap.getGridFullExtend() : ap.getGridBaseExtend()));
-                }
                 for (PrimitiveNode pn: nodes.values()) {
                     EPoint correction = EPoint.ORIGIN;
-                    if (newestRevision) {
-                        correction = pn.sizeCorrector;
-                    } else if (!oldRevision) {
-                        SizeOffset so = pn.getProtoSizeOffset();
-                        correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()), -0.5*(so.getLowYOffset() + so.getHighYOffset()));
+                    switch (techVersion) {
+                        case 1:
+                            SizeOffset so = pn.getProtoSizeOffset();
+                            correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()),
+                                    -0.5*(so.getLowYOffset() + so.getHighYOffset()));
+                            break;
+                        case 2:
+                            correction = pn.sizeCorrector;
+                            break;
                     }
                     nodeExtends.put(pn.getId(), correction);
                 }
@@ -969,11 +971,6 @@ public class Technology implements Comparable<Technology>, Serializable
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
-        int techVersion = 0;
-        for (Xml.Version xmlVersion: t.versions) {
-            if (Version.getVersion().compareTo(xmlVersion.electricVersion) >= 0 && techVersion < xmlVersion.techVersion)
-                techVersion = xmlVersion.techVersion;
-        }
         setFactoryScale(t.scaleValue, t.scaleRelevant);
         setFactoryParasitics(t.minResistance, t.minCapacitance);
         if (!t.transparentLayers.isEmpty())
@@ -1009,14 +1006,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 System.out.println("ArcProto " + getTechName() + ":" + a.name + " has invalid width offset " + DBMath.gridToLambda(2*maxGridExtend));
                 continue;
             }
-            double widthOffset = 0;
-            if (!a.diskOffset.isEmpty())
-                widthOffset = a.diskOffset.values().iterator().next().doubleValue()*2;
-//            for (Map.Entry<Integer,Double> e: a.widthOffset.entrySet()) {
-//                if (e.getKey() <= techVersion)
-//                    widthOffset = e.getValue();
-//            }
-            long gridFullExtend = DBMath.lambdaToSizeGrid(widthOffset)/2;
+            long gridFullExtend = minGridExtend + DBMath.lambdaToGrid(a.elibWidthOffset*0.5);
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
                 long gridLayerExtend = DBMath.lambdaToGrid(al.extend.value);
@@ -1829,14 +1819,6 @@ public class Technology implements Comparable<Technology>, Serializable
             t.className = getClass().getName();
         t.shortTechName = getTechShortName();
         t.description = getTechDesc();
-        Xml.Version version = new Xml.Version();
-        version.techVersion = 1;
-        version.electricVersion = Version.parseVersion("8.05g");
-        t.versions.add(version);
-        version = new Xml.Version();
-        version.techVersion = 2;
-        version.electricVersion = Version.parseVersion("8.05o");
-        t.versions.add(version);
         XMLRules factoryXmlRules = getFactoryDesignRules();
         int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;

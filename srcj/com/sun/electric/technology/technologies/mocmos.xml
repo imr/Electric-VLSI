@@ -34,8 +34,6 @@
 
     <shortName>MOSIS CMOS</shortName>
     <description>MOSIS CMOS (2-6 metals [now 6], 1-2 polys [now 2], flex rules [now submicron])</description>
-    <version tech="1" electric="8.05g"/>
-    <version tech="2" electric="8.05o"/>
     <numMetals min="6" max="6" default="6"/>
     <scale value="200.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -1005,7 +1003,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal-1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1017,7 +1014,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal-2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1029,7 +1025,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal-3" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1041,7 +1036,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal-4" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1053,7 +1047,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal-5" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1065,7 +1058,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="2.5"/>
         <arcLayer layer="Metal-6" style="FILLED">
             <lambda>2.5</lambda>
         </arcLayer>
@@ -1077,7 +1069,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Polysilicon-1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -1089,7 +1080,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="3.5"/>
         <arcLayer layer="Polysilicon-2" style="FILLED">
             <lambda>3.5</lambda>
         </arcLayer>
@@ -1101,8 +1091,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="7.5"/>
-        <diskOffset untilVersion="2" width="1.5"/>
+        <elibWidthOffset>12.0</elibWidthOffset>
         <arcLayer layer="P-Active" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1120,8 +1109,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="7.5"/>
-        <diskOffset untilVersion="2" width="1.5"/>
+        <elibWidthOffset>12.0</elibWidthOffset>
         <arcLayer layer="N-Active" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -1140,7 +1128,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="P-Active" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>

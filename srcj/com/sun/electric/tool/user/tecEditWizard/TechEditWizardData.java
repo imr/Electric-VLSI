@@ -4,7 +4,7 @@
  *
  * File: TechEditWizardData.java
  * Create an Electric XML Technology from a simple numeric description of design rules
- * Written in Perl by Andrew West, translated to Java by Steven Rubin.
+ * Written in Perl by Andrew Wewist, translated to Java by Steven Rubin.
  *
  * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
@@ -874,8 +874,6 @@ public class TechEditWizardData
 		pw.println();
 		pw.println("    <shortName>" + tech_name + "</shortName>");
 		pw.println("    <description>" + tech_description + "</description>");
-//		pw.println("    <version tech=\"1\" electric=\"8.05g\"/>");
-//		pw.println("    <version tech=\"2\" electric=\"8.05o\"/>");
 		pw.println("    <numMetals min=\"" + num_metal_layers + "\" max=\"" + num_metal_layers + "\" default=\"" + num_metal_layers + "\"/>");
 		pw.println("    <scale value=\"" + floaty(stepsize) + "\" relevant=\"true\"/>");
 		pw.println("    <defaultFoundry value=\"" + foundry_name + "\"/>");
@@ -1343,7 +1341,6 @@ public class TechEditWizardData
 			pw.println("        <angleIncrement>90</angleIncrement>");
             if (ant >= 0)
                 pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
-			pw.println("        <diskOffset untilVersion=\"2\" width=\"" + floaty(max/2) + "\"/>");
 
 			for(String each : h)
 			{

@@ -1091,6 +1091,8 @@ public class Manipulate
 				return "Thie arc coverage of " + cell;
 			case Info.ARCANTENNARATIO:
 				return "The maximum antenna ratio for " + cell;
+			case Info.ARCWIDTHOFFSET:
+				return "The ELIB width offset for " + cell;
 
 			case Info.NODEFUNCTION:
 				return "The function of " + cell;
@@ -1194,6 +1196,7 @@ public class Manipulate
 			case Info.ARCNOEXTEND:       modArcExtension(wnd, ni);           break;
 			case Info.ARCWIPESPINS:      modArcWipes(wnd, ni);               break;
 			case Info.ARCANTENNARATIO:   modArcAntennaRatio(wnd, ni);        break;
+			case Info.ARCWIDTHOFFSET:    modArcWidthOffset(wnd, ni);         break;
 
 			case Info.NODEFUNCTION:      modNodeFunction(wnd, ni);           break;
 			case Info.NODELOCKABLE:      modNodeLockability(wnd, ni);        break;
@@ -1244,6 +1247,14 @@ public class Manipulate
 		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Antenna Ratio",
 			"Maximum antenna ratio for this layer:", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Antenna Ratio: " + newUnit);
+	}
+
+	private static void modArcWidthOffset(EditWindow wnd, NodeInst ni)
+	{
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Width Offset",
+			"ELIB width offset for this arc:", initialMsg);
+		if (newUnit != null) new SetTextJob(ni, "ELIB width offset: " + newUnit);
 	}
 
 	private static void modLayerCoverage(EditWindow wnd, NodeInst ni)

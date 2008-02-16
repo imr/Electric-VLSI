@@ -34,8 +34,6 @@
 
     <shortName>nMOS</shortName>
     <description>nMOS (Mead &amp; Conway abstract rules)</description>
-    <version tech="1" electric="8.05g"/>
-    <version tech="2" electric="8.05o"/>
     <numMetals min="1" max="1" default="1"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="NONE"/>
@@ -438,7 +436,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -450,7 +447,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Polysilicon" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -462,7 +458,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Diffusion" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>

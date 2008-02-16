@@ -72,7 +72,6 @@ public class Xml {
         public String className;
         public String shortTechName;
         public String description;
-        public final List<Version> versions = new ArrayList<Version>();
         public int minNumMetals;
         public int maxNumMetals;
         public int defaultNumMetals;
@@ -127,11 +126,6 @@ public class Xml {
         }
     }
 
-    public static class Version implements Serializable {
-        public int techVersion;
-        public com.sun.electric.database.text.Version electricVersion;
-    }
-
     public static class Layer implements Serializable {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
@@ -168,11 +162,11 @@ public class Xml {
         public boolean notUsed;
         public boolean skipSizeInPalette;
 
-        public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
         public boolean extended;
         public boolean fixedAngle;
         public int angleIncrement;
         public double antennaRatio;
+        public double elibWidthOffset;
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
     }
 
@@ -291,7 +285,6 @@ public class Xml {
         technology,
         shortName(true),
         description(true),
-        version,
         numMetals,
         scale,
         defaultFoundry,
@@ -328,8 +321,8 @@ public class Xml {
         fixedAngle(true),
         angleIncrement(true),
         antennaRatio(true),
+        elibWidthOffset(true),
 
-        diskOffset,
         arcLayer,
 
         primitiveNode,
@@ -348,6 +341,7 @@ public class Xml {
         od18,
         od25,
         od33,
+        diskOffset,
         defaultWidth,
         defaultHeight,
         sizeOffset,
@@ -761,12 +755,6 @@ public class Xml {
                     tech.className = a_("class");
 //                    dump = true;
                     break;
-                case version:
-                    Version ver = new Version();
-                    ver.techVersion = Integer.parseInt(a("tech"));
-                    ver.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
-                    tech.versions.add(ver);
-                    break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));
                     tech.maxNumMetals = Integer.parseInt(a("max"));
@@ -879,12 +867,6 @@ public class Xml {
                     if (curNode != null)
                         curNode.skipSizeInPalette = true;
                     break;
-                case diskOffset:
-                    if (curArc != null)
-                        curArc.diskOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("width")));
-                    if (curNode != null)
-                        curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
-                    break;
                 case arcLayer:
                     ArcLayer arcLay = new ArcLayer();
                     arcLay.layer = a("layer");
@@ -932,6 +914,9 @@ public class Xml {
                     break;
                 case od33:
                     curNode.od33 = true;
+                    break;
+                case diskOffset:
+                    curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
                 case defaultWidth:
                     curDistance = curNode.defaultWidth;
@@ -1222,6 +1207,9 @@ public class Xml {
                     case antennaRatio:
                         curArc.antennaRatio = Double.parseDouble(text);
                         break;
+                    case elibWidthOffset:
+                        curArc.elibWidthOffset = Double.parseDouble(text);
+                        break;
                     case portTopology:
                         curPort.portTopology = Integer.parseInt(text);
                         break;
@@ -1295,7 +1283,6 @@ public class Xml {
                     curMenuCell = null;
                     break;
 
-                case version:
                 case spiceHeader:
                 case numMetals:
                 case scale:
@@ -1315,7 +1302,6 @@ public class Xml {
                 case special:
                 case notUsed:
                 case skipSizeInPalette:
-                case diskOffset:
                 case arcLayer:
 
                 case shrinkArcs:
@@ -1330,6 +1316,7 @@ public class Xml {
                 case od18:
                 case od25:
                 case od33:
+                case diskOffset:
 
                 case defaultWidth:
                 case defaultHeight:
@@ -1584,9 +1571,6 @@ public class Xml {
 
             bcpel(XmlKeyword.shortName, t.shortTechName);
             bcpel(XmlKeyword.description, t.description);
-            for (Version version: t.versions) {
-                b(XmlKeyword.version); a("tech", version.techVersion); a("electric", version.electricVersion); el();
-            }
             b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
             b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", t.scaleRelevant); el();
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
@@ -1732,10 +1716,8 @@ public class Xml {
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
             if (ai.antennaRatio != 0)
                 bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
-            
-            for (Map.Entry<Integer,Double> e: ai.diskOffset.entrySet()) {
-                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("width", e.getValue()); el();
-            }
+            if (ai.elibWidthOffset != 0)
+                bcpel(XmlKeyword.elibWidthOffset, ai.elibWidthOffset);
             
             for (Xml.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";

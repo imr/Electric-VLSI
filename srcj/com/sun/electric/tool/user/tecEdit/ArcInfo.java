@@ -63,19 +63,19 @@ public class ArcInfo extends Info
     /** true if arc is slidable */              boolean slidable;
 	/** the arc angle increment */				int angInc;
 	/** the maximum antenna ratio */			double antennaRatio;
+	/** the width offset to the highlight */	double widthOffset;
 	/** the ArcProto in the Technology */		ArcProto generated;
 	/** layers in the arc */					LayerDetails [] arcDetails;
-	/** the width offset to the highlight */	double widthOffset;
-	double maxWidth;
 
 	private static SpecialTextDescr [] arcTextTable =
 	{
-		new SpecialTextDescr(0, 18, ARCFUNCTION),
-		new SpecialTextDescr(0, 15, ARCFIXANG),
-		new SpecialTextDescr(0, 12, ARCWIPESPINS),
-		new SpecialTextDescr(0,  9, ARCNOEXTEND),
-		new SpecialTextDescr(0,  6, ARCINC),
-		new SpecialTextDescr(0,  3, ARCANTENNARATIO)
+		new SpecialTextDescr(0, 21, ARCFUNCTION),
+		new SpecialTextDescr(0, 18, ARCFIXANG),
+		new SpecialTextDescr(0, 15, ARCWIPESPINS),
+		new SpecialTextDescr(0, 12, ARCNOEXTEND),
+		new SpecialTextDescr(0,  9, ARCINC),
+		new SpecialTextDescr(0,  6, ARCANTENNARATIO),
+        new SpecialTextDescr(0,  3, ARCWIDTHOFFSET),
 	};
 
 	ArcInfo()
@@ -111,6 +111,7 @@ public class ArcInfo extends Info
 		loadTableEntry(arcTextTable, ARCNOEXTEND, new Boolean(noExtend));
 		loadTableEntry(arcTextTable, ARCINC, new Integer(angInc));
 		loadTableEntry(arcTextTable, ARCANTENNARATIO, new Double(antennaRatio));
+		loadTableEntry(arcTextTable, ARCWIDTHOFFSET, new Double(widthOffset));
 
 		// now create those text objects
 		createSpecialText(np, arcTextTable);
@@ -161,6 +162,9 @@ public class ArcInfo extends Info
 					break;
 				case ARCANTENNARATIO:
 					aIn.antennaRatio = TextUtils.atof(str);
+					break;
+				case ARCWIDTHOFFSET:
+					aIn.widthOffset = TextUtils.atof(str);
 					break;
 			}
 		}

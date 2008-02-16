@@ -90,7 +90,8 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 //		this.tech = tech;
 		this.portArcs = portArcs;
         for (ArcProto ap: portArcs) {
-            if (ap.getTechnology() != tech && ap.getTechnology() != ap.tech.generic)
+            Technology apTech = ap.getTechnology();
+            if (apTech != tech && apTech != apTech.generic)
                 throw new IllegalArgumentException("portArcs in " + name);
         }
 		this.left = left;

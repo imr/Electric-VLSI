@@ -69,10 +69,6 @@
         <xsd:restriction base="xsd:int"/>
     </xsd:simpleType>
     
-    <xsd:simpleType name="ElectricVersion">
-        <xsd:restriction base="xsd:string"/>
-    </xsd:simpleType>
-    
     <xsd:simpleType name="NumMetals">
         <xsd:restriction base="xsd:int">
             <xsd:minInclusive value="0"/>
@@ -414,12 +410,6 @@
             <xsd:sequence>
                 <xsd:element name="shortName" type="xsd:string" minOccurs="0"/>
                 <xsd:element name="description" type="xsd:string"/>
-                <xsd:element name="version" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:complexType>
-                        <xsd:attribute name="tech" type="tns:TechVersion" use="required"/>
-                        <xsd:attribute name="electric" type="tns:ElectricVersion" use="required"/>
-                    </xsd:complexType>
-                </xsd:element>
                 <xsd:element name="numMetals">
                     <xsd:complexType>
                         <xsd:attribute name="min" type="tns:NumMetals" use="required"/>
@@ -535,12 +525,7 @@
                             <xsd:element name="fixedAngle" type="xsd:boolean"/>
                             <xsd:element name="angleIncrement" type="xsd:integer"/>
                             <xsd:element name="antennaRatio" minOccurs="0" type="xsd:double"/>
-                            <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>
-                                    <xsd:attribute name="width" type="xsd:double" use="required"/>
-                                </xsd:complexType>
-                            </xsd:element>
+                            <xsd:element name="elibWidthOffset" minOccurs="0" type="xsd:double"/>
                             <xsd:element name="arcLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:group ref="tns:Distance"/>

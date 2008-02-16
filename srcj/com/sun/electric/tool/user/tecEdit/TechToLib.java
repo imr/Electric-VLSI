@@ -326,7 +326,8 @@ public class TechToLib
 			double widX4 = wid * 4;
 			if (widX4 <= 0) widX4 = 10;
 			Poly [] polys = ap.getShapeOfDummyArc(widX4);
-			double xOff = wid*2 + wid/2 + ap.getLambdaWidthOffset()/2;
+			double xOff = wid*2 + DBMath.gridToLambda(ap.getMaxLayerGridExtend());
+//			double xOff = wid*2 + wid/2 + ap.getLambdaElibWidthOffset()/2;
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
@@ -349,8 +350,7 @@ public class TechToLib
 				if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 			}
-			double i = ap.getLambdaWidthOffset() / 2;
-			NodeInst ni = NodeInst.makeInstance(Artwork.tech().boxNode, new Point2D.Double(-20 - wid*2.5 - i, -5), wid*5, wid, aNp);
+			NodeInst ni = NodeInst.makeInstance(Artwork.tech().boxNode, new Point2D.Double(-20 - xOff, -5), wid*5, wid, aNp);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));
 			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
@@ -769,8 +769,7 @@ public class TechToLib
         ArcInfo aIn = new ArcInfo();
         aIn.name = ap.getName();
         aIn.func = ap.getFunction();
-        aIn.widthOffset = ap.getLambdaWidthOffset();
-        aIn.maxWidth = ap.getDefaultLambdaFullWidth();
+        aIn.widthOffset = ap.getLambdaElibWidthOffset();
         aIn.fixAng = ap.isFixedAngle();
         aIn.wipes = ap.isWipable();
         aIn.noExtend = !ap.isExtended();

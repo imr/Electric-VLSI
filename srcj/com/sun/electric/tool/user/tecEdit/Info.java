@@ -116,6 +116,7 @@ public class Info
     /** 3D transparency mode (layer cell) */                    static final int LAYER3DMODE       = 59;
     /** 3D transparency factor (layer cell) */                  static final int LAYER3DFACTOR     = 60;
     /** Spice template (node cell) */                           static final int NODESPICETEMPLATE = 61;
+	/** Elib width offset (arc cell) */                         static final int ARCWIDTHOFFSET    = 62;
 
 
     /** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
@@ -284,7 +285,9 @@ public class Info
 				case ARCANTENNARATIO:
 					str = "Antenna Ratio: " + ((Double)table[i].value).doubleValue();
 					break;
-
+                case ARCWIDTHOFFSET:
+                    str = "ELIB width offset: " + ((Double)table[i].value).doubleValue();
+                    break;
 				case NODEFUNCTION:
 					str = "Function: " + ((PrimitiveNode.Function)table[i].value).toString();
 					break;

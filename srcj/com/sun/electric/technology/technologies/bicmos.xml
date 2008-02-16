@@ -33,8 +33,6 @@
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
     <description>Bipolar/CMOS (from MOSIS, N-Well, SCE Rules)</description>
-    <version tech="1" electric="8.05g"/>
-    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="1000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -649,7 +647,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="M1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -661,7 +658,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="M2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
@@ -673,7 +669,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -685,7 +680,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly2" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -697,7 +691,6 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -709,8 +702,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="6.0"/>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <elibWidthOffset>10.0</elibWidthOffset>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -728,8 +720,7 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <diskOffset untilVersion="1" width="3.0"/>
-        <diskOffset untilVersion="2" width="1.0"/>
+        <elibWidthOffset>4.0</elibWidthOffset>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>

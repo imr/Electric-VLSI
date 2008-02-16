@@ -1720,6 +1720,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             out.println("\tautoGrowth " + autoGrowth);
         Technology.printlnPref(out, 1, defaultExtendXPrefs.get(this));
         Technology.printlnPref(out, 1, defaultExtendYPrefs.get(this));
+        out.println("\tdiskOffset1=" + -sizeCorrector.getX() + "," + -sizeCorrector.getY());
+        SizeOffset so = getProtoSizeOffset();
+        double x = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - sizeCorrector.getX();
+        double y = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - sizeCorrector.getY();
+        out.println("\tdiskOffset2=" + x + "," + y);
+        
         out.println("\tlayers:");
         boolean isSerp = specialType == SERPTRANS;
         dumpNodeLayers(out, layers, isSerp);
