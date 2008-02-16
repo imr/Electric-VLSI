@@ -126,7 +126,6 @@ public class Via extends TechEditWizardPanel
     	gbc.gridx = 2;   gbc.gridy = 4;
         gbc.insets = new Insets(4, 0, 1, 2);
         via.add(sizeRule, gbc);
-        sizeRule.setEnabled(false);
 
         JLabel spacingLabel = new JLabel("Via spacing (B):");
     	gbc = new GridBagConstraints();
@@ -173,7 +172,6 @@ public class Via extends TechEditWizardPanel
     	gbc.gridx = 2;   gbc.gridy = 6;
         gbc.insets = new Insets(1, 0, 1, 2);
         via.add(arraySpacingRule, gbc);
-        arraySpacingRule.setEnabled(false);
 
         JLabel overhangInlineLabel = new JLabel("Via inline overhang (D):");
     	gbc = new GridBagConstraints();
@@ -197,7 +195,6 @@ public class Via extends TechEditWizardPanel
     	gbc.gridx = 2;   gbc.gridy = 7;
         gbc.insets = new Insets(1, 0, 4, 2);
         via.add(overhangInlineRule, gbc);
-        overhangInlineRule.setEnabled(false);
 
         JLabel nano = new JLabel("Distances are in nanometers");
         gbc = new GridBagConstraints();

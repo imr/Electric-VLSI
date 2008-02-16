@@ -39,9 +39,6 @@ public class WellImplant extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "WellImplant.png"));
-		nPlusOverhangRule.setEnabled(false);
-		pPlusOverhangRule.setEnabled(false);
-		nWellOverhangRule.setEnabled(false);
 		pack();
 	}
 

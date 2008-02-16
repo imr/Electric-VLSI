@@ -39,8 +39,6 @@ public class Gate extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Gate.png"));
-		lengthRule.setEnabled(false);
-		widthRule.setEnabled(false);
 		pack();
 	}
 

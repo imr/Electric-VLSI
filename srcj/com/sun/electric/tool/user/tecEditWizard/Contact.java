@@ -39,10 +39,6 @@ public class Contact extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Contact.png"));
-		sizeRule.setEnabled(false);
-		metalOverhangInlineRule.setEnabled(false);
-		metalOverhangAllRule.setEnabled(false);
-		polyOverhangRule.setEnabled(false);
 		pack();
 	}
 

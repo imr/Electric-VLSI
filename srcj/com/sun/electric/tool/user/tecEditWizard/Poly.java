@@ -39,7 +39,6 @@ public class Poly extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Poly.png"));
-		endcapRule.setEnabled(false);
 		pack();
 	}
 

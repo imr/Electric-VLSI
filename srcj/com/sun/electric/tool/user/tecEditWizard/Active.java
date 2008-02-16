@@ -39,8 +39,6 @@ public class Active extends TechEditWizardPanel
 		super(parent, modal);
 		initComponents();
 		image.setIcon(Resources.getResource(getClass(), "Active.png"));
-		polyOverhangRule.setEnabled(false);
-		contactOverhangRule.setEnabled(false);
 		pack();
 	}
 
