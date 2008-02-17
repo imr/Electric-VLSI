@@ -2702,7 +2702,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     else
                         Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
                 }
-                lowLevelModify(d.withSize(EPoint.fromLambda(bounds.getWidth(), bounds.getHeight()), pn.getSizeCorrector()));
+                EPoint corrector = pn.getSizeCorrector();
+                double lambdaX = bounds.getWidth() + 2*corrector.getLambdaX();
+                double lambdaY = bounds.getHeight() + 2*corrector.getLambdaY();
+                lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY), corrector));
             }
         } else if (key == Artwork.ART_DEGREES) {
 			lowLevelModify(d);
@@ -3206,7 +3209,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                lowLevelModify(d.withSize(EPoint.fromLambda(width, height), pn.getSizeCorrector()));
+                EPoint corrector = pn.getSizeCorrector();
+                double lambdaX = width + 2*corrector.getLambdaX();
+                double lambdaY = height + 2*corrector.getLambdaY();
+                lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY), corrector));
 			}
 //			warningCount++;
 		}
