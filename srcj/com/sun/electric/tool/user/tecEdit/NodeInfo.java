@@ -246,7 +246,8 @@ public class NodeInfo extends Info
 		Example biggest = firstEx;
 		for(Example ne : neList)
 		{
-			if (ne.hx-ne.lx > biggest.hx-biggest.lx) biggest = ne;
+			if (ne.hx-ne.lx > biggest.hx-biggest.lx || ne.hy-ne.ly > biggest.hx-biggest.ly)
+                biggest = ne;
 		}
 		if (numExamples == 1)
 		{

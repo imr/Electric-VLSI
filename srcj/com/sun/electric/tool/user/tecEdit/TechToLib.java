@@ -370,6 +370,7 @@ public class TechToLib
         NodeInfo[] nList = new NodeInfo[nodeTotal];
 		String [] nodeSequence = new String[nodeTotal];
 
+        Cell dummyCell = Cell.newInstance(lib, "dummyCell{lay}");
 		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
@@ -382,7 +383,6 @@ public class TechToLib
 
 			// create the node layers
 			boolean first = true;
-			NodeInst oNi = NodeInst.makeDummyInstance(pnp);
 			double xS = pnp.getDefWidth() * 2;
 			double yS = pnp.getDefHeight() * 2;
 			if (xS < 3) xS = 3;
@@ -425,8 +425,7 @@ public class TechToLib
                 if (pnp.isSquare() && (e == 1 || e == 2)) continue;
                 double newXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset();
                 double newYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset();
-                EPoint newSize = EPoint.fromLambda(newXSize, newYSize);
-                oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newSize));
+                NodeInst oNi = NodeInst.makeInstance(pnp, EPoint.snap(pos[e]), newXSize, newYSize, dummyCell);
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
 				for(int i=0; i<j; i++)
@@ -603,11 +602,13 @@ public class TechToLib
 						break;
 					}
 				}
+                oNi.kill();
 			}
 
 			// compact it accordingly
 			NodeInfo.compactCell(nNp);
 		}
+        dummyCell.kill();
 
 		// save the node sequence
 		lib.newVar(Info.NODESEQUENCE_KEY, nodeSequence);

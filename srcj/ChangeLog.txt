@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/16/08, DN) TechEditor wrong places node examples.
+FIX: In tecEdit.NodeInfo.compactSell correctly find biggest example.
+
 BUG: (2/16/08, DN) Technology Creation Wizard with wrong gridoffset for ArcProto? (Bug #1576)
 FIX: Replace <diskOffset> by <elibWidthOffset> in Xml.ArcProto .
      Modify techEdit so that it doesn't recalculate elibWidthOffset .
