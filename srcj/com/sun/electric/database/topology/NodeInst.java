@@ -276,8 +276,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         EPoint size = EPoint.fromLambda(width, height);
         EPoint corrector = EPoint.ORIGIN;
-        if (np instanceof PrimitiveNode)
+        if (np instanceof PrimitiveNode) {
             corrector = ((PrimitiveNode)np).getSizeCorrector();
+            if (!corrector.equals(EPoint.ORIGIN)) {
+                long gridX = size.getGridX() + 2*corrector.getGridX();
+                long gridY = size.getGridY() + 2*corrector.getGridY();
+                size = EPoint.fromGrid(gridX, gridY);
+            }
+        }
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
                 orient, center, size, corrector, 0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(np, d);
@@ -384,8 +390,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             nodeId = parentId.newNodeId();
         } while (parent.getNodeById(nodeId) != null);
         EPoint corrector = EPoint.ORIGIN;
-        if (protoType instanceof PrimitiveNode)
+        if (protoType instanceof PrimitiveNode) {
             corrector = ((PrimitiveNode)protoType).getSizeCorrector();
+            if (!corrector.equals(EPoint.ORIGIN)) {
+                long gridX = size.getGridX() + 2*corrector.getGridX();
+                long gridY = size.getGridY() + 2*corrector.getGridY();
+                size = EPoint.fromGrid(gridX, gridY);
+            }
+        }
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
                 orient, anchor, size, corrector, flags, techBits, protoDescriptor);
 
