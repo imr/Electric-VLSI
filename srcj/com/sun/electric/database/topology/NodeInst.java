@@ -275,8 +275,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static NodeInst makeDummyInstance(NodeProto np, EPoint center, double width, double height, Orientation orient)
 	{
         EPoint size = EPoint.fromLambda(width, height);
+        EPoint corrector = EPoint.ORIGIN;
+        if (np instanceof PrimitiveNode)
+            corrector = ((PrimitiveNode)np).getSizeCorrector();
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
-                orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
+                orient, center, size, corrector, 0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(np, d);
 	}
 
@@ -380,8 +383,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         do {
             nodeId = parentId.newNodeId();
         } while (parent.getNodeById(nodeId) != null);
+        EPoint corrector = EPoint.ORIGIN;
+        if (protoType instanceof PrimitiveNode)
+            corrector = ((PrimitiveNode)protoType).getSizeCorrector();
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
-                orient, anchor, size, flags, techBits, protoDescriptor);
+                orient, anchor, size, corrector, flags, techBits, protoDescriptor);
 
         NodeInst ni = newInstance(parent, d);
         if (ni != null && msg != null && errorLogger != null)
@@ -507,8 +513,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         ImmutableNodeInst d = oldD;
         if (dX != 0 || dY != 0)
             d = d.withAnchor(new EPoint(d.anchor.getX() + dX, d.anchor.getY() + dY));
-        if (protoType instanceof PrimitiveNode) 
-            d = d.withSize(EPoint.fromLambda(d.size.getLambdaX() + dXSize, d.size.getLambdaY() + dYSize));
+        if (protoType instanceof PrimitiveNode) {
+            EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
+            double lambdaX = d.size.getLambdaX() + corrector.getLambdaX() + dXSize;
+            double lambdaY = d.size.getLambdaY() + corrector.getLambdaY() + dYSize;
+            d = d.withSize(EPoint.fromLambda(lambdaX, lambdaY), corrector);
+        }
         d = d.withOrient(dOrient.concatenate(d.orient));
         lowLevelModify(d);
         if (parent != null)
@@ -2680,7 +2690,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     else
                         Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
                 }
-                lowLevelModify(d.withSize(EPoint.fromLambda(bounds.getWidth(), bounds.getHeight())));
+                lowLevelModify(d.withSize(EPoint.fromLambda(bounds.getWidth(), bounds.getHeight()), pn.getSizeCorrector()));
             }
         } else if (key == Artwork.ART_DEGREES) {
 			lowLevelModify(d);
@@ -3184,7 +3194,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                lowLevelModify(d.withSize(EPoint.fromLambda(width, height)));
+                lowLevelModify(d.withSize(EPoint.fromLambda(width, height), pn.getSizeCorrector()));
 			}
 //			warningCount++;
 		}

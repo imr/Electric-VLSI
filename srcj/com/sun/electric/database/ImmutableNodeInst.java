@@ -200,7 +200,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @throws IllegalArgumentException if nodeId or size is bad.
 	 */
     public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
-            Orientation orient, EPoint anchor, EPoint size,
+            Orientation orient, EPoint anchor, EPoint size, EPoint corrector,
             int flags, int techBits, TextDescriptor protoDescriptor) {
         if (nodeId < 0) throw new IllegalArgumentException("nodeId");
 		if (protoId == null) throw new NullPointerException("protoId");
@@ -216,6 +216,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
         if (protoId instanceof CellId)
             size = EPoint.ORIGIN;
+        else if (!corrector.equals(EPoint.ORIGIN))
+            size = EPoint.fromGrid(size.getGridX() - 2*corrector.getGridX(), size.getGridY() - 2*corrector.getGridY());
         if (isCellCenter(protoId)) {
             orient = Orientation.IDENT;
             anchor = EPoint.ORIGIN;
@@ -304,7 +306,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by size.
      * @throws IllegalArgumentException if width or height is negative.
 	 */
-	public ImmutableNodeInst withSize(EPoint size) {
+	public ImmutableNodeInst withSizeOld(EPoint size) {
 		if (this.size.equals(size)) return this;
 		if (size == null) throw new NullPointerException("size");
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
@@ -312,6 +314,18 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoId instanceof CellId) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by size.
+	 * @param size a point with x as size and y as height.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by size.
+     * @throws IllegalArgumentException if width or height is negative.
+	 */
+	public ImmutableNodeInst withSize(EPoint size, EPoint corrector) {
+        if (!corrector.equals(EPoint.ORIGIN))
+            size = EPoint.fromGrid(size.getGridX() - 2*corrector.getGridX(), size.getGridY() - 2*corrector.getGridY());
+		return withSizeOld(size);
 	}
 
 	/**

@@ -957,6 +957,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public SizeOffset getProtoSizeOffset() { return offset; }
 
+    public EPoint getSizeCorrector() { return sizeCorrector; }
+    
 //	/**
 //	 * Method to return the minimum width of this PrimitiveNode.
 //	 * @return the minimum width of this PrimitiveNode.

@@ -78,6 +78,7 @@ public class ImmutableArcInstTest {
     private Technology tech;
     private TechId techId;
     private PrimitiveNode pn;
+    private EPoint corrector;
     private PrimitiveNodeId pnId;
     private PrimitivePort pp;
     private PrimitivePortId ppId;
@@ -104,6 +105,7 @@ public class ImmutableArcInstTest {
         artwork = techPool.getArtwork();
         tech = Technology.getMocmosTechnology();
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
+        corrector = pn.getSizeCorrector();
         pnId = pn.getId();
         pp = pn.getPort(0);
         ppId = pp.getId();
@@ -115,8 +117,8 @@ public class ImmutableArcInstTest {
         techId = tech.getId();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
-        n0 = ImmutableNodeInst.newInstance(0, pnId, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
-        n1 = ImmutableNodeInst.newInstance(1, pnId, Name.findName("n1"), null, Orientation.IDENT, EPoint.fromLambda(21, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+        n0 = ImmutableNodeInst.newInstance(0, pnId, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(0, 0), corrector, 0, 0, null);
+        n1 = ImmutableNodeInst.newInstance(1, pnId, Name.findName("n1"), null, Orientation.IDENT, EPoint.fromLambda(21, 2), EPoint.fromLambda(0, 0), corrector, 0, 0, null);
         nameA0 = Name.findName("a0");
         a0 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }

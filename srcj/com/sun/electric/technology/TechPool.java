@@ -243,7 +243,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                     PrimitiveNodeId pnId = (PrimitiveNodeId)n.protoId;
                     SizeCorrector sizeCorrector = sizeCorrectors.get(pnId.techId);
                     if (sizeCorrector != null)
-                        n = n.withSize(sizeCorrector.getSizeToDisk(n));
+                        n = n.withSizeOld(sizeCorrector.getSizeToDisk(n));
                 }
                 correctedNodes[nodeIndex] = n;
             }
