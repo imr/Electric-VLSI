@@ -527,8 +527,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             d = d.withAnchor(new EPoint(d.anchor.getX() + dX, d.anchor.getY() + dY));
         if (protoType instanceof PrimitiveNode) {
             EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-            double lambdaX = d.size.getLambdaX() + corrector.getLambdaX() + dXSize;
-            double lambdaY = d.size.getLambdaY() + corrector.getLambdaY() + dYSize;
+            double lambdaX = d.size.getLambdaX() + 2*corrector.getLambdaX() + dXSize;
+            double lambdaY = d.size.getLambdaY() + 2*corrector.getLambdaY() + dYSize;
             d = d.withSize(EPoint.fromLambda(lambdaX, lambdaY), corrector);
         }
         d = d.withOrient(dOrient.concatenate(d.orient));
