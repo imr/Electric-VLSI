@@ -172,7 +172,7 @@ public class JELIB extends LibraryFiles
         for (JelibParser.CellContents cc: parser.allCells.values()) {
             CellId cellId = cc.cellId;
             Cell cell = Cell.newInstance(lib, cellId.cellName.toString());
-             Technology tech = findTechnology(cc.techId);
+            Technology tech = findTechnology(cc.techId);
             cell.setTechnology(tech);
             cell.lowLevelSetCreationDate(new Date(cc.creationDate));
             cell.lowLevelSetRevisionDate(new Date(cc.revisionDate));

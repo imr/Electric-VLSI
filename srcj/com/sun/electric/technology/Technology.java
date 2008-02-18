@@ -207,13 +207,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the Poly.Style of this ArcLayer.
 		 */
 		Poly.Type getStyle() { return style; }
-        
+
         void dump(PrintWriter out) {
             out.println("\t\tarcLayer layer=" + layer.getName() +
                     " style=" + style.name() +
                     " extend=" + DBMath.gridToLambda(gridExtend));
         }
-        
+
         Xml.ArcLayer makeXml() {
             Xml.ArcLayer al = new Xml.ArcLayer();
             al.layer = layer.getName();
@@ -336,7 +336,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
 		 */
 		public EdgeV getY() { return y; }
-        
+
         TechPoint makeCorrection(EPoint correction) {
             EdgeH h = new EdgeH(x.getMultiplier(), x.getAdder() + correction.getLambdaX()*x.getMultiplier()*2);
             EdgeV v = new EdgeV(y.getMultiplier(), y.getAdder() + correction.getLambdaY()*y.getMultiplier()*2);
@@ -653,7 +653,7 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
-        
+
         void dump(PrintWriter out, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
             if (getMessage() != null) {
@@ -662,13 +662,13 @@ public class Technology implements Comparable<Technology>, Serializable
             }
             if (getMulticutSizeX() != 0 || getMulticutSizeY() != 0 || getMulticutSep1D() != 0 || getMulticutSep2D() != 0)
                 out.println("\t\tmultiSizeX=" + getMulticutSizeX() + " multiSizeY=" + getMulticutSizeY() + " multiSep=" + getMulticutSep1D() + " multiSpe2D=" + getMulticutSep2D());
-            
+
             if (isSerp)
                 out.println("\t\tLWidth=" + getSerpentineLWidth() + " rWidth=" + getSerpentineRWidth() + " bExtend=" + getSerpentineExtentB() + " tExtend=" + getSerpentineExtentT());
             for (Technology.TechPoint p: getPoints())
                 out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
         }
-        
+
         Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
             Xml.NodeLayer nld = new Xml.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
@@ -739,7 +739,7 @@ public class Technology implements Comparable<Technology>, Serializable
                             break;
                         }
                     }
-                    correction = EPoint.fromGrid(correction.getGridX() + pn.sizeCorrector.getGridX(), correction.getGridY() + pn.sizeCorrector.getGridY());
+//                    correction = EPoint.fromGrid(correction.getGridX() + pn.sizeCorrector.getGridX(), correction.getGridY() + pn.sizeCorrector.getGridY());
                     nodeExtends.put(pn.getId(), correction);
                 }
                 for (Xml.Layer l: xmlTech.layers) {
@@ -751,13 +751,14 @@ public class Technology implements Comparable<Technology>, Serializable
                 for (PrimitiveNode pn: nodes.values()) {
                     EPoint correction = EPoint.ORIGIN;
                     switch (techVersion) {
+                        case 0:
+                            correction = EPoint.fromGrid(-pn.sizeCorrector.getGridX(), -pn.sizeCorrector.getGridY());
+                            break;
                         case 1:
                             SizeOffset so = pn.getProtoSizeOffset();
-                            correction = EPoint.fromLambda(-0.5*(so.getLowXOffset() + so.getHighXOffset()),
-                                    -0.5*(so.getLowYOffset() + so.getHighYOffset()));
-                            break;
-                        case 2:
-                            correction = pn.sizeCorrector;
+                            double lambdaX = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - pn.sizeCorrector.getLambdaX();
+                            double lambdaY = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - pn.sizeCorrector.getLambdaY();
+                            correction = EPoint.fromLambda(lambdaX, lambdaY);
                             break;
                     }
                     nodeExtends.put(pn.getId(), correction);
@@ -776,7 +777,7 @@ public class Technology implements Comparable<Technology>, Serializable
             }
             return true;
         }
-        
+
         public long getExtendFromDisk(ArcProto ap, double width) {
             return DBMath.lambdaToGrid(0.5*width) - arcExtends.get(ap.getId()).longValue();
         }
@@ -830,7 +831,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
 
-    /** Generic technology for this Technology */           final Generic generic; 
+    /** Generic technology for this Technology */           final Generic generic;
 	/** name of this technology */							private final TechId techId;
 	/** short, readable name of this technology */			private String techShortName;
 	/** full description of this technology */				private String techDesc;
@@ -940,11 +941,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
-    
+
     private static class TechnologyKey extends EObjectInputStream.Key<Technology> {
         public TechnologyKey() {}
         private TechnologyKey(Technology tech) { super(tech); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, Technology tech) throws IOException {
             TechId techId = tech.getId();
@@ -954,7 +955,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 throw new NotSerializableException(tech + " not linked");
             out.writeInt(techId.techIndex);
         }
-        
+
         @Override
         public Technology readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int techIndex = in.readInt();
@@ -965,7 +966,7 @@ public class Technology implements Comparable<Technology>, Serializable
             return tech;
         }
     }
-    
+
     public Technology(Generic generic, Xml.Technology t) {
         this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
@@ -1245,7 +1246,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         nodeGroups = factoryNodeGroups = rows.toArray(new Object[rows.size()][]);
     }
-    
+
     private Object convertMenuItem(Object menuItem) {
         if (menuItem instanceof Xml.ArcProto)
             return findArcProto(((Xml.ArcProto)menuItem).name);
@@ -1364,7 +1365,7 @@ public class Technology implements Comparable<Technology>, Serializable
     protected static Artwork sysArtwork;
     protected static FPGA sysFPGA;
     protected static Schematics sysSchematics;
-    
+
 	private static Pref softTechnologyList;
 
 	/**
@@ -1509,7 +1510,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public void setup(EDatabase database)
 	{
         database.addTech(this);
-     
+
         // initialize all design rules in the technology (overwrites arc widths)
 		setState();
 
@@ -1808,7 +1809,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (String s: header)
             out.println("\t\"" + s + "\"");
     }
-    
+
     /**
      * Create Xml structure of this Technology
      */
@@ -1846,11 +1847,11 @@ public class Technology implements Comparable<Technology>, Serializable
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
             t.nodes.add(pnp.makeXml());
         }
-        
+
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
         addSpiceHeader(t, 2, getSpiceHeaderLevel2());
         addSpiceHeader(t, 3, getSpiceHeaderLevel3());
-        
+
         Object[][] origPalette = getNodesGrouped(null);
         int numRows = origPalette.length;
         int numCols = origPalette[0].length;
@@ -1873,7 +1874,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 t.menuPalette.menuBoxes.add(newBox);
             }
         }
-        
+
         for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
             Foundry foundry = it.next();
             Xml.Foundry f = new Xml.Foundry();
@@ -1891,7 +1892,7 @@ public class Technology implements Comparable<Technology>, Serializable
        }
         return t;
     }
-    
+
     private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
         if (spiceLines == null) return;
         Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
@@ -1900,7 +1901,7 @@ public class Technology implements Comparable<Technology>, Serializable
             spiceHeader.spiceLines.add(spiceLine);
         t.spiceHeaders.add(spiceHeader);
     }
-    
+
     private static Object makeMenuEntry(Xml.Technology t, Object entry) {
         if (entry instanceof ArcProto)
             return t.findArc(((ArcProto)entry).getName());
@@ -1922,8 +1923,8 @@ public class Technology implements Comparable<Technology>, Serializable
         assert entry instanceof String;
         return entry;
     }
-    
-    
+
+
 //	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
 //    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
 //    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
@@ -2428,7 +2429,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (explain) System.out.println("LARGE " + a.tailLocation + " " + a.headLocation);
             return false;
         }
-        int minLayerExtend = (int)a.getGridExtendOverMin() + protoType.getMinLayerGridExtend(); 
+        int minLayerExtend = (int)a.getGridExtendOverMin() + protoType.getMinLayerGridExtend();
         if (minLayerExtend <= 0) {
             if (minLayerExtend != 0 || protoType.getNumArcLayers() != 1) {
                 if (explain) System.out.println(protoType + " many zero-width layers");
@@ -2448,7 +2449,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         return true;
     }
-    
+
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
 	 * @param name the unknown arc name, read from an old Library.
@@ -2920,6 +2921,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+        EPoint corrector = np.getSizeCorrector();
 		int specialType = np.getSpecialType();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
@@ -2959,7 +2961,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             for (NodeLayer nodeLayer: primLayers) {
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(ni.getD().size, nodeLayer);
+                    mcd = new MultiCutData(ni.getD().size, corrector, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
                         numExtraLayers += (mcd.cutsTotal - 1);
                 }
@@ -3033,7 +3035,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(ni.getD().size, primLayer);
+                mcd = new MultiCutData(ni.getD().size, corrector, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3151,14 +3153,16 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
 
-        private void calculateInternalData(EPoint size, NodeLayer cutLayer)
+        private void calculateInternalData(EPoint size, EPoint corrector, NodeLayer cutLayer)
         {
-           assert cutLayer.representation == NodeLayer.MULTICUTBOX;
+            assert cutLayer.representation == NodeLayer.MULTICUTBOX;
+            long gridWidth = size.getGridX() - 2*corrector.getGridX();
+            long gridHeight = size.getGridY() - 2*corrector.getGridY();
             TechPoint[] techPoints = cutLayer.points;
-            long lx = techPoints[0].getX().getGridAdder() + (long)(size.getGridX()*techPoints[0].getX().getMultiplier());
-            long hx = techPoints[1].getX().getGridAdder() + (long)(size.getGridX()*techPoints[1].getX().getMultiplier());
-            long ly = techPoints[0].getY().getGridAdder() + (long)(size.getGridY()*techPoints[0].getY().getMultiplier());
-            long hy = techPoints[1].getY().getGridAdder() + (long)(size.getGridY()*techPoints[1].getY().getMultiplier());
+            long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
+            long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
+            long ly = techPoints[0].getY().getGridAdder() + (long)(gridHeight*techPoints[0].getY().getMultiplier());
+            long hy = techPoints[1].getY().getGridAdder() + (long)(gridHeight*techPoints[1].getY().getMultiplier());
             cutSizeX = cutLayer.cutGridSizeX;
             cutSizeY = cutLayer.cutGridSizeY;
             cutSep1D = cutLayer.cutGridSep1D;
@@ -3221,9 +3225,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		/**
 		 * Constructor to initialize for multiple cuts.
 		 */
-		private MultiCutData(EPoint size, NodeLayer cutLayer)
+		private MultiCutData(EPoint size, EPoint corrector, NodeLayer cutLayer)
 		{
-            calculateInternalData(size, cutLayer);
+            calculateInternalData(size, corrector, cutLayer);
 		}
 
 		/**
@@ -3232,7 +3236,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
 		{
-            this(niD.size, techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
+            this(niD.size,
+                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getSizeCorrector(),
+                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
 		}
 
 		/**
@@ -4428,7 +4434,7 @@ public class Technology implements Comparable<Technology>, Serializable
         if (foundry != null) gdsLayers = foundry.getGDSLayers();
         return gdsLayers;
     }
-    
+
 	/**
 	 * Sets the color map for transparent layers in this technology.
 	 * Users should never call this method.
@@ -4622,7 +4628,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     rules.loadDRCRules(this, foundry, rule, pWellProcess);
             }
         }
-        
+
         if (xmlTech != null)
             resizeXml(rules);
         return rules;
@@ -5311,7 +5317,7 @@ public class Technology implements Comparable<Technology>, Serializable
             tech.setState();
             reloadUIData();
 		}
-        
+
         private boolean isUsed(Technology tech) {
             for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
                 Library lib = lit.next();

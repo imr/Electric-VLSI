@@ -218,7 +218,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         HashMap<TechId,SizeCorrector> sizeCorrectors = new HashMap<TechId,SizeCorrector>();
         for (int i = 0; i < cells.size(); i++) {
             CellRevision cellRevision = cells.get(i);
-            
+
             boolean needCorrection = false;
             for (TechId techId: cellRevision.getTechUsages()) {
                 SizeCorrector sizeCorrector = sizeCorrectors.get(techId);
@@ -235,7 +235,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                     needCorrection = true;
             }
             if (!needCorrection) continue;
-            
+
             ImmutableNodeInst[] correctedNodes = new ImmutableNodeInst[cellRevision.nodes.size()];
             for (int nodeIndex = 0; nodeIndex < correctedNodes.length; nodeIndex++) {
                 ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
@@ -243,7 +243,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                     PrimitiveNodeId pnId = (PrimitiveNodeId)n.protoId;
                     SizeCorrector sizeCorrector = sizeCorrectors.get(pnId.techId);
                     if (sizeCorrector != null)
-                        n = n.withSizeOld(sizeCorrector.getSizeToDisk(n));
+                        n = n.withSize(sizeCorrector.getSizeToDisk(n));
                 }
                 correctedNodes[nodeIndex] = n;
             }
@@ -257,12 +257,12 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                     a = a.withGridExtendOverMin(sizeCorrector.getExtendToDisk(a));
                 correctedArcs[arcIndex] = a;
             }
-            
+
             cellRevision = cellRevision.with(cellRevision.d, cellRevision.revisionDate, correctedNodes, correctedArcs, null);
             cells.set(i, cellRevision);
         }
     }
-    
+
     /** Returns Artwork technology in this database */
     public Artwork getArtwork() {
         return artwork;
@@ -411,7 +411,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             prevTechId = techId;
         }
     }
-    
+
     private class EntrySet extends AbstractSet<Entry<TechId, Technology>> {
         private final Entry<TechId,Technology>[] entries;
 

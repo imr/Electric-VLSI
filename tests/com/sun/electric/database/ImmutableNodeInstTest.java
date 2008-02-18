@@ -55,7 +55,6 @@ public class ImmutableNodeInstTest {
     
     private Technology tech;
     private PrimitiveNode pn;
-    private EPoint corrector;
     private PrimitiveNodeId pnId;
     private PrimitiveNodeId cellCenterNodeId;
     private Name nameA0;
@@ -71,11 +70,10 @@ public class ImmutableNodeInstTest {
         
         tech = Technology.getMocmosTechnology();
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
-        corrector = pn.getSizeCorrector();
         pnId = pn.getId();
         cellCenterNodeId = Generic.tech().cellCenterNode.getId();
         nameA0 = Name.findName("a0");
-        n0 = ImmutableNodeInst.newInstance(0, pnId, nameA0, null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(0, 0), corrector, 0, 0, null);
+        n0 = ImmutableNodeInst.newInstance(0, pnId, nameA0, null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(0, 0), 0, 0, null);
     }
     
     @After public void tearDown() {
@@ -143,7 +141,7 @@ public class ImmutableNodeInstTest {
         System.out.println("newInstance");
         
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
-        ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, td);
+        ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, td);
         n1.check();
         assertTrue(n1.nameDescriptor.isDisplay());
         assertFalse(n1.nameDescriptor.isCode());
@@ -155,50 +153,50 @@ public class ImmutableNodeInstTest {
     
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadNodeId() {
         System.out.println("newInstanceBadNodeId");
-        ImmutableNodeInst.newInstance(-1, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(-1, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = NullPointerException.class) public void testNewInstanceBadProtoId() {
         System.out.println("newInstanceBadProtoId");
-        ImmutableNodeInst.newInstance(0, null, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, null, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = NullPointerException.class) public void testNewInstanceBadName1() {
         System.out.println("newInstanceBadName1");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, null, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, null, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName2() {
         System.out.println("newInstanceBadName2");
         Name name = Name.findName("a[0]_b");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName3() {
         System.out.println("newInstanceBadName3");
         Name name = Name.findName("i@0[0:1]");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName4() {
         System.out.println("newInstanceBadName4");
         Name name = Name.findName("a[0:5],b,a[5:8]");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = NullPointerException.class) public void testNewInstanceBadOrient() {
         System.out.println("newInstanceBadOrient");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, null, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, null, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = NullPointerException.class) public void testNewInstanceBadAnchor() {
         System.out.println("newInstanceBadAnchor");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, null, EPoint.fromLambda(17, 17), EPoint.ORIGIN, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, null, EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
     @Test(expected = NullPointerException.class) public void testNewInstanceBadSize1() {
         System.out.println("newInstanceBadSize1");
-        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.ORIGIN, null, 0, 0, null);
+        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), null, 0, 0, null);
     }
 
 //    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize2() {
@@ -271,7 +269,7 @@ public class ImmutableNodeInstTest {
      */
     @Test public void testWithSize() {
         System.out.println("withSize");
-        assertSame(n0, n0.withSize(EPoint.ORIGIN, pn.getSizeCorrector()));
+        assertSame(n0, n0.withSize(EPoint.ORIGIN));
     }
 
     /**

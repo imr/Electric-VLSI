@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -236,7 +237,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @throws IllegalArgumentException if nodeId or size is bad.
 	 */
     public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
-            Orientation orient, EPoint anchor, EPoint size, EPoint corrector,
+            Orientation orient, EPoint anchor, EPoint size,
             int flags, int techBits, TextDescriptor protoDescriptor) {
         if (nodeId < 0) throw new IllegalArgumentException("nodeId");
 		if (protoId == null) throw new NullPointerException("protoId");
@@ -252,8 +253,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
         if (protoId instanceof CellId)
             size = EPoint.ORIGIN;
-        else if (!corrector.equals(EPoint.ORIGIN))
-            size = EPoint.fromGrid(size.getGridX() - 2*corrector.getGridX(), size.getGridY() - 2*corrector.getGridY());
         if (isCellCenter(protoId)) {
             orient = Orientation.IDENT;
             anchor = EPoint.ORIGIN;
@@ -347,7 +346,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by size.
      * @throws IllegalArgumentException if width or height is negative.
 	 */
-	public ImmutableNodeInst withSizeOld(EPoint size) {
+	public ImmutableNodeInst withSize(EPoint size) {
 		if (this.size.equals(size)) return this;
 		if (size == null) throw new NullPointerException("size");
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
@@ -356,18 +355,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor,
                 getVars(), this.ports, getDefinedParams());
-	}
-
-	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by size.
-	 * @param size a point with x as size and y as height.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by size.
-     * @throws IllegalArgumentException if width or height is negative.
-	 */
-	public ImmutableNodeInst withSize(EPoint size, EPoint corrector) {
-        if (!corrector.equals(EPoint.ORIGIN))
-            size = EPoint.fromGrid(size.getGridX() - 2*corrector.getGridX(), size.getGridY() - 2*corrector.getGridY());
-		return withSizeOld(size);
 	}
 
 	/**
@@ -851,13 +838,19 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// if zero size, set the bounds directly
-		if (size.getGridX() == 0 && size.getGridY() == 0)
+		PrimitiveNode pn = real.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
+        assert pn == real.getProto();
+        EPoint corrector = pn.getSizeCorrector();
+        long gridWidth = size.getGridX() - 2*corrector.getGridX();
+        long gridHeight = size.getGridY() - 2*corrector.getGridY();
+		if (gridWidth == 0 && gridHeight == 0)
 		{
 			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
             return;
 		}
+        double lambdaWidth = DBMath.gridToLambda(gridWidth);
+        double lambdaHeight = DBMath.gridToLambda(gridHeight);
 
-		PrimitiveNode pn = real.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
 
 		// special case for arcs of circles
 		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
@@ -866,7 +859,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			double [] angles = real.getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
-				Point2D [] pointList = Artwork.fillEllipse(anchor, size.getLambdaX(), size.getLambdaY(), angles[0], angles[1]);
+				Point2D [] pointList = Artwork.fillEllipse(anchor, lambdaWidth, lambdaHeight, angles[0], angles[1]);
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
 				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
@@ -915,8 +908,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// normal bounds computation
-        double halfWidth = size.getLambdaX()*0.5;
-        double halfHeight = size.getLambdaY()*0.5;
+        double halfWidth = lambdaWidth*0.5;
+        double halfHeight = lambdaHeight*0.5;
         orient.rectangleBounds(-halfWidth, -halfHeight, halfWidth, halfHeight, anchor.getX(), anchor.getY(), dstBounds);
 	}
 
