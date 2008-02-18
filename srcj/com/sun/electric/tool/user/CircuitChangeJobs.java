@@ -2606,7 +2606,7 @@ public class CircuitChangeJobs
 					{
 						oVar = oIt.next();
 						if (!cNp.isParam(oVar.getKey())) continue;
-						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
+						if (oVar.getKey() == var.getKey()) { delete = false; break; }
 					}
 					if (delete)
 					{

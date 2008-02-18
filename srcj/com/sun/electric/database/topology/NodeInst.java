@@ -96,7 +96,7 @@ import java.util.Set;
 public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 {
     /** true if instance parameters are virtual */              public static final boolean VIRTUAL_PARAMETERS = false;
-    
+
 	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
@@ -135,11 +135,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** prototype of this NodeInst. */						private final NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
-    
+
 	/** bounds after transformation. */						private final Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
     /** True, if visBounds are valid. */                    private boolean validVisBounds;
 
-    
+
     // --------------------- private and protected methods ---------------------
 
 	/**
@@ -160,7 +160,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
     }
-    
+
     private NodeInst(NodeProto protoType, ImmutableNodeInst d) {
         super(null);
         assert d.protoId == protoType.getId();
@@ -175,13 +175,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
     }
-    
+
     protected Object writeReplace() { return new NodeInstKey(this); }
-    
+
     private static class NodeInstKey extends EObjectInputStream.Key<NodeInst> {
         public NodeInstKey() {}
         private NodeInstKey(NodeInst ni) { super(ni); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, NodeInst ni) throws IOException {
             if (ni.getDatabase() != out.getDatabase() || !ni.isLinked())
@@ -189,7 +189,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             out.writeObject(ni.getParent());
             out.writeInt(ni.getD().nodeId);
         }
-        
+
         @Override
         public NodeInst readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Cell cell = (Cell)in.readObject();
@@ -200,7 +200,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return ni;
         }
     }
-         
+
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -217,7 +217,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
 		return (makeInstance(protoType, center, width, height, parent, Orientation.IDENT, null, 0));
 	}
-    
+
 	/**
 	 * Long form method to create a NodeInst and do extra things necessary for it.
 	 * @param protoType the NodeProto of which this is an instance.
@@ -350,9 +350,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         if (protoType == null) return null;
         if (parent == null) return null;
-        
+
 		EPoint anchor = EPoint.snap(center);
-        
+
         Name nameKey = null;
         String msg = null;
         if (name != null) {
@@ -380,10 +380,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
         }
         CellId parentId = parent.getId();
-        
+
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
         if (protoDescriptor == null) protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
-        
+
         // search for spare nodeId
         int nodeId;
         do {
@@ -406,7 +406,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             errorLogger.logError(msg, ni, parent, null, 1);
         return ni;
 	}
-    
+
 	/**
 	 * Method to create a NodeInst by ImmutableNodeInst.
 	 * @param parent the Cell in which this NodeInst will reside.
@@ -437,7 +437,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             System.out.println(parent + " already has NodeInst with name \""+d.name+"\"");
             return null;
 		}
-        
+
 		NodeInst ni = lowLevelNewInstance(parent, d);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
@@ -451,14 +451,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     		parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
 		return ni;
 	}
-    
+
     public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d) {
         if (d.protoId instanceof CellId && ((CellId)d.protoId).cellName.isIcon())
             return new IconNodeInst(d, parent);
         else
             return new NodeInst(d, parent);
     }
-    
+
 	/**
 	 * Method to delete this NodeInst.
 	 */
@@ -471,7 +471,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
         parent.killNodes(Collections.singleton(this));
 	}
-    
+
 	/**
 	 * Method to move this NodeInst.
 	 * @param dX the amount to move the NodeInst in X.
@@ -519,7 +519,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             parent.adjustReferencePoint(dX, dY);
             return;
         }
-        
+
 		// make the change
         ImmutableNodeInst oldD = getD();
         ImmutableNodeInst d = oldD;
@@ -535,7 +535,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         lowLevelModify(d);
         if (parent != null)
             Constraints.getCurrent().modifyNodeInst(this, oldD);
-        
+
 //        // change the coordinates of every arc end connected to this
 //        for(Iterator<Connection> it = getConnections(); it.hasNext(); ) {
 //            Connection con = it.next();
@@ -574,7 +574,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             ni.modifyInstance(dX, dY, dXSize, dYSize, Orientation.IDENT);
         }
 
-        
+
         for(int i=0; i<nis.length; i++) {
             NodeInst ni = nis[i];
             if (ni == null) continue;
@@ -908,7 +908,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     @Override
     public ImmutableNodeInst getD() { return d; }
-    
+
     /**
      * Modifies persistend data of this NodeInst.
      * @param newD new persistent data.
@@ -929,7 +929,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         return true;
     }
-    
+
     public void setDInUndo(ImmutableNodeInst newD) {
         checkUndoing();
         d = newD;
@@ -939,9 +939,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Method to add a Variable on this NodeInst.
      * It may add repaired copy of this Variable in some cases.
+     * This methood is overriden in IconNodeInst
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
+        lowLevelAddVar(var);
+    }
+
+ 	/**
+	 * Low level Method to add a Variable on this ElectricObject.
+	 * It adds Variable without patching the TextDescriptor.
+     * This method is used in library read.
+	 * @param var Variable to add.
+	 */
+	public void lowLevelAddVar(Variable var) {
         if (setD(d.withVariable(var), true))
             // check for side-effects of the change
             checkPossibleVariableEffects(var.getKey());
@@ -967,7 +978,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             // check for side-effects of the change
             checkPossibleVariableEffects(key);
 	}
-    
+
 	/**
 	 * Package-private method to delete a Variable from PortInst of this NodeInst.
      * @param portProtoId PortProtoId of the PortInst.
@@ -977,7 +988,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         setD(d.withPortInst(portProtoId, d.getPortInst(portProtoId).withoutVariable(key)), true);
 	}
-    
+
 	/**
 	 * Package-private method to delete all Variables from PortInst of this NodeInst.
      * @param portProtoId PortProtoId of the PortInst.
@@ -986,11 +997,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         setD(d.withPortInst(portProtoId, ImmutablePortInst.EMPTY), true);
 	}
-    
+
 	/**
 	 * Method to adjust this NodeInst by the specified deltas.
 	 * This method does not go through change control, and so should not be used unless you know what you are doing.
-     * New persistent data may differ from old one only by anchor, size and orientation 
+     * New persistent data may differ from old one only by anchor, size and orientation
 	 * @param d the new persistent data of this NodeInst.
 	 */
     public void lowLevelModify(ImmutableNodeInst d)
@@ -1000,12 +1011,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             boolean renamed = this.d.name != d.name;
             if (renamed)
                 parent.removeNodeName(this);
-            
+
             // make the change
             setD(d, false);
             if (renamed)
                 parent.addNodeName(this);
-            
+
             // fill in the Geometric fields
             redoGeometric();
        } else {
@@ -1023,7 +1034,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean isIconOfParent()
 	{
-        return (protoType instanceof Cell) && ((Cell)protoType).isIconOf(parent);  
+        return (protoType instanceof Cell) && ((Cell)protoType).isIconOf(parent);
 	}
 
 	/**
@@ -1062,7 +1073,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return the Orientation of this NodeInst.
      */
     public Orientation getOrient() { return d.orient; }
-    
+
 	/**
 	 * Method to return the rotation angle of this NodeInst.
 	 * @return the rotation angle of this NodeInst (in tenth-degrees).
@@ -1138,13 +1149,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
 	/**
-	 * Method to return whether NodeInst is mirrored about a 
+	 * Method to return whether NodeInst is mirrored about a
 	 * horizontal line running through its center.
 	 * @return true if mirrored.
 	 */
 	public boolean isMirroredAboutXAxis() { return isYMirrored(); }
-	
-	/** 
+
+	/**
 	 * Method to return whether NodeInst is mirrored about a
 	 * vertical line running through its center.
 	 * @return true if mirrored.
@@ -1175,7 +1186,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     @Override
     public Iterator<Poly> getShape(Poly.Builder polyBuilder) { return polyBuilder.getShape(this); }
-    
+
     /**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -1192,7 +1203,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         validVisBounds = true;
         return visBounds;
     }
-    
+
     private void computeBounds() {
         double oldX = visBounds.x;
         double oldY = visBounds.y;
@@ -1568,7 +1579,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/**
 	 * Method to return a transformation that moves up the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the
-	 * transformation maps points in the Cell's coordinate space 
+	 * transformation maps points in the Cell's coordinate space
 	 * into this NodeInst's parent Cell's coordinate space.
 	 * @return a transformation that moves up the hierarchy.
 	 */
@@ -1577,7 +1588,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return d.orient.rotateAbout(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
 //		// The transform first translates to the position of the
 //		// NodeInst's Anchor point in the parent Cell, and then rotates and
-//		// mirrors about the anchor point. 
+//		// mirrors about the anchor point.
 //		AffineTransform xform = rotateOut();
 //		xform.concatenate(translateOut());
 //		return xform;
@@ -1587,7 +1598,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to return a transformation that moves up the
 	 * hierarchy, combined with a previous transformation.
 	 * Presuming that this NodeInst is a Cell instance, the
-	 * transformation maps points in the Cell's coordinate space 
+	 * transformation maps points in the Cell's coordinate space
 	 * into this NodeInst's parent Cell's coordinate space.
 	 * @param prevTransform the previous transformation to the NodeInst's Cell.
 	 * @return a transformation that translates up the hierarchy,
@@ -2087,7 +2098,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         portInsts = newPortInsts;
     }
-    
+
     /**
      * Updaten PortInsts of this NodeInst according to PortProtos in prototype.
      */
@@ -2111,8 +2122,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         portInsts = newPortInsts;
     }
-    
-    /** 
+
+    /**
      * Method to get the Schematic Cell from a NodeInst icon
      * @return the equivalent view of the prototype, or null if none
      * (such as for primitive)
@@ -2130,7 +2141,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public boolean hasExports() {
         return parent != null && parent.getMemoization().hasExports(getD().nodeId);
     }
-    
+
     /**
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
@@ -2144,7 +2155,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         return eit;
     }
-    
+
     private class ExportIterator implements Iterator<Export> {
         private final Iterator<ImmutableExport> it;
         ExportIterator(Iterator<ImmutableExport> it) { this.it = it; }
@@ -2160,7 +2171,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public int getNumExports() {
         return parent != null ? parent.getMemoization().getNumExports(getD().nodeId) : 0;
     }
-    
+
 	/**
 	 * Method to associate the ports between two NodeInsts.
 	 * @param ni1 the first NodeInst to associate.
@@ -2423,7 +2434,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         return new ConnectionIterator(parent.getMemoization(), getD().nodeId, chronIndex);
     }
-    
+
 	/**
 	 * Returns true of there are Connections on this NodeInst.
 	 * @return true if there are Connections on this NodeInst.
@@ -2439,7 +2450,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         int nodeId = end ? a.headNodeId : a.tailNodeId;
         return nodeId == getD().nodeId;
     }
-    
+
 	/**
 	 * Returns true of there are Connections on this NodeInst.
 	 * @return true if there are Connections on this NodeInst.
@@ -2457,7 +2468,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         PortProtoId portId = end ? a.headPortId : a.tailPortId;
         return portId.getChronIndex() == chronIndex;
     }
-    
+
 	/**
 	 * Method to return the number of Connections on this NodeInst.
 	 * @return the number of Connections on this NodeInst.
@@ -2486,7 +2497,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         int i;
         ArcInst nextAi;
         int nextConnIndex;
-        
+
         ConnectionIterator(CellBackup.Memoization m, int nodeId) {
             this.m = m;
             arcs = m.getArcs();
@@ -2512,7 +2523,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return con;
         }
         public void remove() { throw new UnsupportedOperationException(); }
-        
+
         private void findNext() {
             for (; i < m.connections.length; i++) {
                 int con = m.connections[i];
@@ -2538,7 +2549,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Method to tell whether this NodeInst is connected directly to another
-     * Geometric object (that is, an arcinst connected to a nodeinst). 
+     * Geometric object (that is, an arcinst connected to a nodeinst).
      * The method returns true if they are connected.
      * @param geom other Geometric object.
      * @return true if this and other Geometric objects are connected.
@@ -2547,7 +2558,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public boolean isConnected(Geometric geom) {
         return geom instanceof ArcInst && ((ArcInst)geom).isConnected(this);
     }
-    
+
     /****************************** TEXT ******************************/
 
 	/**
@@ -2559,7 +2570,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/**
 	 * Retruns true if this NodeInst was named by user.
 	 * @return true if this NodeInst was named by user.
-	 */		
+	 */
 	public boolean isUsernamed() { return d.isUsernamed();	}
 
 	/**
@@ -2681,7 +2692,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		if (key == NODE_NAME || key == NODE_PROTO) return true;
 		return super.isDeprecatedVariable(key);
 	}
-	
+
 	/**
 	 * Method to handle special case side-effects of setting variables on this NodeInst.
 	 * Overrides the general method on ElectricObject.
@@ -2867,7 +2878,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		return np.getTechnology().getPrimitiveFunction(np, getTechSpecific());
 	}
 
-    /** 
+    /**
      * Method to see if this NodeInst is a Primitive Transistor.
      * Use getFunction() to determine what specific transitor type it is,
      * if any.
@@ -2880,8 +2891,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             func == PrimitiveNode.Function.TRANS4 ||           // covers all Schematic trans4
             func == PrimitiveNode.Function.TRANMOS ||          // covers all MoCMOS nmos gates
             func == PrimitiveNode.Function.TRAPMOS ||          // covers all MoCMOS pmos gates
-            func == PrimitiveNode.Function.TRANPN ||           // layout NPN 
-            func == PrimitiveNode.Function.TRA4NPN ||          // layout NPN 
+            func == PrimitiveNode.Function.TRANPN ||           // layout NPN
+            func == PrimitiveNode.Function.TRA4NPN ||          // layout NPN
             func == PrimitiveNode.Function.TRAPNP ||           // layout PNP
             func == PrimitiveNode.Function.TRA4PNP             // layout PNP
             )
@@ -2938,8 +2949,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean isBipolar() {
 		PrimitiveNode.Function fun = getFunction();
-		return fun==PrimitiveNode.Function.TRANPN || fun==PrimitiveNode.Function.TRA4NPN || 
-		       fun==PrimitiveNode.Function.TRAPNP || fun==PrimitiveNode.Function.TRA4PNP; 
+		return fun==PrimitiveNode.Function.TRANPN || fun==PrimitiveNode.Function.TRA4NPN ||
+		       fun==PrimitiveNode.Function.TRAPNP || fun==PrimitiveNode.Function.TRA4PNP;
 	}
 
     /**
@@ -3096,7 +3107,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorCollectorPort(this);
     }
-    
+
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
@@ -3109,7 +3120,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorBiasPort(this);
     }
-    
+
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
@@ -3157,7 +3168,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     errorLogger.logError(msg, poly, parent, 1);
                 } else {
                     errorLogger.logError(msg, this, parent, null, 1);
-                    
+
                 }
             }
             if (list != null) // doesn't do anything when checkAndRepair is called during reading
@@ -3226,7 +3237,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void check() {
         assert isLinked();
         super.check();
-        
+
         assert getClass() == (isCellInstance() && ((Cell)getProto()).isIcon() ? IconNodeInst.class : NodeInst.class);
 		assert portInsts.length == protoType.getNumPorts();
         for (int i = 0; i < portInsts.length; i++) {
@@ -3235,13 +3246,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             PortProto pp = pi.getPortProto();
             assert pp == protoType.getPort(i);
         }
-        
+
         if (validVisBounds && Job.getDebug()) {
             Rectangle2D.Double bounds = new Rectangle2D.Double();
             d.computeBounds(this, bounds);
             assert bounds.equals(visBounds);
         }
-            
+
 	}
 
 	/**
@@ -3314,7 +3325,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return false;
         return parent.getMemoization().isWiped(getD().nodeId);
     }
-    
+
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
@@ -3409,7 +3420,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the Rectangle2D containing the essential bounds or null
 	 * if the essential bounds don't exist.
 	 */
-	public Rectangle2D findEssentialBounds() 
+	public Rectangle2D findEssentialBounds()
 	{
 		NodeProto np = getProto();
 		if (!(np instanceof Cell)) return null;

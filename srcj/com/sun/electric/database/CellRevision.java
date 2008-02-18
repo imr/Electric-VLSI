@@ -36,13 +36,16 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * This class represents Cell data (with all arcs/nodes/exports) as it is saved to disk.
@@ -67,7 +70,7 @@ public class CellRevision {
     /** Bitmap of defined exports. */                               final BitSet definedExports;
     /** Length of defined exports. */                               final int definedExportsLength;
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
-    
+
     /** Creates a new instance of CellRevision */
     private CellRevision(ImmutableCell d, long revisionDate,
             ImmutableArrayList<ImmutableNodeInst> nodes,
@@ -88,7 +91,7 @@ public class CellRevision {
         this.deletedExports = deletedExports;
         cellRevisionsCreated++;
     }
-    
+
     /** Creates a new instance of CellRevision */
     public CellRevision(ImmutableCell d) {
         this(d, 0, ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
@@ -96,13 +99,13 @@ public class CellRevision {
         if (d.techId == null)
             throw new NullPointerException("techId");
     }
-    
+
     private static BitSet makeTechUsages(TechId techId) {
         BitSet techUsages = new BitSet();
         techUsages.set(techId.techIndex);
         return techUsages;
     }
-    
+
     /**
      * Creates a new instance of CellRevision which differs from this CellRevision by revision date.
      * @param revisionDate new revision date.
@@ -114,7 +117,7 @@ public class CellRevision {
                 this.techUsages, this.cellUsages, this.exportIndex,
                 this.definedExports, this.definedExportsLength, this.deletedExports);
     }
-    
+
     /**
      * Creates a new instance of CellRevision which differs from this CellRevision.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
@@ -136,7 +139,7 @@ public class CellRevision {
                 this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
             return this;
         }
-        
+
         CellId cellId = d.cellId;
         if (this.d != d) {
             if (d.techId == null)
@@ -144,7 +147,7 @@ public class CellRevision {
 //            if (cellId != this.d.cellId)
 //                throw new IllegalArgumentException("cellId");
         }
-        
+
         BitSet techUsages = this.techUsages;
         CellUsageInfo[] cellUsages = this.cellUsages;
         if (this.d.cellId != d.cellId || this.d.techId != d.techId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
@@ -154,7 +157,7 @@ public class CellRevision {
         }
         if (cellId.isIcon() && cellUsages.length != 0)
             throw new IllegalArgumentException("Icon contains subcell instances");
-        
+
         if (nodes != this.nodes && !nodes.isEmpty()) {
             boolean hasCellCenter = false;
             ImmutableNodeInst prevN = null;
@@ -170,7 +173,7 @@ public class CellRevision {
                 prevN = n;
             }
         }
-        
+
         int[] exportIndex = this.exportIndex;
         BitSet definedExports = this.definedExports;
         int definedExportsLength = this.definedExportsLength;
@@ -216,16 +219,16 @@ public class CellRevision {
                 }
             }
         }
-        
+
         CellRevision revision = new CellRevision(d, revisionDate,
                 nodes, arcs, exports, techUsages, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return revision;
     }
-    
+
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
         return newArray != null ? new ImmutableArrayList<T>(newArray) : oldList;
     }
-    
+
 	/**
 	 * Returns CellRevision which differs from this CellRevision by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -233,7 +236,7 @@ public class CellRevision {
 	 */
     CellRevision withRenamedIds(IdMapper idMapper, CellName newGroupName) {
         ImmutableCell d = this.d.withRenamedIds(idMapper).withGroupName(newGroupName);
-        
+
         ImmutableNodeInst[] nodesArray = null;
         for (int i = 0; i < nodes.size(); i++) {
             ImmutableNodeInst oldNode = nodes.get(i);
@@ -246,7 +249,7 @@ public class CellRevision {
             if (nodesArray != null)
                 nodesArray[i] = newNode;
         }
-        
+
         ImmutableArcInst[] arcsArray = null;
         for (int i = 0; i < arcs.size(); i++) {
             ImmutableArcInst oldArc = arcs.get(i);
@@ -272,13 +275,13 @@ public class CellRevision {
             if (exportsArray != null)
                 exportsArray[i] = newExport;
         }
-        
+
         if (this.d == d && nodesArray == null && arcsArray == null && exportsArray == null) return this;
         CellRevision newRevision = with(d, revisionDate, nodesArray, arcsArray, exportsArray);
         newRevision.check();
         return newRevision;
     }
-    
+
     /**
      * Returns ImmutableNodeInst by its node id.
      * @param nodeId id of node.
@@ -286,7 +289,7 @@ public class CellRevision {
      */
     // FIX ME !!!
     public ImmutableNodeInst getNode(int nodeId) { return nodeId < nodes.size() ? nodes.get(nodeId) : null; }
-    
+
     /**
      * Returns ImmutableArcInst by its arc id.
      * @param arcId id of node.
@@ -294,7 +297,7 @@ public class CellRevision {
      */
     // FIX ME !!!
     public ImmutableArcInst getArc(int arcId) { return arcId < arcs.size() ? arcs.get(arcId) : null; }
-    
+
     /**
      * Returns ImmutableExport by its export id.
      * @param exportId id of export.
@@ -307,10 +310,10 @@ public class CellRevision {
         int portIndex = chronIndex < exportIndex.length ? exportIndex[chronIndex] : -1;
         return portIndex >= 0 ? exports.get(portIndex) : null;
     }
-    
+
     /**
-     * Returns subcell instance counts, indexed by CellUsage.indexInParent. 
-     * @return subcell instance counts, indexed by CellUsage.indexInParent. 
+     * Returns subcell instance counts, indexed by CellUsage.indexInParent.
+     * @return subcell instance counts, indexed by CellUsage.indexInParent.
      */
     public int[] getInstCounts() {
         int l = cellUsages.length;
@@ -323,7 +326,7 @@ public class CellRevision {
         }
         return instCounts;
     }
-    
+
     /**
      * For given CellUsage in this cell returns count of subcell instances.
      * @param u CellUsage.
@@ -350,7 +353,7 @@ public class CellRevision {
         }
         return techUsagesSet;
     }
-    
+
     /**
      * Writes this CellRevision to IdWriter.
      * @param writer where to write.
@@ -368,7 +371,7 @@ public class CellRevision {
         for (ImmutableExport e: exports)
             e.write(writer);
     }
-    
+
     /**
      * Reads CellRevision from SnapshotReader.
      * @param reader where to read.
@@ -377,22 +380,22 @@ public class CellRevision {
         ImmutableCell d = ImmutableCell.read(reader);
         long revisionDate = reader.readLong();
         CellRevision revision = new CellRevision(d.withoutVariables());
-        
+
         int nodesLength = reader.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
         for (int i = 0; i < nodesLength; i++)
             nodes[i] = ImmutableNodeInst.read(reader);
-        
+
         int arcsLength = reader.readInt();
         ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
         for (int i = 0; i < arcsLength; i++)
             arcs[i] = ImmutableArcInst.read(reader);
-        
+
         int exportsLength = reader.readInt();
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);
-        
+
         revision = revision.with(d, revisionDate, nodes, arcs, exports);
         return revision;
     }
@@ -426,11 +429,21 @@ public class CellRevision {
                 CellId subCellId = (CellId)n.protoId;
                 CellUsage u = cellId.getUsageIn(subCellId);
                 checkCellUsages[u.indexInParent]--;
-                assert cellUsages[u.indexInParent] != null;
+                CellUsageInfo cui = cellUsages[u.indexInParent];
+                assert cui != null;
                 for (int j = 0; j < n.ports.length; j++) {
                     ImmutablePortInst pid = n.ports[j];
                     if (pid == ImmutablePortInst.EMPTY) continue;
                     checkPortInst(n, subCellId.getPortId(j));
+                }
+                if (subCellId.isIcon()) {
+                    for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
+                        Variable.Key varKey = it.next().getKey();
+                        if (varKey.isAttribute())
+                            assert cui.usedAttributes.get(varKey) == Boolean.FALSE;
+                    }
+                    for (Variable.AttrKey attrKey: n.getDefinedParams().keySet())
+                        assert cui.usedAttributes.get(attrKey) == Boolean.TRUE;
                 }
             } else {
                 TechId techId = ((PrimitiveNodeId)n.protoId).techId;
@@ -455,14 +468,14 @@ public class CellRevision {
                 }
 			}
             prevA = a;
-            
+
             a.check();
             checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
-            
+
             checkTechUsages.set(a.protoId.techId.techIndex);
         }
-        
+
         if (exportIndex.length > 0)
             assert exportIndex[exportIndex.length - 1] >= 0;
         assert exportIndex.length == definedExportsLength;
@@ -502,19 +515,19 @@ public class CellRevision {
                 cui.check();
         }
     }
-    
+
     private void checkPortInst(ImmutableNodeInst node, PortProtoId portId) {
         assert node != null;
         assert portId.getParentId() == node.protoId;
         if (portId instanceof ExportId)
             checkExportId((ExportId)portId);
     }
-    
+
     private void checkExportId(ExportId exportId) {
         CellUsage u = d.cellId.getUsageIn(exportId.getParentId());
         assert cellUsages[u.indexInParent].usedExports.get(exportId.getChronIndex());
     }
-    
+
     public boolean sameExports(CellRevision thatRevision) {
         if (thatRevision == this) return true;
         if (exports.size() != thatRevision.exports.size())
@@ -525,31 +538,35 @@ public class CellRevision {
         }
         return true;
     }
-    
+
     static class CellUsageInfo {
         final int instCount;
         final BitSet usedExports;
         final int usedExportsLength;
-        
-        CellUsageInfo(int instCount, BitSet usedExports) {
+        final TreeMap<Variable.AttrKey,Boolean> usedAttributes;
+
+        CellUsageInfo(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,Boolean> usedAttributes) {
             this.instCount = instCount;
             usedExportsLength = usedExports.length();
             this.usedExports = usedExportsLength > 0 ? usedExports : EMPTY_BITSET;
+            this.usedAttributes = usedAttributes;
         }
-        
-        CellUsageInfo with(int instCount, BitSet usedExports) {
+
+        CellUsageInfo with(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,Boolean> usedAttributes) {
             usedExports = UsageCollector.bitSetWith(this.usedExports, usedExports);
-            if (this.instCount == instCount && this.usedExports == usedExports) return this;
-            return new CellUsageInfo(instCount, usedExports);
+            usedAttributes = UsageCollector.usedAttributesWith(this.usedAttributes, usedAttributes);
+            if (this.instCount == instCount && this.usedExports == usedExports &&
+                    this.usedAttributes == usedAttributes) return this;
+            return new CellUsageInfo(instCount, usedExports, usedAttributes);
         }
-        
+
         void checkUsage(CellRevision subCellRevision) {
             if (subCellRevision == null)
                 throw new IllegalArgumentException("subCell deleted");
             if (subCellRevision.definedExportsLength < usedExportsLength || subCellRevision.deletedExports.intersects(usedExports))
                 throw new IllegalArgumentException("exportUsages");
         }
-        
+
         private void check() {
             assert instCount >= 0;
             assert usedExportsLength == usedExports.length();
@@ -557,7 +574,7 @@ public class CellRevision {
                 assert usedExports == EMPTY_BITSET;
         }
     }
-    
+
     @Override
     public String toString() { return d.toString(); }
- }
+}

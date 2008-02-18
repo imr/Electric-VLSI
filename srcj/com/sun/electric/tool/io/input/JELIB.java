@@ -82,7 +82,7 @@ public class JELIB extends LibraryFiles
         this.fileType = fileType;
         parser = JelibParser.parse(libId, fileURL, fileType, false, Input.errorLogger);
 	}
-    
+
     public static Map<Setting,Object> readProjectSettings(URL fileURL, FileType fileType, TechPool techPool, ErrorLogger errorLogger) {
         JelibParser parser;
         try {
@@ -118,12 +118,12 @@ public class JELIB extends LibraryFiles
         }
         return projectSettings;
     }
-    
+
     public static JelibParser parse(IdManager idManager, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException {
         LibId libId = idManager.newLibId(TextUtils.getFileNameWithoutExtension(fileURL));
         return JelibParser.parse(libId, fileURL, fileType, onlyProjectSettings, errorLogger);
     }
-    
+
 	/**
 	 * Method to read a Library in new library file (.jelib) format.
 	 * @return true on error.
@@ -134,7 +134,7 @@ public class JELIB extends LibraryFiles
         lib.erase();
         realizeVariables(lib, parser.libVars);
         lib.setVersion(parser.version);
-        
+
         // Project settings
         for (Map.Entry<TechId,Variable[]> e: parser.techIds.entrySet()) {
             TechId techId = e.getKey();
@@ -161,10 +161,10 @@ public class JELIB extends LibraryFiles
         for (Map.Entry<LibId,String> e: parser.externalLibIds.entrySet()) {
             LibId libId = e.getKey();
             String libFileName = e.getValue();
-            if (Library.findLibrary(libId.libName) == null) 
+            if (Library.findLibrary(libId.libName) == null)
                 readExternalLibraryFromFilename(libFileName, fileType);
         }
-        
+
         nodeProtoCount = parser.allCells.size();
         nodeProtoList = new Cell[nodeProtoCount];
         cellLambda = new double[nodeProtoCount];
@@ -306,7 +306,7 @@ public class JELIB extends LibraryFiles
 	private void instantiateCellContent(Cell cell, JelibParser.CellContents cc, HashSet<Cell> recursiveSetupFlag)
 	{
         HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
-        
+
 		// place all nodes
         for (JelibParser.NodeContents n: cc.nodes) {
             int line = n.line;
@@ -408,7 +408,7 @@ public class JELIB extends LibraryFiles
 
 			// add variables
             realizeVariables(ni, n.vars);
-            
+
 			// insert into map of disk names
             n.ni = ni;
 
@@ -420,7 +420,7 @@ public class JELIB extends LibraryFiles
 
 			PortInst pi = figureOutPortInst(cell, e.originalPort.externalId, e.originalNode, e.pos, cc.fileName, line);
 			if (pi == null) continue;
-            
+
 			// create the export
 			Export pp = Export.newInstance(cell, e.exportId, e.exportUserName, e.nameTextDescriptor, pi,
                     e.alwaysDrawn, e.bodyOnly, e.ch, errorLogger);
@@ -438,7 +438,7 @@ public class JELIB extends LibraryFiles
 		// next place all arcs
 		for(JelibParser.ArcContents a: cc.arcs) {
             int line = a.line;
-            
+
             ArcProto ap = findArcProto(a.arcProtoId);
 			if (ap == null) {
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -578,7 +578,7 @@ public class JELIB extends LibraryFiles
             tech = techPool.getTech(idManager.newTechId("cmos90"));
         return tech;
     }
-    
+
 	PrimitiveNode findPrimitiveNode(PrimitiveNodeId primitiveNodeId) {
         TechPool techPool = database.getTechPool();
         PrimitiveNode pn = techPool.getPrimitiveNode(primitiveNodeId);
@@ -591,7 +591,7 @@ public class JELIB extends LibraryFiles
         }
         return pn;
 	}
-    
+
     ArcProto findArcProto(ArcProtoId arcProtoId) {
         TechPool techPool = database.getTechPool();
         ArcProto ap = techPool.getArcProto(arcProtoId);

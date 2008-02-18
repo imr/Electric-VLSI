@@ -198,7 +198,7 @@ public class ReadableDump extends LibraryFiles
 			return true;
 		}
     }
-    
+
 	/**
 	 * Method to read a Library in readable-dump (.txt) format.
 	 * @return true on error.
@@ -434,7 +434,7 @@ public class ReadableDump extends LibraryFiles
 
 		// do the arcs now
 		realizeArcs(cell, cellIndex);
-        
+
         cell.loadExpandStatus();
 	}
 
@@ -575,21 +575,21 @@ public class ReadableDump extends LibraryFiles
 		}
 		return offset;
 	}
-    
+
 	private void realizeExports(Cell cell, int cellIndex)
 	{
 		ExportList el = exportList[cellIndex];
 		int numExports = 0;
 		if (el != null) numExports = el.exportList.length;
         CellId cellId = cell.getId();
-        
+
         // Try to create ExportIds in alphanumeric order
         TreeSet<String> exportNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
         for (int j = 0; j < numExports; j++)
             exportNames.add(el.exportName[j]);
         for (String exportName: exportNames)
             cell.getId().newPortId(exportName);
-        
+
 		for(int j=0; j<numExports; j++)
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
@@ -945,7 +945,7 @@ public class ReadableDump extends LibraryFiles
 	}
 
 	// --------------------------------- CELL PARSING METHODS ---------------------------------
-	
+
 	/**
 	 * initialize for a new cell (keyword "***cell")
 	 */
@@ -960,11 +960,11 @@ public class ReadableDump extends LibraryFiles
         curCellTech = null;
         curCellUserbits = 0;
         curCellLowX = curCellHighX = curCellLowY = curCellHighY = 0;
-        
+
 		curCellGroup = -1;
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0) curCellGroup = TextUtils.atoi(keyWord.substring(slashPos+1));
-        
+
 		textLevel = INCELL;
 		varPos = INVNODEPROTO;
 	}
@@ -1729,6 +1729,7 @@ public class ReadableDump extends LibraryFiles
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
             TextDescriptor td = makeDescriptor(td0, td1, type);
+            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(type);
 
 			// get value
 			if (getKeyword())
@@ -1797,7 +1798,7 @@ public class ReadableDump extends LibraryFiles
 				{
 					case ELIBConstants.VADDRESS:
 					case ELIBConstants.VINTEGER:    value = new Integer[arrayLen];     break;
-					case ELIBConstants.VFRACT:      
+					case ELIBConstants.VFRACT:
 					case ELIBConstants.VFLOAT:      value = new Float[arrayLen];       break;
 					case ELIBConstants.VDOUBLE:     value = new Double[arrayLen];      break;
 					case ELIBConstants.VSHORT:      value = new Short[arrayLen];       break;
@@ -1841,6 +1842,7 @@ public class ReadableDump extends LibraryFiles
 			}
             if (value == null) continue;
 
+            value = Variable.withCode(value, code);
             vars[i] = Variable.newInstance(Variable.newKey(varName), value, td);
 		}
         return vars;

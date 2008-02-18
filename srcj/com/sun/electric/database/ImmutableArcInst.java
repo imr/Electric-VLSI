@@ -51,7 +51,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
  	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
     /** Maximal extend of arc over minimal-width arc */ private static final int MAX_EXTEND = Integer.MAX_VALUE/8;
 
-    /** 
+    /**
      * Class to access a flag in user bits of ImmutableNodeInst.
      */
     public static class Flag {
@@ -64,7 +64,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             this.jelibChar = jelibChar;
             this.jelibDefault = jelibDefault;
         }
-        
+
         /**
          * Returns true if this Flag is set in userBits.
          * @param userBits user bits.
@@ -73,7 +73,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         public boolean is(int userBits) {
             return (userBits & mask) != 0;
         }
-        
+
         /**
          * Updates this flag in userBits.
          * @param userBits old user bits.
@@ -84,9 +84,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return value ? userBits | mask : userBits & ~mask;
         }
     }
-    
+
 	// -------------------------- constants --------------------------------
-    
+
 	/** fixed-length arc */                                 private static final int ELIB_FIXED =                01;
 	/** fixed-angle arc */                                  private static final int ELIB_FIXANG =               02;
 //	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
@@ -97,7 +97,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/** set if head end of ArcInst is negated */            private static final int ELIB_ISHEADNEGATED =   0200000;
 	/** DISK: set if ends do not extend by half width */    private static final int ELIB_NOEXTEND =        0400000;
 	/** set if tail end of ArcInst is negated */            private static final int ELIB_ISTAILNEGATED =  01000000;
-    /** DISK: set if arc aims from end 0 to end 1 */        private static final int ELIB_ISDIRECTIONAL =  02000000; 
+    /** DISK: set if arc aims from end 0 to end 1 */        private static final int ELIB_ISDIRECTIONAL =  02000000;
     /** DISK: no extension/negation/arrows on end 0 */      private static final int ELIB_NOTEND0 =        04000000;
     /** DISK: no extension/negation/arrows on end 1 */      private static final int ELIB_NOTEND1 =       010000000;
 	/** DISK: reverse extension/negation/arrow ends */      private static final int ELIB_REVERSEEND =    020000000;
@@ -121,9 +121,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     private static final int SLIDABLE_MASK      = 0x200;
     private static final int HARD_SELECT_MASK   = 0x400;
     private static final int DATABASE_FLAGS     = 0x7ff;
-    
+
     private static final int MANHATTAN_MASK     = 0x800;
-    
+
 	/**
 	 * Flag to set an ImmutableArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
@@ -199,12 +199,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
     public final static ImmutableArcInst[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableArcInst> EMPTY_LIST = new ImmutableArrayList<ImmutableArcInst>(NULL_ARRAY);
-    
+
     /** id of this ArcInst in parent. */                            public final int arcId;
 	/** Arc prototype. */                                           public final ArcProtoId protoId;
 	/** name of this ImmutableArcInst. */							public final Name name;
 	/** The text descriptor of name of ImmutableArcInst. */         public final TextDescriptor nameDescriptor;
-    
+
 	/** NodeId on tail end of this ImmutableArcInst. */             public final int tailNodeId;
     /** PortProtoId on tail end of this ImmutableArcInst. */        public final PortProtoId tailPortId;
 	/** Location of tail end of this ImmutableArcInst. */           public final EPoint tailLocation;
@@ -215,7 +215,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
 	/** extend of this ImmutableArcInst over minimal-width arc in grid units. */ private final int gridExtendOverMin;
     /** Angle if this ImmutableArcInst (in tenth-degrees). */       private final short angle;
- 
+
     /**
      * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
      *
@@ -253,11 +253,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.angle = angle;
         check();
     }
-    
+
 	/**
 	 * Retruns true if this ImmutableArcInst was named by user.
 	 * @return true if this ImmutableArcInst was named by user.
-	 */		
+	 */
 	public boolean isUsernamed() { return !name.isTempname();	}
 
     /**
@@ -265,25 +265,25 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @return extend of this ImmutableArcInst over minimal-width arc of this type in lambda units.
      */
     public double getLambdaExtendOverMin() { return DBMath.gridToLambda(getGridExtendOverMin()); }
-    
+
     /**
      * Returns extend of this ImmutableArcInst over minimal-width arc of this type in grid units.
      * @return extend of this ImmutableArcInst over minimal-width arc of this type in grid units.
      */
     public long getGridExtendOverMin() { return gridExtendOverMin; }
-    
+
     /**
      * Returns length of this ImmutableArcInst in lambda units.
      * @return length of this ImmutableArcInst in lambda units.
      */
     public double getLambdaLength() { return tailLocation.lambdaDistance(headLocation); }
-    
+
     /**
      * Returns length of this ImmutableArcInst in grid units.
      * @return length of this ImmutableArcInst in grid units.
      */
     public double getGridLength() { return tailLocation.gridDistance(headLocation); }
-    
+
 	/**
 	 * Method to return the rotation angle of this ImmutableArcInst.
      * This is an angle of direction from tailLocation to headLocation.
@@ -297,14 +297,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @return the opposite rotation angle of this ImmutableArcInst (in tenth-degrees).
 	 */
 	public int getOppositeAngle() { return angle >= 1800 ? angle - 1800 : angle + 1800; }
-    
+
     /**
      * Tests specific flag is set on this ImmutableArcInst.
      * @param flag flag selector.
      * @return true if specific flag is set,
      */
     public boolean is(Flag flag) { return (flags & flag.mask) != 0; }
-    
+
 	/**
 	 * Method to tell whether this ImmutableArcInst is rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
@@ -376,7 +376,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @return true if the arc's tail has an arrow line on it.
      */
 	public boolean isBodyArrowed() { return (flags & BODY_ARROWED_MASK) != 0; }
-	
+
 	/**
 	 * Method to tell whether an end of ImmutableArcInst has its ends extended.
 	 * Extended arcs continue past their endpoint by half of their width.
@@ -440,11 +440,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public boolean isManhattan() {
         return (flags & MANHATTAN_MASK) != 0;
     }
-    
+
     private static int updateManhattan(int flags, EPoint headLocation, EPoint tailLocation, int angle) {
         return isManhattan(headLocation, tailLocation, angle) ? flags | MANHATTAN_MASK : flags & ~MANHATTAN_MASK;
     }
-    
+
     private static boolean isManhattan(EPoint headLocation, EPoint tailLocation, int angle) {
         if (headLocation.getGridX() == tailLocation.getGridX()) {
             return headLocation.getGridY() != tailLocation.getGridY() ||
@@ -453,7 +453,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return tailLocation.getGridY() == headLocation.getGridY();
         }
     }
-    
+
     /**
      * Returns new ImmutableArcInst object.
      * @param arcId id of this ArcInst in parent.
@@ -637,7 +637,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by removing Variable
      * with the specified key. Returns this ImmutableArcInst if it doesn't contain variable with the specified key.
@@ -653,7 +653,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -673,12 +673,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.headNodeId, headPortId, this.headLocation,
                 this.gridExtendOverMin, this.angle, this.flags, vars);
     }
-    
+
     private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
         if (tailLocation.equals(headLocation)) return angle;
         return (short)GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());
     }
-    
+
     /**
      * Writes this ImmutableArcInst to IdWriter.
      * @param writer where to write.
@@ -699,7 +699,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         writer.writeInt(flags);
         super.write(writer);
     }
-    
+
     /**
      * Reads ImmutableArcInst from SnapshotReader.
      * @param reader where to read.
@@ -724,7 +724,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridExtendOverMin,
                 updateAngle(angle, tailLocation, headLocation), flags, vars);
     }
-    
+
     /**
      * Return a hash code value for fields of this object.
      * Variables of objects are not compared
@@ -747,7 +747,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation == that.headLocation &&
                 this.gridExtendOverMin == that.gridExtendOverMin && this.angle == that.angle && this.flags == that.flags;
     }
-    
+
 	/**
 	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
 	 * The polygon is described by its width, and style.
@@ -756,7 +756,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         // make the box
         int w2 = gridExtend;
         assert w2 > 0;
-        
+
         int et = tailExtended ? w2 : 0;
         int eh = headExtended ? w2 : 0;
         int x, y;
@@ -794,7 +794,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 throw new AssertionError();
         }
     }
-    
+
 	/**
 	 * Method to get the curvature radius on this ImmutableArcInst.
 	 * The curvature (used in artwork and round-cmos technologies) lets an arc
@@ -805,17 +805,17 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public Double getRadius() {
         Variable var = getVar(ARC_RADIUS);
         if (var == null) return null;
-        
+
         // get the radius of the circle, check for validity
         Object obj = var.getObject();
-        
+
         if (obj instanceof Double)
             return (Double)obj;
         if (obj instanceof Integer)
             return new Double(((Integer)obj).intValue() / 2000.0);
         return null;
 	}
-    
+
     public boolean check(TechPool techPool) {
         ArcProto protoType = techPool.getArcProto(protoId);
         if (protoType == null) return false;
@@ -829,7 +829,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         }
         return true;
     }
-    
+
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.
@@ -872,12 +872,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public int getElibBits()
 	{
 		int elibBits = 0;
-        
+
         if (isRigid()) elibBits |= ELIB_FIXED;
         if (isFixedAngle()) elibBits |= ELIB_FIXANG;
         if (!isSlidable()) elibBits |= ELIB_CANTSLIDE;
         if (isHardSelect()) elibBits |= ELIB_HARDSELECTA;
-        
+
 		// adjust bits for extension
 		if (!isHeadExtended() || !isTailExtended())
 		{
@@ -888,7 +888,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 				if (isHeadExtended()) elibBits |= ELIB_NOTEND1;
 			}
 		}
-	
+
 		// adjust bits for directionality
 		if (isHeadArrowed() || isTailArrowed() || isBodyArrowed())
 		{
@@ -901,10 +901,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         boolean normalEnd = (elibBits & ELIB_REVERSEEND) == 0;
 		if (isTailNegated()) elibBits |= (normalEnd ? ELIB_ISTAILNEGATED : ELIB_ISHEADNEGATED);
 		if (isHeadNegated()) elibBits |= (normalEnd ? ELIB_ISHEADNEGATED : ELIB_ISTAILNEGATED);
-        
+
 		int elibAngle = (angle + 5)/10;
 		if (elibAngle >= 360) elibAngle -= 360;
-        
+
         return elibBits | (elibAngle << ELIB_AANGLESH);
 	}
 	/**
@@ -922,7 +922,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if ((elibBits & ELIB_FIXANG) != 0) newBits |= FIXED_ANGLE.mask;
         if ((elibBits & ELIB_CANTSLIDE) == 0) newBits |= SLIDABLE.mask;
         if ((elibBits & ELIB_HARDSELECTA) != 0) newBits |= HARD_SELECT.mask;
-	
+
 		if ((elibBits&ELIB_ISTAILNEGATED) != 0)
 		{
 			newBits |= (elibBits&ELIB_REVERSEEND) == 0 ? TAIL_NEGATED.mask : HEAD_NEGATED.mask;
@@ -953,7 +953,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		}
         return newBits;
 	}
-    
+
     /**
      * Get angle from ELIB user bits.
      * @param elibBits ELIB user bits.

@@ -87,7 +87,7 @@ import java.util.Iterator;
 public class ArcInst extends Geometric implements Comparable<ArcInst>
 {
     /** empty array of ArcInsts. */                     public static final ArcInst[] NULL_ARRAY = {};
-    
+
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = ImmutableArcInst.TAILEND;
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = ImmutableArcInst.HEADEND;
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = Variable.newKey("ARC_name");
@@ -125,7 +125,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         assert d.tailNodeId == tailPort.getNodeInst().getD().nodeId;
         assert d.headPortId == headPort.getPortProto().getId();
         assert d.tailPortId == tailPort.getPortProto().getId();
-        
+
         this.d = d;
 
 		// create node/arc connections and place them properly
@@ -137,11 +137,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	}
 
     private Object writeReplace() { return new ArcInstKey(this); }
-    
+
     private static class ArcInstKey extends EObjectInputStream.Key<ArcInst> {
         public ArcInstKey() {}
         private ArcInstKey(ArcInst ai) { super(ai); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, ArcInst ai) throws IOException {
             if (ai.getDatabase() != out.getDatabase() || !ai.isLinked())
@@ -149,7 +149,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             out.writeObject(ai.getParent());
             out.writeInt(ai.getD().arcId);
         }
-        
+
         @Override
         public ArcInst readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Cell cell = (Cell)in.readObject();
@@ -160,7 +160,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             return ai;
         }
     }
-         
+
     /****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -257,7 +257,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
         return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, defAngle, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
 	/**
 	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
 	 * This is more general than the version that does not take coordinates.
@@ -280,11 +280,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 ////            System.out.println("Cannot create arc instance of " + type + " because prototype is unused");
 ////            return null;
 //        }
-        
+
         long gridExtendOverMin = DBMath.lambdaToGrid(0.5*baseWidth) - type.getGridBaseExtend();
 //		if (gridFullWidth < type.getMaxLayerGridOffset())
 //			gridFullWidth = type.getDefaultGridFullWidth();
-        
+
         // if points are null, create them as would newInstance
 		EPoint headP;
         if (headPt == null)
@@ -322,7 +322,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 				tail + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
 			return null;
 		}
-        
+
         return newInstance(parent, type, name, null, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
 	}
 
@@ -347,7 +347,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
         parent.checkChanging();
         Topology topology = parent.getTopology();
-        
+
 		// make sure fields are valid
 		if (protoType == null || headPort == null || tailPort == null || !headPort.isLinked() || !tailPort.isLinked()) return null;
         if (headPt == null || tailPt == null) return null;
@@ -391,7 +391,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		} else
 		{
 			// adjust the name descriptor for "smart" text placement
-            long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend()); 
+            long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend());
 			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
@@ -404,7 +404,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             flags = ImmutableArcInst.TAIL_NEGATED.set(flags, false);
             flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
         }
-       
+
         CellId parentId = parent.getId();
         // search for spare arcId
         int arcId;
@@ -416,7 +416,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 gridExtendOverMin, angle, flags);
         ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
-        
+
 		// attach this arc to the two nodes it connects
 		headPort.getNodeInst().redoGeometric();
 		tailPort.getNodeInst().redoGeometric();
@@ -440,7 +440,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return;
 		}
         checkChanging();
-        
+
 		// remove this arc from the two nodes it connects
 		headPortInst.getNodeInst().redoGeometric();
 		tailPortInst.getNodeInst().redoGeometric();
@@ -484,20 +484,20 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public void setLambdaBaseWidth(double lambdaBaseWidth) {
         setGridBaseWidth(DBMath.lambdaToSizeGrid(lambdaBaseWidth));
     }
-    
+
 	/**
 	 * Method to change the width this ArcInst.
 	 * @param gridBaseWidth new base width of the ArcInst in lambda units.
 	 */
     public void setGridBaseWidth(long gridBaseWidth) {
         if (gridBaseWidth == getGridBaseWidth()) return;
-        
+
         // save old arc state
         ImmutableArcInst oldD = d;
-        
+
         // change the arc
         lowLevelModify(d.withGridExtendOverMin(gridBaseWidth/2 - getProto().getGridBaseExtend()));
-        
+
         // track the change
         Constraints.getCurrent().modifyArcInst(this, oldD);
     }
@@ -543,7 +543,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      */
     @Override
     public ImmutableArcInst getD() { return d; }
-    
+
     /**
      * Modifies persistend data of this ArcInst.
      * @param newD new persistent data.
@@ -560,7 +560,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             Constraints.getCurrent().modifyArcInst(this, oldD);
         return true;
     }
-    
+
     public void setDInUndo(ImmutableArcInst newD) {
         checkUndoing();
         d = newD;
@@ -578,7 +578,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             checkPossibleVariableEffects(var.getKey());
         }
     }
-	
+
 	/**
 	 * Method to handle special case side-effects of setting variables on this NodeInst.
 	 * Overrides the general method on ElectricObject.
@@ -600,10 +600,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
         setD(d.withoutVariable(key), true);
 	}
-    
+
 	/**
 	 * Low-level method to change the width and end locations of this ArcInst.
-     * New persistent data may differ from old one only by width and end locations 
+     * New persistent data may differ from old one only by width and end locations
 	 * @param d the new persistent data of this ArcInst.
 	 */
 	public void lowLevelModify(ImmutableArcInst d)
@@ -617,7 +617,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         setD(d, false);
         if (renamed)
             topology.addArc(this);
-        
+
         redoGeometric();
 
 		// update end shrinkage information ?????????????????????
@@ -687,7 +687,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      */
     @Override
     public Iterator<Poly> getShape(Poly.Builder polyBuilder) { return polyBuilder.getShape(this); }
-    
+
     /**
      * Method to return the bounds of this ArcInst.
      * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -700,7 +700,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         topology.computeArcBounds();
         return visBounds;
     }
-    
+
     void computeBounds(BoundsBuilder b, int[] intCoords) {
         if (b.genBoundsEasy(d, intCoords)) {
             double x = intCoords[0];
@@ -746,7 +746,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         polyBuilder.setup(parent);
         return polyBuilder.makePoly(getD(), gridWidth, style);
     }
-	
+
 //	/**
 //	 * Method to create a Poly object that describes an ArcInst in grid units.
 //	 * The ArcInst is described by its width and style.
@@ -758,7 +758,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 //        CellBackup.Memoization m = parent != null ? parent.getMemoization() : null;
 //        return getD().makeGridPoly(m, gridWidth, style);
 //    }
-	
+
 	/**
      * Method to fill polygon "poly" with the outline in lambda units of the curved arc in
      * this ArcInst whose width in grid units is "gridWidth".  The style of the polygon is set to "style".
@@ -772,7 +772,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         Variable radius = Variable.newInstance(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridRadius)), TextDescriptor.getArcTextDescriptor());
         return polyBuilder.makePoly(getD().withVariable(radius), gridWidth, style);
     }
-    
+
 //	/**
 //	 * Method to return a list of Polys that describes all text on this ArcInst.
 //	 * @param hardToSelect is true if considering hard-to-select text.
@@ -873,7 +873,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             default: throw new IllegalArgumentException("Bad end " + connIndex);
         }
     }
-    
+
 	/**
 	 * Method to return the PortInst on tail of this ArcInst.
 	 * @return the PortInst on tail.
@@ -897,7 +897,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public boolean isConnected(Geometric geom) {
         return tailPortInst.getNodeInst() == geom || headPortInst.getNodeInst() == geom;
     }
-    
+
 	/**
 	 * Method to return the PortInst on an end of this ArcInst.
 	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
@@ -980,9 +980,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 //		// no good
 //		return false;
 	}
-    
+
     private static boolean stillInPoly(Point2D pt, Poly poly) { return poly.isInside(pt) || poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE; }
-    
+
     /****************************** TEXT ******************************/
 
 	/**
@@ -994,7 +994,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/**
 	 * Retruns true if this ArcInst was named by user.
 	 * @return true if this ArcInst was named by user.
-	 */		
+	 */
 	public boolean isUsernamed() { return d.isUsernamed();	}
 
 	/**
@@ -1139,9 +1139,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
 	 */
+    @Override
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == ARC_NAME) {
+            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }
@@ -1208,7 +1210,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (setD(d.withFlag(flag, state), true))
             redoGeometric();
     }
-    
+
 	/**
 	 * Method to set this ArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
@@ -1293,7 +1295,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @return true if the arc's tail has an arrow line on it.
      */
 	public boolean isBodyArrowed() { return d.isBodyArrowed(); }
-	
+
 	/**
 	 * Method to set this ArcInst to be directional, with an arrow on one end.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
@@ -1308,7 +1310,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             default: throw new IllegalArgumentException("Bad end " + connIndex);
         }
     }
-    
+
 	/**
 	 * Method to set this ArcInst to be directional, with an arrow on the tail.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
@@ -1436,7 +1438,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             default: throw new IllegalArgumentException("Bad end " + connIndex);
         }
     }
-    
+
 	/**
 	 * Method to set whether the tail of this arc is negated.
 	 * Negated arc have a negating bubble on them to indicate negation.
@@ -1580,7 +1582,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             assert visBounds.getHeight() == DBMath.gridToLambda(maxY - minY);
         }
     }
-    
+
 	/**
 	 * Method to set an index of this ArcInst in Cell arcs.
 	 * This is a zero-based index of arcs on the Cell.
@@ -1747,7 +1749,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
          if (polyList.length != aPolyList.length)
          {
-	         if (buffer != null)   
+	         if (buffer != null)
 		         buffer.append("No same number of geometries in " + getName() + " and " + a.getName() + "\n");
 	         return (false);
          }

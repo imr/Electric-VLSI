@@ -52,6 +52,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -59,7 +60,6 @@ import com.sun.electric.tool.Tool;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -78,10 +78,10 @@ public class JELIB extends Output {
     private Version version;
     /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
 //    private Map<LibId,URL> libFiles;
-    
+
     JELIB() {
     }
-    
+
     /**
      * Method to write a Library in Electric Library (.jelib) format.
      * @param snapshot snapshot of the Library
@@ -97,7 +97,7 @@ public class JELIB extends Output {
         writeTheLibrary(snapshot, libId);
         return false;
     }
-    
+
     /**
      * Method to write the .jelib file.
      * @param snapshot snapshot of the Library
@@ -127,12 +127,12 @@ public class JELIB extends Output {
         HashSet<LibId> usedLibs = new HashSet<LibId>();
         for (CellId cellId: usedCells)
             usedLibs.add(cellId.libId);
-        
+
         // write header information (library, version)
         printWriter.println("# header information:");
         printWriter.print("H" + convertString(libBackup.d.libId.libName) + "|" + version);
         printlnVars(libBackup.d);
-        
+
         // write view information
         boolean viewHeaderPrinted = false;
         HashSet<View> usedViews = new HashSet<View>();
@@ -152,10 +152,10 @@ public class JELIB extends Output {
             }
             printWriter.println("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()));
         }
-        
+
         // write external library information
         writeExternalLibraryInfo(libId, usedLibs);
-        
+
         // write tool information
         boolean toolHeaderPrinted = false;
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
@@ -170,7 +170,7 @@ public class JELIB extends Output {
             printWriter.print("O" + convertString(tool.getName()));
             printlnSettings(settings);
         }
-        
+
         // write technology information
         boolean technologyHeaderPrinted = false;
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
@@ -185,7 +185,7 @@ public class JELIB extends Output {
             printWriter.print("T" + convertString(tech.getTechName()));
             printlnSettings(settings);
         }
-        
+
         // write cells
         ArrayList<CellRevision> sortedCellsList = new ArrayList<CellRevision>(sortedCells.values());
         snapshot.techPool.correctSizesToDisk(sortedCellsList, version, projectSettings, true, false);
@@ -195,7 +195,7 @@ public class JELIB extends Output {
         }
 //        printWriter.println();
     }
-    
+
     /**
      * Method to write a cell to the output file
      * @param cellRevision the cell to write
@@ -218,13 +218,13 @@ public class JELIB extends Output {
         printWriter.print("|" + cellRevision.revisionDate);
         StringBuilder cellBits = new StringBuilder();
         if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
-        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.cellName.isIcon()) cellBits.append("E");
+        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.isIcon()) cellBits.append("E");
         if ((d.flags & Cell.NPILOCKED) != 0) cellBits.append("I");
         if ((d.flags & Cell.NPLOCKED) != 0) cellBits.append("L");
         if ((d.flags & Cell.TECEDITCELL) != 0) cellBits.append("T");
         printWriter.print("|" + cellBits.toString());
         printlnVars(d);
-        
+
         ArrayList<String> nodeNames = new ArrayList<String>();
         // write the nodes in this cell (sorted by node name)
         Name prevNodeName = null;
@@ -290,7 +290,7 @@ public class JELIB extends Output {
             }
             printlnVars(n);
         }
-        
+
         // write the arcs in this cell
         for (ImmutableArcInst a: cellRevision.arcs) {
             ArcProtoId apId = a.protoId;
@@ -305,9 +305,9 @@ public class JELIB extends Output {
             printWriter.print("|");
             if (arcWidth != 0)
                 printWriter.print(TextUtils.formatDouble(DBMath.gridToLambda(arcWidth), 0));
-            
+
             StringBuilder arcBits = new StringBuilder();
-            
+
             if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");
             if (a.is(ImmutableArcInst.BODY_ARROWED)) arcBits.append("B");
             if (!a.is(ImmutableArcInst.FIXED_ANGLE)) arcBits.append("F");
@@ -320,18 +320,18 @@ public class JELIB extends Output {
             if (a.is(ImmutableArcInst.HEAD_ARROWED)) arcBits.append("X");
             if (a.is(ImmutableArcInst.TAIL_ARROWED)) arcBits.append("Y");
             printWriter.print("|" + arcBits.toString() + a.getAngle());
-            
+
             printWriter.print("|" + nodeNames.get(a.headNodeId) + "|" + getPortName(a.headPortId));
             printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getY(), 0));
-            
+
             printWriter.print("|" + nodeNames.get(a.tailNodeId) + "|" + getPortName(a.tailPortId));
             printWriter.print("|" + TextUtils.formatDouble(a.tailLocation.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(a.tailLocation.getY(), 0));
-            
+
             printlnVars(a);
         }
-        
+
         // write the exports in this cell
         for (ImmutableExport e: cellRevision.exports) {
             printWriter.print("E" + convertString(e.exportId.externalId));
@@ -347,11 +347,11 @@ public class JELIB extends Output {
             if (e.bodyOnly) printWriter.print("/B");
             printlnVars(e);
         }
-        
+
         // write the end-of-cell marker
         printWriter.println("X");
     }
-    
+
     void writeExternalLibraryInfo(LibId thisLib, Set<LibId> usedLibs) {
         // write external library information
         boolean libraryHeaderPrinted = false;
@@ -370,19 +370,19 @@ public class JELIB extends Output {
             printWriter.println("L" + convertString(libId.libName) + "|" + convertString(libFile));
         }
     }
-    
+
     /**
      * Helper method to convert a TextDescriptor to a string that describes it
      */
     private String describeDescriptor(TextDescriptor td) {
         return describeDescriptor(null, td, false);
     }
-    
+
     /**
      * Method to convert a variable to a string that describes its TextDescriptor
      * @param var the Variable being described (may be null).
      * @param td the TextDescriptor being described.
-     * @param true to output parameter bit
+     * @param isParam true to output parameter bit
      * @return a String describing the variable/textdescriptor.
      * The string has these fields:
      *    Asize; for absolute size
@@ -403,24 +403,24 @@ public class JELIB extends Output {
      *    Xoffset; for X offset
      *    Yoffset; for Y offset
      */
-    private String describeDescriptor(Variable var, TextDescriptor td, boolean isParam) {
+    public static String describeDescriptor(Variable var, TextDescriptor td, boolean isParam) {
         StringBuilder ret = new StringBuilder();
         TextDescriptor.Display display = td.getDisplay();
         if (var == null) display = TextDescriptor.Display.SHOWN;
-        
+
         if (display != TextDescriptor.Display.NONE) {
             // write size
             TextDescriptor.Size size = td.getSize();
             if (size.isAbsolute()) ret.append("A" + (int)size.getSize() + ";");
-            
+
             // write bold
             if (td.isBold()) ret.append("B");
-            
+
             // write color
             int color = td.getColorIndex();
             if (color != 0)
                 ret.append("C" + color + ";");
-            
+
             // displayable: write display position
             ret.append(display == TextDescriptor.Display.SHOWN ? "D" : "d");
             TextDescriptor.Position pos = td.getPos();
@@ -434,47 +434,46 @@ public class JELIB extends Output {
                                         if (pos == TextDescriptor.Position.DOWNRIGHT) ret.append("3"); else
                                             if (pos == TextDescriptor.Position.BOXED) ret.append("0"); else
                                                 ret.append("5");
-            
+
             // write font
             int font = td.getFace();
             if (font != 0) {
                 TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(font);
                 ret.append("F" + convertString(af.toString()) + ";");
             }
-            
+
             if (!size.isAbsolute()) ret.append("G" + TextUtils.formatDouble(size.getSize()) + ";");
         }
-        
+
         // write inherit
         if (td.isInherit()) ret.append("H");
-        
+
         if (display != TextDescriptor.Display.NONE) {
             // write italic
             if (td.isItalic()) ret.append("I");
-            
+
             // write underline
             if (td.isUnderline()) ret.append("L");
-            
+
             // write display type
             TextDescriptor.DispPos dispPos = td.getDispPart();
             if (dispPos == TextDescriptor.DispPos.NAMEVALUE) ret.append("N");
         }
-        
+
         // write language
-        if (var != null && td.isCode()) {
-            Object value = var.getObject();
-            if (value instanceof String || value instanceof String[]) {
-                switch (td.getCode()) {
-                    case JAVA:  ret.append("OJ"); break;
-                    case SPICE: ret.append("OL"); break;
-                    case TCL:   ret.append("OT"); break;
-                }
+        if (var != null) {
+            switch (var.getCode()) {
+                case JAVA:  ret.append("OJ"); break;
+                case SPICE: ret.append("OL"); break;
+                case TCL:   ret.append("OT"); break;
+                case NONE:  break;
+                default: throw new AssertionError();
             }
         }
 
         // write parameter
         if (isParam) ret.append("P");
-        
+
         if (display != TextDescriptor.Display.NONE) {
             // write rotation
             TextDescriptor.Rotation rot = td.getRotation();
@@ -482,10 +481,10 @@ public class JELIB extends Output {
                 if (rot == TextDescriptor.Rotation.ROT180) ret.append("RR"); else
                     if (rot == TextDescriptor.Rotation.ROT270) ret.append("RRR");
         }
-        
+
         // write interior
         if (td.isInterior()) ret.append("T");
-        
+
         // write units
         TextDescriptor.Unit unit = td.getUnit();
         if (unit == TextDescriptor.Unit.RESISTANCE) ret.append("UR"); else
@@ -495,7 +494,7 @@ public class JELIB extends Output {
                         if (unit == TextDescriptor.Unit.VOLTAGE) ret.append("UV"); else
                             if (unit == TextDescriptor.Unit.DISTANCE) ret.append("UD"); else
                                 if (unit == TextDescriptor.Unit.TIME) ret.append("UT");
-        
+
         if (display != TextDescriptor.Display.NONE) {
             // write offset
             double offX = td.getXOff();
@@ -503,10 +502,10 @@ public class JELIB extends Output {
             double offY = td.getYOff();
             if (offY != 0) ret.append("Y" + TextUtils.formatDouble(offY, 0) + ";");
         }
-        
+
         return ret.toString();
     }
-    
+
     /**
      * Method to write the variables on an ImmutableElectricObject.
      * If object is ImmuatbleNodeInst write variables on its PortInsts also.
@@ -537,13 +536,13 @@ public class JELIB extends Output {
         }
         printWriter.println();
     }
-    
+
     private static Comparator<PortProtoId> PORTS_BY_EXTERNAL_ID = new Comparator<PortProtoId>() {
         public int compare(PortProtoId pp1, PortProtoId pp2) {
             return TextUtils.STRING_NUMBER_ORDER.compare(pp1.externalId, pp2.externalId);
         }
     };
-    
+
     /**
      * Method to write the variables on an object.
      */
@@ -566,7 +565,7 @@ public class JELIB extends Output {
             printWriter.print(pt);
         }
     }
-    
+
     /**
      * Method to write the project settings on an object.
      */
@@ -578,7 +577,7 @@ public class JELIB extends Output {
         }
         printWriter.println();
     }
-    
+
     /**
      * Method to convert variable "var" to a string for printing in the text file.
      * returns zero on error
@@ -602,7 +601,7 @@ public class JELIB extends Output {
         }
         return infstr.toString();
     }
-    
+
     /**
      * Method to make a string from the value in "addr" which has a type in
      * "type".
@@ -622,7 +621,7 @@ public class JELIB extends Output {
             case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
             case 'P': infstr.append(convertString(((PrimitiveNodeId)obj).fullName, inArray)); return;
             case 'R': infstr.append(convertString(((ArcProtoId)obj).fullName, inArray)); return;
-            case 'S': infstr.append(convertString((String)obj, inArray)); return;
+            case 'S': infstr.append(convertString(obj.toString(), inArray)); return;
             case 'T': infstr.append(convertString(((TechId)obj).techName, inArray)); return;
             case 'V': {
                 EPoint pt2 = (EPoint)obj;
@@ -632,21 +631,22 @@ public class JELIB extends Output {
             case 'Y': infstr.append(((Byte)obj).byteValue()); return;
         }
     }
-    
+
     private String getPortName(PortProtoId portId) {
         String externalId = portId.externalId;
         if (externalId.length() > 0)
             externalId = convertString(externalId);
         return externalId;
     }
-    
+
     /**
      * Method to make a char from the value in "addr" which has a type in
      * "type".
      */
     private char getVarType(Object obj) {
         if (obj instanceof String          || obj instanceof String [])          return 'S';
-        
+        if (obj instanceof CodeExpression)                                       return 'S';
+
         if (obj instanceof Boolean         || obj instanceof Boolean [])         return 'B';
         if (obj instanceof CellId          || obj instanceof CellId [])          return 'C';
         if (obj instanceof Double          || obj instanceof Double [])          return 'D';
@@ -662,10 +662,9 @@ public class JELIB extends Output {
         if (obj instanceof TechId          || obj instanceof TechId [])          return 'T';
         if (obj instanceof EPoint          || obj instanceof EPoint [])          return 'V';
         if (obj instanceof Byte            || obj instanceof Byte [])            return 'Y';
-        assert false : obj;
-        return 'X';
+        throw new AssertionError();
     }
-    
+
     /**
      * Method convert a string that is going to be quoted.
      * Inserts the quote character (^) before any quotation character (') or quote character (^) in the string.
@@ -674,7 +673,7 @@ public class JELIB extends Output {
      * @return the string with the appropriate quote characters.
      * If no conversion is necessary, the input string is returned.
      */
-    private String convertQuotedString(String str) {
+    private static String convertQuotedString(String str) {
         StringBuffer infstr = new StringBuffer();
         int len = str.length();
         for(int i=0; i<len; i++) {
@@ -687,7 +686,7 @@ public class JELIB extends Output {
         }
         return infstr.toString();
     }
-    
+
     /**
      * Method convert a string that is not going to be quoted.
      * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
@@ -696,10 +695,10 @@ public class JELIB extends Output {
      * @return the string with the appropriate quote characters.
      * If no conversion is necessary, the input string is returned.
      */
-    String convertString(String str) {
+    static String convertString(String str) {
         return convertString(str, (char)0, (char)0);
     }
-    
+
     /**
      * Method convert a string that is not going to be quoted.
      * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
@@ -708,7 +707,7 @@ public class JELIB extends Output {
      * @return the string with the appropriate quote characters.
      * If no conversion is necessary, the input string is returned.
      */
-    private String convertString(String str, char delim1, char delim2) {
+    private static String convertString(String str, char delim1, char delim2) {
         if (str.length() != 0 &&
                 str.indexOf('\n') < 0 &&
                 str.indexOf('\r') < 0 &&
@@ -720,7 +719,7 @@ public class JELIB extends Output {
             return str;
         return '"' + convertQuotedString(str) + '"';
     }
-    
+
     /**
      * Method convert a string that is a variable name.
      * If string contains end-of-lines, backslashes, bars, quotation characters, open parenthesis,
@@ -732,7 +731,7 @@ public class JELIB extends Output {
     private String convertVariableName(String str) {
         return convertString(str, '(', (char)0);
     }
-    
+
     /**
      * Method convert a string that is a variable value.
      * If string contains end-of-lines, backslashes, bars, quotation characters, comma,

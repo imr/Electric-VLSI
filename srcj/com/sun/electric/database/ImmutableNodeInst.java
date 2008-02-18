@@ -51,17 +51,20 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
- * 
+ *
  * @promise "requiresColor DBChanger;" for with*(**) | newInstance(**)
  * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for check()
  */
 public class ImmutableNodeInst extends ImmutableElectricObject {
-    /** 
+    /**
      * Class to access user bits of ImmutableNodeInst.
      */
     public static class Flag {
@@ -70,7 +73,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         private Flag(int mask) {
             this.mask = mask;
         }
-        
+
         /**
          * Returns true if this Flag is set in userBits.
          * @param userBits user bits.
@@ -79,7 +82,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         public boolean is(int userBits) {
             return (userBits & mask) != 0;
         }
-        
+
         /**
          * Updates this flag in userBits.
          * @param userBits old user bits.
@@ -90,7 +93,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             return value ? userBits | mask : userBits & ~mask;
         }
     }
-    
+
 // -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
 //	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
@@ -118,7 +121,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //    private static final int VIS_INSIDE_MASK  = 0x02;
 //    private static final int LOCKED_MASK      = 0x04;
 //    private static final int DATABASE_FLAGS   = 0x07;
-    
+
 	/**
 	 * Method to set an ImmutableNodeInst to be hard-to-select.
 	 * Hard-to-select ImmutableNodeInsts cannot be selected by clicking on them.
@@ -136,10 +139,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * Locked ImmutableNodeInsts cannot be modified or deleted.
 	 */
 	public static final Flag LOCKED = new Flag(NILOCKED);
-    
+
     public final static ImmutableNodeInst[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableNodeInst> EMPTY_LIST = new ImmutableArrayList<ImmutableNodeInst>(NULL_ARRAY);
-    
+    public final static SortedMap<Variable.AttrKey,Object> EMPTY_PARAMS = Collections.unmodifiableSortedMap(new TreeMap<Variable.AttrKey,Object>());
+
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
@@ -159,14 +163,14 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
-	 * @param width the width of this ImmutableNodeInst.
-	 * @param height the height of this ImmutableNodeInst.
+	 * @param size the size of this ImmutableNodeInst.
      * @param flags flag bits for thisImmutableNdoeIsnt.
 	 * @param techBits tech speicfic bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
      * @param vars array of Variables of this ImmutableNodeInst
+     * @param ports array of ImmutablePortInsts of this ImmutableNodeInst
 	 */
-     ImmutableNodeInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
+    ImmutableNodeInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, EPoint size,
             int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars, ImmutablePortInst[] ports) {
         super(vars, flags);
@@ -181,10 +185,42 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
 //        check();
-     }
+    }
 
 	/**
-	 * Returns new ImmutableNodeInst object.
+	 * Returns new ImmutableNodeInst or ImmutableIconInst object.
+     * @param nodeId id of this NodeInst in parent.
+	 * @param protoId the NodeProtoId of which this is an instance.
+	 * @param name name of new ImmutableNodeInst.
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
+     * @param orient Orientation of this ImmutableNodeInst.
+	 * @param anchor the anchor location of this ImmutableNodeInst.
+	 * @param size the size of this ImmutableNodeInst.
+     * @param flags flag bits for thisImmutableNdoeIsnt.
+	 * @param techBits tech speicfic bits of this ImmutableNodeInst.
+     * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
+     * @param vars array of Variables of this ImmutableNodeInst
+     * @param params a map of parameter values of this ImmutableNodeInst
+	 * @return new ImmutableNodeInst object.
+	 */
+    static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
+            Orientation orient, EPoint anchor, EPoint size,
+            int flags, byte techBits, TextDescriptor protoDescriptor,
+            Variable[] vars, ImmutablePortInst[] ports, SortedMap<Variable.AttrKey,Object> params) {
+        if (protoId instanceof CellId && ((CellId)protoId).isIcon()) {
+            return new ImmutableIconInst(nodeId, protoId, name, nameDescriptor,
+                orient, anchor, size, flags, (byte)techBits, protoDescriptor,
+                vars, ports, params);
+        } else {
+            assert params == EMPTY_PARAMS;
+            return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
+                orient, anchor, size, flags, (byte)techBits, protoDescriptor,
+                vars, ports);
+        }
+    }
+
+	/**
+	 * Returns new ImmutableNodeInst or ImmutableIconInst object.
      * @param nodeId id of this NodeInst in parent.
 	 * @param protoId the NodeProtoId of which this is an instance.
 	 * @param name name of new ImmutableNodeInst.
@@ -227,8 +263,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
-		return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
-                orient, anchor, size, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY);
+        return newInstance(nodeId, protoId, name, nameDescriptor,
+                orient, anchor, size, flags, (byte)techBits, protoDescriptor,
+                Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY, EMPTY_PARAMS);
     }
 
 //	/**
@@ -255,8 +292,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
-		return new ImmutableNodeInst(this.nodeId, this.protoId, name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -268,8 +306,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -282,8 +321,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (this.orient == orient) return this;
         if (orient == null) throw new NullPointerException("orient");
         if (isCellCenter(protoId)) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -296,8 +336,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (this.anchor.equals(anchor)) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
         if (isCellCenter(protoId)) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -312,8 +353,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
         if (isCellCenter(protoId)) return this;
         if (protoId instanceof CellId) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -336,8 +378,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     private ImmutableNodeInst withFlags(int flags) {
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
     }
 
 	/**
@@ -371,10 +414,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public ImmutableNodeInst withTechSpecific(int techBits) {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (this.techBits == techBits) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, (byte)techBits, this.protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, (byte)techBits, this.protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
     }
-    
+
     /**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by proto descriptor.
      * @param protoDescriptor TextDescriptor of proto
@@ -384,8 +428,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, protoDescriptor, getVars(), this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, protoDescriptor,
+                getVars(), this.ports, getDefinedParams());
 	}
 
 	/**
@@ -399,10 +444,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                vars, this.ports, getDefinedParams());
     }
-    
+
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by removing Variable
      * with the specified key. Returns this ImmutableNodeInst if it doesn't contain variable with the specified key.
@@ -413,10 +459,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                vars, this.ports, getDefinedParams());
     }
-    
+
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -429,13 +476,14 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (protoId instanceof CellId)
             protoId = idMapper.get((CellId)protoId);
         if (getVars() == vars && this.protoId == protoId && this.ports == ports) return this;
-		return new ImmutableNodeInst(this.nodeId, protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, ports);
+		return newInstance(this.nodeId, protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                vars, ports, getDefinedParamsWithRenamedIds(idMapper));
     }
-    
+
 	/**
 	 * Returns array of ImmutablePortInst which differs from array of this ImmutableNodeInst by renamed Ids.
-     * Returns array of this ImmutableNodeInst if it doesn't contain reanmed Ids.
+     * Returns array of this ImmutableNodeInst if it doesn't contain renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
      * @return array of ImmutablePortInst with renamed Ids.
 	 */
@@ -470,7 +518,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
                 return newPorts;
             }
         }
-        
+
         ImmutablePortInst[] newPorts = null;
         for (int i = 0; i < ports.length; i++) {
             ImmutablePortInst oldPort = ports[i];
@@ -484,7 +532,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         }
         return newPorts != null ? newPorts : ports;
     }
-    
+
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by additional Variable on PortInst.
      * If this ImmutableNideInst has Variable on PortInst with the same key as new, the old variable will not be in new
@@ -520,14 +568,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             Arrays.fill(newPorts, ports.length, portChronIndex, ImmutablePortInst.EMPTY);
             newPorts[portChronIndex] = portInst;
         }
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), newPorts);
+		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), newPorts, getDefinedParams());
     }
 
 	/**
 	 * Retruns true if this ImmutableNodeInst was named by user.
 	 * @return true if this ImmutableNodeInst was named by user.
-	 */		
+	 */
 	public boolean isUsernamed() { return !name.isTempname();	}
 
 	/**
@@ -542,7 +591,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         int portChronIndex = portProtoId.getChronIndex();
         return portChronIndex < ports.length ? ports[portChronIndex] : ImmutablePortInst.EMPTY;
     }
-    
+
 	/**
 	 * Returns an Iterator over all PortProtoIds such that the correspondent PortInst on this
      * ImmutablePortInst has variables.
@@ -557,26 +606,26 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         }
         return new PortInstIterator();
     }
-    
+
     private class PortInstIterator implements Iterator<PortProtoId> {
         int chronIndex;
         PortProtoId next;
-        
+
         PortInstIterator() {
             getNext();
         }
-        
+
         public boolean hasNext() { return next != null; }
-        
+
         public PortProtoId next() {
             PortProtoId result = next;
             if (result == null) throw new NoSuchElementException();
             getNext();
             return result;
-        } 
-        
+        }
+
         public void remove() { throw new UnsupportedOperationException(); }
-        
+
         private void getNext() {
             PortProtoId next = null;
             for (; chronIndex < ports.length; chronIndex++) {
@@ -588,27 +637,27 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             this.next = next;
         }
     }
-    
+
     /**
      * Returns true if this ImmutableNodeInst has variables on port instances.
      * @return true if this ImmutableNodeInst has variables on port instances.
      */
     public boolean hasPortInstVariables() { return ports.length > 0; }
-    
+
 //    /**
 //     * Returns flags of this ImmutableNodeInst.
 //     * This flags are defined by ImmutableNodeInst.Flag .
 //     * @return flags of this ImmutableNodeInst.
 //     */
 //    public int getFlags() { return flags; }
-    
+
     /**
      * Tests specific flag is set on this ImmutableNodeInst.
      * @param flag flag selector.
      * @return true if specific flag is set,
      */
     public boolean is(Flag flag) { return flag.is(flags); }
-    
+
 //	/**
 //	 * Method to return the Technology-specific value on this ImmutableNodeInst.
 //	 * This is mostly used by the Schematics technology which allows variations
@@ -617,6 +666,26 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //	 * @return the Technology-specific value on this ImmutableNodeInst.
 //	 */
 //	public byte getTechSpecific() { return techBits; }
+
+	/**
+	 * Method to return the defined parameters on this ImmutableNodeInst.
+     * This is a map from Variable.Key to objects allowed as parameter values.
+     * Only instances of ImmutableIconInst subclass may have nonempty defined parameters map.
+	 * @return the defined parameters on this ImmutableNodeInst.
+	 */
+    public SortedMap<Variable.AttrKey,Object> getDefinedParams() {
+        return EMPTY_PARAMS;
+    }
+
+	/**
+	 * Returns Map of defined parameters which differs from Map of defined parameters of this ImmutableNodeInst by renamed Ids.
+     * Returns Map of defined parameters of this ImmutableNodeInst if it doesn't contain renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return Map of defined parametes with renamed Ids.
+	 */
+    SortedMap<Variable.AttrKey,Object> getDefinedParamsWithRenamedIds(IdMapper idMapper) {
+        return EMPTY_PARAMS;
+    }
 
     /**
      * Writes this ImmutableNodeInst to IdWriter.
@@ -641,7 +710,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         writer.writeInt(-1);
         super.write(writer);
     }
-    
+
     /**
      * Reads ImmutableNodeInst from SnapshotReader.
      * @param reader where to read.
@@ -671,10 +740,14 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         }
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor, orient, anchor, size,
-                flags, techBits, protoDescriptor, vars, ports);
+        SortedMap<Variable.AttrKey,Object> params = EMPTY_PARAMS;
+        if (protoId instanceof CellId && ((CellId)protoId).isIcon())
+            params = ImmutableIconInst.readParams(reader);
+        return newInstance(nodeId, protoId, name, nameDescriptor, orient, anchor, size,
+                flags, techBits, protoDescriptor,
+                vars, ports, params);
     }
-    
+
     /**
      * Return a hash code value for fields of this object.
      * Variables of objects are not compared
@@ -697,7 +770,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
                 this.flags == that.flags && this.techBits == that.techBits &&
                 this.protoDescriptor == that.protoDescriptor;
     }
-    
+
     /**
 	 * Checks invariant of this ImmutableNodeInst.
 	 * @throws AssertionError if invariant is broken.
@@ -706,6 +779,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         check(false);
         assert nodeId >= 0;
 		assert protoId != null;
+        boolean isIcon = protoId instanceof CellId && ((CellId)protoId).isIcon();
+        assert getClass() == (isIcon ? ImmutableIconInst.class : ImmutableNodeInst.class);
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
         assert !(name.isTempname() && name.isBus());
@@ -742,27 +817,27 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (!(protoId instanceof PrimitiveNodeId)) return false;
         return ((PrimitiveNodeId)protoId).fullName.equals("generic:Facet-Center");
     }
-    
+
     /**
      * Returns ELIB user bits of this ImmutableNodeInst in ELIB.
      * @return ELIB user bits of this ImmutableNodeInst.
      */
     public int getElibBits() { return flags | (techBits << NTECHBITSSH); }
-    
+
     /**
      * Get flag bits from ELIB user bits.
      * @param elibBits ELIB user bits.
      * @return flag bits.
      */
     public static int flagsFromElib(int elibBits) { return elibBits & FLAG_BITS; }
-    
+
     /**
      * Get tech specific bits from ELIB user bits.
      * @param elibBits ELIB user bits.
      * @return tech specific bits.
      */
     public static int techSpecificFromElib(int elibBits) { return (elibBits & NTECHBITS) >> NTECHBITSSH; }
-    
+
     public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
 		// handle cell bounds
@@ -863,7 +938,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (obj instanceof EPoint[]) return (EPoint[])obj;
 		return null;
 	}
-    
+
 	/**
 	 * Method to return the length of this serpentine transistor.
 	 * @return the transistor's length

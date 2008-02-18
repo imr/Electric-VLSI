@@ -79,7 +79,7 @@ public class JelibParser
 		boolean filledIn;
 		String fileName;
 		int lineNumber;
-        
+
         CellId cellId;
         String groupName;
         long creationDate;
@@ -91,7 +91,7 @@ public class JelibParser
         boolean cellLib;
         boolean techLib;
         Variable[] vars;
-        
+
         List<NodeContents> nodes = new ArrayList<NodeContents>();
         List<ExportContents> exports = new ArrayList<ExportContents>();
         List<ArcContents> arcs = new ArrayList<ArcContents>();
@@ -117,10 +117,10 @@ public class JelibParser
         int flags;
         int techBits;
         Variable[] vars;
-        
+
         NodeInst ni;
     }
-    
+
     static class ExportContents {
         int line;
         ExportId exportId;
@@ -134,7 +134,7 @@ public class JelibParser
         Variable[] vars;
         Point2D pos;
     }
-    
+
     static class ArcContents {
         int line;
         ArcProtoId arcProtoId;
@@ -151,11 +151,11 @@ public class JelibParser
         int flags;
         Variable[] vars;
     }
-    
+
     // The parsing result
     Version version;
     Variable[] libVars;
-    
+
     final LinkedHashMap<LibId,String> externalLibIds = new LinkedHashMap<LibId,String>();
 	final LinkedHashMap<CellId,Rectangle2D> externalCells = new LinkedHashMap<CellId,Rectangle2D>();
 	final LinkedHashMap<ExportId,EPoint> externalExports = new LinkedHashMap<ExportId,EPoint>();
@@ -164,13 +164,13 @@ public class JelibParser
     final LinkedHashMap<PrimitivePortId,Variable[]> primitivePortIds = new LinkedHashMap<PrimitivePortId,Variable[]>();
     final LinkedHashMap<ArcProtoId,Variable[]> arcProtoIds = new LinkedHashMap<ArcProtoId,Variable[]>();
     final LinkedHashMap<String,Variable[]> tools = new LinkedHashMap<String,Variable[]>();
-    
+
  	final LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
     final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
     final ArrayList<CellId[]> groupLines = new ArrayList<CellId[]>();
-    
+
     /*---------------------------------------------------------------------*/
-    
+
 	private static String[] revisions =
 	{
 		// Revision 1
@@ -178,9 +178,9 @@ public class JelibParser
 		// Revision 2
 		"8.04l",
 	};
-    
+
     private static final Version newDelibHeaderVersion = Version.parseVersion("8.04n");
-    
+
     private static int defaultArcFlags;
     static {
         defaultArcFlags = ImmutableArcInst.DEFAULT_FLAGS;
@@ -196,7 +196,7 @@ public class JelibParser
         defaultArcFlags = ImmutableArcInst.HEAD_ARROWED.set(defaultArcFlags, false); // X
         defaultArcFlags = ImmutableArcInst.TAIL_ARROWED.set(defaultArcFlags, false); // Y
     }
-    
+
     // Were in LibraryFiles
     final URL fileURL;
     private final FileType fileType;
@@ -209,13 +209,22 @@ public class JelibParser
     private final ErrorLogger errorLogger;
     private final MutableTextDescriptor mtd = new MutableTextDescriptor();
     /** buffer for reading Variables. */                                    private final ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
-    
-    private final HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
-    private final HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
+
+    private HashMap<String,TextDescriptorAndCode> parsedDescriptorsF = new HashMap<String,TextDescriptorAndCode>();
+    private HashMap<String,TextDescriptorAndCode> parsedDescriptorsT = new HashMap<String,TextDescriptorAndCode>();
 //	private Version version;
 	private char escapeChar = '\\';
 	private String curLibName;
     private String curReadFile;
+
+    private static class TextDescriptorAndCode {
+        private final TextDescriptor td;
+        private final TextDescriptor.Code code;
+        TextDescriptorAndCode(TextDescriptor td, TextDescriptor.Code code) {
+            this.td = td;
+            this.code = code;
+        }
+    }
 
     private LibId curExternalLibId = null;
     private CellId curExternalCellId = null;
@@ -254,11 +263,11 @@ public class JelibParser
             lineReader.close();
         }
 	}
-    
+
     public static JelibParser parse(LibId libId, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException {
         return new JelibParser(libId, fileURL, fileType, onlyProjectSettings, errorLogger);
     }
-    
+
     private void readFromFile(boolean onlyProjectSettings) throws IOException {
         boolean ignoreCvsMergedContent = false;
 		for(;;)
@@ -579,7 +588,7 @@ public class JelibParser
             curReadFile = filePath;
         }
     }
-    
+
     private void readCell(String line) throws IOException {
         // grab a cell description
         List<String> pieces = parseLine(line);
@@ -759,7 +768,8 @@ public class JelibParser
         }
 
         // parse state information in stateInfo field
-        n.nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false);
+        TextDescriptorAndCode nameTdC = loadTextDescriptor(nameTextDescriptorInfo, false);
+        n.nameTextDescriptor = nameTdC.td;
         int flags = 0, techBits = 0;
         // parse state information in jelibUserBits
         parseStateInfo:
@@ -786,7 +796,8 @@ public class JelibParser
         }
         n.flags = flags;
         n.techBits = techBits;
-        n.protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false); 
+        TextDescriptorAndCode protoTdC = loadTextDescriptor(textDescriptorInfo, false);
+        n.protoTextDescriptor = protoTdC.td;
 
         // create the node
         n.orient = Orientation.fromJava(angle, flipX, flipY);
@@ -798,7 +809,7 @@ public class JelibParser
         // insert into map of disk names
         cc.diskName.put(diskNodeName, n);
     }
-    
+
     private void parseExport(String cellString, CellContents cc) {
         ExportContents e = new ExportContents();
         e.line = lineReader.getLineNumber();
@@ -847,7 +858,8 @@ public class JelibParser
         String userBits = pieces.get(fieldIndex++);
         assert fieldIndex == numPieces;
 
-        e.nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false);
+        TextDescriptorAndCode nameTdC =  loadTextDescriptor(textDescriptorInfo, false);
+        e.nameTextDescriptor = nameTdC.td;
         // parse state information
         int slashPos = userBits.indexOf('/');
         if (slashPos >= 0) {
@@ -868,11 +880,11 @@ public class JelibParser
         e.vars = readVariables(pieces, numPieces);
         cc.exports.add(e);
     }
-    
+
     private void parseArc(String cellString, CellContents cc) {
         ArcContents a = new ArcContents();
         a.line = lineReader.getLineNumber();
-        
+
         // parse the arc line
         List<String> pieces = parseLine(cellString);
         if (pieces.size() < 13)
@@ -925,7 +937,7 @@ public class JelibParser
             tailNotExtended = false, headNotExtended = false,
             tailArrowed = false, headArrowed = false, bodyArrowed = false;
         // Default flags are false except FIXED_ANGLE
-        // SLIDABLE 
+        // SLIDABLE
         int flags = defaultArcFlags;
         int angle = 0;
         parseStateInfo:
@@ -985,7 +997,8 @@ public class JelibParser
 
         // get the ard name text descriptor
         String nameTextDescriptorInfo = pieces.get(2);
-        a.nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false);
+        TextDescriptorAndCode nameTdC = loadTextDescriptor(nameTextDescriptorInfo, false);
+        a.nameTextDescriptor = nameTdC.td;
 
         // add variables in fields 13 and up
         a.vars = readVariables(pieces, 13);
@@ -1063,7 +1076,7 @@ public class JelibParser
 	 * Method to read variables to an ElectricObject from a List of strings.
 	 * @param pieces the array of Strings that described the ElectricObject.
 	 * @param position the index in the array of strings where Variable descriptions begin.
-     * @return an array of Variables. 
+     * @return an array of Variables.
 	 */
 	private Variable[] readVariables(List<String> pieces, int position)
 	{
@@ -1212,8 +1225,9 @@ public class JelibParser
 			}
 
 			// create the variable
-            TextDescriptor td = loadTextDescriptor(varBits, true);
-            Variable d = Variable.newInstance(varKey, obj, td);
+            TextDescriptorAndCode tdc = loadTextDescriptor(varBits, true);
+            obj = Variable.withCode(obj, tdc.code);
+            Variable d = Variable.newInstance(varKey, obj, tdc.td);
             variablesBuf.add(d);
 		}
         return variablesBuf.toArray(Variable.NULL_ARRAY);
@@ -1226,14 +1240,15 @@ public class JelibParser
 	 * It may be false if the TextDescriptor is on a NodeInst or Export.
 	 * @return loaded TextDescriptor
 	 */
-	private TextDescriptor loadTextDescriptor(String varBits, boolean onVar)
+	private TextDescriptorAndCode loadTextDescriptor(String varBits, boolean onVar)
 	{
-        HashMap<String,TextDescriptor> parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
-        TextDescriptor td = parsedDescriptors.get(varBits);
-        if (td != null) return td;
-        
+        HashMap<String,TextDescriptorAndCode> parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
+        TextDescriptorAndCode tdc = parsedDescriptors.get(varBits);
+        if (tdc != null) return tdc;
+
         boolean error = false;
         mtd.setCBits(0, 0, 0);
+        TextDescriptor.Code code = TextDescriptor.Code.NONE;
         if (!onVar) mtd.setDisplay(TextDescriptor.Display.SHOWN);
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
@@ -1383,13 +1398,15 @@ public class JelibParser
 						error = true;
 						break;
 					}
-					if (codeLetter == 'J') mtd.setCode(TextDescriptor.Code.JAVA); else
-					if (codeLetter == 'L') mtd.setCode(TextDescriptor.Code.SPICE); else
-					if (codeLetter == 'T') mtd.setCode(TextDescriptor.Code.TCL); else
-					{
-						logError("Unknown language specification: " + varBits);
-                        error = true;
-					}
+                    switch (codeLetter) {
+                        case 'J': code = TextDescriptor.Code.JAVA; break;
+                        case 'L': code = TextDescriptor.Code.SPICE; break;
+                        case 'T': code = TextDescriptor.Code.TCL; break;
+                        default:
+                            logError("Unknown language specification: " + varBits);
+                            error = true;
+                    }
+                    mtd.setCode(code);
 					break;
 				case 'U':		// units
 					j++;
@@ -1415,9 +1432,10 @@ public class JelibParser
 			}
 		}
 		mtd.setOff(xoff, yoff);
-		td = TextDescriptor.newTextDescriptor(mtd);
-        if (!error) parsedDescriptors.put(varBits, td);
-        return td;
+		TextDescriptor td = TextDescriptor.newTextDescriptor(mtd);
+        tdc = new TextDescriptorAndCode(td, code);
+        if (!error) parsedDescriptors.put(varBits, tdc);
+        return tdc;
 	}
 
 	/**
@@ -1572,7 +1590,7 @@ public class JelibParser
 		}
 		return null;
 	}
-    
+
     private static double readDouble(String s) {
         return s.length() > 0 ? Double.parseDouble(s) : 0;
     }
@@ -1581,12 +1599,12 @@ public class JelibParser
         String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
         errorLogger.logError(s, -1);
     }
-    
+
     private void logWarning(String message) {
         String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
         errorLogger.logWarning(s, null, -1);
     }
-    
+
     private void logError(String message, CellId cellId) {
         String s = curReadFile + ", line " + lineReader.getLineNumber() + ", " + message;
         errorLogger.logError(s, cellId, -1);

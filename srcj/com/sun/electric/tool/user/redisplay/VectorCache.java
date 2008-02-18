@@ -82,8 +82,8 @@ import java.util.Set;
 public class VectorCache {
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
-    
-    /** database to work. */                                public final EDatabase database; 
+
+    /** database to work. */                                public final EDatabase database;
 	/** list of cell expansions. */							private final ArrayList<VectorCellGroup> cachedCells = new ArrayList<VectorCellGroup>();
 	/** list of polygons to include in cells */				private final HashMap<CellId,List<VectorBase>> addPolyToCell = new HashMap<CellId,List<VectorBase>>();
 	/** list of instances to include in cells */			private final HashMap<CellId,List<VectorLine>> addInstToCell = new HashMap<CellId,List<VectorLine>>();
@@ -93,14 +93,14 @@ public class VectorCache {
     /** Current scale. */                                   private double curScale;
     /** True to clear fade images. */                       private boolean clearFadeImages;
     /** True to clear cache. */                             private boolean clearCache;
-    
+
 	/** zero rectangle */									private final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-    
+
     private final EditWindow0 dummyWnd = new EditWindow0() {
         public VarContext getVarContext() { return varContext; }
-        
+
         public double getScale() { return curScale; }
     };
 
@@ -117,7 +117,7 @@ public class VectorCache {
 			this.layer = layer;
 			this.graphics = graphics;
 		}
-        
+
         /**
          * Return true if this is a filled primitive.
          */
@@ -139,13 +139,13 @@ public class VectorCache {
 			this.coords = coords;
             this.pureLayer = pureLayer;
 		}
-        
+
 		VectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphics, boolean pureLayer)
 		{
 			this(new int[] { databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y) },
                     layer, graphics, pureLayer);
         }
-        
+
         @Override boolean isFilled() { return true; }
     }
 
@@ -155,7 +155,7 @@ public class VectorCache {
     static class VectorManhattanBuilder {
         /** Number of boxes. */         int size; // number of boxes
         /** Coordiantes of boxes. */    int[] coords = new int[4];
-        
+
         private void add(double lX, double lY, double hX, double hY) {
             if (size*4 >= coords.length) {
                 int[] newCoords = new int[coords.length*2];
@@ -169,18 +169,18 @@ public class VectorCache {
             coords[i + 3] = databaseToGrid(hY);
             size++;
         }
-        
+
         int[] toArray() {
             int[] a = new int[size*4];
             System.arraycopy(coords, 0, a, 0, a.length);
             return a;
         }
-        
+
         private void clear() {
             size = 0;
         }
     }
-    
+
 	/**
 	 * Class which defines a cached polygon (nonmanhattan).
 	 */
@@ -197,7 +197,7 @@ public class VectorCache {
                 this.points[i] = new Point(databaseToGrid(p.getX()), databaseToGrid(p.getY()));
             }
         }
-        
+
         @Override boolean isFilled() { return true; }
 	}
 
@@ -237,7 +237,7 @@ public class VectorCache {
 			this.eY = databaseToGrid(eY);
 			this.nature = nature;
 		}
-        
+
         @Override boolean isFilled() {
             // true for disc nature
             return nature == 2;
@@ -307,7 +307,7 @@ public class VectorCache {
 			}
 		}
 	}
-    
+
 	/**
 	 * Class which defines a cached cross (a dot, large or small).
 	 */
@@ -376,7 +376,7 @@ public class VectorCache {
             clear();
             isParameterized = isCellParameterized(cellBackup.cellRevision);
        }
-        
+
         private boolean updateBounds(Snapshot snapshot) {
             ERectangle newBounds = snapshot.getCellBounds(cellId);
             if (newBounds == bounds) return false;
@@ -392,7 +392,7 @@ public class VectorCache {
                 vc.updateBounds();
             return true;
         }
-        
+
         private boolean changedExports() {
             Cell cell = database.getCell(cellId);
             if (cell == null)
@@ -410,7 +410,7 @@ public class VectorCache {
             }
             return cIt.hasNext();
         }
-        
+
         private void updateExports() {
             for (VectorCell vc : orientations.values()) {
                 vc.clearExports();
@@ -437,7 +437,7 @@ public class VectorCache {
                 updateExports();
             return exports;
         }
-        
+
 		void clear()
 		{
             for (VectorCell vc: orientations.values())
@@ -475,13 +475,13 @@ public class VectorCache {
 	{
 		String exportName;
 		Point2D exportCtr;
-        
+
         private ImmutableExport e;
 		/** the text style */							Poly.Type style;
 		/** the descriptor of the text */				TextDescriptor descript;
 		/** the text height (in display units) */		float height;
         private Color portColor;
-        
+
 		VectorCellExport(Export e) {
             this.e = e.getD();
             exportName = e.getName();
@@ -502,7 +502,7 @@ public class VectorCache {
             this.e = e.getD();
             portColor = e.getBasePort().getPortColor();
         }
-        
+
         int getChronIndex() { return e.exportId.chronIndex; }
         String getName(boolean shortName) {
             String name = e.name.toString();
@@ -519,7 +519,7 @@ public class VectorCache {
             return name;
         }
         Color getPortColor() { return portColor; }
-        
+
     }
 
 	/**
@@ -551,13 +551,13 @@ public class VectorCache {
             this.orient = orient;
             updateBounds();
 		}
-        
+
         // Constructor for TechPalette
         private VectorCell() {
             vcg = null;
             orient = null;
         }
-        
+
         private void init(Cell cell) {
             long startTime = DEBUG ? System.currentTimeMillis() : 0;
             vcg.init();
@@ -565,9 +565,9 @@ public class VectorCache {
             clear();
             maxFeatureSize = 0;
             AffineTransform trans = orient.pureRotate();
-            
+
             vcg.updateExports();
-            
+
 //System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
             for (VectorManhattanBuilder b: boxBuilders)
                 b.clear();
@@ -578,7 +578,7 @@ public class VectorCache {
                 ArcInst ai = arcs.next();
                 drawArc(ai, trans, this);
             }
-            
+
             // draw all nodes
             for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
                 NodeInst ni = nodes.next();
@@ -588,7 +588,7 @@ public class VectorCache {
                 if (!hideOnLowLevel)
                     drawNode(ni, trans, this);
             }
-            
+
             // add in anything "snuck" onto the cell
             CellId cellId = cell.getId();
             List<VectorBase> addThesePolys = addPolyToCell.get(cellId);
@@ -605,17 +605,17 @@ public class VectorCache {
             addBoxesFromBuilder(this, cell.getTechnology(), pureBoxBuilders, true);
             Collections.sort(filledShapes, shapeByLayer);
             Collections.sort(shapes, shapeByLayer);
-            
+
             // icon cells should not get greeked because of their contents
             if (cell.isIcon()) maxFeatureSize = 0;
-            
+
             valid = true;
             if (DEBUG) {
                 long stopTime = System.currentTimeMillis();
                 System.out.println((stopTime - startTime) + " init " + vcg.cellId + " " + orient);
             }
         }
-        
+
         private void updateBounds() {
             lX = lY = Integer.MAX_VALUE;
             hX = hY = Integer.MIN_VALUE;
@@ -638,7 +638,7 @@ public class VectorCache {
                 outlinePoints[i*2+1] = y;
             }
         }
-        
+
         private void clear() {
             clearExports();
             valid = hasFadeColor = fadeImage = false;
@@ -647,19 +647,19 @@ public class VectorCache {
             subCells.clear();
             fadeImageColors = null;
         }
-        
+
          private void clearExports() {
             portCenters = null;
             topOnlyShapes = null;
         }
-        
+
         int[] getPortCenters() {
             if (portCenters == null)
                 initPortCenters();
             return portCenters;
         }
-         
-        
+
+
         private void initPortCenters() {
             List<VectorCellExport> portShapes = vcg.getPortShapes();
             portCenters = new int[portShapes.size()*2];
@@ -672,20 +672,20 @@ public class VectorCache {
                 portCenters[i*2 + 1] = databaseToGrid(tmpPt.getY());
             }
         }
-        
+
        ArrayList<VectorBase> getTopOnlyShapes() {
             if (topOnlyShapes == null)
                 initTopOnlyShapes();
             return topOnlyShapes;
         }
-        
+
         private void initTopOnlyShapes() {
             Cell cell = database.getCell(vcg.cellId);
             topOnlyShapes = new ArrayList<VectorBase>();
             // show cell variables
             Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
             drawPolys(polys, DBMath.MATID, this, true, VectorText.TEXTTYPECELL, false);
-            
+
             // draw nodes visible only inside
             AffineTransform trans = orient.pureRotate();
             for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
@@ -695,7 +695,7 @@ public class VectorCache {
                 if (hideOnLowLevel)
                     drawNode(ni, trans, this);
             }
-            
+
             // draw exports and their variables
             for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
                 Export e = it.next();
@@ -722,9 +722,9 @@ public class VectorCache {
 
     /** Creates a new instance of VectorCache */
     public VectorCache(EDatabase database) {
-        this.database = database; 
+        this.database = database;
     }
-    
+
     VectorCell findVectorCell(CellId cellId, Orientation orient) {
         VectorCellGroup vcg = findCellGroup(cellId);
         orient = orient.canonic();
@@ -735,7 +735,7 @@ public class VectorCache {
         }
         return vc;
     }
-    
+
 	VectorCell drawCell(CellId cellId, Orientation prevTrans, VarContext context, double scale)
 	{
         VectorCell vc = findVectorCell(cellId, prevTrans);
@@ -746,12 +746,12 @@ public class VectorCache {
         }
 		return vc;
 	}
-    
+
     public static VectorBase[] drawNode(NodeInst ni) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
         cache.drawNode(ni, GenMath.MATID, vc);
-        
+
         ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
         allShapes.addAll(vc.filledShapes);
         allShapes.addAll(vc.shapes);
@@ -759,12 +759,12 @@ public class VectorCache {
         Collections.sort(allShapes, shapeByLayer);
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
-    
+
     public static VectorBase[] drawPolys(Poly[] polys) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
 		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
-        
+
         ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
         allShapes.addAll(vc.filledShapes);
         allShapes.addAll(vc.shapes);
@@ -772,9 +772,9 @@ public class VectorCache {
         Collections.sort(allShapes, shapeByLayer);
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
-    
+
     private VectorCell newDummyVectorCell() { return new VectorCell(); }
-    
+
 	/**
 	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
 	 * @param lX the low X of the manhattan rectangle.
@@ -822,7 +822,7 @@ public class VectorCache {
         addToThisCell.add(new VectorLine(hX, hY, lX, hY, 0, null, instanceGraphics));
         addToThisCell.add(new VectorLine(lX, hY, lX, lY, 0, null, instanceGraphics));
 	}
-	
+
 	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
     private static final PrimitivePortId busPinPortId = Schematics.tech().busPinNode.getPort(0).getId();
 
@@ -842,7 +842,7 @@ public class VectorCache {
                 return true;
             }
         }
-        
+
         // look for any Java coded stuff (Logical Effort calls)
         for (ImmutableNodeInst n: cellRevision.nodes) {
             for(Iterator<Variable> vIt = n.getVariables(); vIt.hasNext(); ) {
@@ -856,7 +856,7 @@ public class VectorCache {
                 if (var.getCode() != TextDescriptor.Code.NONE) return true;
             }
         }
-        
+
         // bus pin appearance depends on parent Cell
         for (ImmutableExport e: cellRevision.exports) {
             if (e.originalPortId == busPinPortId)
@@ -864,25 +864,26 @@ public class VectorCache {
         }
         return false;
     }
-    
+
     public Set<CellId> forceRedrawAfterChange(Set<CellId> topCells) {
         BitSet visibleCells = new BitSet();
         for (CellId cellId: topCells) {
             if (database.getCell(cellId) == null) continue;
             markDown(cellId, visibleCells);
         }
-        
+
         // deleted cells
         for (int cellIndex = 0; cellIndex < cachedCells.size(); cellIndex++) {
             if (cachedCells.get(cellIndex) != null && !visibleCells.get(cellIndex))
                 cachedCells.set(cellIndex, null);
         }
-        
+
         // changed cells
         Snapshot snapshot = database.backup();
-        Set<CellId> changedCells = new HashSet<CellId>();
-        Set<CellId> changedExports = new HashSet<CellId>();
-        Set<CellId> changedBounds = new HashSet<CellId>();
+//        BitSet changedCells = new BitSet();
+        BitSet changedExports = new BitSet();
+        BitSet changedBounds = new BitSet();
+        BitSet changedParams = new BitSet();
         Set<CellId> changedVisibility = new HashSet<CellId>();
         for (CellId cellId: snapshot.getCellsDownTop()) {
             int cellIndex = cellId.cellIndex;
@@ -890,55 +891,73 @@ public class VectorCache {
             while (cellIndex >= cachedCells.size()) cachedCells.add(null);
             VectorCellGroup vcg = cachedCells.get(cellIndex);
             boolean exportsPossiblyChanged = false;
+            boolean changedVis = false;
             if (vcg == null) {
                 vcg = new VectorCellGroup(cellId);
-                changedCells.add(cellId);
-                changedExports.add(cellId);
-                changedVisibility.add(cellId);
-                changedBounds.add(cellId);
+//                changedCells.set(cellIndex);
+                changedExports.set(cellIndex);
+                changedBounds.set(cellIndex);
+                if (cellId.isIcon())
+                    changedParams.set(cellIndex);
+                changedVis = true;
             } else if (vcg.cellBackup != snapshot.getCell(cellId)) {
                 if (vcg.changedExports())
-                    changedExports.add(cellId);
+                    changedExports.set(cellIndex);
                 if (vcg.updateBounds(snapshot))
-                    changedBounds.add(cellId);
+                    changedBounds.set(cellIndex);
+                if (cellId.isIcon())
+                    changedParams.set(cellIndex);
                 vcg.init();
-                changedCells.add(cellId);
-                changedVisibility.add(cellId);
+//                changedCells.set(cellIndex);
+                changedVis = true;
             } else {
                 CellRevision cellRevision = snapshot.getCell(cellId).cellRevision;
                 int[] instCounts = cellRevision.getInstCounts();
                 boolean subExportsChanged = false;
+                boolean subParamsChanged = false;
                 for (int i = 0; i < instCounts.length; i++){
                     if (instCounts[i] == 0) continue;
-                    if (changedExports.contains(cellId.getUsageIn(i).protoId.cellIndex))
+                    int subCellIndex = cellId.getUsageIn(i).protoId.cellIndex;
+                    if (changedExports.get(subCellIndex))
                         subExportsChanged = true;
+                    if (changedParams.get(subCellIndex))
+                        subParamsChanged = true;
                 }
                 if (vcg.updateBounds(snapshot)) {
-                    changedBounds.add(cellId);
-                    changedVisibility.add(cellId);
+                    changedBounds.set(cellIndex);
+                    changedVis = true;
                 }
                 if (subExportsChanged && vcg.changedExports()) {
-                    changedExports.add(cellId);
+                    changedExports.set(cellIndex);
                     vcg.updateExports();
-                    changedVisibility.add(cellId);
+                    changedVis = true;
                 }
-                if (!changedVisibility.contains(cellId)) {
+                if (subParamsChanged)
+                    vcg.clear();
+                if (!changedVis) {
                     Cell cell = database.getCell(cellId);
                     for (ImmutableNodeInst n: cellRevision.nodes) {
+                        if (!(n.protoId instanceof CellId)) continue;
+                        CellId subCellId = (CellId)n.protoId;
+                        int subCellIndex = subCellId.cellIndex;
                         if (cell.isExpanded(n.nodeId)) {
-                            CellId subCellId = (CellId)n.protoId;
-                            if (changedBounds.contains(subCellId) || changedExports.contains(subCellId)) {
-                                changedVisibility.add(cellId);
+                            if (changedVisibility.contains(subCellId)) {
+                                changedVis = true;
                                 break;
                             }
+                        } else if (changedBounds.get(subCellIndex) || changedExports.get(subCellIndex)) {
+                            changedVis = true;
+                            break;
                         }
                     }
                 }
+                if (changedVis)
+                    changedVisibility.add(cellId);
             }
         }
         return changedVisibility;
     }
-    
+
     private void markDown(CellId cellId, BitSet visibleCells) {
         if (visibleCells.get(cellId.cellIndex)) return;
         visibleCells.set(cellId.cellIndex);
@@ -948,7 +967,7 @@ public class VectorCache {
             markDown(cu.protoId, visibleCells);
         }
     }
-    
+
     void forceRedraw() {
         boolean clearCache, clearFadeImages;
         synchronized (this) {
@@ -975,7 +994,7 @@ public class VectorCache {
 //            cellChanged(vcg.cellId);
         }
     }
-    
+
 //	/**
 //	 * Method called when a cell changes: removes any cached displays of that cell
 //	 * @param cell the cell that changed
@@ -1014,7 +1033,7 @@ public class VectorCache {
 	public synchronized void clearCache() {
         clearCache = true;
     }
-    
+
 	/**
 	 * Method called when visible layers have changed.
 	 * Removes all "greeked images" from cached cells.
@@ -1022,7 +1041,7 @@ public class VectorCache {
 	public synchronized void clearFadeImages() {
         clearFadeImages = true;
     }
-    
+
     private static int databaseToGrid(double lambdaValue) {
         return (int)DBMath.lambdaToGrid(lambdaValue);
     }
@@ -1335,9 +1354,9 @@ public class VectorCache {
         VectorManhattanBuilder b = boxBuilders.get(layerIndex);
         b.add(lX, lY, hX, hY);
     }
-    
+
 //    /*------------------------------------------------------*/
-//    
+//
 //    public void showStatistics(Layer layer) {
 //        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
 //        int numCells = 0, numCellLayer = 0;
@@ -1388,7 +1407,7 @@ public class VectorCache {
 //        for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
 //            System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
 //        System.out.println();
-//        
+//
 //        EditWindow wnd = (EditWindow)Job.getUserInterface().needCurrentEditWindow_();
 //        VectorCellGroup topCell = cachedCells.get(wnd.getCell().getCellIndex());
 //        HashMap<VectorCell,LayerDrawing.LayerCell> layerCells = new HashMap<VectorCell,LayerDrawing.LayerCell>();
@@ -1397,7 +1416,7 @@ public class VectorCache {
 //        System.out.println(layerCells.size() + " layerCells");
 //        ld.draw(wnd);
 //    }
-//    
+//
 //    private LayerDrawing.LayerCell gatherLayer(VectorCellGroup vcg, Orientation or, Layer layer, LayerDrawing ld, HashMap<VectorCell,LayerDrawing.LayerCell> layerCells) {
 //        VectorCell vc = vcg.orientations.get(or.canonic());
 //        if (vc == null || !vc.valid) return null;

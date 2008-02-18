@@ -101,13 +101,13 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         assert d.exportId.parentId == parent.getId();
         originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
-    
+
     private Object writeReplace() { return new ExportKey(this); }
-    
+
     private static class ExportKey extends EObjectInputStream.Key<Export> {
         public ExportKey() {}
         private ExportKey(Export export) { super(export); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, Export export) throws IOException {
             ExportId exportId = export.getId();
@@ -115,7 +115,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 throw new NotSerializableException(export + " not linked");
             out.writeObject(exportId);
         }
-        
+
         @Override
         public Export readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             ExportId exportId = (ExportId)in.readObject();
@@ -125,7 +125,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             return export;
         }
     }
-         
+
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -247,7 +247,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		}
 
 		return pp;
-	}	
+	}
 
 	/**
 	 * Factory method to create an Export
@@ -276,7 +276,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         }
         if (name == null)
             name = exportId.externalId;
-        
+
 		// initialize this object
 		if (originalPort == null || !originalPort.isLinked())
 		{
@@ -317,12 +317,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             if (errorLogger != null)
             errorLogger.logError(errorMsg, e, 1);
         }
-        
+
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(e);
         return e;
     }
-    
+
 	/**
 	 * Method to unlink this Export from its Cell.
 	 */
@@ -431,7 +431,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             parent.moveExport(portIndex, d.name.toString());
 
         setD(d, false);
-        
+
 		// create the new linkage
         if (moved) {
             originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
@@ -456,7 +456,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         setBodyOnly(other.isBodyOnly());
         setCharacteristic(other.getCharacteristic());
     }
-    
+
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -514,7 +514,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      */
     @Override
     public ImmutableExport getD() { return d; }
-    
+
     /**
      * Modifies persistend data of this Export.
      * @param newD new persistent data.
@@ -549,7 +549,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
         }
     }
-    
+
     /**
      * Method to add a Variable on this Export.
      * It may add repaired copy of this Variable in some cases.
@@ -590,13 +590,13 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			}
 		}
 	}
-    
+
     /** Method to return PortProtoId of this Export.
      * PortProtoId identifies Export independently of threads.
      * @return PortProtoId of this Export.
      */
     public ExportId getId() { return d.exportId; }
-    
+
 	/**
 	 * Method to return the parent NodeProto of this Export.
 	 * @return the parent NodeProto of this Export.
@@ -608,7 +608,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return chronological index of this Export in parent.
      */
     public int getChronIndex() { return d.exportId.chronIndex; }
-    
+
 	/**
 	 * Method to get the index of this Export.
 	 * This is a zero-based index of ports on the Cell.
@@ -639,9 +639,11 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * @param varKey key of variable or special name.
 	 * @param td new value TextDescriptor
 	 */
+    @Override
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == EXPORT_NAME) {
+            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }
@@ -660,7 +662,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		if (key == EXPORT_NAME) return true;
 		return super.isDeprecatedVariable(key);
 	}
-	
+
     /**
 	 * Method chooses TextDescriptor with "smart text placement"
      * of Export on specified origianl port.
@@ -709,7 +711,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 //		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
 //		return ImmutableTextDescriptor.newTextDescriptor(td);
 	}
-    
+
 	/**
 	 * Method to return the name key of this Export.
 	 * @return the Name key of this Export.
@@ -731,7 +733,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	{
 		return getShortName(getNameKey().toString());
 	}
-    
+
 	/**
 	 * Method to convert name of export to short name.
 	 * The short name is everything up to the first nonalphabetic character.
@@ -778,7 +780,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             if (validExportName(newName, oldBusWidth))
                 return newName;
         }
-        
+
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
@@ -794,7 +796,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         }
         return null;
     }
-    
+
     /**
      * Returns true if string is a valid Export name with cirtain width.
      * @param name string to test.
@@ -1178,5 +1180,5 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             return (false);
         }
         return (true);
-    }    
+    }
 }

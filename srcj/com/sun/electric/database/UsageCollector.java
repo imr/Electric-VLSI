@@ -27,17 +27,18 @@ package com.sun.electric.database;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.ExportId;
-import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.variable.Variable;
 
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 /**
  * Package-private class to collect usage of libraries/cells/exports in CellBackup or in Library variables.
@@ -46,13 +47,14 @@ import java.util.HashSet;
  */
 class UsageCollector {
     static final BitSet EMPTY_BITSET = new BitSet();
+    static final TreeMap<Variable.AttrKey,Boolean> EMPTY_ATTRIBUTES = new TreeMap<Variable.AttrKey,Boolean>();
 
-    private ImmutableCell d;
-    private HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
-    private HashSet<TechId> techUsed = new HashSet<TechId> (16, 0.5f);
-    
+    private final ImmutableCell d;
+    private final HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
+    private final HashSet<TechId> techUsed = new HashSet<TechId> (16, 0.5f);
+
     /**
-     * Collect usages in lists of nodes/arcs/exports together with Cell's variables. 
+     * Collect usages in lists of nodes/arcs/exports together with Cell's variables.
      */
     UsageCollector(ImmutableCell d,
             ImmutableArrayList<ImmutableNodeInst> nodes,
@@ -61,10 +63,20 @@ class UsageCollector {
         this.d = d;
         for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
             ImmutableNodeInst n = nodes.get(nodeIndex);
-            if (n.protoId instanceof CellId)
-                add((CellId)n.protoId, true);
-            else
+            if (n.protoId instanceof CellId) {
+                CellUsageInfoBuilder cellCount = add((CellId)n.protoId, true);
+                if (cellCount.isIcon) {
+                    for (int varIndex = 0; varIndex < n.getNumVariables(); varIndex++) {
+                        Variable.Key varKey = n.getVar(varIndex).getKey();
+                        if (varKey.isAttribute())
+                            cellCount.addAttribute((Variable.AttrKey)varKey, false);
+                    }
+                    for (Variable.AttrKey attrKey: n.getDefinedParams().keySet())
+                        cellCount.addAttribute(attrKey, true);
+                }
+            } else {
                 techUsed.add(((PrimitiveNodeId)n.protoId).techId);
+            }
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
                 if (pi == ImmutablePortInst.EMPTY) continue;
@@ -83,36 +95,35 @@ class UsageCollector {
             add(e.originalPortId);
         }
     }
-    
+
     private void add(PortProtoId portId) {
         if (portId instanceof PrimitivePortId) return;
         ExportId eId = (ExportId)portId;
-        add(eId.getParentId(), false).set(eId.chronIndex);
+        add(eId.getParentId(), false).usedExports.set(eId.chronIndex);
     }
-    
-    private BitSet add(CellId cellId, boolean isInstance) {
+
+    private CellUsageInfoBuilder add(CellId cellId, boolean isInstance) {
         CellUsageInfoBuilder cellCount = cellIndices.get(cellId);
         if (cellCount == null) {
-            cellCount = new CellUsageInfoBuilder();
+            cellCount = new CellUsageInfoBuilder(d.cellId.getUsageIn(cellId));
             cellIndices.put(cellId, cellCount);
         }
         if (isInstance)
             cellCount.instCount++;
-        return cellCount.usedExports;
+        return cellCount;
     }
-    
+
     /**
      * Return TechId usages for CellBackup.
      */
     BitSet getTechUsages(BitSet oldTechUsages) {
-        IdManager idManager = d.cellId.idManager;
         BitSet techUsages = new BitSet();
         techUsages.set(d.techId.techIndex);
         for (TechId techId: techUsed)
             techUsages.set(techId.techIndex);
-        return bitSetWith(oldTechUsages, techUsages); 
+        return bitSetWith(oldTechUsages, techUsages);
     }
-    
+
     /**
      * Return usages for CellRevision.
      */
@@ -126,16 +137,11 @@ class UsageCollector {
         for (CellId cellId: cellIndices.keySet()) {
             CellUsage u = parentId.getUsageIn(cellId);
             int indexInParent = u.indexInParent;
-            CellRevision.CellUsageInfo newC = null;
             CellUsageInfoBuilder cellCount = cellIndices.get(cellId);
             if (cellCount != null) {
                 CellRevision.CellUsageInfo oldC = indexInParent < oldCellUsages.length ? oldCellUsages[indexInParent] : null;
-                if (oldC != null)
-                    newC = oldC.with(cellCount.instCount, cellCount.usedExports);
-                else
-                    newC = new CellRevision.CellUsageInfo(cellCount.instCount, cellCount.usedExports);
+                newCellUsages[indexInParent] = cellCount.getCellUsageInfo(oldC);
             }
-            newCellUsages[indexInParent] = newC;
         }
         return Arrays.equals(newCellUsages, oldCellUsages) ? oldCellUsages : newCellUsages;
     }
@@ -145,9 +151,44 @@ class UsageCollector {
             return EMPTY_BITSET;
         return newBitSet.equals(oldBitSet) ? oldBitSet : newBitSet;
     }
-    
+
+    static TreeMap<Variable.AttrKey,Boolean> usedAttributesWith(TreeMap<Variable.AttrKey,Boolean> oldAttributes,
+            TreeMap<Variable.AttrKey,Boolean> newAttributes) {
+        if (newAttributes == null)
+            return null;
+        if (newAttributes.isEmpty())
+            return EMPTY_ATTRIBUTES;
+        return newAttributes.equals(oldAttributes) ? oldAttributes : newAttributes;
+    }
+
     private static class CellUsageInfoBuilder {
-        int instCount;
-        BitSet usedExports = new BitSet();
+        private final CellUsage cellUsage;
+        private final boolean isIcon;
+        private int instCount;
+        private final BitSet usedExports = new BitSet();
+        private final TreeMap<Variable.AttrKey, Boolean> usedAttributes;
+
+        private CellUsageInfoBuilder(CellUsage cellUsage) {
+            this.cellUsage = cellUsage;
+            isIcon = cellUsage.protoId.isIcon();
+            usedAttributes = isIcon ? new TreeMap<Variable.AttrKey, Boolean>() : null;
+        }
+
+        private void addAttribute(Variable.AttrKey attrKey, boolean isParam) {
+            Boolean isParamObj = usedAttributes.get(attrKey);
+            if (isParamObj != null) {
+                if (isParam != isParamObj.booleanValue())
+                    throw new IllegalArgumentException(attrKey + " " + isParam);
+            } else {
+                usedAttributes.put(attrKey, Boolean.valueOf(isParam));
+            }
+        }
+
+        private CellRevision.CellUsageInfo getCellUsageInfo(CellRevision.CellUsageInfo oldCellUsageInfo) {
+            if (oldCellUsageInfo != null)
+                return oldCellUsageInfo.with(instCount, usedExports, usedAttributes);
+            else
+                return new CellRevision.CellUsageInfo(instCount, usedExports, usedAttributes);
+        }
     }
 }

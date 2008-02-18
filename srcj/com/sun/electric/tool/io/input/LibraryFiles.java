@@ -87,7 +87,7 @@ public abstract class LibraryFiles extends Input
 {
 	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
-    
+
     /** Database where to load libraries */                                 final EDatabase database = EDatabase.serverDatabase();
     /** IdManager where to create ids */                                    final IdManager idManager = database.getIdManager();
 	/** The Library being input. */                                         protected Library lib;
@@ -132,7 +132,7 @@ public abstract class LibraryFiles extends Input
         TextDescriptor[] protoTextDescriptor;
 		int []       userBits;
         Variable[][] vars;
-        
+
         NodeInstList(int nodeCount, boolean hasAnchor)
         {
             theNode = new NodeInst[nodeCount];
@@ -481,7 +481,7 @@ public abstract class LibraryFiles extends Input
             IdMapper idMapper = oldCell.rename(renamedName, renamedName);      // must not contain version or view info
             if (idMapper == null) continue;
             oldCell = idMapper.get(oldCell.getId()).inDatabase(EDatabase.serverDatabase());
-            
+
             // copy newCell over with oldCell's name
             newCell = Cell.copyNodeProto(newCell, lib, cellName, true);
 
@@ -613,7 +613,7 @@ public abstract class LibraryFiles extends Input
         // Checking if the library is already open
 		Library elib = Library.findLibrary(legalLibName);
 		if (elib != null) return elib;
-        
+
 //		URL url = TextUtils.makeURLToFile(theFileName);
 //		String fileName = url.getFile();
 //		File libFile = new File(fileName);
@@ -926,7 +926,7 @@ public abstract class LibraryFiles extends Input
                 var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
                 if (var != null)
                 {
-                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);                    
+                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);
                 }
 			}
 		}
@@ -969,7 +969,7 @@ public abstract class LibraryFiles extends Input
         }
         return corrector;
     }
-    
+
 	String convertCellName(String s)
 	{
 		StringBuffer buf = null;
@@ -1025,7 +1025,7 @@ public abstract class LibraryFiles extends Input
 		} else if (indexOfAt < 0) return null;
 		return str;
 	}
-    
+
 	/**
 	 * Method to build a NodeInst.
      * @param nil arrays with data of new NodeInst
@@ -1101,7 +1101,7 @@ public abstract class LibraryFiles extends Input
                 center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
             }
 		}
-            
+
         int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
         int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
@@ -1189,10 +1189,13 @@ public abstract class LibraryFiles extends Input
                     }
                 }
             }
-            eObj.addVar(var);
+            if (eObj instanceof NodeInst)
+                ((NodeInst)eObj).lowLevelAddVar(var);
+            else
+                eObj.addVar(var);
         }
     }
-    
+
     static PortProto findPortProto(NodeProto np, String portId) {
         PortProtoId portProtoId = np.getId().newPortId(portId);
         PortProto pp = np.getPort(portProtoId);
@@ -1207,7 +1210,7 @@ public abstract class LibraryFiles extends Input
         }
         return pp;
     }
-    
+
 	/**
 	 * Method to add meaning preferences to an ElectricObject from a List of strings.
 	 * @param obj the Object to augment with meaning preferences.
@@ -1229,7 +1232,7 @@ public abstract class LibraryFiles extends Input
             if (var == null) continue;
             Object value = var.getObject();
             if (!(value instanceof String)) {
-                if (value instanceof Short || value instanceof Byte) 
+                if (value instanceof Short || value instanceof Byte)
                     value = new Integer(((Number)value).intValue());
                 if (!(value instanceof Number) && !(value instanceof Boolean))
                     continue;
@@ -1261,12 +1264,12 @@ public abstract class LibraryFiles extends Input
         mtd.setCBits(td0, fixTextDescriptorFont(td1));
         return TextDescriptor.newTextDescriptor(mtd);
     }
-        
+
     TextDescriptor makeDescriptor(int td0, int td1, int flags) {
         mtd.setCBits(td0, fixTextDescriptorFont(td1), flags);
         return TextDescriptor.newTextDescriptor(mtd);
     }
-        
+
 	/**
 	 * Method to grab font associations that were stored on a Library.
 	 * The font associations are used later to convert indices to true font names and numbers.
@@ -1295,7 +1298,7 @@ public abstract class LibraryFiles extends Input
 			fontNames[fontNumber-1] = associationArray[i].substring(slashPos+1);
 		}
 	}
- 
+
 	/**
 	 * Method to convert the font number in a TextDescriptor to the proper value as
 	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
@@ -1319,7 +1322,7 @@ public abstract class LibraryFiles extends Input
 		}
         return descriptor1;
 	}
-    
+
 	/**
 	 * Set line number for following errors and warnings.
 	 * @param lineNumber line numnber for following erros and warnings.

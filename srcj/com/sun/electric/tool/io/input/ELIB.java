@@ -356,7 +356,7 @@ public class ELIB extends LibraryFiles
 			return true;
 		}
     }
-    
+
 	/**
 	 * Method to read a Library in binary (.elib) format.
 	 * @return true on error.
@@ -669,7 +669,7 @@ public class ELIB extends LibraryFiles
 			for(int j=0; j<numPrimNodes; j++) {
 				name = readString();
                 PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId(name);
-                primitiveNodeIdList[primNodeProtoCount] = primitiveNodeId; 
+                primitiveNodeIdList[primNodeProtoCount] = primitiveNodeId;
 				primNodeProtoTech[primNodeProtoCount] = techIndex;
 
 				// get the number of primitive port prototypes
@@ -720,7 +720,7 @@ public class ELIB extends LibraryFiles
 			if (toolBCount >= 1) libUserBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-        
+
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
 		{
@@ -821,13 +821,13 @@ public class ELIB extends LibraryFiles
                 } else {
                     fc.externalCells.add(new LibraryStatistics.ExternalCell(cellLibraryPath[cellIndex], null, cellProtoName[cellIndex]));
                 }
-                
+
             }
             return false;
         }
         setupTechs(onlyProjectSettings);
         if (onlyProjectSettings) return false;
-        
+
 		// now that external cells are resolved, fix all variables that may have used them
 		fixExternalVariables(lib);
 		for(int i=0; i<nodeProtoCount; i++)
@@ -948,7 +948,7 @@ public class ELIB extends LibraryFiles
 			while (primNodeProtoCount < primitiveNodeIdList.length) {
                 PrimitiveNodeId primitiveNodeId = primitiveNodeIdList[primNodeProtoCount];
                 if (primitiveNodeId.techId != techId) break;
-                
+
 				primNodeProtoOrig[primNodeProtoCount] = null;
 				primNodeProtoError[primNodeProtoCount] = false;
 				name = primitiveNodeId.name;
@@ -1023,7 +1023,7 @@ public class ELIB extends LibraryFiles
 				while (primPortProtoCount < primitivePortIdList.length) {
                     PrimitivePortId primitivePortId = primitivePortIdList[primPortProtoCount];
                     if (primitivePortId.parentId != primitiveNodeId) break;
-                
+
 					primPortProtoError[primPortProtoCount] = null;
 					name = primitivePortId.externalId;
 					PrimitivePort pp = (PrimitivePort)pnp.findPortProto(name);
@@ -1062,7 +1062,7 @@ public class ELIB extends LibraryFiles
 			while (arcProtoCount < arcProtoIdList.length) {
                 ArcProtoId arcProtoId = arcProtoIdList[arcProtoCount];
                 if (arcProtoId.techId != techId) break;
-                
+
 				arcProtoError[arcProtoCount] = null;
 				name = arcProtoId.name;
 				if (imosconv) name = name.substring(6);
@@ -1085,7 +1085,7 @@ public class ELIB extends LibraryFiles
 				arcProtoList[arcProtoCount++] = ap;
 			}
 		}
-        
+
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
 		{
@@ -1101,7 +1101,7 @@ public class ELIB extends LibraryFiles
             Variable var = Variable.newInstance(Variable.newKey(varName), new Double(lambda/2), TextDescriptor.EMPTY);
             realizeMeaningPrefs(tech, new Variable[] { var });
 		}
-        
+
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
@@ -1109,7 +1109,7 @@ public class ELIB extends LibraryFiles
 			if (tool != null)
                 realizeMeaningPrefs(tool, toolVars[i]);
 		}
-        
+
 		// read the technology variables
 		for(int i=0; i<techCount; i++)
 		{
@@ -1118,10 +1118,10 @@ public class ELIB extends LibraryFiles
                 realizeMeaningPrefs(tech, techVars[i]);
 //				getTechList(i);
 		}
-        
+
         if (onlyProjectSettings)
             return;
-        
+
 		// erase the current database
         lib.erase();
 
@@ -1129,7 +1129,7 @@ public class ELIB extends LibraryFiles
         lib.setFromDisk();
         lib.setVersion(version);
         realizeVariables(lib, libVars);
-        
+
 		// read the cells
 		for(int i=0; i<nodeProtoCount; i++)
 		{
@@ -1183,7 +1183,7 @@ public class ELIB extends LibraryFiles
 					cell.joinGroup(firstCell);
 			}
 		}
-        
+
 		// now read external cells
 		for(int i=0; i<nodeProtoCount; i++)
 		{
@@ -1376,7 +1376,7 @@ public class ELIB extends LibraryFiles
 		int cellIndex = 0;
 		for(; cellIndex<nodeProtoCount && nodeProtoList[cellIndex] != cell; cellIndex++);
 		if (cellIndex >= nodeProtoCount) return;
-		
+
 		int startNode = firstNodeIndex[cellIndex];
 		int endNode = firstNodeIndex[cellIndex+1];
 
@@ -1409,7 +1409,7 @@ public class ELIB extends LibraryFiles
 		Technology cellTech = cell.getTechnology();
 		return cellTech != null ? getScale(cellTech) : 1.0;
 	}
-    
+
     private double getScale(Technology tech) {
         Double scale = techScale.get(tech);
         return scale != null ? scale : tech.getScale();
@@ -1423,14 +1423,14 @@ public class ELIB extends LibraryFiles
 		int startPort = firstPortIndex[cellIndex];
 		int endPort = startPort + portCounts[cellIndex];
         CellId cellId = cell.getId();
-        
+
         // Try to create ExportIds in alphanumeric order
         TreeSet<String> exportNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
         for (int i = startPort; i < endPort; i++)
             exportNames.add(exportNameList[i]);
         for (String exportName: exportNames)
             cellId.newPortId(exportName);
-        
+
 		for(int i=startPort; i<endPort; i++)
 		{
 //			if (exportList[i] instanceof Cell)
@@ -1541,7 +1541,7 @@ public class ELIB extends LibraryFiles
 ////								{
 ////    								if (origVar.isDisplay()) var.setDisplay(true);
 ////									var.setCode(origVar.getCode());
-////									var.setTextDescriptor(origVar.getTextDescriptor());									
+////									var.setTextDescriptor(origVar.getTextDescriptor());
 ////								}
 //								ni.delVar(origVarKey);
 //								found = true;
@@ -1701,7 +1701,7 @@ public class ELIB extends LibraryFiles
         }
         return scaledCell != null ? scaledCell : subCell;
     }
-    
+
     // node is node we expect to have port 'portname' at location x,y.
     protected PortInst getArcEnd(ArcProto ap, NodeInst node, String portname, double x, double y, Cell cell)
     {
@@ -1991,7 +1991,7 @@ public class ELIB extends LibraryFiles
 
 		// read tool information
 		readBigInteger();		// ignore "dirty"
-		
+
 		// read the "user bits"
 		int userBits = 0;
 		if (header.magic <= ELIBConstants.MAGIC7)
@@ -2544,6 +2544,7 @@ public class ELIB extends LibraryFiles
 				}
 			}
             TextDescriptor td = makeDescriptor(descript0, descript1, newtype);
+            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(newtype);
 
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)
@@ -2587,7 +2588,7 @@ public class ELIB extends LibraryFiles
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
                 }
-                    
+
 				if (newAddrArray == null)
 				{
                     String msg = "Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE);
@@ -2623,11 +2624,12 @@ public class ELIB extends LibraryFiles
 				System.out.println("Error reading variable " + varNames[key] + " type " + newtype);
 				continue;
 			}
+            newAddr = Variable.withCode(newAddr, code);
             vars[i] = Variable.newInstance(varKeys[key], newAddr, td);
 		}
 		return vars;
 	}
-    
+
 	/**
 	 * Helper method to read a variable at address "addr" of type "ty".
 	 * Returns zero if OK, negative on memory error, positive if there were
@@ -2845,7 +2847,7 @@ public class ELIB extends LibraryFiles
 		}
 		return(techList[i]);
 	}
-	
+
 	/**
 	 * Method to return the View associated with index "i".
 	 */

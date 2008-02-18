@@ -29,6 +29,7 @@ import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.tool.Tool;
 
 import java.util.Date;
@@ -147,6 +148,8 @@ public class ELIBConstants
 	public static int getVarType(Object obj)
 	{
 		if (obj instanceof String) return ELIBConstants.VSTRING;
+		if (obj instanceof CodeExpression)
+            return ELIBConstants.VSTRING | ((CodeExpression)obj).getCode().getCFlags();
 		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
 		if (obj instanceof Float) return ELIBConstants.VFLOAT;
 		if (obj instanceof Long) return ELIBConstants.VINTEGER;
@@ -163,6 +166,7 @@ public class ELIBConstants
         if (obj instanceof ExportId) return ELIBConstants.VPORTPROTO;
         
 		if (obj instanceof String[]) return ELIBConstants.VSTRING;
+//		if (obj instanceof CodeExpression[]) return ELIBConstants.VSTRING;
 		if (obj instanceof Double[]) return ELIBConstants.VDOUBLE;
 		if (obj instanceof Float[]) return ELIBConstants.VFLOAT;
 		if (obj instanceof Long[]) return ELIBConstants.VINTEGER;

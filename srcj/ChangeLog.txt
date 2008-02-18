@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/17/08, DN) Added class ImmutableIconInst to represent instances of Icon cells.
+     Also merge miscellaneous changes from "params" branch.
+
 BUG: (2/16/08, DN) TechEditor wrong places node examples.
 FIX: In tecEdit.NodeInfo.compactSell correctly find biggest example.
 

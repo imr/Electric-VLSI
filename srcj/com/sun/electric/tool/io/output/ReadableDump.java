@@ -39,6 +39,7 @@ import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
@@ -56,11 +57,11 @@ public class ReadableDump extends ELIB {
     private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
 //    private HashMap<CellId,Integer> cellGrouping = new HashMap<CellId,Integer>();
     private HashMap<ExportId,Integer> portMap;
-    
+
     ReadableDump() {
         write6Compatible();
     }
-    
+
     /**
      * Method to write the .elib file.
      * Returns true on error.
@@ -69,7 +70,7 @@ public class ReadableDump extends ELIB {
     boolean writeTheLibrary() throws IOException {
         // clear error counters
         portProtoError = 0;
-        
+
         // determine proper library order
         for (CellRevision cellRevision: externalCells)
             cellOrdering.put(cellRevision.d.cellId, null);
@@ -82,7 +83,7 @@ public class ReadableDump extends ELIB {
             e.setValue(new Integer(cellNumber++));
             objInfo.put(e.getKey(), e.getValue());
         }
-        
+
         // write header information
         printWriter.println("****library: \"" + theLibId.libName + "\"");
         printWriter.println("version: " + Version.getVersion());
@@ -106,10 +107,10 @@ public class ReadableDump extends ELIB {
             printWriter.println("view: " + v.getFullName() + v.getAbbreviationExtension());
         }
         printWriter.println("cellcount: " + cellNumber);
-        
+
         // write variables on the library
         writeVariables(snapshot.getLib(theLibId).d);
-        
+
         // write the rest of the database
         writeExternalCells();
         for (Map.Entry<CellId,Integer> entry : cellOrdering.entrySet()) {
@@ -121,10 +122,10 @@ public class ReadableDump extends ELIB {
             int groupIndex = groupRenumber[snapshot.cellGroups[cellId.cellIndex]];
             printWriter.println("***cell: " + entry.getValue().intValue() + "/" + groupIndex);
             writeCellInfo(cellRevision);
-            
+
             // write tool information
             printWriter.println("userbits: " + (cellRevision.d.flags & ELIBConstants.CELL_BITS));
-            
+
             // count and number the ports
             portMap = new HashMap<ExportId,Integer>();
             int portCount = 0;
@@ -134,38 +135,38 @@ public class ReadableDump extends ELIB {
             }
             printWriter.println("nodes: " + cellRevision.nodes.size() + " arcs: " + cellRevision.arcs.size() +
                     " porttypes: " + cellRevision.exports.size());
-            
+
             // write variables on the cell
             writeVariables(cellRevision.d);
-            
+
             // write the nodes in this cell
             writeNodes(cellBackup, 0);
-            
+
             // write the portprotos in this cell
             writeExports(cellRevision);
-            
+
             // write the arcs in this cell
             writeArcs(cellRevision);
             printWriter.println("celldone: " + cellId.cellName.getName());
         }
-        
+
         // print any variable-related error messages
         if (portProtoError != 0)
             System.out.println("Warning: " + portProtoError + " export pointers point outside cell: not saved");
-        
+
         return false;
     }
-    
+
     @Override
     void writeOrientation(int angle, int transpose) throws IOException {
         printWriter.println("rotation: " + angle + " transpose: " + transpose);
     }
-    
+
     @Override
     void writeConnection(PortProtoId portId, int arcIndex, int connIndex) throws IOException {
         printWriter.println("*port: " + portId.getName(snapshot) + " arc: " + arcIndex);
     }
-    
+
     @Override
     void writeReExport(ImmutableExport e) throws IOException {
         Integer pIndex = portMap.get(e.exportId);
@@ -184,11 +185,11 @@ public class ReadableDump extends ELIB {
             if (subCellId.libId != libId) continue;
             if (!cellOrdering.containsKey(subCellId)) textRecurse(libId, subCellId);
         }
-        
+
         // add this cell to the list
         cellOrdering.put(cellId, null);
     }
-    
+
     /**
      * Method to write the value of variable.
      * @param obj value of variable.
@@ -210,7 +211,7 @@ public class ReadableDump extends ELIB {
         } else makeStringVar(infstr, varObj);
         printWriter.println(infstr);
     }
-    
+
     /**
      * Method to make a string from the value in "addr" which has a type in
      * "type".
@@ -219,6 +220,12 @@ public class ReadableDump extends ELIB {
         if (obj instanceof String) {
             infstr.append("\"");
             infstr.append(convertString((String)obj));
+            infstr.append("\"");
+            return;
+        }
+        if (obj instanceof CodeExpression) {
+            infstr.append("\"");
+            infstr.append(convertString(((CodeExpression)obj).getExpr()));
             infstr.append("\"");
             return;
         }
@@ -294,7 +301,7 @@ public class ReadableDump extends ELIB {
         }
         assert false;
     }
-    
+
     /**
      * Method to write a text descriptor (possibly with variable bits).
      * Face of text descriptor is mapped according to "faceMap".
@@ -316,7 +323,7 @@ public class ReadableDump extends ELIB {
         printWriter.print(td1 != 0 ? "0" + Integer.toOctalString(td1) : "0");
         printWriter.print("]: ");
     }
-    
+
     /**
      * Method to write a disk index of Object.
      * Index is obtained fron objInfo map.
@@ -324,7 +331,7 @@ public class ReadableDump extends ELIB {
      */
     @Override
     void writeObj(Object obj) throws IOException {}
-    
+
     /**
      * Method to write an integer (4 bytes) to the ouput stream.
      * @param keyword keywork fro ReadableDump
@@ -335,7 +342,7 @@ public class ReadableDump extends ELIB {
         if (keyword == null) return;
         printWriter.println(keyword + i);
     }
-    
+
     /**
      * Method to write a text into ReadableDump stream.
      * @param txt a text to write into ReadableDump stream.
@@ -344,7 +351,7 @@ public class ReadableDump extends ELIB {
     void writeTxt(String txt) throws IOException {
         printWriter.println(txt);
     }
-    
+
     @Override
 	void writeBigInteger(int i) throws IOException {}
 
@@ -357,7 +364,7 @@ public class ReadableDump extends ELIB {
     void writeVariableName(String name) throws IOException {
         printName(name);
     }
-    
+
     /**
      * Method to add the string "str" to the infinite string and to quote the
      * special characters '[', ']', '"', and '^'.
@@ -373,7 +380,7 @@ public class ReadableDump extends ELIB {
         }
         return infstr.toString();
     }
-    
+
     /**
      * Method to print the variable name in "name" on file "file".  The
      * conversion performed is to quote with a backslash any of the characters

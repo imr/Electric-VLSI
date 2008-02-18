@@ -44,9 +44,9 @@ import org.junit.Test;
  * Unit test of TextDescriptor
  */
 public class TextDescriptorTest {
-    
+
     AbstractTextDescriptor emptyDescriptor;
-    
+
     @Before public void setUp() throws Exception {
         emptyDescriptor = new MutableTextDescriptor();
     }
@@ -64,7 +64,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(PositionTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -73,13 +73,13 @@ public class TextDescriptorTest {
          */
         public void testGetIndex() {
             System.out.println("getIndex");
-            
+
             AbstractTextDescriptor.Position instance = null;
-            
+
             int expResult = 0;
             int result = instance.getIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -89,13 +89,13 @@ public class TextDescriptorTest {
          */
         public void testGetPolyType() {
             System.out.println("getPolyType");
-            
+
             AbstractTextDescriptor.Position instance = null;
-            
+
             Poly.Type expResult = null;
             Poly.Type result = instance.getPolyType();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -105,15 +105,15 @@ public class TextDescriptorTest {
          */
         public void testAlign() {
             System.out.println("align");
-            
+
             int dx = 0;
             int dy = 0;
             AbstractTextDescriptor.Position instance = null;
-            
+
             AbstractTextDescriptor.Position expResult = null;
             AbstractTextDescriptor.Position result = instance.align(dx, dy);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -123,13 +123,13 @@ public class TextDescriptorTest {
          */
         public void testGetPosition() {
             System.out.println("getPosition");
-            
+
             Poly.Type type = null;
-            
+
             AbstractTextDescriptor.Position expResult = null;
             AbstractTextDescriptor.Position result = AbstractTextDescriptor.Position.getPosition(type);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -139,11 +139,11 @@ public class TextDescriptorTest {
          */
         public void testGetNumPositions() {
             System.out.println("getNumPositions");
-            
+
             int expResult = 0;
             int result = AbstractTextDescriptor.Position.getNumPositions();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -153,13 +153,13 @@ public class TextDescriptorTest {
          */
         public void testGetPositionAt() {
             System.out.println("getPositionAt");
-            
+
             int index = 0;
-            
+
             AbstractTextDescriptor.Position expResult = null;
             AbstractTextDescriptor.Position result = AbstractTextDescriptor.Position.getPositionAt(index);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -169,11 +169,11 @@ public class TextDescriptorTest {
          */
         public void testGetPositions() {
             System.out.println("getPositions");
-            
+
             Iterator<AbstractTextDescriptor.Position> expResult = null;
             Iterator<AbstractTextDescriptor.Position> result = AbstractTextDescriptor.Position.getPositions();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -183,13 +183,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.Position instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -206,7 +206,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(DispPosTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -215,13 +215,13 @@ public class TextDescriptorTest {
          */
         public void testGetIndex() {
             System.out.println("getIndex");
-            
+
             AbstractTextDescriptor.DispPos instance = null;
-            
+
             int expResult = 0;
             int result = instance.getIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -231,13 +231,13 @@ public class TextDescriptorTest {
          */
         public void testGetName() {
             System.out.println("getName");
-            
+
             AbstractTextDescriptor.DispPos instance = null;
-            
+
             String expResult = "";
             String result = instance.getName();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -247,11 +247,11 @@ public class TextDescriptorTest {
          */
         public void testGetNumShowStyles() {
             System.out.println("getNumShowStyles");
-            
+
             int expResult = 0;
             int result = AbstractTextDescriptor.DispPos.getNumShowStyles();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -261,13 +261,13 @@ public class TextDescriptorTest {
          */
         public void testGetShowStylesAt() {
             System.out.println("getShowStylesAt");
-            
+
             int index = 0;
-            
+
             AbstractTextDescriptor.DispPos expResult = null;
             AbstractTextDescriptor.DispPos result = AbstractTextDescriptor.DispPos.getShowStylesAt(index);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -277,11 +277,11 @@ public class TextDescriptorTest {
          */
         public void testGetShowStyles() {
             System.out.println("getShowStyles");
-            
+
             Iterator<AbstractTextDescriptor.DispPos> expResult = null;
             Iterator<AbstractTextDescriptor.DispPos> result = AbstractTextDescriptor.DispPos.getShowStyles();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -291,13 +291,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.DispPos instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -314,7 +314,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(SizeTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -323,13 +323,13 @@ public class TextDescriptorTest {
          */
         public void testGetBits() {
             System.out.println("getBits");
-            
+
             AbstractTextDescriptor.Size instance = null;
-            
+
             int expResult = 0;
             int result = instance.getBits();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -339,13 +339,13 @@ public class TextDescriptorTest {
          */
         public void testNewAbsSize() {
             System.out.println("newAbsSize");
-            
+
             int size = 0;
-            
+
             AbstractTextDescriptor.Size expResult = null;
             AbstractTextDescriptor.Size result = AbstractTextDescriptor.Size.newAbsSize(size);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -355,13 +355,13 @@ public class TextDescriptorTest {
          */
         public void testNewRelSize() {
             System.out.println("newRelSize");
-            
+
             double size = 0.0;
-            
+
             AbstractTextDescriptor.Size expResult = null;
             AbstractTextDescriptor.Size result = AbstractTextDescriptor.Size.newRelSize(size);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -371,13 +371,13 @@ public class TextDescriptorTest {
          */
         public void testGetSize() {
             System.out.println("getSize");
-            
+
             AbstractTextDescriptor.Size instance = null;
-            
+
             double expResult = 0.0;
             double result = instance.getSize();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -387,13 +387,13 @@ public class TextDescriptorTest {
          */
         public void testIsAbsolute() {
             System.out.println("isAbsolute");
-            
+
             AbstractTextDescriptor.Size instance = null;
-            
+
             boolean expResult = true;
             boolean result = instance.isAbsolute();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -403,14 +403,14 @@ public class TextDescriptorTest {
          */
         public void testEquals() {
             System.out.println("equals");
-            
+
             AbstractTextDescriptor.Size other = null;
             AbstractTextDescriptor.Size instance = null;
-            
+
             boolean expResult = true;
             boolean result = instance.equals(other);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -420,13 +420,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.Size instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -443,7 +443,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(RotationTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -452,13 +452,13 @@ public class TextDescriptorTest {
          */
         public void testGetIndex() {
             System.out.println("getIndex");
-            
+
             AbstractTextDescriptor.Rotation instance = null;
-            
+
             int expResult = 0;
             int result = instance.getIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -468,13 +468,13 @@ public class TextDescriptorTest {
          */
         public void testGetDescription() {
             System.out.println("getDescription");
-            
+
             AbstractTextDescriptor.Rotation instance = null;
-            
+
             String expResult = "";
             String result = instance.getDescription();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -484,13 +484,13 @@ public class TextDescriptorTest {
          */
         public void testGetAngle() {
             System.out.println("getAngle");
-            
+
             AbstractTextDescriptor.Rotation instance = null;
-            
+
             int expResult = 0;
             int result = instance.getAngle();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -500,13 +500,13 @@ public class TextDescriptorTest {
          */
         public void testGetRotation() {
             System.out.println("getRotation");
-            
+
             int angle = 0;
-            
+
             AbstractTextDescriptor.Rotation expResult = null;
             AbstractTextDescriptor.Rotation result = AbstractTextDescriptor.Rotation.getRotation(angle);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -516,11 +516,11 @@ public class TextDescriptorTest {
          */
         public void testGetNumRotations() {
             System.out.println("getNumRotations");
-            
+
             int expResult = 0;
             int result = AbstractTextDescriptor.Rotation.getNumRotations();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -530,13 +530,13 @@ public class TextDescriptorTest {
          */
         public void testGetRotationAt() {
             System.out.println("getRotationAt");
-            
+
             int index = 0;
-            
+
             AbstractTextDescriptor.Rotation expResult = null;
             AbstractTextDescriptor.Rotation result = AbstractTextDescriptor.Rotation.getRotationAt(index);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -546,11 +546,11 @@ public class TextDescriptorTest {
          */
         public void testGetRotations() {
             System.out.println("getRotations");
-            
+
             Iterator<AbstractTextDescriptor.Rotation> expResult = null;
             Iterator<AbstractTextDescriptor.Rotation> result = AbstractTextDescriptor.Rotation.getRotations();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -560,13 +560,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.Rotation instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -583,7 +583,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(UnitTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -592,13 +592,13 @@ public class TextDescriptorTest {
          */
         public void testGetIndex() {
             System.out.println("getIndex");
-            
+
             AbstractTextDescriptor.Unit instance = null;
-            
+
             int expResult = 0;
             int result = instance.getIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -608,13 +608,13 @@ public class TextDescriptorTest {
          */
         public void testGetDescription() {
             System.out.println("getDescription");
-            
+
             AbstractTextDescriptor.Unit instance = null;
-            
+
             String expResult = "";
             String result = instance.getDescription();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -624,11 +624,11 @@ public class TextDescriptorTest {
          */
         public void testGetNumUnits() {
             System.out.println("getNumUnits");
-            
+
             int expResult = 0;
             int result = AbstractTextDescriptor.Unit.getNumUnits();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -638,13 +638,13 @@ public class TextDescriptorTest {
          */
         public void testGetUnitAt() {
             System.out.println("getUnitAt");
-            
+
             int index = 0;
-            
+
             AbstractTextDescriptor.Unit expResult = null;
             AbstractTextDescriptor.Unit result = AbstractTextDescriptor.Unit.getUnitAt(index);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -654,11 +654,11 @@ public class TextDescriptorTest {
          */
         public void testGetUnits() {
             System.out.println("getUnits");
-            
+
             Iterator<AbstractTextDescriptor.Unit> expResult = null;
             Iterator<AbstractTextDescriptor.Unit> result = AbstractTextDescriptor.Unit.getUnits();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -668,13 +668,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.Unit instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -691,7 +691,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(ActiveFontTest.class);
-//            
+//
 //            return suite;
 //        }
 
@@ -700,11 +700,11 @@ public class TextDescriptorTest {
          */
         public void testGetMaxIndex() {
             System.out.println("getMaxIndex");
-            
+
             int expResult = 0;
             int result = AbstractTextDescriptor.ActiveFont.getMaxIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -714,13 +714,13 @@ public class TextDescriptorTest {
          */
         public void testGetIndex() {
             System.out.println("getIndex");
-            
+
             AbstractTextDescriptor.ActiveFont instance = null;
-            
+
             int expResult = 0;
             int result = instance.getIndex();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -730,13 +730,13 @@ public class TextDescriptorTest {
          */
         public void testGetName() {
             System.out.println("getName");
-            
+
             AbstractTextDescriptor.ActiveFont instance = null;
-            
+
             String expResult = "";
             String result = instance.getName();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -746,13 +746,13 @@ public class TextDescriptorTest {
          */
         public void testFindActiveFont() {
             System.out.println("findActiveFont");
-            
+
             String fontName = "";
-            
+
             AbstractTextDescriptor.ActiveFont expResult = null;
             AbstractTextDescriptor.ActiveFont result = AbstractTextDescriptor.ActiveFont.findActiveFont(fontName);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -762,13 +762,13 @@ public class TextDescriptorTest {
          */
         public void testToString() {
             System.out.println("toString");
-            
+
             AbstractTextDescriptor.ActiveFont instance = null;
-            
+
             String expResult = "";
             String result = instance.toString();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -780,33 +780,33 @@ public class TextDescriptorTest {
      */
     @Test public void testCodeGetCFlags() {
         System.out.println("getCFlags");
-        
+
         TextDescriptor.Code instance = TextDescriptor.Code.NONE;
-        
+
         int expResult = 0;
         int result = instance.getCFlags();
         assertEquals(expResult, result);
     }
-    
+
     /**
      * Test of toString method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
     @Test public void testCodeToString() {
         System.out.println("toString");
-        
+
         AbstractTextDescriptor.Code instance = TextDescriptor.Code.NONE;
-        
+
         String expResult = "Not Code";
         String result = instance.toString();
         assertEquals(expResult, result);
     }
-    
+
     /**
      * Test of getCodes method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
     @Test public void testCodeGetCodes() {
         System.out.println("getCodes");
-        
+
         List<TextDescriptor.Code> expResult = Arrays.asList(
                 TextDescriptor.Code.JAVA,
                 TextDescriptor.Code.SPICE,
@@ -819,21 +819,21 @@ public class TextDescriptorTest {
             assertEquals(expResult.get(i++), result.next());
         assertEquals(expResult.size(), i);
     }
-    
+
     /**
      * Test of getByCBits method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
     @Test public void testCodeGetByCBits() {
         System.out.println("getByCBits");
-        
+
         int cBits = 0;
-        
+
         TextDescriptor.Code expResult = TextDescriptor.Code.NONE;
         TextDescriptor.Code result = TextDescriptor.Code.getByCBits(cBits);
         assertEquals(expResult, result);
     }
-    
-    
+
+
     public static class DescriptorPrefTest {
 
         protected void setUp() throws Exception {
@@ -844,7 +844,7 @@ public class TextDescriptorTest {
 
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(DescriptorPrefTest.class);
-//            
+//
 //            return suite;
 //        }
 //
@@ -853,14 +853,14 @@ public class TextDescriptorTest {
          */
         public void testNewTextDescriptor() {
             System.out.println("newTextDescriptor");
-            
+
             boolean display = true;
             AbstractTextDescriptor.DescriptorPref instance = null;
-            
+
             TextDescriptor expResult = null;
             TextDescriptor result = instance.newTextDescriptor(display);
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -870,13 +870,13 @@ public class TextDescriptorTest {
          */
         public void testNewMutableTextDescriptor() {
             System.out.println("newMutableTextDescriptor");
-            
+
             AbstractTextDescriptor.DescriptorPref instance = null;
-            
+
             MutableTextDescriptor expResult = null;
             MutableTextDescriptor result = instance.newMutableTextDescriptor();
             assertEquals(expResult, result);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -886,12 +886,12 @@ public class TextDescriptorTest {
          */
         public void testSetTextDescriptor() {
             System.out.println("setTextDescriptor");
-            
+
             AbstractTextDescriptor td = null;
             AbstractTextDescriptor.DescriptorPref instance = null;
-            
+
             instance.setTextDescriptor(td);
-            
+
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
@@ -901,7 +901,7 @@ public class TextDescriptorTest {
     public static junit.framework.Test suite() {
         junit.framework.Test suite = new junit.framework.JUnit4TestAdapter(TextDescriptorTest.class);
 //        suite.addTestSuite(CodeTest.class);
-        
+
         return suite;
     }
 
@@ -910,11 +910,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetNodeTextDescriptor() {
 //        System.out.println("setNodeTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setNodeTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -924,11 +924,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetArcTextDescriptor() {
 //        System.out.println("setArcTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setArcTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -938,11 +938,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetExportTextDescriptor() {
 //        System.out.println("setExportTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setExportTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -952,11 +952,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetAnnotationTextDescriptor() {
 //        System.out.println("setAnnotationTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setAnnotationTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -966,11 +966,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetInstanceTextDescriptor() {
 //        System.out.println("setInstanceTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setInstanceTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -980,11 +980,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testSetCellTextDescriptor() {
 //        System.out.println("setCellTextDescriptor");
-//        
+//
 //        AbstractTextDescriptor td = null;
-//        
+//
 //        AbstractTextDescriptor.setCellTextDescriptor(td);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -994,11 +994,11 @@ public class TextDescriptorTest {
 //     */
 //    public void testHashCode() {
 //        System.out.println("hashCode");
-//        
+//
 //        int expResult = TextDescriptor.Code.NONE.hashCode();
 //        int result = emptyDescriptor.hashCode();
 //        assertEquals(expResult, result);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -1008,9 +1008,9 @@ public class TextDescriptorTest {
      */
     @Test public void testEquals() {
         System.out.println("equals");
-        
+
         Object anObject = new MutableTextDescriptor();
-        
+
         boolean expResult = true;
         boolean result = emptyDescriptor.equals(anObject);
         assertEquals(expResult, result);
@@ -1021,7 +1021,7 @@ public class TextDescriptorTest {
 //     */
 //    public void testLowLevelGet() {
 //        System.out.println("lowLevelGet");
-//        
+//
 //        long expResult = 0L;
 //        long result = emptyDescriptor.lowLevelGet();
 //        assertEquals(expResult, result);
@@ -1036,12 +1036,12 @@ public class TextDescriptorTest {
             out.writeObject(emptyImmutableDescriptor);
             out.close();
             byte[] serializedRect = byteStream.toByteArray();
-            
+
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedRect));
             MutableTextDescriptor mtd = (MutableTextDescriptor)in.readObject();
             TextDescriptor td = (TextDescriptor)in.readObject();
             in.close();
-            
+
             assertEquals(emptyDescriptor, mtd);
             assertSame(emptyImmutableDescriptor, td);
         } catch (IOException e) {
@@ -1050,13 +1050,13 @@ public class TextDescriptorTest {
             fail(e.getMessage());
         }
     }
-    
+
     /**
      * Test of lowLevelGet0 method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
     @Test public void testLowLevelGet0() {
         System.out.println("lowLevelGet0");
-        
+
         int expResult = (int)emptyDescriptor.lowLevelGet();
         int result = emptyDescriptor.lowLevelGet0();
         assertEquals(expResult, result);
@@ -1067,7 +1067,7 @@ public class TextDescriptorTest {
      */
     @Test public void testLowLevelGet1() {
         System.out.println("lowLevelGet1");
-        
+
         int expResult = (int)(emptyDescriptor.lowLevelGet() >>> 32);
         int result = emptyDescriptor.lowLevelGet1();
         assertEquals(expResult, result);
@@ -1078,7 +1078,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsDisplay() {
         System.out.println("isDisplay");
-        
+
         boolean expResult = true;
         boolean result = emptyDescriptor.isDisplay();
         assertEquals(expResult, result);
@@ -1089,7 +1089,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetPos() {
         System.out.println("getPos");
-        
+
         TextDescriptor.Position expResult = TextDescriptor.Position.CENT;
         TextDescriptor.Position result = emptyDescriptor.getPos();
         assertEquals(expResult, result);
@@ -1100,7 +1100,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetSize() {
         System.out.println("getSize");
-        
+
         TextDescriptor.Size expResult = TextDescriptor.Size.newRelSize(1);
         TextDescriptor.Size result = emptyDescriptor.getSize();
         assertEquals(expResult, result);
@@ -1111,9 +1111,9 @@ public class TextDescriptorTest {
      */
     @Test public void testGetTrueSize() {
         System.out.println("getTrueSize");
-        
+
         EditWindow0 wnd = null;
-        
+
         double expResult = 14 * User.getGlobalTextScale();
         double result = emptyDescriptor.getTrueSize(wnd);
         assertEquals(expResult, result);
@@ -1124,7 +1124,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetFace() {
         System.out.println("getFace");
-        
+
         int expResult = 0;
         int result = emptyDescriptor.getFace();
         assertEquals(expResult, result);
@@ -1135,7 +1135,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetRotation() {
         System.out.println("getRotation");
-        
+
         TextDescriptor.Rotation expResult = TextDescriptor.Rotation.ROT0;
         TextDescriptor.Rotation result = emptyDescriptor.getRotation();
         assertEquals(expResult, result);
@@ -1146,7 +1146,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetDispPart() {
         System.out.println("getDispPart");
-        
+
         TextDescriptor.DispPos expResult = TextDescriptor.DispPos.VALUE;
         TextDescriptor.DispPos result = emptyDescriptor.getDispPart();
         assertEquals(expResult, result);
@@ -1157,7 +1157,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsItalic() {
         System.out.println("isItalic");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isItalic();
         assertEquals(expResult, result);
@@ -1168,7 +1168,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsBold() {
         System.out.println("isBold");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isBold();
         assertEquals(expResult, result);
@@ -1179,7 +1179,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsUnderline() {
         System.out.println("isUnderline");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isUnderline();
         assertEquals(expResult, result);
@@ -1190,7 +1190,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsInterior() {
         System.out.println("isInterior");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isInterior();
         assertEquals(expResult, result);
@@ -1201,7 +1201,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsInherit() {
         System.out.println("isInherit");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isInherit();
         assertEquals(expResult, result);
@@ -1212,7 +1212,7 @@ public class TextDescriptorTest {
      */
     @Test public void testIsParam() {
         System.out.println("isParam");
-        
+
         boolean expResult = false;
         boolean result = emptyDescriptor.isParam();
         assertEquals(expResult, result);
@@ -1223,7 +1223,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetXOff() {
         System.out.println("getXOff");
-        
+
         double expResult = 0.0;
         double result = emptyDescriptor.getXOff();
         assertEquals(expResult, result);
@@ -1234,7 +1234,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetYOff() {
         System.out.println("getYOff");
-        
+
         double expResult = 0.0;
         double result = emptyDescriptor.getYOff();
         assertEquals(expResult, result);
@@ -1245,7 +1245,7 @@ public class TextDescriptorTest {
      */
     @Test public void testGetUnit() {
         System.out.println("getUnit");
-        
+
         TextDescriptor.Unit expResult = TextDescriptor.Unit.NONE;
         TextDescriptor.Unit result = emptyDescriptor.getUnit();
         assertEquals(expResult, result);
@@ -1256,53 +1256,9 @@ public class TextDescriptorTest {
      */
     @Test public void testGetColorIndex() {
         System.out.println("getColorIndex");
-        
+
         int expResult = 0;
         int result = emptyDescriptor.getColorIndex();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of getCode method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
-     */
-    @Test public void testGetCode() {
-        System.out.println("getCode");
-        
-        TextDescriptor.Code expResult = TextDescriptor.Code.NONE;
-        TextDescriptor.Code result = emptyDescriptor.getCode();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of isJava method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
-     */
-    @Test public void testIsJava() {
-        System.out.println("isJava");
-        
-        boolean expResult = false;
-        boolean result = emptyDescriptor.isJava();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of isCode method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
-     */
-    @Test public void testIsCode() {
-        System.out.println("isCode");
-        
-        boolean expResult = false;
-        boolean result = emptyDescriptor.isCode();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of getCFlags method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
-     */
-    @Test public void testGetCFlags() {
-        System.out.println("getCFlags");
-        
-        int expResult = TextDescriptor.VDISPLAY;
-        int result = emptyDescriptor.getCFlags();
         assertEquals(expResult, result);
     }
 }

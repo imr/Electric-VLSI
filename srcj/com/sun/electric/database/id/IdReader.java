@@ -220,10 +220,9 @@ public class IdReader {
             long bits = in.readLong();
             int colorIndex = in.readInt();
             boolean isDisplay = in.readBoolean();
-            boolean isJava = in.readBoolean();
+            TextDescriptor.Code code = TextDescriptor.Code.getByOrdinal(in.readByte());
             String fontName = in.readUTF();
 
-            TextDescriptor.Code code = isJava ? TextDescriptor.Code.JAVA : TextDescriptor.Code.NONE;
             MutableTextDescriptor mtd = new MutableTextDescriptor(bits, colorIndex, isDisplay, code);
             int face = 0;
             if (fontName.length() != 0) {

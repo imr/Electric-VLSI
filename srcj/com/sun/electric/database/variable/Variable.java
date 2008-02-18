@@ -60,16 +60,16 @@ public class Variable implements Serializable
 	/**
 	 * The Key class caches Variable names.
 	 */
-	public final static class Key implements Comparable<Key>
+	public static class Key implements Comparable<Key>
 	{
 		private final String name;
-		
+
 		/**
 		 * Method to create a new Key object with the specified name.
 		 * @param name the name of the Variable.
          * @throws NullPointerException if name is null.
 		 */
-		Key(String name)
+		private Key(String name)
 		{
             if (name == null) throw new NullPointerException();
 			this.name = name;
@@ -81,15 +81,11 @@ public class Variable implements Serializable
 		 */
 		public String getName() { return name; }
 
-        public int hashCode() { return name.hashCode(); }
-        
         /**
-         * Method to determine if two Keys are equal.
-         * Compares by name (case sensitive).
-         * @param k the Key to compare to
-         * @return true if equal, false otherwise.
+         * Method to return if this Variable.Key is a User Attribute.
+         * @return true if this Variable.Key is an attribute, false otherwise.
          */
-        public boolean equals(Key k) { return k == this || k != null && name.equals(k.getName()); }
+        public boolean isAttribute() { return false; }
 
 		/**
 		 * Compares Variable Keys by their names.
@@ -97,13 +93,14 @@ public class Variable implements Serializable
 		 * @return a comparison between the Variable Keys.
 		 */
         public int compareTo(Key that) { return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name); }
-        
+
         /**
          * Returns a printable version of this Key.
          * @return a printable version of this Key.
          */
+        @Override
         public String toString() { return name; }
-        
+
         /**
          * Print statistics about Variable Keys.
          */
@@ -123,6 +120,22 @@ public class Variable implements Serializable
                     " Canonic " + varCanonicKeys.size() + " entries " + canonicCount + " strings with " + canonicLength + " chars.");
         }
 	}
+
+	/**
+	 * The Key class caches attribute Variable names.
+	 */
+    public static class AttrKey extends Key {
+        AttrKey(String name) {
+            super(name);
+        }
+
+        /**
+         * Method to return if this Variable.Key is a User Attribute.
+         * @return true if this Variable.Key is an attribute, false otherwise.
+         */
+        @Override
+        public boolean isAttribute() { return true; }
+    }
 
 	/** a list of all variable keys */						private static final HashMap<String,Key> varKeys = new HashMap<String,Key>();
 	/** all variable keys addressed by lower case name */	private static final HashMap<String,Key> varCanonicKeys = new HashMap<String,Key>();
@@ -173,7 +186,7 @@ public class Variable implements Serializable
 		Key key = varKeys.get(name);
         if (key != null) return key;
         name = name.intern();
-		key = new Key(name);
+		key = name.startsWith("ATTR_") ? new AttrKey(name) : new Key(name);
         varKeys.put(name, key);
 		String canonicName = TextUtils.canonicString(name);
 		Key	key2 = varCanonicKeys.get(canonicName);
@@ -278,12 +291,12 @@ public class Variable implements Serializable
         validClasses.put(ExportId.class, new Byte(EXPORT));
     }
 
-    
+
     /** key of this Variable. */                        private final Key key;
 	/** Value of this Variable. */						private final Object value;
 	/** Text descriptor of this Variable. */            private final TextDescriptor descriptor;
                                                         private final byte type;
-    
+
     /**
      * Constructor of Variable.
      * @param key key of this Variable.
@@ -298,7 +311,7 @@ public class Variable implements Serializable
         this.type = type;
         check(true);
     }
-    
+
 	/**
 	 * Returns new Variable.
      * @param key key of this Variable.
@@ -311,16 +324,65 @@ public class Variable implements Serializable
     public static Variable newInstance(Variable.Key key, Object value, TextDescriptor descriptor) {
         if (key == null) throw new NullPointerException("key");
         if (descriptor == null) throw new NullPointerException("descriptor");
-        byte type;
         if (descriptor.isCode()) {
             if (!(value instanceof String || value instanceof String[]))
                 value = value.toString();
         }
+        byte type = getObjectType(value);
+        if ((type & ARRAY) != 0)
+            value = ((Object[])value).clone();
+		return new Variable(key, value, descriptor, type);
+    }
+
+    /**
+     * Returns Object of specified Code derived from specified Object
+     * If code is not NONE, the new Object will be of type CodeExpression.
+     * If code is NONE and the specified Object was CodeExpression,
+     * the new Object will be a String with expression text.
+     * @param value specified Object
+     * @param code code of new Object.
+     * @return Object of specified Code derived from specified Object
+     */
+    public static Object withCode(Object value, TextDescriptor.Code code) {
+        return value;
+    }
+    
+    /**
+	 * Checks invariant of this Variable.
+     * @param paramAllowed true if paramerer flag is allowed on this Variable
+	 * @throws AssertionError or NullPointerException if invariant is broken.
+	 */
+	public void check(boolean paramAllowed) {
+		assert key != null;
+        assert value != null;
+        assert type == getObjectType(value);
+        assert descriptor != null;
+        if (descriptor.isCode())
+            assert value instanceof String || value instanceof String[];
+        if (!paramAllowed)
+            assert !descriptor.isParam();
+	}
+
+    /**
+     * Checks that Object is legal parameter value.
+     * @param paramValue parameter value to check
+     * @return true if Object is a legal parameter value
+     */
+    public static boolean isParamValue(Object paramValue) {
+        try {
+            getObjectType(paramValue);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private static byte getObjectType(Object value) {
+        byte type;
         if (value instanceof Object[]) {
             Byte typeByte = validClasses.get(value.getClass().getComponentType());
             if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
-            value = ((Object[])value).clone();
             type = (byte)(typeByte.byteValue()|ARRAY);
             if (!validValue(type, value))
                 throw new IllegalArgumentException(value.toString());
@@ -330,32 +392,9 @@ public class Variable implements Serializable
                 throw new IllegalArgumentException(value.getClass().toString());
             type = typeByte.byteValue();
         }
-		return new Variable(key, value, descriptor, type);
+        return type;
     }
 
-    /**
-	 * Checks invariant of this Variable.
-     * @param paramAllowed true if paramerer flag is allowed on this Variable
-	 * @throws AssertionError or NullPointerException if invariant is broken.
-	 */
-	public void check(boolean paramAllowed) {
-		assert key != null;
-        assert value != null;
-        if (value instanceof Object[]) {
-            Byte typeByte = validClasses.get(value.getClass().getComponentType());
-            assert type == (byte)(typeByte.byteValue()|ARRAY);
-            assert validValue(type, value);
-        } else {
-            Byte typeByte = validClasses.get(value.getClass());
-            assert type == typeByte.byteValue();
-        }
-        assert descriptor != null;
-        if (descriptor.isCode())
-            assert value instanceof String || value instanceof String[];
-        if (!paramAllowed)
-            assert !descriptor.isParam();
-	}
-    
     private static boolean validValue(byte type, Object value) {
         if ((type & ARRAY) == 0)
             return value != null;
@@ -368,20 +407,20 @@ public class Variable implements Serializable
         }
         return true;
     }
-    
+
     /**
      * Returns true if the value is array,
      * @return true if the value is array,
      */
     public boolean isArray() { return (type & ARRAY) != 0; }
-    
+
     /**
      * Get the number of entries stored in this Variable.
 	 * For non-arrayed Variables, this is 1.
      * @return the number of entries stored in this Variable.
      */
     public int getLength() { return (type & ARRAY) != 0 ? ((Object[])value).length : 1; }
-    
+
     /**
      * Returns thread-independent value of this Variable.
      * @return thread-independent value of this variable.
@@ -395,22 +434,34 @@ public class Variable implements Serializable
     public void write(IdWriter writer) throws IOException {
         writer.writeVariableKey(key);
         writer.writeTextDescriptor(descriptor);
+        writeObject(writer, value, type);
+    }
+
+    /**
+     * Write parameter value Object to IdWriter.
+     * @param writer where to write.
+     * @param paramValue Object to write
+     */
+    public static void writeParamValue(IdWriter writer, Object paramValue) throws IOException {
+        writeObject(writer, paramValue, getObjectType(paramValue));
+    }
+
+    private static void writeObject(IdWriter writer, Object obj, byte type) throws IOException {
         writer.writeByte(type);
-        if (isArray()) {
-            int length = getLength();
-            writer.writeInt(length);
-            for (int i = 0; i < length; i++) {
-                Object obj = getObject(i);
-                writer.writeBoolean(obj != null);
-                if (obj != null)
-                    writeObj(writer, obj);
+        if (obj instanceof Object[]) {
+            Object[] array = (Object[])obj;
+            writer.writeInt(array.length);
+            for (Object o: array) {
+                writer.writeBoolean(o != null);
+                if (o != null)
+                    writeObj(writer, o, type);
             }
         } else {
-            writeObj(writer, getObject());
+            writeObj(writer, obj, type);
         }
     }
-    
-    private void writeObj(IdWriter writer, Object obj) throws IOException {
+
+    private static void writeObj(IdWriter writer, Object obj, byte type) throws IOException {
         switch (type & ~ARRAY) {
             case LIBRARY:
                 writer.writeLibId((LibId)obj);
@@ -462,14 +513,29 @@ public class Variable implements Serializable
                 break;
         }
     }
-    
+
     /**
-     * Read Variable from SnapshotReader.
-     * @param reader from to write.
+     * Read Variable from IdReader.
+     * @param reader from to read.
+     * @return Variable read
      */
     public static Variable read(IdReader reader) throws IOException {
         Variable.Key varKey = reader.readVariableKey();
         TextDescriptor td = reader.readTextDescriptor();
+        Object value = readObject(reader);
+        return Variable.newInstance(varKey, value, td);
+    }
+
+    /**
+     * Read parameter value Object from IdReader.
+     * @param reader from to write.
+     * @return Object read
+     */
+    public static Object readParamValue(IdReader reader) throws IOException {
+        return readObject(reader);
+    }
+
+    private static Object readObject(IdReader reader) throws IOException {
         int type = reader.readByte();
         Object value;
         if ((type & ARRAY) != 0) {
@@ -488,13 +554,13 @@ public class Variable implements Serializable
                 case SHORT: array = new Short[length]; break;
                 case BYTE: array = new Byte[length]; break;
                 case BOOLEAN: array = new Boolean[length]; break;
-                case EPOINT: array = new EPoint[length]; break; 
+                case EPOINT: array = new EPoint[length]; break;
                 case TOOL: array = new Tool[length]; break;
                 case TECHNOLOGY: array = new TechId[length]; break;
                 case PRIM_NODE: array = new PrimitiveNodeId[length]; break;
                 case ARC_PROTO: array = new ArcProtoId[length]; break;
                 default: throw new IOException("type");
-                
+
             }
             for (int i = 0; i < length; i++) {
                 boolean hasElem = reader.readBoolean();
@@ -505,9 +571,9 @@ public class Variable implements Serializable
         } else {
             value = readObj(reader, type);
         }
-        return Variable.newInstance(varKey, value, td);
+        return value;
     }
-    
+
     private static Object readObj(IdReader reader, int type) throws IOException {
         switch (type) {
             case LIBRARY:
@@ -546,7 +612,7 @@ public class Variable implements Serializable
                 throw new IllegalArgumentException();
         }
     }
-    
+
 	/**
 	 * Returns Variable which differs from this Variable by value.
 	 * @param value value of new Variable.
@@ -562,13 +628,28 @@ public class Variable implements Serializable
             return this;
         return newInstance(this.key, value, this.descriptor);
     }
-    
+
 	/**
 	 * Returns Variable which differs from this Variable by renamed Ids.
 	 * @param idMapper a mapper from old Ids to new Ids.
      * @return Variable which differs from this Variable by renamed Ids.
 	 */
     public Variable withRenamedIds(IdMapper idMapper) {
+        Object newValue = withRenamedIds(idMapper, value, type);
+        return newValue != value ? withObject(newValue) : this;
+    }
+
+	/**
+	 * Returns value of a parameter which differs from given value of a parameter by renamed Ids.
+	 * @param idMapper a mapper from old Ids to new Ids.
+     * @param paramValue given value of a parameter
+     * @return Variable which differs from this Variable by renamed Ids.
+	 */
+    public static Object paramValueWithRenamedIds(IdMapper idMapper, Object paramValue) {
+        return withRenamedIds(idMapper, paramValue, getObjectType(paramValue));
+    }
+
+    public static Object withRenamedIds(IdMapper idMapper, Object value, byte type) {
         Object newValue = value;
         switch (type) {
             case LIBRARY:
@@ -581,7 +662,7 @@ public class Variable implements Serializable
                 newValue = idMapper.get((ExportId)value);
                 break;
             case LIBRARY|ARRAY:
-                LibId[] libIds = (LibId[])getObject();
+                LibId[] libIds = (LibId[])value;
                 for (int i = 0; i < libIds.length; i++) {
                     if (libIds[i] == null) continue;
                     LibId libId = idMapper.get(libIds[i]);
@@ -592,7 +673,7 @@ public class Variable implements Serializable
                 }
                 break;
             case CELL|ARRAY:
-                CellId[] cellIds = (CellId[])getObject();
+                CellId[] cellIds = (CellId[])value;
                 for (int i = 0; i < cellIds.length; i++) {
                     if (cellIds[i] == null) continue;
                     CellId cellId = idMapper.get(cellIds[i]);
@@ -603,7 +684,7 @@ public class Variable implements Serializable
                 }
                 break;
             case EXPORT|ARRAY:
-                ExportId[] exportIds = (ExportId[])getObject();
+                ExportId[] exportIds = (ExportId[])value;
                 for (int i = 0; i < exportIds.length; i++) {
                     if (exportIds[i] == null) continue;
                     ExportId exportId = idMapper.get(exportIds[i]);
@@ -614,9 +695,9 @@ public class Variable implements Serializable
                 }
                 break;
         }
-        return newValue != value ? withObject(newValue) : this;
+        return newValue;
     }
-    
+
     /**
      * Returns thread-independent element of array value of this Variable.
      * @param index index of array
@@ -624,10 +705,10 @@ public class Variable implements Serializable
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
     public Object getObject(int index) {
-        if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index); 
+        if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index);
         return ((Object[])value)[index];
     }
-    
+
 	/**
 	 * Method to return the Variable Key associated with this Variable.
 	 * @return the Variable Key associated with this variable.
@@ -651,7 +732,7 @@ public class Variable implements Serializable
 	{
 		String trueName = "";
 		String name = getKey().getName();
-		if (name.startsWith("ATTR_"))
+		if (isAttribute())
 		{
 			if (owner.isParam(getKey()))
 				trueName +=  "Parameter '" + name.substring(5) + "'"; else
@@ -766,7 +847,7 @@ public class Variable implements Serializable
 		return describe(-1, context, eobj);
 	}
 
-    /** 
+    /**
      * Return a description of this Variable without any context
      * or helper object info
      */
@@ -857,10 +938,10 @@ public class Variable implements Serializable
 	 */
 	private String makeStringVar(Object addr, TextDescriptor.Unit units)
 	{
-		if (addr instanceof Integer)
-		{
-			return ((Integer)addr).toString();
-		}
+//		if (addr instanceof Integer)
+//		{
+//			return ((Integer)addr).toString();
+//		}
 		if (addr instanceof Float)
 		{
 			return TextUtils.makeUnits(((Float)addr).floatValue(), units);
@@ -869,12 +950,12 @@ public class Variable implements Serializable
 		{
 			return TextUtils.makeUnits(((Double)addr).doubleValue(), units);
 		}
-		if (addr instanceof Short)
-			return ((Short)addr).toString();
-		if (addr instanceof Byte)
-			return ((Byte)addr).toString();
-		if (addr instanceof String)
-			return (String)addr;
+//		if (addr instanceof Short)
+//			return ((Short)addr).toString();
+//		if (addr instanceof Byte)
+//			return ((Byte)addr).toString();
+//		if (addr instanceof String)
+//			return (String)addr;
         if (addr instanceof Object[]) {
             StringBuffer buf = new StringBuffer();
             buf.append("[");
@@ -886,7 +967,7 @@ public class Variable implements Serializable
             buf.replace(buf.length()-2, buf.length(), "]");
             return buf.toString();
         }
-		return "?";
+		return addr.toString();
 	}
 
 	/**
@@ -911,8 +992,10 @@ public class Variable implements Serializable
         return (check);
     }
 
+    @Override
     public int hashCode() { return key.hashCode(); }
-    
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Variable)) return false;
@@ -922,11 +1005,12 @@ public class Variable implements Serializable
         if ((this.type & ARRAY) == 0) return this.value.equals(that.value);
         return Arrays.equals((Object[])this.value, (Object[])that.value);
     }
-    
+
 	/**
 	 * Returns a printable version of this Variable.
 	 * @return a printable version of this Variable.
 	 */
+    @Override
 	public String toString()
 	{
 		return key.getName();
@@ -955,7 +1039,7 @@ public class Variable implements Serializable
         }
         return new Variable(this.key, value, descriptor, type);
     }
-    
+
 	/**
 	 * Returns Variable which differs from this Variable by displayable flag.
 	 * Displayable Variables are shown with the object.
@@ -969,6 +1053,15 @@ public class Variable implements Serializable
 	 * @return true if this Variable is displayable.
 	 */
 	public boolean isDisplay() { return descriptor.isDisplay(); }
+
+    /**
+     * Returns CodeExpression of this Variable, it it is code variable.
+     * Returns null otherwise
+     * @return CodeExprssion of this Variable or null
+     */
+    public CodeExpression getCodeExpression() {
+        return isCode() ? CodeExpression.valueOf(value.toString(), getCode()) : null;
+    }
 
     /**
      * Determine what code type this variable has, if any
@@ -1000,7 +1093,7 @@ public class Variable implements Serializable
      * Method to return if this is Variable is a User Attribute.
      * @return true if this Variable is an attribute, false otherwise.
      */
-    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
+    public boolean isAttribute() { return getKey().isAttribute(); }
 
 	// TextDescriptor
 
@@ -1202,7 +1295,7 @@ public class Variable implements Serializable
      * @return Variable which deffers from this Variable by parameter flag.
 	 */
 	public Variable withParam(boolean state) { return withTextDescriptor(getTextDescriptor().withParam(state)); }
-    
+
 	/**
 	 * Method to return the X offset of the text in the Variable's TextDescriptor.
 	 * @return the X offset of the text in the Variable's TextDescriptor.
