@@ -29,13 +29,17 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.JelibParser;
 import com.sun.electric.tool.io.output.Output;
-
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -79,7 +83,7 @@ public class LibraryStatistics implements Serializable
         idManager = new IdManager();
         in.defaultReadObject();
     }
-    
+
 	Directory getDirectory(String dirName)
 	{
 		Directory dir = directories.get(dirName);
@@ -113,7 +117,7 @@ public class LibraryStatistics implements Serializable
             e.printStackTrace();
         }
     }
-    
+
 	private static void scanProjectDir(File dir, String[] excludeDirs, Set<String> canonicalDirs, TreeSet<String> projectDirs) {
 		try {
 			String canonicalDir = dir.getCanonicalPath();
@@ -219,7 +223,7 @@ public class LibraryStatistics implements Serializable
         FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) { return name.endsWith(projectsExt); }
         };
-        Map<String,File[]> projectDirs = new TreeMap<String,File[]>(); 
+        Map<String,File[]> projectDirs = new TreeMap<String,File[]>();
         for (File file: wrkDir.listFiles(filter)) {
             String projectName = file.getName();
             assert projectName.endsWith(projectsExt);
@@ -468,6 +472,98 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
+    public static void checkLibraries(ErrorLogger errorLogger, File[] dirs) {
+        for (File dir: dirs) {
+            checkLibrariesInProject(errorLogger, dir);
+        }
+    }
+
+    private static void checkLibrariesInProject(ErrorLogger errorLogger, File dir) {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            System.out.println(dir + " ACCESS DENIED");
+            return;
+        }
+//        System.out.println("Dir " + dir);
+        for (File file: files) {
+            String name = file.getName();
+            if (name.endsWith(".jelib")) {
+                checkJelib(errorLogger, file, FileType.JELIB);
+            } else if (name.endsWith(".delib")) {
+                checkJelib(errorLogger, file, FileType.DELIB);
+            }
+        }
+    }
+
+    private static void checkJelib(ErrorLogger errorLogger, File file, FileType fileType) {
+        try {
+ //           System.out.println("Checking " + file);
+            IdManager idManager = new IdManager();
+            String libName = file.getName();
+			int extPos = libName.lastIndexOf('.');
+			if (extPos >= 0)
+    			libName = libName.substring(0, extPos);
+            LibId libId = idManager.newLibId(LibId.legalLibraryName(libName));
+            URL fileUrl = file.toURI().toURL();
+
+            JelibParser parser = JelibParser.parse(libId, fileUrl, fileType, false, errorLogger);
+            TreeMap<CellName,ArrayList<JelibParser.CellContents>> groups = new TreeMap<CellName,ArrayList<JelibParser.CellContents>>();
+            for (JelibParser.CellContents cc: parser.allCells.values()) {
+                ArrayList<JelibParser.CellContents> group = groups.get(cc.groupName);
+                if (group == null) {
+                    group = new ArrayList<JelibParser.CellContents>();
+                    groups.put(cc.groupName, group);
+                }
+                group.add(cc);
+            }
+            for (Map.Entry<CellName,ArrayList<JelibParser.CellContents>> e: groups.entrySet()) {
+                CellName groupName = e.getKey();
+                ArrayList<JelibParser.CellContents> cells = e.getValue();
+                int numParameterizedCells = 0;
+                for (JelibParser.CellContents cc: cells) {
+                    Variable[] params = getParams(cc);
+                    if (params.length > 0)
+                        numParameterizedCells++;
+                }
+                if (numParameterizedCells <= 1) continue;
+
+                System.out.println("Checking " + file);
+                System.out.println("***** Group " + libId + ":" + groupName + " has params");
+                for (JelibParser.CellContents cc: cells) {
+                    Variable[] params = getParams(cc);
+                    if (params.length == 0) continue;
+                    CellName cellName = cc.cellId.cellName;
+                    System.out.print("    " + cellName);
+                    for (Variable var: params) {
+                        System.out.print(" " + var + "(" +
+                                com.sun.electric.tool.io.output.JELIB.describeDescriptor(var, var.getTextDescriptor(), true) +
+                                ")" + var.getObject());
+                    }
+                    System.out.println();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error reading " + file + " " + e.getMessage());
+        }
+    }
+
+    private static Variable[] getParams(JelibParser.CellContents cc) {
+        int count = 0;
+        for (Variable var: cc.vars) {
+            if (var.getTextDescriptor().isParam() && var.getKey() != NccCellAnnotations.NCC_ANNOTATION_KEY)
+                count++;
+        }
+        if (count == 0) return Variable.NULL_ARRAY;
+        Variable[] params = new Variable[count];
+        count = 0;
+        for (Variable var: cc.vars) {
+            if (var.getTextDescriptor().isParam() && var.getKey() != NccCellAnnotations.NCC_ANNOTATION_KEY)
+                params[count++] = var;
+        }
+        return params;
+    }
+
+
 //	public void readLibraries()
 //	{
 //		totalLibraryContents = new LibraryContents("noname", new JELIB1());
@@ -604,7 +700,7 @@ public class LibraryStatistics implements Serializable
 		System.out.println((elibLength>>20) + "M (" + elibLength + ") in " +
 						   elibCount + " ELIB files ( with duplicates )");
 		System.out.println("NOHEADER:" + withoutHeader + bagReport(headerCounts));
-        
+
 		System.out.println((jelibUniqueLength>>20) + "M (" + jelibUniqueLength + ") in " +
 						   jelibUniqueCount + " JELIB files ( unique )");
 		System.out.println((jelibLength>>20) + "M (" + jelibLength + ") in " +
@@ -619,12 +715,12 @@ public class LibraryStatistics implements Serializable
             Directory directory = it.next();
 //            System.out.print(directory.dirName);
             String projName = directory.dirName;
-            
+
             if (projName.startsWith("/import/async/cad/tools/electric/builds/svn")) continue;
             if (projName.startsWith("/import/async/archive/2005/tic/gilda/TreasureIsland/electric-old/projectManagement")) continue;
             if (projName.startsWith("/import/async/archive/2005/tic/jkg/projectTest")) continue;
             if (projName.startsWith("/import/async/cad/cvs")) continue;
-            
+
             int delibPos = projName.indexOf(".delib");
             if (delibPos >= 0) {
                 int slashPos = projName.lastIndexOf('/', delibPos);
@@ -640,12 +736,12 @@ public class LibraryStatistics implements Serializable
 //           System.out.println(e.getKey() + " " + e.getValue());
        }
 	}
-    
+
 	public void reportCells() {
 		for (Iterator lit = getLibraryNames(); lit.hasNext(); )
 		{
 			LibraryName libraryName = (LibraryName)lit.next();
-            
+
             System.out.println("LibraryName " + libraryName.getLibId() + " " + libraryName.getName());
 			for (Iterator it = libraryName.getVersions(); it.hasNext(); )
 			{
@@ -903,7 +999,7 @@ public class LibraryStatistics implements Serializable
                 libName = libName.substring(0, indexOfColon);
             return stat.idManager.newLibId(LibId.legalLibraryName(libName));
         }
-        
+
 		String getName() { return name; }
 
 		Iterator<FileContents> getVersions() { return versions.iterator(); }
@@ -916,12 +1012,12 @@ public class LibraryStatistics implements Serializable
 		String fullName;
 		FileContents from;
 	}
-    
+
     static class ExternalCell implements Serializable {
         final String libPath;
         final String libName;
         final String cellName;
-        
+
         ExternalCell(String libPath, String libName, String cellName) {
             this.libPath = libPath;
             this.libName = libName;
@@ -932,7 +1028,7 @@ public class LibraryStatistics implements Serializable
 	static class FileContents implements Serializable
 	{
         private static final long serialVersionUID = 8673043477742718970L;
-        
+
 		LibraryName libraryName;
 		long fileLength;
 		long crc;
@@ -945,7 +1041,7 @@ public class LibraryStatistics implements Serializable
         Version version;
         List<String> localCells = new ArrayList<String>();
         List<ExternalCell> externalCells = new ArrayList<ExternalCell>();
-        
+
 		boolean readOk;
 		int toolCount;
 		int techCount;
@@ -995,9 +1091,9 @@ public class LibraryStatistics implements Serializable
         }
 
         IdManager idManager() { return libraryName.stat.idManager; }
-        
+
 		boolean isElib() { return instances.get(0).fileName.endsWith(".elib"); }
-        
+
         String getFileName() { return instances.get(0).fileName; }
 	}
 
@@ -1020,7 +1116,7 @@ public class LibraryStatistics implements Serializable
 			this.fileLength = fileLength;
 			this.lastModified = lastModified;
 			this.crc = crc;
-            
+
 //			File file = new File(fileName);
 			stat.getDirectory(file.getParent()).files.put(file.getName(), this);
 		}
@@ -1049,7 +1145,7 @@ public class LibraryStatistics implements Serializable
 
 			stat.getDirectory(file.getParent()).files.put(file.getName(), this);
 		}
-        
+
         private URL getUrl() {
             try {
                 return file.toURI().toURL();

@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.View;
@@ -50,6 +51,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
@@ -64,9 +66,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class reads files in new library file (.jelib) format.
@@ -81,7 +85,7 @@ public class JelibParser
 		int lineNumber;
 
         CellId cellId;
-        String groupName;
+        CellName groupName;
         long creationDate;
         long revisionDate;
         TechId techId;
@@ -167,7 +171,6 @@ public class JelibParser
 
  	final LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
     final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
-    final ArrayList<CellId[]> groupLines = new ArrayList<CellId[]>();
 
     /*---------------------------------------------------------------------*/
 
@@ -209,6 +212,10 @@ public class JelibParser
     private final ErrorLogger errorLogger;
     private final MutableTextDescriptor mtd = new MutableTextDescriptor();
     /** buffer for reading Variables. */                                    private final ArrayList<Variable> variablesBuf = new ArrayList<Variable>();
+
+    // collect the cells by common protoName and by "groupLines" relation
+    private final HashMap<String,ArrayList<CellContents>> cellsWithProtoName = new HashMap<String,ArrayList<CellContents>>();
+    private final TransitiveRelation<String> transitiveProtoNames = new TransitiveRelation<String>();
 
     private HashMap<String,TextDescriptorAndCode> parsedDescriptorsF = new HashMap<String,TextDescriptorAndCode>();
     private HashMap<String,TextDescriptorAndCode> parsedDescriptorsT = new HashMap<String,TextDescriptorAndCode>();
@@ -257,12 +264,40 @@ public class JelibParser
         delibHeaderReader = fileType == FileType.DELIB ? lineReader : null;
         try {
             readFromFile(onlyProjectSettings);
+            collectCellGroups();
         } catch (Exception e) {
             logError("Exception " + e.getMessage());
         } finally {
             lineReader.close();
         }
 	}
+
+    private void collectCellGroups() {
+        for (Iterator<Set<String>> git = transitiveProtoNames.getSetsOfRelatives(); git.hasNext(); ) {
+            Set<String> protoNames = git.next();
+
+            // Collect cells in this group
+            ArrayList<CellContents> cellsInGroup = new ArrayList<CellContents>();
+            for (String protoName: protoNames) {
+                ArrayList<CellContents> list = cellsWithProtoName.get(protoName);
+                if (list == null) {
+                    logError("No cells for group name " + protoName);
+                    continue;
+                }
+                cellsInGroup.addAll(list);
+            }
+
+            // Make cell group name
+            ArrayList<CellName> cellNamesInGroup = new ArrayList<CellName>();
+            for (CellContents cc: cellsInGroup)
+                cellNamesInGroup.add(cc.cellId.cellName);
+            CellName groupName = Snapshot.makeCellGroupName(cellNamesInGroup);
+
+            // Set cell group name for each cell
+            for (CellContents cc: cellsInGroup)
+                cc.groupName = groupName;
+        }
+    }
 
     public static JelibParser parse(LibId libId, URL fileURL, FileType fileType, boolean onlyProjectSettings, ErrorLogger errorLogger) throws IOException {
         return new JelibParser(libId, fileURL, fileType, onlyProjectSettings, errorLogger);
@@ -494,7 +529,7 @@ public class JelibParser
 			{
 				// group information
 				List<String> pieces = parseLine(line);
-				CellId[] groupLine = new CellId[pieces.size()];
+                String firstProtoName = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
 					String cellNameString = unQuote(pieces.get(i));
@@ -506,17 +541,16 @@ public class JelibParser
 						logError("Bad cell name " + cellNameString);
 						continue;
 					}
-                    for (CellId cellId: allCells.keySet()) {
-                        if (cellId.cellName.getName().equals(cellName.getName())) {
-                            groupLine[i] = cellId;
-                        }
-                    }
-                    if (groupLine[i] == null) {
-						logError("Unknow cell " + cellName);
+                    if (cellsWithProtoName.get(cellName.getName()) == null) {
+ 						logError("Unknown cell " + cellName);
 						continue;
                     }
+                    String protoName = cellName.getName();
+                    if (firstProtoName == null)
+                        firstProtoName = protoName;
+                    else
+                        transitiveProtoNames.theseAreRelated(firstProtoName, protoName);
 				}
-				groupLines.add(groupLine);
 				continue;
 			}
 
@@ -614,11 +648,11 @@ public class JelibParser
             String versionString = pieces.get(fieldIndex++);
             name = name + ";" + versionString + "{" + viewAbbrev + "}";
         }
+        CellName cellName = CellName.parseName(name);
         CellContents cc = new CellContents(version);
         cc.fileName = curReadFile;
         cc.lineNumber = lineReader.getLineNumber() + 1;
-        cc.cellId = libId.newCellId(CellName.parseName(name));
-        cc.groupName = groupName;
+        cc.cellId = libId.newCellId(cellName);
         String techName = unQuote(pieces.get(fieldIndex++));
         cc.techId = idManager.newTechId(techName);
         cc.creationDate = Long.parseLong(pieces.get(fieldIndex++));
@@ -667,7 +701,21 @@ public class JelibParser
         }
 
         // remember the contents of the cell for later
+        if (allCells.containsKey(cc.cellId)) {
+            logError("Duplicate cell " + cc.cellId);
+            return;
+        }
+        String protoName = cellName.getName();
+        if (groupName == null)
+            groupName = protoName;
+        transitiveProtoNames.theseAreRelated(protoName, groupName);
         allCells.put(cc.cellId, cc);
+        ArrayList<CellContents> list = cellsWithProtoName.get(protoName);
+        if (list == null) {
+            list = new ArrayList<CellContents>();
+            cellsWithProtoName.put(protoName, list);
+        }
+        list.add(cc);
         return;
     }
 
