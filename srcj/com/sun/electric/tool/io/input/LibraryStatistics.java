@@ -507,6 +507,18 @@ public class LibraryStatistics implements Serializable
             URL fileUrl = file.toURI().toURL();
 
             JelibParser parser = JelibParser.parse(libId, fileUrl, fileType, false, errorLogger);
+
+            checkVars(parser.libVars, file);
+            for (JelibParser.CellContents cc: parser.allCells.values()) {
+                checkVars(cc.vars, file);
+                for (JelibParser.NodeContents nc: cc.nodes)
+                    checkVars(nc.vars, file);
+                for (JelibParser.ArcContents ac: cc.arcs)
+                    checkVars(ac.vars, file);
+                for (JelibParser.ExportContents ec: cc.exports)
+                    checkVars(ec.vars, file);
+            }
+
             TreeMap<CellName,ArrayList<JelibParser.CellContents>> groups = new TreeMap<CellName,ArrayList<JelibParser.CellContents>>();
             for (JelibParser.CellContents cc: parser.allCells.values()) {
                 ArrayList<JelibParser.CellContents> group = groups.get(cc.groupName);
@@ -519,6 +531,7 @@ public class LibraryStatistics implements Serializable
             for (Map.Entry<CellName,ArrayList<JelibParser.CellContents>> e: groups.entrySet()) {
                 CellName groupName = e.getKey();
                 ArrayList<JelibParser.CellContents> cells = e.getValue();
+
                 int numParameterizedCells = 0;
                 for (JelibParser.CellContents cc: cells) {
                     Variable[] params = getParams(cc);
@@ -544,6 +557,15 @@ public class LibraryStatistics implements Serializable
             }
         } catch (Exception e) {
             System.out.println("Error reading " + file + " " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void checkVars(Variable[] vars, File file) {
+        for (Variable var: vars) {
+            if (var.isCode() && !(var.getObject() instanceof String)) {
+                System.out.println("$$$$$ Variable " + var.getPureValue(-1) + " in " + file);
+            }
         }
     }
 
