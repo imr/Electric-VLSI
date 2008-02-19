@@ -736,8 +736,8 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	                owner.updateVar(key, newText);
 	            } else
 	            {
-	                // change variable
-	                owner.updateVar(key, newText[0]);
+	                // change variable text
+	                owner.updateVarText(key, newText[0]);
 	            }
             }
             return true;

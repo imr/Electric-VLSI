@@ -1014,8 +1014,8 @@ public class LETool extends Tool {
         System.out.println("No existing completed sizing jobs contain info about "+no.getName());
     }
 
-    public static void clearStoredSizesJob(Nodable no) {
-        ClearStoredSizes job = new ClearStoredSizes(no);
+    public static void clearStoredSizesJob(NodeInst ni) {
+        ClearStoredSizes job = new ClearStoredSizes(ni);
     }
 
     public static void clearStoredSizesJob(Library lib) {
@@ -1026,16 +1026,16 @@ public class LETool extends Tool {
      * Clears stored "LEDRIVE_" sizes on a Nodable.
      */
     public static class ClearStoredSizes extends Job {
-        private Nodable no;
+        private NodeInst ni;
 
-		public ClearStoredSizes(Nodable no) {
+		public ClearStoredSizes(NodeInst ni) {
             super("Clear LE Sizes", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.no = no;
+            this.ni = ni;
             startJob();
         }
 
         public boolean doIt() throws JobException {
-            clearStoredSizes(no);
+            clearStoredSizes(ni);
             return true;
         }
     }
@@ -1081,12 +1081,12 @@ public class LETool extends Tool {
     }
 
     // delete all vars that start with "LEDRIVE_"
-    private static void clearStoredSizes(Nodable no) {
-        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
+    private static void clearStoredSizes(NodeInst ni) {
+        for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
             Variable var = (Variable)it.next();
             String name = var.getKey().getName();
             if (name.startsWith("LEDRIVE_")) {
-                no.delVar(var.getKey());
+                ni.delVar(var.getKey());
             }
         }
     }

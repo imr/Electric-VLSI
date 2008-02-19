@@ -1178,11 +1178,11 @@ public class ELIB extends Output
             varObj = new Float[] { new Float(p.getLambdaX()), new Float(p.getLambdaY()) };
         }
 
-        int type = var.getTextDescriptor().getCFlags();
-        int objType = ELIBConstants.getVarType(varObj);
-        if (compatibleWith6 && objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
-        assert objType != 0;
-        type |= objType;
+        int type = ELIBConstants.getVarType(varObj);
+        if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
+        assert type != 0;
+        if (var.isDisplay())
+            type |= ELIBConstants.VDISPLAY;
         if (varObj instanceof Object[]) {
             Object [] objList = (Object [])varObj;
             // This doesn't seem to work properly for trace

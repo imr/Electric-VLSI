@@ -48,6 +48,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -2181,7 +2182,7 @@ public class EditWindow extends JPanel
 			if (sic.object == null)
 			{
 				// cell variable name name
-				cell.updateVar(sic.key, newString);
+				cell.updateVarText(sic.key, newString);
 			} else
 			{
 				if (sic.key == NodeInst.NODE_NAME)
@@ -2205,9 +2206,9 @@ public class EditWindow extends JPanel
 					ElectricObject base = (ElectricObject)sic.object;
 					Variable var = base.getVar(sic.key);
 					Object obj = var.getObject();
-					if (obj instanceof String)
+					if (obj instanceof String || obj instanceof CodeExpression)
 					{
-						base.updateVar(sic.key, newString);
+						base.updateVarText(sic.key, newString);
 					} else if (obj instanceof String[])
 					{
 						String [] oldLines = (String [])obj;
@@ -2218,7 +2219,7 @@ public class EditWindow extends JPanel
 								newLines[i] = oldLines[i];
 						}
 						base.updateVar(sic.key, newLines);
-					}
+                    }
 				}
 			}
 
@@ -2416,9 +2417,9 @@ public class EditWindow extends JPanel
 				Variable var = it.next();
 				if (!var.isDisplay()) continue;
 				Object obj = var.getObject();
-				if (obj instanceof String)
+				if (obj instanceof String || obj instanceof CodeExpression)
 				{
-					findAllMatches(eObj, var.getKey(), -1, (String)obj, search, caseSensitive, regExp, p);
+					findAllMatches(eObj, var.getKey(), -1, obj.toString(), search, caseSensitive, regExp, p);
 				} else if (obj instanceof String[])
 				{
 					String [] strings = (String [])obj;
@@ -3238,11 +3239,12 @@ public class EditWindow extends JPanel
         }
 
 		// if getdrive is called
+//        for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
         for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
             Object obj = var.getObject();
-            if (obj instanceof String) {
-                String str = (String)obj;
+            if (obj instanceof CodeExpression) {
+                String str = obj.toString();
                 if (str.matches(".*LE\\.getdrive.*")) return true;
             }
         }

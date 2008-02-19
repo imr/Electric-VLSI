@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -63,6 +64,8 @@ import javax.swing.table.TableColumn;
  * Class to define the Attributes panel in other dialogs.
  */
 public class AttributesTable extends JTable implements DatabaseChangeListener {
+    /** True if default instance parameters apper in the table */
+    private static final boolean DEFAULT_PARAMETERS_SHOWN = true;
 
 
 	/**
@@ -436,7 +439,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         	List<Object> createValue = new ArrayList<Object>();
         	List<Boolean> createNew = new ArrayList<Boolean>();
         	List<Boolean> createDisplay = new ArrayList<Boolean>();
-        	List<Integer> createCode = new ArrayList<Integer>();
+        	List<TextDescriptor.Code> createCode = new ArrayList<TextDescriptor.Code>();
         	List<Integer> createDispPos = new ArrayList<Integer>();
         	List<Integer> createUnits = new ArrayList<Integer>();
 
@@ -448,7 +451,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 Object newValue = ve.getObject();
                 boolean newCreate = false;
                 boolean newDisplay = ve.isDisplay();
-                int newCode = ve.getCode().getCFlags();
+                TextDescriptor.Code newCode = ve.getCode();
                 int newDispPos = ve.getDispPos().getIndex();
                 int newUnits = ve.getUnits().getIndex();
 
@@ -469,7 +472,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             	createValue.add(newValue);
             	createNew.add(new Boolean(newCreate));
             	createDisplay.add(new Boolean(newDisplay));
-            	createCode.add(new Integer(newCode));
+            	createCode.add(newCode);
             	createDispPos.add(new Integer(newDispPos));
             	createUnits.add(new Integer(newUnits));
             }
@@ -508,7 +511,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             private List<Object> createValue;
             private List<Boolean> createNew;
             private List<Boolean> createDisplay;
-            private List<Integer> createCode;
+            private List<TextDescriptor.Code> createCode;
             private List<Integer> createDispPos;
             private List<Integer> createUnits;
             private List<Variable.Key> varsToDelete;
@@ -518,7 +521,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 	            List<Object> createValue,
 	            List<Boolean> createNew,
 	            List<Boolean> createDisplay,
-	            List<Integer> createCode,
+	            List<TextDescriptor.Code> createCode,
 	            List<Integer> createDispPos,
 	            List<Integer> createUnits,
 	            List<Variable.Key> varsToDelete)
@@ -551,9 +554,10 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 	Object obj = createValue.get(i);
                 	boolean makeNew = createNew.get(i).booleanValue();
                 	boolean display = createDisplay.get(i).booleanValue();
-                	TextDescriptor.Code code = TextDescriptor.Code.getByCBits(createCode.get(i).intValue());
+                	TextDescriptor.Code code = createCode.get(i);
                 	TextDescriptor.DispPos dispPos = TextDescriptor.DispPos.getShowStylesAt(createDispPos.get(i).intValue());
                 	TextDescriptor.Unit units = TextDescriptor.Unit.getUnitAt(createUnits.get(i).intValue());
+                    obj = Variable.withCode(obj, code);
 
                     Variable newVar = null;
                     if (makeNew)
@@ -571,8 +575,9 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     if (newVar != null)
                     {
                         // set/update properties
+                        assert newVar.getCode() == code;
                         TextDescriptor td = newVar.getTextDescriptor();
-                        td = td.withDisplay(display).withCode(code).withDispPart(dispPos).withUnit(units);
+                        td = td.withDisplay(display).withDispPart(dispPos).withUnit(units);
                         owner.setTextDescriptor(newVar.getKey(), td);
                     }
                 }
@@ -818,12 +823,26 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         // add new vars
         if (eobj != null) {
             List<Variable> vars = new ArrayList<Variable>();
-            for (Iterator<Variable> it = eobj.getVariables(); it.hasNext(); ) {
-                // only add attributes
-                Variable var = it.next();
-                if (var.isAttribute())
-                    vars.add(var);
-            }
+            if (DEFAULT_PARAMETERS_SHOWN && eobj instanceof NodeInst) {
+                for (Iterator<Variable> it = ((NodeInst)eobj).getParameters(); it.hasNext(); ) {
+                    // only add attributes
+                    Variable param = it.next();
+                    vars.add(param);
+                }
+                for (Iterator<Variable> it = eobj.getVariables(); it.hasNext(); ) {
+                    // only add attributes
+                    Variable var = it.next();
+                    if (var.isAttribute() && !eobj.isParam(var.getKey()))
+                        vars.add(var);
+                }
+            } else {
+                for (Iterator<Variable> it = eobj.getVariables(); it.hasNext(); ) {
+                    // only add attributes
+                    Variable var = it.next();
+                    if (var.isAttribute())
+                        vars.add(var);
+                }
+           }
             // sort vars by name
             //Collections.sort(vars, new Attributes.VariableNameSort());
             ((VariableTableModel)getModel()).setVars(eobj, vars);

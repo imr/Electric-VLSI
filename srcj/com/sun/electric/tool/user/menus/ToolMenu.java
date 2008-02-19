@@ -46,12 +46,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -465,6 +460,8 @@ public class ToolMenu {
                     clearSizesCommand(); }},
 		        new EMenuItem("_Estimate Delays") { public void run() {
                     estimateDelaysCommand(); }},
+                new EMenuItem("Add LE Attribute to Selected Export") { public void run() {
+                    addLEAttribute(); }},
                 SEPARATOR,
 		        new EMenuItem("_Load Logical Effort Libraries (Purple, Red, and Orange)") { public void run() {
                     loadLogicalEffortLibraries(); }}),
@@ -842,7 +839,41 @@ public class ToolMenu {
 		}
 	}
 
-	public static void loadLogicalEffortLibraries()
+    public static void addLEAttribute()
+    {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        List<DisplayedText> textlist = highlighter.getHighlightedText(true);
+        for (DisplayedText text : textlist) {
+            if (text.getElectricObject() instanceof Export) {
+                new AddLEAttribute((Export)text.getElectricObject());
+                return;
+            }
+        }
+    }
+
+    private static class AddLEAttribute extends Job
+    {
+        private Export ex;
+
+        protected AddLEAttribute(Export ex)
+        {
+            super("Add LE Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.ex = ex;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(-1.5, -1);
+            ex.newVar(LENetlister.ATTR_le, new Double(1.0), td);
+            return true;
+        }
+    }
+
+    public static void loadLogicalEffortLibraries()
 	{
 		if (Library.findLibrary("purpleGeneric180") != null) return;
 		URL url = LibFile.getLibFile("purpleGeneric180.jelib");

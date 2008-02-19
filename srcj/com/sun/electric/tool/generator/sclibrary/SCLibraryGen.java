@@ -227,7 +227,7 @@ public class SCLibraryGen {
                     if (np.getLibrary() == redLibrary) {
                         Variable var = ni.getVar(sizeKey);
                         if (var != null) {
-                            ni.newVar(sizeKey, new Double(size), var.getTextDescriptor());
+                            ni.updateVar(sizeKey, Double.valueOf(size));
                         }
                     }
                     if (np.isIconOf(schcell)) {

@@ -392,11 +392,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
     private Object writeReplace() { return new CellKey(this); }
-    
+
     private static class CellKey extends EObjectInputStream.Key<Cell> {
         public CellKey() {}
         private CellKey(Cell cell) { super(cell); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, Cell cell) throws IOException {
             CellId cellId = cell.getId();
@@ -404,7 +404,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 throw new NotSerializableException(cell + " not linked");
             out.writeObject(cellId);
         }
-        
+
         @Override
         public Cell readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             CellId cellId = (CellId)in.readObject();
@@ -414,7 +414,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             return cell;
         }
     }
-         
+
 	/****************************** CREATE, DELETE ******************************/
 
 	/**
@@ -2022,7 +2022,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ArcInst ai = it.next();
             if (killedNodes.contains(ai.getTailPortInst().getNodeInst()) || killedNodes.contains(ai.getHeadPortInst().getNodeInst()))
                 arcsToKill.add(ai);
-            
+
         }
         Set<Export> exportsToKill = new HashSet<Export>();
         for (Iterator<Export> it = getExports(); it.hasNext(); ) {
@@ -2030,7 +2030,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (killedNodes.contains(export.getOriginalPort().getNodeInst()))
                 exportsToKill.add(export);
         }
-        
+
         for (ArcInst ai: arcsToKill)
             ai.kill();
         killExports(exportsToKill);
@@ -2045,7 +2045,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			Constraints.getCurrent().killObject(ni);
 		}
     }
-    
+
 	private static boolean allowCirDep = false;
 
 	/**
@@ -3532,7 +3532,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //	{
 //		setCellGroup(null);
 //	}
-    
+
 	/**
 	 * Method to put this Cell together with all its versions and views into the given CellGroup.
 	 * @param cellGroup the CellGroup that this cell belongs to or null to put int own cell group
@@ -3579,7 +3579,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to determine whether this Cell is an icon Cell.
 	 * @return true if this Cell is an icon  Cell.
 	 */
-	public boolean isIcon() { return getCellName().isIcon(); }
+	public boolean isIcon() { return getId().isIcon(); }
 
 	/**
 	 * Method to determine whether this Cell is an icon of another Cell.
@@ -3721,10 +3721,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
 	public Netlist getNetlist() { return getNetlist(Netlist.ShortResistors.NO); }
-    
+
     @Deprecated
 	public Netlist getNetlist(boolean shortResistors) { return getNetlist(shortResistors ? Netlist.ShortResistors.PARASITIC : Netlist.ShortResistors.NO); }
-    
+
 	/** Recompute the Netlist structure for this Cell.
      * @param shortResistors short resistors mode of Netlist.
 	 * @return the Netlist structure for this cell.
@@ -3843,11 +3843,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/****************************** MISCELLANEOUS ******************************/
 
     private int getFlags() { return d.flags; }
-    
+
     private boolean isFlag(int mask) { return (getFlags() & mask) != 0; }
-    
+
     private void setFlag(int mask, boolean value) { lowLevelSetUserbits(value ? getFlags() | mask : getFlags() & ~mask); }
-    
+
 	/**
 	 * Method to set this Cell so that instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
@@ -3995,7 +3995,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public void setTopologyModified() {
         setContentsModified();
     }
-    
+
     /**
 	 * Method to set if cell has been modified in the batch job.
 	 */
@@ -4009,12 +4009,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         revisionDateFresh = false;
         database.unfreshSnapshot();
     }
-    
+
     private void unfreshRTree() { topology.unfreshRTree(); }
-    
+
     /**
      * Method to load isExpanded status of subcell instances from Preferences.
-     */    
+     */
     public void loadExpandStatus() {
         String cellName = noLibDescribe().replace('/', ':');
         String cellKey = "E" + cellName;
@@ -4042,7 +4042,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         expandStatusModified = false;
     }
-    
+
     /**
      * Method to save isExpanded status of subcell instances to Preferences.
      */
@@ -4096,7 +4096,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         expandStatusModified = false;
     }
-    
+
     /**
 	 * Method to set the multi-page capability of this Cell.
 	 * Multipage cells (usually schematics) must have cell frames to isolate the different
@@ -4112,7 +4112,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return true if this Cell is a multi-page drawing.
 	 */
 	public boolean isMultiPage() { return isFlag(MULTIPAGE); }
-	
+
     /**
      * Returns true if this Cell is linked into database.
      * @return true if this Cell is linked into database.
@@ -4126,7 +4126,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Returns database to which this Cell belongs.
      * @return database to which this ElectricObject belongs.
 	 */
-	public EDatabase getDatabase() { return database; } 
+	public EDatabase getDatabase() { return database; }
 
 	/**
 	 * Method to check and repair data structure errors in this Cell.
@@ -4150,7 +4150,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         {
         	CircuitChangeJobs.eraseObjectsInList(this, list, false);
         }
-        
+
         if (isSchematic() && getNewestVersion() == this && getCellGroup().getMainSchematics() != this) {
             String mainSchemMsg = "Extraneous schematic cell " + describe(false) + " in cell group " + lib.getName() + ":" + getCellGroup().getName();
             System.out.println(mainSchemMsg);
@@ -4170,7 +4170,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (errorLogger != null)
                 errorLogger.logWarning(nccMsg, this, 1);
         }
-        
+
         if (NodeInst.VIRTUAL_PARAMETERS && isIcon() && !hasParameters()) {
             Cell schCell = getEquivalent();
             if (schCell != null && schCell.hasParameters()) {
@@ -4203,10 +4203,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 }
             }
         }
-        
+
 		return errorCount;
 	}
-    
+
     /**
      * Method to check invariants in this Cell.
      * @exception AssertionError if invariants are not valid
@@ -4222,7 +4222,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert tech == null;
         assert getCellName() != null;
         assert getVersion() > 0;
-        
+
         CellRevision cellRevision = backup != null ? backup.cellRevision : null;
         if (cellBackupFresh) {
             assert cellRevision.d == getD();
@@ -4235,7 +4235,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert cellRevision.arcs.size() == topology.getNumArcs();
             assert cellRevision.exports.size() == exports.length;
         }
-        
+
         // check exports
         for (int portIndex = 0; portIndex < exports.length; portIndex++) {
             Export e = exports[portIndex];
@@ -4253,7 +4253,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert e.getId() == cellId.getPortId(chronIndex);
             assert e == exports[e.getPortIndex()];
         }
-        
+
         // check arcs
         if (topology != null) {
             topology.check();
@@ -4265,7 +4265,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 }
             }
         }
-       
+
         // check nodes
         NodeInst prevNi = null;
         int[] usages = new int[cellId.numUsagesIn()];
@@ -4295,23 +4295,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert ni.getD().nodeId == nodeId;
             assert ni == nodes.get(ni.getNodeIndex());
         }
-        
+
         // check node usages
         for (int i = 0; i < cellUsages.length; i++)
             assert cellUsages[i] == usages[i];
         for (int i = cellUsages.length; i < usages.length; i++)
             assert usages[i] == 0;
-        
+
         // check group pointers
         assert cellGroup.containsCell(this);
-        
+
         // check bounds and RTree
         if (boundsDirty == BOUNDS_CORRECT) {
             assert computeBounds() == cellBounds;
             assert boundsDirty == BOUNDS_CORRECT;
         }
     }
-    
+
     /**
      * Method to tell whether an ElectricObject exists in this Cell.
 	 * Used when saving and restoring highlighting to ensure that the object still

@@ -750,7 +750,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		private String font;
 		private int color;
 		private int bold, italic, underline;
-		private int code;
+		private TextDescriptor.Code code;
 		private int units;
 		private int show;
 	}
@@ -1023,6 +1023,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				{
 					ElectricObject eobj = dt.getElectricObject();
 					Variable.Key descKey = dt.getVariableKey();
+					if (mcp.code != null)
+						eobj.updateVarCode(descKey, mcp.code);
 					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
 
 					boolean tdChanged = false;
@@ -1075,12 +1077,6 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						int [] colorIndices = EGraphics.getColorIndices();
 				        int newColorIndex = colorIndices[mcp.color-1];
 						td.setColorIndex(newColorIndex);
-						tdChanged = true;
-					}
-					if (mcp.code > 0)
-					{
-						TextDescriptor.Code cd = TextDescriptor.Code.getByCBits(mcp.code);
-						td.setCode(cd);
 						tdChanged = true;
 					}
 					if (mcp.units > 0)
@@ -1278,7 +1274,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	{//GEN-HEADEREND:event_applyActionPerformed
 		// change nodes
 		MultiChangeParameters mcp = new MultiChangeParameters();
-		mcp.anchor = mcp.code = mcp.units = mcp.show = -1;
+		mcp.anchor = mcp.units = mcp.show = -1;
+        mcp.code = null;
 		if (nodeList.size() > 0)
 		{
 			mcp.xPos = findComponentStringValue(ChangeType.CHANGEXPOS);
@@ -1338,7 +1335,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			mcp.color = findComboBoxIndex(ChangeType.CHANGECOLOR);
 			Object cdValue = findComboBoxValue(ChangeType.CHANGECODE);
 			if (cdValue instanceof TextDescriptor.Code)
-				mcp.code = ((TextDescriptor.Code)cdValue).getCFlags();
+				mcp.code = (TextDescriptor.Code)cdValue;
 			Object unValue = findComboBoxValue(ChangeType.CHANGEUNITS);
 			if (unValue instanceof TextDescriptor.Unit)
 				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();

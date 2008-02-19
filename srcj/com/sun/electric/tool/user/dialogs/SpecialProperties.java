@@ -357,17 +357,21 @@ public class SpecialProperties
 				// update length/width on transistor
 				Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
                 TextDescriptor wtd = oldWid != null ? oldWid.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(Schematics.ATTR_WIDTH, newValue, wtd.withCode(newCode));
+                Object newV = Variable.withCode(newValue, newCode);
+				ni.newVar(Schematics.ATTR_WIDTH, newV, wtd.withCode(newCode));
 
 				Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
                 TextDescriptor ltd = oldLen != null ? oldLen.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(Schematics.ATTR_LENGTH, newValueLen, ltd.withCode(newCodeLen));
+                Object newVL = Variable.withCode(newValueLen, newCodeLen);
+				ni.newVar(Schematics.ATTR_LENGTH, newVL, ltd.withCode(newCodeLen));
 			} else
 			{
 				// update single value on a node
 				Variable oldVar = ni.getVar(key);
                 TextDescriptor td = oldVar != null ? oldVar.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
-				ni.newVar(key, newValue, td);
+                TextDescriptor.Code newCode = oldVar != null ? oldVar.getCode() : TextDescriptor.Code.NONE;
+                Object newV = Variable.withCode(newValue, newCode);
+				ni.newVar(key, newV, td);
 				// set techbits if requested
 				if (newBits != -1)
 					ni.setTechSpecific(newBits);

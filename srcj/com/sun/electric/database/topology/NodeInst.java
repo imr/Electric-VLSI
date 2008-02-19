@@ -81,6 +81,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
@@ -1419,7 +1420,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
     /**
-     * Method to return the Variable on this NideInst with the given key
+     * Method to return the Variable on this NodeInst with the given key
      * that is a parameter.  If the variable is not found on this object, it
      * is also searched for on the default var owner.
      * @param key the key of the variable
@@ -1435,30 +1436,30 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return defOwner.getParameter(key);
     }
 
-//    /**
-//     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
-//     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-//     * @return an Iterator over all Variables on this NodeInst.
-//     */
-//    public Iterator<Variable> getParameters() {
-//        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
-//        // get all parameters on this object
-//        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-//            Variable v = it.next();
-//            if (!isParam(v.getKey())) continue;
-//            keysToVars.put(v.getKey(), v);
-//        }
-//        // look on default var owner
-//        Cell defOwner = getVarDefaultOwner();
-//        if (defOwner != null) {
-//            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
-//                Variable v = it.next();
-//                if (keysToVars.get(v.getKey()) == null)
-//                    keysToVars.put(v.getKey(), v);
-//            }
-//        }
-//        return keysToVars.values().iterator();
-//    }
+    /**
+     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
+     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+     * @return an Iterator over all Variables on this NodeInst.
+     */
+    public Iterator<Variable> getParameters() {
+        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
+        // get all parameters on this object
+        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
+            Variable v = it.next();
+            if (!isParam(v.getKey())) continue;
+            keysToVars.put(v.getKey(), v);
+        }
+        // look on default var owner
+        Cell defOwner = getVarDefaultOwner();
+        if (defOwner != null) {
+            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
+                Variable v = it.next();
+                if (keysToVars.get(v.getKey()) == null)
+                    keysToVars.put(v.getKey(), v);
+            }
+        }
+        return keysToVars.values().iterator();
+    }
 
 	/**
 	 * Method to return true if the Variable on this NodeInst with given key is a parameter.
@@ -2676,10 +2677,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == NODE_NAME) {
+            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }
         if (varKey == NODE_PROTO) {
+            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withProtoDescriptor(td), true);
             return;
         }

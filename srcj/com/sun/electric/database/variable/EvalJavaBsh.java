@@ -175,21 +175,14 @@ public class EvalJavaBsh
 
     /** Evaluate Object as if it were a String containing java code.
      * Note that this function may call itself recursively.
-     * @param obj the object to be evaluated (toString() must apply).
+     * @param ce the CodeExpression to be evaluates.
      * @param context the context in which the object will be evaluated.
      * @param info used to pass additional info from Electric to the interpreter, if needed.
      * @return the evaluated object.
      */
-    protected synchronized Object evalVarObject(Object obj, VarContext context, Object info) throws VarContext.EvalException {
-        if (obj instanceof String[]) {
-            // concatentate arrayed strings
-            String[] strArray = (String[])obj;
-            StringBuffer buf = new StringBuffer();
-            for (int i=0; i<strArray.length; i++) buf.append(strArray[i]);
-            obj = buf;
-        }
-
-        String expr = replace(obj.toString());  // change @var calls to P(var)
+    protected synchronized Object evalVarObject(CodeExpression ce, VarContext context, Object info) throws VarContext.EvalException {
+        assert ce.isJava();
+        String expr = replace(ce.getExpr());  // change @var calls to P(var)
         if (context == null) context = VarContext.globalContext;
         // check for infinite recursion
         for (int i=0; i<contextStack.size(); i++) {

@@ -2640,7 +2640,9 @@ public class CircuitChangeJobs
 
 			// set the attribute
             TextDescriptor td = TextDescriptor.getPortInstTextDescriptor().withDisplay(false);
-			pi.newVar(attrKey, inheritAddress(pp, var), td);
+            Object value = inheritAddress(pp, var);
+            value = Variable.withCode(value, TextDescriptor.Code.NONE);
+			pi.newVar(attrKey, value, td);
 		}
 	}
 
@@ -2716,7 +2718,7 @@ public class CircuitChangeJobs
 			else
 				mtd.setRelSize(s.getSize());
         }
-        mtd.setCode(posVar.getCode());
+//        mtd.setCode(posVar.getCode());
         ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
 	}
 

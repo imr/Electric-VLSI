@@ -47,7 +47,7 @@ import java.util.regex.Matcher;
  * Java code.  In particular, the syntax @foo expands to P("foo")
  * which looks for the variable called foo in the NodeInst of this
  * VarContext.
- * 
+ *
  * <p>A VarContext can also be used to recover the names of instances
  * along a hierarchical path.  LE.getdrive() is an example of a
  * method that does this.
@@ -70,17 +70,17 @@ import java.util.regex.Matcher;
  * <p>On the other hand, if the object may need to be evaluated because
  * it is type Java, TCL, or Lisp, then such evaluation may be hierarchy
  * dependent and one must call context.evalVar(variable).
- * 
+ *
  * <p>Extra variables defined in the interpreter:<br>
- * 
+ *
  * <p>Extra functions defined in the interpreter:<br>
  *
  * P(name) -- get the value of variable name on the most recent NodeInst.
  * Defaults to Integer(0).<br>
  * <p>
- * Methods PD(), PAR(), and PARD() are either gone or deprecated (RKao). Here 
+ * Methods PD(), PAR(), and PARD() are either gone or deprecated (RKao). Here
  * are what they used to do:<br>
- * 
+ *
  * PD(name, default) -- get the value of variable name on the most recent
  * NodeInst.  Defaults to default.<br>
  * PAR(name) -- get the value of variable name on any NodeInst, starting
@@ -95,27 +95,27 @@ public class VarContext implements Serializable
     private static class ValueCache {
 
         private static class EvalPair {
-            private final Variable var;
+            private final CodeExpression ce;
             private final Object info;
-            public EvalPair(Variable v, Object i) {var=v;  info=i;}
-            public int hashCode() {return var.hashCode() * info.hashCode();}
+            public EvalPair(CodeExpression e, Object i) {ce=e;  info=i;}
+            public int hashCode() {return ce.hashCode() * info.hashCode();}
             public boolean equals(Object o) {
                 if (!(o instanceof EvalPair)) return false;
                 EvalPair ep = (EvalPair) o;
-                return var==ep.var && info==ep.info;
+                return ce==ep.ce && info==ep.info;
             }
         }
 
         private final Map<EvalPair,Object> cache = new HashMap<EvalPair,Object>();
 
-        public synchronized boolean containsKey(Variable var, Object info) {
-            return cache.containsKey(new EvalPair(var, info));
+        public synchronized boolean containsKey(CodeExpression ce, Object info) {
+            return cache.containsKey(new EvalPair(ce, info));
         }
-        public synchronized Object get(Variable var, Object info) {
-            return cache.get(new EvalPair(var, info));
+        public synchronized Object get(CodeExpression ce, Object info) {
+            return cache.get(new EvalPair(ce, info));
         }
-        public synchronized void put(Variable var, Object info, Object value) {
-            EvalPair key = new EvalPair(var, info);
+        public synchronized void put(CodeExpression ce, Object info, Object value) {
+            EvalPair key = new EvalPair(ce, info);
             LayoutLib.error(cache.containsKey(key), "duplicate keys in ValueCache?");
             cache.put(key, value);
         }
@@ -188,17 +188,17 @@ public class VarContext implements Serializable
         return true;
     }
 
-    private Object fastJavaVarEval(Variable var, Object info) throws EvalException {
+    private Object fastJavaVarEval(CodeExpression ce, Object info) throws EvalException {
         // Avoid re-computing the value if it is already in the cache.
         // Use "contains" because the value might be null.
         synchronized(this) {
-            if (cache!=null && cache.containsKey(var, info)) {
-                return cache.get(var, info);
+            if (cache!=null && cache.containsKey(ce, info)) {
+                return cache.get(ce, info);
             }
         }
         // Avoid calling bean shell if value is just a reference to another
         // variable.
-        String expr = var.getObject().toString();
+        String expr = ce.getExpr();
         String varNm = getSimpleVarRef(expr);
         if (varNm==null) return FAST_EVAL_FAILED;
         return lookupVarEval("ATTR_"+varNm);
@@ -390,7 +390,7 @@ public class VarContext implements Serializable
     }
 
     /** Same as evalVar, except an additional object 'info'
-     * is passed to the evaluator.  'info' may be or contain 
+     * is passed to the evaluator.  'info' may be or contain
      * additional information necessary for proper evaluation.
      * Usually info is the NodeInst on which the var exists.
      * @return the evlauated Object. Returns null if the variable
@@ -418,7 +418,7 @@ public class VarContext implements Serializable
         // If cause is null, this was an error in electric (var lookup etc)
         if (e.getCause() == null) return;
         // otherwise, this is an error in the bean shell
-        String msg = "Exception caught evaluating "+var.getTextDescriptor().getCode()+
+        String msg = "Exception caught evaluating "+var.getCode()+
                 " var "+var.getTrueName()+(e.getMessage() == null ? "" : ": "+e.getMessage());
         if (info instanceof Nodable) {
             NodeInst ni = ((Nodable)info).getNodeInst();
@@ -442,41 +442,41 @@ public class VarContext implements Serializable
      * @throws EvalException an exception whose message contains the reason evaluation failed
      */
     public Object evalVarRecurse(Variable var, Object info) throws EvalException {
-        TextDescriptor.Code code = var.getCode();
-        Object value = var.getObject();
+        CodeExpression ce = var.getCodeExpression();
+        if (ce == null)
+            return ifNotNumberTryToConvertToNumber(var.getObject());
+        switch (ce.getCode()) {
+            case JAVA:
+                Object value = fastJavaVarEval(ce, info);
 
-        if (code == TextDescriptor.Code.JAVA) {
-            value = fastJavaVarEval(var, info);
+                // testing code
+                //checkFastValue(value, var, info);
 
-            // testing code
-            //checkFastValue(value, var, info);
-
-            if (value==FAST_EVAL_FAILED) {
-                // OK, I give up.  Call the darn bean shell.
-                value = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(),
-                                                              this, info);
-                synchronized(this) {
-                    if (cache!=null) cache.put(var, info, value);
+                if (value==FAST_EVAL_FAILED) {
+                    // OK, I give up.  Call the darn bean shell.
+                    value = EvalJavaBsh.evalJavaBsh.evalVarObject(ce, this, info);
+                    synchronized(this) {
+                        if (cache!=null) cache.put(ce, info, value);
+                    }
                 }
-            }
+                return ifNotNumberTryToConvertToNumber(value);
+            case SPICE:
+                Object obj = evalSpice_(ce, true);
+                if (obj instanceof Number) {
+                    Number n = (Number)obj;
+                    if (n.doubleValue() < 0.001)
+                        return TextUtils.formatDoublePostFix(n.doubleValue());
+                }
+                if (obj instanceof EvalSpice.SimpleEq) {
+                    // couldn't parse, just return original
+                    return ce.getExpr();
+                }
+                return obj;
+            case TCL:
+                return ifNotNumberTryToConvertToNumber(ce.getExpr());
+            default:
+                throw new AssertionError();
         }
-        // TODO: if(code == Variable.Code.TCL) { }
-        // TODO: if(code == Variable.Code.LISP) { }
-        if (code == TextDescriptor.Code.SPICE) {
-            Object obj = evalSpice_(var, true);
-            if (obj instanceof Number) {
-                Number n = (Number)obj;
-                if (n.doubleValue() < 0.001)
-                    return TextUtils.formatDoublePostFix(n.doubleValue());
-            }
-            if (obj instanceof EvalSpice.SimpleEq) {
-                // couldn't parse, just return original
-                return var.getObject();
-            }
-            return obj;
-        }
-        value = ifNotNumberTryToConvertToNumber(value);
-        return value;
     }
 
     /**
@@ -488,27 +488,16 @@ public class VarContext implements Serializable
     public Object evalSpice(Variable var, boolean recurse) {
         //if (var.getCode() != TextDescriptor.Code.SPICE) return null;
         try {
-            return evalSpice_(var, recurse);
+            return evalSpice_(var.getCodeExpression(), recurse);
         } catch (EvalException e) {
             return null;
         }
     }
 
     /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("P\\(\"(\\w+)\"\\)");
-    private Object evalSpice_(Variable var, boolean recurse) throws EvalException {
-        Object obj = var.getObject();
-        if (obj instanceof String[]) {
-            // concatentate arrayed strings
-            String[] strArray = (String[])obj;
-            StringBuffer buf = new StringBuffer();
-            for (int i=0; i<strArray.length; i++) {
-                buf.append(strArray[i]);
-                buf.append(" ");
-            }
-            obj = buf;
-        }
-
-        String expr = EvalJavaBsh.replace(obj.toString());
+    private Object evalSpice_(CodeExpression ce, boolean recurse) throws EvalException {
+        assert ce.getCode() == TextDescriptor.Code.SPICE;
+        String expr = EvalJavaBsh.replace(ce.getExpr());
         Matcher pMat = pPat.matcher(expr);
         StringBuffer sb = new StringBuffer();
         while (pMat.find()) {
@@ -538,7 +527,7 @@ public class VarContext implements Serializable
     }
 
     /**
-     * Lookup Variable one level up the hierarchy and evaluate. 
+     * Lookup Variable one level up the hierarchy and evaluate.
      * Looks for the var on the most recent NodeInst on the
      * hierarchy stack.  If not found, look for the default
      * Variable of the same name on the NodeProto.
@@ -561,7 +550,7 @@ public class VarContext implements Serializable
         Variable var = ni.getParameter(key);
 
 //        Variable var = ni.getVar(key);
-//        
+//
 //        if (var == null && ni.isCellInstance()) {
 //            // look up default var on prototype
 //			Cell cell = (Cell)ni.getProto();
@@ -587,7 +576,7 @@ public class VarContext implements Serializable
     // lookupVarFarEval() violates this assumption. Luckily we believe that no
     // designs use PAR() or lookupVarFarEval(). I'm commenting out this method to
     // guarantee that Topology.java always works correctly. RKao
-//    /** 
+//    /**
 //     * Lookup Variable on all levels up the hierarchy and evaluate.
 //     * Looks for var on all NodeInsts on the stack, starting
 //     * with the most recent.  At each NodeInst, if no Variable
@@ -599,7 +588,7 @@ public class VarContext implements Serializable
 //    {
 //		Variable.Key key = Variable.findKey(name);
 //		if (key == null) throwNotFound(name);
-//        
+//
 //		// look up the entire stack, starting with end
 //		VarContext scan = this;
 //        Object value = null;
@@ -607,7 +596,7 @@ public class VarContext implements Serializable
 //		{
 //            Nodable sni = scan.getNodable();
 //            if (sni == null) break;
-//            
+//
 //            Variable var = sni.getVar(key);             // look up var
 //			if (var != null) {
 //				value = scan.pop().evalVarRecurse(var, sni);
@@ -628,10 +617,10 @@ public class VarContext implements Serializable
 //			scan = scan.prev;
 //		}
 //        if (value == null) throwNotFound(name);
-//        
+//
 //        value = ifNotNumberTryToConvertToNumber(value);
 //        if (value == null) throwNotFound(name);
-//        
+//
 //        return value;
 //	}
 

@@ -716,7 +716,6 @@ public class Sue extends Input
 
                     Variable.Key varKey = Variable.newKey(sueVarName);
                     MutableTextDescriptor mtd = MutableTextDescriptor.getNodeTextDescriptor();
-                    if (makeJava) mtd.setCode(TextDescriptor.Code.JAVA);
                     varIndex++;
                     mtd.setOff(xpos, ypos);
                     if (halveSize) {
@@ -728,7 +727,12 @@ public class Sue extends Input
                         mtd.setParam(true);
                         mtd.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
                     }
-					ni.newVar(varKey, newObject, TextDescriptor.newTextDescriptor(mtd));
+                    Object instObject = newObject;
+                    if (makeJava) {
+                        mtd.setCode(TextDescriptor.Code.JAVA);
+                        instObject = Variable.withCode(newObject, TextDescriptor.Code.JAVA);
+                    }
+					ni.newVar(varKey, instObject, TextDescriptor.newTextDescriptor(mtd));
                         
                     // make sure the parameter exists in the cell definition
                     NodeProto np = ni.getProto();
@@ -740,6 +744,7 @@ public class Sue extends Input
                         	// really wanted: VTDISPLAYNAMEVALINH
                             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
                             	withCode(TextDescriptor.Code.SPICE).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                            newObject = Variable.withCode(newObject, TextDescriptor.Code.SPICE);
                             cnp.newVar(varKey, newObject, td);
                         }
                     }

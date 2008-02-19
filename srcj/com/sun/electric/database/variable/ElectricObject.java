@@ -177,6 +177,24 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	/**
+	 * Returns the Code on this ElectricObject selected by variable key.
+	 * This key may be a key of variable on this ElectricObject or one of the
+	 * special keys:
+	 * <code>NodeInst.NODE_NAME</code>
+	 * <code>NodeInst.NODE_PROTO</code>
+	 * <code>ArcInst.ARC_NAME</code>
+	 * <code>Export.EXPORT_NAME</code>
+	 * The Code gives information for displaying the Variable.
+	 * @param varKey key of variable or special key.
+	 * @return the Code on this ElectricObject.
+	 */
+	public TextDescriptor.Code getCode(Variable.Key varKey)
+	{
+		Variable var = getVar(varKey);
+        return var != null ? var.getCode() : TextDescriptor.Code.NONE;
+	}
+
+	/**
 	 * Method to return true if the Variable on this ElectricObject with given key is a parameter.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
@@ -209,7 +227,7 @@ public abstract class ElectricObject implements Serializable
 		}
 		return numVars;
 	}
-	
+
 	/**
 	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
@@ -638,6 +656,10 @@ public abstract class ElectricObject implements Serializable
 		else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
 		else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
 		else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
+        TextDescriptor.Code code = TextDescriptor.Code.NONE;
+        if (value instanceof CodeExpression)
+            code = ((CodeExpression)value).getCode();
+        td = td.withCode(code);
 		return newVar(key, value, td);
 	}
 
@@ -691,6 +713,38 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	/**
+	 * Method to update a text Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed;
+     * the displayable attributes and Code are preserved.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateVarText(Variable.Key key, String text)
+	{
+		Variable var = getVar(key);
+		if (var == null) return newVar(key, text);
+		addVar(var.withText(text));
+		return getVar(key);
+	}
+
+	/**
+	 * Method to update a Variable on this ElectricObject with the specified code.
+	 * If the Variable already exists, only the code is changed;
+     * the displayable attributes and value are preserved.
+	 * @param key the key of the Variable.
+	 * @param code the new code of the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateVarCode(Variable.Key key, TextDescriptor.Code code)
+	{
+		Variable var = getVar(key);
+		if (var == null) return null;
+        addVar(var.withCode(code));
+		return getVar(key);
+	}
+
+	/**
 	 * Updates the TextDescriptor on this ElectricObject selected by varKey.
 	 * The varKey may be a key of variable on this ElectricObject or one of the
 	 * special keys:
@@ -735,6 +789,7 @@ public abstract class ElectricObject implements Serializable
 	{
 		TextDescriptor td = other.getTextDescriptor(varKey);
 		if (td == null) return;
+        td = td.withCode(getCode(varKey));
 		setTextDescriptor(varKey, td);
 	}
 
@@ -793,19 +848,8 @@ public abstract class ElectricObject implements Serializable
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-		Iterator<Variable> it = other.getVariables();
-		synchronized(this) {
-			while(it.hasNext())
-			{
-				Variable var = it.next();
-				Variable newVar = this.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
-				if (newVar != null)
-				{
- //                   newVar.copyFlags(var);
- //                   newVar.setTextDescriptor();
-				}
-			}
-		}
+		for (Iterator<Variable> it = other.getVariables(); it.hasNext(); )
+            addVar(it.next());
 	}
 
 	private static class ArrayName
@@ -1221,7 +1265,7 @@ public abstract class ElectricObject implements Serializable
 
    /** Returns TechPool of this database */
     public TechPool getTechPool() { return getDatabase().getTechPool(); }
-    
+
     /**
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
@@ -1230,16 +1274,16 @@ public abstract class ElectricObject implements Serializable
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) { return getTechPool().getTech(techId); }
-    
+
     /** Returns Artwork technology in this database */
     public Artwork getArtwork() { return getTechPool().getArtwork(); }
-    
+
     /** Returns Generic technology in this database */
     public Generic getGeneric() { return getTechPool().getGeneric(); }
-    
+
     /** Returns Schematics technology in this database */
     public Schematics getSchematics() { return getTechPool().getSchematics(); }
-    
+
 	/**
 	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
@@ -1350,7 +1394,7 @@ public abstract class ElectricObject implements Serializable
 ////            }
 //        }
 //    }
-    
+
 	/**
 	 * Method to check invariants in this ElectricObject.
 	 * @exception AssertionError if invariants are not valid

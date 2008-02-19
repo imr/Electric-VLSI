@@ -171,6 +171,8 @@ public class Variable implements Serializable
 	 */
 	public static synchronized Key newKey(String name)
 	{
+		Key key = varKeys.get(name);
+        if (key != null) return key;
 		return newKey(name, null);
 	}
 
@@ -258,37 +260,39 @@ public class Variable implements Serializable
     private final static byte CELL = 4;
     private final static byte EXPORT = 6;
     private final static byte STRING = 8;
-    private final static byte DOUBLE = 10;
-    private final static byte FLOAT = 12;
-    private final static byte LONG = 14;
-    private final static byte INTEGER = 16;
-    private final static byte SHORT = 18;
-    private final static byte BYTE = 20;
-    private final static byte BOOLEAN = 22;
-    private final static byte EPOINT = 24;
-    private final static byte TOOL = 26;
-    private final static byte TECHNOLOGY = 28;
-    private final static byte PRIM_NODE = 30;
-    private final static byte ARC_PROTO = 32;
+    private final static byte CODE = 10;
+    private final static byte DOUBLE = 12;
+    private final static byte FLOAT = 14;
+    private final static byte LONG = 16;
+    private final static byte INTEGER = 18;
+    private final static byte SHORT = 20;
+    private final static byte BYTE = 22;
+    private final static byte BOOLEAN = 24;
+    private final static byte EPOINT = 26;
+    private final static byte TOOL = 28;
+    private final static byte TECHNOLOGY = 30;
+    private final static byte PRIM_NODE = 32;
+    private final static byte ARC_PROTO = 34;
     /** Valid type of value. */
     private static final HashMap<Class,Byte> validClasses = new HashMap<Class,Byte>();
     static {
-        validClasses.put(String.class, new Byte(STRING));
-        validClasses.put(Double.class, new Byte(DOUBLE));
-        validClasses.put(Float.class, new Byte(FLOAT));
-        validClasses.put(Long.class, new Byte(LONG));
-        validClasses.put(Integer.class, new Byte(INTEGER));
-        validClasses.put(Short.class, new Byte(SHORT));
-        validClasses.put(Byte.class, new Byte(BYTE));
-        validClasses.put(Boolean.class, new Byte(BOOLEAN));
-        validClasses.put(EPoint.class, new Byte(EPOINT));
-        validClasses.put(Tool.class, new Byte(TOOL));
-        validClasses.put(TechId.class, new Byte(TECHNOLOGY));
-        validClasses.put(PrimitiveNodeId.class, new Byte(PRIM_NODE));
-        validClasses.put(ArcProtoId.class, new Byte(ARC_PROTO));
-        validClasses.put(LibId.class, new Byte(LIBRARY));
-        validClasses.put(CellId.class, new Byte(CELL));
-        validClasses.put(ExportId.class, new Byte(EXPORT));
+        validClasses.put(LibId.class, Byte.valueOf(LIBRARY));
+        validClasses.put(CellId.class, Byte.valueOf(CELL));
+        validClasses.put(ExportId.class, Byte.valueOf(EXPORT));
+        validClasses.put(String.class, Byte.valueOf(STRING));
+        validClasses.put(CodeExpression.class, Byte.valueOf(CODE));
+        validClasses.put(Double.class, Byte.valueOf(DOUBLE));
+        validClasses.put(Float.class, Byte.valueOf(FLOAT));
+        validClasses.put(Long.class, Byte.valueOf(LONG));
+        validClasses.put(Integer.class, Byte.valueOf(INTEGER));
+        validClasses.put(Short.class, Byte.valueOf(SHORT));
+        validClasses.put(Byte.class, Byte.valueOf(BYTE));
+        validClasses.put(Boolean.class, Byte.valueOf(BOOLEAN));
+        validClasses.put(EPoint.class, Byte.valueOf(EPOINT));
+        validClasses.put(Tool.class, Byte.valueOf(TOOL));
+        validClasses.put(TechId.class, Byte.valueOf(TECHNOLOGY));
+        validClasses.put(PrimitiveNodeId.class, Byte.valueOf(PRIM_NODE));
+        validClasses.put(ArcProtoId.class, Byte.valueOf(ARC_PROTO));
     }
 
 
@@ -324,13 +328,14 @@ public class Variable implements Serializable
     public static Variable newInstance(Variable.Key key, Object value, TextDescriptor descriptor) {
         if (key == null) throw new NullPointerException("key");
         if (descriptor == null) throw new NullPointerException("descriptor");
-        if (descriptor.isCode()) {
-            if (!(value instanceof String || value instanceof String[]))
-                value = value.toString();
-        }
         byte type = getObjectType(value);
         if ((type & ARRAY) != 0)
             value = ((Object[])value).clone();
+        if (value instanceof CodeExpression) {
+            assert ((CodeExpression)value).getCode() == descriptor.getCode();
+        } else {
+            assert !descriptor.isCode();
+        }
 		return new Variable(key, value, descriptor, type);
     }
 
@@ -344,9 +349,27 @@ public class Variable implements Serializable
      * @return Object of specified Code derived from specified Object
      */
     public static Object withCode(Object value, TextDescriptor.Code code) {
-        return value;
+        if (code == TextDescriptor.Code.NONE)
+            return value instanceof CodeExpression ? value.toString() : value;
+
+        if (value instanceof CodeExpression && ((CodeExpression)value).getCode() == code)
+            return value;
+
+        String expr;
+        if (value instanceof Object[]) {
+            StringBuilder sb = new StringBuilder();
+            for (Object o: (Object[])value) {
+                if (o == null) continue;
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(o.toString());
+            }
+            expr = sb.toString();
+        } else {
+            expr = value.toString();
+        }
+        return CodeExpression.valueOf(expr, code);
     }
-    
+
     /**
 	 * Checks invariant of this Variable.
      * @param paramAllowed true if paramerer flag is allowed on this Variable
@@ -357,8 +380,11 @@ public class Variable implements Serializable
         assert value != null;
         assert type == getObjectType(value);
         assert descriptor != null;
-        if (descriptor.isCode())
-            assert value instanceof String || value instanceof String[];
+        if (value instanceof CodeExpression) {
+            assert ((CodeExpression)value).getCode() == descriptor.getCode();
+        } else {
+            assert !descriptor.isCode();
+        }
         if (!paramAllowed)
             assert !descriptor.isParam();
 	}
@@ -399,6 +425,7 @@ public class Variable implements Serializable
         if ((type & ARRAY) == 0)
             return value != null;
         type = (byte)(type & ~ARRAY);
+        if (type == CODE) return false;
         Object[] valueArr = (Object[])value;
         if (type >= STRING && type <= EPOINT) {
             for (Object o: valueArr) {
@@ -474,6 +501,9 @@ public class Variable implements Serializable
                 break;
             case STRING:
                 writer.writeString((String)obj);
+                break;
+            case CODE:
+                ((CodeExpression)obj).write(writer);
                 break;
             case DOUBLE:
                 writer.writeDouble(((Double)obj).doubleValue());
@@ -559,6 +589,7 @@ public class Variable implements Serializable
                 case TECHNOLOGY: array = new TechId[length]; break;
                 case PRIM_NODE: array = new PrimitiveNodeId[length]; break;
                 case ARC_PROTO: array = new ArcProtoId[length]; break;
+                case CODE:
                 default: throw new IOException("type");
 
             }
@@ -584,6 +615,8 @@ public class Variable implements Serializable
                 return (ExportId)reader.readPortProtoId();
             case STRING:
                 return reader.readString();
+            case CODE:
+                return CodeExpression.read(reader);
             case DOUBLE:
                 return Double.valueOf(reader.readDouble());
             case FLOAT:
@@ -626,7 +659,39 @@ public class Variable implements Serializable
                 Arrays.equals((Object[])this.value, (Object[])value) &&
                 this.value.getClass().getComponentType() == value.getClass().getComponentType())
             return this;
-        return newInstance(this.key, value, this.descriptor);
+        TextDescriptor.Code code = TextDescriptor.Code.NONE;
+        if (value instanceof CodeExpression)
+            code = ((CodeExpression)value).getCode();
+        return newInstance(this.key, value, this.descriptor.withCode(code));
+    }
+
+	/**
+	 * Returns Variable which differs from this Variable by text value.
+     * If this Variable is Code Varibale its Code type is preserved
+	 * @param text text value of new Variable.
+     * @return Variable which differs from this Variable by value.
+	 * @throws NullPointerException if value is null.
+     * @throws IllegalArgumentException if value has invalid type
+	 */
+    public Variable withText(String text) {
+        if (value instanceof CodeExpression) {
+            CodeExpression ce = (CodeExpression)value;
+            if (ce.getExpr().equals(text)) return this;
+            return new Variable(this.key, CodeExpression.valueOf(text, ce.getCode()), this.descriptor, this.type);
+        } else {
+            if (value.equals(text)) return this;
+            return new Variable(this.key, text, this.descriptor, STRING);
+        }
+    }
+
+    /**
+     * Returns Variable which differs from this Variable by code.
+     * @param code code of new Variable.
+     * @return Variable which differs from this Variable by code
+     */
+    public Variable withCode(TextDescriptor.Code code) {
+        if (getCode() == code) return this;
+        return withObject(withCode(value, code));
     }
 
 	/**
@@ -1030,14 +1095,9 @@ public class Variable implements Serializable
      * @return Variable which differs from this Variable by TextDescriptor.
 	 */
 	public Variable withTextDescriptor(TextDescriptor descriptor) {
+        assert descriptor.getCode() == getCode();
         if (this.descriptor == descriptor) return this;
-        Object value = this.value;
-        byte type = this.type;
-        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
-            value = value.toString();
-            type = STRING;
-        }
-        return new Variable(this.key, value, descriptor, type);
+        return new Variable(this.key, this.value, descriptor, this.type);
     }
 
 	/**
@@ -1060,34 +1120,33 @@ public class Variable implements Serializable
      * @return CodeExprssion of this Variable or null
      */
     public CodeExpression getCodeExpression() {
-        return isCode() ? CodeExpression.valueOf(value.toString(), getCode()) : null;
+        return value instanceof CodeExpression ? (CodeExpression)value : null;
     }
 
     /**
      * Determine what code type this variable has, if any
      * @return the code type
      */
-    public TextDescriptor.Code getCode() { return descriptor.getCode(); }
-
-    /**
-     * Returns Variable which differs from this Variable by code.
-     * @param code code of new Variable.
-     * @return Variable which differs from this Variable by code
-     */
-    public Variable withCode(TextDescriptor.Code code) { return withTextDescriptor(getTextDescriptor().withCode(code)); }
+    public TextDescriptor.Code getCode() {
+        CodeExpression ce = getCodeExpression();
+        return ce != null ? ce.getCode() : TextDescriptor.Code.NONE;
+    }
 
 	/**
 	 * Method to return true if this Variable is Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 * @return true if this Variable is Java.
 	 */
-	public boolean isJava() { return descriptor.isJava(); }
+	public boolean isJava() {
+        CodeExpression ce = getCodeExpression();
+        return ce != null && ce.isJava();
+    }
 
 	/**
 	 * Method to tell whether this Variable is any code.
 	 * @return true if this Variable is any code.
 	 */
-	public boolean isCode() { return descriptor.isCode(); }
+	public boolean isCode() { return value instanceof CodeExpression; }
 
     /**
      * Method to return if this is Variable is a User Attribute.

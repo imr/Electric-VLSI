@@ -99,7 +99,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	/*private*/ static final int VTUNITSTIME =                    7;		/* 1:   units: time */
 
 	/*private*/ static final int VTOFFMAX = (1 << VTOFFMASKWID) - 1;	/* 0: Maximal value of unshifted VTXOFF and VTYOFF */
-    
+
 	/** Semantic bits - those bits which are meaningful in non-displayable text descriptors. */
     static long VTSEMANTIC = VTISPARAMETER | VTINTERIOR | VTINHERIT | VTUNITS;
 
@@ -117,7 +117,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /** Displayable variable which is temporary hidden */   HIDDEN,
         /** Displayable variable which is shown */              SHOWN;
     };
-    
+
     /**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
 	 * The Position describes the "anchor point" of the text,
@@ -380,7 +380,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /** The minimu size of text (in grid units). */	public static final double TXTMINQGRID  = 0.25;
 		/** The maximum size of text (in grid units). */	public static final double TXTMAXQGRID  = 127.75;
         /** Default font size. */                           private static final int DEFAULT_FONT_SIZE = 14;
-		/*private*/ static final int TXTQGRIDSH =          6;		
+		/*private*/ static final int TXTQGRIDSH =          6;
 
 		private final boolean absolute;
 		private final double size;
@@ -701,7 +701,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		/** Indicator that code is in Lisp. */	SPICE("Spice", VSPICE),
 		/** Indicator that code is in TCL. */	TCL("TCL (not avail.)", VTCL),
 		/** Indicator that this is not code. */	NONE("Not Code", 0);
-        
+
         private final String name;
         private final int cFlags;
         private static final Code[] allCodes = Code.class.getEnumConstants();
@@ -744,7 +744,7 @@ abstract class AbstractTextDescriptor implements Serializable
                 default: return NONE;
             }
         }
-        
+
 		/**
 		 * Method to get a Code constant by its ordinal number.
 		 * @param ordinal the ordinal number of this Code constant ( as returned by ordinal()
@@ -780,13 +780,13 @@ abstract class AbstractTextDescriptor implements Serializable
 			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
-        
+
         private long swap(long value)
         {
             int v0 = (int)value;
             return (value >>> 32) | ((long)v0 << 32);
         }
-        
+
 		/**
 		 * Creates new TextDescriptor for this purpose.
 		 * @return new TextDescripor.
@@ -798,11 +798,11 @@ abstract class AbstractTextDescriptor implements Serializable
             String fontName = cacheFont.getString();
             if (oldFontName != null && bits == oldBits && color == oldColor && fontName.equals(oldFontName))
                 return display ? tdT : tdF;
-            
+
             oldBits = bits;
             oldColor = color;
             oldFontName = fontName;
-            
+
             int face = 0;
             if (fontName.length() > 0)
             {
@@ -843,7 +843,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	/** preferences for all descriptors */	private static final Pref.Group prefs = Pref.groupForPackage(AbstractTextDescriptor.class);
 
     AbstractTextDescriptor() {}
-    
+
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */
@@ -969,18 +969,18 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @return the second word of the bits in the TextDescriptor.
 	 */
 	public int lowLevelGet1() { return (int)(lowLevelGet() >> 32); }
-    
+
     private int getField(long mask, int shift) { return (int)((lowLevelGet() & mask) >> shift); }
-    
+
     private boolean isFlag(long mask) { return (lowLevelGet() & mask) != 0; }
-    
-  
+
+
 	/**
 	 * Method to return mode how this TextDescriptor is displayable.
 	 * @return Display mode how this TextDescriptor is displayable.
 	 */
 	public abstract Display getDisplay();
-    
+
 	/**
 	 * Method to return true if this TextDescriptor is displayable.
 	 * @return true if this TextDescriptor is displayable.
@@ -988,7 +988,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	public boolean isDisplay() {
         return getDisplay() == Display.SHOWN;
     }
-    
+
 	/**
 	 * Method to return the text position of the TextDescriptor.
 	 * The text position describes the "anchor point" of the text,
@@ -1088,7 +1088,7 @@ abstract class AbstractTextDescriptor implements Serializable
         int size = (int)getTrueSize(wnd);
         if (size <= 0) size = 1;
         if (size < minimalTextSize) return null;
-        
+
         if (isItalic()) fontStyle |= Font.ITALIC;
         if (isBold()) fontStyle |= Font.BOLD;
         int fontIndex = getFace();
@@ -1224,7 +1224,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @return the color index of the TextDescriptor.
 	 */
 	public abstract int getColorIndex();
-    
+
     /**
      * Return code type of the TextDescriptor.
      * @return code tyoe
@@ -1232,26 +1232,8 @@ abstract class AbstractTextDescriptor implements Serializable
     public abstract Code getCode();
 
 	/**
-	 * Method to return true if this TextDescriptor is Java.
-	 * Variables with Java TexDescriptor contain Java code that is evaluated in order to produce a value.
-	 * @return true if this TextDescriptor is Java.
-	 */
-	public boolean isJava() { return getCode() == Code.JAVA; }
-
-	/**
 	 * Method to tell whether this TextDescriptor is any code.
 	 * @return true if this TextDescriptor is any code.
 	 */
 	public boolean isCode() { return getCode() != Code.NONE; }
-
-    /**
-     * Return variable flags in C Electric
-     * @return variable flags in C Electric
-     */
-    public int getCFlags()
-    {
-        int flags = getCode().getCFlags();
-        if (isDisplay()) flags |= VDISPLAY;
-        return flags;
-    }
 }

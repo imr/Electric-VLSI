@@ -4,7 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
-IMP: (2/18/08, DN) Move group collecting from JELIB to JelibParser.
+IMP/MAN: (2/19/08, JKG) Attributes dialog becomes parameters dialog.
+
+IMP/MAN: (2/19/08, JKG) Added "Edit|Logical Effort|Add LE Attribute to Selected Export" command.
+
+IMP: (2/19/08, DN) Spice netlister automatically detects spice cell parameters.
+
+IMP: (2/19/08, DN) Code variables in database has value of type CodeExpression.
 
 IMP: (2/17/08, DN) Size in ImmutableNodeInst matches the size written currently to JELIB. 
 

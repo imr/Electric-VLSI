@@ -61,6 +61,7 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -297,7 +298,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				locked.setEnabled(false);
 				locked.setSelected(false);
 				see.setEnabled(false);
-				attributesButton.setEnabled(false);
+                editParameters.setEnabled(false);
 				colorAndPattern.setEnabled(false);
 
 				shownNode = null;
@@ -392,7 +393,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         busMembers.setEnabled(true);
 		listPane.setEnabled(true);
 		locked.setEnabled(true);
-		attributesButton.setEnabled(true);
+        editParameters.setEnabled(false);
+        if (ni.isCellInstance()) editParameters.setEnabled(true);
 		colorAndPattern.setEnabled(ni.getProto().getTechnology() == Artwork.tech());
 
 		// grab all attributes and parameters
@@ -884,7 +886,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_DIODE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_DIODE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -893,7 +895,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_RESISTANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_RESISTANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -902,7 +904,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_CAPACITANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_CAPACITANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -911,7 +913,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_INDUCTANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_INDUCTANCE, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -920,7 +922,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_FUNCTION, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_FUNCTION, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -929,7 +931,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (!currentTextField.equals(initialTextField))
 				{
-					Variable var = ni.updateVar(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
                     if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -1023,7 +1025,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                         if (w == 0)
                         {
                             // set width to whatever text is there
-                            width = currentXSize;
+                            width = Variable.withCode(currentXSize, ni.getCode(Schematics.ATTR_WIDTH));
                         } else
                         {
                             width = new Double(w);
@@ -1033,7 +1035,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                         if (l == 0)
                         {
                             // set length to whatever text is there
-                            length = currentYSize;
+                            length = Variable.withCode(currentYSize, ni.getCode(Schematics.ATTR_LENGTH));
                         } else
                         {
                             length = new Double(l);
@@ -1117,7 +1119,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -1157,20 +1159,19 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         moreStuffBottom = new javax.swing.JPanel();
         locked = new javax.swing.JCheckBox();
         see = new javax.swing.JButton();
-        attributesButton = new javax.swing.JButton();
         colorAndPattern = new javax.swing.JButton();
+        editParameters = new javax.swing.JButton();
         listPane = new javax.swing.JScrollPane();
         type = new javax.swing.JTextField();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
-
         setTitle("Node Properties");
-        setName("");
+        setName(""); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("Type:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1195,7 +1196,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 cancelActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
@@ -1208,7 +1208,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 okActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
@@ -1230,7 +1229,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(xsizeLabel, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -1247,7 +1245,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(ysizeLabel, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -1264,7 +1261,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel6, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
@@ -1281,7 +1277,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel7, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
@@ -1322,7 +1317,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 moreActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -1335,7 +1329,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 applyActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
@@ -1389,7 +1382,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         moreStuffTop.add(textFieldLabel, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -1406,7 +1398,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         moreStuffTop.add(popupLabel, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -1423,7 +1414,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 portsActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -1431,13 +1421,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         moreStuffTop.add(ports, gridBagConstraints);
 
         selection.add(attributes);
-        attributes.setText("Attributes:");
+        attributes.setText("Parameters:");
         attributes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributesActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -1453,7 +1442,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 busMembersActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -1486,25 +1474,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 seeActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(see, gridBagConstraints);
-
-        attributesButton.setText("Attributes");
-        attributesButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                attributesButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        moreStuffBottom.add(attributesButton, gridBagConstraints);
 
         colorAndPattern.setText("Color and Pattern...");
         colorAndPattern.addActionListener(new java.awt.event.ActionListener() {
@@ -1512,12 +1486,19 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                 colorAndPatternActionPerformed(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(colorAndPattern, gridBagConstraints);
+
+        editParameters.setText("Edit Parameters");
+        editParameters.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editParametersActionPerformed(evt);
+            }
+        });
+        moreStuffBottom.add(editParameters, new java.awt.GridBagConstraints());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1538,7 +1519,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -1559,11 +1539,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	{//GEN-HEADEREND:event_colorAndPatternActionPerformed
 		ArtworkLook.showArtworkLookDialog();
 	}//GEN-LAST:event_colorAndPatternActionPerformed
-
-	private void attributesButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesButtonActionPerformed
-	{//GEN-HEADEREND:event_attributesButtonActionPerformed
-		Attributes.showDialog();
-	}//GEN-LAST:event_attributesButtonActionPerformed
 
 	private void moreActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moreActionPerformed
 	{//GEN-HEADEREND:event_moreActionPerformed
@@ -1696,14 +1671,27 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         super.closeDialog();
 	}//GEN-LAST:event_closeDialog
 
+    private void editParametersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editParametersActionPerformed
+        if (shownNode == null) return;
+        if (!shownNode.isCellInstance()) return;
+        Cell.CellGroup group = ((Cell)shownNode.getProto()).getCellGroup();
+        for (Iterator<Cell> it = group.getCells(); it.hasNext(); ) {
+            Cell c = it.next();
+            if (c.isIcon()) {
+                WindowFrame.createEditWindow(c);
+                Attributes.showDialog();                
+            }
+        }
+    }//GEN-LAST:event_editParametersActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton apply;
     private javax.swing.JRadioButton attributes;
-    private javax.swing.JButton attributesButton;
     private javax.swing.JRadioButton busMembers;
     private javax.swing.JButton cancel;
     private javax.swing.JButton colorAndPattern;
     private javax.swing.JCheckBox easyToSelect;
+    private javax.swing.JButton editParameters;
     private javax.swing.JRadioButton expanded;
     private javax.swing.ButtonGroup expansion;
     private javax.swing.JCheckBox invisibleOutsideCell;

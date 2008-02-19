@@ -183,6 +183,9 @@ public class TextAttributesPanel extends JPanel
                 show.setSelectedIndex(0);
             } else {
                 show.setSelectedItem(initialDispPos);
+                if (!td.isParam()) {
+                    show.setEnabled(false);
+                }
             }
         } else {
             populateShowComboBox(false);
@@ -228,6 +231,18 @@ public class TextAttributesPanel extends JPanel
     }
 
     /**
+     * Method to modify a variable value to match the Code settings in this panel.
+     * @param value the input value
+     * @return the value with code in this panel.
+     */
+    public Object withPanelCode(Object value)
+    {
+        // change the code type
+        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
+        return Variable.withCode(value, newCode);
+    }
+
+    /**
      * Apply any changes the user has made through the Panel.
      * @return true if any changes committed to database, false otherwise
      */
@@ -257,7 +272,7 @@ public class TextAttributesPanel extends JPanel
         new ChangeText(
                 owner,
                 varKey,
-                newCode.getCFlags(),
+                newCode,
                 newUnit.getIndex(),
                 newDispIndex
         );
@@ -285,14 +300,14 @@ public class TextAttributesPanel extends JPanel
 
         private ElectricObject owner;
         private Variable.Key varKey;
-        private int code;
+        private TextDescriptor.Code code;
         private int unit;
         private int dispPos;
 
         private ChangeText(
                 ElectricObject owner,
                 Variable.Key varKey,
-                int code,
+                TextDescriptor.Code code,
                 int unit,
                 int dispPos)
         {
@@ -306,17 +321,16 @@ public class TextAttributesPanel extends JPanel
         }
 
         public boolean doIt() throws JobException {
+            // change the code type
+            owner.updateVarCode(varKey, code);
+            
 			TextDescriptor td = owner.getTextDescriptor(varKey);
 			if (td == null) return false;
-			Variable var = owner.getVar(varKey);
-
-            // change the code type
-            if (var != null) {
-                td = td.withCode(TextDescriptor.Code.getByCBits(code));
-            }
+            
             // change the units
             td = td.withUnit(TextDescriptor.Unit.getUnitAt(unit));
             // change the show style
+			Variable var = owner.getVar(varKey);
             if (dispPos < 0) {
                 // var should not be null
                 if (var != null) td = td.withDisplay(false);

@@ -216,11 +216,11 @@ public class EditMenu {
 
             SEPARATOR,
 
-        // mnemonic keys available:   C  FG IJK M  PQR TUVWXYZ
+        // mnemonic keys available: A C  FG IJK M  QR TUVWXYZ
             new EMenu("Propert_ies",
                 new EMenuItem("_Object Properties...", 'I') { public void run() {
                     getInfoCommand(false); }},
-                new EMenuItem("_Attribute Properties...") { public void run() {
+                new EMenuItem("_Parameters Properties...") { public void run() {
                     Attributes.showDialog(); }},
                 SEPARATOR,
                 new EMenuItem("_See All Attributes on Node") { public void run() {
