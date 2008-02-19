@@ -1432,8 +1432,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 if (Job.getDebug())
                     System.out.println("Can't find extra technology: " + urlXml.getFile());
             }
-            Technology existingT = Technology.findTechnology(t.techName);
-            if (Technology.findTechnology(t.techName) != null)
+            else if (Technology.findTechnology(t.techName) != null)
             {
                 // name is being used.
                 throw new Exception("Technology with the same name exists: " + t.techName);
