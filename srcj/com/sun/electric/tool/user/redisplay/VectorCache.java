@@ -890,7 +890,6 @@ public class VectorCache {
             if (!visibleCells.get(cellIndex)) continue;
             while (cellIndex >= cachedCells.size()) cachedCells.add(null);
             VectorCellGroup vcg = cachedCells.get(cellIndex);
-            boolean exportsPossiblyChanged = false;
             boolean changedVis = false;
             if (vcg == null) {
                 vcg = new VectorCellGroup(cellId);
@@ -951,9 +950,9 @@ public class VectorCache {
                         }
                     }
                 }
-                if (changedVis)
-                    changedVisibility.add(cellId);
             }
+            if (changedVis)
+                changedVisibility.add(cellId);
         }
         return changedVisibility;
     }
