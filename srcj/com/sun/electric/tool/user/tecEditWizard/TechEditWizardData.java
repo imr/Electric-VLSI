@@ -1870,7 +1870,7 @@ public class TechEditWizardData
 		pw.println("    </spiceHeader>");
 
 		// write the component menu layout
-		int ts = 16;
+		int ts = 5;
 		pw.println();
 		pw.println("<!--  PALETTE  -->");
 		pw.println();
@@ -1888,10 +1888,11 @@ public class TechEditWizardData
 			if (i != 1)
 			{
 				pw.println("        <menuBox>");
-				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-Con\" function=\"CONTACT\">");
+                String name = "Metal-" + h + "-Metal-" + i + "-Con";
+                pw.println("            <menuNodeInst protoName=\"" + name + "\" function=\"CONTACT\">");
 				pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
 				pw.println("            </menuNodeInst>");
-				pw.println("            <menuNodeInst protoName=\"Metal-" + h + "-Metal-" + i + "-Con-X\" function=\"CONTACT\"/>");
+				pw.println("            <menuNodeInst protoName=\"" + name + "-X\" function=\"CONTACT\"/>");
 				pw.println("        </menuBox>");
 			} else
 			{
@@ -1907,8 +1908,8 @@ public class TechEditWizardData
 		pw.println("            <menuNode>Poly-Pin</menuNode>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con\" function=\"CONTACT\">");
-		pw.println("            </menuNodeInst>");
+		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con\" function=\"CONTACT\"/>");
+//		pw.println("            </menuNodeInst>");
 		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con-X\" function=\"CONTACT\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
@@ -1940,8 +1941,7 @@ public class TechEditWizardData
 		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1\" function=\"SUBSTRATE\">");
 		pw.println("                <menuNodeText text=\"VSS-Tie\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1-X\" function=\"SUBSTRATE\">");
-		pw.println("            </menuNodeInst>");
+		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1-X\" function=\"SUBSTRATE\"/>");
 		pw.println("        </menuBox>");
 		pw.println();
 		pw.println("        <menuBox>");
@@ -1957,8 +1957,7 @@ public class TechEditWizardData
 		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1\" function=\"WELL\">");
 		pw.println("                <menuNodeText text=\"VDD-Tie\" size=\"" + ts + "\"/>");
 		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1-X\" function=\"WELL\">");
-		pw.println("            </menuNodeInst>");
+		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1-X\" function=\"WELL\"/>");
 		pw.println("        </menuBox>");
 		pw.println("        <menuBox>");
 		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1\" function=\"CONTACT\">");

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/19/08, GVG) Wrong names in pulldown menus for new technologies created with Wizard (Bug #1580)
+
 IMP/MAN: (2/19/08, JKG) Attributes dialog becomes parameters dialog.
 
 IMP/MAN: (2/19/08, JKG) Added "Edit|Logical Effort|Add LE Attribute to Selected Export" command.
