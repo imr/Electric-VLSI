@@ -290,6 +290,14 @@ public final class CellId implements NodeProtoId, Serializable {
         return cellName.isIcon();
     }
 
+	/**
+	 * Method to determine whether this CellId is an id of an schematic Cell.
+	 * @return true if this CellId is an id of an schematic Cell.
+	 */
+    public boolean isSchematic() {
+        return cellName.isSchematic();
+    }
+
     /**
      * Returns CellUsage with this CellId as a parent cell and with given
      * CellId as a proto subcell. If CellUsage with this pair of cells was already created,

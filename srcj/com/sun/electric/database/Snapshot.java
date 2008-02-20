@@ -25,7 +25,6 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.IdManager;
@@ -95,7 +94,7 @@ public class Snapshot {
         if (Job.getDebug())
             check();
     }
-    
+
     /**
      * Creates empty snapshot.
      */
@@ -104,7 +103,7 @@ public class Snapshot {
                 new int[0], new CellId[0],
                 LibraryBackup.EMPTY_LIST, idManager.getInitialTechPool(), ERectangle.NULL_ARRAY);
     }
-    
+
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot by TechPool.
      * New TechPool must be extension of old TechPool
@@ -125,7 +124,7 @@ public class Snapshot {
                 this.cellGroups, this.groupMainSchematics,
                 this.libBackups, techPool, this.cellBounds);
     }
-   
+
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
@@ -152,7 +151,7 @@ public class Snapshot {
             }
             return this;
         }
-        
+
         // Check usages in cells
         boolean needCheckRecursion = false;
         BitSet newUsedTechs = new BitSet();
@@ -165,7 +164,7 @@ public class Snapshot {
                 newRevision = newBackup.cellRevision;
                 if (oldBackup == null || newRevision.d.groupName != oldBackup.cellRevision.d.groupName)
                     namesChanged = true;
-                
+
                 // If usages changed, check CellUsagesIn.
                 newUsedTechs.or(newRevision.techUsages);
                 cellId = newRevision.d.cellId;
@@ -191,7 +190,7 @@ public class Snapshot {
                 cellId = oldBackup.cellRevision.d.cellId;
                 namesChanged = true;
             }
-            
+
             // If some exports deleted, check CellUsagesOf
             if (oldBackup == null) continue;
             CellRevision oldRevision = oldBackup.cellRevision;
@@ -219,7 +218,7 @@ public class Snapshot {
             if (techPool.getTech(techId) == null)
                 throw new IllegalArgumentException();
         }
-        
+
         // Check names
         int[] cellGroups = this.cellGroups;
         CellId[] groupMainSchematics = this.groupMainSchematics;
@@ -237,7 +236,7 @@ public class Snapshot {
                     CellBackup cellBackup = cellBackups.get(cellIndex);
                     if (cellBackup == null) continue;
                     CellId cellId = cellBackup.cellRevision.d.cellId;
-                    if (cellId.cellName.getView() != View.SCHEMATIC) continue;
+                    if (!cellId.isSchematic()) continue;
                     int groupIndex = cellGroups[cellIndex];
                     CellId mainSchematics = groupMainSchematics[groupIndex];
                     if (mainSchematics == null || cellId.cellName.compareTo(mainSchematics.cellName) < 0)
@@ -247,7 +246,7 @@ public class Snapshot {
                     groupMainSchematics = this.groupMainSchematics;
             }
         }
-        
+
         if (cellBoundsArray == null)
             cellBoundsArray = this.cellBounds;
         Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups,
@@ -257,7 +256,7 @@ public class Snapshot {
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
     }
-    
+
     /**
      * Sets cell bounds for a cell with given CellId
      * @param cellId given CellId
@@ -276,7 +275,7 @@ public class Snapshot {
             throw new IllegalArgumentException();
         cellBounds[cellIndex] = r;
     }
-    
+
 //    private void checkUsedLibs(BitSet usedLibs) {
 //        if (usedLibs.isEmpty()) return;
 //        int usedLibsLength = usedLibs.length();
@@ -287,7 +286,7 @@ public class Snapshot {
 //                throw new IllegalArgumentException("usedLibs");
 //        }
 //    }
-    
+
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
         if (newArray == null) return oldList;
         int l;
@@ -299,7 +298,7 @@ public class Snapshot {
         }
         return new ImmutableArrayList<T>(newArray, 0, l);
     }
-    
+
 //    private static int[] copyArray(int[] newArray, int[] oldArray) {
 //        if (newArray == null) return oldArray;
 //        int l;
@@ -315,7 +314,7 @@ public class Snapshot {
 //            throw new ConcurrentModificationException();
 //        return copyArray;
 //    }
-    
+
 	/**
 	 * Returns Snapshot which differs from this Snapshot by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -332,11 +331,11 @@ public class Snapshot {
             if (libBackup == null) continue;
             maxLibIndex = Math.max(maxLibIndex, idMapper.get(libBackup.d.libId).libIndex);
         }
-        
+
         CellBackup[] cellBackupsArray = new CellBackup[maxCellIndex + 1];
         ERectangle[] cellBoundsArray = new ERectangle[maxCellIndex + 1];
         LibraryBackup[] libBackupsArray = new LibraryBackup[maxLibIndex + 1];
-        
+
         boolean cellBackupsChanged = false;
         boolean cellIdsChanged = false;
         BitSet fromGroupCellIds = new BitSet();
@@ -409,7 +408,7 @@ public class Snapshot {
             cellBackupsArray = null;
         if (!cellIdsChanged)
             cellBoundsArray = null;
-        
+
         boolean libBackupsChanged = false;
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
             LibraryBackup oldLibBackup = libBackups.get(libIndex);
@@ -421,11 +420,11 @@ public class Snapshot {
         }
         if (!libBackupsChanged)
             libBackupsArray = null;
-        
+
         if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
         return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray);
     }
-    
+
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
         if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
         if (idManager != oldSnapshot.idManager) throw new IllegalArgumentException();
@@ -443,7 +442,7 @@ public class Snapshot {
         if (changed == null) changed = Collections.emptyList();
         return changed;
     }
-    
+
     public List<CellId> getChangedCells(Snapshot oldSnapshot) {
         if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
         List<CellId> changed = null;
@@ -458,7 +457,7 @@ public class Snapshot {
         if (changed == null) changed = Collections.emptyList();
         return changed;
     }
-    
+
     public Collection<CellId> getCellsDownTop() {
         LinkedHashSet<CellId> order = new LinkedHashSet<CellId>();
         for (CellBackup cellBackup: cellBackups) {
@@ -467,11 +466,11 @@ public class Snapshot {
         }
         return order;
     }
-    
+
     private void getCellsDownTop(CellId root, LinkedHashSet<CellId> order) {
         if (order.contains(root)) return;
         CellBackup cellBackup = getCell(root);
-        CellRevision cellRevision = cellBackup.cellRevision; 
+        CellRevision cellRevision = cellBackup.cellRevision;
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
             if (cellRevision.cellUsages[i] == null) continue;
             CellUsage cu = root.getUsageIn(i);
@@ -480,27 +479,27 @@ public class Snapshot {
         boolean added = order.add(root);
         assert added;
     }
-    
+
     public CellBackup getCell(CellId cellId) {
         if (cellId.getIdManager() != idManager)
             throw new IllegalArgumentException();
         return getCell(cellId.cellIndex);
     }
-    
+
     public CellRevision getCellRevision(CellId cellId) {
         CellBackup cellBackup = getCell(cellId);
         return cellBackup != null ? cellBackup.cellRevision : null;
     }
-    
+
     public CellBackup getCell(int cellIndex) {
-        return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
+        return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null;
     }
-    
+
     public CellRevision getCellRevision(int cellIndex) {
         CellBackup cellBackup = getCell(cellIndex);
         return cellBackup != null ? cellBackup.cellRevision : null;
     }
-    
+
 //    /**
 //     * Returns group name of cell with specified CellId.
 //     * Name of cell group is a base name of main schematics cell if any.
@@ -522,7 +521,7 @@ public class Snapshot {
 //        if (cellNames.isEmpty()) return null;
 //        return makeCellGroupName(cellNames).getName();
 //    }
-    
+
     /**
      * Returns group name of group with specified CellNames.
      * Name of cell group is a base name of main schematics cell if any.
@@ -536,7 +535,7 @@ public class Snapshot {
             throw new IllegalArgumentException();
         String groupName = null;
         for (CellName cellName: cellNames) {
-            if (cellName.getView() != View.SCHEMATIC) continue;
+            if (!cellName.isSchematic()) continue;
             String name = cellName.getName();
             if (groupName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0)
                 groupName = name;
@@ -552,16 +551,16 @@ public class Snapshot {
         assert groupName != null;
         return CellName.parseName(groupName + "{sch}");
     }
-    
+
     public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
-    
+
     public ERectangle getCellBounds(int cellIndex) {
-        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
+        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null;
     }
-    
+
     /** Returns TechPool of this Snapshot */
     public TechPool getTechPool() { return techPool; }
-    
+
    /**
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
@@ -570,7 +569,7 @@ public class Snapshot {
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) { return techPool.getTech(techId); }
-    
+
     /** Returns Artwork technology in this database */
     public Artwork getArtwork() {
         return techPool.getArtwork();
@@ -587,37 +586,37 @@ public class Snapshot {
     }
 
 //    private Technology getTech(int techIndex) {
-//        return techIndex < technologies.size() ? technologies.get(techIndex) : null; 
+//        return techIndex < technologies.size() ? technologies.get(techIndex) : null;
 //    }
-    
+
     public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
-    
+
     private LibraryBackup getLib(int libIndex) {
-        return libIndex < libBackups.size() ? libBackups.get(libIndex) : null; 
+        return libIndex < libBackups.size() ? libBackups.get(libIndex) : null;
     }
-    
+
 //    private boolean equals(Snapshot that) {
 //        return this.cellBackups.equals(that.cellBackups) &&
 //                this.libBackups.equals(that.libBackups) &&
 //                Arrays.equals(this.cellGroups, that.cellGroups) &&
 //                this.cellBounds.equals(that.cellBounds);
 //    }
-    
+
     public void writeDiffs(IdWriter writer, Snapshot oldSnapshot) throws IOException {
         assert oldSnapshot.cellBoundsDefined();
         assert cellBoundsDefined();
         writer.writeDiffs();
         writer.writeInt(snapshotId);
-        
+
         writer.writeBoolean(tool != null);
         if (tool != null)
             writer.writeTool(tool);
-        
+
         boolean technologiesChanged = techPool != oldSnapshot.techPool;
         writer.writeBoolean(technologiesChanged);
         if (technologiesChanged)
             techPool.write(writer);
-        
+
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.writeBoolean(libsChanged);
         if (libsChanged) {
@@ -661,7 +660,7 @@ public class Snapshot {
             }
         }
         writer.writeInt(Integer.MAX_VALUE);
-        
+
         if (boundsChanged) {
             for (int i = 0; i < cellBackups.size(); i++) {
                 CellBackup newBackup = getCell(i);
@@ -676,7 +675,7 @@ public class Snapshot {
             }
             writer.writeInt(Integer.MAX_VALUE);
         }
-        
+
         boolean cellGroupsChanged = cellGroups != oldSnapshot.cellGroups;
         writer.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
@@ -689,7 +688,7 @@ public class Snapshot {
             }
         }
     }
-    
+
     public static Snapshot readSnapshot(IdReader reader, Snapshot oldSnapshot) throws IOException {
         assert reader.idManager == oldSnapshot.idManager;
         assert oldSnapshot.cellBoundsDefined();
@@ -697,12 +696,12 @@ public class Snapshot {
         int snapshotId = reader.readInt();
         boolean hasTool = reader.readBoolean();
         Tool tool = hasTool ? reader.readTool() : null;
-        
+
         TechPool techPool = oldSnapshot.techPool;
         boolean technologiesChanged = reader.readBoolean();
         if (technologiesChanged)
             techPool = TechPool.read(reader);
-        
+
         ImmutableArrayList<LibraryBackup> libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.readBoolean();
         if (libsChanged) {
@@ -760,7 +759,7 @@ public class Snapshot {
             }
         }
         ImmutableArrayList<CellBackup> cellBackups = new ImmutableArrayList<CellBackup>(cellBackupsArray);
-        
+
         if (boundsChanged) {
             for (;;) {
                 int cellIndex = reader.readInt();
@@ -769,7 +768,7 @@ public class Snapshot {
                 cellBoundsArray[cellIndex] = newBounds;
             }
         }
-        
+
         int[] cellGroups = oldSnapshot.cellGroups;
         CellId[] groupMainSchematics = oldSnapshot.groupMainSchematics;
         boolean cellGroupsChanged = reader.readBoolean();
@@ -798,7 +797,7 @@ public class Snapshot {
                 cellGroups, groupMainSchematics,
                 libBackups, techPool, cellBoundsArray);
     }
-    
+
     /**
      * Checks if all cell bounds are defined.
      * @return true if all cell bounds are defined.
@@ -811,7 +810,7 @@ public class Snapshot {
         }
         return true;
     }
-    
+
     /**
 	 * Checks invariant of this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
@@ -845,7 +844,7 @@ public class Snapshot {
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup == null) continue;
             CellId cellId = cellBackup.cellRevision.d.cellId;
-            if (cellId.cellName.getView() != View.SCHEMATIC) continue;
+            if (!cellId.isSchematic()) continue;
             int groupIndex = cellGroups[cellId.cellIndex];
             int cmp = cellId.cellName.compareTo(groupMainSchematics[groupIndex].cellName);
             assert cmp >= 0;
@@ -888,7 +887,7 @@ public class Snapshot {
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Checking snapshot invariants took: " + (endTime - startTime) + " msec");
     }
-    
+
     /*
      * Checks name consistency of arrays intended for Sbapshot construction.
      * @throws IllegalArgumentException on invariant violation.
@@ -921,7 +920,7 @@ public class Snapshot {
             }
         }
         assert protoNameToGroupName.size() == libBackups.size() && cellNames.size() == libBackups.size() && groupNameToGroupIndex.size() == libBackups.size();
-        
+
         assert cellBackups.size() == cellGroups.length;
         Arrays.fill(cellGroups, -1);
         int groupCount = 0;
@@ -956,7 +955,7 @@ public class Snapshot {
                 throw new IllegalArgumentException("duplicate CellName in library");
         }
     }
-    
+
     private static void checkRecursion(ImmutableArrayList<CellBackup> cellBackups) {
         BitSet visited = new BitSet();
         BitSet checked = new BitSet();
@@ -966,7 +965,7 @@ public class Snapshot {
         }
         assert visited.equals(checked);
     }
-    
+
     private static void checkRecursion(CellId cellId, ImmutableArrayList<CellBackup> cellBackups, BitSet visited, BitSet checked) {
         int cellIndex = cellId.cellIndex;
         if (checked.get(cellIndex)) return;

@@ -47,7 +47,7 @@ public class TransistorSearch
 {
     public static void countNumberOfTransistors(Cell cell)
     {
-        if (cell.getView() != View.SCHEMATIC)
+        if (!cell.isSchematic())
         {
             System.out.println("Counting number of transistors only valid for Schematics cells");
             return;

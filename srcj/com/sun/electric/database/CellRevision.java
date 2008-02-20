@@ -156,7 +156,7 @@ public class CellRevision {
             cellUsages = uc.getCellUsages(this.cellUsages);
         }
         if (cellId.isIcon() && cellUsages.length != 0)
-            throw new IllegalArgumentException("Icon contains subcell instances");
+            throw new IllegalArgumentException("Icon contains subcells");
 
         if (nodes != this.nodes && !nodes.isEmpty()) {
             boolean hasCellCenter = false;
@@ -452,8 +452,6 @@ public class CellRevision {
         }
         for (int i = 0; i < checkCellUsages.length; i++)
             assert checkCellUsages[i] == 0;
-        if (d.cellId.isIcon())
-            assert cellUsages.length == 0;
         BitSet arcIds = new BitSet();
         ImmutableArcInst prevA = null;
         for (ImmutableArcInst a: arcs) {
@@ -510,9 +508,13 @@ public class CellRevision {
         if (deletedExports.isEmpty())
             assert deletedExports == EMPTY_BITSET;
         assert techUsages.equals(checkTechUsages);
-        for (CellUsageInfo cui: cellUsages) {
-            if (cui != null)
-                cui.check();
+        
+        if (d.cellId.isIcon())
+            assert cellUsages.length == 0;
+        for (int i = 0; i < cellUsages.length; i++) {
+            CellUsageInfo cui = cellUsages[i];
+            if (cui == null) continue;
+            cui.check(d.cellId.getUsageIn(i));
         }
     }
 
@@ -566,12 +568,16 @@ public class CellRevision {
             if (subCellRevision.definedExportsLength < usedExportsLength || subCellRevision.deletedExports.intersects(usedExports))
                 throw new IllegalArgumentException("exportUsages");
         }
+        
+        private boolean isIcon() { return usedAttributes != null; }
 
-        private void check() {
+        private void check(CellUsage u) {
             assert instCount >= 0;
             assert usedExportsLength == usedExports.length();
             if (usedExportsLength == 0)
                 assert usedExports == EMPTY_BITSET;
+            assert isIcon() == u.protoId.isIcon();
+            assert !u.parentId.isIcon();
         }
     }
 

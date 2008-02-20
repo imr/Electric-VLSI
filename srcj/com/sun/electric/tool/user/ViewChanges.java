@@ -190,6 +190,20 @@ public class ViewChanges
 	{
 		// stop if already this way
 		if (cell.getView() == newView) return;
+        
+        // database can't change icon/schematic views
+        if (cell.isIcon() || cell.isSchematic()) {
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot change view of icon/schematic",
+					"Change cell view failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (newView == View.ICON || newView == View.SCHEMATIC) {
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot change " + cell.getView() + " to icon/schematic " + newView,
+					"Change cell view failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
 		// warn if there is already a cell with that view
 		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
@@ -1892,7 +1906,7 @@ public class ViewChanges
                 // if this is a layer node, check the layer functions
                 PrimitiveNode.Function type = oldni.getFunction();
 
-                if (oldni.getParent().getView() == View.SCHEMATIC && type.isTransistor())
+                if (oldni.getParent().isSchematic() && type.isTransistor())
                 {
                     for (Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
                     {
@@ -1984,7 +1998,7 @@ public class ViewChanges
                     PrimitiveNode pOldNp = (PrimitiveNode)ni.getProto();
                     newXSize = pNewNp.getDefWidth() + ni.getXSize() - pOldNp.getDefWidth();
                     newYSize = pNewNp.getDefHeight() + ni.getYSize() - pOldNp.getDefHeight();
-                    if (no.getParent().getView() == View.SCHEMATIC && pNewNp.getFunction().isTransistor())
+                    if (no.getParent().isSchematic() && pNewNp.getFunction().isTransistor())
                     {
                         Variable width = no.getVar(Variable.newKey("ATTR_width"));
                         SizeOffset offset = newNp.getProtoSizeOffset();
@@ -2016,7 +2030,7 @@ public class ViewChanges
                     return null;
                 }
                 newNi.copyStateBits(ni);
-                if (no.getParent().getView() != View.SCHEMATIC)
+                if (!no.getParent().isSchematic())
                     newNi.copyVarsFrom(ni);
 
                 // re-export any ports on the node

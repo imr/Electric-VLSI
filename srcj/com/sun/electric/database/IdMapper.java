@@ -85,8 +85,12 @@ public class IdMapper implements Serializable {
      * @param newCellId new CellId.
      */
     public void moveCell(CellBackup cellBackup, CellId newCellId) {
-            CellId oldCellId = cellBackup.cellRevision.d.cellId;
-            cellIdMap.put(oldCellId, newCellId);
+        CellId oldCellId = cellBackup.cellRevision.d.cellId;
+        if (oldCellId.cellName.getView() != newCellId.cellName.getView()) {
+            if (oldCellId.isIcon() || oldCellId.isSchematic() || newCellId.isIcon() || newCellId.isSchematic())
+                throw new IllegalArgumentException("Can't rename " + oldCellId + " to " + newCellId);
+        }
+        cellIdMap.put(oldCellId, newCellId);
     }
     
     /**

@@ -45,18 +45,18 @@ import org.junit.Test;
  * Unit test of ImmutableElectricObject
  */
 public class ImmutableElectricObjectTest {
-    
+
     private final ImmutableElectricObject obj0 = new ImmutableElectricObjectImpl(Variable.NULL_ARRAY);
     private final TextDescriptor td = TextDescriptor.EMPTY;
     private final String foo = "foo";
-    private final Variable A_F = Variable.newInstance(Variable.newKey("A"), Boolean.FALSE, td);
-    private final Variable A_foo = Variable.newInstance(Variable.newKey("A"), foo, td);
+    private final Variable ATTR_A_F = Variable.newInstance(Variable.newKey("ATTR_A"), Boolean.FALSE, td.withParam(true));
+    private final Variable ATTR_A_foo = Variable.newInstance(Variable.newKey("ATTR_A"), foo, td);
     private final Variable B_F = Variable.newInstance(Variable.newKey("B"), Boolean.FALSE, td);
     private final Variable a_foo = Variable.newInstance(Variable.newKey("a"), foo, td.withParam(true));
     private final ImmutableElectricObject obj_a = new ImmutableElectricObjectImpl(new Variable[] { a_foo });
-    private final Variable[] Aa = new Variable[] { A_F, a_foo };
+    private final Variable[] Aa = new Variable[] { ATTR_A_F, a_foo  };
     private final ImmutableElectricObject obj_Aa = new ImmutableElectricObjectImpl(Aa);
-    
+
     public static junit.framework.Test suite() {
         return new junit.framework.JUnit4TestAdapter(ImmutableElectricObjectTest.class);
     }
@@ -68,15 +68,15 @@ public class ImmutableElectricObjectTest {
         System.out.println("arrayWithVariable");
 
         assertSame(obj_a.getVars(), obj_a.arrayWithVariable(a_foo));
-        
-        Variable[] vars2 = obj_a.arrayWithVariable(A_F);
+
+        Variable[] vars2 = obj_a.arrayWithVariable(ATTR_A_F);
         assertEquals(2, vars2.length);
-        assertSame(A_F, vars2[0]);
+        assertSame(ATTR_A_F, vars2[0]);
         assertSame(a_foo, vars2[1]);
-        
+
         Variable[] vars3 = obj_Aa.arrayWithVariable(B_F);
         assertEquals(3, vars3.length);
-        assertSame(A_F, vars3[0]);
+        assertSame(ATTR_A_F, vars3[0]);
         assertSame(B_F, vars3[1]);
         assertSame(a_foo, vars3[2]);
     }
@@ -86,11 +86,11 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testArrayWithoutVariable() {
         System.out.println("arrayWithoutVariable");
-        
-        assertSame(obj_a.getVars(), obj_a.arrayWithoutVariable(Variable.newKey("A")));
+
+        assertSame(obj_a.getVars(), obj_a.arrayWithoutVariable(Variable.newKey("ATTR_A")));
         assertSame(Variable.NULL_ARRAY, obj_a.arrayWithoutVariable(Variable.newKey("a")));
-        
-        Variable[] vars1 = obj_Aa.arrayWithoutVariable(Variable.newKey("A"));
+
+        Variable[] vars1 = obj_Aa.arrayWithoutVariable(Variable.newKey("ATTR_A"));
         assertEquals(1, vars1.length);
         assertSame(a_foo, vars1[0]);
     }
@@ -100,9 +100,9 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testArrayWithRenamedIds() {
         System.out.println("arrayWithRenamedIds");
-        
+
         IdMapper idMapper = new IdMapper();
-        
+
         assertSame(obj_Aa.getVars(), obj_Aa.arrayWithRenamedIds(idMapper));
     }
 
@@ -111,9 +111,9 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testGetVar() {
         System.out.println("getVar");
-        
+
         assertNull( obj_Aa.getVar(Variable.newKey("B")) );
-        assertSame( A_F, obj_Aa.getVar(Variable.newKey("A")));
+        assertSame( ATTR_A_F, obj_Aa.getVar(Variable.newKey("ATTR_A")));
         assertSame( a_foo, obj_Aa.getVar(Variable.newKey("a")));
     }
 
@@ -122,12 +122,12 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testGetVariables() {
         System.out.println("getVariables");
-        
+
         Iterator<Variable> it0 = obj0.getVariables();
         assertTrue( !it0.hasNext() );
-        
+
         Iterator<Variable> it = obj_Aa.getVariables();
-        assertSame( A_F, it.next() );
+        assertSame( ATTR_A_F, it.next()  );
         assertSame( a_foo, it.next() );
         assertTrue( !it.hasNext() );
     }
@@ -137,9 +137,9 @@ public class ImmutableElectricObjectTest {
      */
     @Test(expected= UnsupportedOperationException.class) public void testGetVariablesRemove() {
         System.out.println("getVariablesRemove");
-        
+
         Iterator<Variable> it = obj_Aa.getVariables();
-        assertSame( A_F, it.next() );
+        assertSame( ATTR_A_F, it.next()  );
         it.remove();
     }
 
@@ -148,10 +148,10 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testToVariableArray() {
         System.out.println("toVariableArray");
- 
+
         Variable[] vars2 = obj_Aa.toVariableArray();
         assertNotSame(Aa, vars2);
-        
+
         assertEquals(2, vars2.length);
         assertSame(Aa[0], vars2[0]);
         assertSame(Aa[1], vars2[1]);
@@ -173,7 +173,7 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testGetVars() {
         System.out.println("getVars");
-        
+
         assertSame(Aa, obj_Aa.getVars());
     }
 
@@ -182,8 +182,8 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testSearchVar() {
         System.out.println("searchVar");
-        
-        assertEquals(0, obj_Aa.searchVar(Variable.newKey("A")));
+
+        assertEquals(0, obj_Aa.searchVar(Variable.newKey("ATTR_A")));
         assertEquals(1, obj_Aa.searchVar(Variable.newKey("a")));
         assertEquals(-1, obj_Aa.searchVar(Variable.newKey("0")));
         assertEquals(-2, obj_Aa.searchVar(Variable.newKey("B")));
@@ -195,7 +195,7 @@ public class ImmutableElectricObjectTest {
      */
     @Test(expected= NullPointerException.class) public void testSearchVarNull() {
         System.out.println("searchVar");
-        
+
         obj0.searchVar(null);
     }
 
@@ -204,7 +204,7 @@ public class ImmutableElectricObjectTest {
      */
     @Test public void testReadWrite() {
         System.out.println("readWrite");
-        
+
         try {
             IdManager idManager = new IdManager();
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -216,10 +216,10 @@ public class ImmutableElectricObjectTest {
             writer.flush();
             byte[] bytes = byteStream.toByteArray();
             byteStream.reset();
-            
+
             // First update of mirrorIdManager
             IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
-            
+
             // Check mirrorIdManager after first update
             assertEquals( false, reader.readBoolean() );
             assertSame( 0, ImmutableElectricObject.readVars(reader).length );
@@ -230,13 +230,13 @@ public class ImmutableElectricObjectTest {
             fail(e.getMessage());
         }
     }
-    
+
     /**
      * Test of check method, of class com.sun.electric.database.ImmutableElectricObject.
      */
     @Test public void testCheck() {
         System.out.println("check");
-        
+
         obj_Aa.check(true);
     }
 
@@ -245,7 +245,7 @@ public class ImmutableElectricObjectTest {
      */
     @Test(expected=AssertionError.class) public void testCheckFailed() {
         System.out.println("checkFailed");
-        
+
         obj_Aa.check(false);
     }
 

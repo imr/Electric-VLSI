@@ -27,7 +27,7 @@ public class FlagLibraryCheckerJob extends Job {
 			Library lib = liIt.next();
 			for (Iterator<Cell> cellIt=lib.getCells(); cellIt.hasNext();) {
 				Cell cell = cellIt.next();
-				if (cell.getView()==View.SCHEMATIC) {
+				if (cell.isSchematic()) {
 					FlagAnnotations ann = new FlagAnnotations(cell);
 					if (ann!=null && ann.isAtomic()) {
 						groupsToCheck.add(cell.getCellGroup());

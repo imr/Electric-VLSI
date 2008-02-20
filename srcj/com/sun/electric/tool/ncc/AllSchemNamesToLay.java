@@ -568,11 +568,11 @@ public class AllSchemNamesToLay {
         if (rootCells.length != 2) return;
         int schNdx;
         
-        if (rootCells[0].getView()==View.SCHEMATIC && 
+        if (rootCells[0].isSchematic() && 
         	rootCells[1].getView()==View.LAYOUT) {
         	schNdx = 0;
         } else if (rootCells[0].getView()==View.LAYOUT && 
-        	       rootCells[1].getView()==View.SCHEMATIC) {
+        	       rootCells[1].isSchematic()) {
         	schNdx = 1;
         } else {
         	return;

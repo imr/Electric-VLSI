@@ -163,7 +163,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (!ni.isCellInstance()) continue;
             if (ni.getVar(ATTR_LESETTINGS) != null) {
                 Technology tech = cell.getTechnology();
-                if (cell.getView() == View.SCHEMATIC)
+                if (cell.isSchematic())
                     tech = layoutTech;
                 float su = (float)LETool.getGlobalFanout();
                 float epsilon = (float)LETool.getConvergenceEpsilon();

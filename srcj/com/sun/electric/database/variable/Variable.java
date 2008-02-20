@@ -328,6 +328,8 @@ public class Variable implements Serializable
     public static Variable newInstance(Variable.Key key, Object value, TextDescriptor descriptor) {
         if (key == null) throw new NullPointerException("key");
         if (descriptor == null) throw new NullPointerException("descriptor");
+        if (!key.isAttribute())
+            descriptor = descriptor.withParam(false);
         byte type = getObjectType(value);
         if ((type & ARRAY) != 0)
             value = ((Object[])value).clone();
@@ -385,8 +387,8 @@ public class Variable implements Serializable
         } else {
             assert !descriptor.isCode();
         }
-        if (!paramAllowed)
-            assert !descriptor.isParam();
+        if (descriptor.isParam())
+            assert paramAllowed && isAttribute();
 	}
 
     /**
@@ -1096,6 +1098,8 @@ public class Variable implements Serializable
 	 */
 	public Variable withTextDescriptor(TextDescriptor descriptor) {
         assert descriptor.getCode() == getCode();
+        if (!isAttribute())
+            descriptor = descriptor.withParam(false);
         if (this.descriptor == descriptor) return this;
         return new Variable(this.key, this.value, descriptor, this.type);
     }

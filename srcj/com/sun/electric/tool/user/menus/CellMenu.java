@@ -234,7 +234,7 @@ public class CellMenu {
     {
     	Cell cell = WindowFrame.needCurCell();
     	if (cell == null) return;
-    	if (cell.getView() != View.SCHEMATIC)
+    	if (!cell.isSchematic())
     	{
     		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Only Schematic cells can be made multi-page",
     			"Cannot make multipage design", JOptionPane.ERROR_MESSAGE);

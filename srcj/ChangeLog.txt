@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/19/08, DN) Database invariants added:
+    Cell parameters are allowed on icon and scheamtic cells only.
+    Their namez must start with "ATTR_".
+
 BUG: (2/19/08, DN) No redisplay after merging with branches/params (Bug #1579)
 FIX: In VectorCache.forceRedrawAfterChange move changedVisibility.add to proper place
 

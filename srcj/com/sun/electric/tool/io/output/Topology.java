@@ -263,7 +263,7 @@ public abstract class Topology extends Output
 			Cell cell = (Cell)no.getProto();
 			Cell schcell = cell.contentsView();
 			if (schcell == null) schcell = cell;
-			if (cell.getView() == View.SCHEMATIC && enumerateLayoutView(schcell)) {
+			if (cell.isSchematic() && enumerateLayoutView(schcell)) {
 				Cell layCell = null;
 				for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
 					Cell c = it.next();
@@ -736,7 +736,7 @@ public abstract class Topology extends Output
 					{
 						CellSignal csEnd = cni.cellSignalsSorted.get(j);
 						if (csEnd.descending != cs.descending) break;
-						if (cell.getView() == View.SCHEMATIC && csEnd.pp != cs.pp) break;
+						if (cell.isSchematic() && csEnd.pp != cs.pp) break;
 						if (csEnd.globalSignal != cs.globalSignal) break;
 						String endName = csEnd.name;
 						String ept = unIndexedName(endName);
@@ -1090,7 +1090,7 @@ public abstract class Topology extends Output
 			Cell cell = (Cell)no.getProto();
 			Cell schcell = cell.contentsView();
 			if (schcell == null) schcell = cell;
-			if (cell.getView() == View.SCHEMATIC && topology.enumerateLayoutView(schcell)) {
+			if (cell.isSchematic() && topology.enumerateLayoutView(schcell)) {
 				Cell layCell = null;
 				for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
 					Cell c = it.next();

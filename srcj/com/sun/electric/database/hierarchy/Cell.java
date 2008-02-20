@@ -3595,11 +3595,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return true if this Cell is a schematic Cell.
 	 * @return true if this Cell is a schematic Cell.
 	 */
-	public boolean isSchematic()
-	{
-		if (getView() == View.SCHEMATIC) return true;
-		return false;
-	}
+	public boolean isSchematic() { return getId().isSchematic(); }
 
     /**
      * Method to return true if this Cell is a layout Cell.

@@ -1277,13 +1277,12 @@ public class CellChangeJobs
 
 			// examine all other cells in the group
 			Cell.CellGroup group = cell.getCellGroup();
-			View thisView = cell.getView();
 			for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
 			{
 				Cell otherCell = it.next();
 				if (otherCell == cell) continue;
 				// Only when copy an schematic, we should copy the icon if entireGroup == false
-				if (!entireGroup && !(thisView == View.SCHEMATIC && otherCell.isIcon())) continue;
+				if (!entireGroup && !(cell.isSchematic() && otherCell.isIcon())) continue;
 				Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
 					newName + otherCell.getView().getAbbreviationExtension(), false);
 				if (copyCell == null)
@@ -1299,7 +1298,7 @@ public class CellChangeJobs
 			for(Cell oldCell : newCells.keySet())
 			{
 				Cell newCell = newCells.get(oldCell);
-				if (newCell.getView() != View.SCHEMATIC) continue;
+				if (!newCell.isSchematic()) continue;
 				List<NodeInst> replaceThese = new ArrayList<NodeInst>();
 				for (Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
 				{
@@ -1472,7 +1471,7 @@ public class CellChangeJobs
 					for(Iterator<Cell> it = fromCell.getCellGroup().getCells(); it.hasNext(); )
 					{
 						Cell np = it.next();
-						if (np.getView() != View.SCHEMATIC) continue;
+						if (!np.isSchematic()) continue;
 
 						// see if the cell is already there
 						if (inDestLib(np, existing) != null) continue;

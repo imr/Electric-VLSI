@@ -938,7 +938,7 @@ public class Spice extends Topology
 
                     // This checks if we are netlisting a schematic top level with
                     // swapped-in layout subcells
-                    if (pp != null && (cell.getView() == View.SCHEMATIC) && (subCni.getCell().getView() == View.LAYOUT)) {
+                    if (pp != null && cell.isSchematic() && (subCni.getCell().getView() == View.LAYOUT)) {
                         // find equivalent pp from layout to schematic
                         Network subNet = subCS.getNetwork();  // layout network name
                         boolean found = false;

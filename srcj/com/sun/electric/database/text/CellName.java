@@ -78,6 +78,12 @@ public class CellName implements Comparable<CellName>
 	public boolean isIcon() { return view == View.ICON; }
 
 	/**
+	 * Method to determine whether this CellName is a name of an schematic Cell.
+	 * @return true if this CellName is a name of an schematic Cell.
+	 */
+	public boolean isSchematic() { return view == View.SCHEMATIC; }
+    
+	/**
 	 * Method to return the version part of a parsed Cell name.
 	 * @return the version part of a parsed Cell name.
 	 */

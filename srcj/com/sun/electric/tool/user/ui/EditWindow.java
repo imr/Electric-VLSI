@@ -496,7 +496,7 @@ public class EditWindow extends JPanel
 					}
 					if (validPath)
 					{
-                        if (ni.getParent().getView() == View.SCHEMATIC) {
+                        if (ni.getParent().isSchematic()) {
                             path = "Location is " + ni.getParent() + " / " + path;
                         } else {
                             path = "Location in " + ni.getParent() + " / " + path + " is (" +

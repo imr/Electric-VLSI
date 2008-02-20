@@ -527,7 +527,7 @@ public class EDIF extends Input
 		// clean-up schematic cells with isolated pins
 		for(Cell cell : builtCells)
 		{
-			if (cell.getView() == View.SCHEMATIC)
+			if (cell.isSchematic())
 			{
 				List<NodeInst> deletePins = new ArrayList<NodeInst>();
 				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -2519,7 +2519,7 @@ public class EDIF extends Input
 			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 			{
 				Cell cell = it.next();
-				if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
+				if (cell.getName().equalsIgnoreCase(cellName) && cell.isSchematic())
 					{ proto = cell;   break; }
 			}
 			if (proto == null)
@@ -3104,7 +3104,7 @@ public class EDIF extends Input
 						for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 						{
 							Cell cell = it.next();
-							if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == View.SCHEMATIC)
+							if (cell.getName().equalsIgnoreCase(cellName) && cell.isSchematic())
 							{
 								np = cell;
 								break;

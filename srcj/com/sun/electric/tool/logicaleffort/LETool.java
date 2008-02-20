@@ -679,7 +679,7 @@ public class LETool extends Tool {
                 Cell chosencell = null;
                 for (Iterator<Cell> it = np.getLibrary().getCells(); it.hasNext(); ) {
                     Cell c = it.next();
-                    if (c.getView() != View.SCHEMATIC) continue;
+                    if (!c.isSchematic()) continue;
                     String cname = c.getName();
                     if (!cname.startsWith(type+"_X")) continue;
                     double size = 0;
@@ -948,7 +948,7 @@ public class LETool extends Tool {
         }
 
         public static Cell duplicate(Cell cell) {
-            assert(cell.getView() == View.SCHEMATIC);
+            assert cell.isSchematic();
 
             Library lib = cell.getLibrary();
             String pname = cell.getName().replaceAll("_[0-9]+$", "");

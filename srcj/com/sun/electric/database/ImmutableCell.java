@@ -135,6 +135,8 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableCell withVariable(Variable var) {
+        if (!paramsAllowed())
+            var = var.withParam(false);
         Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
 		return new ImmutableCell(this.cellId, this.groupName,
@@ -241,12 +243,21 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(true);
+        check(paramsAllowed());
         assert cellId != null;
         assert groupName.getVersion() == 0;
         assert groupName.getView() == View.SCHEMATIC;
         assert techId == null || techId.idManager == cellId.idManager;
 	}
+    
+    /**
+     * Tells if parameters are allowed on this ImmutableCell.
+     * Currently parameters are allowed only on icon and scheamtic cells.
+     * @return true if parameters are allowed on this ImmutableCell
+     */
+    public boolean paramsAllowed() {
+        return cellId.isIcon() || cellId.isSchematic();
+    }
     
     @Override
     public String toString() { return cellId.toString(); }

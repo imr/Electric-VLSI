@@ -48,7 +48,7 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
     }
 
     public static void runNccSchematicCrossProbing(Cell cell, VarContext context) {
-        if (cell.getView() != View.SCHEMATIC) {
+        if (!cell.isSchematic()) {
             System.out.println("Error: NCC for Schematic Cross-Probing must be run on a schematic");
             return;
         }
@@ -80,7 +80,7 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
         if (visitedCells.containsKey(cell)) return false;
         visitedCells.put(cell, null);
 
-        if (cell.getView() != View.SCHEMATIC) {
+        if (!cell.isSchematic()) {
             System.out.println("Why is there layout cell "+cell.describe(false)+" inside of a schematic?");
             return false;
         }
