@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/20/08, SMR) Pad frame generator adds net names that show the core and export.
+
 BUG: (2/20/08, SMR) Wiring may crash.
 FIX: In Router.getArcToUse(), check for busses only when both ends are known.
 

@@ -144,21 +144,24 @@ public class PadGenerator
 	private List<Object> orderedCommands;			// list of orderedCommands to do
 	private boolean coreAllOnOneSide = false;
 
-	private static class ArrayAlign {
+	private static class ArrayAlign
+	{
 		int lineno;
 		String cellname;
 		String inport;
 		String outport;
 	}
 
-	private static class PadExports {
+	private static class PadExports
+	{
 		int lineno;
 		String cellname;
 		String padname;
 		String corename;
 	}
 
-	private static class PlacePad {
+	private static class PlacePad
+	{
 		int lineno;
 		String cellname;
 		String exportsname;
@@ -170,20 +173,24 @@ public class PadGenerator
 		Double locy;
 	}
 
-	private static class Rotation {
+	private static class Rotation
+	{
 		int angle;
 	}
 
-	private static class ReverseDirection {
+	private static class ReverseDirection
+	{
 	}
 
-	private static class PortAssociate {
+	private static class PortAssociate
+	{
 		boolean export;
 		String portname;
 		String assocname;
 	}
 
-	private static class ExportAssociate {
+	private static class ExportAssociate
+	{
 		String padportName;
 		String exportName;
 	}
@@ -206,12 +213,14 @@ public class PadGenerator
 		String lineRead;
 
 		File inputFile = new File(fileName);
-		if (inputFile == null || !inputFile.canRead()) {
+		if (inputFile == null || !inputFile.canRead())
+		{
 			System.out.println("Error reading file "+fileName);
 			return null;
 		}
 
-		try {
+		try
+		{
 			FileReader readFile = new FileReader(inputFile);
 			BufferedReader readLine = new BufferedReader(readFile);
 
@@ -219,36 +228,48 @@ public class PadGenerator
 			while (lineRead != null)
 			{
 				StringTokenizer str = new StringTokenizer(lineRead, " \t");
-				if (str.hasMoreTokens()) {
+				if (str.hasMoreTokens())
+				{
 					String keyWord = str.nextToken();
 
-					if (keyWord.charAt(0) != ';') {
-						do {
-							if (keyWord.equals("celllibrary")) {
+					if (keyWord.charAt(0) != ';')
+					{
+						do
+						{
+							if (keyWord.equals("celllibrary"))
+							{
 								if (!processCellLibrary(str)) return null;
 								continue;
-							} else if (keyWord.equals("views")) {
+							} else if (keyWord.equals("views"))
+							{
 								if (!processViews(str)) return null;
 								continue;
-							} else if (keyWord.equals("cell")) {
+							} else if (keyWord.equals("cell"))
+							{
 								if (!processCell(str)) return null;
 								continue;
-							} else if (keyWord.equals("core")) {
+							} else if (keyWord.equals("core"))
+							{
 								if (!processCore(str)) return null;
 								continue;
-							} else if (keyWord.equals("rotate")) {
+							} else if (keyWord.equals("rotate"))
+							{
 								if (!processRotate(str)) return null;
 								continue;
-							} else if (keyWord.equals("reverse")) {
+							} else if (keyWord.equals("reverse"))
+							{
 								if (!processReverse(str)) return null;
 								continue;
-							} else if (keyWord.equals("align")) {
+							} else if (keyWord.equals("align"))
+							{
 								if (!processAlign(str)) return null;
 								continue;
-							} else if (keyWord.equals("export")) {
+							} else if (keyWord.equals("export"))
+							{
 								if (!processExport(str)) return null;
 								continue;
-							} else if (keyWord.equals("place")) {
+							} else if (keyWord.equals("place"))
+							{
 								if (!processPlace(str)) return null;
 								continue;
 							} else if (keyWord.equals("coreExportsAllOnOneSideOfIcon")) {
@@ -278,13 +299,15 @@ public class PadGenerator
 	private boolean processCellLibrary(StringTokenizer str)
 	{
 		String keyWord;
-		if (str.hasMoreTokens()) {
+		if (str.hasMoreTokens())
+		{
 			keyWord = str.nextToken();
 
 			URL fileURL = TextUtils.makeURLToFile(keyWord);
 
 			cellLib = Library.findLibrary(TextUtils.getFileNameWithoutExtension(fileURL));
-			if (cellLib == null) {
+			if (cellLib == null)
+			{
 				// library does not exist: see if in same directory is pad frame file
 				StringBuffer errmsg = new StringBuffer();
 				String fileDir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
@@ -298,7 +321,6 @@ public class PadGenerator
 						fileURL = LibFile.getLibFile(keyWord);
 						if (!TextUtils.URLExists(fileURL, errmsg))
 						{
-							//System.out.println("Cannot find cell library " + fileURL.getPath());
 							System.out.println(errmsg.toString());
 							return false;
 						}
@@ -308,21 +330,19 @@ public class PadGenerator
 				FileType style = FileType.DEFAULTLIB;
 				if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
 				if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
-//				Library saveLib = Library.getCurrent();
 				cellLib = LibraryFiles.readLibrary(fileURL, null, style, false);
-				if (cellLib == null) {
+				if (cellLib == null)
+				{
 					err("cannot read library " + keyWord);
 					return false;
 				}
-//				saveLib.setCurrent();
 			}
 		}
 
-		if (str.hasMoreTokens()) {
+		if (str.hasMoreTokens())
+		{
 			keyWord = str.nextToken();
-			if (keyWord.equals("copy")) {
-				copycells = true;
-			}
+			if (keyWord.equals("copy")) copycells = true;
 		}
 		return true;
 	}
@@ -331,9 +351,11 @@ public class PadGenerator
 	 * Process any Views.
 	 * @return true on success, false on error.
 	 */
-	private boolean processViews(StringTokenizer str) {
+	private boolean processViews(StringTokenizer str)
+	{
 		String keyWord;
-		while (str.hasMoreTokens()) {
+		while (str.hasMoreTokens())
+		{
 			keyWord = str.nextToken();
 			View view = View.findView(keyWord);
 			if (view != null)
@@ -348,8 +370,10 @@ public class PadGenerator
 	 * Process the cell keyword
 	 * @return true on success, false on error.
 	 */
-	private boolean processCell(StringTokenizer str) {
-		if (str.hasMoreTokens()) {
+	private boolean processCell(StringTokenizer str)
+	{
+		if (str.hasMoreTokens())
+		{
 			padframename = str.nextToken();
 			return true;
 		}
@@ -360,8 +384,10 @@ public class PadGenerator
 	 * Process the core keyword
 	 * @return true on success, false on error.
 	 */
-	private boolean processCore(StringTokenizer str) {
-		if (str.hasMoreTokens()) {
+	private boolean processCore(StringTokenizer str)
+	{
+		if (str.hasMoreTokens())
+		{
 			corename = str.nextToken();
 			return true;
 		}
@@ -372,16 +398,21 @@ public class PadGenerator
 	 * Process the rotate keyword
 	 * @return true on success, false on error.
 	 */
-	private boolean processRotate(StringTokenizer str) {
+	private boolean processRotate(StringTokenizer str)
+	{
 		String keyWord;
 		int angle = 0;
-		if (str.hasMoreTokens()) {
+		if (str.hasMoreTokens())
+		{
 			keyWord = str.nextToken();
-			if (keyWord.equals("c")) {
+			if (keyWord.equals("c"))
+			{
 				angle = 2700;
-			} else if (keyWord.equals("cc")) {
+			} else if (keyWord.equals("cc"))
+			{
 				angle = 900;
-			} else {
+			} else
+			{
 				System.out.println("Line " + lineno + ": incorrect rotation " + keyWord);
 				return false;
 			}
@@ -393,7 +424,8 @@ public class PadGenerator
 		return false;
 	}
 
-	private boolean processReverse(StringTokenizer str) {
+	private boolean processReverse(StringTokenizer str)
+	{
 		orderedCommands.add(new ReverseDirection());
 		return true;
 	}
@@ -402,13 +434,15 @@ public class PadGenerator
 	 * Process the align keyword
 	 * @return true on success, false on error.
 	 */
-	private boolean processAlign(StringTokenizer str) {
+	private boolean processAlign(StringTokenizer str)
+	{
 		String keyWord;
 		ArrayAlign aa = new ArrayAlign();
 		aa.lineno = lineno;
 		keyWord = str.nextToken();
 
-		if (keyWord.equals("")) {
+		if (keyWord.equals(""))
+		{
 			System.out.println("Line " + lineno + ": missing 'cell' name");
 			return false;
 		}
@@ -416,7 +450,8 @@ public class PadGenerator
 
 		keyWord = str.nextToken();
 
-		if (keyWord.equals("")) {
+		if (keyWord.equals(""))
+		{
 			System.out.println("Line " + lineno + ": missing 'in port' name");
 			return false;
 		}
@@ -424,7 +459,8 @@ public class PadGenerator
 
 		keyWord = str.nextToken();
 
-		if (keyWord.equals("")) {
+		if (keyWord.equals(""))
+		{
 			System.out.println("Line " + lineno + ": missing 'out port' name");
 			return false;
 		}
@@ -437,7 +473,8 @@ public class PadGenerator
 	 * Process the export keyword
 	 * @return true on success, false on error.
 	 */
-	private boolean processExport(StringTokenizer str) {
+	private boolean processExport(StringTokenizer str)
+	{
 		String keyWord;
 		PadExports pe = new PadExports();
 		pe.lineno = lineno;
@@ -445,16 +482,19 @@ public class PadGenerator
 		pe.corename = null;
 
 		keyWord = str.nextToken();
-		if (keyWord.equals("")) {
+		if (keyWord.equals(""))
+		{
 			System.out.println("Line " + lineno + ": missing 'cell' name");
 			return false;
 		}
 		pe.cellname = keyWord;
 
-		if (str.hasMoreTokens()) {
+		if (str.hasMoreTokens())
+		{
 			keyWord = str.nextToken();
 			pe.padname = keyWord;
-			if (str.hasMoreTokens()) {
+			if (str.hasMoreTokens())
+			{
 				keyWord = str.nextToken();
 				pe.corename = keyWord;
 			}
@@ -463,7 +503,8 @@ public class PadGenerator
 		return true;
 	}
 
-	private boolean processPlace(StringTokenizer str) {
+	private boolean processPlace(StringTokenizer str)
+	{
 		PlacePad pad = new PlacePad();
 		pad.lineno = lineno;
 		pad.exportsname = null;
@@ -473,66 +514,85 @@ public class PadGenerator
 		pad.exportAssociations = new ArrayList<ExportAssociate>();
 		pad.locx = null;
 		pad.locy = null;
-		if (!str.hasMoreTokens()) {
+		if (!str.hasMoreTokens())
+		{
 			err("Cell name missing");
 			return false;
 		}
 		pad.cellname = str.nextToken();
 
-		while (str.hasMoreTokens()) {
+		while (str.hasMoreTokens())
+		{
 			String keyWord = str.nextToken();
 
-			if (keyWord.equals("export")) {
+			if (keyWord.equals("export"))
+			{
 				// export xxx=xxxx
-				if (!str.hasMoreTokens()) {
+				if (!str.hasMoreTokens())
+				{
 					err("Missing export assignment after 'export' keyword");
 					return false;
 				}
 				keyWord = str.nextToken();
 				ExportAssociate ea = new ExportAssociate();
 				ea.padportName = getLHS(keyWord);
-				if (ea.padportName == null) {
+				if (ea.padportName == null)
+				{
 					err("Bad export assignment after 'export' keyword");
 					return false;
 				}
 				ea.exportName = getRHS(keyWord, str);
-				if (ea.exportName == null) {
+				if (ea.exportName == null)
+				{
 					err("Bad export assignment after 'export' keyword");
 					return false;
 				}
 				pad.exportAssociations.add(ea);
-			} else {
+			} else
+			{
 				// name=xxxx or gap=xxxx
 				String lhs = getLHS(keyWord);
 				String rhs = getRHS(keyWord, str);
-				if (lhs == null || rhs == null) {
+				if (lhs == null || rhs == null)
+				{
 					err("Parse error on assignment of " + keyWord);
 					return false;
 				}
-				if (lhs.equals("gap")) {
-					try {
+				if (lhs.equals("gap"))
+				{
+					try
+					{
 						pad.gap = Integer.parseInt(rhs);
-					} catch (java.lang.NumberFormatException e) {
+					} catch (java.lang.NumberFormatException e)
+					{
 						err("Error parsing integer for 'gap' = " + rhs);
 						return false;
 					}
-				} else if (lhs.equals("name")) {
+				} else if (lhs.equals("name"))
+				{
 					pad.exportsname = rhs;
-				} else if (lhs.equals("x")) {
-					try {
+				} else if (lhs.equals("x"))
+				{
+					try
+					{
 						pad.locx = new Double(rhs);
-					} catch (NumberFormatException e) {
+					} catch (NumberFormatException e)
+					{
 						System.out.println(e.getMessage());
 						pad.locx = null;
 					}
-				} else if (lhs.equals("y")) {
-					try {
+				} else if (lhs.equals("y"))
+				{
+					try
+					{
 						pad.locy = new Double(rhs);
-					} catch (NumberFormatException e) {
+					} catch (NumberFormatException e)
+					{
 						System.out.println(e.getMessage());
 						pad.locy = null;
 					}
-				} else {
+				} else
+				{
 					// port association
 					PortAssociate pa = new PortAssociate();
 					pa.export = false;
@@ -546,9 +606,10 @@ public class PadGenerator
 		return true;
 	}
 
-
-	private String getLHS(String keyword) {
-		if (keyword.indexOf("=") != -1) {
+	private String getLHS(String keyword)
+	{
+		if (keyword.indexOf("=") != -1)
+		{
 			return keyword.substring(0, keyword.indexOf("="));
 		}
 		return keyword;
@@ -586,16 +647,21 @@ public class PadGenerator
 	 * Print the error message with the current line number.
 	 * @param msg
 	 */
-	private void err(String msg) {
+	private void err(String msg)
+	{
 		System.out.println("Line " + lineno + ": " + msg);
 	}
 
-	private Cell createPadFrames() {
+	private Cell createPadFrames()
+	{
 		Cell frameCell = null;
-		if (views.size() == 0) {
+		if (views.size() == 0)
+		{
 			frameCell = createPadFrame(padframename, View.LAYOUT);
-		} else {
-			for (View view : views) {
+		} else
+		{
+			for (View view : views)
+			{
 				if (view == View.SCHEMATIC) view = View.ICON;
 				frameCell = createPadFrame(padframename, view);
 			}
@@ -604,7 +670,8 @@ public class PadGenerator
 
 	}
 
-	private Cell createPadFrame(String name, View view) {
+	private Cell createPadFrame(String name, View view)
+	{
 		angle = 0;
 
 		// first, try to create cell
@@ -617,17 +684,20 @@ public class PadGenerator
 				name = name + "{lay}";
 			} else
 			{
-				if (view == View.ICON) {
+				if (view == View.ICON)
+				{
 					// create a schematic, place icons of pads in it
 					name = name + "{sch}";
-				} else {
+				} else
+				{
 					name = name + "{" + view.getAbbreviation() + "}";
 				}
 			}
 		}
 
 		Cell framecell = Cell.makeInstance(destLib, name);
-		if (framecell == null) {
+		if (framecell == null)
+		{
 			System.out.println("Could not create pad frame Cell: " + name);
 			return null;
 		}
@@ -644,11 +714,13 @@ public class PadGenerator
 		for (Object obj : orderedCommands)
 		{
 			// Rotation commands are ordered with respect to Place commands.
-			if (obj instanceof Rotation) {
+			if (obj instanceof Rotation)
+			{
 				angle = (angle + ((Rotation) obj).angle) % 3600;
 				continue;
 			}
-			if (obj instanceof ReverseDirection) {
+			if (obj instanceof ReverseDirection)
+			{
 				reversed = !reversed;
 				continue;
 			}
@@ -664,7 +736,8 @@ public class PadGenerator
 				if (view != null) cellname = cellname + "{" + view.getAbbreviation() + "}";
 			}
 			Cell cell = cellLib.findNodeProto(cellname);
-			if (cell == null) {
+			if (cell == null)
+			{
 				err("Could not create pad Cell: " + cellname);
 				continue;
 			}
@@ -707,7 +780,8 @@ public class PadGenerator
 
 			// get array alignment for this cell
 			ArrayAlign aa = alignments.get(pad.cellname);
-			if (aa == null) {
+			if (aa == null)
+			{
 				err("No port alignment for cell " + pad.cellname);
 				continue;
 			}
@@ -721,7 +795,8 @@ public class PadGenerator
 
 				// get previous node's outport - use it to place this nodeinst
 				PortProto pp = (lastni.getProto()).findPortProto(lastaa.outport);
-				if (pp == null) {
+				if (pp == null)
+				{
 					err("no port called '" + lastaa.outport + "' on " + lastni);
 					continue;
 				}
@@ -731,16 +806,14 @@ public class PadGenerator
 				centerY = poly.getCenterY();
 			}
 
-			//corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
 			Point2D pointCenter = new Point2D.Double(centerX, centerY);
 			boolean flipLR = false;
 			boolean flipUD = false;
-			if (reversed) {
-				flipUD = true;
-			}
+			if (reversed) flipUD = true;
 			Orientation orient = Orientation.fromJava(angle, flipLR, flipUD);
 			NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, orient, null, 0);
-			if (ni == null) {
+			if (ni == null)
+			{
 				err("problem creating" + cell + " instance");
 				continue;
 			}
@@ -748,9 +821,7 @@ public class PadGenerator
 			if (lastni != null)
 			{
 				int gap = pad.gap;
-				if (reversed) {
-					gap = -gap;
-				}
+				if (reversed) gap = -gap;
 				switch (lastRotate)
 				{
 					case 0:	gapx = gap;      gapy = 0;     break;
@@ -771,12 +842,10 @@ public class PadGenerator
 			}
 
 			double dx = 0, dy = 0;
-			if (pad.locx != null) {
+			if (pad.locx != null)
 				dx = pad.locx.doubleValue() - ni.getAnchorCenterX();
-			}
-			if (pad.locy != null) {
+			if (pad.locy != null)
 				dy = pad.locy.doubleValue() - ni.getAnchorCenterY();
-			}
 			ni.move(dx, dy);
 
 			// create exports
@@ -826,16 +895,21 @@ public class PadGenerator
 					}
 				}
 			}
-			// create exports from export pin=name command
-			for (ExportAssociate ea : pad.exportAssociations) {
+
+			// create exports from export pad=name command
+			for (ExportAssociate ea : pad.exportAssociations)
+			{
 				Export pp = cell.findExport(ea.padportName);
-				if (pp == null) {
+				if (pp == null)
+				{
 					err("no port called '" + ea.padportName + "' on Cell " + cell.noLibDescribe());
-				} else {
+				} else
+				{
 					pp = Export.newInstance(framecell, ni.findPortInstFromProto(pp), ea.exportName);
 					if (pp == null)
 						err("Creating export "+ea.exportName);
-					else {
+					else
+					{
 						TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME).withAbsSize(14);
 						corePorts.add(pp);
 						pp.setTextDescriptor(Export.EXPORT_NAME, td);
@@ -855,13 +929,16 @@ public class PadGenerator
 		{
 			// first, try to create cell
 			String corenameview = corename;
-			if (view != null) {
+			if (view != null)
+			{
 				corenameview = corename + "{" + view.getAbbreviation() + "}";
 			}
 			Cell corenp = destLib.findNodeProto(corenameview);
-			if (corenp == null) {
+			if (corenp == null)
+			{
 				System.out.println("Line " + lineno + ": cannot find core cell " + corenameview);
-			} else {
+			} else
+			{
 
 				Rectangle2D bounds = framecell.getBounds();
 				Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
@@ -870,10 +947,13 @@ public class PadGenerator
 				NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
 
 				Map<Export,PortInst> trueBusEnd = new HashMap<Export,PortInst>();
-				for (Object obj : orderedCommands) {
-					if (obj instanceof PlacePad) {
+				for (Object obj : orderedCommands)
+				{
+					if (obj instanceof PlacePad)
+					{
 						PlacePad pad = (PlacePad) obj;
-						for (PortAssociate pa : pad.associations) {
+						for (PortAssociate pa : pad.associations)
+						{
 							if (pad.ni == null) continue;
 
 							boolean nameArc = false;
@@ -907,7 +987,6 @@ public class PadGenerator
 												pi1 = busPin.getOnlyPortInst();
 												ArcProto busArcProto = Schematics.tech().bus_arc;
 												ArcInst.makeInstance(busArcProto, pi, pi1);
-//												ArcInst.makeInstanceFull(busArcProto, busArcProto.getDefaultLambdaFullWidth(), pi, pi1);
 												trueBusEnd.put(e, pi1);
 											}
 											nameArc = true;
@@ -924,22 +1003,28 @@ public class PadGenerator
 								continue;
 							}
 							PortInst pi2 = pad.ni.findPortInst(pa.portname);
-							//PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
 							ArcProto ap = Generic.tech().unrouted_arc;
 							ArcInst ai = ArcInst.newInstanceBase(ap, ap.getDefaultLambdaBaseWidth(), pi1, pi2);
-//							ArcInst ai = ArcInst.newInstanceFull(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
 							if (nameArc)
+							{
 								ai.setName(pa.assocname);
+							} else
+							{
+								// give generated name based on the connection
+								String netName = "PADFRAME";
+								if (pad.exportAssociations != null && pad.exportAssociations.size() > 0)
+									netName += "_" + pad.exportAssociations.get(0).exportName;
+								netName += "_" + pa.assocname;
+								ai.setName(netName);
+							}
 						}
 					}
 				}
 			}
 		}
 
-		if (view == View.ICON) {
-			// create an icon of our schematic
-			//CircuitChanges.makeIconViewCommand();
-
+		if (view == View.ICON)
+		{
 			// This is a crock until the functionality here can be folded
 			// into CircuitChanges.makeIconViewCommand()
 
@@ -950,7 +1035,8 @@ public class PadGenerator
 			// create the new icon cell
 			String iconCellName = framecell.getName() + "{ic}";
 			Cell iconCell = Cell.makeInstance(destLib, iconCellName);
-			if (iconCell == null) {
+			if (iconCell == null)
+			{
 				Job.getUserInterface().showErrorMessage("Cannot create Icon cell " + iconCellName,
 					"Icon creation failed");
 				return framecell;
@@ -963,8 +1049,8 @@ public class PadGenerator
 
 			// create the "black box"
 			NodeInst bbNi = null;
-			if (User.isIconGenDrawBody()) {
-				//bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+			if (User.isIconGenDrawBody())
+			{
 				bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 				if (bbNi == null) return framecell;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
@@ -986,19 +1072,23 @@ public class PadGenerator
 			boolean drawLeads = User.isIconGenDrawLeads();
 			int exportStyle = User.getIconGenExportStyle();
 			int exportLocation = User.getIconGenExportLocation();
-    		boolean ad = User.isIconsAlwaysDrawn();
+			boolean ad = User.isIconsAlwaysDrawn();
 
-			if (coreAllOnOneSide) {
+			if (coreAllOnOneSide)
+			{
 				List<Export> padTemp = new ArrayList<Export>();
 				List<Export> coreTemp = new ArrayList<Export>();
-				for (Export pp : padPorts) {
+				for (Export pp : padPorts)
+				{
 					if (pp.getName().startsWith("core_"))
 						coreTemp.add(pp);
 					else
 						padTemp.add(pp);
 				}
-				for (Export pp : corePorts) {
-					if (pp == null) {
+				for (Export pp : corePorts)
+				{
+					if (pp == null)
+					{
 						coreTemp.add(pp);
 						continue;
 					}
@@ -1016,7 +1106,8 @@ public class PadGenerator
 			int total = 0;
 			int leftSide = padPorts.size();
 			int rightSide = corePorts.size();
-			for (Export pp : padPorts) {
+			for (Export pp : padPorts)
+			{
 				if (pp.isBodyOnly()) continue;
 
 				// determine location of the port
@@ -1036,8 +1127,10 @@ public class PadGenerator
 						total++;
 			}
 			total = 0;
-			for (Export pp : corePorts) {
-				if (pp == null) {
+			for (Export pp : corePorts)
+			{
+				if (pp == null)
+				{
 					total++;
 					continue;
 				}
@@ -1060,10 +1153,9 @@ public class PadGenerator
 			}
 
 			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
-			if (!User.isIconGenDrawBody() &&
-					!User.isIconGenDrawLeads() &&
-					User.isPlaceCellCenter() &&
-					total <= 1) {
+			if (!User.isIconGenDrawBody() && !User.isIconGenDrawLeads() &&
+				User.isPlaceCellCenter() && total <= 1)
+			{
 				NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 			}
 
@@ -1074,7 +1166,8 @@ public class PadGenerator
 			Rectangle2D iconBounds = iconCell.getBounds();
 			double halfWidth = iconBounds.getWidth() / 2;
 			double halfHeight = iconBounds.getHeight() / 2;
-			switch (exampleLocation) {
+			switch (exampleLocation)
+			{
 				case 0:		// upper-right
 					iconPos.setLocation(cellBounds.getMaxX() + halfWidth, cellBounds.getMaxY() + halfHeight);
 					break;
@@ -1097,4 +1190,3 @@ public class PadGenerator
 	}
 
 }
-
