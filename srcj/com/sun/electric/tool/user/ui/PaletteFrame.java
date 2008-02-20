@@ -58,10 +58,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
