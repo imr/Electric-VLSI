@@ -20,9 +20,9 @@ public class LayGenExample extends Job {
 	public static final long serialVersionUID = 0;
 	
 	private void makeInv() {
-		StdCellParams stdCell = new StdCellParams(TechType.TSMC180);
+        StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.TSMC180);
 		stdCell.setSimpleName(true);
-        Tech.setTechnology(TechType.TSMC180);
+        Tech.setTechnology(TechType.TechTypeEnum.TSMC180.getTechType());
         String outLibNm = "exampleLib";
         Library outLib = LayoutLib.openLibForWrite(outLibNm);
         stdCell.setOutputLibrary(outLib);
@@ -61,7 +61,7 @@ public class LayGenExample extends Job {
 	
 	private void doYourJob() {
 		System.out.println("Hello world");
-		TechType tech = TechType.TSMC180;
+		TechType tech = TechType.TechTypeEnum.TSMC180.getTechType();
 		makeInv();
 		Cell parent = makeParentCell();
 		

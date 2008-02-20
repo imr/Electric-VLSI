@@ -37,7 +37,7 @@ import com.sun.electric.tool.generator.layout.Tech;
 
 public class FillGenConfig implements Serializable
 {
-    public TechType techType = null;
+    public TechType.TechTypeEnum techType = null;
     public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
@@ -74,7 +74,7 @@ public class FillGenConfig implements Serializable
         }
     }
 
-    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, TechType tech, String lib, ExportConfig perim,
+    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, TechType.TechTypeEnum tech, String lib, ExportConfig perim,
                          int first, int last,
                          double w, double h, boolean even,
                          int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
@@ -93,7 +93,7 @@ public class FillGenConfig implements Serializable
         this.useMaster = useMaster;
 
         techType = tech;
-        Tech.setTechnology(tech);
+        Tech.setTechnology(tech.getTechType());
 
         this.fillLibName = lib;
         this.perim = perim;

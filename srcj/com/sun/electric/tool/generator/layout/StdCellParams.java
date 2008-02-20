@@ -68,8 +68,8 @@ public class StdCellParams {
 		private ArrayList<Blockage> blockages = new ArrayList<Blockage>();
 		private double space;
 
-		TrackBlockages(double space) {
-			this.space = space;
+		TrackBlockages(double s) {
+			this.space = s;
 		}
 
 		void addBlockage(double center, double width) {
@@ -166,7 +166,7 @@ public class StdCellParams {
 	private String gndExportName = "gnd";
 	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
 	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
-    private TechType technology;
+    private TechType.TechTypeEnum technology;
 
     // ------------------------ private methods -----------------------------
 
@@ -647,9 +647,9 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(TechType tech) {
-        if      (tech == TechType.CMOS90) initCMOS90();
-        else if (tech == TechType.MOCMOS || tech == TechType.TSMC180) initMoCMOS();
+	public StdCellParams(TechType.TechTypeEnum tech) {
+        if      (tech == TechType.TechTypeEnum.CMOS90) initCMOS90();
+        else if (tech == TechType.TechTypeEnum.MOCMOS || tech == TechType.TechTypeEnum.TSMC180) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }
@@ -661,7 +661,7 @@ public class StdCellParams {
     }
     Library getOutputLibrary() { return layoutLib; }
 
-    public TechType getTechnology() { return technology; }
+    public TechType getTechnology() { return technology.getTechType(); }
     public double getNmosWellHeight() {
 		return nmosWellHeight;
 	}

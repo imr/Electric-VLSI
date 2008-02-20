@@ -38,7 +38,7 @@ import com.sun.electric.tool.user.User;
  * Regression test for gate generators
  */
 public class GateRegression extends Job {
-    private TechType technology;
+    private TechType.TechTypeEnum technology;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -48,7 +48,7 @@ public class GateRegression extends Job {
 		}
 	};
 
-    private static void allSizes(StdCellParams stdCell, TechType technology) {
+    private static void allSizes(StdCellParams stdCell, TechType.TechTypeEnum technology) {
         double minSz = 0.1;
         double maxSz = 200;//500;
         for (double d=minSz; d<maxSz; d*=10) {
@@ -58,12 +58,12 @@ public class GateRegression extends Job {
         }
     }
 
-    public static void aPass(double x, StdCellParams stdCell, TechType technology) {
-        if (technology == TechType.MOCMOS || technology == TechType.TSMC180) {
+    public static void aPass(double x, StdCellParams stdCell, TechType.TechTypeEnum technology) {
+        if (technology == TechType.TechTypeEnum.MOCMOS || technology == TechType.TechTypeEnum.TSMC180) {
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
         Technology cmos90 = Technology.getCMOS90Technology();
-        if (cmos90 != null && technology == TechType.CMOS90) {
+        if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
             // invoke the CMOS90 generator by reflection because it may not exist
     		try
 			{
@@ -88,14 +88,14 @@ public class GateRegression extends Job {
 
     /** Programatic interface to gate regressions.
      * @return the number of errors detected */
-    public static int runRegression(TechType technology, Library scratchLib) {
+    public static int runRegression(TechType.TechTypeEnum technology, Library scratchLib) {
 		System.out.println("begin Gate Regression");
 
 //        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
         Technology cmos90 = Technology.getCMOS90Technology();
-        if (cmos90 != null && technology == TechType.CMOS90) {
-            stdCell = new StdCellParams(TechType.CMOS90);
+        if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
+            stdCell = new StdCellParams(TechType.TechTypeEnum.CMOS90);
             stdCell.setOutputLibrary(scratchLib);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
@@ -168,11 +168,11 @@ public class GateRegression extends Job {
         return 0 /*numCifErrs*/;
 	}
 
-	public GateRegression(TechType techNm) {
+	public GateRegression(TechType.TechTypeEnum techNm) {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = techNm;
-        Tech.setTechnology(techNm);
+        Tech.setTechnology(techNm.getTechType());
 		startJob();
 	}
 }

@@ -579,7 +579,7 @@ public class FillGeneratorTool extends Tool {
         this.config = config;
         this.libInitialized = false; 
         /** Set technology */
-        Tech.setTechnology(config.techType);
+        Tech.setTechnology(config.techType.getTechType());
     }
 
     public enum Units {NONE, LAMBDA, TRACKS}
@@ -600,7 +600,7 @@ public class FillGeneratorTool extends Tool {
         if (units==LAMBDA) return reserved;
         double nbTracks = reserved;
         if (nbTracks==0) return 0;
-        return config.techType.reservedToLambda(layer, nbTracks);
+        return config.techType.getTechType().reservedToLambda(layer, nbTracks);
     }
 
     private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
@@ -610,7 +610,7 @@ public class FillGeneratorTool extends Tool {
                         "height hasn't been specified. use setHeight()");
         double w = config.width;
         double h = config.height;
-        int numLayers = config.techType.getNumMetals() + 1; // one extra for the cap
+        int numLayers = config.techType.getTechType().getNumMetals() + 1; // one extra for the cap
         double[] vddRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] gndRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] vddW = new double[numLayers]; //{0,0,0,0,0,0,0};
@@ -732,7 +732,7 @@ public class FillGeneratorTool extends Tool {
         lib = LayoutLib.openLibForWrite(config.fillLibName);
         if (!metalFlex) // don't do transistors
         {
-            if (config.techType == TechType.MOCMOS || config.techType == TechType.TSMC180)
+            if (config.techType == TechType.TechTypeEnum.MOCMOS || config.techType == TechType.TechTypeEnum.TSMC180)
             {
                 capCell = new CapCellMosis(lib, (CapFloorplan) plans[1]);
             }
@@ -834,7 +834,7 @@ public class FillGeneratorTool extends Tool {
         initFillParameters(metalFlex, false);
 
         LayoutLib.error(loLayer<1, "loLayer must be >=1");
-        int maxNumMetals = config.techType.getNumMetals();
+        int maxNumMetals = config.techType.getTechType().getNumMetals();
         LayoutLib.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
         LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
         Cell cell = null;

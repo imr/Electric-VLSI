@@ -175,7 +175,7 @@ public class Tech {
         techType = requestedTechnology;
 	}
 
-    public static boolean is90nm() {return techType==TechType.CMOS90;}
+    public static boolean is90nm() {return techType==TechType.TechTypeEnum.CMOS90.getTechType();}
 
     public static PrimitiveNode getViaFor(ArcProto a1, ArcProto a2) {
     	return techType.getViaFor(a1, a2);

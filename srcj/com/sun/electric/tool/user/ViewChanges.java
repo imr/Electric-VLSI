@@ -44,14 +44,12 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -1496,15 +1494,15 @@ public class ViewChanges
                 this.createdCells = createdCells;
                 this.newLib = newLib;
                 convertedCells = new HashMap<Cell,Cell>();
-                TechType type = null;
+                TechType.TechTypeEnum type = null;
                 if (oldTech == Schematics.tech())
                 {
-	                if      (newTech == Technology.getMocmosTechnology()) type = TechType.MOCMOS;
-	                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
-	                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.CMOS90;
-	                Tech.setTechnology(type);
+	                if      (newTech == Technology.getMocmosTechnology()) type = TechType.TechTypeEnum.MOCMOS;
+	                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TechTypeEnum.TSMC180;
+	                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.TechTypeEnum.CMOS90;
+	                Tech.setTechnology(type.getTechType());
 	                Technology cmos90 = Technology.getCMOS90Technology();
-	                if (cmos90 != null && type == TechType.CMOS90)
+	                if (cmos90 != null && type == TechType.TechTypeEnum.CMOS90)
 	                {
 	                    stdCell = GateLayoutGenerator.sportParams();
 	                } else

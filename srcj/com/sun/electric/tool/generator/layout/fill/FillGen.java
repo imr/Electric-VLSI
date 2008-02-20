@@ -28,11 +28,11 @@ public class FillGen {
 	public void reserveSpaceOnLayer(int layer,
 									double vddReserved, Units vddUnits,
 							   		double gndReserved, Units gndUnits) {
-		config.reserveSpaceOnLayer(config.techType.getTechnology(), 
+		config.reserveSpaceOnLayer(config.techType.getTechType().getTechnology(),
 				                   layer, vddReserved, vddUnits, 
 				                   gndReserved, gndUnits);
 	}
-	public FillGen(TechType tech) {
+	public FillGen(TechType.TechTypeEnum tech) {
 		config = new FillGenConfig(FillGeneratorTool.FillTypeEnum.INVALID, 
 				                   tech, null, null, -1, -1, 
 				                   Double.NaN, Double.NaN, 
@@ -56,7 +56,7 @@ public class FillGen {
 			                 int[] tiledSizes) {
 		fgt.setConfig(config);
 		fgt.standardMakeFillCell(loLayer, hiLayer, 
-                				 config.techType,
+                				 config.techType.getTechType(),
                                  exportConfig, 
                                  tiledSizes, false);
 	}

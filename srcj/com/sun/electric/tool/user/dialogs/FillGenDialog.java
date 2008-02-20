@@ -698,19 +698,19 @@ public class FillGenDialog extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = items.get(i);
         }
-        TechType techNm = TechType.CMOS90; // putting one possible value
+        TechType.TechTypeEnum techNm = TechType.TechTypeEnum.CMOS90; // putting one possible value
 
         if (tech == Technology.getMocmosTechnology())
         {
-            techNm = TechType.MOCMOS;
+            techNm = TechType.TechTypeEnum.MOCMOS;
         }
         else if (tech == Technology.getTSMC180Technology())
         {
-            techNm = TechType.TSMC180;
+            techNm = TechType.TechTypeEnum.TSMC180;
         }
         else if (tech == Technology.getCMOS90Technology())
         {
-            techNm = TechType.CMOS90;
+            techNm = TechType.TechTypeEnum.CMOS90;
         }
         else
             assert(false); // it should not reach this point

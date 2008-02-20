@@ -127,13 +127,13 @@ public class GateLayoutGenerator {
         return visitor.getGeneratedCells();
 	}
 
-    public static void generateFromSchematicsJob(TechType type) {
+    public static void generateFromSchematicsJob(TechType.TechTypeEnum type) {
         GenerateFromSchematicsJob job = new GenerateFromSchematicsJob(type);
         job.startJob();
     }
 
     public static StdCellParams locoParams() {
-		StdCellParams stdCell = new StdCellParams(TechType.MOCMOS);
+		StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -146,7 +146,7 @@ public class GateLayoutGenerator {
 	}
 
     public static StdCellParams sportParams() {
-        StdCellParams stdCell = new StdCellParams(TechType.CMOS90);
+        StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.CMOS90);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
         stdCell.setVddY(24.5);
@@ -157,7 +157,7 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-	public static StdCellParams dividerParams(TechType technology) {
+	public static StdCellParams dividerParams(TechType.TechTypeEnum technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -170,7 +170,7 @@ public class GateLayoutGenerator {
 		return stdCell;
 	}
 
-    public static StdCellParams fastProxParams(TechType technology) {
+    public static StdCellParams fastProxParams(TechType.TechTypeEnum technology) {
         StdCellParams stdCell = new StdCellParams(technology);
         stdCell.enableNCC("purpleFour");
         stdCell.setSizeQuantizationError(0);
@@ -185,7 +185,7 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-	public static StdCellParams justinParams(TechType technology) {
+	public static StdCellParams justinParams(TechType.TechTypeEnum technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -202,11 +202,11 @@ public class GateLayoutGenerator {
 
     public static class GenerateFromSchematicsJob extends Job {
 
-        private TechType technology;
+        private TechType.TechTypeEnum technology;
         private Cell cell;
         private VarContext context;
 
-        public GenerateFromSchematicsJob(TechType techNm) {
+        public GenerateFromSchematicsJob(TechType.TechTypeEnum techNm) {
             super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
                   null, null, Job.Priority.ANALYSIS);
             this.technology = techNm;
@@ -224,9 +224,9 @@ public class GateLayoutGenerator {
             Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
             StdCellParams stdCell;
-            Tech.setTechnology(technology);
+            Tech.setTechnology(technology.getTechType());
             Technology cmos90 = Technology.getCMOS90Technology();
-            if (cmos90 != null && technology == TechType.CMOS90) {
+            if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
                 stdCell = sportParams();
             } else {
                 //stdCell = locoParams(outLib);

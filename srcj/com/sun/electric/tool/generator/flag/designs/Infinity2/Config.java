@@ -6,7 +6,7 @@ import com.sun.electric.tool.generator.layout.TechType;
 
 public class Config extends FlagConfig {
 	private Config() {
-		tech = TechType.CMOS90;
+		tech = TechType.TechTypeEnum.CMOS90;
 	    m2PwrGndWid = 9;
 	    m3PwrGndWid = 21;
 	    m3PwrGndPitch = 132;

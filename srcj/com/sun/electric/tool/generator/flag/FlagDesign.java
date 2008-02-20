@@ -40,7 +40,7 @@ public class FlagDesign {
 	private final Router router;
 	private final SogRouterAdapter sogRouterAdapter;
 
-	public TechType tech() {return config.tech;}
+	public TechType tech() {return config.tech.getTechType();}
     
 	
 //	public static Rectangle2D findColBounds(Collection<NodeInst> stages) {

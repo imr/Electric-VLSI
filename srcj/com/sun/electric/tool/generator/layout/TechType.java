@@ -344,8 +344,8 @@ public abstract class TechType implements Serializable {
                       parent);
             }
         }
-        protected static class MosInstH extends MosInst {
-            protected MosInstH(char np, double x, double y, double w, double l,
+        public static class MosInstH extends MosInst {
+            public MosInstH(char np, double x, double y, double w, double l,
                                Cell parent) {
                 super(np, x, y, w, l, 90,
                       np+"-trans-diff-top", np+"-trans-diff-bottom",
@@ -357,12 +357,50 @@ public abstract class TechType implements Serializable {
 
     //------------------------------ public data ------------------------------
 
-    /** These are the Electric technologies understood by the gate layout 
+    public static enum TechTypeEnum {MOCMOS, TSMC180, CMOS90;
+        private TechType type;
+        public TechType getTechType()
+        {
+            if (type == null)
+            {
+                if (this == TechTypeEnum.MOCMOS)
+                    type = TechTypeMoCMOS.MOCMOS;
+                else if (this == TechTypeEnum.TSMC180)
+                    type = getTechTypeTSMC180();
+                else if (this == TechTypeEnum.CMOS90)
+                    type = getTechTypeCMOS90();
+                else
+                {
+                    System.out.println("Invalid TechTypeEnum");
+                    assert(false);
+                }
+            }
+            return type;
+        }
+    }
+
+    /** These are the Electric technologies understood by the gate layout
      * generators */
-    public static final TechType
-        MOCMOS = TechTypeMoCMOS.MOCMOS,
-        TSMC180 = TechTypeTSMC180.TSMC180,
-        CMOS90 = getTechTypeCMOS90(); //TechTypeCMOS90.CMOS90;
+//    public static final TechType
+//        MOCMOS = TechTypeMoCMOS.MOCMOS,
+//        TSMC180 = getTechTypeTSMC180(), //TechTypeTSMC180.TSMC180,
+//        CMOS90 = getTechTypeCMOS90(); //TechTypeCMOS90.CMOS90;
+
+    private static TechType getTechTypeTSMC180()
+    {
+        TechType tsmc180 = null;
+        try
+        {
+            Class tsmc180Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeTSMC180");
+
+            java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("TSMC180");
+            tsmc180 = (TechType) techField.get(null);
+         } catch (Exception e)
+        {
+            assert(false); // runtime error
+        }
+         return tsmc180;
+    }
 
     private static TechType getTechTypeCMOS90()
     {

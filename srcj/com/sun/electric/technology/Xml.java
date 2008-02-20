@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -653,7 +652,7 @@ public class Xml {
         public void startDocument()
         throws SAXException {
             if (DEBUG) {
-                System.out.println("startDocumnet");
+                System.out.println("startDocument");
             }
         }
 
@@ -673,7 +672,7 @@ public class Xml {
         public void endDocument()
         throws SAXException {
             if (DEBUG) {
-                System.out.println("endDocumnet");
+                System.out.println("endDocument");
             }
         }
 
@@ -1490,6 +1489,8 @@ public class Xml {
          */
         public void error(SAXParseException e)
         throws SAXException {
+            System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
+                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
 
@@ -1513,6 +1514,8 @@ public class Xml {
          */
         public void fatalError(SAXParseException e)
         throws SAXException {
+            System.out.println("fatal error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
+                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
 
