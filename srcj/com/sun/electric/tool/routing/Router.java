@@ -310,7 +310,7 @@ public abstract class Router {
         ArcProto unr = Generic.tech().unrouted_arc;
 
         // if connecting two busses, force a bus arc
-		if (curAp == Schematics.tech().wire_arc)
+		if (curAp == Schematics.tech().wire_arc && port1 != null && port2 != null)
 		{
 			boolean bus1 = (port1.getParent() == Schematics.tech().busPinNode) || port1.getNameKey().isBus();
 			boolean bus2 = (port2.getParent() == Schematics.tech().busPinNode) || port2.getNameKey().isBus();

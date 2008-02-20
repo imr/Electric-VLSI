@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/20/08, SMR) Wiring may crash.
+FIX: In Router.getArcToUse(), check for busses only when both ends are known.
+
 IMP: (2/19/08, DN) Database invariants added:
     Cell parameters are allowed on icon and scheamtic cells only.
     Their names must start with "ATTR_".
