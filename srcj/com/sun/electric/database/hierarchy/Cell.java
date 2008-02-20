@@ -4374,7 +4374,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public Technology getTechnology() {
         if (tech == null)
-            setTechnology(Technology.whatTechnology(this, null, 0, 0, null, 0, 0));
+            setTechnology(Technology.whatTechnology(this, null, 0, 0, null));
 		return tech;
 	}
 

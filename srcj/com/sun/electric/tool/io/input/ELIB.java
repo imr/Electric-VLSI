@@ -53,7 +53,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -83,6 +82,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -246,11 +246,12 @@ public class ELIB extends LibraryFiles
 	// the NodeInsts in the library
 	/** the number of NodeInsts in the library */							private int nodeCount;
 	/** All data for NodeInsts in each Cell. */								private LibraryFiles.NodeInstList nodeInstList;
+    /** List of prototypes of the NodeInsts in the library */               private int [] nodeTypeList;
 
 	// the ArcInsts in the library
 	/** the number of ArcInsts in the library */							private int arcCount;
 	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
-	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
+	/** list of the prototype of the ArcInsts in the library */				private int [] arcTypeList;
 	/** list of the Names of the ArcInsts in the library */					private String [] arcNameList;
 	/** list of the name descriptors of the ArcInsts in the library */		private TextDescriptor[] arcNameDescriptorList;
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
@@ -349,7 +350,9 @@ public class ELIB extends LibraryFiles
     protected boolean readProjectSettings() {
 		try
 		{
-			return readTheLibrary(true, null);
+			if (readTheLibrary(true, null)) return true;
+            createLibraryCells(true);
+            return false;
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while reading " + filePath);
@@ -358,26 +361,11 @@ public class ELIB extends LibraryFiles
     }
 
 	/**
-	 * Method to read a Library in binary (.elib) format.
-	 * @return true on error.
-	 */
-	protected boolean readLib()
-	{
-		try
-		{
-			return readTheLibrary(false, null);
-		} catch (IOException e)
-		{
-			System.out.println("End of file reached while reading " + filePath);
-			return true;
-		}
-	}
-
-	/**
 	 * Method to read the .elib file.
-	 * Returns true on error.
+	 * returns true on error.
 	 */
-	private boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc)
+    @Override
+    boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc)
 		throws IOException
 	{
 		// initialize
@@ -540,10 +528,11 @@ public class ELIB extends LibraryFiles
 		// allocate pointers for the NodeInsts
         boolean hasAnchor = header.magic <= ELIBConstants.MAGIC13;
 		nodeInstList = new LibraryFiles.NodeInstList(nodeCount, hasAnchor);
+        nodeTypeList = new int[nodeCount];
 
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
-		arcTypeList = new ArcProto[arcCount];
+		arcTypeList = new int[arcCount];
 		arcNameList = new String[arcCount];
         arcNameDescriptorList = new TextDescriptor[arcCount];
 		arcWidthList = new int[arcCount];
@@ -825,17 +814,6 @@ public class ELIB extends LibraryFiles
             }
             return false;
         }
-        setupTechs(onlyProjectSettings);
-        if (onlyProjectSettings) return false;
-
-		// now that external cells are resolved, fix all variables that may have used them
-		fixExternalVariables(lib);
-		for(int i=0; i<nodeProtoCount; i++)
-		{
-			Cell cell = nodeProtoList[i];
-			fixExternalVariables(cell);
-		}
-
 		// read the cell contents: arcs and nodes
 		int nodeIndex = 0, arcIndex = 0, geomIndex = 0;
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
@@ -905,21 +883,14 @@ public class ELIB extends LibraryFiles
 		firstNodeIndex[nodeProtoCount] = nodeIndex;
 		firstArcIndex[nodeProtoCount] = arcIndex;
 
-        // warn if any dummy cells were read in
-        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell c = it.next();
-            if (c.getVar(IO_DUMMY_OBJECT) != null) {
-                System.out.println("WARNING: "+lib+" contains DUMMY cell "+c.noLibDescribe());
-            }
-        }
-
 		// library read successfully
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Binary: finished reading data for " + lib);
 		return false;
 	}
 
-    private void setupTechs(boolean onlyProjectSettings) {
+    @Override
+    Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings) {
 		// setup pointers for technologies and primitives
 		primNodeProtoCount = 0;
 		primPortProtoCount = 0;
@@ -1120,7 +1091,7 @@ public class ELIB extends LibraryFiles
 		}
 
         if (onlyProjectSettings)
-            return;
+            return null;
 
 		// erase the current database
         lib.erase();
@@ -1131,11 +1102,12 @@ public class ELIB extends LibraryFiles
         realizeVariables(lib, libVars);
 
 		// read the cells
+        HashMap<Cell,Variable[]> originalVars = new HashMap<Cell,Variable[]>();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			if (arcCounts[i] < 0 && nodeCounts[i] < 0) continue;
             xLibRefSatisfied[i] = true;
-			realizeNodeProto(i);
+			realizeNodeProto(i, originalVars);
 		}
 
 		// collect the cells by common protoName and by "nextInCellGroup" relation
@@ -1191,8 +1163,33 @@ public class ELIB extends LibraryFiles
 			if (cell != null) continue;
 			realizeExternalNodeProto(lib, i);
 		}
+
+        // warn if any dummy cells were read in
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell c = it.next();
+            if (c.getVar(IO_DUMMY_OBJECT) != null) {
+                System.out.println("WARNING: "+lib+" contains DUMMY cell "+c.noLibDescribe());
+            }
+        }
+        return originalVars;
     }
 
+    @Override
+    Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell) {
+		// get information about this cell
+		int cellIndex = parentCell.getTempInt();
+		if (cellIndex+1 >= firstNodeIndex.length) return null;
+		int startNode = firstNodeIndex[cellIndex];
+		int endNode = firstNodeIndex[cellIndex+1];
+
+		for (int i = startNode; i < endNode; i++) {
+			NodeProto np = nodeInstList.protoType[i];
+            if (np == iconCell)
+                return nodeInstList.vars[i];
+        }
+        return null;
+    }
+    
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
 	/**
@@ -1383,7 +1380,8 @@ public class ELIB extends LibraryFiles
 		// recursively ensure that subcells's technologies are computed
 		for(int i=startNode; i<endNode; i++)
 		{
-			NodeProto np = nodeInstList.protoType[i];
+            NodeProto np = convertNodeProto(nodeTypeList[i]);
+			nodeInstList.protoType[i] = np;
 			if (!uncomputedCells.contains(np)) continue;
 			Cell subCell = (Cell)np;
 			LibraryFiles reader = getReaderForLib(subCell.getLibrary());
@@ -1393,7 +1391,11 @@ public class ELIB extends LibraryFiles
 
 		int startArc = firstArcIndex[cellIndex];
 		int endArc = firstArcIndex[cellIndex+1];
-		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
+        ArcProto[] arcTypes = new ArcProto[endArc - startArc];
+        for (int i = 0; i < arcTypes.length; i++)
+            arcTypes[i] = convertArcProto(arcTypeList[i]);
+
+		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypes);
 		cell.setTechnology(cellTech);
 	}
 
@@ -1567,7 +1569,7 @@ public class ELIB extends LibraryFiles
 		int endArc = firstArcIndex[cellIndex+1];
 		for(int i=startArc; i<endArc; i++)
 		{
-			ArcProto ap = arcTypeList[i];
+			ArcProto ap = convertArcProto(arcTypeList[i]);
 			String name = arcNameList[i];
 			long gridExtendOverMin = getSizeCorrector(ap.getTechnology()).getExtendFromDisk(ap, arcWidthList[i] / lambda);
 			double headX = (arcHeadXPosList[i] - xoff) / lambda;
@@ -2019,7 +2021,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to realize a cell.  returns true upon error
 	 */
-	private void realizeNodeProto(int cellIndex)
+	private void realizeNodeProto(int cellIndex, Map<Cell,Variable[]> originalVars)
 	{
 		String theProtoName = cellProtoName[cellIndex];
         Cell cell = Cell.newInstance(lib, theProtoName);
@@ -2031,7 +2033,7 @@ public class ELIB extends LibraryFiles
         nodeProtoList[cellIndex] = cell;
         assert cell.getCellName() != null;
 		cell.lowLevelSetUserbits(cellUserBits[cellIndex]);
-		realizeVariables(cell, cellVars[cellIndex]);
+        originalVars.put(cell, cellVars[cellIndex]);
 	}
 
 	/** Method to read node prototype for external references */
@@ -2250,11 +2252,9 @@ public class ELIB extends LibraryFiles
 	{
 		// read the nodeproto index
 		int protoIndex = readBigInteger();
-		NodeProto np = convertNodeProto(protoIndex);
-		if (np == null) return true;
 
 		// read the descriptive information
-		nodeInstList.protoType[nodeIndex] = np;
+        nodeTypeList[nodeIndex] = protoIndex;
 		nodeInstList.lowX[nodeIndex] = readBigInteger();
 		nodeInstList.lowY[nodeIndex] = readBigInteger();
 		nodeInstList.highX[nodeIndex] = readBigInteger();
@@ -2262,7 +2262,7 @@ public class ELIB extends LibraryFiles
 		if (header.magic <= ELIBConstants.MAGIC13)
 		{
 			// read anchor point for cell references
-			if (np instanceof Cell)
+			if (protoIndex >= 0)
 			{
 				nodeInstList.anchorX[nodeIndex] = readBigInteger();
 				nodeInstList.anchorY[nodeIndex] = readBigInteger();
@@ -2372,9 +2372,7 @@ public class ELIB extends LibraryFiles
 		throws IOException
 	{
 		// read the arcproto pointer
-		int protoIndex = readBigInteger();
-		ArcProto ap = convertArcProto(protoIndex);
-		arcTypeList[arcIndex] = ap;
+		arcTypeList[arcIndex] = readBigInteger();
 
 		// read the arc length (versions 5 or older)
 		if (header.magic >= ELIBConstants.MAGIC5) readBigInteger();
@@ -2486,13 +2484,6 @@ public class ELIB extends LibraryFiles
         varKeys = new Variable.Key[nameCount];
 		for(int i=0; i<nameCount; i++)
             varNames[i] = readString();
-	}
-
-	/**
-	 * Method to fix variables that make reference to external cells.
-	 */
-	private void fixExternalVariables(ElectricObject obj)
-	{
 	}
 
 	/**

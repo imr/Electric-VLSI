@@ -4687,7 +4687,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static Technology whatTechnology(NodeProto cell)
 	{
-		Technology tech = whatTechnology(cell, null, 0, 0, null, 0, 0);
+		Technology tech = whatTechnology(cell, null, 0, 0, null);
 		return tech;
 	}
 
@@ -4705,7 +4705,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the Technology for that cell.
 	 */
 	public static Technology whatTechnology(NodeProto cellOrPrim, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
-		ArcProto [] arcProtoList, int startArcProto, int endArcProto)
+		ArcProto [] arcProtoList)
 	{
 		// primitives know their technology
 		if (cellOrPrim instanceof PrimitiveNode)
@@ -4763,9 +4763,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (arcProtoList != null)
 		{
 			// iterate over the arcprotos in the list
-			for(int i=startArcProto; i<endArcProto; i++)
+			for(ArcProto ap: arcProtoList)
 			{
-				ArcProto ap = arcProtoList[i];
 				if (ap == null) continue;
 				useCount[ap.getTechnology().getIndex()]++;
 			}

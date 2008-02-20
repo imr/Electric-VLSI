@@ -65,7 +65,9 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -78,6 +80,7 @@ public class ReadableDump extends LibraryFiles
 	private static class ArcInstList
 	{
 		private ArcInst []   arcList;
+        private String []    arcProtoName;
 		private ArcProto []  arcProto;
 		private String []    arcInstName;
         private TextDescriptor[] arcNameDescriptor;
@@ -110,33 +113,37 @@ public class ReadableDump extends LibraryFiles
 //	/** The current Cell in the Library. */							private int mainCell;
 	/** The current ArcInst end being processed. */					private int curArcEnd;
 	/** The current object type being processed. */					private int varPos;
-	/** The current Cell being processed. */						private Cell curCell;
 	/** The index of the current Cell being processed. */			private int curCellNumber;
 	/** The index of the current NodeInst being processed. */		private int curNodeInstIndex;
 	/** The index of the current ArcInst being processed. */		private int curArcInstIndex;
 	/** The index of the current Export being processed. */			private int curExportIndex;
 	/** Offset values for cells being read. */						private double [] nodeProtoOffX, nodeProtoOffY;
+    /** Proto strings for NodeInsts in each Cell. */                private String [][] nodeProtoTypeList;
 	/** All data for NodeInsts in each Cell. */						private LibraryFiles.NodeInstList[] nodeInstList;
 	/** All data for ArcInsts in each Cell. */						private ArcInstList[] arcInstList;
 	/** All data for Exports in each Cell. */						private ExportList [] exportList;
 	/** The maximum characters in a keyword. */						private int keywordArrayLen;
 	/** An array of keyword data. */								private char [] keywordArray = null;
 	/** The current keyword from the file. */						private String keyWord;
+    /** Flags on the Library */                                     private int libBits;
+    /** Variables on the Library */                                 private Variable[] libVars;
 	/** All Tools found in the file. */								private Tool [] toolList;
 	/** The current Tool being processed. */						private Tool curTool;
 	/** All Technologies found in the file. */						private Technology [] techList;
 	/** The current Technology being processed. */					private Technology curTech;
 	/** The values of Lambda for each Technology. */				private int [] lambdaValues;
-	/** The group number of the current Cell being processed. */	private int curCellGroup;
-	/** The CellName of the current Cell being processed. */		private CellName curCellName;
-	/** The creation date of the current Cell being processed. */	private int curCellCreationDate;
-	/** The revision date of the current Cell being processed. */	private int curCellRevisionDate;
-    /** The technology of the current Cell being processed. */      private Technology curCellTech;
-	/** The userbits of the current Cell being processed. */		private int curCellUserbits;
-	/** The low X bounds of the current Cell being processed. */	private int curCellLowX;
-	/** The high X bounds of the current Cell being processed. */	private int curCellHighX;
-	/** The low Y bounds of the current Cell being processed. */	private int curCellLowY;
-	/** The high Y bounds of the current Cell being processed. */	private int curCellHighY;
+	/** The group numbers of the Cells being processed. */          private int [] cellGroups;
+	/** The CellNames of the Cells being processed. */              private CellName [] cellNames;
+	/** The creation dates of Cells being processed. */             private int [] cellCreationDates;
+	/** The revision dates of the Cells being processed. */         private int [] cellRevisionDates;
+    /** The technologies of the Cells being processed. */           private String [] cellTechNames;
+	/** The userbits of the Cells being processed. */               private int [] cellUserbits;
+    /** The variables of the Cells being processed. */              private Variable [][] cellVars;
+	/** The low X bounds of the Cells being processed. */           private int [] cellLowX;
+	/** The high X bounds of the Cells being processed. */          private int [] cellHighX;
+	/** The low Y bounds of the Cells being processed. */           private int [] cellLowY;
+	/** The high Y bounds of the Cells being processed. */          private int [] cellHighY;
+    /** Library paths of the external Cells being processed. */     private String [] cellLibPaths;
 	/** cells being processed from this or external libraries. */	private Cell [] allCellsArray;
 
 	// state of input (value of "textLevel")
@@ -200,30 +207,12 @@ public class ReadableDump extends LibraryFiles
     }
 
 	/**
-	 * Method to read a Library in readable-dump (.txt) format.
-	 * @return true on error.
-	 */
-	protected boolean readLib()
-	{
-		try
-		{
-			return readTheLibrary();
-		} catch (IOException e)
-		{
-			System.out.println("End of file reached while reading " + filePath);
-			return true;
-		}
-	}
-
-	/**
 	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
-	private boolean readTheLibrary()
-		throws IOException
+    @Override
+	boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc) throws IOException
 	{
-		lib.erase();
-
 		textLevel = INLIB;
 //		filePosition = 0;
 		for(;;)
@@ -390,6 +379,212 @@ public class ReadableDump extends LibraryFiles
 		return false;
 	}
 
+	//************************************* in library
+
+    @Override
+    Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings) {
+ 		lib.erase();
+
+		lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
+		// this library came as readable dump, so don't automatically save it to disk
+		lib.clearFromDisk();
+        realizeVariables(lib, libVars);
+
+        HashMap<Cell,Variable[]> originalVars = new HashMap<Cell,Variable[]>();
+        for (int cellNumber = 0; cellNumber < nodeProtoCount; cellNumber++) {
+            if (cellLibPaths[cellNumber] == null)
+                finishCellInitialization(cellNumber, originalVars);
+            else
+                findExtCell(cellNumber);
+        }
+        return originalVars;
+    }
+
+    private void findExtCell(int cellNumber) {
+
+		// get the library associated with that name
+        String libPath = cellLibPaths[cellNumber];
+		Library elib = readExternalLibraryFromFilename(libPath, FileType.ELIB);
+
+		// find the requested cell in the external library
+		Cell cell = null;
+        CellName curCellName = cellNames[cellNumber];
+		if (elib != null)
+		{
+			// find this cell in the external library
+			cell = elib.findNodeProto(curCellName.toString());
+			if (cell != null)
+			{
+				// cell found: make sure it is valid
+				if (cell.getRevisionDate().compareTo(ELIBConstants.secondsToDate(cellRevisionDates[cellNumber])) != 0)
+				{
+					System.out.println("Warning: " + cell + " in " + elib +
+						" has been modified since its use in " + lib);
+				}
+			}
+		}
+
+		// see if a cell was found
+		if (cell != null)
+		{
+			// cell found in external library: remember the external reference
+			allCellsArray[cellNumber] = cell;
+			nodeProtoList[cellNumber] = null;
+		} else
+		{
+			// cell not found in external library: figure out the library name
+			String elibName = null;
+			if (elib != null) elibName = elib.getName(); else
+			{
+				File libFile = new File(libPath);
+				elibName = libFile.getName();
+				int lastDotPos = elibName.lastIndexOf('.');
+				if (lastDotPos > 0) elibName = elibName.substring(0, lastDotPos);
+			}
+
+			// cell not found in library: issue warning
+			System.out.println("Cannot find cell " + curCellName.toString() +
+				" in library " + elibName + "...creating dummy version");
+
+			// rename the cell
+			//curCellName.setName(curCellName.getName() + "FROM" + elibName);
+			if (curCellName.getVersion() != 0)
+				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
+					";" + curCellName.getVersion() + curCellName.getView().getAbbreviationExtension());
+			else
+				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
+					curCellName.getView().getAbbreviationExtension());
+            cellNames[cellNumber] = curCellName;
+			finishCellInitialization(cellNumber, null);
+
+			// schedule the cell to have two nodes (cell center and big "X")
+			LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList(2, false);
+			nodeInstList[cellNumber] = nil;
+
+			// create a cell-center node
+			nil.protoType[0] = Generic.tech().cellCenterNode;
+			nil.name[0] = null;
+			nil.lowX[0] = 0;
+			nil.highX[0] = 0;
+			nil.lowY[0] = 0;
+			nil.highY[0] = 0;
+			nil.rotation[0] = 0;
+			nil.transpose[0] = 0;
+
+			// create an artwork "Crossed box" to define the cell size
+			nil.protoType[1] = Artwork.tech().crossedBoxNode;
+			nil.name[1] = null;
+			nil.lowX[1] = cellLowX[cellNumber];
+			nil.highX[1] = cellHighX[cellNumber];
+			nil.lowY[1] = cellLowY[cellNumber];
+			nil.highY[1] = cellHighY[cellNumber];
+			nil.rotation[1] = 0;
+			nil.transpose[1] = 0;
+		}
+	}
+
+	private void finishCellInitialization(int cellNumber, HashMap<Cell,Variable[]> originalVars)
+	{
+        Cell curCell = Cell.newInstance(lib, cellNames[cellNumber].toString());
+        allCellsArray[cellNumber] = nodeProtoList[cellNumber] = curCell;
+		curCell.setTempInt(cellGroups[cellNumber]);
+//		curCell.lowLevelPopulate(curCellName.toString());
+		Technology tech = findTechnologyName(cellTechNames[cellNumber]);
+        if (tech != null)
+            curCell.setTechnology(tech);
+//		curCell.lowLevelLink();
+		curCell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(cellCreationDates[cellNumber]));
+		curCell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(cellRevisionDates[cellNumber]));
+		curCell.lowLevelSetUserbits(cellUserbits[cellNumber]);
+        if (originalVars != null)
+            originalVars.put(curCell, cellVars[cellNumber]);
+        for (int nodeInstIndex = 0; nodeInstIndex < nodeInstList[cellNumber].protoType.length; nodeInstIndex++)
+            findNodeProto(cellNumber, nodeInstIndex);
+        for (int arcInstIndex = 0; arcInstIndex < arcInstList[cellNumber].arcProto.length; arcInstIndex++)
+            findArcProto(cellNumber, arcInstIndex);
+	}
+
+    private void findNodeProto(int cellNumber, int nodeInstIndex) {
+        String nodeProtoType = nodeProtoTypeList[cellNumber][nodeInstIndex];
+		NodeProto curNodeInstProto = null;
+		int openSquare = nodeProtoType.indexOf('[');
+		if (openSquare >= 0)
+		{
+			curNodeInstProto = allCellsArray[TextUtils.atoi(nodeProtoType, openSquare+1)];
+		} else
+		{
+            int colonPos = nodeProtoType.indexOf(':');
+            Technology tech = Technology.findTechnology(nodeProtoType.substring(0, colonPos));
+            if (tech == null) return;
+            curNodeInstProto = tech.findNodeProto(nodeProtoType.substring(colonPos + 1));
+			if (curNodeInstProto == null)
+			{
+				// get the technology
+//				Technology tech = null;
+//				int colonPos = keyWord.indexOf(':');
+//				if (colonPos >= 0)
+//				{
+//					tech = Technology.findTechnology(keyWord.substring(0, colonPos));
+//				}
+//				if (tech != null)
+//				{
+					// convert "Active-Node" to "P-Active-Node" (MOSIS CMOS)
+					if (nodeProtoType.equals("Active-Node"))
+					{
+						curNodeInstProto = tech.findNodeProto("P-Active-Node");
+						if (curNodeInstProto == null)
+						{
+							// convert "message" and "cell-center" nodes
+							curNodeInstProto = tech.convertOldNodeName(nodeProtoType);
+						}
+					}
+//				}
+			}
+		}
+		if (curNodeInstProto == null)
+			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown node type: "+nodeProtoType);
+		nodeInstList[cellNumber].protoType[nodeInstIndex] = curNodeInstProto;
+	}
+
+    private void findArcProto(int cellNumber, int arcInstIndex) {
+        String arcProtoName = arcInstList[cellNumber].arcProtoName[arcInstIndex];
+		ArcProto curArcInstProto = null;
+		curArcInstProto = ArcProto.findArcProto(keyWord);
+		if (curArcInstProto == null)
+		{
+			// get the technology
+			Technology tech = null;
+			int colonPos = keyWord.indexOf(':');
+			if (colonPos >= 0)
+			{
+				tech = Technology.findTechnology(keyWord.substring(0, colonPos));
+			}
+			if (tech != null)
+			{
+				// convert old arcs
+				curArcInstProto = tech.convertOldArcName(keyWord);
+			}
+		}
+		if (curArcInstProto == null)
+			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown arc type: "+keyWord);
+		arcInstList[cellNumber].arcProto[arcInstIndex] = curArcInstProto;
+	}
+
+    @Override
+    Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell) {
+		// get information about this cell
+		int cellIndex = parentCell.getTempInt();
+		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
+
+		for (int i = 0; i < nil.protoType.length; i++) {
+			NodeProto np = nil.protoType[i];
+            if (np == iconCell)
+                return nil.vars[i];
+        }
+        return null;
+    }
+    
+    
 	//************************************* recursive
 
 	/**
@@ -504,8 +699,7 @@ public class ReadableDump extends LibraryFiles
 			arcPrototypes = ail.arcProto;
 			numArcs = arcPrototypes.length;
 		}
-		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes,
-			arcPrototypes, 0, numArcs);
+		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes, arcPrototypes);
 		cell.setTechnology(cellTech);
 	}
 
@@ -594,12 +788,12 @@ public class ReadableDump extends LibraryFiles
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
 			PortInst pi = findProperPortInst(subNi, el.exportSubPort[j]);
-			int userBits = exportList[curCellNumber].exportUserBits[curExportIndex];
+			int userBits = el.exportUserBits[curExportIndex];
             boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(userBits);
             boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(userBits);
             PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(userBits);
             ExportId exportId = cellId.newPortId(Name.findName(el.exportName[j]).toString());
-            Export pp = Export.newInstance(cell, exportId, null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
+            Export pp = Export.newInstance(cell, exportId, null, el.exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
 			el.exportList[j] = pp;
             if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);
@@ -819,7 +1013,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordLibBit()
 	{
 		if (bitCount == 0)
-			lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
+            libBits = TextUtils.atoi(keyWord);
 		bitCount++;
 	}
 
@@ -828,10 +1022,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordLibUsb()
 	{
-		lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
-
-		// this library came as readable dump, so don't automatically save it to disk
-		lib.clearFromDisk();
+        libBits = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -884,15 +1075,22 @@ public class ReadableDump extends LibraryFiles
 		cellLambda = new double[nodeProtoCount];
 		nodeProtoOffX = new double[nodeProtoCount];
 		nodeProtoOffY = new double[nodeProtoCount];
+        cellLowX = new int[nodeProtoCount];
+        cellHighX = new int[nodeProtoCount];
+        cellLowY = new int[nodeProtoCount];
+        cellHighY = new int[nodeProtoCount];
+        nodeProtoTypeList = new String[nodeProtoCount][];
 		nodeInstList = new LibraryFiles.NodeInstList[nodeProtoCount];
 		arcInstList = new ArcInstList[nodeProtoCount];
 		exportList = new ExportList[nodeProtoCount];
-
-//		for(int i=0; i<nodeProtoCount; i++)
-//		{
-//			allCellsArray[i] = nodeProtoList[i] = Cell.lowLevelAllocate(lib);
-//			if (nodeProtoList[i] == null) break;
-//		}
+        cellNames = new CellName[nodeProtoCount];
+        cellGroups = new int[nodeProtoCount];
+        cellTechNames = new String[nodeProtoCount];
+        cellCreationDates = new int[nodeProtoCount];
+        cellRevisionDates = new int[nodeProtoCount];
+        cellUserbits = new int[nodeProtoCount];
+        cellVars = new Variable[nodeProtoCount][];
+        cellLibPaths = new String[nodeProtoCount];
 	}
 
 	/**
@@ -954,16 +1152,10 @@ public class ReadableDump extends LibraryFiles
 		curCellNumber = TextUtils.atoi(keyWord);
 //		curCell = nodeProtoList[curCellNumber];
 
-        curCell = null;
-        curCellName = null;
-        curCellCreationDate = curCellRevisionDate = 0;
-        curCellTech = null;
-        curCellUserbits = 0;
-        curCellLowX = curCellHighX = curCellLowY = curCellHighY = 0;
-
-		curCellGroup = -1;
+		int curCellGroup = -1;
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0) curCellGroup = TextUtils.atoi(keyWord.substring(slashPos+1));
+        cellGroups[curCellNumber] = curCellGroup;
 
 		textLevel = INCELL;
 		varPos = INVNODEPROTO;
@@ -974,7 +1166,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelNam()
 	{
-		curCellName = CellName.parseName(convertCellName(keyWord));
+		cellNames[curCellNumber] = CellName.parseName(convertCellName(keyWord));
 	}
 
 	/**
@@ -982,7 +1174,8 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelVer()
 	{
-        curCellName = CellName.newName(curCellName.getName(), curCellName.getView(), TextUtils.atoi(keyWord));
+        CellName curCellName = cellNames[curCellNumber];
+        cellNames[curCellNumber] = CellName.newName(curCellName.getName(), curCellName.getView(), TextUtils.atoi(keyWord));
 		//curCellName.setVersion(TextUtils.atoi(keyWord));
 	}
 
@@ -991,7 +1184,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelCre()
 	{
-		curCellCreationDate = TextUtils.atoi(keyWord);
+		cellCreationDates[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -999,7 +1192,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelRev()
 	{
-		curCellRevisionDate = TextUtils.atoi(keyWord);
+		cellRevisionDates[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1007,7 +1200,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelLX()
 	{
-		curCellLowX = TextUtils.atoi(keyWord);
+		cellLowX[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1015,7 +1208,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelHX()
 	{
-		curCellHighX = TextUtils.atoi(keyWord);
+		cellHighX[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1023,7 +1216,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelLY()
 	{
-		curCellLowY = TextUtils.atoi(keyWord);
+		cellLowY[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1031,7 +1224,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelHY()
 	{
-		curCellHighY = TextUtils.atoi(keyWord);
+		cellHighY[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1039,7 +1232,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelBit()
 	{
-		curCellUserbits = TextUtils.atoi(keyWord);
+        cellUserbits[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1047,7 +1240,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelUsb()
 	{
-		curCellUserbits = TextUtils.atoi(keyWord);
+        cellUserbits[curCellNumber] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1063,106 +1256,15 @@ public class ReadableDump extends LibraryFiles
 			if (withoutQuotes.endsWith("\""))
 				withoutQuotes = withoutQuotes.substring(0, withoutQuotes.length()-1);
 		}
-
-		// get the library associated with that name
-		Library elib = readExternalLibraryFromFilename(withoutQuotes, FileType.ELIB);
-
-		// find the requested cell in the external library
-		Cell cell = null;
-		if (elib != null)
-		{
-			// find this cell in the external library
-			cell = elib.findNodeProto(curCellName.toString());
-			if (cell != null)
-			{
-				// cell found: make sure it is valid
-				if (cell.getRevisionDate().compareTo(ELIBConstants.secondsToDate(curCellRevisionDate)) != 0)
-				{
-					System.out.println("Warning: " + cell + " in " + elib +
-						" has been modified since its use in " + lib);
-				}
-			}
-		}
-
-		// see if a cell was found
-		if (cell != null)
-		{
-			// cell found in external library: remember the external reference
-			curCell = cell;
-			allCellsArray[curCellNumber] = cell;
-			nodeProtoList[curCellNumber] = null;
-		} else
-		{
-			// cell not found in external library: figure out the library name
-			String elibName = null;
-			if (elib != null) elibName = elib.getName(); else
-			{
-				File libFile = new File(withoutQuotes);
-				elibName = libFile.getName();
-				int lastDotPos = elibName.lastIndexOf('.');
-				if (lastDotPos > 0) elibName = elibName.substring(0, lastDotPos);
-			}
-
-			// cell not found in library: issue warning
-			System.out.println("Cannot find cell " + curCellName.toString() +
-				" in library " + elibName + "...creating dummy version");
-
-			// rename the cell
-			//curCellName.setName(curCellName.getName() + "FROM" + elibName);
-			if (curCellName.getVersion() != 0)
-				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
-					";" + curCellName.getVersion() + curCellName.getView().getAbbreviationExtension());
-			else
-				curCellName = CellName.parseName(curCellName.getName() + "FROM" + elibName +
-					curCellName.getView().getAbbreviationExtension());
-			finishCellInitialization();
-
-			// schedule the cell to have two nodes (cell center and big "X")
-			LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList(2, false);
-			nodeInstList[curCellNumber] = nil;
-
-			// create a cell-center node
-			nil.protoType[0] = Generic.tech().cellCenterNode;
-			nil.name[0] = null;
-			nil.lowX[0] = 0;
-			nil.highX[0] = 0;
-			nil.lowY[0] = 0;
-			nil.highY[0] = 0;
-			nil.rotation[0] = 0;
-			nil.transpose[0] = 0;
-
-			// create an artwork "Crossed box" to define the cell size
-			nil.protoType[1] = Artwork.tech().crossedBoxNode;
-			nil.name[1] = null;
-			nil.lowX[1] = curCellLowX;
-			nil.highX[1] = curCellHighX;
-			nil.lowY[1] = curCellLowY;
-			nil.highY[1] = curCellHighY;
-			nil.rotation[1] = 0;
-			nil.transpose[1] = 0;
-		}
-	}
-
-	private void finishCellInitialization()
-	{
-        allCellsArray[curCellNumber] = nodeProtoList[curCellNumber] = curCell = Cell.newInstance(lib, curCellName.toString());
-		curCell.setTempInt(curCellGroup);
-//		curCell.lowLevelPopulate(curCellName.toString());
-        if (curCellTech != null)
-            curCell.setTechnology(curCellTech);
-//		curCell.lowLevelLink();
-		curCell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(curCellCreationDate));
-		curCell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(curCellRevisionDate));
-		curCell.lowLevelSetUserbits(curCellUserbits);
-	}
+        cellLibPaths[curCellNumber] = withoutQuotes;
+    }
 
 	/**
 	 * get the default technology for objects in this cell (keyword "technology")
 	 */
 	private void keywordTech()
 	{
-		Technology tech = findTechnologyName(keyWord);
-        curCellTech = tech;
+        cellTechNames[curCellNumber] = keyWord;
 	}
 
 	/**
@@ -1170,12 +1272,13 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelNoC()
 	{
-		// this keyword indicates that the cell is NOT external, so establish it now
-		finishCellInitialization();
+//		// this keyword indicates that the cell is NOT external, so establish it now
+//		finishCellInitialization();
 
 		// handle the NodeInst count in the cell
 		int nodeInstCount = Integer.parseInt(keyWord);
 		if (nodeInstCount == 0) return;
+        nodeProtoTypeList[curCellNumber] = new String[nodeInstCount];
 		nodeInstList[curCellNumber] = new LibraryFiles.NodeInstList(nodeInstCount, false);
 	}
 
@@ -1189,6 +1292,7 @@ public class ReadableDump extends LibraryFiles
 		ArcInstList ail = new ArcInstList();
 		arcInstList[curCellNumber] = ail;
 		ail.arcList = new ArcInst[arcInstCount];
+        ail.arcProtoName = new String[arcInstCount];
 		ail.arcProto = new ArcProto[arcInstCount];
 		ail.arcInstName = new String[arcInstCount];
         ail.arcNameDescriptor = new TextDescriptor[arcInstCount];
@@ -1241,45 +1345,8 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordNodTyp()
 	{
-		NodeProto curNodeInstProto = null;
-		int openSquare = keyWord.indexOf('[');
-		if (openSquare >= 0)
-		{
-			curNodeInstProto = allCellsArray[TextUtils.atoi(keyWord, openSquare+1)];
-		} else
-		{
-            int colonPos = keyWord.indexOf(':');
-            Technology tech = Technology.findTechnology(keyWord.substring(0, colonPos));
-            if (tech == null) return;
-            curNodeInstProto = tech.findNodeProto(keyWord.substring(colonPos + 1));
-			if (curNodeInstProto == null)
-			{
-				// get the technology
-//				Technology tech = null;
-//				int colonPos = keyWord.indexOf(':');
-//				if (colonPos >= 0)
-//				{
-//					tech = Technology.findTechnology(keyWord.substring(0, colonPos));
-//				}
-//				if (tech != null)
-//				{
-					// convert "Active-Node" to "P-Active-Node" (MOSIS CMOS)
-					if (keyWord.equals("Active-Node"))
-					{
-						curNodeInstProto = tech.findNodeProto("P-Active-Node");
-						if (curNodeInstProto == null)
-						{
-							// convert "message" and "cell-center" nodes
-							curNodeInstProto = tech.convertOldNodeName(keyWord);
-						}
-					}
-//				}
-			}
-		}
-		if (curNodeInstProto == null)
-			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown node type: "+keyWord);
-		nodeInstList[curCellNumber].protoType[curNodeInstIndex] = curNodeInstProto;
-	}
+        nodeProtoTypeList[curCellNumber][curNodeInstIndex] = keyWord;
+    }
 
 	/**
 	 * get the bounding box information for the current node instance
@@ -1398,27 +1465,8 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordArcTyp()
 	{
-		ArcProto curArcInstProto = null;
-		curArcInstProto = ArcProto.findArcProto(keyWord);
-		if (curArcInstProto == null)
-		{
-			// get the technology
-			Technology tech = null;
-			int colonPos = keyWord.indexOf(':');
-			if (colonPos >= 0)
-			{
-				tech = Technology.findTechnology(keyWord.substring(0, colonPos));
-			}
-			if (tech != null)
-			{
-				// convert old arcs
-				curArcInstProto = tech.convertOldArcName(keyWord);
-			}
-		}
-		if (curArcInstProto == null)
-			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown arc type: "+keyWord);
-		arcInstList[curCellNumber].arcProto[curArcInstIndex] = curArcInstProto;
-	}
+        arcInstList[curCellNumber].arcProtoName[curArcInstIndex] = keyWord;
+    }
 
 	/**
 	 * get the instance name of the current arc instance (keyword "name")
@@ -1657,10 +1705,10 @@ public class ReadableDump extends LibraryFiles
                     setFontNames((String[])value);
                     vars[i] = null;
                 }
-                realizeVariables(lib, vars);
+                libVars = vars;
             	break;
     		case INVNODEPROTO:			// keyword applies to nodeproto
-                realizeVariables(curCell, vars);
+                cellVars[curCellNumber] = vars;
             	break;
         }
 	}

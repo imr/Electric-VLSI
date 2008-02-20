@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
@@ -85,6 +86,7 @@ import java.util.Set;
  */
 public abstract class LibraryFiles extends Input
 {
+    private static final boolean UNIFY_CELL_PARAMETERS = false;
 	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
 
@@ -519,8 +521,135 @@ public abstract class LibraryFiles extends Input
 		//libsBeingRead.put(lib, this);
 		scaledCells = new ArrayList<Cell>();
 
-		return readLib();
+		try
+		{
+			if (readTheLibrary(false, null))
+                return true;
+            Map<Cell,Variable[]> originalVars = createLibraryCells(false);
+            realizeCellVariables(originalVars);
+            return false;
+		} catch (IOException e)
+		{
+			System.out.println("End of file reached while reading " + filePath);
+			return true;
+		}
 	}
+    
+    abstract boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc) throws IOException;
+    abstract Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings);
+    
+    private void realizeCellVariables(Map<Cell,Variable[]> originalVars) {
+        if (!UNIFY_CELL_PARAMETERS) {
+            for (Map.Entry<Cell,Variable[]> e: originalVars.entrySet())
+                realizeVariables(e.getKey(), e.getValue());
+            return;
+        }
+        HashSet<Cell.CellGroup> visitedCellGroups = new HashSet<Cell.CellGroup>();
+        for (Cell cell: originalVars.keySet()) {
+            Cell.CellGroup cellGroup = cell.getCellGroup();
+            if (visitedCellGroups.contains(cellGroup)) continue;
+            realizeCellVariables(cellGroup, originalVars);
+            visitedCellGroups.add(cellGroup);
+        }
+    }
+    
+    private void realizeCellVariables(Cell.CellGroup cellGroup, Map<Cell,Variable[]> originalVars) {
+        // Find cell owner
+        Cell cellOwner = cellGroup.getMainSchematics();
+        if (cellOwner == null) {
+            for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); ) {
+                Cell cell = it.next();
+                if (cell.isIcon()) {
+                    cellOwner = cell;
+                    break;
+                }
+            }
+        }
+        
+        // Reailze variables on params owner and collect group params
+        HashMap<Variable.AttrKey,Variable> groupParams = new HashMap<Variable.AttrKey,Variable>();
+        if (cellOwner != null) {
+            Variable[] ownerVars = originalVars.get(cellOwner);
+            for (Variable var: ownerVars) {
+                if (var.getTextDescriptor().isParam()) {
+                    var = var.withInherit(true);
+                    groupParams.put((Variable.AttrKey)var.getKey(), var);
+                }
+                realizeVariable(cellOwner, var);
+            }
+        }
+        
+        for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); ) {
+            Cell cell = it.next();
+            if (cell == cellOwner) continue;
+            Variable[] origVars = originalVars.get(cell);
+            if (cell.isIcon() || cell.isSchematic())
+                realizeCellVariables(cell, origVars, groupParams);
+            else
+                realizeVariables(cell, origVars);
+        }
+    }
+    
+    private void realizeCellVariables(Cell cell, Variable[] origVars, HashMap<Variable.AttrKey,Variable> groupParams) {
+        int foundParams = 0;
+        for (Variable var: origVars) {
+            if (var.isAttribute()) {
+                Variable.Key varKey = var.getKey();
+                Variable groupParam = groupParams.get(varKey);
+                if (groupParam != null) {
+                    TextDescriptor td = var.getTextDescriptor().withCode(groupParam.getCode());
+                    if (!td.isParam()) {
+                        errorLogger.logError("Make param from attribute " + var, cell, 2);
+                        td = td.withParam(true);
+                    }
+                    td = td.withInherit(true);
+                    var = var.withTextDescriptor(td);
+                    foundParams++;
+                } else if (var.getTextDescriptor().isParam()) {
+                    errorLogger.logError("Delete param " + var, cell, 2);
+                    var = var.withParam(false);
+                }
+            }
+            realizeVariable(cell, var);
+        }
+        if (foundParams == groupParams.size()) return;
+        
+        HashSet<Variable.AttrKey> omittedParams = new HashSet<Variable.AttrKey>(groupParams.keySet());
+        for (Variable var: origVars)
+            omittedParams.remove(var.getKey());
+        assert omittedParams.size() + foundParams == groupParams.size();
+        for (Variable.AttrKey omittedParam: omittedParams) {
+            Variable param = groupParams.get(omittedParam);
+            if (cell.isIcon()) {
+                Variable exampleParam = null;
+                for (Iterator<Cell> cit = cell.getCellGroup().getCells(); cit.hasNext(); ) {
+                    Cell schCell = cit.next();
+                    if (!schCell.isSchematic()) continue;
+                    Variable[] vars = findVarsOnExampleIcon(schCell, cell);
+                    if (vars == null) continue;
+                    for (Variable var: vars) {
+                        if (var.getKey() != omittedParam) continue;
+                        exampleParam = var;
+                        errorLogger.logWarning("Created param " + omittedParam + " on " + cell + " from example on " +  schCell, cell, 2);
+                        break;
+                    }
+                    break;
+                }
+                if (exampleParam != null) {
+                    TextDescriptor td = exampleParam.getTextDescriptor();
+                    boolean display = td.isDisplay();
+                    td = td.withParam(true).withInherit(true).withInterior(display).withDisplay(true).withCode(param.getCode());
+                    param = param.withTextDescriptor(td);
+                } else {
+                    errorLogger.logError("Create param " + omittedParam + " on " + cell, 2);
+                }
+            }
+            assert param.getTextDescriptor().isParam() && param.isInherit();
+            realizeVariable(cell, param);
+        }
+    }
+    
+    abstract Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell);
 
 	protected void scanNodesForRecursion(Cell cell, HashSet<Cell> markCellForNodes, NodeProto [] nil, int start, int end)
 	{
@@ -545,14 +674,6 @@ public abstract class LibraryFiles extends Input
 		}
 		markCellForNodes.add(cell);
 	}
-
-	/**
-	 * Method to read a Library.
-	 * This method is never called.
-	 * Instead, it is always overridden by the appropriate read subclass.
-	 * @return true on error.
-	 */
-	protected boolean readLib() { return true; }
 
 	/**
 	 * Method to read project settings from a Library.
@@ -1155,45 +1276,47 @@ public abstract class LibraryFiles extends Input
 
     void realizeVariables(ElectricObject eObj, Variable[] vars) {
         if (vars == null) return;
-        for (int i = 0; i < vars.length; i++) {
-            Variable var = vars[i];
-			if (var == null || eObj.isDeprecatedVariable(var.getKey())) continue;
-            String origVarName = var.getKey().toString();
-			// convert old port variables
-			if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
-                NodeInst ni = (NodeInst)eObj;
-                // the form is "ATTRP_portName_variableName" with "\" escapes
-                StringBuffer portName = new StringBuffer();
-                String varName = null;
-                int len = origVarName.length();
-                for(int j=6; j<len; j++) {
-                    char ch = origVarName.charAt(j);
-                    if (ch == '\\') {
-                        j++;
-                        portName.append(origVarName.charAt(j));
-                        continue;
-                    }
-                    if (ch == '_') {
-                        varName = origVarName.substring(j+1);
-                        break;
-                    }
-                    portName.append(ch);
+        for (Variable var: vars)
+            realizeVariable(eObj, var);
+    }
+    
+    private void realizeVariable(ElectricObject eObj, Variable var) {
+        if (var == null || eObj.isDeprecatedVariable(var.getKey())) return;
+        String origVarName = var.getKey().toString();
+        // convert old port variables
+        if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
+            NodeInst ni = (NodeInst)eObj;
+            // the form is "ATTRP_portName_variableName" with "\" escapes
+            StringBuffer portName = new StringBuffer();
+            String varName = null;
+            int len = origVarName.length();
+            for(int j=6; j<len; j++) {
+                char ch = origVarName.charAt(j);
+                if (ch == '\\') {
+                    j++;
+                    portName.append(origVarName.charAt(j));
+                    continue;
                 }
-                if (varName != null) {
-                    String thePortName = portName.toString();
-                    PortProto pp = findPortProto(ni.getProto(), thePortName);
-                    PortInst pi = pp != null ? ni.findPortInstFromProto(pp) : null;
-                    if (pi != null) {
-                        pi.newVar(Variable.newKey(varName), var.getObject(), var.getTextDescriptor());
-                        continue;
-                    }
+                if (ch == '_') {
+                    varName = origVarName.substring(j+1);
+                    break;
+                }
+                portName.append(ch);
+            }
+            if (varName != null) {
+                String thePortName = portName.toString();
+                PortProto pp = findPortProto(ni.getProto(), thePortName);
+                PortInst pi = pp != null ? ni.findPortInstFromProto(pp) : null;
+                if (pi != null) {
+                    pi.newVar(Variable.newKey(varName), var.getObject(), var.getTextDescriptor());
+                    return;
                 }
             }
-            if (eObj instanceof NodeInst)
-                ((NodeInst)eObj).lowLevelAddVar(var);
-            else
-                eObj.addVar(var);
         }
+        if (eObj instanceof NodeInst)
+            ((NodeInst)eObj).lowLevelAddVar(var);
+        else
+            eObj.addVar(var);
     }
 
     static PortProto findPortProto(NodeProto np, String portId) {

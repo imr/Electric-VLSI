@@ -126,8 +126,12 @@ public class JELIB extends LibraryFiles
 	 * @return true on error.
 	 */
     @Override
-	protected boolean readLib()
-	{
+    boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc) {
+        return false;
+    }
+
+    @Override
+    Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings) {
         lib.erase();
         realizeVariables(lib, parser.libVars);
         lib.setVersion(parser.version);
@@ -165,6 +169,7 @@ public class JELIB extends LibraryFiles
         nodeProtoCount = parser.allCells.size();
         nodeProtoList = new Cell[nodeProtoCount];
         cellLambda = new double[nodeProtoCount];
+        HashMap<Cell,Variable[]> originalVars = new HashMap<Cell,Variable[]>();
         HashMap<CellName,Cell> cellGroupExamples = new HashMap<CellName,Cell>();
         int cellNum = 0;
         for (JelibParser.CellContents cc: parser.allCells.values()) {
@@ -179,7 +184,7 @@ public class JELIB extends LibraryFiles
             if (cc.instLocked) cell.setInstancesLocked();
             if (cc.cellLib) cell.setInCellLibrary();
             if (cc.techLib) cell.setInTechnologyLibrary();
-            realizeVariables(cell, cc.vars);
+            originalVars.put(cell, cc.vars);
             nodeProtoList[cellNum++] = cell;
             Cell otherCell = cellGroupExamples.get(cc.groupName);
             if (otherCell == null)
@@ -190,9 +195,20 @@ public class JELIB extends LibraryFiles
 
         lib.setFromDisk();
         lib.setDelibCellFiles(parser.delibCellFiles);
-        return false;
+        return originalVars;
 	}
 
+    @Override
+    Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell) {
+        JelibParser.CellContents cc = parser.allCells.get(parentCell.getId());
+        if (cc == null) return null;
+        for (JelibParser.NodeContents nc: cc.nodes) {
+            if (nc.protoId == iconCell.getId())
+                return nc.vars;
+        }
+        return null;
+    }
+    
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
