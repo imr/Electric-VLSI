@@ -32,6 +32,24 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -41,22 +59,25 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 
 /**
  * Class to handle the "Layers tab" of a window.
  */
-public class LayerTab extends JPanel
+public class LayerTab extends JPanel implements DragSourceListener, DragGestureListener
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private HashMap<Layer,Boolean> highlighted;
 	private List<Layer> layersInList;
+	private DragSource dragSource;
 	private boolean loading;
-    private boolean layerDrawing;
+	private boolean layerDrawing;
 
 	private static HashMap<Layer,Boolean> visibility;
 
@@ -76,121 +97,114 @@ public class LayerTab extends JPanel
 		{
 			public void mouseClicked(MouseEvent e) { apply(e); }
 		});
+
+		// setup drag-and-drop in the layers tab
+		dragSource = new DragSource();
+		dragSource.createDefaultDragGestureRecognizer(layerList, DnDConstants.ACTION_COPY, this);
+		new DropTarget(layerList, DnDConstants.ACTION_LINK, new LayerTabTreeDropTarget(), true);
+
 		nodeText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		arcText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		portText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		exportText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		annotationText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		instanceNames.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
 		cellText.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { update(); }
-        });
-//		if (Job.getDebug())
-//		{
-			opacitySlider.addChangeListener(new ChangeListener()
-	        {
-	            public void stateChanged(ChangeEvent evt) { sliderChanged(); }
-	        });
-//		} else
-//		{
-//			remove(opacitySlider);
-//		}
+		{
+			public void actionPerformed(ActionEvent evt) { update(); }
+		});
+		opacitySlider.addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent evt) { sliderChanged(); }
+		});
 
 		technology.setLightWeightPopupEnabled(false);
 
-        // Getting default tech stored
-        loadTechnologies(true);
+		// Getting default tech stored
+		loadTechnologies(true);
 		updateLayersTab();
 		technology.addActionListener(new WindowFrame.CurTechControlListener(wf));
 	}
 
-    /**
-     * Free allocated resources before closing.
-     */
-    public void finished()
-    {
-        // making memory available for GC
-        layersInList.clear(); layersInList = null;
-        highlighted.clear(); highlighted = null;
-    }
+	/**
+	 * Free allocated resources before closing.
+	 */
+	public void finished()
+	{
+		// making memory available for GC
+		layersInList.clear(); layersInList = null;
+		highlighted.clear(); highlighted = null;
+	}
 
 	/**
 	 * Method to update the technology popup selector in the Layers tab.
 	 * Called at initialization or when a new technology has been created.
-	 * @param makeCurrent true to keep the current technology selected,
-	 * false to set to the current technology.
 	 */
 	public void loadTechnologies(boolean makeCurrent)
 	{
-        Technology cur = Technology.getCurrent();
-        if (!makeCurrent || cur == null)
-            cur = Technology.findTechnology((String)technology.getSelectedItem());
+		Technology cur = Technology.getCurrent();
+		if (!makeCurrent || cur == null)
+			cur = Technology.findTechnology((String)technology.getSelectedItem());
 		loading = true;
 		technology.removeAllItems();
-        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-        {
-            Technology tech = it.next();
-            if (tech == Generic.tech() && !Job.getDebug()) continue;
-			technology.addItem(tech.getTechName());
-        }
-
-        setSelectedTechnology(cur);
-		loading = false;
-
-		// cache visibility
 		visibility = new HashMap<Layer,Boolean>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
+			if (tech == Generic.tech() && !Job.getDebug()) continue;
+			technology.addItem(tech.getTechName());
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				visibility.put(layer, layer.isVisible()); // autoboxing
+				visibility.put(layer, new Boolean(layer.isVisible()));
 			}
 		}
-        visibility.put(Generic.tech().drcLay, Generic.tech().drcLay.isVisible()); // autoboxing
-        visibility.put(Generic.tech().afgLay, Generic.tech().afgLay.isVisible()); // autoboxing
+		visibility.put(Generic.tech().drcLay, new Boolean(Generic.tech().drcLay.isVisible()));
+		visibility.put(Generic.tech().afgLay, new Boolean(Generic.tech().afgLay.isVisible()));
+
+		setSelectedTechnology(cur);
+		loading = false;
 	}
 
-    /**
-     * Method to set the technology in the pull down menu of this Layers tab.
-     * @param tech the technology to set.
-     */
-    public void setSelectedTechnology(Technology tech)
-    {
-        if (tech == null)
-            System.out.println("Selecting a null technology");
-        else
-            technology.setSelectedItem(tech.getTechName());
-    }
+	/**
+	 * Method to set the technology in the pull down menu of this Layers tab.
+	 * @param tech the technology to set.
+	 */
+	public void setSelectedTechnology(Technology tech)
+	{
+		if (tech == null)
+			System.out.println("Selecting a null technology");
+		else
+			technology.setSelectedItem(tech.getTechName());
+	}
 
-    public void setDisplayAlgorithm(boolean layerDrawing) {
-        boolean changed = this.layerDrawing != layerDrawing;
-        this.layerDrawing = layerDrawing;
-        if (changed)
-            updateLayersTab();
-    }
-    
+	public void setDisplayAlgorithm(boolean layerDrawing)
+	{
+		boolean changed = this.layerDrawing != layerDrawing;
+		this.layerDrawing = layerDrawing;
+		if (changed)
+			updateLayersTab();
+	}
+
 	/**
 	 * Method to update this LayersTab.
 	 * Called when any of the values in the tab have changed.
@@ -229,37 +243,48 @@ public class LayerTab extends JPanel
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				if (noDimming) highlighted.put(layer, false);
-                else highlighted.put(layer, !layer.isDimmed());
+				if (noDimming) highlighted.put(layer, false); else
+					highlighted.put(layer, !layer.isDimmed());
 			}
 		}
 
-        Technology tech = Technology.getCurrent();
-        setSelectedTechnology(tech);
+		Technology tech = Technology.getCurrent();
+		setSelectedTechnology(tech);
 		layerListModel.clear();
 		layersInList = new ArrayList<Layer>();
-        if (tech != null)
-        {
-            for(Layer layer : tech.getLayersSortedByHeight())
-            {
-                if (layer.isPseudoLayer()) continue;
-                layersInList.add(layer);
+		if (tech != null)
+		{
+			// see if a preferred order has been saved
+			List<Layer> savedOrder = tech.getSavedLayerOrder();
+			List<Layer> allLayers = tech.getLayersSortedByHeight();
+			if (tech.isLayout())
+			{
+				allLayers.add(Generic.tech().drcLay);
+				allLayers.add(Generic.tech().afgLay);
+			}
+			if (savedOrder == null) savedOrder = allLayers;
 
-                // add the line to the scroll list
-                layerListModel.addElement(lineName(layer));
-            }
-            // Adding special layers in case of layout technologies
-            if (tech.isLayout())
-            {
-                layersInList.add(Generic.tech().drcLay);
-                layerListModel.addElement(lineName(Generic.tech().drcLay));
-                layersInList.add(Generic.tech().afgLay);
-                layerListModel.addElement(lineName(Generic.tech().afgLay));
-            }
-            layerList.setSelectedIndex(0);
-        }
-        opacitySlider.setVisible(layerDrawing);
-        resetOpacity.setVisible(layerDrawing);
+			for(Layer layer : savedOrder)
+			{
+				if (layer.getTechnology() != Generic.tech() && layer.isPseudoLayer()) continue;
+
+				layersInList.add(layer);
+				layerListModel.addElement(lineName(layer));
+			}
+
+			// add any layers not saved
+			for(Layer layer : allLayers)
+			{
+				if (savedOrder.contains(layer)) continue;
+				if (layer.getTechnology() != Generic.tech() && layer.isPseudoLayer()) continue;
+
+				layersInList.add(layer);
+				layerListModel.addElement(lineName(layer));
+			}
+			layerList.setSelectedIndex(0);
+		}
+		opacitySlider.setVisible(layerDrawing);
+		resetOpacity.setVisible(layerDrawing);
 	}
 
 	private String lineName(Layer layer)
@@ -272,7 +297,7 @@ public class LayerTab extends JPanel
 		Boolean layerHighlighted = highlighted.get(layer);
 		layerName.append(layer.getName());
 		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");
-		if (/*Job.getDebug()*/layerDrawing)
+		if (layerDrawing)
 			layerName.append(" (" + TextUtils.formatDouble(layer.getGraphics().getOpacity(),2) + ")");
 		return layerName.toString();
 	}
@@ -326,22 +351,23 @@ public class LayerTab extends JPanel
 		layer.getGraphics().setOpacity(newOpacity);
 		layerListModel.set(indices[0], lineName(layer));
 
-        opacityChanged();
+		opacityChanged();
 	}
-    
-    private void opacityChanged() {
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-            WindowFrame wf = it.next();
-            WindowContent content = wf.getContent();
-            if (!(content instanceof EditWindow)) continue;
-            EditWindow wnd = (EditWindow)content;
-            wnd.opacityChanged();
-            LayerTab layerTab = wf.getLayersTab();
-//            layerTab.updateLayersTab();
-            if (layerTab == this)
-                wnd.repaint();
-        }
-    }
+
+	private void opacityChanged()
+	{
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)content;
+			wnd.opacityChanged();
+			LayerTab layerTab = wf.getLayersTab();
+			if (layerTab == this)
+				wnd.repaint();
+		}
+	}
 
 	/**
 	 * Method to clear all highlighting.
@@ -410,9 +436,9 @@ public class LayerTab extends JPanel
 		Layer layer = tech.findLayer(name);
 		if (layer == null)
 		{
-            layer = Generic.tech().findLayer(name);
-            if (layer == null)
-			    System.out.println("Can't find "+name);
+			layer = Generic.tech().findLayer(name);
+			if (layer == null)
+				System.out.println("Can't find "+name);
 		}
 		return layer;
 	}
@@ -438,31 +464,32 @@ public class LayerTab extends JPanel
 		if (doUpdate) update();
 	}
 
-    /**
-     * Set the metal layer at the given level visible,
-     * and turn off all other layers.  Layer 0 turns on all
-     * layers.
-     * @param level metal level
-     */
-    public void setVisibilityLevel(int level) {
-        int len = layerListModel.size();
-        for (int i=0; i<len; i++) {
-            Layer layer = getSelectedLayer(i);
-            Boolean b = new Boolean(false);
-            if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-                b = new Boolean(true);
-            if (level == 1 && layer.getFunction().getLevel() <= 1)
-                b = new Boolean(true);
-            if (layer.getFunction().getLevel() == level ||
-                layer.getFunction().getLevel() == (level-1) || level == 0)
-                b = new Boolean(true);
-            visibility.put(layer, b);
-            layerListModel.set(i, lineName(layer));
-        }
-        update();
-    }
+	/**
+	 * Set the metal layer at the given level visible,
+	 * and turn off all other layers.  Layer 0 turns on all layers.
+	 * @param level metal level
+	 */
+	public void setVisibilityLevel(int level)
+	{
+		int len = layerListModel.size();
+		for (int i=0; i<len; i++)
+		{
+			Layer layer = getSelectedLayer(i);
+			Boolean b = new Boolean(false);
+			if (level == 2 && layer.getFunction() == Layer.Function.GATE)
+				b = new Boolean(true);
+			if (level == 1 && layer.getFunction().getLevel() <= 1)
+				b = new Boolean(true);
+			if (layer.getFunction().getLevel() == level ||
+				layer.getFunction().getLevel() == (level-1) || level == 0)
+				b = new Boolean(true);
+			visibility.put(layer, b);
+			layerListModel.set(i, lineName(layer));
+		}
+		update();
+	}
 
-    /**
+	/**
 	 * Method to change a line of the layer list.
 	 * @param i the line number to change.
 	 * @param how 1: toggle highlighting; 0: clear highlighting.
@@ -506,8 +533,8 @@ public class LayerTab extends JPanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-                Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
-                if (layerHighlighted != null && layerHighlighted.booleanValue()) anyHighlighted = true;
+				Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
+				if (layerHighlighted != null && layerHighlighted.booleanValue()) anyHighlighted = true;
 			}
 		}
 
@@ -519,29 +546,29 @@ public class LayerTab extends JPanel
 			{
 				Layer layer = lIt.next();
 				Boolean layerVis = visibility.get(layer.getNonPseudoLayer());
-                if (layerVis != null)
-                {
-	                if (layer.isVisible() != layerVis.booleanValue())
-	                {
-                		changed = true;
-	                	layer.setVisible(layerVis.booleanValue());
+				if (layerVis != null)
+				{
+					if (layer.isVisible() != layerVis.booleanValue())
+					{
+						changed = true;
+						layer.setVisible(layerVis.booleanValue());
 
-                        // graphics notifies to all 3D observers if available
-                        layer.getGraphics().notifyVisibility(layerVis);
-	                }
-                }
+						// graphics notifies to all 3D observers if available
+						layer.getGraphics().notifyVisibility(layerVis);
+					}
+				}
 
-                Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
-                if (layerHighlighted != null)
-                {
-                	boolean newState = false;
-                	if (anyHighlighted && !layerHighlighted.booleanValue()) newState = true;
-                	if (newState != layer.isDimmed())
-                	{
-                		layer.setDimmed(newState);
-                		changed = true;
-                	}
-                }
+				Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
+				if (layerHighlighted != null)
+				{
+					boolean newState = false;
+					if (anyHighlighted && !layerHighlighted.booleanValue()) newState = true;
+					if (newState != layer.isDimmed())
+					{
+						layer.setDimmed(newState);
+						changed = true;
+					}
+				}
 			}
 		}
 
@@ -567,7 +594,7 @@ public class LayerTab extends JPanel
 				boolean invisible = true;
 				for(Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
 				{
-                    Layer layer = lIt.next();
+					Layer layer = lIt.next();
 					if (layer.isVisible()) { invisible = false;   break; }
 				}
 				ap.setArcInvisible(invisible);
@@ -633,16 +660,115 @@ public class LayerTab extends JPanel
 				lt.updateLayersTab();
 		}
 
-        
 		if (changed || textVisChanged)
-            User.layerVisibilityChanged(!changed);
-//		if (changed || textVisChanged)
-//		{
-//			PixelDrawing.clearSubCellCache();
-//			EditWindow.repaintAllContents();
-//		}
-//		if (changed)
-//			VectorDrawing.layerVisibilityChanged();
+			User.layerVisibilityChanged(!changed);
+	}
+
+	/************************** DRAG AND DROP **************************/
+
+	public void dragGestureRecognized(DragGestureEvent dge)
+	{
+		StringSelection transferable = new StringSelection("" + layerList.getSelectedIndex());
+		dragSource.startDrag(dge, DragSource.DefaultCopyDrop, transferable, this);
+	}
+
+	public void dragEnter(DragSourceDragEvent dsde) {}
+
+	public void dragExit(DragSourceEvent dse) {}
+
+	public void dragOver(DragSourceDragEvent dsde) {}
+
+	public void dragDropEnd(DragSourceDropEvent dsde) {}
+
+	public void dropActionChanged(DragSourceDragEvent dsde) {}
+
+	/**
+	 * Class for catching drags in the list of layers.
+	 * These drags come from elsewhere in the layers tab.
+	 */
+	private class LayerTabTreeDropTarget implements DropTargetListener
+	{
+		private Rectangle lastDrawn = null;
+
+		public void dragEnter(DropTargetDragEvent e)
+		{
+			DropTarget dt = (DropTarget)e.getSource();
+			if (dt.getComponent() == layerList)
+				e.acceptDrag(e.getDropAction());
+		}
+
+		public void dragOver(DropTargetDragEvent e)
+		{
+			DropTarget dt = (DropTarget)e.getSource();
+			if (dt.getComponent() != layerList) return;
+			e.acceptDrag(e.getDropAction());
+
+			// erase former drawing
+			eraseDragImage();
+
+			// highlight the destination
+			int index = layerList.locationToIndex(e.getLocation());
+			Rectangle path = layerList.getCellBounds(index, index);
+			if (path == null) return;
+			Graphics2D g2 = (Graphics2D)layerList.getGraphics();
+			g2.setColor(Color.RED);
+			g2.drawRect(path.x, path.y, path.width-1, 1);
+			lastDrawn = path;
+		}
+
+		public void dropActionChanged(DropTargetDragEvent e)
+		{
+			e.acceptDrag(e.getDropAction());
+		}
+
+		public void dragExit(DropTargetEvent e)
+		{
+			eraseDragImage();
+		}
+
+		public void drop(DropTargetDropEvent dtde)
+		{
+			dtde.acceptDrop(DnDConstants.ACTION_LINK);
+
+			// erase former drawing
+			eraseDragImage();
+
+			// get the original index that was dragged
+			String text = null;
+			DataFlavor [] flavors = dtde.getCurrentDataFlavors();
+			if (flavors.length > 0)
+			{
+				if (flavors[0].isFlavorTextType())
+				{
+					try {
+						text = (String)dtde.getTransferable().getTransferData(flavors[0]);
+					} catch (Exception e) {}
+				}
+			}
+			if (text == null) return;
+			int start = TextUtils.atoi(text);
+			int end = layerList.locationToIndex(dtde.getLocation());
+			Layer moveIt = layersInList.get(start);
+			layersInList.remove(start);
+			if (start < end) end--;
+			layersInList.add(end, moveIt);
+
+			layerListModel.clear();
+			for(Layer layer : layersInList)
+				layerListModel.addElement(lineName(layer));
+			layerList.setSelectedIndex(end);
+			Technology tech = Technology.getCurrent();
+			tech.setSavedLayerOrder(layersInList);
+
+			dtde.dropComplete(false);
+		}
+
+		private void eraseDragImage()
+		{
+			if (lastDrawn == null) return;
+			layerList.paintImmediately(lastDrawn);
+			lastDrawn = null;
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -867,10 +993,10 @@ public class LayerTab extends JPanel
     {//GEN-HEADEREND:event_resetOpacityActionPerformed
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
-        if (tech == null) return;
-        EditWindow.setDefaultOpacity(tech);
-        updateLayersTab();
-        opacityChanged();
+		if (tech == null) return;
+		EditWindow.setDefaultOpacity(tech);
+		updateLayersTab();
+		opacityChanged();
     }//GEN-LAST:event_resetOpacityActionPerformed
 
 	private void toggleHighlightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_toggleHighlightActionPerformed
@@ -897,13 +1023,6 @@ public class LayerTab extends JPanel
 	{//GEN-HEADEREND:event_selectAllActionPerformed
 		selectAll();
 	}//GEN-LAST:event_selectAllActionPerformed
-
-//	/** Closes the dialog */
-//	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
-//	{
-//		setVisible(false);
-//		dispose();
-//	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox annotationText;

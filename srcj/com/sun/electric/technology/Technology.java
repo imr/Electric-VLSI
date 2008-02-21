@@ -887,6 +887,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Preference for saving component menus */			private Pref componentMenuPref = null;
+    /** Preference for saving layer order */				private Pref layerOrderPref = null;
 
 	/****************************** CONTROL ******************************/
 
@@ -2096,7 +2097,63 @@ public class Technology implements Comparable<Technology>, Serializable
 		return(layerList);
 	}
 
-    public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight(false);
+	/**
+	 * Method to return a list of layers that are saved for this Technology.
+	 * The saved layers are used in the "Layers" tab (which can be user-rearranged).
+	 * @return a list of layers for this Technology in the saved order.
+	 */
+	public List<Layer> getSavedLayerOrder()
+	{
+		if (layerOrderPref == null)
+			layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
+		String order = layerOrderPref.getString();
+		if (order.length() == 0) return null;
+		int pos = 0;
+		List<Layer> layers = new ArrayList<Layer>();
+		while (pos < order.length())
+		{
+			// get the next layer name in the string
+			int end = order.indexOf(',', pos);
+			if (end < 0) break;
+			String layerName = order.substring(pos, end);
+			pos = end + 1;
+
+			// find the layer and add it to the list
+			int colonPos = layerName.indexOf(':');
+			Technology tech = this;
+			if (colonPos >= 0)
+			{
+				String techName = layerName.substring(0, colonPos);
+				tech = findTechnology(techName);
+				if (tech == null) continue;
+				layerName = layerName.substring(colonPos+1);
+			}
+			Layer layer = tech.findLayer(layerName);
+			if (layer != null)
+				layers.add(layer);
+		}
+		return layers;		
+	}
+
+	/**
+	 * Method to save a list of layers for this Technology in a preferred order.
+	 * This ordering is managed by the "Layers" tab which users can rearrange.
+	 * @param layers a list of layers for this Technology in a preferred order.
+	 */
+	public void setSavedLayerOrder(List<Layer> layers)
+	{
+		if (layerOrderPref == null)
+			layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
+		StringBuffer sb = new StringBuffer();
+		for(Layer lay : layers)
+		{
+			if (lay.getTechnology() != this) sb.append(lay.getTechnology().getTechName() + ":");
+			sb.append(lay.getName() + ",");
+		}
+		layerOrderPref.setString(sb.toString());
+	}
+
+	public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight(false);
     public static final LayerHeight LAYERS_BY_HEIGHT_LIFT_CONTACTS = new LayerHeight(true);
 
 	private static class LayerHeight implements Comparator<Layer>
