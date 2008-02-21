@@ -1430,8 +1430,7 @@ public class Technology implements Comparable<Technology>, Serializable
             Xml.Technology t = Xml.parseTechnology(urlXml);
             if (t == null)
             {
-                if (Job.getDebug())
-                    System.out.println("Can't find extra technology: " + urlXml.getFile());
+                throw new Exception("Can't load extra technology: " + urlXml);
             }
             else if (Technology.findTechnology(t.techName) != null)
             {
