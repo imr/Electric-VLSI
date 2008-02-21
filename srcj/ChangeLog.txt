@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/20/08, GVG) Better message if Technology.xsd file can't be uploaded. If null, Electric runs
+without schema validation.
+
 BUG: (2/20/08, GVG) Runtime exception in tech generated while uploading another XML tech (Bug #1581)
 FIX: Layout code reorganized to prevent the error.
 

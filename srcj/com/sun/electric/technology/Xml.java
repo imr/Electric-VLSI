@@ -401,9 +401,16 @@ public class Xml {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         URL technologySchemaUrl = Technology.class.getResource("Technology.xsd");
-        schema = schemaFactory.newSchema(technologySchemaUrl);
+        technologySchemaUrl = null;
+        if (technologySchemaUrl != null)
+            schema = schemaFactory.newSchema(technologySchemaUrl);
+        else
+        {
+            System.err.println("Schema file Technology.xsd, working without XML schema");
+            System.out.println("Schema file Technology.xsd, working without XML schema");
+        }
     }
-    
+
     public static Technology parseTechnology(URL fileURL) {
 //        System.out.println("Memory usage " + Main.getMemoryUsage() + " bytes");
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -1489,8 +1496,8 @@ public class Xml {
          */
         public void error(SAXParseException e)
         throws SAXException {
-            System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
-                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
+//            System.out.println("error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
+//                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
 
@@ -1514,8 +1521,8 @@ public class Xml {
          */
         public void fatalError(SAXParseException e)
         throws SAXException {
-            System.out.println("fatal error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
-                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
+//            System.out.println("fatal error publicId=" + e.getPublicId() + " systemId=" + e.getSystemId() +
+//                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
 
