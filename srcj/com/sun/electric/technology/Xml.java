@@ -401,7 +401,6 @@ public class Xml {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         URL technologySchemaUrl = Technology.class.getResource("Technology.xsd");
-        technologySchemaUrl = null;
         if (technologySchemaUrl != null)
             schema = schemaFactory.newSchema(technologySchemaUrl);
         else
