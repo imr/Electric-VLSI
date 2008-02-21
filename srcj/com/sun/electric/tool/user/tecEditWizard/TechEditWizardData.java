@@ -937,6 +937,7 @@ public class TechEditWizardData
 			int r = 255;
 			int g = 0;
 			int b = 0;
+        	double opacity = 0.4;
 			double la = -1;
 			String pat = null;
 
@@ -1080,6 +1081,7 @@ public class TechEditWizardData
 				r = metal_colour[metLayDig].getRed() * (10-metLayHigh) / 10;
 				g = metal_colour[metLayDig].getGreen() * (10-metLayHigh) / 10;
 				b = metal_colour[metLayDig].getBlue() * (10-metLayHigh) / 10;
+        		opacity = (75 - metLay * 5)/100.0;
 				la = metal_width[metLay-1].v / stepsize;
 			}
 
@@ -1091,6 +1093,7 @@ public class TechEditWizardData
 				r = via_colour.getRed();
 				g = via_colour.getGreen();
 				b = via_colour.getBlue();
+                opacity = 0.7;
 				la = via_size[viaLay-1].v / stepsize;
 			}
 
@@ -1120,6 +1123,7 @@ public class TechEditWizardData
 			{
 				fun = "POLY1";
 				tcol = 1;
+                opacity = 1;
 				la = poly_width.v / stepsize;
 			}
 
@@ -1127,12 +1131,14 @@ public class TechEditWizardData
 			{
 				fun = "GATE";
 				tcol = 1;
+                opacity = 1;
 			}
 
 			if (l.equals("P-Diff"))
 			{
 				fun = "DIFFP";
 				tcol = 2;
+                opacity = 1;
 				la = diff_width.v / stepsize;
 			}
 
@@ -1140,6 +1146,7 @@ public class TechEditWizardData
 			{
 				fun = "DIFFN";
 				tcol = 2;
+                opacity = 1;
 				la = diff_width.v / stepsize;
 			}
 
@@ -1149,6 +1156,7 @@ public class TechEditWizardData
 				r = nplus_colour.getRed();
 				g = nplus_colour.getGreen();
 				b = nplus_colour.getBlue();
+                opacity = 1;
 				la = nplus_width.v / stepsize;
 				pat="        <pattern>   X       X    </pattern>\n" +
 					"        <pattern>  X       X     </pattern>\n" +
@@ -1175,6 +1183,7 @@ public class TechEditWizardData
 				r = pplus_colour.getRed();
 				g = pplus_colour.getGreen();
 				b = pplus_colour.getBlue();
+                opacity = 1;
 				la = pplus_width.v / stepsize;
 				pat="        <pattern>   X       X    </pattern>\n" +
 					"        <pattern>  X       X     </pattern>\n" +
@@ -1200,6 +1209,7 @@ public class TechEditWizardData
 				r = nwell_colour.getRed();
 				g = nwell_colour.getGreen();
 				b = nwell_colour.getBlue();
+                opacity = 1;
 				la = nwell_width.v / stepsize;
 				pat="        <pattern>       X       X</pattern>\n" +
 					"        <pattern>X       X       </pattern>\n" +
@@ -1226,6 +1236,7 @@ public class TechEditWizardData
 				r = contact_colour.getRed();
 				g = contact_colour.getGreen();
 				b = contact_colour.getBlue();
+                opacity = 1;
 				la = contact_size.v / stepsize;
 			}
 
@@ -1236,6 +1247,7 @@ public class TechEditWizardData
 				r = contact_colour.getRed();
 				g = contact_colour.getGreen();
 				b = contact_colour.getBlue();
+                opacity = 1;
 				la = contact_size.v / stepsize;
 			}
 
@@ -1260,7 +1272,7 @@ public class TechEditWizardData
 				pw.println(pat);
 			}
 			pw.println("        <outlined>NOPAT</outlined>");
-			pw.println("        <opacity>0</opacity>");
+			pw.println("        <opacity>" + opacity + "</opacity>");
 			pw.println("        <foreground>true</foreground>");
 			pw.println("        <display3D thick=\"1\" height=\"1\" mode=\"NONE\" factor=\"1\"/>");
 			char cifLetter = (char)('A' + i);
