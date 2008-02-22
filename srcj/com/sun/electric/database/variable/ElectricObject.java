@@ -717,7 +717,7 @@ public abstract class ElectricObject implements Serializable
 	 * If the Variable already exists, only the value is changed;
      * the displayable attributes and Code are preserved.
 	 * @param key the key of the Variable.
-	 * @param value the object to store in the Variable.
+	 * @param text the text to store in the Variable.
 	 * @return the Variable that has been updated.
 	 */
 	public Variable updateVarText(Variable.Key key, String text)
