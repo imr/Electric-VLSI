@@ -569,6 +569,7 @@ public class EvalSpice {
         testEval("300 / -1.5ee2 + 5", null);
         testEval("1-min((a+b)*c,(a+b)", null);
         testEval("1/0", null);
+        testEval("M1 - M3 : 10001", null);
     }
 
     private static void testEval(String eq, String expected) {
