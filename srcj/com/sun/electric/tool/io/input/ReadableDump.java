@@ -489,7 +489,8 @@ public class ReadableDump extends LibraryFiles
         allCellsArray[cellNumber] = nodeProtoList[cellNumber] = curCell;
 		curCell.setTempInt(cellGroups[cellNumber]);
 //		curCell.lowLevelPopulate(curCellName.toString());
-		Technology tech = findTechnologyName(cellTechNames[cellNumber]);
+        String techName = cellTechNames[cellNumber];
+		Technology tech = techName != null ? findTechnologyName(techName) : null;
         if (tech != null)
             curCell.setTechnology(tech);
 //		curCell.lowLevelLink();
@@ -583,8 +584,8 @@ public class ReadableDump extends LibraryFiles
         }
         return null;
     }
-    
-    
+
+
 	//************************************* recursive
 
 	/**
@@ -788,12 +789,12 @@ public class ReadableDump extends LibraryFiles
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
 			PortInst pi = findProperPortInst(subNi, el.exportSubPort[j]);
-			int userBits = el.exportUserBits[curExportIndex];
+			int userBits = el.exportUserBits[j];
             boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(userBits);
             boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(userBits);
             PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(userBits);
             ExportId exportId = cellId.newPortId(Name.findName(el.exportName[j]).toString());
-            Export pp = Export.newInstance(cell, exportId, null, el.exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
+            Export pp = Export.newInstance(cell, exportId, null, el.exportNameDescriptor[j], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
 			el.exportList[j] = pp;
             if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);
@@ -1288,7 +1289,6 @@ public class ReadableDump extends LibraryFiles
 	private void keywordCelArC()
 	{
 		int arcInstCount = Integer.parseInt(keyWord);
-		if (arcInstCount == 0) return;
 		ArcInstList ail = new ArcInstList();
 		arcInstList[curCellNumber] = ail;
 		ail.arcList = new ArcInst[arcInstCount];
@@ -1315,7 +1315,6 @@ public class ReadableDump extends LibraryFiles
 	private void keywordCelPtC()
 	{
 		int exportCount = Integer.parseInt(keyWord);
-		if (exportCount == 0) return;
 
 		ExportList el = new ExportList();
 		exportList[curCellNumber] = el;
