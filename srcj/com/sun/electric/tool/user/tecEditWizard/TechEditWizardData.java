@@ -1376,7 +1376,9 @@ public class TechEditWizardData
 			pw.println();
 			pw.println("    <primitiveNode name=\"Metal-" + i + "-Pin\" fun=\"PIN\">");
 			pw.println("        <shrinkArcs/>");
-			pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
+            pw.println("        <sizeOffset lx=\"-" + floaty(hla) + "\" hx=\"" + floaty(hla) +
+				"\" ly=\"-" + floaty(hla) + "\" hy=\"" + floaty(hla) +"\"/>");
+            pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
 			pw.println("            <box>");
 			pw.println("                <lambdaBox klx=\"-" + floaty(hla) + "\" khx=\"" + floaty(hla) +
 				"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) +"\"/>");
@@ -1902,7 +1904,7 @@ public class TechEditWizardData
 				pw.println("        <menuBox>");
                 String name = "Metal-" + h + "-Metal-" + i + "-Con";
                 pw.println("            <menuNodeInst protoName=\"" + name + "\" function=\"CONTACT\">");
-				pw.println("                <menuNodeText text=\"" + h + "   " + i + "\" size=\"" + ts + "\"/>");
+				pw.println("                <menuNodeText text=\"" + name + "\" size=\"" + ts + "\"/>");
 				pw.println("            </menuNodeInst>");
 				pw.println("            <menuNodeInst protoName=\"" + name + "-X\" function=\"CONTACT\"/>");
 				pw.println("        </menuBox>");

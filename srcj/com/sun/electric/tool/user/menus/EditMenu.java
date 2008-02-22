@@ -43,6 +43,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.Variable.Key;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -52,30 +53,14 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.Array;
-import com.sun.electric.tool.user.dialogs.ArtworkLook;
-import com.sun.electric.tool.user.dialogs.Attributes;
-import com.sun.electric.tool.user.dialogs.BusParameters;
-import com.sun.electric.tool.user.dialogs.Change;
-import com.sun.electric.tool.user.dialogs.ChangeText;
-import com.sun.electric.tool.user.dialogs.EditKeyBindings;
-import com.sun.electric.tool.user.dialogs.FindText;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoOutline;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.MoveBy;
-import com.sun.electric.tool.user.dialogs.SelectObject;
-import com.sun.electric.tool.user.dialogs.SpecialProperties;
-import com.sun.electric.tool.user.dialogs.Spread;
+import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
@@ -110,6 +95,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.net.URL;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -320,7 +306,13 @@ public class EditMenu {
                     Xml.Technology xmlTech = tech.getXmlTech();
                     if (xmlTech == null)
                         xmlTech = tech.makeXml();
-                    xmlTech.writeXml(tech.getTechName() + ".xml");
+                    String fileName = tech.getTechName() + ".xml";
+                    fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
+                    fileName = JOptionPane.showInputDialog("Technology XML File", fileName);
+                    if (fileName != null) // didn't press cancel button
+                    {
+                        xmlTech.writeXml(fileName);
+                    }
                 }},
                 SEPARATOR,
                 new EMenuItem("Rena_me Current Technology...") { public void run() {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP/MAN: (2/21/08, GVG) Better implementation of export of any given technology in XML (Bug #1567).
+Adding sizeoffset to pins defined by TechEditWizard.
+
 IMP/MAN: (2/21/08, SMR) Added ability to drag layers in the "Layers" tab
      to rearrange their order.
 
