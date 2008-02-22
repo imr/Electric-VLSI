@@ -914,6 +914,23 @@ public class IOTool extends Tool
 	 */
 	public static void setEDIFConfigurationFile(String cFile) { cacheEDIFConfigurationFile.setString(cFile); }
 
+	private static Pref cacheEDIFAcceptedParameters = Pref.makeStringPref("EDIFAcceptedParameters", IOTool.tool.prefs, "");
+	/**
+	 * Method to return a string with accepted parameter names.
+	 * These parameter names will be placed on cells when reading EDIF.
+	 * The string lists the names, separated by slashes.
+	 * The default is "" (no parameters accepted).
+	 * @return a string with accepted parameter names.
+	 */
+	public static String getEDIFAcceptedParameters() { return cacheEDIFAcceptedParameters.getString(); }
+	/**
+	 * Method to set a string with accepted parameter names.
+	 * These parameter names will be placed on cells when reading EDIF.
+	 * The string lists the names, separated by slashes.
+	 * @param ap the accepted parameter names.
+	 */
+	public static void setEDIFAcceptedParameters(String ap) { cacheEDIFAcceptedParameters.setString(ap); }
+
 	/****************************** DXF PREFERENCES ******************************/
 
 	/**

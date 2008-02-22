@@ -29,17 +29,22 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 /**
  * Class to handle the "EDIF" tab of the Preferences dialog.
  */
 public class EDIFTab extends PreferencePanel
 {
+	private JTextArea textArea;
+
 	/** Creates new form EDIFTab */
 	public EDIFTab(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
+		textArea = new JTextArea();
+		acceptedParamPane.setViewportView(textArea);
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -58,6 +63,11 @@ public class EDIFTab extends PreferencePanel
 		edifInputScale.setText(TextUtils.formatDouble(IOTool.getEDIFInputScale()));
 		edifCadenceCompatibility.setSelected(IOTool.isEDIFCadenceCompatibility());
 		edifConfigFile.setText(IOTool.getEDIFConfigurationFile());
+		String ap = IOTool.getEDIFAcceptedParameters();
+		String [] params = ap.split("/");
+		textArea.removeAll();
+		for(int i=0; i<params.length; i++)
+			textArea.append(params[i] + "\n");
 	}
 
 	/**
@@ -81,6 +91,20 @@ public class EDIFTab extends PreferencePanel
 		String currentConfigFile = edifConfigFile.getText();
 		if (!currentConfigFile.equals(IOTool.getEDIFConfigurationFile()))
 			IOTool.setEDIFConfigurationFile(currentConfigFile);
+
+		StringBuffer ap = new StringBuffer();
+		String allAP = textArea.getText();
+		String [] params = allAP.split("\n");
+		for(int i=0; i<params.length; i++)
+		{
+			String paramName = params[i].trim();
+			if (paramName.length() == 0) continue;
+			if (ap.length() > 0) ap.append("/");
+			ap.append(paramName);
+		}
+		String currentAcceptedParams = ap.toString();
+		if (!currentAcceptedParams.equals(IOTool.getEDIFAcceptedParameters()))
+			IOTool.setEDIFAcceptedParameters(currentAcceptedParams);
 	}
 
 	/** This method is called from within the constructor to
@@ -98,11 +122,15 @@ public class EDIFTab extends PreferencePanel
         edifInputScale = new javax.swing.JTextField();
         edifCadenceCompatibility = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
+        configFile = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         edifConfigFile = new javax.swing.JTextField();
         edifBrowse = new javax.swing.JButton();
+        acceptedParameters = new javax.swing.JPanel();
+        acceptedParamPane = new javax.swing.JScrollPane();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -158,16 +186,16 @@ public class EDIFTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         edif.add(jLabel4, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        configFile.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Configuration File"));
+        configFile.setBorder(javax.swing.BorderFactory.createTitledBorder("Configuration File"));
         jLabel3.setText("EDIF reading and writing.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
-        jPanel1.add(jLabel3, gridBagConstraints);
+        configFile.add(jLabel3, gridBagConstraints);
 
         jLabel2.setText("The configuration file provides overrides for controlling");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -176,7 +204,7 @@ public class EDIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
-        jPanel1.add(jLabel2, gridBagConstraints);
+        configFile.add(jLabel2, gridBagConstraints);
 
         edifConfigFile.setMinimumSize(new java.awt.Dimension(200, 20));
         edifConfigFile.setPreferredSize(new java.awt.Dimension(200, 20));
@@ -187,7 +215,7 @@ public class EDIFTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel1.add(edifConfigFile, gridBagConstraints);
+        configFile.add(edifConfigFile, gridBagConstraints);
 
         edifBrowse.setText("Browse...");
         edifBrowse.addActionListener(new java.awt.event.ActionListener() {
@@ -201,13 +229,53 @@ public class EDIFTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        jPanel1.add(edifBrowse, gridBagConstraints);
+        configFile.add(edifBrowse, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        edif.add(configFile, gridBagConstraints);
+
+        acceptedParameters.setLayout(new java.awt.GridBagLayout());
+
+        acceptedParameters.setBorder(javax.swing.BorderFactory.createTitledBorder("Accepted Parameters"));
+        acceptedParamPane.setMinimumSize(new java.awt.Dimension(150, 100));
+        acceptedParamPane.setPreferredSize(new java.awt.Dimension(150, 100));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        acceptedParameters.add(acceptedParamPane, gridBagConstraints);
+
+        jLabel1.setText("Type parameter names (one per line)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
+        acceptedParameters.add(jLabel1, gridBagConstraints);
+
+        jLabel5.setText("that will be placed on nodes when reading EDIF");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 4, 0);
+        acceptedParameters.add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
-        edif.add(jPanel1, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        edif.add(acceptedParameters, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.weightx = 1.0;
@@ -231,17 +299,21 @@ public class EDIFTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane acceptedParamPane;
+    private javax.swing.JPanel acceptedParameters;
+    private javax.swing.JPanel configFile;
     private javax.swing.JPanel edif;
     private javax.swing.JButton edifBrowse;
     private javax.swing.JCheckBox edifCadenceCompatibility;
     private javax.swing.JTextField edifConfigFile;
     private javax.swing.JTextField edifInputScale;
     private javax.swing.JCheckBox edifUseSchematicView;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel jLabel5;
     // End of variables declaration//GEN-END:variables
 
 }

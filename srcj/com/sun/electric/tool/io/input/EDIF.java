@@ -2150,27 +2150,40 @@ public class EDIF extends Input
 					Object varValue = property.val;
 					String varNameLookup = varName;
 					if (varNameLookup.startsWith("ATTR_")) varNameLookup = varNameLookup.substring(5);
-					EDIFEquiv.VariableEquivalence ve = equivs.getExternalVariableEquivalence(varNameLookup);
-					if (ve != null)
+					if (isAcceptedParameter(varNameLookup))
 					{
-						varName = ve.elecVarName;
-						if (ve.appendElecOutput.length() > 0)
+						EDIFEquiv.VariableEquivalence ve = equivs.getExternalVariableEquivalence(varNameLookup);
+						if (ve != null)
 						{
-							String varValueString = varValue.toString();
-							if (varValueString.endsWith(ve.appendElecOutput))
+							varName = "ATTR_" + ve.elecVarName;
+							if (ve.appendElecOutput.length() > 0)
 							{
-								varValue = varValueString.substring(0, varValueString.length() - ve.appendElecOutput.length());
+								String varValueString = varValue.toString();
+								if (varValueString.endsWith(ve.appendElecOutput))
+								{
+									varValue = varValueString.substring(0, varValueString.length() - ve.appendElecOutput.length());
+								}
+							}
+							if (ve.scale != 1)
+							{
+								String varValueString = varValue.toString();
+								double newValue = TextUtils.atof(varValueString) / ve.scale;
+								varValue = Double.toString(newValue);
 							}
 						}
-						if (ve.scale != 1)
+						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(true);
+						Cell parent = (Cell)curNode.getProto();
+						for(Iterator<Variable> it = parent.getParameters(); it.hasNext(); )
 						{
-							String varValueString = varValue.toString();
-							double newValue = TextUtils.atof(varValueString) / ve.scale;
-							varValue = Double.toString(newValue);
+							Variable var = it.next();
+							if (var.getKey().getName().equals(varName))
+							{
+								td = td.withOff(var.getXOff(), var.getYOff());
+								break;
+							}
 						}
+						curNode.newVar(Variable.newKey(varName), varValue, td);
 					}
-					TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(ve != null);
-					curNode.newVar(Variable.newKey(varName), varValue, td);
 				}
 			}
 			propertiesListHead = null;
@@ -3286,18 +3299,33 @@ public class EDIF extends Input
 					property.val = propertyValue;
 				} else if (keyStack[keyStackDepth - 1] == KCELL)
 				{
-					if (IOTool.isEDIFCadenceCompatibility() && propertyReference.startsWith("def"))
+					if (isAcceptedParameter(propertyReference))
 					{
 						curCellParameterOff++;
 						TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
 							withInherit(true).withParam(true).withOff(0, curCellParameterOff);
-						curCell.newVar(Variable.newKey("ATTR_" + propertyReference.substring(3)), propertyValue, td);
+						curCell.newVar(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
 					}					
 				}
 			}
 			propertyReference = "";
 			freeSavedPointList();
 		}
+	}
+
+	/**
+	 * Method to see if a parameter name is acceptable for placement in the circuit.
+	 * @param param the parameter name.
+	 * @return true if the name should be placed in the circuit.
+	 */
+	private boolean isAcceptedParameter(String param)
+	{
+		String acceptedParameters = IOTool.getEDIFAcceptedParameters();
+		if (acceptedParameters.length() == 0) return false;
+		String [] params = acceptedParameters.split("/");
+		for(int i=0; i<params.length; i++)
+			if (param.equalsIgnoreCase(params[i])) return true;
+		return false;
 	}
 
 	private class KeyPt extends EDIFKEY
