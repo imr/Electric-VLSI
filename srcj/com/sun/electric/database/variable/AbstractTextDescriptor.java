@@ -811,6 +811,7 @@ abstract class AbstractTextDescriptor implements Serializable
                     face = af.getIndex();
             }
             bits = (bits & ~VTFACE) | (face << VTFACESH);
+            bits = bits & ~(VTISPARAMETER|VTINHERIT);
             tdF = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, false, Code.NONE));
             tdT = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, true, Code.NONE));
 			return display ? tdT : tdF;
