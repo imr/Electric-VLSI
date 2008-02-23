@@ -191,7 +191,8 @@ public class ErrorLoggerTree {
             int index = networkTree != null ? 1 : 0;
             if (drcErrorLogger.getNumLogs() == 0)
             {
-                removeLogger(index);
+                if (drcTree != null)
+                    removeLogger(errorTree.getIndex(drcTree));
                 return;
             }
             if (drcTree == null)
