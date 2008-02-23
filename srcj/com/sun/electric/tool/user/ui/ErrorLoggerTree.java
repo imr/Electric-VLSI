@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -62,7 +63,7 @@ public class ErrorLoggerTree {
     /** Current Logger */               static DefaultMutableTreeNode currentLogger;
     
     private static final ErrorLogger networkErrorLogger = ErrorLogger.newInstance("Network Errors");
-    private static final ErrorLogger drcErrorLogger = ErrorLogger.newInstance("DRC (incremental)");
+//    private static final ErrorLogger drcErrorLogger = ErrorLogger.newInstance("DRC (incremental)");
     private static DefaultMutableTreeNode networkTree;
     private static DefaultMutableTreeNode drcTree;
 
@@ -82,8 +83,8 @@ public class ErrorLoggerTree {
         SwingUtilities.invokeLater(new UpdateNetwork(cell.getId(), errors));
     }
 
-    public static void updateDrcErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        SwingUtilities.invokeLater(new UpdateDrc(cell.getId(), errors));
+    public static void updateDrcErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors, List<MessageLog> delErrors) {
+        SwingUtilities.invokeLater(new UpdateDrc(cell.getId(), newErrors, delErrors));
     }
 
     // public methods called from GUI thread
@@ -168,26 +169,34 @@ public class ErrorLoggerTree {
             
     private static class UpdateDrc implements Runnable {
         private CellId cellId;
-        private ArrayList<ErrorLogger.MessageLog> errors;
-        UpdateDrc(CellId cellId, List<ErrorLogger.MessageLog> errors) {
-            this.cellId = cellId;
-            this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
+        private ArrayList<ErrorLogger.MessageLog> newErrors;
+        private ArrayList<ErrorLogger.MessageLog> delErrors;
+        UpdateDrc(CellId cId, List<ErrorLogger.MessageLog> newErrs, List<MessageLog> delErrs) {
+            this.cellId = cId;
+            if (newErrs != null)
+                this.newErrors = new ArrayList<ErrorLogger.MessageLog>(newErrs);
+            if (delErrs != null)
+                this.delErrors = new ArrayList<ErrorLogger.MessageLog>(delErrs);
         }
         public void run() {
             Cell cell = EDatabase.clientDatabase().getCell(cellId);
             if (cell == null) return;
-            boolean changed = drcErrorLogger.clearLogs(cell) || !errors.isEmpty();
-            drcErrorLogger.addMessages(errors);
-            if (!changed) return;
+            ErrorLogger drcErrorLogger = DRC.getDRCIncrementalLogger();
+//            boolean changed = drcErrorLogger.clearLogs(cell) || (newErrors != null && !newErrors.isEmpty() ||
+//                (delErrors != null && !delErrors.isEmpty()));
+            drcErrorLogger.addMessages(newErrors);
+            drcErrorLogger.deleteMessages(delErrors);
+//            if (!changed) return;
             drcErrorLogger.termLogging_(true);
             int index = networkTree != null ? 1 : 0;
-            if (drcErrorLogger.getNumLogs() == 0) {
+            if (drcErrorLogger.getNumLogs() == 0)
+            {
                 removeLogger(index);
                 return;
             }
             if (drcTree == null)
-                drcTree = addLogger(index, networkErrorLogger);
-            updateTree(networkTree);
+                drcTree = addLogger(index, drcErrorLogger);
+            updateTree(drcTree);
             setCurrent(index);
         }
     }
@@ -207,8 +216,19 @@ public class ErrorLoggerTree {
     }
     
     private static void removeLogger(int index) {
+        if (errorTree.getChildCount() <= index)
+            return; // nothing to remove. Case of incremental errors
+
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)errorTree.getChildAt(index);
-        UserInterfaceMain.removeDatabaseChangeListener((ErrorLoggerTreeNode)node.getUserObject());
+        ErrorLoggerTreeNode treeNode = (ErrorLoggerTreeNode)node.getUserObject();
+        UserInterfaceMain.removeDatabaseChangeListener(treeNode);
+        ErrorLogger drcErrorLogger = DRC.getDRCIncrementalLogger();
+
+        // Clean DRC incremental logger
+        if (treeNode.getLogger() == drcErrorLogger)
+        {
+            drcErrorLogger.clearAllLogs();
+        }
         if (node == networkTree) networkTree = null;
         if (node == drcTree) drcTree = null;
         if (node == currentLogger) currentLogger = null;

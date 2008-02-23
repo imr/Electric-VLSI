@@ -282,19 +282,20 @@ public class UserInterfaceMain extends AbstractUserInterface
 	}
 
     // ErrorLogger functions
-    public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate)
+    public void termLogging(final ErrorLogger log, boolean explain, boolean terminate)
     {
-        if (logger.getNumLogs() == 0) return;
+        if (!log.isPersistent() && log.getNumLogs() == 0) return;
 
-        ErrorLoggerTree.addLogger(logger, explain, terminate);
+        ErrorLoggerTree.addLogger(log, explain, terminate);
     }
 
     public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         ErrorLoggerTree.updateNetworkErrors(cell, errors);
     }
     
-    public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        ErrorLoggerTree.updateNetworkErrors(cell, errors);
+    public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors,
+                                           List<ErrorLogger.MessageLog> delErrors) {
+        ErrorLoggerTree.updateDrcErrors(cell, newErrors, delErrors);
     }
 
     /**

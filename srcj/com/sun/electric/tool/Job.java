@@ -654,8 +654,9 @@ public abstract class Job implements Serializable {
         currentUI.updateNetworkErrors(cell, errors);
     }
     
-    public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        currentUI.updateIncrementalDRCErrors(cell, errors);
+    public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors, 
+                                                  List<ErrorLogger.MessageLog> delErrors) {
+        currentUI.updateIncrementalDRCErrors(cell, newErrors, delErrors);
     }
 
 	//-------------------------------JOB UI--------------------------------

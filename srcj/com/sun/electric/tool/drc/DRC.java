@@ -72,7 +72,7 @@ public class DRC extends Listener
 	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
     /** to temporary store DRC dates for spacing checking */                 private static HashMap<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
     /** to temporary store DRC dates for area checking */                 private static HashMap<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
-    /** for logging incremental errors */               private static ErrorLogger errorLoggerIncremental = null;
+    /** for logging incremental errors */               private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
 
     public static Layer.Function.Set getMultiLayersSet(Layer layer)
     {
@@ -451,6 +451,13 @@ public class DRC extends Listener
             for(Geometric geom : cellSet)
 				objectsToCheck[i++] = geom;
 
+            // cleaning previous errors on the cells to check now.
+            for (Geometric geo : objectsToCheck)
+            {
+                Cell c = geo.getParent();
+                ArrayList<ErrorLogger.MessageLog> getAllLogs = errorLoggerIncremental.getAllLogs(c);
+                Job.updateIncrementalDRCErrors(c, null, getAllLogs);
+            }
             new CheckDRCIncrementally(cellToCheck, objectsToCheck, cellToCheck.getTechnology().isScaleRelevant());
 		}
 	}
@@ -535,7 +542,7 @@ public class DRC extends Listener
 
         if (incremental)
         {
-            if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
+//            if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
             errorLogger = errorLoggerIncremental;
         }
         else
@@ -544,6 +551,8 @@ public class DRC extends Listener
         }
         return errorLogger;
     }
+
+    public static ErrorLogger getDRCIncrementalLogger() {return errorLoggerIncremental;}
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.

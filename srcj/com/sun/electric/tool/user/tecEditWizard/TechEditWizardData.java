@@ -1373,15 +1373,16 @@ public class TechEditWizardData
 		for(int i=1; i<=num_metal_layers; i++)
 		{
 			double hla = metal_width[i-1].v / (stepsize*2);
-			pw.println();
+            String shla = floaty(hla);
+            pw.println();
 			pw.println("    <primitiveNode name=\"Metal-" + i + "-Pin\" fun=\"PIN\">");
 			pw.println("        <shrinkArcs/>");
-            pw.println("        <sizeOffset lx=\"-" + floaty(hla) + "\" hx=\"" + floaty(hla) +
-				"\" ly=\"-" + floaty(hla) + "\" hy=\"" + floaty(hla) +"\"/>");
+            pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
+				"\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
             pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
 			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + floaty(hla) + "\" khx=\"" + floaty(hla) +
-				"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) +"\"/>");
+			pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
+				"\" kly=\"-" + shla + "\" khy=\"" + shla +"\"/>");
 			pw.println("            </box>");
 			pw.println("        </nodeLayer>");
 			pw.println("        <primitivePort name=\"M" + i + "\">");
@@ -1395,13 +1396,16 @@ public class TechEditWizardData
 			pw.println("    </primitiveNode>");
 		}
 		double hla = poly_width.v / (stepsize*2);
-		pw.println();
+        String shla = floaty(hla);
+        pw.println();
 		pw.println("    <primitiveNode name=\"Poly-Pin\" fun=\"PIN\">");
 		pw.println("        <shrinkArcs/>");
-		pw.println("        <nodeLayer layer=\"Poly\" style=\"CROSSED\">");
+        pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
+            "\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
+        pw.println("        <nodeLayer layer=\"Poly\" style=\"CROSSED\">");
 		pw.println("            <box>");
-		pw.println("                <lambdaBox klx=\"-" + floaty(hla) + "\" khx=\"" + floaty(hla) +
-			"\" kly=\"-" + floaty(hla) + "\" khy=\"" + floaty(hla) + "\"/>");
+		pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
+			"\" kly=\"-" + shla + "\" khy=\"" + shla + "\"/>");
 		pw.println("            </box>");
 		pw.println("        </nodeLayer>");
 		pw.println("        <primitivePort name=\"Poly\">");
@@ -2094,9 +2098,7 @@ public class TechEditWizardData
 	{
         if (v < 0)
             System.out.println("Negative distance of " + v + " in the tech editor wizard");
-//        long rounded = Math.round(v);
-//		if (Math.abs(rounded-v) < 0.001) return rounded + ".0";
         double roundedV = DBMath.round(v);
-        return roundedV + "";
+        return roundedV + "";  // the "" is needed to call the String constructor
 	}
 }

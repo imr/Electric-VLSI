@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+BUG: (2/22/08, GVG) Incremental DRC finds errors when there are none (Bug #1584)
+FIX: Now using updateIncrementalDRCErrors function.
+
 IMP/MAN: (2/22/08, SMR) EDIF input now reads parameters only when they are
      explicitly listed in the EDIF Preferences dialog (Bug #1533).
 

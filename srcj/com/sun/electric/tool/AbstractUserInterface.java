@@ -25,11 +25,9 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ErrorLogger;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -52,8 +50,9 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
         if (!errors.isEmpty()) System.out.println(errors.size() + " network errors in " + cell);
     }
     
-    protected void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
-        if (!errors.isEmpty()) System.out.println(errors.size() + " drc errors in " + cell);
+    protected void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors, 
+                                              List<ErrorLogger.MessageLog> delErrors) {
+        if (!newErrors.isEmpty()) System.out.println(newErrors.size() + " drc errors in " + cell);
     }
     
     public void restoreSavedBindings(boolean initialCall) {;}

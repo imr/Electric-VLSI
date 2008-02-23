@@ -217,6 +217,8 @@ public class ErrorLogger implements Serializable
 
     public String getSystem() { return errorSystem; }
 
+    public boolean isPersistent() {return persistent;}
+
     public ErrorLogger() {}
 
     /**
@@ -246,14 +248,28 @@ public class ErrorLogger implements Serializable
         return logger;
     }
 
-    public void addMessages(List<MessageLog> messages) {
+    public void addMessages(List<MessageLog> messages)
+    {
+        if (messages == null) return; // to avoid to increate empty lists during incremental checking
         for (MessageLog m: messages) {
             if (m instanceof WarningLog)
                 allWarnings.add((WarningLog)m);
             else
                 allErrors.add(m);
         }
-//        if (persistent) Job.getUserInterface().wantToRedoErrorTree();
+//        if (persistent) Job.getUserInterface(). wantToRedoErrorTree();
+    }
+
+    public void deleteMessages(List<MessageLog> messages)
+    {
+        if (messages == null) return; // to avoid to increate empty lists during incremental checking
+        for (MessageLog m: messages) {
+            if (m instanceof WarningLog)
+                allWarnings.remove((WarningLog)m);
+            else
+                allErrors.remove(m);
+        }
+//        if (persistent) Job.getUserInterface(). wantToRedoErrorTree();
     }
     
     /**
@@ -659,9 +675,40 @@ public class ErrorLogger implements Serializable
 	}
 
     /**
-     * Removes all errors associated with Cell cell.
-     * @param cell the cell for which errors will be removed
-     * @return true if some logs were removed.
+     * Method to remove all errors and warnings
+     */
+    public synchronized void clearAllLogs()
+    {
+        allErrors.clear();
+        allWarnings.clear();
+    }
+
+    /**
+     * Method to retrieve all MessageLogs associated to a given Cell
+     * @param cell
+     * @return
+     */
+    public synchronized ArrayList<MessageLog> getAllLogs(Cell cell)
+    {        
+        CellId cellId = cell.getId();
+        ArrayList<MessageLog> msgLogs = new ArrayList<MessageLog>();
+        // Searching errors
+        for (MessageLog log : allErrors) {
+            if (log.logCellId == cellId)
+                msgLogs.add(log);
+        }
+        // Searching warnings
+        for (WarningLog log : allWarnings) {
+            if (log.logCellId == cellId)
+                msgLogs.add(log);
+        }
+        return msgLogs;
+    }
+
+    /**
+     * Removes all errors and warnings associated with Cell cell.
+     * @param cell the cell for which errors and warnings will be removed
+     * @return true if any log was removed.
      */
     public synchronized boolean clearLogs(Cell cell) {
         CellId cellId = cell.getId();
