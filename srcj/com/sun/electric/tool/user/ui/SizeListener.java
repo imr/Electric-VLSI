@@ -236,9 +236,11 @@ public class SizeListener
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getSizeOffset();				
-					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+					xS = ni.getLambdaBaseXSize();
+					yS = ni.getLambdaBaseYSize();
+//					SizeOffset so = ni.getSizeOffset();				
+//					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				} else if (geom instanceof ArcInst && !nodes)
 				{
 					ArcInst ai = (ArcInst)geom;
@@ -310,13 +312,17 @@ public class SizeListener
 				{
 					NodeInst ni = (NodeInst)geom;
 					SizeOffset so = ni.getSizeOffset();				
-					double x = xS + so.getLowXOffset() + so.getHighXOffset();
-					double y = yS + so.getLowYOffset() + so.getHighYOffset();
+					double x = xS;
+					double y = yS;
+//					SizeOffset so = ni.getSizeOffset();				
+//					double x = xS + so.getLowXOffset() + so.getHighXOffset();
+//					double y = yS + so.getLowYOffset() + so.getHighYOffset();
 					if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare())
 					{
 						if (y > x) x = y; else y = x;
 					}
-					ni.resize(x - ni.getXSize(), y - ni.getYSize());
+					ni.resize(x - ni.getLambdaBaseXSize(), y - ni.getLambdaBaseYSize());
+//					ni.resize(x - ni.getXSize(), y - ni.getYSize());
 					didSomething = true;
 				} else if (geom instanceof ArcInst && !nodes)
 				{

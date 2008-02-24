@@ -2652,9 +2652,11 @@ public class Technology implements Comparable<Technology>, Serializable
     public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
     {
         if (ni.isCellInstance()) return null;
-        SizeOffset so = ni.getSizeOffset();
-        double length = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-        double width = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        double length = ni.getLambdaBaseXSize();
+        double width = ni.getLambdaBaseYSize();
+//        SizeOffset so = ni.getSizeOffset();
+//        double length = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//        double width = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
         PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length));
         return size;
@@ -2690,9 +2692,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
 	{
-		SizeOffset so = ni.getSizeOffset();
-		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+		double width = ni.getLambdaBaseXSize();
+		double height = ni.getLambdaBaseYSize();
+//		SizeOffset so = ni.getSizeOffset();
+//		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
 		// override if there is serpentine information
 		Point2D [] trace = ni.getTrace();
@@ -2720,9 +2724,11 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
-        SizeOffset so = ni.getSizeOffset();
-        double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-        double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        double oldWidth = ni.getLambdaBaseXSize();
+        double oldLength = ni.getLambdaBaseYSize();
+//        SizeOffset so = ni.getSizeOffset();
+//        double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//        double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
         double dW = width - oldWidth;
         double dL = length - oldLength;
 		ni.resize(dW, dL);

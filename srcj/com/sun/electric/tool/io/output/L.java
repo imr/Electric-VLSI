@@ -246,9 +246,11 @@ public class L extends Output
 			// write size if nonstandard
 			if (ni.getXSize() != np.getDefWidth() || ni.getYSize() != np.getDefHeight())
 			{
-				SizeOffset so = ni.getSizeOffset();
-				double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-				double len = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+				double wid = ni.getLambdaBaseXSize();
+				double len = ni.getLambdaBaseYSize();
+//				SizeOffset so = ni.getSizeOffset();
+//				double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//				double len = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS)
 				{
 					TransistorSize ts = ni.getTransistorSize(null);

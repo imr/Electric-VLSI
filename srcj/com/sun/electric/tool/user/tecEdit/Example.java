@@ -80,10 +80,11 @@ public class Example implements Serializable
 			ne.samples = new ArrayList<Sample>();
 			neList.add(ne);
 
-			SizeOffset so = ni.getSizeOffset();
+//			SizeOffset so = ni.getSizeOffset();
 			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
-				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
-				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
+				ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
+//				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
+//				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
 			poly.transform(ni.rotateOut());
 			Rectangle2D soFar = poly.getBounds2D();
 
@@ -106,10 +107,11 @@ public class Example implements Serializable
                 }
 				for(NodeInst otherNi: sortedNodes)
 				{
-					SizeOffset oSo = otherNi.getSizeOffset();
+//					SizeOffset oSo = otherNi.getSizeOffset();
 					Poly oPoly = new Poly(otherNi.getAnchorCenterX(), otherNi.getAnchorCenterY(),
-						otherNi.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
-						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
+						otherNi.getLambdaBaseXSize(), otherNi.getLambdaBaseYSize());
+//						otherNi.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
+//						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
 					if (!GenMath.rectsIntersect(otherRect, soFar)) continue;

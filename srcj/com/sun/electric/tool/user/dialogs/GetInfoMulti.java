@@ -312,9 +312,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
 					yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
 
-					SizeOffset so = ni.getSizeOffset();
-			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			        double xVal = ni.getLambdaBaseXSize();
+					double yVal = ni.getLambdaBaseYSize();
+//					SizeOffset so = ni.getSizeOffset();
+//			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
                     double angle = ni.getAngle();
                     rotLow = Math.min(rotLow, angle);
                     rotHigh = Math.max(rotHigh, angle);
@@ -828,7 +830,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						int i = 0;
 						for(NodeInst ni : nodeList)
 						{
-		                    SizeOffset so = ni.getSizeOffset();
+//		                    SizeOffset so = ni.getSizeOffset();
 							nis[i] = ni;
 							if (mcp.xPos.length() == 0) dXP[i] = 0; else
 								dXP[i] = newXPosition - ni.getAnchorCenterX();
@@ -842,13 +844,17 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							}
 							if (newXSize.equals("")) dXS[i] = 0; else
 							{
-								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
-								dXS[i] = trueXSize - ni.getXSize();
+								double baseXSize = TextUtils.atof(newXSize);
+								dXS[i] = baseXSize - ni.getLambdaBaseXSize();
+//								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
+//								dXS[i] = trueXSize - ni.getXSize();
 							}
 							if (newYSize.equals("")) dYS[i] = 0; else
 							{
-								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
-								dYS[i] = trueYSize - ni.getYSize();
+								double baseYSize = TextUtils.atof(newYSize);
+								dYS[i] = baseYSize - ni.getLambdaBaseYSize();
+//								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
+//								dYS[i] = trueYSize - ni.getYSize();
 							}
 							i++;
 						}
@@ -857,7 +863,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					{
 						for(NodeInst ni : nodeList)
 						{
-		                    SizeOffset so = ni.getSizeOffset();
+//		                    SizeOffset so = ni.getSizeOffset();
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
 							if (mcp.xPos.length() > 0) dX = TextUtils.atof(mcp.xPos) - ni.getAnchorCenterX();
 							if (mcp.yPos.length() > 0) dY = TextUtils.atof(mcp.yPos) - ni.getAnchorCenterY();
@@ -869,13 +875,17 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							}
 							if (newXSize.length() > 0)
 							{
-								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
-								dXS = trueXSize - ni.getXSize();
+								double baseXSize = TextUtils.atof(newXSize);
+								dXS = baseXSize - ni.getLambdaBaseXSize();
+//								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
+//								dXS = trueXSize - ni.getXSize();
 							}
 							if (newYSize.length() > 0)
 							{
-								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
-								dYS = trueYSize - ni.getYSize();
+								double baseYSize = TextUtils.atof(newYSize);
+								dYS = baseYSize - ni.getLambdaBaseYSize();
+//								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
+//								dYS = trueYSize - ni.getYSize();
 							}
 							int dRot = 0;
 							if (mcp.rot.length() > 0) dRot = ((int)(TextUtils.atof(mcp.rot)*10) - ni.getAngle() + 3600) % 3600;

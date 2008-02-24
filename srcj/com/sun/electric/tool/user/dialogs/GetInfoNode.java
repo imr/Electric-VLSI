@@ -326,8 +326,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-        double initXSize = ni.getXSize();
-        double initYSize = ni.getYSize();
+        double initXSize = ni.getLambdaBaseXSize();
+        double initYSize = ni.getLambdaBaseYSize();
+//        double initXSize = ni.getXSize();
+//        double initYSize = ni.getYSize();
         initialRotation = ni.getAngle();
         swapXY = false;
         if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
@@ -341,14 +343,18 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
-            xSize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
-            ySize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
+            xSize.setText(TextUtils.formatDouble(initYSize));
+            ySize.setText(TextUtils.formatDouble(initXSize));
+//            xSize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
+//            ySize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
             initialMirrorX = realMirrorY;
             initialMirrorY = realMirrorX;
         } else
         {
-            xSize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
-            ySize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
+            xSize.setText(TextUtils.formatDouble(initXSize));
+            ySize.setText(TextUtils.formatDouble(initYSize));
+//            xSize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
+//            ySize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
             initialMirrorX = realMirrorX;
             initialMirrorY = realMirrorY;
         }
@@ -962,49 +968,31 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				}
 			}
 
-			SizeOffset so = ni.getSizeOffset();
-            double initXSize = 0, initYSize = 0;
+            double initXSize, initYSize;
     		double currXSize, currYSize;
+            Orientation orient;
 
             // Figure out change in X and Y size
             // if swapXY, X size was put in Y text box, and vice versa.
             if (swapXY)
             {
                 // get true size minus offset (this is the size the user sees)
-                currXSize = TextUtils.atof(currentYSize, new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
-                currYSize = TextUtils.atof(currentXSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                currXSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseXSize()));
+                currYSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseYSize()));
                 initXSize = TextUtils.atof(initialYSize, new Double(currXSize));
                 initYSize = TextUtils.atof(initialXSize, new Double(currYSize));
 
-                // bloat by offset
-                currXSize += (so.getLowXOffset() + so.getHighXOffset());
-                currYSize += (so.getLowYOffset() + so.getHighYOffset());
-                initXSize += (so.getLowXOffset() + so.getHighXOffset());
-                initYSize += (so.getLowYOffset() + so.getHighYOffset());
-
                 // mirror
-				if (currentMirrorX) currYSize = -currYSize;
-				if (currentMirrorY) currXSize = -currXSize;
-				if (initialMirrorX) initYSize = -initYSize;
-				if (initialMirrorY) initXSize = -initXSize;
+                orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
             } else
             {
-                currXSize = TextUtils.atof(currentXSize, new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
-                currYSize = TextUtils.atof(currentYSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                currXSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseXSize()));
+                currYSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseYSize()));
                 initXSize = TextUtils.atof(initialXSize, new Double(currXSize));
                 initYSize = TextUtils.atof(initialYSize, new Double(currYSize));
 
-                // bloat by offset
-                currXSize += (so.getLowXOffset() + so.getHighXOffset());
-                currYSize += (so.getLowYOffset() + so.getHighYOffset());
-                initXSize += (so.getLowXOffset() + so.getHighXOffset());
-                initYSize += (so.getLowYOffset() + so.getHighYOffset());
-
                 // mirror
-                if (currentMirrorX) currXSize = -currXSize;
-                if (currentMirrorY) currYSize = -currYSize;
-				if (initialMirrorX) initXSize = -initXSize;
-				if (initialMirrorY) initYSize = -initYSize;
+                orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
             }
 
             // The following code is specific for transistors, and uses the X/Y size fields for
@@ -1068,35 +1056,24 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
                     }
                 }
                 // ignore size change, but retain mirroring change (sign)
-                currXSize = initXSize = ni.getXSize();
-                currYSize = initYSize = ni.getYSize();
+                currXSize = initXSize = ni.getLambdaBaseXSize();
+                currYSize = initYSize = ni.getLambdaBaseYSize();
                 if (swapXY)
-                {
-                    if (currentMirrorX) currYSize = -currYSize;
-                    if (currentMirrorY) currXSize = -currXSize;
-                    if (initialMirrorX) initYSize = -initYSize;
-                    if (initialMirrorY) initXSize = -initXSize;
-                } else {
-                    if (currentMirrorX) currXSize = -currXSize;
-                    if (currentMirrorY) currYSize = -currYSize;
-                    if (initialMirrorX) initXSize = -initXSize;
-                    if (initialMirrorY) initYSize = -initYSize;
-                }
+                    orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
+                else
+                    orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
             }
 
+            Orientation dOrient = orient.concatenate(ni.getOrient().inverse());
 			if (!DBMath.doublesEqual(currentXPos, initialXPos) ||
 				!DBMath.doublesEqual(currentYPos, initialYPos) ||
 				!DBMath.doublesEqual(currXSize, initXSize) ||
 				!DBMath.doublesEqual(currYSize, initYSize) ||
-				currentRotation != initialRotation || changed)
+				dOrient != Orientation.IDENT || changed)
 			{
-                Orientation orient = Orientation.fromJava(currentRotation,
-                        currXSize < 0 || currXSize == 0 && 1/currXSize < 0,
-                        currYSize < 0 || currYSize == 0 && 1/currYSize < 0);
-                orient = orient.concatenate(ni.getOrient().inverse());
 				ni.modifyInstance(DBMath.round(currentXPos - initialXPos), DBMath.round(currentYPos - initialYPos),
-					DBMath.round(Math.abs(currXSize) - Math.abs(initXSize)),
-                    DBMath.round(Math.abs(currYSize) - Math.abs(initYSize)), orient);
+					DBMath.round(currXSize - initXSize),
+                    DBMath.round(currYSize - initYSize), dOrient);
 			}
             fieldVariableChanged("expansionChanged");
 

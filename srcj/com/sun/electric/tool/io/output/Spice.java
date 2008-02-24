@@ -1114,11 +1114,13 @@ public class Spice extends Topology
 					} else {
                         if (fun == PrimitiveNode.Function.PRESIST) {
                             partName = "XR";
-                            double width = ni.getYSize();
-                            double length = ni.getXSize();
-                            SizeOffset offset = ni.getSizeOffset();
-                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
-                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
+                            double width = ni.getLambdaBaseYSize();
+                            double length = ni.getLambdaBaseXSize();
+//                            double width = ni.getYSize();
+//                            double length = ni.getXSize();
+//                            SizeOffset offset = ni.getSizeOffset();
+//                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
+//                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             if (Simulation.isSpiceWriteTransSizeInLambda())
                             {
                                 extra = " L="+length+" W="+width;
@@ -1146,11 +1148,13 @@ public class Spice extends Topology
                         }
                         else if (fun == PrimitiveNode.Function.WRESIST) {
                             partName = "XR";
-                            double width = ni.getYSize();
-                            double length = ni.getXSize();
-                            SizeOffset offset = ni.getSizeOffset();
-                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
-                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
+                            double width = ni.getLambdaBaseYSize();
+                            double length = ni.getLambdaBaseXSize();
+//                            double width = ni.getYSize();
+//                            double length = ni.getXSize();
+//                            SizeOffset offset = ni.getSizeOffset();
+//                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
+//                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             if (Simulation.isSpiceWriteTransSizeInLambda())
                             {
                                 extra = " L="+length+" W="+width;

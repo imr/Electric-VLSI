@@ -924,9 +924,11 @@ public class CircuitChanges
 				ni.getProto() == Generic.tech().invisiblePinNode ||
 				ni.getProto() == Generic.tech().universalPinNode ||
 				ni.getProto() == Generic.tech().essentialBoundsNode) continue;
-			SizeOffset so = ni.getSizeOffset();
-			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			double sY = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			double sX = ni.getLambdaBaseXSize();
+			double sY = ni.getLambdaBaseYSize();
+//			SizeOffset so = ni.getSizeOffset();
+//			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//			double sY = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 			if (sX > 0 && sY > 0) continue;
 			if (justThis)
 			{

@@ -319,20 +319,28 @@ public class MimicStitch
 			if (!matchNode) pa.situation |= LIKELYDIFFNODETYPE;
 
 			// determine size of nodes on mimic arc
-			SizeOffset so = mimicNiHead.getSizeOffset();
-			double mimicWidHead = mimicNiHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			double mimicHeiHead = mimicNiHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-			so = mimicNiTail.getSizeOffset();
-			double mimicWidTail = mimicNiTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			double mimicHeiTail = mimicNiTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			double mimicWidHead = mimicNiHead.getLambdaBaseXSize();
+			double mimicHeiHead = mimicNiHead.getLambdaBaseYSize();
+//			SizeOffset so = mimicNiHead.getSizeOffset();
+//			double mimicWidHead = mimicNiHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//			double mimicHeiHead = mimicNiHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			double mimicWidTail = mimicNiTail.getLambdaBaseXSize();
+			double mimicHeiTail = mimicNiTail.getLambdaBaseYSize();
+//			so = mimicNiTail.getSizeOffset();
+//			double mimicWidTail = mimicNiTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//			double mimicHeiTail = mimicNiTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
 			// determine size of nodes on possible deleted arc
-			so = niHead.getSizeOffset();
-			double widHead = niHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			double heiHead = niHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-			so = niTail.getSizeOffset();
-			double widTail = niTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-			double heiTail = niTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			double widHead = niHead.getLambdaBaseXSize();
+			double heiHead = niHead.getLambdaBaseYSize();
+//			so = niHead.getSizeOffset();
+//			double widHead = niHead.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//			double heiHead = niHead.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			double widTail = niTail.getLambdaBaseXSize();
+			double heiTail = niTail.getLambdaBaseYSize();
+//			so = niTail.getSizeOffset();
+//			double widTail = niTail.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//			double heiTail = niTail.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
 			// flag if the sizes differ
 			if (widHead != mimicWidHead || heiHead != mimicHeiHead) pa.situation |= LIKELYDIFFNODESIZE;
@@ -499,13 +507,17 @@ public class MimicStitch
 			double end0Offx = pt0.getX() - port0Poly.getCenterX();
 			double end0Offy = pt0.getY() - port0Poly.getCenterY();
 
-			SizeOffset so0 = node0.getSizeOffset();
-			double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
-			double node0Hei = node0.getYSize() - so0.getLowYOffset() - so0.getHighYOffset();
+			double node0Wid = node0.getLambdaBaseXSize();
+			double node0Hei = node0.getLambdaBaseYSize();
+//			SizeOffset so0 = node0.getSizeOffset();
+//			double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
+//			double node0Hei = node0.getYSize() - so0.getLowYOffset() - so0.getHighYOffset();
 
-			SizeOffset so1 = node1.getSizeOffset();
-			double node1Wid = node1.getXSize() - so1.getLowXOffset() - so1.getHighXOffset();
-			double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
+			double node1Wid = node1.getLambdaBaseXSize();
+			double node1Hei = node1.getLambdaBaseYSize();
+//			SizeOffset so1 = node1.getSizeOffset();
+//			double node1Wid = node1.getXSize() - so1.getLowXOffset() - so1.getHighXOffset();
+//			double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
 
 			// now search every node in the cell
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -699,13 +711,17 @@ public class MimicStitch
 									situation |= LIKELYDIFFPORT;
 							}
 
-							SizeOffset so = ni.getSizeOffset();
-							double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-							double hei = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+							double wid = ni.getLambdaBaseXSize();
+							double hei = ni.getLambdaBaseYSize();
+//							SizeOffset so = ni.getSizeOffset();
+//							double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//							double hei = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 							if (wid != node0Wid || hei != node0Hei) situation |= LIKELYDIFFNODESIZE;
-							so = oNi.getSizeOffset();
-							wid = oNi.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-							hei = oNi.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+							wid = oNi.getLambdaBaseXSize();
+							hei = oNi.getLambdaBaseYSize();
+//							so = oNi.getSizeOffset();
+//							wid = oNi.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//							hei = oNi.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 							if (wid != node1Wid || hei != node1Hei) situation |= LIKELYDIFFNODESIZE;
 
 							// see if this combination has already been considered

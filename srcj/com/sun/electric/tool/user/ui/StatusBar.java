@@ -334,9 +334,11 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
 				if (theNode != null)
 				{
-					SizeOffset so = theNode.getSizeOffset();
-					double xSize = theNode.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-					double ySize = theNode.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+					double xSize = theNode.getLambdaBaseXSize();
+					double ySize = theNode.getLambdaBaseYSize();
+//					SizeOffset so = theNode.getSizeOffset();
+//					double xSize = theNode.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//					double ySize = theNode.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 					selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
 						"x" + TextUtils.formatDouble(ySize) + ")";
 				}

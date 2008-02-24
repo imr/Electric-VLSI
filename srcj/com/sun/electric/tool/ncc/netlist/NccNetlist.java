@@ -539,9 +539,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			w = getDoubleVariableValue("ATTR_width", ni, context);
 			l = getDoubleVariableValue("ATTR_length", ni, context);
 		} else {
-			SizeOffset so = ni.getSizeOffset();
-			w = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-			l = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			w = ni.getLambdaBaseYSize();
+			l = ni.getLambdaBaseXSize();
+//			SizeOffset so = ni.getSizeOffset();
+//			w = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+//			l = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		}
 		return new double[] {w, l};
 	}
