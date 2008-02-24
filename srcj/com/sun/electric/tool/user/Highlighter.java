@@ -1900,7 +1900,7 @@ public class Highlighter implements DatabaseChangeListener {
 		AffineTransform trans = ni.rotateOut();
 
 		NodeProto np = ni.getProto();
-		Poly nodePoly = null;
+//		Poly nodePoly = null;
 		if (!ni.isCellInstance())
 		{
 			// special case for MOS transistors: examine the gate/active tabs
@@ -1957,25 +1957,26 @@ public class Highlighter implements DatabaseChangeListener {
 				}
 				return bestDist;
 			}
-
-			// get the bounds of the node in a polygon
-			SizeOffset so = ni.getSizeOffset();
-			double lX = ni.getAnchorCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-			double hX = ni.getAnchorCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-			double lY = ni.getAnchorCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-			double hY = ni.getAnchorCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-			nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
-		} else
-		{
-			// cell instance
-			Cell subCell = (Cell)np;
-			Rectangle2D instBounds = subCell.getBounds();
-			nodePoly = new Poly(ni.getAnchorCenterX() + instBounds.getCenterX(),
-				ni.getAnchorCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
+//
+//			// get the bounds of the node in a polygon
+//			SizeOffset so = ni.getSizeOffset();
+//			double lX = ni.getAnchorCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+//			double hX = ni.getAnchorCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+//			double lY = ni.getAnchorCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+//			double hY = ni.getAnchorCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+//			nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
+//		} else
+//		{
+//			// cell instance
+//			Cell subCell = (Cell)np;
+//			Rectangle2D instBounds = subCell.getBounds();
+//			nodePoly = new Poly(ni.getAnchorCenterX() + instBounds.getCenterX(),
+//				ni.getAnchorCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
 		}
 
-		AffineTransform pureTrans = ni.rotateOut();
-		nodePoly.transform(pureTrans);
+        Poly nodePoly = ni.getBaseShape();
+//		AffineTransform pureTrans = ni.rotateOut();
+//		nodePoly.transform(pureTrans);
 		nodePoly.setStyle(Poly.Type.FILLED);
 		double dist = nodePoly.polyDistance(bounds);
 		return dist;

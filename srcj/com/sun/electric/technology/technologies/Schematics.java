@@ -25,6 +25,7 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -2013,39 +2014,40 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Method to get the SizeOffset associated with a NodeInst in this Technology.
-	 * The schematics override of this function is needed for AND, OR, and XOR gates.
+	 * Method to get the base (highlight) ERectangle associated with a NodeInst
+     * in this PrimitiveNode.
+     * Base ERectangle is a highlight rectangle of standard-size NodeInst of
+     * this PrimtiveNode
+	 * By having this be a method of Technology, it can be overridden by
+	 * individual Technologies that need to make special considerations.
 	 * @param ni the NodeInst to query.
-	 * @return the SizeOffset object for the NodeInst.
+	 * @return the base ERectangle of this PrimitiveNode.
 	 */
-	public SizeOffset getNodeInstSizeOffset(NodeInst ni)
-	{
+    @Override
+    public ERectangle getNodeInstBaseRectangle(NodeInst ni) {
 		NodeProto np = ni.getProto();
 		if (np == andNode)
 		{
-			double width = ni.getXSize();
-			double height = ni.getYSize();
-			double unitSize = width / 8;
-			if (height < unitSize * 6) unitSize = height / 6;
-			return new SizeOffset(0, unitSize/2, 0, 0);
+			double width = ni.getD().size.getLambdaX() + 8;
+			double height = ni.getD().size.getLambdaY() + 6;
+            double unitSize = Math.min(width/8, height/6);
+			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
 		} else if (np == orNode)
 		{
-			double width = ni.getXSize();
-			double height = ni.getYSize();
-			double unitSize = width / 10;
-			if (height < unitSize * 6) unitSize = height / 6;
-			return new SizeOffset(unitSize, unitSize/2, 0, 0);
+			double width = ni.getD().size.getLambdaX() + 10;
+			double height = ni.getD().size.getLambdaY() + 6;
+            double unitSize = Math.min(width/10, height/6);
+			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
 		} else if (np == xorNode)
 		{
-			double width = ni.getXSize();
-			double height = ni.getYSize();
-			double unitSize = width / 10;
-			if (height < unitSize * 6) unitSize = height / 6;
-			return new SizeOffset(0, unitSize/2, 0, 0);
+			double width = ni.getD().size.getLambdaX() + 10;
+			double height = ni.getD().size.getLambdaY() + 6;
+            double unitSize = Math.min(width/10, height/6);
+			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
 		}
-		return super.getNodeInstSizeOffset(ni);
-	}
-
+		return super.getNodeInstBaseRectangle(ni);
+    }
+    
 	/**
 	 * Method to convert old primitive port names to their proper PortProtos.
 	 * This method overrides the general Technology version and attempts Schematic-specific tests first.

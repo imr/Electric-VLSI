@@ -971,21 +971,26 @@ public class Manipulate
 			Point2D curPt = new Point2D.Double(xPos[i], yPos[i]);
 			highlighter.addMessage(np, msg, curPt);
 
-			SizeOffset so = ns.node.getSizeOffset();
-			Rectangle2D nodeBounds = ns.node.getBounds();
+            Rectangle2D nodeBounds = ns.node.getBaseShape().getBounds2D();
+//			SizeOffset so = ns.node.getSizeOffset();
+//			Rectangle2D nodeBounds = ns.node.getBounds();
 			Point2D other = null;
 			if (style[i] == Poly.Type.TEXTLEFT)
 			{
-				other = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getCenterY());
+				other = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getCenterY());
+//				other = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getCenterY());
 			} else if (style[i] == Poly.Type.TEXTRIGHT)
 			{
-				other = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getCenterY());
+				other = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
+//				other = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getCenterY());
 			} else if (style[i] == Poly.Type.TEXTTOP)
 			{
-				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY()-so.getHighYOffset());
+				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY());
+//				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY()-so.getHighYOffset());
 			} else if (style[i] == Poly.Type.TEXTBOT)
 			{
-				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY()+so.getLowYOffset());
+				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY());
+//				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY()+so.getLowYOffset());
 			}
 			highlighter.addLine(curPt, other, np);
 		}

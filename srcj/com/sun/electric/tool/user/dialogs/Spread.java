@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
+import java.awt.geom.Rectangle2D;
 
 
 /**
@@ -239,11 +240,16 @@ public class Spread extends EDialog
 		 */
 		public boolean doIt() throws JobException
 		{
-			SizeOffset so = ni.getSizeOffset();
-			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-			double sHx = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-			double sLy = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+            Rectangle2D r = ni.getBaseShape().getBounds2D();
+			double sLx = r.getMinX();
+			double sHx = r.getMaxX();
+			double sLy = r.getMinY();
+			double sHy = r.getMaxY();
+//			SizeOffset so = ni.getSizeOffset();
+//			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+//			double sHx = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+//			double sLy = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+//			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 
 			// spread it
 			CircuitChangeJobs.spreadCircuitry(ni.getParent(), ni, direction, amount, sLx, sHx, sLy, sHy);

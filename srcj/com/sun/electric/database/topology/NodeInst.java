@@ -33,6 +33,7 @@ import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -1110,9 +1111,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getLambdaBaseXSize() {
         if (protoType instanceof Cell) return protoType.getDefWidth();
-        SizeOffset so = getSizeOffset();
-        EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-        return DBMath.gridToLambda(d.size.getGridX() - 2*corrector.getGridX() - so.getLowXGridOffset() - so.getHighXGridOffset());
+        return DBMath.gridToLambda(d.size.getGridX() + getBaseRectangle().getGridWidth());
     }
 
     /**
@@ -1141,9 +1140,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getLambdaBaseYSize() {
         if (protoType instanceof Cell) return protoType.getDefHeight();
-        SizeOffset so = getSizeOffset();
-        EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-        return DBMath.gridToLambda(d.size.getGridY() - 2*corrector.getGridY() - so.getLowYGridOffset() - so.getHighYGridOffset());
+        return DBMath.gridToLambda(d.size.getGridY() + getBaseRectangle().getGridHeight());
     }
 
     /**
@@ -1194,6 +1191,50 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     @Override
     public Iterator<Poly> getShape(Poly.Builder polyBuilder) { return polyBuilder.getShape(this); }
 
+    /**
+     * Returns the polygon that describe the base highlight of this NodeInst.
+     * @return a  Poly object that describes the highlight of this NodeInst graphically.
+     */
+    public Poly getBaseShape() {
+        return getBaseShape(d.size);
+    }
+
+    /**
+     * Returns the polygon that describe the base highlight of this NodeInst with modified size.
+     * @param size modified size
+     * @return a  Poly object that describes the highlight of this NodeInst graphically.
+     */
+    public Poly getBaseShape(EPoint size) {
+        double nodeLowX;
+        double nodeHighX;
+        double nodeLowY;
+        double nodeHighY;
+        if (protoType instanceof Cell) {
+            ERectangle r = ((Cell)protoType).getBounds();
+            nodeLowX = r.getLambdaMinX();
+            nodeHighX = r.getLambdaMaxX();
+            nodeLowY = r.getLambdaMinY();
+            nodeHighY = r.getLambdaMaxY();
+        } else {
+            ERectangle baseRect = getBaseRectangle();
+            long halfW = size.getGridX() >> 1;
+            long halfH = size.getGridY() >> 1;
+            nodeLowX = DBMath.gridToLambda(-halfW + baseRect.getGridMinX());
+            nodeHighX = DBMath.gridToLambda(halfW + baseRect.getGridMaxX());
+            nodeLowY = DBMath.gridToLambda(-halfH + baseRect.getGridMinY());
+            nodeHighY = DBMath.gridToLambda(halfH + baseRect.getGridMaxY());
+        }
+        Point2D[] points;
+        if (nodeLowX != nodeHighX || nodeLowY != nodeHighY)
+            points = Poly.makePoints(nodeLowX, nodeHighX, nodeLowY, nodeHighY);
+        else
+            points = new Point2D[] { new Point2D.Double(nodeLowX, nodeLowY) };
+        Poly poly = new Poly(points);
+        AffineTransform trans = getOrient().rotateAbout(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
+        poly.transform(trans);
+        return poly;
+    }
+    
     /**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -1290,17 +1331,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
-	 * Method to get the SizeOffset associated with this NodeInst.
-	 * By invoking a method in the node's technology,
-	 * the determination of SizeOffset can be overriden by specific technologies.
-	 * @return the SizeOffset object for the NodeInst.
+	 * Method to get the base (highlight) ERectangle associated with a NodeInst
+     * in this PrimitiveNode.
+     * Base ERectangle is a highlight rectangle of standard-size NodeInst of
+     * this PrimtiveNode
+	 * By having this be a method of Technology, it can be overridden by
+	 * individual Technologies that need to make special considerations.
+	 * @param ni the NodeInst to query.
+	 * @return the base ERectangle of this PrimitiveNode.
 	 */
-	public SizeOffset getSizeOffset()
-	{
-		Technology tech = protoType.getTechnology();
-		return tech.getNodeInstSizeOffset(this);
-	}
-
+    private ERectangle getBaseRectangle() {
+        return ((PrimitiveNode)protoType).getTechnology().getNodeInstBaseRectangle(this);
+    }
+    
 //	/**
 //	 * Method to return a list of Polys that describes all text on this NodeInst.
 //	 * @param hardToSelect is true if considering hard-to-select text.
@@ -1395,28 +1438,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public Rectangle2D getUntransformedBounds()
 	{
-		if (protoType instanceof PrimitiveNode)
-		{
+        long lx, hx, ly, hy;
+		if (protoType instanceof PrimitiveNode) {
 			// primitive
-			SizeOffset so = getSizeOffset();
-			double wid = getXSize();
-			double hei = getYSize();
-			double lx = getAnchorCenterX() - wid/2;
-			double hx = lx + wid;
-			double ly = getAnchorCenterY() - hei/2;
-			double hy = ly + hei;
-			lx += so.getLowXOffset();
-			hx -= so.getHighXOffset();
-			ly += so.getLowYOffset();
-			hy -= so.getHighYOffset();
-			Rectangle2D ret = new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
-			return ret;
-		}
-
-		// cell instance
-		Rectangle2D bounds = ((Cell)protoType).getBounds();
-		Rectangle2D ret = new Rectangle2D.Double(bounds.getMinX()+getAnchorCenterX(), bounds.getMinY()+getAnchorCenterY(), bounds.getWidth(), bounds.getHeight());
-		return ret;
+            ERectangle baseRect = getBaseRectangle();
+			long halfW = d.size.getGridX() >> 1;
+			long halfH = d.size.getGridY() >> 1;
+ 			lx = -halfW + baseRect.getGridMinX();
+			hx = +halfW + baseRect.getGridMaxX();
+			ly = -halfH + baseRect.getGridMinY();
+			hy = +halfH + baseRect.getGridMaxY();
+		} else {
+            ERectangle bounds = ((Cell)protoType).getBounds();
+			lx = bounds.getGridMinX();
+			hx = bounds.getGridMaxX();
+			ly = bounds.getGridMinY();
+			hy = bounds.getGridMaxY();
+        }
+        EPoint anchor = getAnchorCenter();
+        return ERectangle.fromGrid(lx + anchor.getGridX(), ly + anchor.getGridY(), hx - lx, hy - ly);
 	}
 
     /**

@@ -637,7 +637,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * This Poly is modified in place to reduce its size.
 	 * @param pi the PortInst that describes this Poly.
 	 * @param wid the width of the arc connected to this port-poly.
-	 * This should be the offset width, not the actual width stored in memory.
+	 * This should be the base width, not the actual width stored in memory.
 	 * @param angle the angle of the arc connected to this port-poly.
 	 * If negative, do not consider arc angle.
 	 */
@@ -682,16 +682,21 @@ public class PolyBase implements Shape, PolyNodeMerge
 //		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
 
 		// compute the area of the nodeinst
-		SizeOffset so = ni.getSizeOffset();
-		Rectangle2D nodeBounds = ni.getBounds();
-		Point2D lowerLeft = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getMinY()+so.getLowYOffset());
-		trans.transform(lowerLeft, lowerLeft);
-		Point2D upperRight = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getMaxY()-so.getHighYOffset());
-		trans.transform(upperRight, upperRight);
-		double lx = lowerLeft.getX();   double hx = upperRight.getX();
-		double ly = lowerLeft.getY();   double hy = upperRight.getY();
-		if (lx > hx) { double swap = lx; lx = hx;  hx = swap; }
-		if (ly > hy) { double swap = ly; ly = hy;  hy = swap; }
+        Rectangle2D r = ni.getBaseShape().getBounds2D();
+        double lx = r.getMinX();
+        double hx = r.getMaxX();
+        double ly = r.getMinY();
+        double hy = r.getMaxY();
+//		SizeOffset so = ni.getSizeOffset();
+//		Rectangle2D nodeBounds = ni.getBounds();
+//		Point2D lowerLeft = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getMinY()+so.getLowYOffset());
+//		trans.transform(lowerLeft, lowerLeft);
+//		Point2D upperRight = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getMaxY()-so.getHighYOffset());
+//		trans.transform(upperRight, upperRight);
+//		double lx = lowerLeft.getX();   double hx = upperRight.getX();
+//		double ly = lowerLeft.getY();   double hy = upperRight.getY();
+//		if (lx > hx) { double swap = lx; lx = hx;  hx = swap; }
+//		if (ly > hy) { double swap = ly; ly = hy;  hy = swap; }
 
 		// do not reduce in X if arc is horizontal
 		if (angle != 0 && angle != 1800)

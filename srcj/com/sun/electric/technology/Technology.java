@@ -30,6 +30,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -2857,18 +2858,20 @@ public class Technology implements Comparable<Technology>, Serializable
 	public void setDefaultOutline(NodeInst ni) {}
 
 	/**
-	 * Method to get the SizeOffset associated with a NodeInst in this Technology.
+	 * Method to get the base (highlight) ERectangle associated with a NodeInst
+     * in this PrimitiveNode.
+     * Base ERectangle is a highlight rectangle of standard-size NodeInst of
+     * this PrimtiveNode
 	 * By having this be a method of Technology, it can be overridden by
 	 * individual Technologies that need to make special considerations.
 	 * @param ni the NodeInst to query.
-	 * @return the SizeOffset object for the NodeInst.
+	 * @return the base ERectangle of this PrimitiveNode.
 	 */
-	public SizeOffset getNodeInstSizeOffset(NodeInst ni)
-	{
-		NodeProto np = ni.getProto();
-		return np.getProtoSizeOffset();
-	}
-
+    public ERectangle getNodeInstBaseRectangle(NodeInst ni) {
+		PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+		return pn.getBaseRectangle();
+    }
+    
 	private static final Technology.NodeLayer [] nullPrimLayers = new Technology.NodeLayer [0];
 
 	/**

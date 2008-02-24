@@ -28,6 +28,7 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -37,7 +38,6 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
@@ -524,6 +524,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** minimum width and height rule */            private NodeSizeRule minNodeSize;
     /** size corrector */                           EPoint sizeCorrector;
 	/** offset from database to user */				private SizeOffset offset;
+    /** base (highlight) rectangle of standard node */private ERectangle baseRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
 
@@ -556,6 +557,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		setFactoryDefSize(defWidth, defHeight);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
+        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
+        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
+        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
+        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
 		this.autoGrowth = null;
 		this.minNodeSize = null;
 		globalPrimNodeIndex = primNodeNumber++;
@@ -957,6 +963,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public SizeOffset getProtoSizeOffset() { return offset; }
 
+	/**
+	 * Method to get the base (highlight) ERectangle of this PrimitiveNode.
+     * Base ERectangle is a highlight rectangle of standard-size NodeInst of
+     * this PrimtiveNode
+	 * To get the base ERectangle  for a specific NodeInst, use Technology.getBaseRectangle(ni).
+	 * Use this method only to get the base ERectangle of a PrimitiveNode.
+	 * @return the base ERectangle of this PrimitiveNode.
+	 */
+    public ERectangle getBaseRectangle() { return baseRectangle; }
+    
     public EPoint getSizeCorrector() { return sizeCorrector; }
     
 //	/**
@@ -993,13 +1009,25 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     
     public void setSizeCorrector(double refWidth, double refHeight) {
         sizeCorrector = EPoint.fromLambda(-0.5*refWidth, -0.5*refHeight);
+        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
+        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
+        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
+        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
     }
 
 	/**
 	 * Method to set the size offset of this PrimitiveNode.
 	 * @param offset the size offset of this PrimitiveNode.
 	 */
-	public void setSizeOffset(SizeOffset offset) { this.offset = offset; }
+	public void setSizeOffset(SizeOffset offset) {
+        this.offset = offset;
+        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
+        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
+        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
+        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
+    }
 
 	/**
 	 * Method to set the auto-growth factor on this PrimitiveNode.

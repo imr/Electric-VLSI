@@ -311,7 +311,7 @@ public class SizeListener
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getSizeOffset();				
+//					SizeOffset so = ni.getSizeOffset();				
 					double x = xS;
 					double y = yS;
 //					SizeOffset so = ni.getSizeOffset();				
@@ -420,16 +420,17 @@ public class SizeListener
 				NodeInst ni = (NodeInst)stretchGeom;
 				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				Point2D newSize = getNewNodeSize(evt, newCenter);
-				SizeOffset so = ni.getSizeOffset();
-				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
-
-				double stretchedLowX = newCenter.getX() - newSize.getX()/2 + so.getLowXOffset();
-				double stretchedHighX = newCenter.getX() + newSize.getX()/2 - so.getHighXOffset();
-				double stretchedLowY = newCenter.getY() - newSize.getY()/2 + so.getLowYOffset();
-				double stretchedHighY = newCenter.getY() + newSize.getY()/2 - so.getHighYOffset();
-				Poly stretchedPoly = new Poly((stretchedLowX+stretchedHighX)/2, (stretchedLowY+stretchedHighY)/2,
-					stretchedHighX-stretchedLowX, stretchedHighY-stretchedLowY);
-				stretchedPoly.transform(trans);
+                Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newSize));
+//				SizeOffset so = ni.getSizeOffset();
+//				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
+//
+//				double stretchedLowX = newCenter.getX() - newSize.getX()/2 + so.getLowXOffset();
+//				double stretchedHighX = newCenter.getX() + newSize.getX()/2 - so.getHighXOffset();
+//				double stretchedLowY = newCenter.getY() - newSize.getY()/2 + so.getLowYOffset();
+//				double stretchedHighY = newCenter.getY() + newSize.getY()/2 - so.getHighYOffset();
+//				Poly stretchedPoly = new Poly((stretchedLowX+stretchedHighX)/2, (stretchedLowY+stretchedHighY)/2,
+//					stretchedHighX-stretchedLowX, stretchedHighY-stretchedLowY);
+//				stretchedPoly.transform(trans);
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)
 				{
@@ -471,16 +472,17 @@ public class SizeListener
 
 		// get information about the node being stretched
 		NodeInst ni = (NodeInst)stretchGeom;
-		SizeOffset so = ni.getSizeOffset();
+//		SizeOffset so = ni.getSizeOffset();
 
 		// setup outline of node with standard offset
-		double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-		double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-		double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-		double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-		Poly nodePoly = new Poly((nodeLowX+nodeHighX)/2, (nodeLowY+nodeHighY)/2, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-		AffineTransform trans = ni.rotateOutAboutTrueCenter();
-		nodePoly.transform(trans);
+        Poly nodePoly = ni.getBaseShape();
+//		double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+//		double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+//		double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+//		double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+//		Poly nodePoly = new Poly((nodeLowX+nodeHighX)/2, (nodeLowY+nodeHighY)/2, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+//		AffineTransform trans = ni.rotateOutAboutTrueCenter();
+//		nodePoly.transform(trans);
 
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
@@ -578,8 +580,10 @@ public class SizeListener
 		}
 
 		// compute the new node size
-		double newXSize = (ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()) * growthRatioX;
-		double newYSize = (ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()) * growthRatioY;
+		double newXSize = ni.getLambdaBaseXSize() * growthRatioX;
+		double newYSize = ni.getLambdaBaseYSize() * growthRatioY;
+//		double newXSize = (ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()) * growthRatioX;
+//		double newYSize = (ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()) * growthRatioY;
 		Point2D newSize = new Point2D.Double(newXSize, newYSize);
 
 		// grid align the new node size
@@ -598,9 +602,9 @@ public class SizeListener
 			newCenter.setLocation((closestX + farthestX) / 2, (closestY + farthestY) / 2);
 		}
 
-		// adjust size offset to produce real size
-		newSize.setLocation(Math.abs(newSize.getX() + so.getLowXOffset() + so.getHighXOffset()),
-			Math.abs(newSize.getY() + so.getLowYOffset() + so.getHighYOffset()));
+//		// adjust size offset to produce real size
+//		newSize.setLocation(Math.abs(newSize.getX() + so.getLowXOffset() + so.getHighXOffset()),
+//			Math.abs(newSize.getY() + so.getLowYOffset() + so.getHighYOffset()));
 		return newSize;
 	}
 
@@ -652,8 +656,10 @@ public class SizeListener
 			Point2D [] points = stretchNode.getTrace();
 			if (points != null)
 			{
-				double percX = newWidth / stretchNode.getXSize();
-				double percY = newHeight / stretchNode.getYSize();
+				double percX = newWidth / stretchNode.getLambdaBaseXSize();
+				double percY = newHeight / stretchNode.getLambdaBaseYSize();
+//				double percX = newWidth / stretchNode.getXSize();
+//				double percY = newHeight / stretchNode.getYSize();
 				AffineTransform trans = stretchNode.pureRotateOut();
 				Point2D [] newPoints = new Point2D[points.length];
 				for(int i=0; i<points.length; i++)
@@ -666,8 +672,10 @@ public class SizeListener
 				stretchNode.setTrace(newPoints);
 				return true;
 			}
-            double dWid = newWidth - stretchNode.getXSize();
-            double dHei = newHeight - stretchNode.getYSize();
+            double dWid = newWidth - stretchNode.getLambdaBaseXSize();
+            double dHei = newHeight - stretchNode.getLambdaBaseYSize();
+//            double dWid = newWidth - stretchNode.getXSize();
+//            double dHei = newHeight - stretchNode.getYSize();
 			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
 				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, Orientation.IDENT);
 			return true;

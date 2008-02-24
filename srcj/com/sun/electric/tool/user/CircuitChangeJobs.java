@@ -56,7 +56,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -2247,18 +2246,21 @@ public class CircuitChangeJobs
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst oNi = it.next();
-			SizeOffset oSo = oNi.getSizeOffset();
+            Rectangle2D r = oNi.getBaseShape().getBounds2D();
+//			SizeOffset oSo = oNi.getSizeOffset();
 			if (direction == 'l' || direction == 'r')
 			{
-				if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < lX &&
-					oNi.getTrueCenterX() + oNi.getXSize()/2 - oSo.getHighXOffset() > hX)
+                if (r.getMinX() < lX && r.getMaxX() > hX)
+//				if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < lX &&
+//					oNi.getTrueCenterX() + oNi.getXSize()/2 - oSo.getHighXOffset() > hX)
 						geomSeen.add(oNi);
 				if (oNi.getTrueCenterX() == (lX+hX)/2)
 					geomSeen.add(oNi);
 			} else
 			{
-				if (oNi.getTrueCenterY() - oNi.getYSize()/2 + oSo.getLowYOffset() < lY &&
-					oNi.getTrueCenterY() + oNi.getYSize()/2 - oSo.getHighYOffset() > hY)
+                if (r.getMinY() < lY && r.getMaxY() > hY)
+//				if (oNi.getTrueCenterY() - oNi.getYSize()/2 + oSo.getLowYOffset() < lY &&
+//					oNi.getTrueCenterY() + oNi.getYSize()/2 - oSo.getHighYOffset() > hY)
 						geomSeen.add(oNi);
 				if (oNi.getTrueCenterY() == (lY+hY)/2)
 					geomSeen.add(oNi);

@@ -432,25 +432,26 @@ public abstract class Highlight2 implements Cloneable{
         // setup outline of node with standard offset
         if (poly == null)
         {
-            SizeOffset so = ni.getSizeOffset();
-            double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-            double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-            double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-            double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-            if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
-            {
-                float x = (float)nodeLowX;
-                float y = (float)nodeLowY;
-                Point2D [] outline = new Point2D[1];
-                outline[0] = new Point2D.Double(x, y);
-                poly = new Poly(outline);
-            } else
-            {
-                double nodeX = (nodeLowX + nodeHighX) / 2;
-                double nodeY = (nodeLowY + nodeHighY) / 2;
-                poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-                poly.transform(trans);
-            }
+            poly = ni.getBaseShape();
+//            SizeOffset so = ni.getSizeOffset();
+//            double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+//            double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+//            double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+//            double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+//            if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
+//            {
+//                float x = (float)nodeLowX;
+//                float y = (float)nodeLowY;
+//                Point2D [] outline = new Point2D[1];
+//                outline[0] = new Point2D.Double(x, y);
+//                poly = new Poly(outline);
+//            } else
+//            {
+//                double nodeX = (nodeLowX + nodeHighX) / 2;
+//                double nodeY = (nodeLowY + nodeHighY) / 2;
+//                poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+//                poly.transform(trans);
+//            }
         }
 
         return poly;

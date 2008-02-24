@@ -840,18 +840,22 @@ public class Quick
 			if (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
                 DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()))
 			{
-				SizeOffset so = ni.getSizeOffset();
+//				SizeOffset so = ni.getSizeOffset();
 				double minSize = 0, actual = 0;
                 String msg = "X axis";
 				if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize())
 				{
-					minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
-					actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+                    actual = ni.getLambdaBaseXSize();
+                    minSize = actual + sizeRule.getWidth() - ni.getXSize();
+//					minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
+//					actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 				} else
 				{
                     msg = "Y axis";
-					minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
-					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+                    actual = ni.getLambdaBaseYSize();
+					minSize = actual + sizeRule.getHeight() - ni.getYSize();
+//					minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
+//					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				}
 				reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
 					null, ni, null, null, null, null);

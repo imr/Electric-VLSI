@@ -1273,17 +1273,18 @@ public class Clipboard
 					if (found) continue;
 				}
 
-				SizeOffset so = ni.getSizeOffset();
-				AffineTransform trans = ni.rotateOutAboutTrueCenter();
-				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-				double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-				double nodeX = (nodeLowX + nodeHighX) / 2;
-				double nodeY = (nodeLowY + nodeHighY) / 2;
-				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+				Poly poly = ni.getBaseShape();
+//				SizeOffset so = ni.getSizeOffset();
+//				AffineTransform trans = ni.rotateOutAboutTrueCenter();
+//				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+//				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+//				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+//				double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+//				double nodeX = (nodeLowX + nodeHighX) / 2;
+//				double nodeY = (nodeLowY + nodeHighY) / 2;
+//				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				if (inPlace != null) poly.transform(inPlace);
-				poly.transform(trans);
+//				poly.transform(trans);
 				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
 			}
 

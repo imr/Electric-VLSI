@@ -340,7 +340,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         yPos.setText(TextUtils.formatDouble(initialYPos));
         boolean realMirrorX = ni.isXMirrored();
         boolean realMirrorY = ni.isYMirrored();
-        SizeOffset so = ni.getSizeOffset();
+//        SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
             xSize.setText(TextUtils.formatDouble(initYSize));
@@ -552,7 +552,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 			textFieldLabel.setText("Width:");
 			var = ni.getVar(Schematics.ATTR_WIDTH);
-			double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double width = ni.getLambdaBaseXSize();
+//			double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
 			initialTextField = Double.toString(width);
 			textField.setEditable(true);
