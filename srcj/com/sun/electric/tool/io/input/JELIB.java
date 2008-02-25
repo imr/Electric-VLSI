@@ -85,7 +85,7 @@ public class JELIB extends LibraryFiles
         try {
             parser = parse(techPool.idManager, fileURL, fileType, true, errorLogger);
         } catch (IOException e) {
-            errorLogger.logError("Error readeing " + fileURL + ": " + e.getMessage(), -1);
+            errorLogger.logError("Error reading " + fileURL + ": " + e.getMessage(), -1);
             return null;
         }
         HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
